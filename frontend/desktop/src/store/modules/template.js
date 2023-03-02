@@ -798,6 +798,14 @@ const template = {
                 }
             } else if (type === 'delete') {
                 Vue.delete(state.gateways, location.id)
+                // 如果删除的是汇聚网关则需要清除其他并行网关与之配置的converge_gateway_id
+                if (location.type === 'convergegateway') {
+                    Object.values(state.gateways).forEach(gateway => {
+                        if (gateway.converge_gateway_id === location.id) {
+                            Vue.set(state.gateways[gateway.id], 'converge_gateway_id', '')
+                        }
+                    })
+                }
             }
         },
         // 开始节点增加、删除操作，更新模板各相关字段数据
@@ -945,10 +953,7 @@ const template = {
 
             if (!validateResult.result) {
                 return new Promise((resolve, reject) => {
-                    const info = {
-                        message: `${i18n.t('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
-                    }
-                    reject(info)
+                    resolve(validateResult)
                 })
             }
             const { name } = state

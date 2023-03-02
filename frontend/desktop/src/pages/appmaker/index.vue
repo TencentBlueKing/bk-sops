@@ -74,21 +74,6 @@
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
         </AppEditDialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            data-test-id="appmaker_form_appDeleteDialog"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除轻应用？')}}
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -144,7 +129,6 @@
                 currentAppData: undefined,
                 isCreateNewApp: false,
                 isEditDialogShow: false,
-                isDeleteDialogShow: false,
                 pending: {
                     edit: false,
                     delete: false
@@ -245,15 +229,21 @@
                 this.currentAppData = app
             },
             onCardDelete (app) {
-                this.isDeleteDialogShow = true
-                this.currentAppData = app
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('轻应用') + `"${app.name}"?`,
+                    width: 450,
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(app.id)
+                    }
+                })
             },
-            async onDeleteConfirm () {
+            async onDeleteConfirm (appId) {
                 if (this.pending.delete) return
                 this.pending.delete = true
-                this.isDeleteDialogShow = false
                 try {
-                    await this.appmakerDelete(this.currentAppData.id)
+                    await this.appmakerDelete(appId)
                     this.loadData()
                     this.$bkMessage({
                         message: i18n.t('轻应用') + i18n.t('删除成功！'),
@@ -264,9 +254,6 @@
                 } finally {
                     this.pending.delete = false
                 }
-            },
-            onDeleteCancel () {
-                this.isDeleteDialogShow = false
             },
             async onEditConfirm (app, callback) {
                 if (this.pending.edit) return

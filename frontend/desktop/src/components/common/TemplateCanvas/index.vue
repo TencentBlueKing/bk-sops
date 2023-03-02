@@ -28,14 +28,15 @@
             @onCreateNodeAfter="onCreateNodeAfter"
             @onAddNodeMoving="onCreateNodeMoving"
             @onConnectionDragStop="onConnectionDragStop"
+            @onConnectionDragOnNode="onConnectionDragOnNode"
             @onConnectionClick="onConnectionClick"
-            @onBeforeDrag="onBeforeDrag"
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
             @onEndpointClick="onEndpointClick"
             @onNodeMoving="onNodeMoving"
             @onNodeMoveStop="onNodeMoveStop"
+            @onCanvasMove="onCanvasMove"
             @onOverlayClick="onOverlayClick"
             @onFrameSelectEnd="onFrameSelectEnd"
             @onCloseFrameSelect="onCloseFrameSelect">
@@ -137,21 +138,19 @@
             <!-- 节点历史执行时间展示 -->
             <div class="execute-record-tips-content" v-if="isExecRecordPanelShow">
                 <div class="content-wrap" v-bkloading="{ isLoading: execRecordLoading }">
-                    <ul>
-                        <li class="content-item">
-                            <span>{{ $t('当前已执行') }}</span>
-                            <span class="time">{{ nodeExecRecordInfo.curTime || '--' }}</span>
+                    <p v-if="nodeExecRecordInfo.count" class="record-title">
+                        {{ $t('最近 x 次成功执行耗时', { num: nodeExecRecordInfo.count > 5 ? 5 : nodeExecRecordInfo.count }) }}
+                    </p>
+                    <ul :class="['content-list', { 'no-record': !nodeExecRecordInfo.count, 'lot-record': nodeExecRecordInfo.count > 5 }]">
+                        <li class="content-item running" v-if="nodeExecRecordInfo.curTime">
+                            {{ $t('已运行') + ' ' + nodeExecRecordInfo.curTime || '--' }}
                         </li>
-                        <li class="content-item">
-                            <span>{{ $t('最近1次成功执行耗时') }}</span>
-                            <span class="time">{{ nodeExecRecordInfo.latestTime || '--' }}</span>
-                        </li>
-                        <li class="content-item">
-                            <span>{{ $t('近 n 次成功执行平均耗时', { n: nodeExecRecordInfo.count }) }}</span>
-                            <span class="time">{{ nodeExecRecordInfo.meanTime || '--' }}</span>
-                        </li>
+                        <template v-if="nodeExecRecordInfo.count">
+                            <li class="content-item" v-for="(time, index) in nodeExecRecordInfo.execTime.slice(0, 5)" :key="index">
+                                {{ time || '--' }}
+                            </li>
+                        </template>
                     </ul>
-                    <p class="deadline">{{ $t('*数据统计截至') + ' ' + nodeExecRecordInfo.deadline }}</p>
                 </div>
             </div>
             <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
@@ -317,16 +316,11 @@
                     x: 0,
                     y: 0
                 },
-                referenceLine: {
-                    x: 0,
-                    y: 0,
-                    id: '',
-                    arrow: ''
-                },
                 zoomOriginPosition: {
                     x: 0,
                     y: 0
                 },
+                sourceClickEdpId: '', // 点击端点连线时，记录源端点，连线成功或者取消连线后清空
                 endpointOptions: combinedEndpointOptions,
                 flowData,
                 connectorOptions,
@@ -430,7 +424,6 @@
                 } else {
                     this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
-                this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
             },
             onZoomOut (pos) {
@@ -440,7 +433,6 @@
                 } else {
                     this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
-                this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
             },
             onResetPosition () {
@@ -687,21 +679,11 @@
                     x: node.x - 60 - nodeLeft, // 60为画布左边栏的宽度
                     y: node.y - nodeTop
                 }
-                // 拖拽节点到线上, 自动生成连线
-                const matchLines = this.getNodeMatchLines(location)
-                if (Object.keys(matchLines).length === 1) {
-                    const lineConfig = Object.values(matchLines)[0]
-                    this.setPaintStyle(lineConfig.id, '#3a84ff')
-                    this.connectionHoverList.push(lineConfig.id)
-                } else if (this.connectionHoverList.length) {
-                    this.connectionHoverList.forEach(lineId => {
-                        this.setPaintStyle(lineId, '#a9adb6')
-                    })
-                    this.connectionHoverList = []
-                }
+                // 节点拖拽到过连线过程
+                this.onNodeToLineDragging(location)
             },
             // 拖拽到节点上自动连接
-            onConnectionDragStop (source, targetId, event) {
+            onConnectionDragOnNode (source, targetId, event) {
                 if (source.id === targetId) {
                     return false // 非分支节点不可以连接自身
                 }
@@ -741,6 +723,10 @@
                         theme: 'warning'
                     })
                 }
+            },
+            // 连线操作结束
+            onConnectionDragStop () {
+                this.sourceClickEdpId = ''
             },
             onConnectionClick (conn, e) {
                 this.activeCon = conn
@@ -1004,10 +990,20 @@
                     // 更新节点position不更新activities
                     this.$refs.jsFlow.setNodePosition(location)
                     this.$emit('onLocationChange', 'edit', location)
+                    this.$emit('onLineChange', 'add', startLine)
+                    this.$emit('onLineChange', 'add', endLine)
                     this.$nextTick(() => {
                         this.$refs.jsFlow.createConnector(startLine)
                         this.$refs.jsFlow.createConnector(endLine)
                     })
+                    // 删除节点两端插入连线的端点,id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
+                    const nodeDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
+                    const pointDoms = nodeDom && nodeDom.querySelectorAll('.insert-point')
+                    if (pointDoms.length) {
+                        Array.from(pointDoms).forEach(pointDomItem => {
+                            nodeDom.removeChild(pointDomItem)
+                        })
+                    }
                 }
             },
             // 拖拽节点到线上, 获取对应匹配连线
@@ -1156,6 +1152,17 @@
                     ...this.connectorOptions.paintStyle,
                     stroke: color
                 })
+            },
+            // 画布拖动回调
+            onCanvasMove () {
+                // 节点执行历史面板跟着画布移动
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    this.judgeNodeExecRecordPanelPos(this.activeNode)
+                }
+                // 节点快捷操作面板跟随移动
+                if (this.showShortcutPanel) {
+                    this.openShortcutPanel('node')
+                }
             },
             onOverlayClick (overlay, e) {
                 // 点击 overlay 类型
@@ -1311,17 +1318,9 @@
                 })
                 return position
             },
-            onBeforeDrag (data) {
-                if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
-                    this.clearReferenceLine()
-                }
-            },
             // 节点拖动回调
             onNodeMoving (node) {
-                // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
-                if (this.referenceLine.id && this.referenceLine.id === node.id) {
-                    this.clearReferenceLine()
-                }
+                // 关闭快捷菜单面板
                 if (this.activeNode) {
                     this.closeShortcutPanel()
                 }
@@ -1341,17 +1340,11 @@
                     x: nodeLeft,
                     y: nodeTop
                 }
-                // 拖拽节点到线上, 自动生成连线
-                const matchLines = this.getNodeMatchLines(location)
-                if (Object.keys(matchLines).length === 1) {
-                    const lineConfig = Object.values(matchLines)[0]
-                    this.setPaintStyle(lineConfig.id, '#3a84ff')
-                    this.connectionHoverList.push(lineConfig.id)
-                } else if (this.connectionHoverList.length) {
-                    this.connectionHoverList.forEach(lineId => {
-                        this.setPaintStyle(lineId, '#a9adb6')
-                    })
-                    this.connectionHoverList = []
+                // 节点拖拽到过连线过程
+                this.onNodeToLineDragging(location)
+                // 节点执行历史面板跟着节点移动
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    this.judgeNodeExecRecordPanelPos(location)
                 }
             },
             /**
@@ -1440,95 +1433,100 @@
                     }
                 })
             },
-            // 初始化生成参考线
-            createReferenceLine () {
-                const canvas = document.querySelector('.canvas-flow-wrap')
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-                svg.setAttribute('id', 'referenceLine')
-                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-                svg.setAttribute('version', '1.1')
-                svg.setAttribute('style', 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events: none;')
-
-                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-                const marker = `
-                    <marker id="arrow" markerWidth="10" markerHeight="10" refx="0" refy="2" orient="auto" markerUnits="strokeWidth">
-                        <path d="M0,0 L0,4 L6,2 z" fill="#979ba5" />
-                    </marker>
-                `
-                defs.innerHTML = marker
-
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-                line.setAttribute('id', 'referencePath')
-                line.setAttribute('marker-end', 'url(#arrow)')
-                line.setAttribute('x1', '0')
-                line.setAttribute('y1', '0')
-                line.setAttribute('x2', '0')
-                line.setAttribute('y2', '0')
-                line.setAttribute('style', 'stroke:#979ba5;stroke-width:2')
-                line.setAttribute('id', 'referencePath')
-
-                svg.appendChild(defs)
-                svg.appendChild(line)
-                canvas.appendChild(svg)
-                document.body.addEventListener('mousedown', this.clearReferenceLine, { once: true })
-            },
-            // 更新参考线位置
-            updataReferenceLinePositon (startPos, endPos) {
-                const referencePath = document.getElementById('referencePath')
-                if (referencePath) {
-                    referencePath.setAttribute('x1', startPos.x)
-                    referencePath.setAttribute('y1', startPos.y)
-                    referencePath.setAttribute('x2', endPos.x)
-                    referencePath.setAttribute('y2', endPos.y)
+            // 节点拖拽到过连线过程
+            onNodeToLineDragging (location) {
+                if (!location) return
+                // 获取父级节点dom, id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
+                const parentDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
+                // 拖拽节点到线上, 自动匹配连线
+                const matchLines = this.getNodeMatchLines(location)
+                if (Object.keys(matchLines).length === 1) {
+                    const lineConfig = Object.values(matchLines)[0]
+                    this.setPaintStyle(lineConfig.id, '#3a84ff')
+                    this.connectionHoverList.push(lineConfig.id)
+                    // 节点宽高
+                    let nodeWidth, nodeHeight
+                    if (['tasknode', 'subflow'].includes(location.type)) {
+                        nodeWidth = 154
+                        nodeHeight = 54
+                    } else {
+                        nodeWidth = 34
+                        nodeHeight = 34
+                    }
+                    const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px; color: #3a84ff;'
+                    // 判断端点是否已经创建
+                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    if (!pointDoms.length) {
+                        // 创建节点两边插入连线的端点
+                        const pointDom1 = document.createElement('span')
+                        const pointDom2 = document.createElement('span')
+                        pointDom1.className = 'bk-icon icon-plus-circle-shape insert-point'
+                        pointDom2.className = 'bk-icon icon-plus-circle-shape insert-point'
+                        if (lineConfig.segmentPosition.width > 8) { // 平行
+                            if (!location.id) { // 还未生成的节点
+                                const { x, y } = location
+                                const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
+                                pointDom2.style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                            } else {
+                                pointDom1.style.cssText = defaultAttribute + `left: -7px; top: ${(nodeHeight - 14) / 2}px;`
+                                pointDom2.style.cssText = defaultAttribute + `right: -7px; top: ${(nodeHeight - 14) / 2}px;`
+                            }
+                        } else { // 垂直
+                            if (!location.id) { // 还未生成的节点
+                                const { x, y } = location
+                                const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
+                                pointDom2.style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                            } else {
+                                pointDom1.style.cssText = defaultAttribute + `top: -7px; left: ${(nodeWidth - 14) / 2}px;`
+                                pointDom2.style.cssText = defaultAttribute + `bottom: -7px; left: ${(nodeWidth - 14) / 2}px;`
+                            }
+                        }
+                        parentDom.appendChild(pointDom1)
+                        parentDom.appendChild(pointDom2)
+                    } else if (!location.id) { // 未创建的节点拖拽时需要实时计算端点的位置
+                        const doms = Array.from(pointDoms)
+                        if (lineConfig.segmentPosition.width > 8) { // 平行
+                            const { x, y } = location
+                            const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
+                            doms[1].style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                        } else { // 垂直
+                            const { x, y } = location
+                            const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
+                            doms[1].style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                        }
+                    }
+                } else if (this.connectionHoverList.length) {
+                    this.connectionHoverList.forEach(lineId => {
+                        this.setPaintStyle(lineId, '#a9adb6')
+                    })
+                    this.connectionHoverList = []
+                    // 移除节点两边插入连线的端点
+                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    if (pointDoms.length) {
+                        Array.from(pointDoms).forEach(pointDomItem => {
+                            parentDom.removeChild(pointDomItem)
+                        })
+                    }
                 }
-            },
-            // 清除参考线
-            clearReferenceLine () {
-                const canvas = document.querySelector('.canvas-flow-wrap')
-                const line = document.getElementById('referenceLine')
-                if (canvas && line) {
-                    canvas.removeChild(line)
-                }
-                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
-                this.referenceLine = {}
             },
             // 锚点点击回调
             onEndpointClick (edp, event) {
                 if (!this.editable) {
                     return false
                 }
-                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                const { left, top, width, height } = edp.canvas.getBoundingClientRect()
-                const type = edp.anchor.cssClass
-                const bX = left + width / 2 - offsetX
-                const bY = top + height / 2 - offsetY
-                // 第二次点击
-                if (this.referenceLine.id && edp.elementId !== this.referenceLine.id) {
-                    this.createLine(
-                        { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
-                        { id: edp.elementId, arrow: type }
-                    )
-                    this.clearReferenceLine()
-                    return false
+                // 有源端点点击记录，说明当前是点击目标端点连线
+                if (this.sourceClickEdpId) {
+                    this.sourceClickEdpId = ''
+                    return
                 }
+                this.sourceClickEdpId = edp.id
                 // 触发端点拖拽事件
                 const endPointDom = event.target.parentNode.parentNode
                 Object.values(endPointDom.__ta.mousedown)[0](event)
-                this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
-            },
-            // 鼠标移动更新参考线
-            handleReferenceLine (e) {
-                const { pageX, pageY } = e
-                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                const bX = pageX - offsetX
-                const bY = pageY - offsetY
-                const endPos = { x: bX, y: bY }
-                const animationFrame = () => {
-                    return window.requestAnimationFrame || function (fn) {
-                        setTimeout(fn, 1000 / 60)
-                    }
-                }
-                animationFrame(this.updataReferenceLinePositon(this.referenceLine, endPos))
             },
             // 创建节点间连线
             createLine (source, target, condition) {
@@ -1541,7 +1539,6 @@
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', line)
                     this.$refs.jsFlow.createConnector(line)
-                    this.referenceLine.id = ''
                     return true
                 } else {
                     this.$bkMessage({
@@ -1652,6 +1649,28 @@
                 if (this.activeNode && node.id !== this.activeNode.id) {
                     this.closeShortcutPanel()
                 }
+                this.isPerspectivePanelShow = false
+                this.isExecRecordPanelShow = false
+                // 节点透视面板展开
+                if (this.isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)) {
+                    this.nodeVariable = this.nodeVariableInfo[node.id] || { input: [], output: [] }
+                    this.isPerspectivePanelShow = true
+                }
+                // 展开节点历史执行时间
+                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode') {
+                    this.execRecordLoading = true
+                    this.isExecRecordPanelShow = true
+                    this.$emit('nodeExecRecord', node.id)
+                }
+                // 计算位置
+                if (this.isPerspectivePanelShow || this.isExecRecordPanelShow) {
+                    this.activeNode = node
+                    this.judgeNodeExecRecordPanelPos(node)
+                }
+            },
+            // 计算节点执行历史/输入输出面板位置
+            judgeNodeExecRecordPanelPos (node) {
+                if (!node) return
                 // 节点提示面板宽度
                 const { x, y, type, id } = node
                 // 计算判断节点右边的距离是否够展示气泡卡片
@@ -1659,8 +1678,8 @@
                 if (!nodeDom) return
                 const { left: nodeLeft, right: nodeRight } = nodeDom.getBoundingClientRect()
                 const bodyWidth = document.body.offsetWidth
-                // 235节点的气泡卡片展示最小宽度
-                const isRight = bodyWidth - nodeRight > 235
+                // 200节点的气泡卡片展示最小宽度
+                const isRight = bodyWidth - nodeRight > 200
                 // 设置坐标
                 const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
                 const top = y + offsetY - 10
@@ -1679,24 +1698,12 @@
                         padding: '0 15px 0 0'
                     }
                 }
-                this.isPerspectivePanelShow = false
-                this.isExecRecordPanelShow = false
-                // 节点透视面板展开
-                if (this.isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)) {
-                    this.nodeVariable = this.nodeVariableInfo[node.id] || { input: [], output: [] }
-                    this.isPerspectivePanelShow = true
-                }
-                // 展开节点历史执行时间
-                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode') {
-                    this.execRecordLoading = true
-                    this.isExecRecordPanelShow = true
-                    this.$emit('nodeExecRecord', id)
-                }
             },
             // 关闭节点历史执行时间
             closeNodeExecRecord () {
                 this.isExecRecordPanelShow = false
                 this.execRecordLoading = false
+                this.activeNode = null
                 this.$emit('closeNodeExecRecord')
             },
             // 点击节点
@@ -1707,22 +1714,26 @@
                     this.onShowNodeConfig(id)
                     return
                 }
-                if (this.referenceLine.id) {
-                    this.referenceLine = {}
-                    return
-                }
                 // 快捷菜单面板
                 if (type !== 'endpoint') {
-                    if (this.activeNode && this.activeNode.id) {
-                        this.onUpdateNodeInfo(this.activeNode.id, { isActived: false })
-                        this.toggleNodeLevel(this.activeNode.id, false)
-                        this.onUpdateNodeInfo(id, { isActived: true })
-                        this.toggleNodeLevel(id, true)
-                    }
+                    // 设置节点选中状态
+                    this.setNodeActive(id)
                     this.activeCon = null
                     this.activeNode = this.canvasData.locations.find(item => item.id === id)
                     this.openShortcutPanel('node')
                 }
+            },
+            // 设置节点选中状态
+            setNodeActive (id) {
+                // 取消上个节点的选中态，给当前点击节点加上选中态
+                this.$nextTick(() => {
+                    if (this.activeNode && this.activeNode.id) {
+                        this.onUpdateNodeInfo(this.activeNode.id, { isActived: false })
+                        this.toggleNodeLevel(this.activeNode.id, false)
+                    }
+                    this.onUpdateNodeInfo(id, { isActived: true })
+                    this.toggleNodeLevel(id, true)
+                })
             },
             /**
              * 节点双击
@@ -1730,6 +1741,8 @@
             onNodeDblclick (id) {
                 this.onShowNodeConfig(id)
                 this.closeShortcutPanel()
+                // 设置节点选中状态
+                this.setNodeActive(id)
             },
             // 显示快捷节点面板
             openShortcutPanel (type, e) {
@@ -1783,6 +1796,10 @@
                 this.$emit('onLocationChange', 'copy', location)
                 this.$nextTick(() => {
                     this.addNodeToSelectedList(location)
+                    // 设置节点选中状态
+                    this.setNodeActive(location.id)
+                    this.activeNode = location
+                    this.openShortcutPanel('node')
                 })
             },
             // 节点后面追加
@@ -1797,6 +1814,8 @@
                         this.shortcutPanelNodeOperate = false
                     }
                     this.$refs.jsFlow.createConnector(line)
+                    // 设置节点选中状态
+                    this.setNodeActive(location.id)
                     this.activeNode = location
                     this.openShortcutPanel('node')
                 })
@@ -1812,9 +1831,12 @@
                 // 删除旧的连线，创建新的连线
                 const result = this.updateConnector({ startNodeId, endNodeId, location, startLineArrow, endLineArrow })
                 if (!result) return
-                const { deleteLine, startLine, endLine } = result
+                const { startLine, endLine } = result
+                // 先创建节点再生成连线
                 this.$refs.jsFlow.createNode(location)
                 this.$emit('onLocationChange', type, location)
+                this.$emit('onLineChange', 'add', startLine)
+                this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
                     // 添加网关节点时禁止对该节点操作
                     if (location.type.includes('gateway') > -1) {
@@ -1822,9 +1844,19 @@
                     }
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
+                    // 设置节点选中状态
+                    this.setNodeActive(location.id)
                     this.activeNode = location
                     this.openShortcutPanel('node')
                 })
+            },
+            // 更新连线
+            updateConnector ({ startNodeId, endNodeId, location, startLineArrow = {}, endLineArrow = {} }) {
+                // 查找旧的连线
+                const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
+                if (!deleteLine) {
+                    return false
+                }
                 // 拷贝插入节点前网关的配置
                 let gateways = this.$store.state.template.gateways
                 gateways = tools.deepClone(gateways)
@@ -1832,23 +1864,19 @@
                 if (startNodeId in gateways) {
                     const branchInfo = gateways[startNodeId]
                     const { conditions, default_condition } = branchInfo
-                    if (!conditions) return
-                    const tagCode = `branch_${startNodeId}_${location.id}`
-                    conditions.tag = tagCode
-                    this.conditionInfo = conditions[deleteLine.id]
-                    if (default_condition && default_condition.flow_id === deleteLine.id) {
-                        default_condition.tag = tagCode
-                        this.conditionInfo = { ...default_condition, default_condition }
+                    if (conditions) {
+                        const tagCode = `branch_${startNodeId}_${location.id}`
+                        conditions.tag = tagCode
+                        this.conditionInfo = conditions[deleteLine.id]
+                        if (default_condition && default_condition.flow_id === deleteLine.id) {
+                            default_condition.tag = tagCode
+                            this.conditionInfo = { ...default_condition, default_condition }
+                        }
                     }
                 }
-            },
-            // 更新连线
-            updateConnector ({ startNodeId, endNodeId, location, startLineArrow = {}, endLineArrow = {} }) {
-                const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
-                if (!deleteLine) {
-                    return false
-                }
+                // 删除旧的连线
                 this.$refs.jsFlow.removeConnector(deleteLine)
+                // 新联连线配置
                 const startLine = {
                     source: {
                         arrow: startLineArrow.source || 'Right',
@@ -1869,8 +1897,6 @@
                         arrow: endLineArrow.target || 'Left'
                     }
                 }
-                this.$emit('onLineChange', 'add', startLine)
-                this.$emit('onLineChange', 'add', endLine)
                 return { deleteLine, startLine, endLine }
             },
             // 通过快捷面板删除连线
@@ -2025,8 +2051,7 @@
                 if (this.showShortcutPanel) {
                     const domClass = this.shortcutPanelDeleteLine ? 'jtk-connector' : 'canvas-node'
                     if (!dom.parentClsContains(`${domClass}`, e.target) && !dom.parentClsContains('shortcut-panel', e.target)) {
-                        this.connectorPosition = {}
-                        this.showShortcutPanel = false
+                        this.closeShortcutPanel()
                     }
                 }
             },
@@ -2277,7 +2302,7 @@
             box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
         }
         .jtk-endpoint {
-            z-index: 3;
+            z-index: 5;
         }
         .jsflow-node {
             z-index: 4;
@@ -2342,6 +2367,7 @@
                 &.template-canvas-endpoint {
                     background-repeat: no-repeat;
                     background-size: 24px;
+                    // background-image: url('~@/assets/images/endpoint.svg');
                     &.jtk-endpoint-highlight {
                         background-image: url('~@/assets/images/endpoint.svg');
                     }
@@ -2367,6 +2393,7 @@
                 &.template-canvas-endpoint.jtk-dragging {
                     background-image: url('~@/assets/images/endpoint-dragging.png');
                     background-position: bottom 50% left 50%;
+                    pointer-events: none;
                     z-index: 3;
                 }
             }
@@ -2441,41 +2468,82 @@
     .node-tips-content {
         position: absolute;
         z-index: 5;
-        min-width: 235px;
+        min-width: 200px;
         .execute-record-tips-content {
             margin-bottom: 8px;
             .content-wrap {
                 width: 100%;
                 font-size: 12px;
                 background: #fff;
-                padding: 12px 16px;
+                padding: 16px;
                 border: 1px solid #dcdee5;
                 box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+                border-radius: 2px;
+            }
+            .record-title {
+                line-height: 19px;
+                font-size: 14px;
+                color: #63656e;
+                font-weight: 700;
+                margin-bottom: 12px;
+            }
+            .content-list {
+                position: relative;
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 7px;
+                    left: 4px;
+                    width: 1px;
+                    height: calc(100% - 14px);
+                    background: #d8d8d8;
+                }
+                &.no-record::before {
+                    content: none;
+                }
+                &.lot-record::after {
+                    content: '';
+                    position: absolute;
+                    top: calc(100% - 7px);
+                    left: 4px;
+                    height: 16px;
+                    width: 1px;
+                    border-left: 1px dashed #d8d8d8;
+                }
             }
             .content-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                color: #979ba5;
-                margin-bottom: 8px;
-                &:first-child {
-                    color: #699df4;
-                    .time {
-                        font-weight: 700;
+                position: relative;
+                line-height: 22px;
+                font-size: 14px;
+                color: #63656e;
+                padding-left: 24px;
+                margin-bottom: 12px;
+                &::before {
+                    content: '';
+                    display: inline-block;
+                    position: absolute;
+                    top: 7px;
+                    left: 0;
+                    height: 9px;
+                    width: 9px;
+                    background: #fff;
+                    border: 2px solid #d8d8d8;
+                    border-radius: 50%;
+                    box-sizing: border-box;
+                }
+                &.running {
+                    color: #3a84ff;
+                    &::before {
+                        top: 5px;
+                        left: -2px;
+                        height: 13px;
+                        width: 13px;
+                        border-color: #3a84ff;
                     }
                 }
                 &:last-child {
-                    margin-bottom: 15px;
+                    margin-bottom: 9px;
                 }
-                .time {
-                    color: #63656e;
-                    padding-left: 15px;
-                }
-            }
-            .deadline {
-                color: #c4c6cc;
-                padding-top: 8px;
-                border-top: 1px solid #dcdee5;
             }
         }
         .perspective-tips-context {
@@ -2497,7 +2565,11 @@
                 }
             }
             .tip-label {
-                color: #979ba5;
+                line-height: 19px;
+                font-size: 14px;
+                color: #63656e;
+                font-weight: 700;
+                margin-bottom: 8px !important;
             }
             .dividLine {
                 height: 1px;

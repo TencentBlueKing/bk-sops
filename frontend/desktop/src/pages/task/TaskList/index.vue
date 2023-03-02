@@ -161,20 +161,6 @@
                 </div>
             </skeleton>
         </div>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: deletaLoading, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -389,10 +375,7 @@
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 isInitCreateMethod: false,
-                isDeleteDialogShow: false,
                 deletaLoading: false,
-                theDeleteTaskId: undefined,
-                theDeleteTaskName: '',
                 initOpenTask: [],
                 selectedTaskId: ''
             }
@@ -718,17 +701,21 @@
                     this.onTaskPermissonCheck(['task_delete'], task)
                     return
                 }
-                this.theDeleteTaskId = task.id
-                this.theDeleteTaskName = task.name
-                this.isDeleteDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('任务') + '"' + task.name + '"?',
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(task.id)
+                    }
+                })
             },
-            async onDeleteConfirm () {
+            async onDeleteConfirm (taskId) {
                 if (this.deletaLoading) return
                 this.deletaLoading = true
                 try {
-                    await this.deleteTask(this.theDeleteTaskId)
-                    this.theDeleteTaskId = undefined
-                    this.theDeleteTaskName = ''
+                    await this.deleteTask(taskId)
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -745,14 +732,8 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.isDeleteDialogShow = false
                     this.deletaLoading = false
                 }
-            },
-            onDeleteCancel () {
-                this.theDeleteTaskId = undefined
-                this.theDeleteTaskName = ''
-                this.isDeleteDialogShow = false
             },
             /**
              * 单个任务操作项点击时校验
