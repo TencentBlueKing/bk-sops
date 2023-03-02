@@ -19,6 +19,7 @@
                 :node-display-status="nodeDisplayStatus"
                 :selected-flow-path="selectedFlowPath"
                 :default-active-id="defaultActiveId"
+                @onOpenGatewayInfo="onOpenGatewayInfo"
                 @onNodeClick="onNodeClick"
                 @onSelectNode="onSelectNode">
             </NodeTree>
@@ -28,7 +29,7 @@
                 :class="['execute-info', { 'loading': loading }]"
                 v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
                 <div class="execute-head">
-                    <span class="node-name">{{executeInfo.name}}</span>
+                    <span class="node-name">{{isCondition ? conditionData.name : executeInfo.name}}</span>
                     <div class="node-state">
                         <span :class="displayStatus"></span>
                         <span class="status-text-messages">{{nodeState}}</span>
@@ -39,78 +40,89 @@
                     type="unborder-card"
                     ext-cls="execute-info-tab"
                     @tab-change="onTabChange">
-                    <bk-tab-panel name="record" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" v-if="!loading && ['tasknode', 'subflow'].includes(location.type)" :label="$t('配置快照')"></bk-tab-panel>
-                    <bk-tab-panel name="history" :label="$t('操作历史')"></bk-tab-panel>
-                    <bk-tab-panel name="log" :label="$t('调用日志')"></bk-tab-panel>
+                    <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行记录')"></bk-tab-panel>
+                    <bk-tab-panel name="config" v-if="isCondition || (!loading && ['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
+                    <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
+                    <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
                 </bk-tab>
                 <div class="scroll-area">
-                    <section class="execute-time-section" v-if="isExecuteTimeShow">
-                        <div class="cycle-wrap" v-if="loop > 1">
-                            <span>{{$t('第')}}</span>
-                            <bk-select
-                                :clearable="false"
-                                :value="theExecuteTime"
-                                @selected="onSelectExecuteTime">
-                                <bk-option
-                                    v-for="index in loop"
-                                    :key="index"
-                                    :id="index"
-                                    :name="index">
-                                </bk-option>
-                            </bk-select>
-                            <span>{{$t('次循环')}}</span>
-                        </div>
-                        <span class="divid-line" v-if="loop > 1 && historyInfo.length > 1"></span>
-                        <div class="time-wrap" v-if="historyInfo.length > 1">
-                            <span>{{$t('第')}}</span>
-                            <bk-select
-                                :clearable="false"
-                                :value="theExecuteRecord"
-                                @selected="onSelectExecuteRecord">
-                                <bk-option
-                                    v-for="index in historyInfo.length"
-                                    :key="index"
-                                    :id="index"
-                                    :name="index">
-                                </bk-option>
-                            </bk-select>
-                            <span>{{$t('次执行')}}</span>
-                        </div>
-                    </section>
-                    <ExecuteRecord
-                        v-if="curActiveTab === 'record'"
-                        :admin-view="adminView"
-                        :loading="loading"
-                        :location="location"
-                        :is-ready-status="isReadyStatus"
-                        :node-activity="nodeActivity"
-                        :execute-info="executeRecord"
-                        :node-detail-config="nodeDetailConfig"
-                        :is-sub-process-node="isSubProcessNode">
-                    </ExecuteRecord>
-                    <ExecuteInfoForm
-                        v-else-if="curActiveTab === 'config'"
-                        :node-activity="nodeActivity"
-                        :execute-info="executeInfo"
-                        :node-detail-config="nodeDetailConfig"
-                        :constants="pipelineData.constants"
-                        :is-third-party-node="isThirdPartyNode"
-                        :third-party-node-code="thirdPartyNodeCode"
-                        :is-sub-process-node="isSubProcessNode">
-                    </ExecuteInfoForm>
-                    <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
-                        <NodeOperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></NodeOperationFlow>
-                    </section>
-                    <NodeLog
-                        v-else-if="curActiveTab === 'log'"
-                        ref="nodeLog"
-                        :admin-view="adminView"
-                        :node-detail-config="nodeDetailConfig"
-                        :execute-info="executeRecord"
-                        :third-party-node-code="thirdPartyNodeCode"
-                        :engine-ver="engineVer">
-                    </NodeLog>
+                    <task-condition
+                        v-if="isCondition"
+                        ref="conditionEdit"
+                        :is-readonly="true"
+                        :is-show.sync="isShow"
+                        :gateways="gateways"
+                        :condition-data="conditionData"
+                        @close="close">
+                    </task-condition>
+                    <template v-else>
+                        <section class="execute-time-section" v-if="isExecuteTimeShow">
+                            <div class="cycle-wrap" v-if="loop > 1">
+                                <span>{{$t('第')}}</span>
+                                <bk-select
+                                    :clearable="false"
+                                    :value="theExecuteTime"
+                                    @selected="onSelectExecuteTime">
+                                    <bk-option
+                                        v-for="index in loop"
+                                        :key="index"
+                                        :id="index"
+                                        :name="index">
+                                    </bk-option>
+                                </bk-select>
+                                <span>{{$t('次循环')}}</span>
+                            </div>
+                            <span class="divid-line" v-if="loop > 1 && historyInfo.length > 1"></span>
+                            <div class="time-wrap" v-if="historyInfo.length > 1">
+                                <span>{{$t('第')}}</span>
+                                <bk-select
+                                    :clearable="false"
+                                    :value="theExecuteRecord"
+                                    @selected="onSelectExecuteRecord">
+                                    <bk-option
+                                        v-for="index in historyInfo.length"
+                                        :key="index"
+                                        :id="index"
+                                        :name="index">
+                                    </bk-option>
+                                </bk-select>
+                                <span>{{$t('次执行')}}</span>
+                            </div>
+                        </section>
+                        <ExecuteRecord
+                            v-if="curActiveTab === 'record'"
+                            :admin-view="adminView"
+                            :loading="loading"
+                            :location="location"
+                            :is-ready-status="isReadyStatus"
+                            :node-activity="nodeActivity"
+                            :execute-info="executeRecord"
+                            :node-detail-config="nodeDetailConfig"
+                            :is-sub-process-node="isSubProcessNode">
+                        </ExecuteRecord>
+                        <ExecuteInfoForm
+                            v-else-if="curActiveTab === 'config'"
+                            :node-activity="nodeActivity"
+                            :execute-info="executeInfo"
+                            :node-detail-config="nodeDetailConfig"
+                            :constants="pipelineData.constants"
+                            :is-third-party-node="isThirdPartyNode"
+                            :third-party-node-code="thirdPartyNodeCode"
+                            :is-sub-process-node="isSubProcessNode">
+                        </ExecuteInfoForm>
+                        <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
+                            <NodeOperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></NodeOperationFlow>
+                        </section>
+                        <NodeLog
+                            v-else-if="curActiveTab === 'log'"
+                            ref="nodeLog"
+                            :admin-view="adminView"
+                            :node-detail-config="nodeDetailConfig"
+                            :execute-info="executeRecord"
+                            :third-party-node-code="thirdPartyNodeCode"
+                            :engine-ver="engineVer">
+                        </NodeLog>
+                    </template>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
                     <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
@@ -167,6 +179,7 @@
     import ExecuteRecord from './ExecuteInfo/ExecuteRecord.vue'
     import NodeLog from './ExecuteInfo/NodeLog.vue'
     import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
+    import taskCondition from './taskCondition.vue'
 
     export default {
         name: 'ExecuteInfo',
@@ -175,7 +188,8 @@
             NodeOperationFlow,
             ExecuteRecord,
             NodeLog,
-            ExecuteInfoForm
+            ExecuteInfoForm,
+            taskCondition
         },
         props: {
             adminView: {
@@ -225,6 +239,15 @@
             nodeDisplayStatus: {
                 type: Object,
                 required: true
+            },
+            isCondition: Boolean, // 是否网关条件
+            isShow: Boolean,
+            gateways: Object,
+            conditionData: Object,
+            backToVariablePanel: Boolean,
+            isReadonly: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -292,6 +315,7 @@
             },
             location () {
                 const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
+                // if (this.isCondition) return false
                 return this.pipelineData.location.find(item => {
                     if (item.id === node_id || subprocess_stack.includes(item.id)) {
                         return true
@@ -414,6 +438,12 @@
             },
             onNodeClick (id, type, event) {
                 this.$emit('onNodeClick', id, type)
+            },
+            onOpenGatewayInfo (data, isCondition) {
+                this.$emit('onOpenGatewayInfo', data, isCondition)
+            },
+            close () {
+                this.$emit('close')
             },
             // 补充记录缺少的字段
             async setFillRecordField (record) {
