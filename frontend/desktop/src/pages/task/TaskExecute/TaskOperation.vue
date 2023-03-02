@@ -168,58 +168,11 @@
             @onConfirm="onConfirmGatewaySelect"
             @onCancel="onCancelGatewaySelect">
         </gatewaySelectDialog>
-        <revokeDialog
-            :is-revoke-dialog-show="isRevokeDialogShow"
-            @onConfirmRevokeTask="onConfirmRevokeTask"
-            @onCancelRevokeTask="onCancelRevokeTask">
-        </revokeDialog>
         <injectVariableDialog
             :is-inject-var-dialog-show="isInjectVarDialogShow"
             @onConfirmInjectVar="onConfirmInjectVar"
             @onCancelInjectVar="onCancelInjectVar">
         </injectVariableDialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('跳过节点')"
-            :loading="pending.skip"
-            :value="isSkipDialogShow"
-            data-test-id="taskExcute_dialog_skipNodeDialog"
-            @confirm="nodeTaskSkip(skipNodeId)"
-            @cancel="onSkipCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该节点继续往后执行？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('强制终止')"
-            :loading="pending.forceFail"
-            :value="isForceFailDialogShow"
-            data-test-id="taskExcute_dialog_forceFailDialog"
-            @confirm="nodeForceFail(forceFailId)"
-            @cancel="onForceFailCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否强制终止该节点？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('继续执行')"
-            :loading="pending.parseNodeResume"
-            :value="isNodeResumeDialogShow"
-            data-test-id="taskExcute_dialog_resumeDialog"
-            @confirm="nodeResume(nodeResumeId)"
-            @cancel="onTaskNodeResumeCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成该节点继续向后执行？') }}</div>
-        </bk-dialog>
         <condition-edit
             v-if="isShowConditionEdit"
             ref="conditionEdit"
@@ -275,7 +228,6 @@
     import GlobalVariable from './GlobalVariable.vue'
     import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
-    import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
@@ -327,7 +279,6 @@
             GlobalVariable,
             TaskInfo,
             gatewaySelectDialog,
-            revokeDialog,
             TaskOperationHeader,
             TemplateData,
             ConditionEdit,
@@ -395,14 +346,7 @@
                     subflowResume: false
                 },
                 activeOperation: '', // 当前任务操作（头部区域操作按钮触发）
-                isRevokeDialogShow: false,
-                isSkipDialogShow: false,
-                skipNodeId: undefined,
                 retryNodeId: undefined,
-                isForceFailDialogShow: false,
-                forceFailId: undefined,
-                isNodeResumeDialogShow: false,
-                nodeResumeId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
@@ -631,15 +575,23 @@
                         if (this.state === 'SUSPENDED') {
                             suspendedRunning = Object.values(instanceStatus.data.children).some(item => item.state === 'RUNNING')
                         }
-                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
-                            if (this.isExecRecordOpen) {
-                                const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
-                                this.nodeExecRecordInfo.curTime = this.formatDuring(execNodeConfig.elapsed_time)
-                                if (execNodeConfig.state === 'RUNNING') { // 节点执行中一秒查一次
-                                    this.setTaskStatusTimer(1000)
-                                } else {
-                                    this.setTaskStatusTimer()
+                        // 节点执行记录显示时，重新计算当前执行时间/判断是否还在执行中
+                        if (this.isExecRecordOpen) {
+                            const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
+                            if (execNodeConfig) {
+                                const elapsedTime = this.formatDuring(execNodeConfig.elapsed_time)
+                                if (execNodeConfig.state === 'RUNNING') {
+                                    this.nodeExecRecordInfo.curTime = elapsedTime
+                                } else if (this.nodeExecRecordInfo.curTime) {
+                                    this.nodeExecRecordInfo.curTime = ''
+                                    this.nodeExecRecordInfo.execTime.unshift(elapsedTime)
                                 }
+                                this.nodeExecRecordInfo.state = execNodeConfig.state
+                            }
+                        }
+                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
+                            if (this.isExecRecordOpen && this.nodeExecRecordInfo.state) { // 节点执行中一秒查一次
+                                this.setTaskStatusTimer(1000)
                             } else {
                                 this.setTaskStatusTimer()
                             }
@@ -833,6 +785,7 @@
             },
             async taskRevoke () {
                 try {
+                    this.activeOperation = 'revoke'
                     const res = await this.instanceRevoke(this.instance_id)
                     if (res.result) {
                         this.state = 'REVOKED'
@@ -865,9 +818,7 @@
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
                         this.isNodeInfoPanelShow = false
-                        this.isSkipDialogShow = false
                         this.nodeInfoType = ''
-                        this.skipNodeId = undefined
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
                             theme: 'success'
@@ -898,10 +849,8 @@
                             message: i18n.t('强制终止执行成功'),
                             theme: 'success'
                         })
-                        this.isForceFailDialogShow = false
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
-                        this.forceFailId = undefined
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -953,10 +902,8 @@
                             message: i18n.t('继续成功'),
                             theme: 'success'
                         })
-                        this.isNodeResumeDialogShow = false
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
-                        this.nodeResumeId = undefined
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -1052,7 +999,7 @@
                             await this.loadNodeInfo(id)
                         }
                     } else {
-                        this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
+                        this.openNodeInfoPanel('modifyParams', i18n.t('重试'))
                         this.retryNodeId = id
                     }
                 } catch (error) {
@@ -1120,12 +1067,15 @@
                 }
             },
             onSkipClick (id) {
-                this.isSkipDialogShow = true
-                this.skipNodeId = id
-            },
-            onSkipCancel () {
-                this.isSkipDialogShow = false
-                this.skipNodeId = undefined
+                this.$bkInfo({
+                    title: i18n.t('确定跳过当前节点?'),
+                    subTitle: i18n.t('跳过节点将忽略当前失败节点继续往后执行'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.nodeTaskSkip(id)
+                    }
+                })
             },
             async nodeTaskRetry () {
                 try {
@@ -1176,12 +1126,15 @@
                 }
             },
             onForceFailClick (id) {
-                this.forceFailId = id
-                this.isForceFailDialogShow = true
-            },
-            onForceFailCancel () {
-                this.isForceFailDialogShow = false
-                this.forceFailId = undefined
+                this.$bkInfo({
+                    title: i18n.t('确定强制终止当前节点?'),
+                    subTitle: i18n.t('强制终止将强行修改节点状态为失败，但不会中断已经发送到其它系统的请求'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.nodeForceFail(id)
+                    }
+                })
             },
             onModifyTimeClick (id) {
                 this.openNodeInfoPanel('modifyTime', i18n.t('修改时间'))
@@ -1211,12 +1164,14 @@
                 this.isGatewaySelectDialogShow = true
             },
             onTaskNodeResumeClick (id) {
-                this.nodeResumeId = id
-                this.isNodeResumeDialogShow = true
-            },
-            onTaskNodeResumeCancel () {
-                this.isNodeResumeDialogShow = false
-                this.nodeResumeId = undefined
+                this.$bkInfo({
+                    title: i18n.t('确定继续往后执行?'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.nodeResume(id)
+                    }
+                })
             },
             onApprovalClick (id) {
                 this.approval.id = id
@@ -1522,7 +1477,15 @@
                 }
 
                 if (action === 'revoke') {
-                    this.isRevokeDialogShow = true
+                    this.$bkInfo({
+                        title: i18n.t('确定终止当前任务?'),
+                        subTitle: i18n.t('终止任务将停止执行任务，但执行中节点将运行完成'),
+                        maskClose: false,
+                        confirmLoading: true,
+                        confirmFn: async () => {
+                            await this.taskRevoke()
+                        }
+                    })
                     return
                 }
                 this.pending.task = true
@@ -1578,26 +1541,18 @@
                     const tempNodeId = this.pipelineData.activities[nodeId]?.template_node_id
                     if (tempNodeId) {
                         const resp = await this.getNodeExecutionRecord({ tempNodeId, taskId: this.instance_id })
-                        const { execution_time = [] } = resp.data
+                        const { execution_time = [], total = 0 } = resp.data
                         this.nodeExecRecordInfo = {}
-                        let latestTime, meanTime, deadline
-                        execution_time.forEach((item, index) => {
-                            if (index === 0) {
-                                latestTime = item.elapsed_time
-                                deadline = item.archived_time
-                            }
-                            meanTime = (meanTime || 0) + item.elapsed_time
+                        const execTime = execution_time.map(item => {
+                            return this.formatDuring(item.elapsed_time)
                         })
                         const execNodeConfig = this.instanceStatus.children[nodeId]
-                        latestTime = !execution_time.length ? '--' : latestTime === 0 ? `${i18n.tc('小于')} ${i18n.tc('秒', 1)}` : this.formatDuring(latestTime)
-                        meanTime = !execution_time.length ? '--' : meanTime === 0 ? `${i18n.tc('小于')} ${i18n.tc('秒', 1)}` : this.formatDuring(meanTime / execution_time.length)
                         this.nodeExecRecordInfo = {
                             nodeId,
-                            latestTime,
-                            meanTime,
-                            deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
-                            curTime: this.formatDuring(execNodeConfig.elapsed_time),
-                            count: execution_time.length
+                            curTime: execNodeConfig.state === 'RUNNING' ? this.formatDuring(execNodeConfig.elapsed_time) : '',
+                            execTime,
+                            state: execNodeConfig.state,
+                            count: total
                         }
                     } else {
                         this.$refs.templateCanvas.closeNodeExecRecord()
@@ -1607,7 +1562,7 @@
                 }
             },
             formatDuring (time) {
-                if (!time) return '--'
+                if (!time && time !== 0) return '--'
                 const days = parseInt(time / (60 * 60 * 24))
                 const hours = parseInt((time % (60 * 60 * 24)) / (60 * 60))
                 const minutes = parseInt((time % (60 * 60)) / (60))
@@ -1858,14 +1813,6 @@
             },
             onCancelGatewaySelect () {
                 this.isGatewaySelectDialogShow = false
-            },
-            onConfirmRevokeTask () {
-                this.isRevokeDialogShow = false
-                this.activeOperation = 'revoke'
-                this.taskRevoke()
-            },
-            onCancelRevokeTask () {
-                this.isRevokeDialogShow = false
             },
             async onConfirmInjectVar (context) {
                 try {

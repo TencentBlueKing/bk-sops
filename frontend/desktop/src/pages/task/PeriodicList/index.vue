@@ -235,13 +235,6 @@
             :id="selectedPeriodicId"
             @onClose="isBootRecordDialogShow = false">
         </BootRecordDialog>
-        <DeletePeriodicDialog
-            :is-delete-dialog-show="isDeleteDialogShow"
-            :template-name="selectedTemplateName"
-            :deleting="deleting"
-            @onDeletePeriodicConfirm="onDeletePeriodicConfirm"
-            @onDeletePeriodicCancel="onDeletePeriodicCancel">
-        </DeletePeriodicDialog>
     </div>
 </template>
 <script>
@@ -254,7 +247,6 @@
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import BootRecordDialog from './BootRecordDialog.vue'
-    import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import moment from 'moment-timezone'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
@@ -348,8 +340,7 @@
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,
-            BootRecordDialog,
-            DeletePeriodicDialog
+            BootRecordDialog
         },
         mixins: [permission],
         props: {
@@ -402,7 +393,6 @@
                 listLoading: false,
                 deleting: false,
                 totalPage: 1,
-                isDeleteDialogShow: false,
                 isModifyDialogShow: false,
                 isBootRecordDialogShow: false,
                 selectedPeriodicId: undefined,
@@ -411,7 +401,6 @@
                 selectedCron: '*/5 * * * *',
                 constants: {},
                 modifyDialogLoading: false,
-                selectedTemplateName: undefined,
                 periodEntrance: '',
                 taskCategory: [],
                 requestData: {
@@ -592,9 +581,15 @@
                     this.onPeriodicPermissonCheck(['periodic_task_delete'], periodic)
                     return
                 }
-                this.isDeleteDialogShow = true
-                this.selectedDeleteTaskId = periodic.id
-                this.selectedTemplateName = periodic.name
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('周期任务') + '"' + periodic.name + '"?',
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeletePeriodicConfirm(periodic.id)
+                    }
+                })
             },
             // 表格功能选项
             handleSettingChange ({ fields, size }) {
@@ -788,21 +783,17 @@
                 this.constants = periodic.form
                 this.modifyDialogLoading = false
             },
-            onDeletePeriodicConfirm () {
-                this.deleteSelecedPeriodic()
-            },
-            async deleteSelecedPeriodic () {
+            async onDeletePeriodicConfirm (taskId) {
                 if (this.deleting) {
                     return
                 }
                 try {
                     this.deleting = true
-                    await this.deletePeriodic(this.selectedDeleteTaskId)
+                    await this.deletePeriodic(taskId)
                     this.$bkMessage({
                         'message': i18n.t('周期任务删除成功'),
                         'theme': 'success'
                     })
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -817,9 +808,6 @@
                 } finally {
                     this.deleting = false
                 }
-            },
-            onDeletePeriodicCancel () {
-                this.isDeleteDialogShow = false
             },
             splitPeriodicCron (cron) {
                 const values = cron.split('(')[0].trim().split(' ')

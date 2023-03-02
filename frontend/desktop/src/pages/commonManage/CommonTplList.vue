@@ -252,19 +252,6 @@
             @onConfirm="handleCreateTaskConfirm"
             @onCancel="handleCreateTaskCancel">
         </SelectProjectModal>
-        <bk-dialog
-            :mask-close="false"
-            :header-position="'left'"
-            :ext-cls="'common-dialog'"
-            :title="$t('删除')"
-            width="400"
-            :value="isDeleteDialogShow"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
-                {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -442,13 +429,11 @@
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
                 sortableCols: [],
-                isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isImportYamlDialogShow: false,
                 isExportDialogShow: false,
                 isAuthorityDialogShow: false,
                 isSelectProjectShow: false,
-                theDeleteTemplateId: undefined,
                 theAuthorityManageId: undefined,
                 active: true,
                 pending: {
@@ -458,7 +443,6 @@
                 templateCategoryList: [],
                 editEndTime: undefined,
                 templateType: this.common_template,
-                deleteTemplateName: '',
                 requestData: {
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
                     creator,
@@ -876,7 +860,10 @@
                 this.$bkInfo({
                     type: 'warning',
                     title: `${i18n.t('确认删除所选的')}${this.selectedTpls.length}${i18n.t('项流程吗')}`,
-                    confirmFn: this.batchDeleteConfirm
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.batchDeleteConfirm()
+                    }
                 })
             },
             async batchDeleteConfirm () {
@@ -931,9 +918,16 @@
                     this.onTemplatePermissonCheck(['common_flow_delete'], template)
                     return
                 }
-                this.theDeleteTemplateId = template.id
-                this.deleteTemplateName = template.name
-                this.isDeleteDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('流程') + '"' + template.name + '"' + '?',
+                    subTitle: i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除'),
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(template.id)
+                    }
+                })
             },
             handleSortChange ({ prop, order }) {
                 if (this.isInit) return
@@ -1076,21 +1070,20 @@
                 }
                 this.applyForPermission(required, curPermission, permissionData)
             },
-            async onDeleteConfirm () {
+            async onDeleteConfirm (templateId) {
                 if (this.pending.delete) return
                 this.pending.delete = true
                 try {
                     const data = {
-                        templateId: this.theDeleteTemplateId,
+                        templateId,
                         common: '1'
                     }
                     const resp = await this.deleteTemplate(data)
                     if (resp.result === false) return
-                    if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
-                        const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
+                    if (this.selectedTpls.find(tpl => tpl.id === templateId)) {
+                        const index = this.selectedTpls.findIndex(tpl => tpl.id === templateId)
                         this.selectedTpls.splice(index, 1)
                     }
-                    this.theDeleteTemplateId = undefined
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -1107,13 +1100,8 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.isDeleteDialogShow = false
                     this.pending.delete = false
                 }
-            },
-            onDeleteCancel () {
-                this.theDeleteTemplateId = undefined
-                this.isDeleteDialogShow = false
             },
             /**
              * 获取模版操作的跳转链接
