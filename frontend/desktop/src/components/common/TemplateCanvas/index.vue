@@ -998,7 +998,7 @@
                     })
                     // 删除节点两端插入连线的端点,isCreate为true时表示从左侧菜单栏直接拖拽创建，插入端点还存在在画布里面
                     const nodeDom = document.querySelector(`#${!location.isCreate ? location.id : 'canvas-flow'}`)
-                    const pointDoms = nodeDom && nodeDom.querySelectorAll('.insert-point')
+                    const pointDoms = nodeDom && nodeDom.querySelectorAll('.node-inset-line-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
                             nodeDom.removeChild(pointDomItem)
@@ -1453,15 +1453,15 @@
                         nodeWidth = 34
                         nodeHeight = 34
                     }
-                    const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px; color: #3a84ff;'
+                    const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
                     // 判断端点是否已经创建
-                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
                     if (!pointDoms.length) {
                         // 创建节点两边插入连线的端点
                         const pointDom1 = document.createElement('span')
                         const pointDom2 = document.createElement('span')
-                        pointDom1.className = 'bk-icon icon-plus-circle-shape insert-point'
-                        pointDom2.className = 'bk-icon icon-plus-circle-shape insert-point'
+                        pointDom1.className = 'node-inset-line-point'
+                        pointDom2.className = 'node-inset-line-point'
                         if (lineConfig.segmentPosition.width > 8) { // 平行
                             if (!location.id) { // 还未生成的节点
                                 const { x, y } = location
@@ -1505,7 +1505,7 @@
                     })
                     this.connectionHoverList = []
                     // 移除节点两边插入连线的端点
-                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
                             parentDom.removeChild(pointDomItem)
@@ -2580,5 +2580,12 @@
         &:hover {
             display: block;
         }
+    }
+    .node-inset-line-point {
+        height: 14px;
+        width: 14px;
+        background-repeat: no-repeat;
+        background-size: 14px;
+        background-image: url('~@/assets/images/node-inset-line-point.svg');
     }
 </style>
