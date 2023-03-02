@@ -90,7 +90,7 @@
                             theme="default"
                             class="delete-variable-btn"
                             data-test-id="templateEdit_form_deleteVariable"
-                            @click="deleteVarListVisible = true">
+                            @click="onDeleteVarList">
                             {{ $t('删除') }}
                         </bk-button>
                         <span class="delete-variable-txt">{{ $t('已选择x项', { num: deleteVarListLen }) }}</span>
@@ -205,15 +205,6 @@
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
-            <bk-dialog v-model="deleteVarListVisible"
-                theme="primary"
-                header-position="left"
-                :mask-close="false"
-                :title="$t('删除')"
-                @confirm="onDeleteVarList">
-                <span v-if="deleteVarListLen === 1">{{ $t('确认删除') }} “{{deleteVarList[0].name}} / {{deleteVarList[0].key}}” ?</span>
-                <span v-else-if="deleteVarListLen">{{ $t('确认删除所选的x个变量？', { num: deleteVarListLen }) }}</span>
-            </bk-dialog>
             <variable-clone
                 :is-var-clone-dialog-show="isVarCloneDialogShow"
                 :var-type-list="varTypeList"
@@ -301,7 +292,6 @@
                 deleteVarKey: '',
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 deleteVarList: [], // 批量删除变量
-                deleteVarListVisible: false,
                 quickOperateVariableVisable: false,
                 isVarCloneDialogShow: false,
                 newCloneKeys: [] // 新增/跨流程克隆的变量key值
@@ -610,12 +600,27 @@
                 }
             },
             onDeleteVarList () {
-                this.deleteVarList.forEach(variableData => {
-                    this.deleteVariable(variableData.key)
+                let title = ''
+                if (this.deleteVarListLen === 1) {
+                    title = i18n.t('确认删除') + i18n.t('全局变量') + `"${this.deleteVarList[0].key}"?`
+                } else {
+                    title = i18n.t('确认删除所选的x个变量?', { num: this.deleteVarListLen })
+                }
+                this.$bkInfo({
+                    title,
+                    subTitle: i18n.t('若该变量被节点引用，请及时检查并更新节点配置'),
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.getVariableCitedData() // 删除变量后更新引用数据
+                        this.deleteVarList.forEach(variableData => {
+                            this.deleteVariable(variableData.key)
+                        })
+                        this.deleteVarList = []
+                        this.$emit('templateDataChanged')
+                    }
                 })
-                this.deleteVarList = []
-                this.$emit('templateDataChanged')
-                this.getVariableCitedData() // 删除变量后更新引用数据
             },
             // 编辑变量后点击保存
             onSaveEditing () {

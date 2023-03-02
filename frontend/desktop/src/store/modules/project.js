@@ -155,9 +155,9 @@ const project = {
         delTemplateLabel ({ commit }, id) {
             return axios.delete(`api/v3/new_label/${id}/`).then(response => response.data)
         },
-        getlabelsCitedCount ({ commit }, payload) {
+        getLabelsCitedCount ({ commit }, payload) {
             const { ids, project_id } = payload
-            return axios.get('api/v3/new_label/get_label_template_ids/', {
+            return axios.get('api/v3/new_label/get_label_template_count/', {
                 params: { label_ids: ids, project_id }
             }).then(response => response.data)
         },
