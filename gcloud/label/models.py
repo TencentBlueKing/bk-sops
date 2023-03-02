@@ -115,7 +115,9 @@ class TemplateLabelManager(models.Manager):
         relations = self.filter(label_id__in=label_ids)
 
         if project_id is not None:
-            project_template_ids = TaskTemplate.objects.filter(project_id=project_id).values_list("id", flat=True)
+            project_template_ids = TaskTemplate.objects.filter(project_id=project_id, is_deleted=False).values_list(
+                "id", flat=True
+            )
             relations = relations.filter(template_id__in=project_template_ids)
 
         label_template_count = relations.values("label_id").annotate(count=Count("label_id"))
