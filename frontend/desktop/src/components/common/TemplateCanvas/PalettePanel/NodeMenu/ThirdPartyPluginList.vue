@@ -7,8 +7,8 @@
                 right-icon="bk-icon icon-search"
                 :placeholder="$t('搜索插件')"
                 :clearable="true"
-                @input="isSearch = false"
-                @clear="handleSearch"
+                @change="handleSearchClear"
+                @clear="handleSearchClear"
                 @enter="handleSearch">
             </bk-input>
         </div>
@@ -33,7 +33,7 @@
                 </node-item>
                 <NoData
                     v-if="pluginList.length === 0"
-                    :type="isSearch ? 'search-empty' : 'empty'"
+                    :type="searchStr ? 'search-empty' : 'empty'"
                     :message="searchStr ? $t('搜索结果为空') : ''">
                 </NoData>
             </div>
@@ -58,8 +58,7 @@
                 pagelimit: 15, // 默认值
                 pluginPageOffset: 0,
                 isCompleteLoading: false,
-                searchStr: '',
-                isSearch: false
+                searchStr: ''
             }
         },
         mounted () {
@@ -100,9 +99,7 @@
                     })
                     this.pluginPageOffset = next_offset
                     this.pluginList.push(...list)
-                    if (return_plugin_count < this.pagelimit) {
-                        this.isCompleteLoading = true
-                    }
+                    this.isCompleteLoading = return_plugin_count < this.pagelimit
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -120,8 +117,12 @@
                     this.getPluginList()
                 }
             },
+            handleSearchClear (val) {
+                if (val === '') {
+                    this.handleSearch()
+                }
+            },
             handleSearch (val) {
-                this.isSearch = true
                 this.pluginList = []
                 this.pluginPageOffset = 0
                 this.getPluginList()

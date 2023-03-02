@@ -21,7 +21,7 @@
         <div v-if="node.plugin_type" class="plugin-item">
             <img class="plugin-logo" :src="node.logo_url" alt="">
             <div>
-                <p class="plugin-title" v-bk-overflow-tips>{{ node.nodeName }}</p>
+                <p class="plugin-title name-wrapper" v-bk-overflow-tips>{{ node.nodeName }}</p>
                 <p
                     class="plugin-desc"
                     v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-code-tips', width: 300 }">
@@ -89,6 +89,7 @@
     }
     .name-wrapper {
         overflow: hidden;
+        word-break: break-all;
         text-overflow: ellipsis;
         display: -webkit-box;
         -webkit-box-orient: vertical;

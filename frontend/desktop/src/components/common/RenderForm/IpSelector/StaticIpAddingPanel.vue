@@ -73,7 +73,7 @@
                             </tr>
                         </template>
                         <tr v-else>
-                            <td class="static-ip-empty" colspan="4"><no-data></no-data></td>
+                            <td class="static-ip-empty" colspan="5"><no-data></no-data></td>
                         </tr>
                     </tbody>
                 </table>

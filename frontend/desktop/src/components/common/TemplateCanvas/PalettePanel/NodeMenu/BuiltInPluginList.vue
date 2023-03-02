@@ -154,9 +154,12 @@
                 this.pluginList = result
             },
             // 清空搜索
-            handleSearchClear () {
-                this.searchMode = false
-                this.pluginList = this.builtInPlugins.slice(0)
+            handleSearchClear (val) {
+                if (val === '') {
+                    this.searchStr = ''
+                    this.searchMode = false
+                    this.pluginList = this.builtInPlugins.slice(0)
+                }
             }
         }
     }
