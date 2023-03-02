@@ -28,8 +28,8 @@
             @onCreateNodeAfter="onCreateNodeAfter"
             @onAddNodeMoving="onCreateNodeMoving"
             @onConnectionDragStop="onConnectionDragStop"
+            @onConnectionDragOnNode="onConnectionDragOnNode"
             @onConnectionClick="onConnectionClick"
-            @onBeforeDrag="onBeforeDrag"
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
@@ -315,16 +315,11 @@
                     x: 0,
                     y: 0
                 },
-                referenceLine: {
-                    x: 0,
-                    y: 0,
-                    id: '',
-                    arrow: ''
-                },
                 zoomOriginPosition: {
                     x: 0,
                     y: 0
                 },
+                sourceClickEdpId: '', // 点击端点连线时，记录源端点，连线成功或者取消连线后清空
                 endpointOptions: combinedEndpointOptions,
                 flowData,
                 connectorOptions,
@@ -428,7 +423,6 @@
                 } else {
                     this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
-                this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
             },
             onZoomOut (pos) {
@@ -438,7 +432,6 @@
                 } else {
                     this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
-                this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
             },
             onResetPosition () {
@@ -699,7 +692,7 @@
                 }
             },
             // 拖拽到节点上自动连接
-            onConnectionDragStop (source, targetId, event) {
+            onConnectionDragOnNode (source, targetId, event) {
                 if (source.id === targetId) {
                     return false // 非分支节点不可以连接自身
                 }
@@ -739,6 +732,10 @@
                         theme: 'warning'
                     })
                 }
+            },
+            // 连线操作结束
+            onConnectionDragStop () {
+                this.sourceClickEdpId = ''
             },
             onConnectionClick (conn, e) {
                 this.activeCon = conn
@@ -1311,17 +1308,8 @@
                 })
                 return position
             },
-            onBeforeDrag (data) {
-                if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
-                    this.clearReferenceLine()
-                }
-            },
             // 节点拖动回调
             onNodeMoving (node) {
-                // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
-                if (this.referenceLine.id && this.referenceLine.id === node.id) {
-                    this.clearReferenceLine()
-                }
                 // 关闭快捷菜单面板
                 if (this.activeNode) {
                     this.closeShortcutPanel()
@@ -1445,95 +1433,20 @@
                     }
                 })
             },
-            // 初始化生成参考线
-            createReferenceLine () {
-                const canvas = document.querySelector('.canvas-flow-wrap')
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-                svg.setAttribute('id', 'referenceLine')
-                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-                svg.setAttribute('version', '1.1')
-                svg.setAttribute('style', 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events: none;')
-
-                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-                const marker = `
-                    <marker id="arrow" markerWidth="10" markerHeight="10" refx="0" refy="2" orient="auto" markerUnits="strokeWidth">
-                        <path d="M0,0 L0,4 L6,2 z" fill="#979ba5" />
-                    </marker>
-                `
-                defs.innerHTML = marker
-
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-                line.setAttribute('id', 'referencePath')
-                line.setAttribute('marker-end', 'url(#arrow)')
-                line.setAttribute('x1', '0')
-                line.setAttribute('y1', '0')
-                line.setAttribute('x2', '0')
-                line.setAttribute('y2', '0')
-                line.setAttribute('style', 'stroke:#979ba5;stroke-width:2')
-                line.setAttribute('id', 'referencePath')
-
-                svg.appendChild(defs)
-                svg.appendChild(line)
-                canvas.appendChild(svg)
-                document.body.addEventListener('mousedown', this.clearReferenceLine, { once: true })
-            },
-            // 更新参考线位置
-            updataReferenceLinePositon (startPos, endPos) {
-                const referencePath = document.getElementById('referencePath')
-                if (referencePath) {
-                    referencePath.setAttribute('x1', startPos.x)
-                    referencePath.setAttribute('y1', startPos.y)
-                    referencePath.setAttribute('x2', endPos.x)
-                    referencePath.setAttribute('y2', endPos.y)
-                }
-            },
-            // 清除参考线
-            clearReferenceLine () {
-                const canvas = document.querySelector('.canvas-flow-wrap')
-                const line = document.getElementById('referenceLine')
-                if (canvas && line) {
-                    canvas.removeChild(line)
-                }
-                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
-                this.referenceLine = {}
-            },
             // 锚点点击回调
             onEndpointClick (edp, event) {
                 if (!this.editable) {
                     return false
                 }
-                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                const { left, top, width, height } = edp.canvas.getBoundingClientRect()
-                const type = edp.anchor.cssClass
-                const bX = left + width / 2 - offsetX
-                const bY = top + height / 2 - offsetY
-                // 第二次点击
-                if (this.referenceLine.id && edp.elementId !== this.referenceLine.id) {
-                    this.createLine(
-                        { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
-                        { id: edp.elementId, arrow: type }
-                    )
-                    this.clearReferenceLine()
-                    return false
+                // 有源端点点击记录，说明当前是点击目标端点连线
+                if (this.sourceClickEdpId) {
+                    this.sourceClickEdpId = ''
+                    return
                 }
+                this.sourceClickEdpId = edp.id
                 // 触发端点拖拽事件
                 const endPointDom = event.target.parentNode.parentNode
                 Object.values(endPointDom.__ta.mousedown)[0](event)
-                this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
-            },
-            // 鼠标移动更新参考线
-            handleReferenceLine (e) {
-                const { pageX, pageY } = e
-                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                const bX = pageX - offsetX
-                const bY = pageY - offsetY
-                const endPos = { x: bX, y: bY }
-                const animationFrame = () => {
-                    return window.requestAnimationFrame || function (fn) {
-                        setTimeout(fn, 1000 / 60)
-                    }
-                }
-                animationFrame(this.updataReferenceLinePositon(this.referenceLine, endPos))
             },
             // 创建节点间连线
             createLine (source, target, condition) {
@@ -1546,7 +1459,6 @@
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', line)
                     this.$refs.jsFlow.createConnector(line)
-                    this.referenceLine.id = ''
                     return true
                 } else {
                     this.$bkMessage({
@@ -1710,10 +1622,6 @@
                 // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
                 if (!this.editable) {
                     this.onShowNodeConfig(id)
-                    return
-                }
-                if (this.referenceLine.id) {
-                    this.referenceLine = {}
                     return
                 }
                 // 快捷菜单面板
@@ -2304,7 +2212,7 @@
             box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
         }
         .jtk-endpoint {
-            z-index: 3;
+            z-index: 5;
         }
         .jsflow-node {
             z-index: 4;
@@ -2369,6 +2277,7 @@
                 &.template-canvas-endpoint {
                     background-repeat: no-repeat;
                     background-size: 24px;
+                    // background-image: url('~@/assets/images/endpoint.svg');
                     &.jtk-endpoint-highlight {
                         background-image: url('~@/assets/images/endpoint.svg');
                     }
@@ -2394,6 +2303,7 @@
                 &.template-canvas-endpoint.jtk-dragging {
                     background-image: url('~@/assets/images/endpoint-dragging.png');
                     background-position: bottom 50% left 50%;
+                    pointer-events: none;
                     z-index: 3;
                 }
             }
