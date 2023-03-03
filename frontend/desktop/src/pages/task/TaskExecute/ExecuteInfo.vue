@@ -19,6 +19,7 @@
                 :node-display-status="nodeDisplayStatus"
                 :selected-flow-path="selectedFlowPath"
                 :default-active-id="defaultActiveId"
+                :is-condition="isCondition"
                 @onOpenGatewayInfo="onOpenGatewayInfo"
                 @onNodeClick="onNodeClick"
                 @onSelectNode="onSelectNode">
@@ -222,6 +223,10 @@
                 type: String,
                 default: ''
             },
+            isCondition: {
+                type: Boolean,
+                default: false
+            },
             pipelineData: {
                 type: Object,
                 default () {
@@ -240,7 +245,6 @@
                 type: Object,
                 required: true
             },
-            isCondition: Boolean, // 是否网关条件
             isShow: Boolean,
             gateways: Object,
             conditionData: Object,
@@ -315,7 +319,6 @@
             },
             location () {
                 const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
-                // if (this.isCondition) return false
                 return this.pipelineData.location.find(item => {
                     if (item.id === node_id || subprocess_stack.includes(item.id)) {
                         return true
