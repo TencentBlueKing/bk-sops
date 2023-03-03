@@ -180,48 +180,6 @@
             @onConfirmInjectVar="onConfirmInjectVar"
             @onCancelInjectVar="onCancelInjectVar">
         </injectVariableDialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('跳过节点')"
-            :loading="pending.skip"
-            :value="isSkipDialogShow"
-            data-test-id="taskExcute_dialog_skipNodeDialog"
-            @confirm="nodeTaskSkip(skipNodeId)"
-            @cancel="onSkipCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该节点继续往后执行？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('强制终止')"
-            :loading="pending.forceFail"
-            :value="isForceFailDialogShow"
-            data-test-id="taskExcute_dialog_forceFailDialog"
-            @confirm="nodeForceFail(forceFailId)"
-            @cancel="onForceFailCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否强制终止该节点？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('继续执行')"
-            :loading="pending.parseNodeResume"
-            :value="isNodeResumeDialogShow"
-            data-test-id="taskExcute_dialog_resumeDialog"
-            @confirm="nodeResume(nodeResumeId)"
-            @cancel="onTaskNodeResumeCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成该节点继续向后执行？') }}</div>
-        </bk-dialog>
         <!-- <condition-edit
             v-if="isShowConditionEdit"
             ref="conditionEdit"
