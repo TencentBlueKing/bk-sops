@@ -270,7 +270,7 @@
                 return false
             },
             onSelectNode (e, node, type) {
-                if (node.title === '并行' && type === 'gateway') {
+                if (node.title === this.$t('并行') && type === 'gateway') {
                     e.stopPropagation()
                     return
                 }
