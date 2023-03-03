@@ -1619,6 +1619,7 @@
                     this.onShowNodeConfig(id)
                     return
                 }
+                this.$refs.jsFlow.clearNodesDragSelection()
                 // 快捷菜单面板
                 if (type !== 'endpoint') {
                     if (this.activeNode && this.activeNode.id) {
