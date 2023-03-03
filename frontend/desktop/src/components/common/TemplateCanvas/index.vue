@@ -27,6 +27,7 @@
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
             @onAddNodeMoving="onCreateNodeMoving"
+            @onConnectionDrag="onConnectionDrag"
             @onConnectionDragStop="onConnectionDragStop"
             @onConnectionDragOnNode="onConnectionDragOnNode"
             @onConnectionClick="onConnectionClick"
@@ -85,6 +86,8 @@
                     @onNodeClick="onNodeClick"
                     @onNodeMousedown="onNodeMousedown"
                     @onNodeMouseEnter="onNodeMouseEnter"
+                    @onNodeMouseMove="onNodeMouseMove"
+                    @onNodeMouseLeave="onNodeMouseLeave"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onRetryClick="$emit('onRetryClick', $event)"
                     @onForceFail="$emit('onForceFail', $event)"
@@ -321,6 +324,7 @@
                     y: 0
                 },
                 sourceClickEdpId: '', // 点击端点连线时，记录源端点，连线成功或者取消连线后清空
+                connectionDragging: false, // 标识连线是在拖动过程中（端点拖动连线或者点击端点连线），连线成功或者取消连线后清空
                 endpointOptions: combinedEndpointOptions,
                 flowData,
                 connectorOptions,
@@ -687,8 +691,33 @@
                 if (source.id === targetId) {
                     return false // 非分支节点不可以连接自身
                 }
+                const arrow = this.getTargetEndpointArrow(targetId, event)
+                const line = {
+                    source,
+                    target: {
+                        id: targetId,
+                        arrow
+                    }
+                }
+                const validateMessage = validatePipeline.isLineValid(line, this.canvasData)
+                if (validateMessage.result) {
+                    this.$emit('onLineChange', 'add', line)
+                    this.$refs.jsFlow.createConnector(line)
+                    const endpoints = this.$refs.jsFlow.instance.selectEndpoints({ source: targetId })
+                    endpoints.each(item => {
+                        item.canvas.classList.remove('target-endpoint')
+                    })
+                } else {
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'warning'
+                    })
+                }
+            },
+            // 计算连线吸附到哪个端点
+            getTargetEndpointArrow (nodeId, event) {
                 let arrow
-                const nodeEl = document.getElementById(targetId)
+                const nodeEl = document.getElementById(nodeId)
                 const nodeRects = nodeEl.getBoundingClientRect()
                 const offsetX = event.clientX - nodeRects.left
                 const offsetY = event.clientY - nodeRects.top
@@ -705,28 +734,16 @@
                         arrow = (nodeRects.width - offsetX) > (nodeRects.height - offsetY) ? 'Bottom' : 'Right'
                     }
                 }
-
-                const line = {
-                    source,
-                    target: {
-                        id: targetId,
-                        arrow
-                    }
-                }
-                const validateMessage = validatePipeline.isLineValid(line, this.canvasData)
-                if (validateMessage.result) {
-                    this.$emit('onLineChange', 'add', line)
-                    this.$refs.jsFlow.createConnector(line)
-                } else {
-                    this.$bkMessage({
-                        message: validateMessage.message,
-                        theme: 'warning'
-                    })
-                }
+                return arrow
+            },
+            // 节点端点开始拖动进行连线操作
+            onConnectionDrag () {
+                this.connectionDragging = true
             },
             // 连线操作结束
             onConnectionDragStop () {
                 this.sourceClickEdpId = ''
+                this.connectionDragging = false
             },
             onConnectionClick (conn, e) {
                 this.activeCon = conn
@@ -833,6 +850,7 @@
                 }
             },
             onConnection (line) {
+                this.connectionDragging = false
                 this.$nextTick(() => {
                     const lineInCanvasData = this.canvasData.lines.find(item => {
                         return item.source.id === line.sourceId && item.target.id === line.targetId
@@ -1519,7 +1537,9 @@
                     return false
                 }
                 // 有源端点点击记录，说明当前是点击目标端点连线
+                // 点击端点也会触发连线拖动事件，需要把连线拖动状态清空
                 if (this.sourceClickEdpId) {
+                    this.connectionDragging = false
                     this.sourceClickEdpId = ''
                     return
                 }
@@ -1699,6 +1719,34 @@
                     }
                 }
             },
+            // 鼠标在节点上拖动，处理快捷连线高亮目标端点
+            onNodeMouseMove (node, event) {
+                // 不是连线操作（未拖动端点连线或未点击端点连线时），不处理
+                if (!this.connectionDragging) {
+                    return
+                }
+                const arrow = this.getTargetEndpointArrow(node.id, event)
+                let targetEp
+                const endpoints = this.$refs.jsFlow.instance.selectEndpoints({ source: node.id })
+                endpoints.each(item => {
+                    item.canvas.classList.remove('target-endpoint')
+                    if (item.anchor.cssClass === arrow) {
+                        targetEp = item
+                    }
+                })
+                if (targetEp) {
+                    targetEp.canvas.classList.add('target-endpoint')
+                }
+            },
+            // 鼠标移出节点，如果还是连线拖动状态
+            onNodeMouseLeave (node) {
+                if (this.connectionDragging) {
+                    const endpoints = this.$refs.jsFlow.instance.selectEndpoints({ source: node.id })
+                    endpoints.each(item => {
+                        item.canvas.classList.remove('target-endpoint')
+                    })
+                }
+            },
             // 关闭节点历史执行时间
             closeNodeExecRecord () {
                 this.isExecRecordPanelShow = false
@@ -1714,6 +1762,7 @@
                     this.onShowNodeConfig(id)
                     return
                 }
+                this.$refs.jsFlow.clearNodesDragSelection()
                 // 快捷菜单面板
                 if (type !== 'endpoint') {
                     // 设置节点选中状态
@@ -2386,7 +2435,8 @@
                         transform: rotate(180deg);
                         background-position: top 50% left 0;
                     }
-                    &:hover {
+                    &:hover,
+                    &.target-endpoint {
                         background-image: url('~@/assets/images/endpoint-hover.svg');
                     }
                 }
