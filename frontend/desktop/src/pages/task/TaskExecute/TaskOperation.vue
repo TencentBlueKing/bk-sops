@@ -1574,9 +1574,13 @@
                         })
                         const execNodeConfig = this.instanceStatus.children[nodeId]
                         let curTime = this.formatDuring(execNodeConfig.elapsed_time)
+                        let count = total
                         // 如果节点执行完成，任务未之前完成，需要把当前执行的时间插入到执行历史里面，count + 1
-                        if (execNodeConfig.state === 'FINISHED' && this.state !== 'FINISHED') {
-                            execTime.unshift(curTime)
+                        if (execNodeConfig.state === 'FINISHED') {
+                            if (this.state !== 'FINISHED') {
+                                execTime.unshift(curTime)
+                                count += 1
+                            }
                             curTime = ''
                         }
                         this.nodeExecRecordInfo = {
@@ -1584,7 +1588,7 @@
                             curTime: curTime,
                             execTime,
                             state: execNodeConfig.state,
-                            count: total + (curTime ? 0 : 1)
+                            count
                         }
                     } else {
                         this.$refs.templateCanvas.closeNodeExecRecord()
