@@ -1598,7 +1598,8 @@ const en = {
     '节点输入': 'Node input',
     '节点输出': 'Node output',
     'x 项删除成功,': '{num} item deleted successfully,',
-    '项删除失败': '项删除失败'
+    '项删除失败': 'item deleted failed',
+    '暂无成功执行历史': 'No successful execution history'
 }
 
 export default en

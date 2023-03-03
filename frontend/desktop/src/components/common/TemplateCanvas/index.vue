@@ -141,7 +141,7 @@
                     <p v-if="nodeExecRecordInfo.count" class="record-title">
                         {{ $t('最近 x 次成功执行耗时', { num: nodeExecRecordInfo.count > 5 ? 5 : nodeExecRecordInfo.count }) }}
                     </p>
-                    <ul :class="['content-list', { 'no-record': !nodeExecRecordInfo.count, 'lot-record': nodeExecRecordInfo.count > 5 }]">
+                    <ul :class="['content-list', { 'lot-record': nodeExecRecordInfo.count > 5 }]">
                         <li class="content-item running" v-if="nodeExecRecordInfo.curTime">
                             {{ $t('已运行') + ' ' + nodeExecRecordInfo.curTime || '--' }}
                         </li>
@@ -150,6 +150,9 @@
                                 {{ time || '--' }}
                             </li>
                         </template>
+                        <li v-else-if="!execRecordLoading && nodeExecRecordInfo.curTime" class="content-item empty">
+                            {{ $t('暂无成功执行历史') }}
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -2510,9 +2513,6 @@
                     height: calc(100% - 14px);
                     background: #d8d8d8;
                 }
-                &.no-record::before {
-                    content: none;
-                }
                 &.lot-record::after {
                     content: '';
                     position: absolute;
@@ -2552,6 +2552,9 @@
                         width: 13px;
                         border-color: #3a84ff;
                     }
+                }
+                &.empty {
+                    color: #979ba5;
                 }
                 &:last-child {
                     margin-bottom: 9px;

@@ -593,8 +593,10 @@
                                 if (execNodeConfig.state === 'RUNNING') {
                                     this.nodeExecRecordInfo.curTime = elapsedTime
                                 } else if (this.nodeExecRecordInfo.curTime) {
+                                    // 如果节点执行完成，需要把当前执行的时间插入到执行历史里面，count + 1
                                     this.nodeExecRecordInfo.curTime = ''
                                     this.nodeExecRecordInfo.execTime.unshift(elapsedTime)
+                                    this.nodeExecRecordInfo.count += 1
                                 }
                                 this.nodeExecRecordInfo.state = execNodeConfig.state
                             }
@@ -1574,12 +1576,18 @@
                             return this.formatDuring(item.elapsed_time)
                         })
                         const execNodeConfig = this.instanceStatus.children[nodeId]
+                        let curTime = this.formatDuring(execNodeConfig.elapsed_time)
+                        // 如果节点执行完成，任务未之前完成，需要把当前执行的时间插入到执行历史里面，count + 1
+                        if (execNodeConfig.state === 'FINISHED' && this.state !== 'FINISHED') {
+                            execTime.unshift(curTime)
+                            curTime = ''
+                        }
                         this.nodeExecRecordInfo = {
                             nodeId,
-                            curTime: execNodeConfig.state === 'RUNNING' ? this.formatDuring(execNodeConfig.elapsed_time) : '',
+                            curTime: curTime,
                             execTime,
                             state: execNodeConfig.state,
-                            count: total
+                            count: total + (curTime ? 0 : 1)
                         }
                     } else {
                         this.$refs.templateCanvas.closeNodeExecRecord()
@@ -1590,6 +1598,9 @@
             },
             formatDuring (time) {
                 if (!time && time !== 0) return '--'
+                if (time === 0) {
+                    return `${i18n.tc('小于')} ${i18n.tc('秒', 1)}`
+                }
                 const days = parseInt(time / (60 * 60 * 24))
                 const hours = parseInt((time % (60 * 60 * 24)) / (60 * 60))
                 const minutes = parseInt((time % (60 * 60)) / (60))
