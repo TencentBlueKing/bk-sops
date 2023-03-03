@@ -1599,7 +1599,13 @@ const cn = {
     '节点输出': '节点输出',
     'x 项删除成功,': '{num} 项删除成功,',
     '项删除失败': '项删除失败',
-    '暂无成功执行历史': '暂无成功执行历史'
+    '暂无成功执行历史': '暂无成功执行历史',
+    '表达式更多细节请参考': '表达式更多细节请参考',
+    '支持使用内置函数、datetime、re、hashlib、random、time、os.path模块处理全局变量': '支持使用内置函数、datetime、re、hashlib、random、time、os.path模块处理全局变量',
+    '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符': '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符',
+    '支持 "and、or、True/true、False/false" 等关键字语法': '支持 "and、or、True/true、False/false" 等关键字语法',
+    '并行': '并行',
+    '支持使用全局变量，如': '支持使用全局变量，如'
 }
 
 export default cn

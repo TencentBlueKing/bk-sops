@@ -1373,7 +1373,7 @@
                             const defaultCondition = gateway.outgoing.map((item, index) => {
                                 return {
                                     name: this.$t('并行') + (index + 1),
-                                    title: this.$t('并行') + (index + 1),
+                                    title: this.$t('并行'),
                                     isGateway: true,
                                     expanded: false,
                                     outgoing: item,

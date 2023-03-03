@@ -1599,7 +1599,13 @@ const en = {
     '节点输出': 'Node output',
     'x 项删除成功,': '{num} item deleted successfully,',
     '项删除失败': 'item deleted failed',
-    '暂无成功执行历史': 'No successful execution history'
+    '暂无成功执行历史': 'No successful execution history',
+    '表达式更多细节请参考': 'See expressions for more details',
+    '支持使用内置函数、datetime、re、hashlib、random、time、os.path模块处理全局变量': 'Support for handling global variables using built-in functions, datetime, re, hashlib, random, time, os.path modules',
+    '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符': 'Keyword syntax such as "and, or, True/true, False/false" is supported',
+    '支持 "and、or、True/true、False/false" 等关键字语法': '支持 "and、or、True/true、False/false" 等关键字语法',
+    '并行': 'Parallel',
+    '支持使用全局变量，如': 'Supports the use of global variables such as'
 }
 
 export default en

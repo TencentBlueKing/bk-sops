@@ -90,7 +90,7 @@ class TaskTemplateFilter(PropertyFilterSet):
     class Meta:
         model = TaskTemplate
         fields = {
-            "id": ["exact"],
+            "id": ["exact", "in"],
             "pipeline_template__name": ["icontains"],
             "pipeline_template__creator": ["exact"],
             "pipeline_template__editor": ["exact"],
@@ -103,8 +103,10 @@ class TaskTemplateFilter(PropertyFilterSet):
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
 
     def filter_by_label_ids(self, query, name, value):
-        label_ids = [int(label_id) for label_id in value.strip().split(",")]
-        template_ids = list(TemplateLabelRelation.objects.fetch_template_ids_using_union_labels(label_ids))
+        label_ids = [int(label_id) for label_id in value.strip().split("|")]
+        template_ids = list(
+            TemplateLabelRelation.objects.filter(label_id__in=label_ids).values_list("template_id", flat=True)
+        )
         condition = {"id__in": template_ids}
         return query.filter(**condition)
 
