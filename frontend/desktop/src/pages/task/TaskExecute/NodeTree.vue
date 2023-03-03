@@ -78,7 +78,8 @@
                 type: Object,
                 default: {},
                 required: true
-            }
+            },
+            isCondition: Boolean
         },
         data () {
             const gatewayType = {
@@ -221,18 +222,18 @@
                 // 处理条件分支
                 if (node.isGateway) {
                     return <span class={conditionClass} v-bk-tooltips={callbackTip}>
-                        <span class={'commonicon-icon common-icon-return-arrow callback'} onClick={node => this.onSelectNode(node)}></span>
-                        <span style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
+                        <span class={'commonicon-icon common-icon-return-arrow callback'} onClick={(e) => this.onSelectNode(e, node, 'callback')}></span>
+                        <span class={isActive} style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else if (this.gatewayType[node.type]) {
                     return <span style={'font-size: 16px'}>
                         <span class={iconClass} style={this.stateColor[node.state]}></span>
-                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
+                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
                         <span class={nodeClass}></span>
-                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
+                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'node')}></span>
                     </span>
                 }
             },
@@ -268,57 +269,69 @@
                 }
                 return false
             },
-            onSelectNode (e) {
-                const id = e.target.dataset.nodeId
-                const node = this.allNodeDate[id]
+            onSelectNode (e, node, type) {
                 this.$emit('onOpenGatewayInfo', node.callbackData, false)
-                if (node.state === 'Gateway' && node.isLoop) {
-                    this.$emit('onOpenGatewayInfo', node.callbackData, true)
+                if (node && node.state === 'Gateway') e.stopPropagation()
+                if (type === 'gateway') {
+                    // 分支条件没有id,使用name 代替
+                    this.curSelectId = node.name
+                    if (node.state === 'Gateway') {
+                        node.id = node.name
+                        this.$emit('onOpenGatewayInfo', node.callbackData, true)
+                    }
                 }
-                const treeNodes = Array.from(document.querySelectorAll('.tree-node'))
-                if (node.parent) {
-                    const curNodeIndex = node.parent.children.findIndex(item => item.id === id)
-                    node.parent.children.forEach((item, index) => {
-                        if (item.type === 'ConvergeGateway') {
-                            const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
-                            if (index > curNodeIndex) {
-                                if (!node.expanded) {
-                                    converge.forEach(cdom => {
-                                        cdom.style.display = 'block'
-                                    })
-                                } else {
-                                    converge.forEach(cdom => {
-                                        cdom.style.display = 'none'
-                                    })
+                if (type === 'node' || type === 'callback') {
+                    const treeNodes = Array.from(document.querySelectorAll('.tree-node'))
+                    if (node.parent) {
+                        const curNodeIndex = node.parent.children.findIndex(item => item.id === node.id)
+                        node.parent.children.forEach((item, index) => {
+                            if (item.type === 'ConvergeGateway') {
+                                const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
+                                if (index > curNodeIndex) {
+                                    if (!node.expanded) {
+                                        converge.forEach(cdom => {
+                                            cdom.style.display = 'block'
+                                        })
+                                    } else {
+                                        converge.forEach(cdom => {
+                                            cdom.style.display = 'none'
+                                        })
+                                    }
                                 }
                             }
-                        }
-                    })
-                }
-                const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
-                node.selected = nodeType !== 'subflow'
-                if (nodeType === 'subflow') {
-                    this.$emit('onNodeClick', node.id, 'subflow')
-                    this.renderSubProcessData(node)
-                    return
-                }
-                if (this.curSelectId === node.id) return
-                this.curSelectId = node.id
-                let rootNode = node
-                let nodeHeirarchy = ''
-                if (!rootNode.id) return
-                while (rootNode.parent) {
-                    if (nodeHeirarchy) {
-                        nodeHeirarchy += '.' + rootNode.parent.id
-                    } else {
-                        nodeHeirarchy += rootNode.parent.id
+                        })
                     }
-                    rootNode = rootNode.parent
+                    const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
+                    node.selected = nodeType !== 'subflow'
+                    if (nodeType === 'subflow') {
+                        this.$emit('onNodeClick', node.id, 'subflow')
+                        this.renderSubProcessData(node)
+                        return
+                    }
+                    if (type === 'callback') {
+                        node.cacheId = node.id // 选择打回节点前缓存id
+                        node.id = node.callbackData ? node.callbackData.id : node.id
+                    }
+                    if (this.curSelectId === node.id) return
+                    this.curSelectId = node.id
+                    let rootNode = node
+                    let nodeHeirarchy = ''
+                    if (!rootNode.id) return
+                    while (rootNode.parent) {
+                        if (nodeHeirarchy) {
+                            nodeHeirarchy += '.' + rootNode.parent.id
+                        } else {
+                            nodeHeirarchy += rootNode.parent.id
+                        }
+                        rootNode = rootNode.parent
+                    }
+                    // 最外层网关为null时传递id
+                    nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
+                    this.setDefaultActiveId(this.treeData, this.treeData, node.id)
+                    this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
+                    // 取缓存id
+                    node.id = node.cacheId ? node.cacheId : node.id
                 }
-                // 最外层网关为null时传递id
-                nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
-                this.setDefaultActiveId(this.treeData, this.treeData, id)
-                this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
         }
     }

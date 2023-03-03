@@ -113,9 +113,9 @@
                     :admin-view="adminView"
                     :pipeline-data="nodePipelineData"
                     :default-active-id="defaultActiveId"
+                    :is-condition="isCondition"
                     :node-detail-config="nodeDetailConfig"
                     :is-readonly="true"
-                    :is-condition="isCondition"
                     :is-show.sync="isShowConditionEdit"
                     :gateways="pipelineData.gateways"
                     :condition-data="conditionData"
@@ -181,57 +181,6 @@
             @onCancelInjectVar="onCancelInjectVar">
         </injectVariableDialog>
         <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('跳过节点')"
-            :loading="pending.skip"
-            :value="isSkipDialogShow"
-            data-test-id="taskExcute_dialog_skipNodeDialog"
-            @confirm="nodeTaskSkip(skipNodeId)"
-            @cancel="onSkipCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该节点继续往后执行？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('强制终止')"
-            :loading="pending.forceFail"
-            :value="isForceFailDialogShow"
-            data-test-id="taskExcute_dialog_forceFailDialog"
-            @confirm="nodeForceFail(forceFailId)"
-            @cancel="onForceFailCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否强制终止该节点？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('继续执行')"
-            :loading="pending.parseNodeResume"
-            :value="isNodeResumeDialogShow"
-            data-test-id="taskExcute_dialog_resumeDialog"
-            @confirm="nodeResume(nodeResumeId)"
-            @cancel="onTaskNodeResumeCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成该节点继续向后执行？') }}</div>
-        </bk-dialog>
-        <!-- <condition-edit
-            v-if="isShowConditionEdit"
-            ref="conditionEdit"
-            :is-readonly="true"
-            :is-show.sync="isShowConditionEdit"
-            :gateways="pipelineData.gateways"
-            :condition-data="conditionData"
-            @close="onCloseConfigPanel">
-        </condition-edit> -->
-        <bk-dialog
             width="600"
             :theme="'primary'"
             :mask-close="false"
@@ -280,8 +229,6 @@
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
-    // import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
-    // import taskCondition from './taskCondition.vue'
     import injectVariableDialog from './InjectVariableDialog.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
 
@@ -331,9 +278,7 @@
             gatewaySelectDialog,
             TaskOperationHeader,
             TemplateData,
-            // ConditionEdit,
             injectVariableDialog
-            // taskCondition
         },
         mixins: [permission, tplPerspective],
         props: {
@@ -1364,7 +1309,7 @@
                                 const callback = loopList.includes(item) ? activities[flows[item].target] : ''
                                 const { evaluate, tag } = gateway.conditions[item]
                                 const callbackData = {
-                                    id: item,
+                                    id: callback.id,
                                     name: gateway.conditions[item].name,
                                     nodeId: gateway.id,
                                     overlayId: 'condition' + item,
@@ -1372,7 +1317,7 @@
                                     value: evaluate
                                 }
                                 return {
-                                    id: callback.id,
+                                    id: gateway.conditions[item].name,
                                     conditionsId: '',
                                     callbackName: callback.name,
                                     name: gateway.conditions[item].name,
@@ -1579,8 +1524,9 @@
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
             onOpenConditionEdit (data, isCondition = true) {
-                if (isCondition) {
+                if (isCondition && data) {
                     this.onNodeClick(data.nodeId)
+                    this.defaultActiveId = data.name
                     this.isCondition = true
                     this.isShowConditionEdit = true
                     this.conditionData = { ...data }
