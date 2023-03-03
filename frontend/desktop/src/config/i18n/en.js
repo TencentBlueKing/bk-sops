@@ -1596,7 +1596,9 @@ const en = {
     '显示（入参）': 'Show (input parameter)',
     '隐藏（非入参）': 'Hide (no input parameter)',
     '节点输入': 'Node input',
-    '节点输出': 'Node output'
+    '节点输出': 'Node output',
+    'x 项删除成功,': '{num} item deleted successfully,',
+    '项删除失败': '项删除失败'
 }
 
 export default en

@@ -385,7 +385,7 @@
                     pipeline_template__editor: editor || undefined,
                     project__id: this.project_id,
                     new: true,
-                    id: template_id
+                    id__in: template_id
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
