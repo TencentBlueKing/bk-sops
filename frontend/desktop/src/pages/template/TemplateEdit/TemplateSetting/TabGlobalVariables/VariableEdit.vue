@@ -247,8 +247,8 @@
                 isHookedVar, // 是否为勾选生成的变量
                 currentValType,
                 showTypeList: [
-                    { id: 'show', name: i18n.t('是') },
-                    { id: 'hide', name: i18n.t('否') }
+                    { id: 'show', name: i18n.t('显示（入参）') },
+                    { id: 'hide', name: i18n.t('隐藏（非入参）') }
                 ],
                 hideConditionList,
                 isShowErrorMsg: false,

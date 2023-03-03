@@ -144,7 +144,7 @@
                     <p v-if="nodeExecRecordInfo.count" class="record-title">
                         {{ $t('最近 x 次成功执行耗时', { num: nodeExecRecordInfo.count > 5 ? 5 : nodeExecRecordInfo.count }) }}
                     </p>
-                    <ul :class="['content-list', { 'no-record': !nodeExecRecordInfo.count, 'lot-record': nodeExecRecordInfo.count > 5 }]">
+                    <ul :class="['content-list', { 'lot-record': nodeExecRecordInfo.count > 5 }]">
                         <li class="content-item running" v-if="nodeExecRecordInfo.curTime">
                             {{ $t('已运行') + ' ' + nodeExecRecordInfo.curTime || '--' }}
                         </li>
@@ -153,6 +153,9 @@
                                 {{ time || '--' }}
                             </li>
                         </template>
+                        <li v-else-if="!execRecordLoading && nodeExecRecordInfo.curTime" class="content-item empty">
+                            {{ $t('暂无成功执行历史') }}
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -572,7 +575,7 @@
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
-                const { name, evaluate: value, tag } = this.canvasData.branchConditions[nodeId][lineId]
+                const { name, evaluate: value, tag, loc } = this.canvasData.branchConditions[nodeId][lineId]
                 if ($branchEl.classList.contains('branch-condition')) {
                     e.stopPropagation()
                     this.$emit('onConditionClick', {
@@ -581,7 +584,8 @@
                         name,
                         value,
                         tag,
-                        overlayId
+                        overlayId,
+                        loc
                     })
                 }
                 if (this.editable) {
@@ -660,7 +664,7 @@
                 }
                 this.$nextTick(() => {
                     // 拖拽节点到线上, 自动生成连线
-                    this.handleDraggerNodeToLine(node)
+                    this.handleDraggerNodeToLine({ ...node, isCreate: true })
                 })
             },
             onCreateNodeMoving (node) {
@@ -1014,9 +1018,9 @@
                         this.$refs.jsFlow.createConnector(startLine)
                         this.$refs.jsFlow.createConnector(endLine)
                     })
-                    // 删除节点两端插入连线的端点,id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
-                    const nodeDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
-                    const pointDoms = nodeDom && nodeDom.querySelectorAll('.insert-point')
+                    // 删除节点两端插入连线的端点,isCreate为true时表示从左侧菜单栏直接拖拽创建，插入端点还存在在画布里面
+                    const nodeDom = document.querySelector(`#${!location.isCreate ? location.id : 'canvas-flow'}`)
+                    const pointDoms = nodeDom && nodeDom.querySelectorAll('.node-inset-line-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
                             nodeDom.removeChild(pointDomItem)
@@ -1471,15 +1475,15 @@
                         nodeWidth = 34
                         nodeHeight = 34
                     }
-                    const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px; color: #3a84ff;'
+                    const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
                     // 判断端点是否已经创建
-                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
                     if (!pointDoms.length) {
                         // 创建节点两边插入连线的端点
                         const pointDom1 = document.createElement('span')
                         const pointDom2 = document.createElement('span')
-                        pointDom1.className = 'bk-icon icon-plus-circle-shape insert-point'
-                        pointDom2.className = 'bk-icon icon-plus-circle-shape insert-point'
+                        pointDom1.className = 'node-inset-line-point'
+                        pointDom2.className = 'node-inset-line-point'
                         if (lineConfig.segmentPosition.width > 8) { // 平行
                             if (!location.id) { // 还未生成的节点
                                 const { x, y } = location
@@ -1523,7 +1527,7 @@
                     })
                     this.connectionHoverList = []
                     // 移除节点两边插入连线的端点
-                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
                             parentDom.removeChild(pointDomItem)
@@ -2059,6 +2063,8 @@
                 }
                 const connectorDom = document.querySelector('svg.bk-sops-connector-hover')
                 if (!connectorDom) return
+                // 节点hover到分支条件上不触发操作面板
+                if (dom.parentClsContains('branch-condition', e.target)) return
                 // 当鼠标hover到新的连线时关闭旧的快捷面板
                 const { top, left } = connectorDom.style
                 if (tools.isDataEqual({ top, left }, this.connectorPosition)) {
@@ -2284,18 +2290,21 @@
             setLabelDraggable (line, labelData) {
                 const self = this
                 let percent
+                let initMousePos = { x: 0, y: 0 }
                 const intialPos = { left: 0, top: 0 }
                 const instance = this.$refs.jsFlow.instance
                 const connection = this.$refs.jsFlow.instance.getConnections({ source: line.source.id, target: line.target.id })[0]
                 const label = connection.getOverlay(`condition${line.id}`)
                 const elLabel = label.getElement()
                 instance.draggable(elLabel, {
-                    start () {
+                    start (event) {
+                        initMousePos.x = event.e.x
+                        initMousePos.y = event.e.y
                         const rect = elLabel.getBoundingClientRect()
                         intialPos.x = rect.x
                         intialPos.y = rect.y
                     },
-                    drag () {
+                    drag (event) {
                         const pos = instance.getUIPosition(arguments, instance.getZoom())
                         const o1 = instance.getOffset(connection.endpoints[0].canvas)
                         const o2 = instance.getOffset(connection.endpoints[1].canvas)
@@ -2306,7 +2315,13 @@
                             top: Math.min(o1.top, o2.top) + labelHeight / 2
                         }
                         const closest = self.getLabelPosition(connection, pos.left - o.left, pos.top - o.top)
-                        label.loc = closest.totalPercent
+                        // 用户点击label时会触发一次drag（偶发事件），当鼠标坐标偏移时再更新label坐标
+                        const { x, y } = event.e
+                        if (initMousePos.x === x && initMousePos.y === y) {
+                            initMousePos = { left: 0, top: 0 }
+                        } else {
+                            label.loc = closest.totalPercent
+                        }
                         percent = closest.totalPercent
                         if (!instance.isSuspendDrawing()) {
                             label.component.repaint()
@@ -2548,9 +2563,6 @@
                     height: calc(100% - 14px);
                     background: #d8d8d8;
                 }
-                &.no-record::before {
-                    content: none;
-                }
                 &.lot-record::after {
                     content: '';
                     position: absolute;
@@ -2591,6 +2603,9 @@
                         border-color: #3a84ff;
                     }
                 }
+                &.empty {
+                    color: #979ba5;
+                }
                 &:last-child {
                     margin-bottom: 9px;
                 }
@@ -2630,5 +2645,12 @@
         &:hover {
             display: block;
         }
+    }
+    .node-inset-line-point {
+        height: 14px;
+        width: 14px;
+        background-repeat: no-repeat;
+        background-size: 14px;
+        background-image: url('~@/assets/images/node-inset-line-point.svg');
     }
 </style>

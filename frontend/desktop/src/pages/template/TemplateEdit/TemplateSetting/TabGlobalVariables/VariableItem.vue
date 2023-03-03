@@ -44,7 +44,7 @@
                 @click.stop="onPreviewValue">
                 {{ variableData.type || '--' }}
             </span>
-            <span class="col-item col-attributes">
+            <!-- <span class="col-item col-attributes">
                 <i
                     v-if="variableData.source_type !== 'component_outputs'"
                     class="common-icon-show-left"
@@ -64,7 +64,7 @@
                     }"
                     @click.stop="viewClick">
                 </i>
-            </span>
+            </span> -->
             <span class="col-item col-show" @click.stop>
                 <bk-switcher
                     size="small"
@@ -399,7 +399,9 @@ $localBorderColor: #d8e2e7;
             color: #339dff;
         }
     }
-    .col-show,
+    .col-show {
+        width: 100px;
+    }
     .col-output {
         width: 50px;
     }

@@ -619,7 +619,7 @@
                     subprocess_has_update__exact: subprocess_has_update,
                     pipeline_template__has_subprocess: has_subprocess,
                     new: true,
-                    id: template_id || undefined,
+                    id__in: template_id || undefined,
                     pipeline_template__editor: editor || undefined
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
@@ -874,25 +874,58 @@
                 }
                 const res = await this.batchDeleteTpl(data)
                 if (res.result) {
-                    if (Array.isArray(res.data.success) && res.data.success.length > 0) {
-                        res.data.success.forEach(id => {
-                            const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
-                            this.selectedTpls.splice(index, 1)
+                    const { success, fail } = res.data
+                    if (fail.length) {
+                        const h = this.$createElement
+                        const self = this
+                        this.$bkMessage({
+                            message: h('p', {
+                                style: {
+                                    margin: 0
+                                }
+                            }, [
+                                i18n.t('x 项删除成功,', { num: success.length }),
+                                h('span', {
+                                    style: {
+                                        color: '#3a84ff',
+                                        cursor: 'pointer',
+                                        margin: '0 5px'
+                                    },
+                                    on: {
+                                        click: function () {
+                                            self.filterDeleteErrorTpls(fail.join(','))
+                                        }
+                                    }
+                                }, fail.length),
+                                i18n.t('项删除失败')
+                            ]),
+                            theme: 'error'
                         })
+                    } else {
                         this.$bkMessage({
                             message: i18n.t('流程') + i18n.t('删除成功！'),
                             theme: 'success'
                         })
+                    }
+                    if (success.length) {
+                        success.forEach(id => {
+                            const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
+                            this.selectedTpls.splice(index, 1)
+                        })
                         this.pagination.current = 1
                         this.getTemplateList()
-                    } else if (Object.keys(res.data.references).length) {
-                        this.$bkMessage({
-                            message: i18n.t('流程当前被使用中，无法删除'),
-                            theme: 'error'
-                        })
                     }
                 }
                 return Promise.resolve()
+            },
+            filterDeleteErrorTpls (templateIds) {
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'template_id')
+                if (creatorInfo) {
+                    creatorInfo.values = templateIds
+                } else {
+                    const form = this.searchList.find(item => item.id === 'template_id')
+                    this.searchSelectValue.push({ ...form, values: [templateIds] })
+                }
             },
             onImportTemplate () {
                 this.isImportDialogShow = true

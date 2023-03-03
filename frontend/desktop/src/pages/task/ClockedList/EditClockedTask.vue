@@ -82,8 +82,7 @@
                             class="scheme-form-item"
                             data-test-id="clockedEdit_form_selectScheme"
                             :label="isLatest ? $t('执行方案') : $t('已排除节点')"
-                            property="schemeId"
-                            :required="isLatest">
+                            property="schemeId">
                             <div class="scheme-wrapper">
                                 <bk-select
                                     v-if="isLatest"
@@ -293,16 +292,6 @@
                             },
                             message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'change'
-                        }
-                    ],
-                    schemeId: [
-                        {
-                            required: true,
-                            validator: (val) => {
-                                return this.formData.schemeId
-                            },
-                            message: i18n.t('请选择执行方案'),
-                            trigger: 'blur'
                         }
                     ],
                     flow: [
