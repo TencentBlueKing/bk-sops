@@ -1592,7 +1592,13 @@ const en = {
     '若该变量被节点引用，请及时检查并更新节点配置': 'If the variable is referenced by the node, please check and update the node configuration in time',
     '此流程无执行方案，无需选择': 'There is no execution plan for this process, no need to choose',
     '最近 x 次成功执行耗时': 'Elapsed time for the last {num} successful executions',
-    '已运行': 'Has been run'
+    '已运行': 'Has been run',
+    '表达式更多细节请参考': 'See expressions for more details',
+    '支持使用内置函数、datetime、re、hashlib、random、time、os.path模块处理全局变量': 'Support for handling global variables using built-in functions, datetime, re, hashlib, random, time, os.path modules',
+    '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符': 'Keyword syntax such as "and, or, True/true, False/false" is supported',
+    '支持 "and、or、True/true、False/false" 等关键字语法': '支持 "and、or、True/true、False/false" 等关键字语法',
+    '并行': 'Parallel',
+    '支持使用全局变量，如': 'Supports the use of global variables such as'
 }
 
 export default en
