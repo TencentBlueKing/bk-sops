@@ -568,7 +568,7 @@
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
-                const { name, evaluate: value, tag } = this.canvasData.branchConditions[nodeId][lineId]
+                const { name, evaluate: value, tag, loc } = this.canvasData.branchConditions[nodeId][lineId]
                 if ($branchEl.classList.contains('branch-condition')) {
                     e.stopPropagation()
                     this.$emit('onConditionClick', {
@@ -577,7 +577,8 @@
                         name,
                         value,
                         tag,
-                        overlayId
+                        overlayId,
+                        loc
                     })
                 }
                 if (this.editable) {
@@ -2010,6 +2011,8 @@
                 }
                 const connectorDom = document.querySelector('svg.bk-sops-connector-hover')
                 if (!connectorDom) return
+                // 节点hover到分支条件上不触发操作面板
+                if (dom.parentClsContains('branch-condition', e.target)) return
                 // 当鼠标hover到新的连线时关闭旧的快捷面板
                 const { top, left } = connectorDom.style
                 if (tools.isDataEqual({ top, left }, this.connectorPosition)) {
@@ -2235,18 +2238,21 @@
             setLabelDraggable (line, labelData) {
                 const self = this
                 let percent
+                let initMousePos = { x: 0, y: 0 }
                 const intialPos = { left: 0, top: 0 }
                 const instance = this.$refs.jsFlow.instance
                 const connection = this.$refs.jsFlow.instance.getConnections({ source: line.source.id, target: line.target.id })[0]
                 const label = connection.getOverlay(`condition${line.id}`)
                 const elLabel = label.getElement()
                 instance.draggable(elLabel, {
-                    start () {
+                    start (event) {
+                        initMousePos.x = event.e.x
+                        initMousePos.y = event.e.y
                         const rect = elLabel.getBoundingClientRect()
                         intialPos.x = rect.x
                         intialPos.y = rect.y
                     },
-                    drag () {
+                    drag (event) {
                         const pos = instance.getUIPosition(arguments, instance.getZoom())
                         const o1 = instance.getOffset(connection.endpoints[0].canvas)
                         const o2 = instance.getOffset(connection.endpoints[1].canvas)
@@ -2257,7 +2263,13 @@
                             top: Math.min(o1.top, o2.top) + labelHeight / 2
                         }
                         const closest = self.getLabelPosition(connection, pos.left - o.left, pos.top - o.top)
-                        label.loc = closest.totalPercent
+                        // 用户点击label时会触发一次drag（偶发事件），当鼠标坐标偏移时再更新label坐标
+                        const { x, y } = event.e
+                        if (initMousePos.x === x && initMousePos.y === y) {
+                            initMousePos = { left: 0, top: 0 }
+                        } else {
+                            label.loc = closest.totalPercent
+                        }
                         percent = closest.totalPercent
                         if (!instance.isSuspendDrawing()) {
                             label.component.repaint()
