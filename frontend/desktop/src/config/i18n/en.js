@@ -1592,7 +1592,11 @@ const en = {
     '若该变量被节点引用，请及时检查并更新节点配置': 'If the variable is referenced by the node, please check and update the node configuration in time',
     '此流程无执行方案，无需选择': 'There is no execution plan for this process, no need to choose',
     '最近 x 次成功执行耗时': 'Elapsed time for the last {num} successful executions',
-    '已运行': 'Has been run'
+    '已运行': 'Has been run',
+    '显示（入参）': 'Show (input parameter)',
+    '隐藏（非入参）': 'Hide (no input parameter)',
+    '节点输入': 'Node input',
+    '节点输出': 'Node output'
 }
 
 export default en

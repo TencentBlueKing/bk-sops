@@ -137,16 +137,17 @@
                                 @handleFilter="handleFilter">
                             </thead-popover>
                         </span>
-                        <span class="col-attributes t-head">
+                        <!-- 隐藏来源字段 -->
+                        <!-- <span class="col-attributes t-head">
                             {{ $t('来源') }}
                             <thead-popover
                                 :content-list="varAttrList"
                                 type="attributes"
                                 @handleFilter="handleFilter">
                             </thead-popover>
-                        </span>
+                        </span> -->
                         <span class="col-show t-head">
-                            {{ $t('显示') }}
+                            {{ $t('显示（入参）') }}
                             <thead-popover
                                 :content-list="varShowList"
                                 type="show"
@@ -387,7 +388,7 @@
                         this.varTypeList = await this.loadCustomVarCollection()
                     }
                     const varTypeList = tools.deepClone(this.varTypeList)
-                    let isHasComponent = false
+                    const nodeCheckVarList = new Set()
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
                             const varInfo = this.internalVariable[cur.key]
@@ -400,14 +401,18 @@
                                 result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
                             } else {
-                                this.$set(cur, 'type', i18n.t('组件'))
-                                isHasComponent = true
+                                const name = cur.source_type === 'component_outputs' ? i18n.t('节点输出') : i18n.t('节点输入')
+                                this.$set(cur, 'type', name)
+                                nodeCheckVarList.add(cur.source_type)
                             }
                         }
                         return acc
                     }, [])
-                    if (isHasComponent) {
-                        listData.unshift({ checked: this.checkedTypeList.includes('component'), name: i18n.t('组件'), code: 'component' })
+                    if (nodeCheckVarList.size) {
+                        [...nodeCheckVarList].forEach(code => {
+                            const name = code === 'component_outputs' ? i18n.t('节点输出') : i18n.t('节点输入')
+                            listData.unshift({ checked: this.checkedTypeList.includes(code), name, code })
+                        })
                     }
                     if (!this.isHideSystemVar) {
                         const internalVar = [
@@ -451,7 +456,7 @@
                                         const varInfo = this.internalVariable[item.key]
                                         str = varInfo.source_type === 'system' ? 'system' : 'project'
                                     } else {
-                                        str = item[key] || 'component'
+                                        str = item[key] || item.source_type
                                     }
                                 } else if (key === 'source_type') {
                                     const isInput = item.source_type !== 'component_outputs'
@@ -822,7 +827,9 @@
                 }
             }
         }
-        .col-show,
+        .col-show {
+            width: 100px;
+        }
         .col-output {
             width: 50px;
         }
