@@ -223,12 +223,12 @@
                 if (node.isGateway) {
                     return <span class={conditionClass} v-bk-tooltips={callbackTip}>
                         <span class={'commonicon-icon common-icon-return-arrow callback'} onClick={(e) => this.onSelectNode(e, node, 'callback')}></span>
-                        <span class={isActive} style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
+                        <span class={isActive} style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.title} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else if (this.gatewayType[node.type]) {
                     return <span style={'font-size: 16px'}>
                         <span class={iconClass} style={this.stateColor[node.state]}></span>
-                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
+                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'node')}></span>
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
@@ -270,6 +270,10 @@
                 return false
             },
             onSelectNode (e, node, type) {
+                if (node.title === '并行' && type === 'gateway') {
+                    e.stopPropagation()
+                    return
+                }
                 this.$emit('onOpenGatewayInfo', node.callbackData, false)
                 if (node && node.state === 'Gateway') e.stopPropagation()
                 if (type === 'gateway') {
