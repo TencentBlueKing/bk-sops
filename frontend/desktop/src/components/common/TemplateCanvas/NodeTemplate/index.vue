@@ -14,6 +14,8 @@
         class="canvas-node-item"
         @mousedown="onMousedown"
         @mouseenter="$emit('onNodeMouseEnter', node)"
+        @mousemove="$emit('onNodeMouseMove', node, $event)"
+        @mouseleave="$emit('onNodeMouseLeave', node)"
         @click="onNodeClick"
         @dblclick="onNodeDblclick">
         <div class="canvas-node-content">

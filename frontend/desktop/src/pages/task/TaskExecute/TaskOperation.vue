@@ -113,9 +113,9 @@
                     :admin-view="adminView"
                     :pipeline-data="nodePipelineData"
                     :default-active-id="defaultActiveId"
+                    :is-condition="isCondition"
                     :node-detail-config="nodeDetailConfig"
                     :is-readonly="true"
-                    :is-condition="isCondition"
                     :is-show.sync="isShowConditionEdit"
                     :gateways="pipelineData.gateways"
                     :condition-data="conditionData"
@@ -238,8 +238,6 @@
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
-    // import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
-    // import taskCondition from './taskCondition.vue'
     import injectVariableDialog from './InjectVariableDialog.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
 
@@ -289,9 +287,7 @@
             gatewaySelectDialog,
             TaskOperationHeader,
             TemplateData,
-            // ConditionEdit,
             injectVariableDialog
-            // taskCondition
         },
         mixins: [permission, tplPerspective],
         props: {
@@ -1324,7 +1320,7 @@
                                 const callback = loopList.includes(item) ? activities[flows[item].target] : ''
                                 const { evaluate, tag } = gateway.conditions[item]
                                 const callbackData = {
-                                    id: item,
+                                    id: callback.id,
                                     name: gateway.conditions[item].name,
                                     nodeId: gateway.id,
                                     overlayId: 'condition' + item,
@@ -1332,7 +1328,7 @@
                                     value: evaluate
                                 }
                                 return {
-                                    id: callback.id,
+                                    id: gateway.conditions[item].name,
                                     conditionsId: '',
                                     callbackName: callback.name,
                                     name: gateway.conditions[item].name,
@@ -1539,8 +1535,9 @@
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
             onOpenConditionEdit (data, isCondition = true) {
-                if (isCondition) {
+                if (isCondition && data) {
                     this.onNodeClick(data.nodeId)
+                    this.defaultActiveId = data.name
                     this.isCondition = true
                     this.isShowConditionEdit = true
                     this.conditionData = { ...data }
