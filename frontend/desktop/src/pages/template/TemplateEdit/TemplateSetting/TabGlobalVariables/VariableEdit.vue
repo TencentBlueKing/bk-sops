@@ -82,7 +82,7 @@
                 <!-- 显示/隐藏 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
                     <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('配置为“是”可在执行时填参页面覆盖变量默认值，配置为“否”则使用变量默认值')" class="condition-tip">{{ $t('执行时显示')}}</span>
+                        <span v-bk-tooltips.top="$t('配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用')" class="condition-tip">{{ $t('执行时显示')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select
@@ -102,7 +102,7 @@
                 <!-- 自动隐藏 -->
                 <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
                     <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动')" class="condition-tip">{{ $t('“显示参数”条件隐藏')}}</span>
+                        <span v-bk-tooltips.top="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')" class="condition-tip">{{ $t('“显示参数”条件隐藏')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select
