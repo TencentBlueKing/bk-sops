@@ -1605,7 +1605,14 @@ const en = {
     '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符': 'Keyword syntax such as "and, or, True/true, False/false" is supported',
     '支持 "and、or、True/true、False/false" 等关键字语法': '支持 "and、or、True/true、False/false" 等关键字语法',
     '并行': 'Parallel',
-    '支持使用全局变量，如': 'Supports the use of global variables such as'
+    '支持使用全局变量，如': 'Supports the use of global variables such as',
+    '任务入参': 'Task entry',
+    '修改入参': 'Modify input parameters',
+    '暂停并修改': 'Pause and modify',
+    '提交并继续': 'Submit and continue',
+    '修改': 'Modify',
+    '任务已暂停执行': 'Task has been paused',
+    '任务已继续执行': 'Task has resumed'
 }
 
 export default en
