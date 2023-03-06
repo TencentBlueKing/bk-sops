@@ -379,8 +379,30 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         with transaction.atomic():
             if task_is_started:
+                # 对修改参数的任务状态进行检查
+                status_result = self.get_task_status(subprocess_id=None, with_ex_data=False)
+                if status_result is False:
+                    logger.error(
+                        f"update context values failed: get pipeline states error, "
+                        f"error message is {status_result['message']}"
+                    )
+                    message = _(f"任务参数设置失败: 获取任务状态失败，错误信息为{status_result['message']}。")
+                    return {"result": False, "message": message, "data": None, "code": err_code.VALIDATION_ERROR.code}
+                if status_result["data"].get("state") not in [
+                    bamboo_engine_states.FAILED,
+                    bamboo_engine_states.READY,
+                    bamboo_engine_states.CREATED,
+                    bamboo_engine_states.SUSPENDED,
+                    bamboo_engine_states.BLOCKED,
+                ]:
+                    logger.error(
+                        f"update context values failed: pipeline instance state error, "
+                        f"tree state is {status_result}"
+                    )
+                    message = _(f"任务参数设置失败: 任务状态校验失败，" f"任务状态为{status_result['data']['state']}，不支持进行参数修改。")
+                    return {"result": False, "data": "", "message": message, "code": err_code.VALIDATION_ERROR.code}
+
                 bamboo_runtime = BambooDjangoRuntime()
-                bamboo_engine_api.pause_pipeline(runtime=bamboo_runtime, pipeline_id=self.pipeline_instance.instance_id)
                 update_res = bamboo_engine_api.update_context_values(
                     runtime=bamboo_runtime,
                     pipeline_id=self.pipeline_instance.instance_id,
@@ -396,9 +418,6 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         "message": message,
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
-                bamboo_engine_api.resume_pipeline(
-                    runtime=bamboo_runtime, pipeline_id=self.pipeline_instance.instance_id
-                )
             self.pipeline_instance.set_execution_data(exec_data)
 
         return {
