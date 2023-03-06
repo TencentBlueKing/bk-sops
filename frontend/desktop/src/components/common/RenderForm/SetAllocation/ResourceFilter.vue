@@ -930,7 +930,8 @@
                     this.$bkMessage({
                         message: gettext('模块') + cycled.join(',') + gettext('存在循环引用'),
                         theme: 'error',
-                        ellipsisLine: 0
+                        ellipsisLine: 0,
+                        delay: 10000
                     })
                     return false
                 }
@@ -955,7 +956,8 @@
                     if (!tabValid) {
                         this.$bkMessage({
                             message: gettext('参数错误，请检查模块表单项'),
-                            theme: 'error'
+                            theme: 'error',
+                            delay: 10000
                         })
                     } else {
                         return true

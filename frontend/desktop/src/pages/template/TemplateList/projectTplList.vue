@@ -949,7 +949,8 @@
                         if ('errorId' in resp) {
                             this.$bkMessage({
                                 message: resp.message,
-                                theme: 'error'
+                                theme: 'error',
+                                delay: 10000
                             })
                         }
                         return
@@ -1236,7 +1237,8 @@
                                 }, fail.length),
                                 i18n.t('项删除失败')
                             ]),
-                            theme: 'error'
+                            theme: 'error',
+                            delay: 10000
                         })
                     } else {
                         this.$bkMessage({

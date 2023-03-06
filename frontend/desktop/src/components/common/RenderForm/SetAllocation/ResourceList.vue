@@ -214,7 +214,8 @@
                 if (!fileTypeValid) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件')
+                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'),
+                        delay: 10000
                     })
                     return
                 }

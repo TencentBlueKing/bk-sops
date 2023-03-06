@@ -899,7 +899,8 @@
                                 }, fail.length),
                                 i18n.t('项删除失败')
                             ]),
-                            theme: 'error'
+                            theme: 'error',
+                            delay: 10000
                         })
                     } else {
                         this.$bkMessage({
