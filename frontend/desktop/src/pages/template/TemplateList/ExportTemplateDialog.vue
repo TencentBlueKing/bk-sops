@@ -45,7 +45,8 @@
                     <div class="empty-data" slot="empty">
                         <NoData
                             :type="keywords ? 'search-empty' : 'empty'"
-                            :message="keywords ? $t('搜索结果为空') : ''">
+                            :message="keywords ? $t('搜索结果为空') : ''"
+                            @searchClear="handleSearchClear">
                         </NoData>
                     </div>
                 </bk-table>
@@ -252,6 +253,11 @@
             searchInputhandler () {
                 this.currentPage = 1
                 this.getTemplateData()
+            },
+            // 取消搜索
+            handleSearchClear () {
+                this.keywords = ''
+                this.searchInputhandler()
             },
             // 勾选模板
             onSelectTemplate (row) {

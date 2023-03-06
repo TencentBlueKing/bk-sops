@@ -17,6 +17,7 @@
                 :selector-list="projectSelector"
                 :data-list="categoryData"
                 :data-loading="categoryDataLoading"
+                @onClearChartFilter="categoryFilterClear"
                 @onFilterClick="categoryFilterChange">
             </horizontal-bar-chart>
             <horizontal-bar-chart
@@ -24,6 +25,7 @@
                 :selector-list="categorySelector"
                 :data-list="projectData"
                 :data-loading="projectDataLoading"
+                @onClearChartFilter="projectFilterClear"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -39,7 +41,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="projectList.length === 0"
-                                @change="appmakerFilterChange">
+                                @clear="appmakerFilterChange"
+                                @selected="appmakerFilterChange">
                                 <bk-option
                                     v-for="option in projectList"
                                     :key="option.id"
@@ -56,7 +59,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="categoryList.length === 0"
-                                @change="appmakerFilterChange">
+                                @clear="appmakerFilterChange"
+                                @selected="appmakerFilterChange">
                                 <bk-option
                                     v-for="option in categoryList"
                                     :key="option.id"
@@ -99,7 +103,8 @@
                         <div class="empty-data" slot="empty">
                             <NoData
                                 :type="isSearch ? 'search-empty' : 'empty'"
-                                :message="isSearch ? $t('搜索结果为空') : ''">
+                                :message="isSearch ? $t('搜索结果为空') : ''"
+                                @searchClear="handleSearchClear">
                             </NoData>
                         </div>
                     </bk-table>
@@ -315,8 +320,18 @@
                 this.categoryDataProject = val
                 this.getCategoryData()
             },
+            categoryFilterClear () {
+                this.projectSelector[0].selected = ''
+                this.categoryDataProject = ''
+                this.getCategoryData()
+            },
             projectFilterChange (val) {
                 this.projectDataCategory = val
+                this.getProjectData()
+            },
+            projectFilterClear () {
+                this.categorySelector[0].selected = ''
+                this.projectDataCategory = ''
                 this.getProjectData()
             },
             appmakerFilterChange () {
@@ -348,6 +363,11 @@
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.getAppmakerData()
+            },
+            handleSearchClear () {
+                this.appmakerProject = ''
+                this.appmakerCategory = ''
+                this.appmakerFilterChange()
             }
         }
     }

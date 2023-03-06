@@ -109,8 +109,9 @@
                     </ul>
                     <NoData
                         v-else-if="!taskListPending"
-                        :is-search="searchWord ? 'search-empty' : 'empty'"
-                        :message="searchWord ? $t('搜索结果为空') : ''">
+                        :type="isSearch ? 'search-empty' : 'empty'"
+                        :message="isSearch ? $t('搜索结果为空') : ''"
+                        @searchClear="handleSearchClear">
                     </NoData>
                 </div>
             </div>
@@ -279,6 +280,9 @@
                     return true
                 }
                 return false
+            },
+            isSearch () {
+                return this.searchWord || this.selectedTplLabel.length
             }
         },
         created () {
@@ -542,6 +546,12 @@
             searchInputHandler () {
                 this.clearSearch()
                 this.getListData()
+            },
+            handleSearchClear () {
+                this.selectedTplCategory = 'all'
+                this.selectedTplLabel = []
+                this.searchWord = ''
+                this.searchInputHandler()
             },
             async onChooseTplType (value) {
                 this.selectedTplType = value

@@ -44,10 +44,14 @@
                             @getCollectList="getCollectList">
                         </app-card>
                     </div>
-                    <NoData v-else-if="searchMode" class="empty-app-list">
-                        <p>{{$t('未找到相关轻应用')}}</p>
+                    <NoData
+                        v-else-if="searchMode"
+                        class="empty-app-list"
+                        type="search-empty"
+                        :message="$t('未找到相关轻应用')"
+                        @searchClear="searchSelectValue = []">
                     </NoData>
-                    <div v-else class="empty-app-content">
+                    <div v-else-if="!loading" class="empty-app-content">
                         <div class="appmaker-info">
                             <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
                             <p class="appmaker-info-text">{{$t('流程任务的一种快捷方式，它是基于流程生成并可直接在蓝鲸应用市场&桌面以SaaS方式搜索、添加及打开。这种无需开发、快速生成的类SaaS应用称为“轻应用”。')}}</p>

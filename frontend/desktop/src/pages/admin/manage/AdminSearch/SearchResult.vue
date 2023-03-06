@@ -143,7 +143,7 @@
                     </bk-table>
                 </div>
             </template>
-            <NoData v-else class="no-data-matched" type="search-empty">{{ $t('没有找到相关内容') }}</NoData>
+            <NoData v-else class="no-data-matched" type="search-empty" :message="$t('没有找到相关内容')" @searchClear="handleSearchClear"></NoData>
         </div>
         <bk-dialog
             width="400"
@@ -462,6 +462,10 @@
                 }
             },
             onSearch () {
+                this.getSearchResult()
+            },
+            handleSearchClear () {
+                this.searchStr = ''
                 this.getSearchResult()
             },
             onApplyPerm (required, data, type) {

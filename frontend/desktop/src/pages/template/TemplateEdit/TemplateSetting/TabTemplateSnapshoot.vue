@@ -85,7 +85,7 @@
                         </td>
                     </tr>
                     <tr v-if="!snapshoots.length" class="empty-snapshoot-tip">
-                        <NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData>
+                        <NoData :message="$t('无数据，请手动添加快照或等待自动保存')"></NoData>
                     </tr>
                 </tbody>
             </table>

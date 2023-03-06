@@ -44,7 +44,7 @@
                     :placeholder="$t('请输入流程名称')"
                     :clearable="true"
                     @paste="handleTestSearchPaste"
-                    @change="handleTextSearchClear"
+                    @change="handleTextSearchChange"
                     @clear="handleTextSearchClear"
                     @enter="handleSearch">
                 </bk-input>
@@ -73,7 +73,8 @@
                     v-if="tableList.length === 0"
                     class="exception-part"
                     :type="(labels.length || searchStr) ? 'search-empty' : 'empty'"
-                    :message="(labels.length || searchStr) ? $t('搜索结果为空') : ''">
+                    :message="(labels.length || searchStr) ? $t('搜索结果为空') : ''"
+                    @searchClear="handleTextSearchClear">
                 </NoData>
             </div>
         </div>
@@ -211,13 +212,16 @@
                 this.tplList = []
                 this.handleSearch()
             },
-            // 清除文本搜索
-            handleTextSearchClear (val) {
+            handleTextSearchChange (val) {
                 if (val === '') {
-                    this.searchStr = ''
-                    this.labels = []
-                    this.handleSearch()
+                    this.handleTextSearchClear()
                 }
+            },
+            // 清除文本搜索
+            handleTextSearchClear () {
+                this.searchStr = ''
+                this.labels = []
+                this.handleSearch()
             },
             handleSearch () {
                 this.tplList = []

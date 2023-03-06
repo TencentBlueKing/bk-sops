@@ -84,7 +84,8 @@
             <div class="empty-data" slot="empty">
                 <NoData
                     :type="currentMethod !== 'all' ? 'search-empty' : 'empty'"
-                    :message="currentMethod !== 'all' ? $t('搜索结果为空') : ''">
+                    :message="currentMethod !== 'all' ? $t('搜索结果为空') : ''"
+                    @searchClear="onSelectMethod('all')">
                 </NoData>
             </div>
         </bk-table>

@@ -17,6 +17,7 @@
             :label-width="400"
             :data-list="rankData"
             :data-loading="rankDataLoading"
+            @onClearChartFilter="rankFilterClear"
             @onFilterClick="rankFilterChange">
         </horizontal-bar-chart>
         <div class="tab-content-area">
@@ -30,7 +31,8 @@
                             :searchable="true"
                             :clearable="true"
                             :disabled="atomListData.length === 0"
-                            @change="tableFilterChange">
+                            @clear="tableFilterChange"
+                            @selected="tableFilterChange">
                             <bk-option
                                 v-for="option in atomListData"
                                 :key="option.id + '&' + option.version"
@@ -47,7 +49,8 @@
                             :searchable="true"
                             :clearable="true"
                             :disabled="projectList.length === 0"
-                            @change="tableFilterChange">
+                            @clear="tableFilterChange"
+                            @selected="tableFilterChange">
                             <bk-option
                                 v-for="option in projectList"
                                 :key="option.id"
@@ -64,7 +67,8 @@
                             :disabled="categoryList.length === 0"
                             :searchable="true"
                             :clearable="true"
-                            @change="tableFilterChange">
+                            @clear="tableFilterChange"
+                            @selected="tableFilterChange">
                             <bk-option
                                 v-for="option in categoryList"
                                 :key="option.id"
@@ -116,7 +120,8 @@
                         <div class="empty-data" slot="empty">
                             <NoData
                                 :type="isSearch ? 'search-empty' : 'empty'"
-                                :message="isSearch ? $t('搜索结果为空') : ''">
+                                :message="isSearch ? $t('搜索结果为空') : ''"
+                                @searchClear="handleSearchClear">
                             </NoData>
                         </div>
                     </bk-table>
@@ -418,6 +423,13 @@
                 }
                 this.getRankData()
             },
+            rankFilterClear () {
+                this.rankSelector[0].selected = 'atom_cite'
+                this.rankSelector[1].selected = ''
+                this.rankDataCite = 'atom_cite'
+                this.rankDataProject = ''
+                this.getRankData()
+            },
             onTabChange (tab) {
                 this.pagination.current = 1
                 this.tableSort = ''
@@ -445,6 +457,12 @@
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.getTableData()
+            },
+            handleSearchClear () {
+                this.tableAtom = ''
+                this.tableProject = ''
+                this.tableCategory = ''
+                this.tableFilterChange()
             }
         }
     }

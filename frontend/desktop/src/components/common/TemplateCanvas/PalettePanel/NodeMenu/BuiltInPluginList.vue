@@ -7,7 +7,7 @@
                     ext-popover-cls="node-menu-panel-popover"
                     :clearable="true"
                     :searchable="true"
-                    @clear="handleSearchClear"
+                    @clear="handleSelectedGroupClear"
                     @selected="handleSelectGroup">
                     <bk-option
                         v-for="item in builtInPlugins"
@@ -31,7 +31,7 @@
                     right-icon="bk-icon icon-search"
                     :placeholder="$t('搜索插件')"
                     :clearable="true"
-                    @change="handleSearchClear"
+                    @change="handleSearchChange"
                     @clear="handleSearchClear"
                     @enter="handleSearch">
                 </bk-input>
@@ -59,7 +59,8 @@
                                 <NoData
                                     class="exception-part"
                                     :type="searchStr ? 'search-empty' : 'empty'"
-                                    :message="searchStr ? $t('搜索结果为空') : ''">
+                                    :message="searchStr ? $t('搜索结果为空') : ''"
+                                    @searchClear="handleSearchClear">
                                 </NoData>
                             </div>
                         </div>
@@ -75,7 +76,8 @@
                     v-if="pluginList.length === 0"
                     class="exception-part"
                     :type="searchStr ? 'search-empty' : 'empty'"
-                    :message="searchStr ? $t('搜索结果为空') : ''">
+                    :message="searchStr ? $t('搜索结果为空') : ''"
+                    @searchClear="handleSearchClear">
                 </NoData>
             </div>
         </div>
@@ -121,6 +123,10 @@
                 this.searchStr = ''
                 this.pluginList = this.builtInPlugins.find(group => group.group_name === val).list.slice(0)
             },
+            handleSelectedGroupClear () {
+                this.searchMode = false
+                this.pluginList = this.builtInPlugins.slice(0)
+            },
             // 切换分组搜索和文本搜索
             handleChangeGroupMode (val) {
                 this.isSelectGroupMode = val
@@ -153,13 +159,16 @@
                 }
                 this.pluginList = result
             },
+            handleSearchChange (val) {
+                if (val === '') {
+                    this.handleSearchClear()
+                }
+            },
             // 清空搜索
             handleSearchClear (val) {
-                if (val === '') {
-                    this.searchStr = ''
-                    this.searchMode = false
-                    this.pluginList = this.builtInPlugins.slice(0)
-                }
+                this.searchStr = ''
+                this.searchMode = false
+                this.pluginList = this.builtInPlugins.slice(0)
             }
         }
     }

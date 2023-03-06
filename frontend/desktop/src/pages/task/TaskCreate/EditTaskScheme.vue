@@ -104,12 +104,7 @@
                     </li>
                 </ul>
                 <!-- 无数据提示 -->
-                <bk-exception
-                    v-else
-                    class="exception-wrap-item exception-part"
-                    type="empty"
-                    scene="part">
-                </bk-exception>
+                <NoData v-else></NoData>
             </section>
             <section class="scheme-footer">
                 <bk-button
@@ -136,9 +131,13 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import bus from '@/utils/bus.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'EditTaskScheme',
+        components: {
+            NoData
+        },
         mixins: [permission],
         props: {
             template_id: {
@@ -818,9 +817,6 @@
                 &.is-mepty {
                     border-bottom: none;
                 }
-            }
-            .exception-part {
-                margin: 55px 0;
             }
         }
         .scheme-footer {

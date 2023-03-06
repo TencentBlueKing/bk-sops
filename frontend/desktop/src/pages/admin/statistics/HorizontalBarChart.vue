@@ -36,7 +36,8 @@
                     :placeholder="selector.placeholder"
                     :disabled="selector.options.length === 0"
                     v-model="selector.selected"
-                    @change="onOptionClick(selector.id, $event)">
+                    @clear="onOptionClick"
+                    @selected="onOptionClick(selector.id, $event)">
                     <bk-option
                         v-for="option in selector.options"
                         :key="option.id"
@@ -96,7 +97,8 @@
                 <NoData
                     v-else
                     :type="isSearch ? 'search-empty' : 'empty'"
-                    :message="isSearch ? $t('搜索结果为空') : ''">
+                    :message="isSearch ? $t('搜索结果为空') : ''"
+                    @searchClear="$emit('onClearChartFilter')">
                 </NoData>
             </div>
         </div>
@@ -250,6 +252,11 @@
             },
             onViewAllClick () {
                 this.isDialogShow = true
+            },
+            handleSearchClear () {
+                this.selectorList.forEach(item => {
+                    item.selected = false
+                })
             }
         }
     }

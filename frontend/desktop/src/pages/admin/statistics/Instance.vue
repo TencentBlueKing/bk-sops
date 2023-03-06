@@ -29,6 +29,7 @@
                 :selector-list="projectSelector"
                 :data-list="categoryData"
                 :data-loading="categoryDataLoading"
+                @onClearChartFilter="categoryFilterClear"
                 @onFilterClick="categoryFilterChange">
             </horizontal-bar-chart>
             <horizontal-bar-chart
@@ -39,6 +40,7 @@
                 :data-loading="projectDataLoading"
                 :biz-useage-data="bizUseageData"
                 :color-block-list="colorBlockList"
+                @onClearChartFilter="projectFilterClear"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -49,7 +51,8 @@
                 :data-list="timeDataList"
                 :data-loading="timeDataLoading"
                 :color-block-list="colorBlockList"
-                @onFilterClick="timeFilterChange">
+                @onFilterClick="timeFilterChange"
+                @onClearTimeFilter="onClearTimeFilter">
             </vertical-bar-chart>
         </div>
         <div class="tab-content-area">
@@ -64,7 +67,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="projectList.length === 0"
-                                @change="instanceFilterChange">
+                                @clear="instanceFilterChange"
+                                @selected="instanceFilterChange">
                                 <bk-option
                                     v-for="option in projectList"
                                     :key="option.id"
@@ -81,7 +85,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="categoryList.length === 0"
-                                @change="instanceFilterChange">
+                                @clear="instanceFilterChange"
+                                @selected="instanceFilterChange">
                                 <bk-option
                                     v-for="option in categoryList"
                                     :key="option.id"
@@ -139,8 +144,9 @@
                         </template>
                         <div class="empty-data" slot="empty">
                             <NoData
-                                :type="(instanceProject || instanceCategory) ? 'search-empty' : 'empty'"
-                                :message="(instanceProject || instanceCategory) ? $t('搜索结果为空') : ''">
+                                :type="isSearch ? 'search-empty' : 'empty'"
+                                :message="isSearch ? $t('搜索结果为空') : ''"
+                                @searchClear="handleSearchClear">
                             </NoData>
                         </div>
                     </bk-table>
@@ -368,7 +374,10 @@
         computed: {
             ...mapState({
                 site_url: state => state.site_url
-            })
+            }),
+            isSearch () {
+                return this.instanceProject || this.instanceCategory || this.selectedFilter.length
+            }
         },
         watch: {
             dateRange (val) {
@@ -585,8 +594,18 @@
                 this.categoryDataProject = val
                 this.getCategoryData()
             },
+            categoryFilterClear () {
+                this.projectSelector[0].selected = ''
+                this.categoryDataProject = ''
+                this.getCategoryData()
+            },
             projectFilterChange (val) {
                 this.projectDataCategory = val
+                this.getProjectData()
+            },
+            projectFilterClear () {
+                this.categorySelector[0].selected = ''
+                this.projectDataCategory = ''
                 this.getProjectData()
             },
             timeFilterChange (val, selector) {
@@ -601,8 +620,28 @@
                 }
                 this.getTimeData()
             },
+            onClearTimeFilter () {
+                this.timeSelectorList.forEach(item => {
+                    item.selected = item.id === 'time' ? 'day' : ''
+                })
+                this.timeDataProject = ''
+                this.timeDataCategory = ''
+                this.timeDataType = 'day'
+                this.getTimeData()
+            },
             instanceFilterChange () {
                 this.pagination.current = 1
+                this.getTableData()
+            },
+            handleSearchClear () {
+                this.instanceProject = ''
+                this.instanceCategory = ''
+                this.instanceSort = ''
+                this.selectedFilter = []
+                this.filterList.forEach(item => {
+                    item.checked = false
+                })
+                this.getTimeData()
                 this.getTableData()
             },
             handleSortChange (val) {

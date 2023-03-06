@@ -20,7 +20,7 @@
             <i class="common-icon-task"></i>
         </div>
         <div class="card-content">
-            <p class="text">{{ displayName }}</p>
+            <p class="text" v-bk-overflow-tips>{{ displayName }}</p>
         </div>
         <div v-if="isApplyPermission" class="apply-permission-mask">
             <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>

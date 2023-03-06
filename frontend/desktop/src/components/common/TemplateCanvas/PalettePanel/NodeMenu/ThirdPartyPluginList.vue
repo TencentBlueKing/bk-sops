@@ -7,7 +7,7 @@
                 right-icon="bk-icon icon-search"
                 :placeholder="$t('搜索插件')"
                 :clearable="true"
-                @change="handleSearchClear"
+                @change="handleSearchChange"
                 @clear="handleSearchClear"
                 @enter="handleSearch">
             </bk-input>
@@ -34,7 +34,8 @@
                 <NoData
                     v-if="pluginList.length === 0"
                     :type="searchStr ? 'search-empty' : 'empty'"
-                    :message="searchStr ? $t('搜索结果为空') : ''">
+                    :message="searchStr ? $t('搜索结果为空') : ''"
+                    @searchClear="handleSearchClear">
                 </NoData>
             </div>
         </div>
@@ -117,10 +118,14 @@
                     this.getPluginList()
                 }
             },
-            handleSearchClear (val) {
+            handleSearchChange (val) {
                 if (val === '') {
-                    this.handleSearch()
+                    this.handleSearchClear()
                 }
+            },
+            handleSearchClear () {
+                this.searchStr = ''
+                this.handleSearch()
             },
             handleSearch (val) {
                 this.pluginList = []

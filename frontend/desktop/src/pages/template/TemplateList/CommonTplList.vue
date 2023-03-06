@@ -119,7 +119,8 @@
                         <div class="empty-data" slot="empty">
                             <NoData
                                 :type="searchSelectValue.length ? 'search-empty' : 'empty'"
-                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''">
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
                             </NoData>
                         </div>
                     </bk-table>
