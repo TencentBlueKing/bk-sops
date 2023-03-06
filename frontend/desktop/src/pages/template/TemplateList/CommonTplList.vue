@@ -376,6 +376,7 @@
             },
             getQueryData () {
                 const { creator, create_time, edit_time, flowName, template_id, editor } = this.requestData
+                const tplIds = template_id?.split('|').map(item => item.trim()).join(',') || undefined
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -385,7 +386,7 @@
                     pipeline_template__editor: editor || undefined,
                     project__id: this.project_id,
                     new: true,
-                    id__in: template_id
+                    id__in: tplIds
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
