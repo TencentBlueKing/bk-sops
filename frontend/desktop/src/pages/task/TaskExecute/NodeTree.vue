@@ -270,12 +270,14 @@
                 return false
             },
             onSelectNode (e, node, type) {
+                // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
+                node.selected = node.id === this.curSelectId
+                if (node.expanded && !node.selected) e.stopPropagation()
                 if (node.title === this.$t('并行') && type === 'gateway') {
                     e.stopPropagation()
                     return
                 }
                 this.$emit('onOpenGatewayInfo', node.callbackData, false)
-                if (node && node.state === 'Gateway') e.stopPropagation()
                 if (type === 'gateway') {
                     // 分支条件没有id,使用name 代替
                     this.curSelectId = node.name
