@@ -280,7 +280,7 @@
                 const file = e.target.files[0]
                 if (file) {
                     if (file.size > 2 * 1024 * 1024 * 1024) {
-                        this.$bkMessage({ message: i18n.t('上传失败，DAT类型文件最大为2G'), theme: 'error' })
+                        this.$bkMessage({ message: i18n.t('上传失败，DAT类型文件最大为2G'), theme: 'error', delay: 10000 })
                         return
                     }
                     const filename = file.name

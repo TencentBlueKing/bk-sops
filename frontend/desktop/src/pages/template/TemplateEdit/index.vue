@@ -815,7 +815,8 @@
                         if ('errorId' in resp) {
                             this.$bkMessage({
                                 message: resp.message,
-                                theme: 'error'
+                                theme: 'error',
+                                delay: 10000
                             })
                             this.isParallelGwErrorMsg = resp.message
                             this.validateConnectFailList.push(resp.errorId)
@@ -1080,7 +1081,8 @@
                     }
                     this.$bkMessage({
                         message,
-                        theme: 'error'
+                        theme: 'error',
+                        delay: 10000
                     })
                 }
                 return isAllValid
@@ -1271,7 +1273,8 @@
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
-                        ellipsisLine: 0
+                        ellipsisLine: 0,
+                        delay: 10000
                     })
                     return
                 }
@@ -1636,7 +1639,8 @@
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
-                        ellipsisLine: 2
+                        ellipsisLine: 2,
+                        delay: 10000
                     })
                     return
                 }
@@ -1652,7 +1656,8 @@
                     this.$bkMessage({
                         message,
                         theme: 'error',
-                        ellipsisLine: 2
+                        ellipsisLine: 2,
+                        delay: 10000
                     })
                     return
                 }

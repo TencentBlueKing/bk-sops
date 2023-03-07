@@ -14,18 +14,6 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
-        <div v-if="retryNodeId || (state !== 'CREATED' && paramsCanBeModify)" class="panel-notice-task-run">
-            <p>
-                <i class="common-icon-info ui-notice"></i>
-                {{ $t('仅“未使用”的参数允许修改，“已使用”（成功、执行中节点引用）的参数不可修改。执行失败视为“未使用”引用的参数') }}
-            </p>
-        </div>
-        <div v-else-if="state !== 'CREATED' && !isChildTaskFlow" class="panel-notice-task-run">
-            <p>
-                <i class="common-icon-info ui-notice"></i>
-                {{ paramsCanBeModify ? $t('已开始执行的任务，修改参数值仅对还未执行的步骤生效') : $t('已执行完毕的任务不能修改参数') }}
-            </p>
-        </div>
         <div :class="['edit-wrapper']">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
@@ -34,7 +22,7 @@
                 :pre-mako-disabled="(paramsCanBeModify && state === 'CREATED') ? false : true"
                 :constants="constants"
                 :un-used-constants="unUsedConstants"
-                :editable="paramsCanBeModify && !isChildTaskFlow"
+                :editable="paramsCanBeModify && !isChildTaskFlow && editable"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
             <NoData v-else :message="$t('没有参数需要配置')"></NoData>
@@ -49,8 +37,8 @@
                     :loading="pending"
                     v-cursor="{ active: !hasSavePermission }"
                     data-test-id="taskExecute_form_saveModifyParamsBtn"
-                    @click="onModifyParams">
-                    {{ retryNodeId ? $t('重试') : $t('保存') }}
+                    @click="onConfirmClick">
+                    {{ confirmBtnText }}
                 </bk-button>
                 <bk-button theme="default" data-test-id="taskExecute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
             </div>
@@ -86,7 +74,8 @@
                 remoteData: {}, // 文本值下拉框变量远程数据源
                 isChildTaskFlow: false, // 是否为子流程任务
                 constantLoading: false, // 变量是否被使用加载
-                unUsedConstants: [] // 还未执行的变量
+                unUsedConstants: [], // 还未执行的变量
+                editable: false
             }
         },
         computed: {
@@ -102,11 +91,23 @@
             },
             loading () {
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading || this.constantLoading)
+            },
+            confirmBtnText () {
+                return this.retryNodeId
+                    ? i18n.t('重试')
+                    : this.editable
+                        ? ['SUSPENDED', 'RUNNING'].includes(this.state)
+                            ? i18n.t('提交并继续')
+                            : i18n.t('提交')
+                        : ['CREATED', 'SUSPENDED', 'FAILED'].includes(this.state)
+                            ? i18n.t('修改')
+                            : i18n.t('暂停并修改')
             }
         },
         async created () {
             if (this.retryNodeId) {
                 $.context.exec_env = 'NODE_RETRY'
+                this.editable = true
             }
             bus.$on('tagRemoteLoaded', (code, data) => {
                 this.remoteData[code] = data
@@ -143,7 +144,9 @@
             ...mapActions('task/', [
                 'getTaskInstanceData',
                 'instanceModifyParams',
-                'getTaskUsedConstants'
+                'getTaskUsedConstants',
+                'instancePause',
+                'instanceResume'
             ]),
             async getTaskData () {
                 this.cntLoading = true
@@ -183,6 +186,30 @@
                 }
                 return this.$refs.TaskParamEdit.judgeDataEqual()
             },
+            async onConfirmClick () {
+                if (this.editable) { // 保存修改参数
+                    this.onModifyParams()
+                } else {
+                    try {
+                        // 如果任务正在执行中需要先暂停任务再修改参数
+                        if (this.state === 'RUNNING') {
+                            this.pending = true
+                            await this.instancePause(this.instance_id)
+                            this.$bkMessage({
+                                message: i18n.t('任务已暂停执行'),
+                                theme: 'success'
+                            })
+                        }
+                        // 允许修改参数
+                        this.editable = true
+                        this.$parent.$parent.sideSliderTitle = i18n.t('修改入参')
+                    } catch (error) {
+                        console.warn(error)
+                    } finally {
+                        this.pending = false
+                    }
+                }
+            },
             async onModifyParams () {
                 if (!this.hasSavePermission) {
                     const resourceData = {
@@ -202,9 +229,10 @@
                 if (this.pending) {
                     return
                 }
+                // 如果节点重试时，参数为空则直接重试节点
                 if (this.isParamsEmpty && this.retryNodeId) {
                     this.pending = true
-                    await this.$emit('nodeTaskRetry')
+                    this.$emit('nodeTaskRetry')
                     return
                 }
                 const paramEditComp = this.$refs.TaskParamEdit
@@ -238,12 +266,20 @@
                 // 如果参数没有修改，则不用调用接口
                 if (modifiedKeys.length === 0) {
                     if (this.retryNodeId) {
-                        await this.$emit('nodeTaskRetry')
+                        this.$emit('nodeTaskRetry')
                         return
                     }
+                    let message = i18n.t('参数修改成功')
+                    let theme = 'warning'
+                    // 节点暂停时提交修改，如果未修改则不继续报错直接继续执行任务
+                    if (this.state === 'SUSPENDED') {
+                        await this.instanceResume(this.instance_id)
+                        message = i18n.t('参数修改成功，任务已继续执行')
+                        theme = 'success'
+                    }
                     this.$bkMessage({
-                        message: i18n.t('参数未修改'),
-                        theme: 'warning'
+                        message,
+                        theme
                     })
                     this.$emit('packUp')
                     return
@@ -303,12 +339,19 @@
                     // }
                     const res = await this.instanceModifyParams(data)
                     if (res.result) {
+                        // 修改完参数后重试节点
                         if (this.retryNodeId) {
-                            await this.$emit('nodeTaskRetry')
+                            this.$emit('nodeTaskRetry')
                             return
                         }
+                        let message = i18n.t('参数修改成功')
+                        // 暂停的任务继续执行
+                        if (this.state === 'SUSPENDED') {
+                            await this.instanceResume(this.instance_id)
+                            message = i18n.t('参数修改成功，任务已继续执行')
+                        }
                         this.$bkMessage({
-                            message: i18n.t('参数修改成功'),
+                            message,
                             theme: 'success'
                         })
                         this.$emit('packUp')
@@ -348,22 +391,6 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        .panel-notice-task-run {
-            margin: 20px 20px 10px 20px;
-            padding: 0 10px;
-            font-size: 12px;
-            line-height: 36px;
-            color: #63656e;
-            background: #f0f8ff;
-            border: 1px solid #c5daff;
-            box-shadow: 0 2px 4px 0 #e1e8f4;
-            border-radius: 2px;
-            .ui-notice {
-                font-size: 16px;
-                margin-right: 6px;
-                color: $blueDefault;
-            }
-        }
         .edit-wrapper {
             flex: 1;
             padding: 20px;

@@ -755,7 +755,7 @@
                     if (res.result) {
                         this.state = 'SUSPENDED'
                         this.$bkMessage({
-                            message: i18n.t('任务暂停成功'),
+                            message: i18n.t('任务已暂停执行'),
                             theme: 'success'
                         })
                     }
@@ -781,7 +781,7 @@
                         this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: i18n.t('任务继续成功'),
+                            message: i18n.t('任务已继续执行'),
                             theme: 'success'
                         })
                     }

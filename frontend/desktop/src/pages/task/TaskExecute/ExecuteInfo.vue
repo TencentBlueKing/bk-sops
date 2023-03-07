@@ -666,7 +666,8 @@
                     } catch (e) {
                         this.$bkMessage({
                             message: e,
-                            theme: 'error'
+                            theme: 'error',
+                            delay: 10000
                         })
                     }
                 }

@@ -610,6 +610,7 @@
                  */
                 const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                 const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
+                const tplIds = template_id?.split('|').map(item => item.trim()).join(',') || undefined
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -619,7 +620,7 @@
                     subprocess_has_update__exact: subprocess_has_update,
                     pipeline_template__has_subprocess: has_subprocess,
                     new: true,
-                    id__in: template_id || undefined,
+                    id__in: tplIds,
                     pipeline_template__editor: editor || undefined
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
@@ -899,7 +900,8 @@
                                 }, fail.length),
                                 i18n.t('项删除失败')
                             ]),
-                            theme: 'error'
+                            theme: 'error',
+                            delay: 10000
                         })
                     } else {
                         this.$bkMessage({

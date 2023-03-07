@@ -80,7 +80,8 @@
                     this.$bkMessage({
                         theme: 'error',
                         ellipsisLine: 0,
-                        message: error
+                        message: error,
+                        delay: 10000
                     })
                     return
                 }
@@ -89,7 +90,8 @@
                     this.$bkMessage({
                         theme: 'error',
                         ellipsisLine: 0,
-                        message: validateResult.message
+                        message: validateResult.message,
+                        delay: 10000
                     })
                     return
                 }

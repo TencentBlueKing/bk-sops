@@ -1497,9 +1497,9 @@ const en = {
     '上传失败，YAML类型文件最大为2G': 'Upload failed, the maximum size of the YAML type file is 2G',
     '退出登录': 'Logout',
     '执行时显示': 'Display when executed',
-    '配置为“是”可在执行时填参页面覆盖变量默认值，配置为“否”则使用变量默认值': 'Set to "Yes" to override the default value of the variable when filling in the parameter page during execution, and set to "No" to use the default value of the variable',
+    '配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用': 'Configured as "display", it can be used as a task input parameter during execution, and configured as "hidden", it can only be used inside the process',
     '“显示参数”条件隐藏': 'The Show Parameters condition is hidden',
-    '当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动': 'When the conditions are met, the parameters displayed in "execution" can be hidden to realize variable linkage',
+    '当满足条件时，原本做为入参的变量会隐藏起来无需录入': 'When the conditions are met, the variables originally used as input parameters will be hidden and no need to be entered',
     'ID/任务名/执行人/状态': 'ID/TaskName/Executor/Status',
     '编辑周期任务成功': 'Edit cycle task succeeded',
     '参数复用说明': 'Description of resource parameter reuse',
@@ -1605,7 +1605,14 @@ const en = {
     '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符': 'Keyword syntax such as "and, or, True/true, False/false" is supported',
     '支持 "and、or、True/true、False/false" 等关键字语法': '支持 "and、or、True/true、False/false" 等关键字语法',
     '并行': 'Parallel',
-    '支持使用全局变量，如': 'Supports the use of global variables such as'
+    '支持使用全局变量，如': 'Supports the use of global variables such as',
+    '任务入参': 'Task entry',
+    '修改入参': 'Modify input parameters',
+    '暂停并修改': 'Pause and modify',
+    '提交并继续': 'Submit and continue',
+    '修改': 'Modify',
+    '任务已暂停执行': 'Task has been paused',
+    '任务已继续执行': 'Task has resumed'
 }
 
 export default en

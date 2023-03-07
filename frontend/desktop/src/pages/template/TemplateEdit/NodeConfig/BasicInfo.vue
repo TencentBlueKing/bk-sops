@@ -252,7 +252,8 @@
                     :clearable="false"
                     :multiple="true"
                     :loading="schemeListLoading"
-                    :disabled="isViewMode"
+                    :placeholder="inputLoading || schemeListLoading || schemeList.length ? $t('请选择') : $t('此流程无执行方案，无需选择')"
+                    :disabled="isViewMode || inputLoading || schemeListLoading || !schemeList.length"
                     @selected="onSelectTaskScheme">
                     <bk-option v-for="item in schemeList" :key="item.id" :id="item.id" :name="item.name"></bk-option>
                 </bk-select>
@@ -425,7 +426,7 @@
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
     import BkUserSelector from '@blueking/user-selector'
-    import { mapState, mapActions, mapMutations } from 'vuex'
+    import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
     export default {
@@ -454,7 +455,7 @@
                 formData: tools.deepClone(this.basicInfo),
                 maxNodeExecuteTimeout: window.MAX_NODE_EXECUTE_TIMEOUT,
                 schemeList: [],
-                schemeListLoading: false,
+                schemeListLoading: true,
                 pluginRules: {
                     plugin: [
                         {
@@ -575,6 +576,10 @@
         watch: {
             basicInfo (val, oldVal) {
                 this.formData = tools.deepClone(val)
+                // 如果有执行方案，默认选中<不使用执行方案>
+                if (this.schemeList.length && !this.formData.schemeIdList.length) {
+                    this.formData.schemeIdList = [0]
+                }
                 if (val.tpl !== oldVal.tpl) {
                     this.getSubflowSchemeList()
                 }
@@ -601,6 +606,9 @@
             ...mapActions('template/', [
                 'getLabels',
                 'getProcessOpenRetryAndTimeout'
+            ]),
+            ...mapGetters('template/', [
+                'getPipelineTree'
             ]),
             // 加载子流程详情，拿到最新版本子流程的version字段
             async getSubflowDetail () {
@@ -646,6 +654,19 @@
                         isCommon: this.common || this.nodeConfig.template_source === 'common'
                     }
                     this.schemeList = await this.loadTaskScheme(data)
+                    // 添加<不使用执行方案>,如果没有选择方案时默认选中
+                    const { activities = {} } = this.getPipelineTree()
+                    const nodeList = Object.keys(activities)
+                    if (this.schemeList.length) {
+                        this.schemeList.unshift({
+                            data: JSON.stringify(nodeList),
+                            id: 0,
+                            name: '<' + i18n.t('不使用执行方案') + '>'
+                        })
+                        if (!this.formData.schemeIdList.length) {
+                            this.formData.schemeIdList = [0]
+                        }
+                    }
                     this.schemeListLoading = false
                 } catch (e) {
                     console.log(e)
@@ -774,7 +795,10 @@
                 this.updateData()
             },
             // 选择执行方案，需要更新子流程输入、输出参数
-            onSelectTaskScheme (val) {
+            onSelectTaskScheme (val, options) {
+                // 切换执行方案时取消<不使用执行方案>
+                const lastId = options.length ? options[options.length - 1].id : undefined
+                val = lastId === 0 ? [0] : lastId ? val.filter(id => id) : val
                 this.formData.schemeIdList = val
                 this.updateData()
                 this.$emit('selectScheme', val)

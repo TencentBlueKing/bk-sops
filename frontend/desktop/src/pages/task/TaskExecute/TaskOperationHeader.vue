@@ -27,6 +27,16 @@
                     <span class="node-ellipsis" v-else-if="index === 1">...</span>
                 </span>
             </div>
+            <router-link
+                v-if="isShowViewProcess"
+                class="common-icon-jump-link"
+                v-bk-tooltips="{
+                    content: $t('查看流程'),
+                    placements: ['top']
+                }"
+                target="_blank"
+                :to="getTplURL()">
+            </router-link>
             <span v-if="stateStr" :class="['task-state', state]">{{ stateStr }}</span>
         </div>
         <div class="operation-container" slot="expand">
@@ -46,7 +56,7 @@
                         :disabled="operation.disabled"
                         v-bk-tooltips="{
                             content: operation.text,
-                            placements: ['bottom']
+                            placements: ['top']
                         }"
                         v-cursor="{ active: !hasPermission(['task_operate'], instanceActions) }"
                         :data-test-id="`taskExcute_form_${operation.action}Btn`"
@@ -58,6 +68,21 @@
                 <i
                     :class="[
                         'params-btn',
+                        'common-icon-enter-config',
+                        {
+                            actived: nodeInfoType === 'modifyParams'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('任务入参'),
+                        placements: ['top'],
+                        hideOnClick: false
+                    }"
+                    @click="onTaskParamsClick('modifyParams', $t('任务入参'))">
+                </i>
+                <i
+                    :class="[
+                        'params-btn',
                         'solid-eye',
                         'common-icon-solid-eye',
                         {
@@ -66,24 +91,9 @@
                     ]"
                     v-bk-tooltips="{
                         content: $t('查看节点详情'),
-                        placements: ['bottom']
+                        placements: ['top']
                     }"
                     @click="onTaskParamsClick('viewNodeDetails', $t('节点详情'))">
-                </i>
-                <i
-                    :class="[
-                        'params-btn',
-                        'common-icon-edit',
-                        {
-                            actived: nodeInfoType === 'modifyParams'
-                        }
-                    ]"
-                    v-bk-tooltips="{
-                        content: !paramsCanBeModify ? $t('查看任务参数') : $t('编辑任务参数'),
-                        placements: ['bottom'],
-                        hideOnClick: false
-                    }"
-                    @click="onTaskParamsClick('modifyParams', !paramsCanBeModify ? $t('查看任务参数') : $t('编辑任务参数'))">
                 </i>
                 <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
                     <i class="bk-icon icon-more drop-icon-ellipsis"></i>
@@ -92,6 +102,7 @@
                             {{ $t('任务操作记录') }}
                         </p>
                         <p
+                            v-if="state !== 'CREATED'"
                             class="operate-item"
                             @click="onTaskParamsClick('globalVariable', $t('全局变量'))">
                             {{ $t('全局变量') }}
@@ -99,13 +110,6 @@
                         <p class="operate-item" @click="onTaskParamsClick('templateData', $t('任务数据'))">
                             {{ $t('任务数据') }}
                         </p>
-                        <router-link
-                            class="operate-item"
-                            v-if="isShowViewProcess"
-                            target="_blank"
-                            :to="getTplURL()">
-                            {{ $t('查看流程') }}
-                        </router-link>
                         <p v-if="adminView && engineVer === 1" class="operate-item" @click="onTaskParamsClick('taskExecuteInfo')">
                             {{ $t('流程信息') }}
                         </p>
@@ -276,6 +280,10 @@
             }
         }
     }
+    .common-icon-jump-link {
+        color: #3a84ff;
+        margin: 0 8px 0 4px;
+    }
     .task-state {
         display: inline-block;
         margin-left: 10px;
@@ -388,7 +396,7 @@
                 margin-right: 25px;
                 padding: 0;
                 color: #979ba5;
-                font-size: 15px;
+                font-size: 14px;
                 cursor: pointer;
                 &.actived {
                     color: #63656e;
@@ -396,6 +404,9 @@
                 &:hover {
                     color: #63656e;
                 }
+            }
+            .common-icon-enter-config {
+                font-size: 18px;
             }
             .back-button {
                 background: #ffffff;

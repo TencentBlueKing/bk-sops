@@ -101,7 +101,8 @@
                 this.getFormData()
             },
             editable (val) {
-                this.$set(this.renderOption, 'editable', val)
+                this.$set(this.renderOption, 'formEdit', val)
+                this.randomKey = new Date().getTime()
             }
         },
         created () {
