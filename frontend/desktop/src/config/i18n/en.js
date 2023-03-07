@@ -1608,9 +1608,9 @@ const en = {
     '支持使用全局变量，如': 'Supports the use of global variables such as',
     '任务入参': 'Task entry',
     '修改入参': 'Modify input parameters',
-    '暂停并修改': 'Pause and modify',
-    '提交并继续': 'Submit and continue',
-    '修改': 'Modify',
+    '暂停去修改': 'Pause to modify',
+    '保存并继续': 'Save and continue',
+    '去修改': 'To modify',
     '任务已暂停执行': 'Task has been paused',
     '任务已继续执行': 'Task has resumed'
 }
