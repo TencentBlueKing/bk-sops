@@ -43,7 +43,8 @@
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ $t('未能重用') }}
                 </span>
-                <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">
+                <!-- 编辑模式下才显示常量禁止修改tip -->
+                <span class="pre-mako-tip" v-if="option.formEdit && scheme.attrs.pre_mako_tip">
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ scheme.attrs.pre_mako_tip }}
                 </span>

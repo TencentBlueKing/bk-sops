@@ -97,11 +97,11 @@
                     ? i18n.t('重试')
                     : this.editable
                         ? ['SUSPENDED', 'RUNNING'].includes(this.state)
-                            ? i18n.t('提交并继续')
-                            : i18n.t('提交')
+                            ? i18n.t('保存并继续')
+                            : i18n.t('保存')
                         : ['CREATED', 'SUSPENDED', 'FAILED'].includes(this.state)
-                            ? i18n.t('修改')
-                            : i18n.t('暂停并修改')
+                            ? i18n.t('去修改')
+                            : i18n.t('暂停去修改')
             }
         },
         async created () {

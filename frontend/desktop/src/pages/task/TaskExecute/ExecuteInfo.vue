@@ -327,11 +327,11 @@
             },
             isThirdPartyNode () {
                 const compCode = this.nodeDetailConfig.component_code
-                return compCode && compCode === 'remote_plugin'
+                return !!compCode && compCode === 'remote_plugin'
             },
             isSubProcessNode () {
                 const compCode = this.nodeDetailConfig.component_code
-                return compCode && compCode === 'subprocess_plugin'
+                return !!compCode && compCode === 'subprocess_plugin'
             },
             thirdPartyNodeCode () {
                 if (!this.isThirdPartyNode) return ''
@@ -841,6 +841,7 @@
         line-height: 48px;
         background: #fafbfd;
         box-shadow: 0 -1px 0 0 #dcdee5;
+        z-index: 2;
         .bk-button {
             min-width: 88px;
             margin-right: 5px;

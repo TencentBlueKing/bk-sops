@@ -96,7 +96,7 @@
                     return
                 }
                 this.$emit('modifyTemplateData', pipelineData)
-                this.closeTab()
+                this.$emit('closeTab')
             },
             closeTab () {
                 if (this.isDataChange) {

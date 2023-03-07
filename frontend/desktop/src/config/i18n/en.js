@@ -1478,7 +1478,7 @@ const en = {
     '存在子流程节点执行失败，可从节点执行记录去往子任务处理，并及时': 'There is a subprocess node execution failure, you can go from the node execution record to the sub-task processing, and timely',
     '刷新任务状态': 'Refresh task status',
     '计划执行': 'Planly',
-    '⿏标移动到节点时展示引⽤和输出的变量': '⏏Display variables referenced and output when the mouse moves to a node',
+    '变量引用预览': 'Variable reference preview',
     '重新执行': 'reExecute',
     '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符和 "and、or、True/true、False/false" 等关键字语法,更多细节可参考': 'Support binary comparison operators such as "==, !=, >, >=, <, <=, in, notin" and keyword syntaxes such as "and, or, True/true, False/false", more details Can refer to',
     '操作符两侧的比较对象支持通过': 'The comparison object on both sides of the operator supports passing',
@@ -1608,9 +1608,9 @@ const en = {
     '支持使用全局变量，如': 'Supports the use of global variables such as',
     '任务入参': 'Task entry',
     '修改入参': 'Modify input parameters',
-    '暂停并修改': 'Pause and modify',
-    '提交并继续': 'Submit and continue',
-    '修改': 'Modify',
+    '暂停去修改': 'Pause to modify',
+    '保存并继续': 'Save and continue',
+    '去修改': 'To modify',
     '任务已暂停执行': 'Task has been paused',
     '任务已继续执行': 'Task has resumed'
 }
