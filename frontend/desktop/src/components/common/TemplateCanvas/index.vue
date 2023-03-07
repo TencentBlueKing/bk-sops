@@ -163,14 +163,8 @@
             <div class="perspective-tips-context" v-if="isPerspectivePanelShow">
                 <div class="tips-content">
                     <p class="tip-label">{{ $t('引用变量') }}</p>
-                    <template v-if="nodeVariable.input.length">
-                        <p v-for="item in nodeVariable.input" :key="item">{{ item }}</p>
-                    </template>
-                    <template v-else>{{ '--' }}</template>
-                    <div class="dividLine"></div>
-                    <p class="tip-label">{{ $t('输出变量') }}</p>
-                    <template v-if="nodeVariable.output.length">
-                        <p v-for="item in nodeVariable.output" :key="item">{{ item }}</p>
+                    <template v-if="nodeVariable.variableList.length">
+                        <p v-for="item in nodeVariable.variableList" :key="item">{{ item }}</p>
                     </template>
                     <template v-else>{{ '--' }}</template>
                 </div>
@@ -1678,7 +1672,9 @@
                 this.isExecRecordPanelShow = false
                 // 节点透视面板展开
                 if (this.isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)) {
-                    this.nodeVariable = this.nodeVariableInfo[node.id] || { input: [], output: [] }
+                    const variableInfo = this.nodeVariableInfo[node.id] || { input: [], output: [] }
+                    variableInfo['variableList'] = [...new Set([...variableInfo.input, ...variableInfo.output])]
+                    this.nodeVariable = variableInfo
                     this.isPerspectivePanelShow = true
                 }
                 // 展开节点历史执行时间
