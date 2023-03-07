@@ -823,6 +823,7 @@
             onBeforeDrop (line) {
                 const { sourceId, targetId, connection, dropEndpoint } = line
                 if (sourceId === targetId) {
+                    this.connectionDragging = false
                     return false
                 }
 
@@ -1742,14 +1743,12 @@
                     targetEp.canvas.classList.add('target-endpoint')
                 }
             },
-            // 鼠标移出节点，如果还是连线拖动状态
+            // 鼠标移出节点，删除高亮端点
             onNodeMouseLeave (node) {
-                if (this.connectionDragging) {
-                    const endpoints = this.$refs.jsFlow.instance.selectEndpoints({ source: node.id })
-                    endpoints.each(item => {
-                        item.canvas.classList.remove('target-endpoint')
-                    })
-                }
+                const endpoints = this.$refs.jsFlow.instance.selectEndpoints({ source: node.id })
+                endpoints.each(item => {
+                    item.canvas.classList.remove('target-endpoint')
+                })
             },
             // 关闭节点历史执行时间
             closeNodeExecRecord () {
