@@ -2405,6 +2405,7 @@
                 border-radius: 2px;
                 outline: none;
                 cursor: pointer;
+                user-select: none;
                 &:focus,
                 &:hover {
                     border-color: #3a84ff;
