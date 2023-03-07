@@ -686,9 +686,10 @@
             async getSubflowDetail (tpl, version = '') {
                 this.subflowLoading = true
                 try {
+                    const schemeIds = this.basicInfo.schemeIdList.filter(item => item)
                     const params = {
                         template_id: tpl,
-                        scheme_id_list: this.basicInfo.schemeIdList,
+                        scheme_id_list: schemeIds,
                         version
                     }
                     if (this.isCommonTpl) {
@@ -1391,7 +1392,7 @@
                         template_id: tpl,
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
-                        scheme_id_list: schemeIdList,
+                        scheme_id_list: schemeIdList.filter(item => item),
                         retryable,
                         skippable,
                         error_ignorable: ignorable,
@@ -1578,7 +1579,7 @@
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
                                 desc, nodeName, autoRetry, timeoutConfig, executor_proxy
                         } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig }
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, isActived: false }
                         if (this.common) {
                             nodeData['executor_proxy'] = executor_proxy.join(',')
                         }
