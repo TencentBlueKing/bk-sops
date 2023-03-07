@@ -69,7 +69,7 @@
                 <span class="td">{{ !('always_use_latest' in componentValue) ? '--' : componentValue.always_use_latest ? $t('是') : $t('否') }}</span>
             </li>
         </ul>
-        <template v-if="(nodeActivity.original_template_id && !templateConfig.isOldData) || !isSubProcessNode">
+        <template v-if="inputAndOutputWrapShow">
             <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
             <div class="input-wrap" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                 <template v-if="Array.isArray(inputs)">
@@ -230,6 +230,12 @@
             },
             outputList () {
                 return this.getOutputsList()
+            },
+            inputAndOutputWrapShow () {
+                const { original_template_id, type } = this.nodeActivity
+                // 普通任务节点展示/该功能上线后的独立子流程任务展示
+                return (!this.isSubProcessNode && type !== 'SubProcess')
+                    || (original_template_id && !this.templateConfig.isOldData)
             }
         },
         mounted () {
@@ -260,10 +266,11 @@
                 try {
                     // 获取对应模板配置
                     let tplConfig = {}
-                    if (!this.nodeDetailConfig.subprocess_stack) { // 旧版子流程任务节点不支持查看节点快照配置
+                    if (this.nodeActivity.type !== 'SubProcess') { // 旧版子流程任务节点不支持查看节点快照配置
                         tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
                     }
                     this.templateConfig = tplConfig.data || { ...this.nodeActivity, isOldData: true } || {}
+                    if (this.nodeActivity.type === 'SubProcess') return
                     if (this.isSubProcessNode) { // 子流程任务节点
                         // tplConfig.data为null为该功能之前的旧数据，没有original_template_id字段的，不调接口
                         if (!tplConfig.data || !this.nodeActivity.original_template_id) {
