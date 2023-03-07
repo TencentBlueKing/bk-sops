@@ -499,7 +499,12 @@
                     return h('span', {
                         'class': 'category-label'
                     }, [
-                        column.label,
+                        h('p', {
+                            'class': 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [column.label]),
                         h('i', {
                             'class': 'common-icon-info table-header-tips',
                             directives: [{
@@ -520,7 +525,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -855,11 +867,16 @@ a {
             color: #979ba5;
         }
     }
-    /deep/.table-header-tips {
-        margin-left: 4px;
-        font-size: 14px;
-        color: #c4c6cc;
-        cursor: pointer;
+    /deep/.category-label {
+        display: flex;
+        align-items: center;
+        .table-header-tips {
+            flex-shrink: 0;
+            margin-left: 4px;
+            font-size: 14px;
+            color: #c4c6cc;
+            cursor: pointer;
+        }
     }
     /deep/.edit-time,
     /deep/.create-time {

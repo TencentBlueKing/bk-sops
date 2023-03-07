@@ -801,7 +801,12 @@
                     return h('span', {
                         'class': 'recorded_executor_proxy-label'
                     }, [
-                        column.label,
+                        h('p', {
+                            'class': 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [column.label]),
                         h('i', {
                             'class': 'common-icon-info table-header-tips',
                             directives: [{
@@ -820,7 +825,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -1075,11 +1087,15 @@
     .template-operate-btn {
         color: $blueDefault;
     }
-    /deep/.table-header-tips {
-        margin-left: 4px;
-        font-size: 14px;
-        color: #c4c6cc;
-        cursor: pointer;
+    /deep/.recorded_executor_proxy-label {
+        display: flex;
+        align-items: center;
+        .table-header-tips {
+            flex-shrink: 0;
+            margin-left: 4px;
+            font-size: 14px;
+            color: #c4c6cc;
+        }
     }
     /deep/ .cell .task-id {
         margin-left: 16px;

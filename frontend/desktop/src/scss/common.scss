@@ -345,6 +345,15 @@
             padding: 0;
         }
     }
+    .bk-table-header-label {
+        width: 100%;
+        .label-text {
+            overflow: hidden;
+            white-space: nowrap;
+            word-wrap: normal;
+            text-overflow: ellipsis;
+        }
+    }
 }
 // 异常提示固定高度
 .bk-exception {

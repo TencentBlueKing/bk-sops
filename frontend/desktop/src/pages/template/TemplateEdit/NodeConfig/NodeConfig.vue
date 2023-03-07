@@ -117,7 +117,7 @@
             </div>
             <template slot="content">
                 <!-- 插件/插件版本不存在面板 -->
-                <bk-exception v-if="true" class="exception-wrap" type="500">
+                <bk-exception v-if="isNotExistAtomOrVersion" class="exception-wrap" type="500">
                     <span>{{ $t('未找到可用的插件或插件版本') }}</span>
                     <div class="text-wrap" @click="handleReslectPlugin">{{ $t('重选插件') }}</div>
                 </bk-exception>
