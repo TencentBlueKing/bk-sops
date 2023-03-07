@@ -201,7 +201,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.26.6"
+STATIC_VERSION = "3.26.7"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
