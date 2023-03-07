@@ -563,6 +563,7 @@
                 if (variableData) {
                     variableData.show_type = checked ? 'show' : 'hide'
                     this.editVariable({ key, variable: variableData })
+                    this.$emit('templateDataChanged')
                 }
             },
             /**
