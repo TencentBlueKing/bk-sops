@@ -1523,7 +1523,7 @@ const en = {
     '编辑任务参数': 'Edit task parameters',
     '可在此修改任务的参数值，对所有修改后执行的步骤生效': 'You can modify the parameter values of the task here, and it will take effect for all steps executed after the modification.',
     '暂无异常': 'No abnormality',
-    '没有参数需要配置': 'No parameters to configure',
+    '暂无参数': 'No parameters',
     '已完成的任务不能修改任务参数': 'Completed tasks cannot modify task parameters',
     '重试任务': 'Retry task',
     '任务操作记录': 'Task operation record',

@@ -83,7 +83,7 @@
                         :form-data="inputsFormData"
                         :render-config="inputsRenderConfig">
                     </render-form>
-                    <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                    <no-data v-else :message="$t('暂无参数')"></no-data>
                 </template>
                 <template v-else>
                     <jsonschema-input-params
@@ -91,7 +91,7 @@
                         :inputs="inputs"
                         :value="inputsFormData">
                     </jsonschema-input-params>
-                    <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                    <no-data v-else :message="$t('暂无参数')"></no-data>
                 </template>
             </div>
             <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
@@ -127,7 +127,7 @@
                         </template>
                     </bk-table-column>
                 </bk-table>
-                <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                <no-data v-else :message="$t('暂无参数')"></no-data>
             </div>
         </template>
     </section>

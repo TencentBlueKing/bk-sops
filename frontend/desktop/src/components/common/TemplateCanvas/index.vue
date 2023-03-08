@@ -658,7 +658,7 @@
                 }
                 this.$nextTick(() => {
                     // 拖拽节点到线上, 自动生成连线
-                    this.handleDraggerNodeToLine({ ...node, isCreate: true })
+                    this.handleDraggerNodeToLine(node, true)
                 })
             },
             onCreateNodeMoving (node) {
@@ -956,7 +956,7 @@
                 }
             },
             // 拖拽节点到线上, 自动生成连线
-            handleDraggerNodeToLine (location) {
+            handleDraggerNodeToLine (location, isCreate = false) {
                 // 获取节点对应匹配连线
                 const matchLines = this.getNodeMatchLines(location)
                 // 只对符合单条线的情况进行处理
@@ -1014,7 +1014,7 @@
                         this.$refs.jsFlow.createConnector(endLine)
                     })
                     // 删除节点两端插入连线的端点,isCreate为true时表示从左侧菜单栏直接拖拽创建，插入端点还存在在画布里面
-                    const nodeDom = document.querySelector(`#${!location.isCreate ? location.id : 'canvas-flow'}`)
+                    const nodeDom = document.querySelector(`#${!isCreate ? location.id : 'canvas-flow'}`)
                     const pointDoms = nodeDom && nodeDom.querySelectorAll('.node-inset-line-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
@@ -1165,6 +1165,9 @@
                     source: lineConfig.source.id,
                     target: lineConfig.target.id
                 })[0]
+                // 设置连线层级
+                const type = color === '#a9adb6' ? 'remove' : 'add'
+                connection.canvas.classList[type]('bk-sops-connector-hover')
                 connection.setPaintStyle({
                     ...this.connectorOptions.paintStyle,
                     stroke: color
@@ -2475,6 +2478,9 @@
         .reference-line-vertical,
         .reference-line-horizontal {
             z-index: 6;
+        }
+        .bk-sops-connector-hover {
+            z-index: 3;
         }
     }
     .drag-reference-line {
