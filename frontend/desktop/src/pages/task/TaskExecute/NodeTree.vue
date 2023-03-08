@@ -113,7 +113,9 @@
                 gatewayType,
                 stateColor,
                 nodeStateMap,
-                curSubId: ''
+                curSubId: '',
+                cacheSubflowSelectNode: '',
+                setDefaultGateway: false
             }
         },
         watch: {
@@ -137,10 +139,11 @@
                     // 当为面包屑数量不为根节点时重新渲染结构
                     if (val) {
                         const cur = this.findSubChildren(this.treeData, val[val.length - 1].id)
+                        if (cur.length === 0) this.setDefaultGateway = true
                         if (val.length === 1 && old && val.length !== old.length) {
                             this.curSubId = ''
                             this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
-                            this.treeData = tools.deepClone(this.data[0].children)
+                            this.treeData = tools.deepClone(this.cacheSubflowSelectNode || this.data[0].children)
                             this.curSelectId = '' // 返回时清除选中
                         } else {
                             this.renderSubProcessData(...cur)
@@ -170,6 +173,7 @@
                 return node
             },
             onClickNode (node) {
+                this.setDefaultGateway = false
                 if (node.children && node.children.length === 0) return
                 this.$emit('onOpenGatewayInfo', this.cachecallbackData, false)
                 node.expanded = !node.expanded
@@ -177,6 +181,7 @@
                 const nodeType = node.type === 'SubProcess'
                 if (nodeType) {
                     this.$emit('onNodeClick', node.id, 'subflow')
+                    this.cacheSubflowSelectNode = tools.deepClone(this.treeData)
                     this.renderSubProcessData(node)
                 } else {
                     const str = this.curSubId ? this.curSubId + '.' + node.id : node.id
@@ -248,13 +253,13 @@
                         }
                         if (node.id === id) {
                             this.$set(node, 'selected', true)
+                            if (this.setDefaultGateway) {
+                                this.$set(node, 'expanded', true)
+                            }
                             if (node.parent) {
                                 node.parent.expanded = true
                                 this.setExpand(node.parent)
                             }
-                            // if (node.children?.length) {
-                            //     this.$set(node, 'expanded', true)
-                            // }
                         } else {
                             this.$set(node, 'selected', false)
                         }
@@ -276,6 +281,7 @@
             },
             onSelectNode (e, node, type) {
                 // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
+                this.setDefaultGateway = false
                 node.selected = node.id === this.curSelectId
                 if (node.expanded && !node.selected) e.stopPropagation()
                 if (node.title === this.$t('并行') && type === 'gateway') {
@@ -324,6 +330,7 @@
                 node.selected = nodeType !== 'subflow'
                 if (nodeType === 'subflow') {
                     this.$emit('onNodeClick', node.id, 'subflow')
+                    this.cacheSubflowSelectNode = tools.deepClone(this.treeData)
                     this.renderSubProcessData(node)
                     return
                 }
