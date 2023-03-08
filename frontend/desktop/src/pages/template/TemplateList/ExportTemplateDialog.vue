@@ -30,20 +30,26 @@
             </bk-input>
             <div class="template-list" v-bkloading="{ isLoading: tplLoading, opacity: 1, zIndex: 100 }">
                 <bk-table
-                    v-if="templateList.length"
                     :data="templateList"
                     :row-class-name="handlerRowClassName"
+                    :ext-cls="templateList.length ? '' : 'bk-table-empty'"
                     @select-all="onSelectAllTemplate">
                     <bk-table-column :resizable="false" width="50" :render-header="renderHeaderCheckbox">
                         <template slot-scope="props">
                             <bk-checkbox :value="props.row.isChecked" @change="onSelectTemplate(props.row)"></bk-checkbox>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :resizable="false" label="ID" prop="id" width="120"></bk-table-column>
-                    <bk-table-column :resizable="false" label="流程名称" prop="name"></bk-table-column>
+                    <bk-table-column show-overflow-tooltip :resizable="false" label="ID" prop="id" width="120"></bk-table-column>
+                    <bk-table-column show-overflow-tooltip :resizable="false" label="流程名称" prop="name"></bk-table-column>
                     <div class="is-loading" slot="append" v-if="!isPageOver && isLoading" v-bkloading="{ isLoading: isLoading, zIndex: 100 }"></div>
+                    <div class="empty-data" slot="empty">
+                        <NoData
+                            :type="keywords ? 'search-empty' : 'empty'"
+                            :message="keywords ? $t('搜索结果为空') : ''"
+                            @searchClear="handleSearchClear">
+                        </NoData>
+                    </div>
                 </bk-table>
-                <NoData v-else class="empty-template"></NoData>
             </div>
         </div>
         <div class="footer-wrap" slot="footer">
@@ -247,6 +253,11 @@
             searchInputhandler () {
                 this.currentPage = 1
                 this.getTemplateData()
+            },
+            // 取消搜索
+            handleSearchClear () {
+                this.keywords = ''
+                this.searchInputhandler()
             },
             // 勾选模板
             onSelectTemplate (row) {
@@ -473,6 +484,11 @@
         }
         .search-input .control-icon {
             transform: translateY(-25%) !important;
+        }
+        .bk-table-empty {
+            .bk-table-body-wrapper {
+                height: 280px;
+            }
         }
     }
 </style>

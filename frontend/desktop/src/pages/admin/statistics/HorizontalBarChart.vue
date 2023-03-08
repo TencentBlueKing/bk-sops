@@ -35,8 +35,9 @@
                     :clearable="selector.clearable !== false"
                     :placeholder="selector.placeholder"
                     :disabled="selector.options.length === 0"
-                    :value="selector.selected"
-                    @change="onOptionClick(selector.id, $event)">
+                    v-model="selector.selected"
+                    @clear="onOptionClick"
+                    @selected="onOptionClick(selector.id, $event)">
                     <bk-option
                         v-for="option in selector.options"
                         :key="option.id"
@@ -93,7 +94,12 @@
                         </div>
                     </div>
                 </template>
-                <no-data v-else></no-data>
+                <NoData
+                    v-else
+                    :type="isSearch ? 'search-empty' : 'empty'"
+                    :message="isSearch ? $t('搜索结果为空') : ''"
+                    @searchClear="$emit('onClearChartFilter')">
+                </NoData>
             </div>
         </div>
         <div v-if="bizUseageData.total" class="project-statistics">
@@ -217,6 +223,9 @@
                     return this.dataList.sort((a, b) => b.value - a.value)
                 }
                 return this.dataList.sort((a, b) => a.value - b.value)
+            },
+            isSearch () {
+                return this.selectorList.some(item => item.selected)
             }
         },
         methods: {
@@ -243,6 +252,11 @@
             },
             onViewAllClick () {
                 this.isDialogShow = true
+            },
+            handleSearchClear () {
+                this.selectorList.forEach(item => {
+                    item.selected = false
+                })
             }
         }
     }
@@ -303,7 +317,7 @@
     }
     .content-wrapper {
         margin-top: 28px;
-        height: 245px;
+        height: 280px;
     }
     .chart-content {
         height: 100%;

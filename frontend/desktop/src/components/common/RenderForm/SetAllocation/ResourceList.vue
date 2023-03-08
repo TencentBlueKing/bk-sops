@@ -61,6 +61,8 @@
                     :label="item.config.attrs.name"
                     :min-width="item.width"
                     :index="colIndex"
+                    show-overflow-tooltip
+                    :render-header="renderTableHeader"
                     :prop="item.config.tag_code"
                     :fixed="item.config.tag_code === 'tb_btns' ? 'right' : false"
                     :align="item.config.tag_code === 'tb_btns' ? 'center' : 'left'">
@@ -180,6 +182,16 @@
             deep: true
         },
         methods: {
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
+            },
             exportData () {
                 const sheetHeader = []
                 this.cols.forEach(item => {

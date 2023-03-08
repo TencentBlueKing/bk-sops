@@ -3,11 +3,14 @@
         <bk-table
             ext-cls="operate-flow-table"
             :data="operateFlowData">
-            <bk-table-column min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
-            <bk-table-column :label="$t('操作类型')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
-            <bk-table-column v-if="!nodeId" :label="$t('节点名称')" prop="node_name"></bk-table-column>
-            <bk-table-column :label="$t('操作来源')" :prop="$store.state.lang === 'en' ? 'operate_source' : 'operate_source_name'"></bk-table-column>
-            <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
+            <bk-table-column show-overflow-tooltip min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
+            <bk-table-column show-overflow-tooltip :label="$t('操作类型')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
+            <bk-table-column show-overflow-tooltip v-if="!nodeId" :label="$t('节点名称')" prop="node_name"></bk-table-column>
+            <bk-table-column show-overflow-tooltip :label="$t('操作来源')" :prop="$store.state.lang === 'en' ? 'operate_source' : 'operate_source_name'"></bk-table-column>
+            <bk-table-column show-overflow-tooltip :label="$t('操作人')" prop="operator"></bk-table-column>
+            <div class="empty-data" slot="empty">
+                <NoData></NoData>
+            </div>
         </bk-table>
     </div>
 </template>
@@ -15,7 +18,11 @@
 <script>
     import { mapActions } from 'vuex'
     import moment from 'moment'
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
+        components: {
+            NoData
+        },
         props: {
             locations: {
                 type: Array,

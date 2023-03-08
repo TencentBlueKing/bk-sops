@@ -1525,7 +1525,10 @@ const en = {
     '暂无输出': 'No output yet',
     '仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。': 'Only valid for nodes/expressions started after "Save". Please try to complete the editing in the status of "paused/failed/approved" to ensure the effect is as expected.',
     '「未完成」任务才可编辑参数': 'Unfinished" tasks can only edit parameters',
-    '查看任务参数': 'View task parameters'
+    '查看任务参数': 'View task parameters',
+    '没有数据': 'No data',
+    '可以尝试 调整关键词 或': 'You can try adjusting keywords or',
+    '清空筛选条件': 'Clear filter'
 }
 
 export default en

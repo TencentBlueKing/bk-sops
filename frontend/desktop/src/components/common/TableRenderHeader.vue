@@ -1,7 +1,7 @@
                     
 <template>
     <section class="sort-header">
-        {{ name }}
+        <p v-bk-overflow-tips class="label-text">{{ name }}</p>
         <span class="caret-wrapper" @click="handleSort()" v-if="orderShow">
             <i
                 class="bk-table-sort-caret ascending"
@@ -173,8 +173,10 @@
         justify-content: left;
         min-width: 90px;
         height: 42px;
+        width: 100%;
         .caret-wrapper {
             display: inline-flex;
+            flex-shrink: 0;
             flex-direction: column;
             align-items: center;
             height: 20px;
@@ -208,13 +210,17 @@
             text-align: center;
             cursor: pointer;
             color: #c4c6cc;
-            margin-left: 5px;
             &.is-open {
                 color: #63656e;
             }
             &.is-filtered {
                 color: #3a84ff;
             }
+        }
+        .bk-date-picker {
+            flex-shrink: 0;
+            width: 14px;
+            margin-left: 5px;
         }
     }
 </style>

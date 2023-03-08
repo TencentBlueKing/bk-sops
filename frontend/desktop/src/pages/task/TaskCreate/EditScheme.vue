@@ -22,13 +22,13 @@
                 </bk-form-item>
                 <bk-form-item :label="$t('变更节点对比')">
                     <bk-table :data="orderedNodeData">
-                        <bk-table-column :label="$t('步骤名称')">
+                        <bk-table-column show-overflow-tooltip :label="$t('步骤名称')">
                             <template slot-scope="props">
                                 {{ props.row.stage_name || '--' }}
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('节点名称')" prop="name"></bk-table-column>
-                        <bk-table-column :label="$t('选中状态')">
+                        <bk-table-column show-overflow-tooltip :label="$t('节点名称')" prop="name"></bk-table-column>
+                        <bk-table-column show-overflow-tooltip :label="$t('选中状态')">
                             <template slot-scope="props">
                                 <span v-if="props.row.optional && excludeNodes.includes(props.row.id)" class="unselect">{{ $t('否') }}</span>
                                 <span v-else>{{ $t('是') }}</span>

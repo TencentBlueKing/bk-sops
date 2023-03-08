@@ -171,10 +171,24 @@
                 if (col.type) {
                     return h('div', { 'class': 'notify-table-heder' }, [
                         h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
-                        h('span', { style: 'word-break: break-all;' }, [col.label])
+                        h('p', {
+                            class: 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [
+                            col.label
+                        ])
                     ])
                 } else {
-                    return h('span', {}, [col.text])
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        col.text
+                    ])
                 }
             },
             onSelectNotifyType (row, type, val) {

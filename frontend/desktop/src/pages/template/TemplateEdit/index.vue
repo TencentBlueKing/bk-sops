@@ -101,7 +101,7 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
-                    :is-not-exist-atom-or-verion="isNotExistAtomOrVerion"
+                    :is-not-exist-atom-or-verion="isNotExistAtomOrVersion"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -312,7 +312,7 @@
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
                 isMultipleTabCount: 0,
-                isNotExistAtomOrVerion: false // 选中的节点插件/插件版本是否存在
+                isNotExistAtomOrVersion: false // 选中的节点插件/插件版本是否存在
             }
         },
         computed: {
@@ -1184,12 +1184,12 @@
                 if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name && nodeConfig.component.code !== 'remote_plugin') {
                     let atom = true
                     atom = this.atomList.find(item => item.code === nodeConfig.component.code)
-                    this.isNotExistAtomOrVerion = false
+                    this.isNotExistAtomOrVersion = false
                     if (!atom) {
-                        this.isNotExistAtomOrVerion = true
+                        this.isNotExistAtomOrVersion = true
                     } else {
                         const matchResult = atom.list.find(item => item.version === nodeConfig.component.version)
-                        this.isNotExistAtomOrVerion = !matchResult
+                        this.isNotExistAtomOrVersion = !matchResult
                     }
                 }
                 // 点击节点时，清除校验异常状态
@@ -1207,7 +1207,7 @@
                         const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
                         // 第三方插件是否存在
                         if (!resp.result && resp.message.indexOf('404') > -1) {
-                            this.isNotExistAtomOrVerion = true
+                            this.isNotExistAtomOrVersion = true
                             this.showConfigPanel(id)
                             return
                         }
@@ -1228,7 +1228,7 @@
                         if (versions.includes(version)) {
                             this.thirdPartyList[id] = group
                         } else {
-                            this.isNotExistAtomOrVerion = true
+                            this.isNotExistAtomOrVersion = true
                         }
                     }
                     this.showConfigPanel(id)

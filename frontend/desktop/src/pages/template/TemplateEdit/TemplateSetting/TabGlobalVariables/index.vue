@@ -870,7 +870,7 @@
         @include scrollbar;
     }
     .empty-variable-tips {
-        margin: 120px 0;
+        height: 280px;
         /deep/ .no-data-wording {
             font-size: 12px;
         }

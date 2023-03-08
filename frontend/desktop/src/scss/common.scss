@@ -336,3 +336,26 @@
         }
     }
 }
+
+// 表格空数据/搜索为空样式
+.bk-table {
+    .bk-table-empty-block {
+        height: 280px;
+        .bk-table-empty-text {
+            padding: 0;
+        }
+    }
+    .bk-table-header-label {
+        .label-text {
+            overflow: hidden;
+            white-space: nowrap;
+            word-wrap: normal;
+            text-overflow: ellipsis;
+        }
+    }
+}
+// 异常提示固定高度
+.bk-exception {
+    height: 280px;
+    justify-content: center;
+}

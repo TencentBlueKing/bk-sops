@@ -11,46 +11,65 @@
 */
 <template>
     <div class="no-data-wrapper">
-        <div class="no-data">
-            <i class="common-icon-no-data"></i>
-            <p class="no-data-wording">
-                <slot>{{ message || $t('无数据') }}</slot>
-            </p>
-        </div>
+        <p class="exception-img">
+            <img :src="type === 'search-empty' ? searchEmptyUrl : notDataUrl" alt="">
+        </p>
+        <p class="text-title">{{ message || $t('暂无数据') }}</p>
+        <p class="text-subtitle" v-if="type === 'search-empty'">
+            {{ $t('可以尝试 调整关键词 或' ) }}
+            <bk-button title="primary" :text="true" class="clear" @click="$emit('searchClear')">
+                {{ $t('清空筛选条件') }}
+            </bk-button>
+        </p>
     </div>
 </template>
 <script>
     export default {
         name: 'NoData',
         props: {
+            type: {
+                type: String,
+                default: 'empty'
+            },
             message: {
                 type: String,
-                default () {
-                    return ''
-                }
+                default: ''
+            }
+        },
+        data () {
+            return {
+                notDataUrl: require('@/assets/images/not-data.png'),
+                searchEmptyUrl: require('@/assets/images/search-empty.png')
             }
         }
     }
 </script>
 <style lang="scss" scoped>
     .no-data-wrapper {
-        display: table;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        height: 100%;
-        color: #999999;
+        height: 280px;
+        font-size: 14px;
         background: #ffffff;
-    }
-    .no-data {
-        display: table-cell;
-        vertical-align: middle;
-        text-align: center;
-    }
-    .common-icon-no-data {
-        font-size: 40px;
-    }
-    .no-data-wording {
-        margin-top: 20px;
-        font-size: 12px;
-        color: #63656e;
+        .exception-img {
+            margin-bottom: 8px;
+            img {
+                width: 220px;
+            }
+        }
+        .text-title {
+            color: #63656e;
+            line-height: 22px;
+        }
+        .text-subtitle {
+            color: #979ba5;
+            margin-top: 8px;
+            .text-btn {
+                color: #3a84ff;
+            }
+        }
     }
 </style>
