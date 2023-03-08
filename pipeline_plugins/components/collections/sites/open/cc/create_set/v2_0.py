@@ -177,17 +177,13 @@ class CCCreateSetService(Service):
                 set_property = {}
                 for key, value in property_data.items():
                     if value:
-                        if key == "bk_set_env":
-                            value = bk_set_env["data"].get(value)
-                            if not value:
-                                data.set_outputs("ex_data", _("环境类型校验失败，请重试并修改为正确的环境类型"))
-                                return False
+                        if key == "bk_set_env" and value not in bk_set_env["data"].values():
+                            data.set_outputs("ex_data", _("环境类型校验失败，请重试并修改为正确的环境类型"))
+                            return False
 
-                        elif key == "bk_service_status":
-                            value = bk_service_status["data"].get(value)
-                            if not value:
-                                data.set_outputs("ex_data", _("服务状态校验失败，请重试并修改为正确的服务状态"))
-                                return False
+                        elif key == "bk_service_status" and value not in bk_service_status["data"].values():
+                            data.set_outputs("ex_data", _("服务状态校验失败，请重试并修改为正确的服务状态"))
+                            return False
 
                         elif key == "bk_capacity":
                             try:
