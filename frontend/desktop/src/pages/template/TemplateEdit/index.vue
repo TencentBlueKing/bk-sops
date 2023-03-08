@@ -312,7 +312,7 @@
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
                 isMultipleTabCount: 0,
-                isNotExistAtomOrVerion: false, // 选中的节点插件/插件版本是否存在
+                isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
                 isParallelGwErrorMsg: '' // 缺少汇聚网关的报错信息
             }
         },

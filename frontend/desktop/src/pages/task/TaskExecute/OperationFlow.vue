@@ -31,6 +31,9 @@
                     <span v-else>{{ '--' }}</span>
                 </template>
             </bk-table-column>
+            <div class="empty-data" slot="empty">
+                <NoData></NoData>
+            </div>
         </bk-table>
     </div>
 </template>

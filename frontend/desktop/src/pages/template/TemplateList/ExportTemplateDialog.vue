@@ -32,7 +32,6 @@
                 <bk-table
                     :data="templateList"
                     :row-class-name="handlerRowClassName"
-                    :ext-cls="templateList.length ? '' : 'bk-table-empty'"
                     @select-all="onSelectAllTemplate">
                     <bk-table-column :resizable="false" width="50" :render-header="renderHeaderCheckbox">
                         <template slot-scope="props">
@@ -484,11 +483,6 @@
         }
         .search-input .control-icon {
             transform: translateY(-25%) !important;
-        }
-        .bk-table-empty {
-            .bk-table-body-wrapper {
-                height: 280px;
-            }
         }
     }
 </style>

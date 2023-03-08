@@ -306,7 +306,7 @@
                     this.thirdPluginGroup.forEach(item => {
                         item.isShow = !val
                     })
-                    this.thirdActiveGroup = val ? '' : this.thirdPluginGroup[0].id
+                    this.thirdActiveGroup = val ? '' : this.thirdPluginGroup[0]?.id
                     this.thirdPartyPlugin = []
                     this.thirdPluginOffset = 0
                     this.getThirdPartyPlugin()

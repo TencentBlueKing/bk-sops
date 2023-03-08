@@ -94,6 +94,9 @@
                             </div>
                         </template>
                     </bk-table-column>
+                    <div class="empty-data" slot="empty">
+                        <NoData></NoData>
+                    </div>
                 </bk-table>
                 <bk-pagination
                     v-if="topFlowPagination.count > 5"
@@ -163,6 +166,9 @@
                                 </div>
                             </template>
                         </bk-table-column>
+                        <div class="empty-data" slot="empty">
+                            <NoData></NoData>
+                        </div>
                     </bk-table>
                     <bk-pagination
                         v-if="subFlowPagination.count > 5"
@@ -212,9 +218,13 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ImportYamlTplDialog',
+        components: {
+            NoData
+        },
         mixins: [permission],
         props: {
             isShow: {

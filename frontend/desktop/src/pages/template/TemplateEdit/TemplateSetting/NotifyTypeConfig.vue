@@ -27,8 +27,10 @@
                             </bk-switcher>
                             <span v-else>{{ props.$index === 0 ? $t('成功') : $t('失败') }}</span>
                         </template>
-                    </bk-table-column>
-                </bk-table>
+                        <div class="empty-data" slot="empty">
+                            <NoData></NoData>
+                        </div>
+                    </bk-table-column></bk-table>
             </bk-form-item>
             <bk-form-item property="notifyGroup" :label="notifyGroupLabel" data-test-id="notifyTypeConfig_form_notifyGroup">
                 <bk-checkbox-group
@@ -53,7 +55,11 @@
     import { mapState, mapActions, mapMutations } from 'vuex'
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
+        components: {
+            NoData
+        },
         props: {
             notifyTypeLabel: {
                 type: String,

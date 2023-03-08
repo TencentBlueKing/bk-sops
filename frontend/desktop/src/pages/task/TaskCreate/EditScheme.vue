@@ -34,6 +34,9 @@
                                 <span v-else>{{ $t('是') }}</span>
                             </template>
                         </bk-table-column>
+                        <div class="empty-data" slot="empty">
+                            <NoData></NoData>
+                        </div>
                     </bk-table>
                 </bk-form-item>
             </bk-form>
@@ -46,9 +49,13 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'EditScheme',
+        components: {
+            NoData
+        },
         props: {
             orderedNodeData: Array
         },

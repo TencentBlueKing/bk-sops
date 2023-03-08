@@ -14,6 +14,9 @@
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作人')" prop="operator"></bk-table-column>
+                <div class="static-ip-empty" slot="empty">
+                    <NoData></NoData>
+                </div>
             </bk-table>
         </template>
     </bk-sideslider>
@@ -22,7 +25,11 @@
 <script>
     import { mapActions } from 'vuex'
     import moment from 'moment'
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
+        components: {
+            NoData
+        },
         data () {
             return {
                 operateFlowData: []

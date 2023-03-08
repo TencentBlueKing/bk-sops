@@ -96,6 +96,9 @@
                                     <bk-button :text="true" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
+                            <div class="empty-data" slot="empty">
+                                <NoData></NoData>
+                            </div>
                         </bk-table>
                     </section>
                 </bk-tab-panel>
@@ -151,6 +154,9 @@
                                     </bk-popover>
                                 </template>
                             </bk-table-column>
+                            <div class="empty-data" slot="empty">
+                                <NoData></NoData>
+                            </div>
                         </bk-table>
                     </section>
                 </bk-tab-panel>
@@ -171,6 +177,9 @@
                                     <bk-button theme="primary" text @click="onRemove(props.row)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
+                            <div class="empty-data" slot="empty">
+                                <NoData></NoData>
+                            </div>
                         </bk-table>
                     </section>
                 </bk-tab-panel>
@@ -315,12 +324,14 @@
     import { mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'Mandate',
         components: {
             BkUserSelector,
-            PageHeader
+            PageHeader,
+            NoData
         },
         mixins: [permission],
         props: {

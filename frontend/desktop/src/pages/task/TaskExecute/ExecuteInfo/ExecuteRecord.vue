@@ -1,6 +1,6 @@
 <template>
     <div class="execute-record">
-        <template v-if="!Object.keys(executeInfo).length">
+        <template v-if="Object.keys(executeInfo).length">
             <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo">
                 <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
                 <div class="fail-text" v-if="executeInfo.ex_data">
