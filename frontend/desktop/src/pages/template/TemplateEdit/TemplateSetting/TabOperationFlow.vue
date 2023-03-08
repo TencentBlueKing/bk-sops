@@ -3,7 +3,7 @@
         :is-show="true"
         :width="800"
         ext-cls="operate-flow"
-        :title="$t('操作流水')"
+        :title="$t('操作记录')"
         :quick-close="true"
         :before-close="closeTab">
         <template slot="content">

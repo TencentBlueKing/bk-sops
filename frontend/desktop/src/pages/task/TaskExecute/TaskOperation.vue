@@ -74,7 +74,7 @@
             <div slot="header">
                 <div class="header">
                     <span>{{sideSliderTitle}}</span>
-                    <div class="bread-crumbs-wrapper">
+                    <div class="bread-crumbs-wrapper" v-if="['executeInfo', 'viewNodeDetails'].includes(nodeInfoType)">
                         <span
                             :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
                             v-for="(path, index) in nodeNav"
@@ -1996,9 +1996,6 @@
 }
 .header {
     display: flex;
-    span {
-        margin-right: 20px;
-    }
     .bread-crumbs-wrapper {
         margin-left: 10px;
         font-size: 0;

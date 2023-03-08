@@ -98,8 +98,8 @@
                 <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
                     <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                     <template slot="content">
-                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('任务操作记录'))">
-                            {{ $t('任务操作记录') }}
+                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('操作记录'))">
+                            {{ $t('操作记录') }}
                         </p>
                         <p
                             v-if="state !== 'CREATED'"
@@ -107,8 +107,8 @@
                             @click="onTaskParamsClick('globalVariable', $t('全局变量'))">
                             {{ $t('全局变量') }}
                         </p>
-                        <p class="operate-item" @click="onTaskParamsClick('templateData', $t('任务数据'))">
-                            {{ $t('任务数据') }}
+                        <p class="operate-item" @click="onTaskParamsClick('templateData', 'Code')">
+                            {{ 'Code' }}
                         </p>
                         <p v-if="adminView && engineVer === 1" class="operate-item" @click="onTaskParamsClick('taskExecuteInfo')">
                             {{ $t('流程信息') }}

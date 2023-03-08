@@ -276,10 +276,11 @@
                 // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
                 node.selected = node.id === this.curSelectId
                 if (node.expanded && !node.selected) e.stopPropagation()
-                // if (node.title === this.$t('并行') && type === 'gateway') {
-                //     e.stopPropagation()
-                //     return
-                // }
+                if (node.title === this.$t('并行') && type === 'gateway') {
+                    node.expanded = !node.expanded
+                    e.stopPropagation()
+                    return
+                }
                 this.$emit('onOpenGatewayInfo', node.callbackData, false)
                 if (type === 'gateway') {
                     // 分支条件没有id,使用name 代替
@@ -428,6 +429,7 @@
             max-width: 100px;
             height: 28px;
             cursor: pointer;
+            user-select: none;
         }
         .tree-line {
             display: inline-block;
@@ -478,6 +480,7 @@
     font-size: 14px;
     padding: 0 4px;
     cursor: pointer;
+    user-select: none;
 }
 .activity-node {
     display: inline-block;
@@ -487,6 +490,7 @@
     margin: 0 4px;
     border-radius: 4px;
     background: #e5f6ea;
+    user-select: none;
 }
 .callback-condition {
     font-size: 10px;
@@ -499,6 +503,7 @@
     cursor: pointer;
     margin-left: -20px;
     z-index: 999;
+    user-select: none;
     .callback {
         display: inline-block;
         height: 17px;
@@ -582,5 +587,6 @@
     font-size: 14px;
     padding: 0 4px;
     cursor: pointer;
+    user-select: none;
 }
 </style>

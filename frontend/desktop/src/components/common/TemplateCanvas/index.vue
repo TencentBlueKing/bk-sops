@@ -162,7 +162,7 @@
             <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
             <div class="perspective-tips-context" v-if="isPerspectivePanelShow">
                 <div class="tips-content">
-                    <p class="tip-label">{{ $t('引用变量') }}</p>
+                    <p class="tip-label">{{ $t('变量引用') }}</p>
                     <template v-if="nodeVariable.variableList.length">
                         <p v-for="item in nodeVariable.variableList" :key="item">{{ item }}</p>
                     </template>
