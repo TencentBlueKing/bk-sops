@@ -25,7 +25,7 @@
                 :editable="paramsCanBeModify && !isChildTaskFlow && editable"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
-            <NoData v-else :message="$t('没有参数需要配置')"></NoData>
+            <NoData v-else :message="$t('暂无参数')"></NoData>
         </div>
         <div class="action-wrapper">
             <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify && !isChildTaskFlow)">

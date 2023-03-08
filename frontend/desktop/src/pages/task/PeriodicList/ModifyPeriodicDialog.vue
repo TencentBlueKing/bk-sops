@@ -162,7 +162,7 @@
                 <section class="config-section">
                     <p class="title">{{$t('参数信息')}}</p>
                     <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
-                        <NoData v-if="isVariableEmpty" :message="$t('没有参数需要配置')"></NoData>
+                        <NoData v-if="isVariableEmpty" :message="$t('暂无参数')"></NoData>
                         <TaskParamEdit
                             v-else
                             ref="TaskParamEdit"

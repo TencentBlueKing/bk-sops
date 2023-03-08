@@ -226,7 +226,7 @@
                                                     @renderConfigChange="onRenderConfigChange"
                                                     @update="updateInputsValue">
                                                 </input-params>
-                                                <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                                                <no-data v-else :message="$t('暂无参数')"></no-data>
                                             </template>
                                             <template v-else>
                                                 <jsonschema-input-params
@@ -235,7 +235,7 @@
                                                     :value="inputsParamValue"
                                                     @update="updateInputsValue">
                                                 </jsonschema-input-params>
-                                                <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                                                <no-data v-else :message="$t('暂无参数')"></no-data>
                                             </template>
                                         </template>
                                     </div>
@@ -256,7 +256,7 @@
                                                 :is-view-mode="isViewMode"
                                                 @hookChange="onHookChange">
                                             </output-params>
-                                            <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                                            <no-data v-else :message="$t('暂无参数')"></no-data>
                                         </template>
                                     </div>
                                 </section>
