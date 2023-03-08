@@ -1314,7 +1314,7 @@
                             sourceInfo[id].splice(atomIndex, 1)
                         }
                         const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                        refDom && refDom.setFormData()
+                        refDom && refDom.setFormData({ ...this.unhookingVarForm })
                     }
                 }
             },
