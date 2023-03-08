@@ -50,7 +50,7 @@ CC_FORMAT_PROP_DATA_SET_ENV = {"result": True, "data": {"测试": "1", "体验":
 CC_FORMAT_PROP_DATA_SERVICE_STATUS = {"result": True, "data": {"开放": "1", "关闭": "2"}}
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.create_set.v2_0.get_client_by_user"
-CC_GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user'
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
 CC_FORMAT_PROP_DATA = "pipeline_plugins.components.collections.sites.open.cc.create_set.v2_0.cc_format_prop_data"
 
 
@@ -192,8 +192,8 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }
@@ -226,8 +226,8 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }
@@ -258,8 +258,8 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }
@@ -289,8 +289,8 @@ SELECT_BY_TOPO_SUCCESS_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }
