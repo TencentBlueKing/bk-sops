@@ -10,10 +10,10 @@
             <bk-table
                 ext-cls="operate-flow-table"
                 :data="operateFlowData">
-                <bk-table-column show-overflow-tooltip min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
-                <bk-table-column show-overflow-tooltip :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
-                <bk-table-column show-overflow-tooltip :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
-                <bk-table-column show-overflow-tooltip :label="$t('操作人')" prop="operator"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作人')" prop="operator"></bk-table-column>
             </bk-table>
         </template>
     </bk-sideslider>
@@ -50,6 +50,16 @@
                 } catch (error) {
                     console.warn(error)
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             closeTab () {
                 this.$emit('closeTab')

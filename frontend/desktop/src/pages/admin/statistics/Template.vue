@@ -105,6 +105,7 @@
                             :prop="item.prop"
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -493,6 +494,16 @@
                 } catch (error) {
                     console.warn(error)
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             categoryFilterChange (val) {
                 this.categoryDataProject = val

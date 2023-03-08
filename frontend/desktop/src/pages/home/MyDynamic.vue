@@ -44,6 +44,7 @@
                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                 :min-width="item.min_width"
                 show-overflow-tooltip
+                :render-header="renderTableHeader"
                 :sortable="item.sortable">
                 <template slot-scope="props">
                     <template v-if="item.prop === 'status'">
@@ -213,6 +214,16 @@
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             onSelectMethod (val) {
                 this.currentMethod = val

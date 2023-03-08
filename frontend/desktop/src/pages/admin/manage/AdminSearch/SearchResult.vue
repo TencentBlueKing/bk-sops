@@ -34,6 +34,7 @@
                             :prop="col.prop"
                             :width="col.hasOwnProperty('width') ? col.width : 'auto'"
                             show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :sortable="col.sortable">
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
@@ -103,6 +104,7 @@
                             :prop="col.prop"
                             :width="col.hasOwnProperty('width') ? col.width : 'auto'"
                             show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :sortable="col.sortable">
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
@@ -460,6 +462,16 @@
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             onSearch () {
                 this.getSearchResult()

@@ -84,7 +84,7 @@
                         </div>
                         <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1, zIndex: 100 }">
                             <bk-table-column :label="$t('序号')" show-overflow-tooltip :width="150" property="id"></bk-table-column>
-                            <bk-table-column :label="$t('分组名称')" show-overflow-tooltip :width="300" property="name"></bk-table-column>
+                            <bk-table-column :label="$t('分组名称')" show-overflow-tooltip :width="300" property="name" :render-header="renderTableHeader"></bk-table-column>
                             <bk-table-column :label="$t('成员')" show-overflow-tooltip>
                                 <template slot-scope="props">
                                     {{props.row.members || '--'}}
@@ -106,24 +106,24 @@
                             <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
                         </div>
                         <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1, zIndex: 100 }">
-                            <bk-table-column :label="$t('标签名称')" property="name" :min-width="150" show-overflow-tooltip>
+                            <bk-table-column :label="$t('标签名称')" property="name" :min-width="150" show-overflow-tooltip :render-header="renderTableHeader">
                                 <template slot-scope="props">
                                     <span class="label-name"
                                         :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
                                         {{ props.row.name }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('标签描述')" :min-width="300" show-overflow-tooltip>
+                            <bk-table-column :label="$t('标签描述')" :min-width="300" show-overflow-tooltip :render-header="renderTableHeader">
                                 <template slot-scope="props">
                                     {{ props.row.description || '--' }}
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('标签引用')" :width="200" show-overflow-tooltip>
+                            <bk-table-column :label="$t('标签引用')" :width="200" show-overflow-tooltip :render-header="renderTableHeader">
                                 <template slot-scope="props">
                                     {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('系统默认标签')" :width="300">
+                            <bk-table-column :label="$t('系统默认标签')" :width="300" :render-header="renderTableHeader">
                                 <template slot-scope="props">
                                     {{ props.row.is_default ? $t('是') : $t('否') }}
                                 </template>
@@ -152,7 +152,7 @@
                             <bk-button :theme="'primary'" @click="onAddVariable('create')">{{ $t('新增项目变量') }}</bk-button>
                         </div>
                         <bk-table style="margin-top: 15px;" :data="variableData">
-                            <bk-table-column show-overflow-tooltip :label="$t('变量名称')" prop="name"></bk-table-column>
+                            <bk-table-column show-overflow-tooltip :label="$t('变量名称')" prop="name" :render-header="renderTableHeader"></bk-table-column>
                             <bk-table-column show-overflow-tooltip :label="$t('KEY')" prop="key"></bk-table-column>
                             <bk-table-column show-overflow-tooltip :label="$t('值')" prop="value"></bk-table-column>
                             <bk-table-column show-overflow-tooltip :label="$t('说明')" prop="desc"></bk-table-column>
@@ -580,6 +580,16 @@
                 } finally {
                     this.agentLoading = false
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             onOpenDescEdit () {
                 if (!this.hasPermission(['project_edit'], this.project.auth_actions)) {

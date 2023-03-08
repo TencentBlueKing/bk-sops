@@ -113,6 +113,7 @@
                                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                                 :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
                                 show-overflow-tooltip
+                                :render-header="renderTableHeader"
                                 :sortable="item.sortable">
                                 <template slot-scope="props">
                                     <a
@@ -654,23 +655,37 @@
                 }
                 this.getTableData()
             },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
+            },
             renderFilterHeader (h, data) {
                 const self = this
                 return h('div', {
                     'class': 'creat-method-filter-header'
                 }, [
-                    h('div', {
-                        'class': 'render-header'
+                    h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
                     }, [
-                        h('span', [i18n.t('任务类型')]),
-                        h('i', {
-                            'class': {
-                                'bk-icon icon-funnel': true,
-                                'is-checked': self.selectedFilter.length
-                            }
-                        })
-                    ])
-                ])
+                        data.column.label
+                    ]),
+                    h('i', {
+                        'class': {
+                            'bk-icon icon-funnel': true,
+                            'is-checked': self.selectedFilter.length
+                        }
+                    })
+                ]
+                )
             },
             onSwitchCheckStatus (val) {
                 const selectFilter = this.filterList.find(item => item.value === val.value)

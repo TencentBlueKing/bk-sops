@@ -33,6 +33,7 @@
                         :label="item.label"
                         :align="item.align"
                         show-overflow-tooltip
+                        :render-header="renderTableHeader"
                         :prop="item.prop">
                         <template slot-scope="{ row, $index }">
                             <div v-if="item.prop === 'name'" class="business-name">
@@ -218,6 +219,16 @@
                         }
                     }
                 })
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             updateChart (labels, backgroundColor, data, counts) {
                 this.chart.data.labels = labels

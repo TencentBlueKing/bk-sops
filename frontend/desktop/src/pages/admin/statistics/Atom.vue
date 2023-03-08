@@ -94,6 +94,7 @@
                             :prop="item.prop"
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -414,6 +415,16 @@
                 } finally {
                     this.tableDataLoading = false
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             rankFilterChange (val, type) {
                 if (type === 'cite') {
