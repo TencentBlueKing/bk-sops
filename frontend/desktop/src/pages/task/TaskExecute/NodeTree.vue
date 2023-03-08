@@ -139,13 +139,15 @@
                         const cur = this.findSubChildren(this.treeData, val[val.length - 1].id)
                         if (val.length === 1 && old && val.length !== old.length) {
                             this.curSubId = ''
+                            this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
                             this.treeData = tools.deepClone(this.data[0].children)
-                            this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
+                            this.curSelectId = '' // 返回时清除选中
                         } else {
                             this.renderSubProcessData(...cur)
                         }
                     }
                 },
+                deep: true,
                 immediate: true
             }
         },
@@ -228,7 +230,7 @@
                 } else if (this.gatewayType[node.type]) {
                     return <span style={'font-size: 16px'}>
                         <span class={iconClass} style={this.stateColor[node.state]}></span>
-                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'node')}></span>
+                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
@@ -250,9 +252,9 @@
                                 node.parent.expanded = true
                                 this.setExpand(node.parent)
                             }
-                            if (node.children?.length) {
-                                this.$set(node, 'expanded', true)
-                            }
+                            // if (node.children?.length) {
+                            //     this.$set(node, 'expanded', true)
+                            // }
                         } else {
                             this.$set(node, 'selected', false)
                         }
@@ -284,10 +286,10 @@
                 this.$emit('onOpenGatewayInfo', node.callbackData, false)
                 if (type === 'gateway') {
                     // 分支条件没有id,使用name 代替
-                    this.curSelectId = node.name
                     if (node.state === 'Gateway') {
-                        node.id = node.name
+                        this.curSelectId = node.id || node.name
                         this.$emit('onOpenGatewayInfo', node.callbackData, true)
+                        return
                     }
                 }
                 if (type === 'node' || type === 'callback') {
@@ -311,37 +313,37 @@
                             }
                         })
                     }
-                    const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
-                    node.selected = nodeType !== 'subflow'
-                    if (nodeType === 'subflow') {
-                        this.$emit('onNodeClick', node.id, 'subflow')
-                        this.renderSubProcessData(node)
-                        return
-                    }
                     if (type === 'callback') {
                         node.cacheId = node.id // 选择打回节点前缓存id
                         node.id = node.callbackData ? node.callbackData.id : node.id
                     }
-                    if (this.curSelectId === node.id) return
-                    this.curSelectId = node.id
-                    let rootNode = node
-                    let nodeHeirarchy = ''
-                    if (!rootNode.id) return
-                    while (rootNode.parent) {
-                        if (nodeHeirarchy) {
-                            nodeHeirarchy += '.' + rootNode.parent.id
-                        } else {
-                            nodeHeirarchy += rootNode.parent.id
-                        }
-                        rootNode = rootNode.parent
-                    }
-                    // 最外层网关为null时传递id
-                    nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
-                    this.setDefaultActiveId(this.treeData, this.treeData, node.id)
-                    this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
-                    // 取缓存id
-                    node.id = node.cacheId ? node.cacheId : node.id
                 }
+                if (this.curSelectId === node.id) return
+                this.curSelectId = node.id
+                const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
+                node.selected = nodeType !== 'subflow'
+                if (nodeType === 'subflow') {
+                    this.$emit('onNodeClick', node.id, 'subflow')
+                    this.renderSubProcessData(node)
+                    return
+                }
+                let rootNode = node
+                let nodeHeirarchy = ''
+                if (!rootNode.id) return
+                while (rootNode.parent) {
+                    if (nodeHeirarchy) {
+                        nodeHeirarchy += '.' + rootNode.parent.id
+                    } else {
+                        nodeHeirarchy += rootNode.parent.id
+                    }
+                    rootNode = rootNode.parent
+                }
+                // 最外层网关为null时传递id
+                nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
+                this.setDefaultActiveId(this.treeData, this.treeData, node.id)
+                this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
+                // 取缓存id
+                node.id = node.cacheId ? node.cacheId : node.id
             }
         }
     }
