@@ -13,7 +13,7 @@
     <bk-sideslider
         :is-show="true"
         :width="800"
-        :title="$t('模板数据')"
+        title="Code"
         :quick-close="true"
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">

@@ -1612,7 +1612,8 @@ const en = {
     '保存并继续': 'Save and continue',
     '去修改': 'To modify',
     '任务已暂停执行': 'Task has been paused',
-    '任务已继续执行': 'Task has resumed'
+    '任务已继续执行': 'Task has resumed',
+    '操作记录': 'Operate record'
 }
 
 export default en
