@@ -1731,22 +1731,22 @@
                     return
                 }
                 const arrow = this.getTargetEndpointArrow(node.id, event)
-                let targetEp
                 const endpoints = this.$refs.jsFlow.instance.selectEndpoints({ source: node.id })
                 endpoints.each(item => {
                     item.canvas.classList.remove('target-endpoint')
+                    item.canvas.classList.remove('hidden-endpoint')
                     if (item.anchor.cssClass === arrow) {
-                        targetEp = item
+                        item.canvas.classList.add('target-endpoint')
+                    } else {
+                        item.canvas.classList.add('hidden-endpoint')
                     }
                 })
-                if (targetEp) {
-                    targetEp.canvas.classList.add('target-endpoint')
-                }
             },
             // 鼠标移出节点，删除高亮端点
             onNodeMouseLeave (node) {
                 const endpoints = this.$refs.jsFlow.instance.selectEndpoints({ source: node.id })
                 endpoints.each(item => {
+                    item.canvas.classList.remove('hidden-endpoint')
                     item.canvas.classList.remove('target-endpoint')
                 })
             },
@@ -2452,6 +2452,9 @@
                     &:hover,
                     &.target-endpoint {
                         background-image: url('~@/assets/images/endpoint-hover.svg');
+                    }
+                    &.hidden-endpoint {
+                        background-image: none;
                     }
                 }
                 &.template-canvas-endpoint.jtk-dragging {
