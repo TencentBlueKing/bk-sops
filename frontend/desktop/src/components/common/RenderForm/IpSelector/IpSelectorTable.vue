@@ -59,7 +59,7 @@
                 {{ i18n.or }}
                 <span class="add-ip-btn" @click="onAddPanelShow('manual')">{{ i18n.manualAdd }}</span>
             </span>
-            <span v-else>{{ i18n.noData }}</span>
+            <span v-else><NoData></NoData></span>
         </div>
     </bk-table>
 </template>
@@ -68,6 +68,7 @@
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
     import ColumnSetting from './ColumnSetting.vue'
     import tools from '@/utils/tools.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     const i18n = {
         selectAdd: gettext('选择添加'),
@@ -85,7 +86,8 @@
     }
     export default {
         components: {
-            ColumnSetting
+            ColumnSetting,
+            NoData
         },
         props: {
             selection: {

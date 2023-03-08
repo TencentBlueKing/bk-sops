@@ -97,6 +97,7 @@
                             :width="item.width"
                             :min-width="item.min_width"
                             :class-name="item.id.replace(/_/g, '-')"
+                            show-overflow-tooltip
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
                             :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
@@ -219,7 +220,13 @@
                             {{ $t('当前已选择 x 条数据', { num: selectedTpls.length }) }}{{ $t('，') }}
                             <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清除选择') }}</bk-link>
                         </div>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -995,7 +1002,12 @@
                     return h('span', {
                         'class': 'category-label'
                     }, [
-                        column.label,
+                        h('p', {
+                            'class': 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [column.label]),
                         h('i', {
                             'class': 'common-icon-info table-header-tips',
                             directives: [{
@@ -1016,7 +1028,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -1430,9 +1449,6 @@ a {
             border-radius: 50%;
         }
     }
-    .empty-data {
-        padding: 120px 0;
-    }
     .subflow-has-update {
         color: $redDefault;
     }
@@ -1455,11 +1471,16 @@ a {
             color: #979ba5;
         }
     }
-    /deep/.table-header-tips {
-        margin-left: 4px;
-        font-size: 14px;
-        color: #c4c6cc;
-        cursor: pointer;
+    /deep/.category-label {
+        display: flex;
+        align-items: center;
+        .table-header-tips {
+            flex-shrink: 0;
+            margin-left: 4px;
+            font-size: 14px;
+            color: #c4c6cc;
+            cursor: pointer;
+        }
     }
     /deep/.edit-time,
     /deep/.create-time {

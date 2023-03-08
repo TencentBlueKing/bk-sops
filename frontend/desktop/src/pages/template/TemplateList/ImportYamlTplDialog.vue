@@ -48,12 +48,12 @@
                 </div>
                 <p class="tpl-type-title">{{ $t('顶层流程（n）', { n: topFlowList.length }) }}</p>
                 <bk-table :data="topFlowTableList" :key="Math.random()">
-                    <bk-table-column :label="$t('流程名称')">
+                    <bk-table-column :label="$t('流程名称')" :render-header="renderTableHeader">
                         <div slot-scope="props" v-bk-overflow-tips>
                             {{ props.row.meta.name }}
                         </div>
                     </bk-table-column>
-                    <bk-table-column :label="$t('是否覆盖已有流程')" :width="400">
+                    <bk-table-column :label="$t('是否覆盖已有流程')" :width="400" :render-header="renderTableHeader">
                         <template slot-scope="{ row }">
                             <div class="tpl-overrider-select">
                                 <bk-select
@@ -94,6 +94,9 @@
                             </div>
                         </template>
                     </bk-table-column>
+                    <div class="empty-data" slot="empty">
+                        <NoData></NoData>
+                    </div>
                 </bk-table>
                 <bk-pagination
                     v-if="topFlowPagination.count > 5"
@@ -109,17 +112,17 @@
                 <template v-if="subFlowList.length > 0">
                     <p class="tpl-type-title">{{ $t('子流程（n）', { n: subFlowList.length }) }}</p>
                     <bk-table :data="subFlowTableList" :key="Math.random()">
-                        <bk-table-column :label="$t('流程名称')">
+                        <bk-table-column :label="$t('流程名称')" :render-header="renderTableHeader">
                             <div slot-scope="props" v-bk-overflow-tips>
                                 {{ props.row.meta.name }}
                             </div>
                         </bk-table-column>
-                        <bk-table-column :label="$t('父流程')">
+                        <bk-table-column :label="$t('父流程')" :render-header="renderTableHeader">
                             <div slot-scope="props" v-bk-overflow-tips>
                                 {{ importData.relations[props.row.meta.id] ? importData.relations[props.row.meta.id].map(item => item.name).join(',') : '--' }}
                             </div>
                         </bk-table-column>
-                        <bk-table-column :label="$t('是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）')" :width="400">
+                        <bk-table-column :label="$t('是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）')" :width="400" :render-header="renderTableHeader">
                             <template slot-scope="{ row }">
                                 <div class="tpl-overrider-select">
                                     <bk-select
@@ -163,6 +166,9 @@
                                 </div>
                             </template>
                         </bk-table-column>
+                        <div class="empty-data" slot="empty">
+                            <NoData></NoData>
+                        </div>
                     </bk-table>
                     <bk-pagination
                         v-if="subFlowPagination.count > 5"
@@ -212,9 +218,13 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ImportYamlTplDialog',
+        components: {
+            NoData
+        },
         mixins: [permission],
         props: {
             isShow: {
@@ -366,6 +376,16 @@
                 } finally {
                     this.scrollLoading = false
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             // 下拉框搜索
             handleTplSearch (val) {

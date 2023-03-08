@@ -38,6 +38,7 @@
                             :prop="item.id"
                             :render-header="renderTableHeader"
                             :width="item.width"
+                            show-overflow-tooltip
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <!-- 任务ID -->
@@ -113,7 +114,13 @@
                                 </a>
                             </template>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -541,7 +548,12 @@
                     return h('span', {
                         'class': 'recorded_executor_proxy-label'
                     }, [
-                        column.label,
+                        h('p', {
+                            'class': 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [column.label]),
                         h('i', {
                             'class': 'common-icon-info table-header-tips',
                             directives: [{
@@ -560,7 +572,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -653,9 +672,6 @@
     a.task-name {
         color: $blueDefault;
     }
-    .empty-data {
-        padding: 120px 0;
-    }
     .ui-task-status {
         @include ui-task-status;
     }
@@ -694,12 +710,16 @@
     top: -1px;
     cursor: pointer;
 }
-/deep/.table-header-tips {
-    margin-left: 4px;
-    font-size: 14px;
-    color: #c4c6cc;
-    cursor: pointer;
-}
+/deep/.recorded_executor_proxy-label {
+        display: flex;
+        align-items: center;
+        .table-header-tips {
+            flex-shrink: 0;
+            margin-left: 4px;
+            font-size: 14px;
+            color: #c4c6cc;
+        }
+    }
 /deep/ .cell .task-id {
     margin-left: 16px;
 }

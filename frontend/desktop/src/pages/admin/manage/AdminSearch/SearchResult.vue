@@ -33,6 +33,8 @@
                             :label="col.label"
                             :prop="col.prop"
                             :width="col.hasOwnProperty('width') ? col.width : 'auto'"
+                            show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :sortable="col.sortable">
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
@@ -86,7 +88,6 @@
                                 <template v-else :title="props.row[col.prop]">{{ props.row[col.prop] }}</template>
                             </template>
                         </bk-table-column>
-                        <div slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </div>
                 <div class="list-table task-list-table" v-if="taskDataLoading || taskData.length">
@@ -102,6 +103,8 @@
                             :label="col.label"
                             :prop="col.prop"
                             :width="col.hasOwnProperty('width') ? col.width : 'auto'"
+                            show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :sortable="col.sortable">
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
@@ -139,11 +142,10 @@
                                 <template v-else :title="props.row[col.prop]">{{ props.row[col.prop] }}</template>
                             </template>
                         </bk-table-column>
-                        <div slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </div>
             </template>
-            <div v-else class="no-data-matched" slot="empty"><no-data :message="$t('没有找到相关内容')"></no-data></div>
+            <NoData v-else class="no-data-matched" type="search-empty" :message="$t('没有找到相关内容')" @searchClear="handleSearchClear"></NoData>
         </div>
         <bk-dialog
             width="400"
@@ -461,7 +463,21 @@
                     console.log(e)
                 }
             },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
+            },
             onSearch () {
+                this.getSearchResult()
+            },
+            handleSearchClear () {
+                this.searchStr = ''
                 this.getSearchResult()
             },
             onApplyPerm (required, data, type) {
@@ -561,7 +577,6 @@
             cursor: pointer;
         }
         .task-status {
-            width: 105px;
             text-align: left;
             .common-icon-waitting,
             .common-icon-dark-circle-shape {
@@ -602,16 +617,12 @@
                 }
             }
             .task-status-text {
-                display: inline-block;
                 vertical-align: middle;
             }
         }
     }
     .no-data-matched {
-        padding: 30px 0;
-        .no-data-wrapper {
-            padding: 50px 0;
-        }
+        margin: 20px 0;
     }
     .dialog-content {
         padding: 30px;

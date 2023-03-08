@@ -38,6 +38,7 @@
                             :prop="item.id"
                             :width="item.width"
                             :render-header="renderTableHeader"
+                            show-overflow-tooltip
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <!--所属项目-->
@@ -106,7 +107,13 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -385,7 +392,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -570,9 +584,6 @@
     }
     .audit-operation-btn {
         color: #3a84ff;
-    }
-    .empty-data {
-        padding: 120px 0;
     }
 }
 .panagation {

@@ -51,10 +51,20 @@
                             <span class="node-name" v-else>{{ item.name }}</span>
                         </li>
                     </template>
-                    <bk-exception v-else class="exception-part" type="empty" scene="part"></bk-exception>
+                    <NoData
+                        v-else
+                        :type="searchStr ? 'search-empty' : 'empty'"
+                        :message="searchStr ? $t('搜索结果为空') : ''"
+                        @searchClear="handleSearch('')">
+                    </NoData>
                 </div>
             </template>
-            <bk-exception v-else class="exception-part" type="empty" scene="part"></bk-exception>
+            <NoData
+                v-else
+                :type="searchStr ? 'search-empty' : 'empty'"
+                :message="searchStr ? $t('搜索结果为空') : ''"
+                @searchClear="handleSearch('')">
+            </NoData>
         </bk-tab-panel>
         <!-- 第三方插件 -->
         <bk-tab-panel
@@ -96,16 +106,25 @@
                         </div>
                     </div>
                 </template>
-                <bk-exception v-else class="exception-part" type="empty" scene="part"></bk-exception>
+                <NoData
+                    v-else
+                    :type="searchStr ? 'search-empty' : 'empty'"
+                    :message="searchStr ? $t('搜索结果为空') : ''"
+                    @searchClear="handleSearch('')">
+                </NoData>
             </div>
         </bk-tab-panel>
     </bk-tab>
 </template>
 <script>
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'Plugin',
+        components: {
+            NoData
+        },
         props: {
             isThirdParty: Boolean,
             crtPlugin: String,
@@ -220,7 +239,7 @@
                         })
                         pluginList = pluginList.filter(item => this.thirdActiveGroup === (item.tag || -1))
                     }
-                    this.thirdPluginOffset = next_offset
+                    this.thirdPluginOffset = return_plugin_count ? next_offset : 0
                     this.thirdPartyPlugin.push(...pluginList)
                     if (next_offset === -1 || return_plugin_count < this.thirdPluginPagelimit) {
                         this.isThirdPluginCompleteLoading = true
@@ -279,6 +298,7 @@
             },
             // 搜索逻辑
             handleSearch (val) {
+                this.searchStr = val
                 if (this.curTab === 'builtIn') {
                     this.setBuiltInPluginSearchResult(val)
                 } else {
@@ -286,7 +306,7 @@
                     this.thirdPluginGroup.forEach(item => {
                         item.isShow = !val
                     })
-                    this.thirdActiveGroup = val ? '' : this.thirdPluginGroup[0].id
+                    this.thirdActiveGroup = val ? '' : this.thirdPluginGroup[0]?.id
                     this.thirdPartyPlugin = []
                     this.thirdPluginOffset = 0
                     this.getThirdPartyPlugin()
@@ -535,7 +555,7 @@
         margin-top: 10px;
     }
 }
-.exception-part {
-    margin-top: 100px;
+.no-data-wrapper {
+    margin-top: 50px;
 }
 </style>

@@ -39,6 +39,8 @@
                             :label="item.label"
                             :prop="item.id"
                             :width="item.width"
+                            show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 {{ props.row[item.id] || '--' }}
@@ -74,7 +76,13 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -404,6 +412,16 @@
                 } finally {
                     this.projectDetailLoading = false
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
 
             async addProject () {
