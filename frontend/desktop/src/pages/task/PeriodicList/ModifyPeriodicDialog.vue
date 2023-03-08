@@ -137,7 +137,7 @@
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
-                            <p v-if="formData.is_latest === false" class="schema-disable-tip">
+                            <p v-if="formData.schemeId && formData.is_latest === false" class="schema-disable-tip">
                                 {{ $t('当前流程非最新，执行方案不可更改，请先更新流程') }}
                             </p>
                             <p v-if="formData.is_latest === null" class="schema-disable-tip">
