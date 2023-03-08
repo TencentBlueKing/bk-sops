@@ -68,43 +68,45 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="230" :fixed="clockedList.length ? 'right' : false">
+                        <bk-table-column :label="$t('操作')" :width="adminView ? 120 : 230" :fixed="clockedList.length ? 'right' : false">
                             <div class="clocked-operation" slot-scope="props" :clocked-task-name="props.row.name">
-                                <a
-                                    v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
-                                    href="javascript:void(0);"
-                                    :class="{
-                                        'clocked-bk-disable': props.row.state !== 'not_started',
-                                        'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions)
-                                    }"
-                                    v-bk-tooltips.top="{
-                                        content: props.row.task_id ? $t('已执行的计划任务无法编辑') : $t('启动失败的计划任务无法编辑'),
-                                        disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || props.row.state === 'not_started'
-                                    }"
-                                    data-test-id="clockedList_table_editBtn"
-                                    @click="onEditClockedTask(props.row, $event)">
-                                    {{ $t('编辑') }}
-                                </a>
-                                <a
-                                    v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions) }"
-                                    href="javascript:void(0);"
-                                    :class="{
-                                        'clocked-bk-disable': !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions)
-                                    }"
-                                    data-test-id="clockedList_table_cloneBtn"
-                                    @click="onCloneClockedTask(props.row, 'clone')">
-                                    {{ $t('克隆') }}
-                                </a>
-                                <a
-                                    v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
-                                    href="javascript:void(0);"
-                                    :class="{
-                                        'clocked-bk-disable': !hasPermission(['clocked_task_delete'], props.row.auth_actions)
-                                    }"
-                                    data-test-id="clockedList_table_deleteBtn"
-                                    @click="onDeleteClockedTask(props.row, $event)">
-                                    {{ $t('删除') }}
-                                </a>
+                                <template v-if="!adminView">
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        :class="{
+                                            'clocked-bk-disable': props.row.state !== 'not_started',
+                                            'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions)
+                                        }"
+                                        v-bk-tooltips.top="{
+                                            content: props.row.task_id ? $t('已执行的计划任务无法编辑') : $t('启动失败的计划任务无法编辑'),
+                                            disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || props.row.state === 'not_started'
+                                        }"
+                                        data-test-id="clockedList_table_editBtn"
+                                        @click="onEditClockedTask(props.row, $event)">
+                                        {{ $t('编辑') }}
+                                    </a>
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        :class="{
+                                            'clocked-bk-disable': !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions)
+                                        }"
+                                        data-test-id="clockedList_table_cloneBtn"
+                                        @click="onCloneClockedTask(props.row, 'clone')">
+                                        {{ $t('克隆') }}
+                                    </a>
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        :class="{
+                                            'clocked-bk-disable': !hasPermission(['clocked_task_delete'], props.row.auth_actions)
+                                        }"
+                                        data-test-id="clockedList_table_deleteBtn"
+                                        @click="onDeleteClockedTask(props.row, $event)">
+                                        {{ $t('删除') }}
+                                    </a>
+                                </template>
                                 <template v-if="props.row.task_id">
                                     <a
                                         v-if="!hasPermission(['clocked_task_view'], props.row.auth_actions)"
@@ -126,6 +128,7 @@
                                         {{ $t('执行历史') }}
                                     </router-link>
                                 </template>
+                                <span v-else class="empty-text">{{ '--' }}</span>
                             </div>
                         </bk-table-column>
                         <bk-table-column type="setting">
@@ -160,18 +163,11 @@
             v-if="isShowSideslider"
             :is-show-sideslider="isShowSideslider"
             :cur-row="curRow"
-            :project_id="project_id"
+            :project_id="projectId"
             :type="sideSliderType"
             @onSaveConfig="onSaveConfig"
             @onCloseConfig="onCloseConfig">
         </EditClockedTask>
-        <DeleteClockedDialog
-            :is-delete-dialog-show="isDeleteDialogShow"
-            :template-name="selectedTemplateName"
-            :deleting="deleting"
-            @onDeleteClockedConfirm="onDeleteClockedConfirm"
-            @onDeleteClockedCancel="onDeleteClockedCancel">
-        </DeleteClockedDialog>
     </div>
 </template>
 
@@ -185,9 +181,10 @@
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import EditClockedTask from './EditClockedTask.vue'
-    import DeleteClockedDialog from './DeleteClockedDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -265,8 +262,7 @@
             NoData,
             SearchSelect,
             TaskCreateDialog,
-            EditClockedTask,
-            DeleteClockedDialog
+            EditClockedTask
         },
         mixins: [permission],
         props: {
@@ -341,9 +337,6 @@
                 isNewTaskDialogShow: false,
                 taskCategory: [],
                 businessInfoLoading: true,
-                isDeleteDialogShow: false,
-                selectedDeleteTaskId: 0,
-                selectedTemplateName: '',
                 deleting: false,
                 curRow: {},
                 sideSliderType: '',
@@ -361,6 +354,9 @@
             }),
             adminView () {
                 return this.hasAdminPerm && this.admin
+            },
+            projectId () {
+                return this.adminView ? this.curRow.project.id : this.project_id
             }
         },
         async created () {
@@ -400,17 +396,21 @@
                     }
                     if (plan_start_time && plan_start_time[0] && plan_start_time[1]) {
                         params['plan_start_time__gte'] = moment.tz(plan_start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['plan_start_time__lte'] = moment.tz(plan_start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['plan_start_time__lte'] = moment.tz(plan_start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (create_time && create_time[0] && create_time[1]) {
                         params['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (edit_time && edit_time[0] && edit_time[1]) {
                         params['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
-                    const resp = await this.loadClockedList(params)
+                    const source = new CancelRequest()
+                    const resp = await this.loadClockedList({
+                        params,
+                        config: { cancelToken: source.token }
+                    })
                     this.pagination.count = resp.data.count
                     this.clockedList = resp.data.results
                 } catch (error) {
@@ -564,7 +564,11 @@
                         query[key] = val
                     }
                 })
-                this.$router.replace({ name: 'clockedTemplate', params: { project_id: this.project_id }, query })
+                if (this.admin) {
+                    this.$router.replace({ name: 'adminClocked', query })
+                } else {
+                    this.$router.replace({ name: 'clockedTemplate', params: { project_id: this.project_id }, query })
+                }
             },
             // 获取前往对应模板的路径
             templateNameUrl (row) {
@@ -649,21 +653,26 @@
                     this.onClockedPermissonCheck(['clocked_task_delete'], row)
                     return
                 }
-                this.isDeleteDialogShow = true
-                this.selectedDeleteTaskId = row.id
-                this.selectedTemplateName = row.task_name
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('计划任务') + '"' + row.task_name + '"?',
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteClockedConfirm(row.id)
+                    }
+                })
             },
             // 同意删除计划任务
-            async onDeleteClockedConfirm () {
+            async onDeleteClockedConfirm (taskId) {
                 if (this.deleting) return
                 try {
                     this.deleting = true
-                    await this.deleteClocked({ id: this.selectedDeleteTaskId })
+                    await this.deleteClocked({ id: taskId })
                     this.$bkMessage({
-                        'message': i18n.t('计划任务') + i18n.t('删除成功'),
+                        'message': i18n.t('计划任务删除成功'),
                         'theme': 'success'
                     })
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (this.pagination.current > 1 && this.clockedList.length === 1) {
                         this.pagination.current -= 1
@@ -675,10 +684,6 @@
                 } finally {
                     this.deleting = false
                 }
-            },
-            // 取消删除计划任务
-            onDeleteClockedCancel () {
-                this.isDeleteDialogShow = false
             }
         }
     }
@@ -696,6 +701,7 @@
 }
 .search-wrapper {
     position: relative;
+    height: 32px;
     display: flex;
     justify-content: space-between;
 }
@@ -726,6 +732,9 @@
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .empty-text {
+        padding: 5px;
     }
 }
 </style>

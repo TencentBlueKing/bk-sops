@@ -38,7 +38,6 @@ import common flow template
         },
     },
     "result": true,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -50,7 +49,6 @@ import common flow template
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  message  |    string  |      error message returned when result is false  |
 |  data         | dict        |    return data                |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |
 
 #### data

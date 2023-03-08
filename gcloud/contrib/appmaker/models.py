@@ -67,7 +67,9 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         try:
             task_template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            return False, _("保存失败，引用的流程模板不存在！")
+            message = _("轻应用编辑失败: 轻应用关联的流程已不存在, 请检查配置 | save_app_maker")
+            logger.error(message)
+            return False, message
 
         if not app_id:
             subject = Subject("user", app_params["username"])
@@ -120,7 +122,9 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 app_params["desc"],
             )
             if not app_create_result["result"]:
-                return False, _("创建轻应用失败：%s") % app_create_result["message"]
+                message = _(f"轻应用保存失败: 请重试, 如多次失败可联系管理员处理. {app_create_result['result']} | save_app_maker")
+                logger.error(message)
+                return False, message
 
             app_code = app_create_result["data"]["bk_light_app_code"]
             app_maker_obj.code = app_code
@@ -133,7 +137,9 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     id=app_id, project_id=project_id, task_template__id=template_id, is_deleted=False
                 )
             except AppMaker.DoesNotExist:
-                return False, _("保存失败，当前操作的轻应用不存在或已删除！")
+                message = _("轻应用保存失败: 当前编辑的轻应用已不存在, 请检查配置 | save_app_maker")
+                logger.error(message)
+                return False, message
 
             subject = Subject("user", app_params["username"])
             action = Action(IAMMeta.MINI_APP_EDIT_ACTION)
@@ -165,7 +171,9 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     app_params["desc"],
                 )
                 if not app_edit_result["result"]:
-                    return False, _("编辑轻应用失败：%s") % app_edit_result["message"]
+                    message = _("轻应用保存失败, 请重试, 如多次失败可联系管理员处理 | save_app_maker")
+                    logger.error(message)
+                    return False, message
 
             app_maker_obj.name = app_params["name"]
             app_maker_obj.desc = app_params["desc"]

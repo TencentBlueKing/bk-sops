@@ -41,6 +41,8 @@
                 :editable="editable"
                 :static-ip-list="staticIpList"
                 :static-ips="staticIps"
+                :static-ip-table-config="staticIpTableConfig"
+                @onTableConfigChange="onStaticIpTableSettingChange"
                 @change="onStaticIpChange">
             </static-ip>
             <dynamic-ip
@@ -92,6 +94,7 @@
             staticIpList: Array,
             dynamicIpList: Array,
             dynamicGroupList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array,
             dynamicIps: Array,
             dynamicGroups: Array,
@@ -129,8 +132,8 @@
             updateDiffData () {
                 if (!this.editable) return
                 const selectors = this.activeSelector
-                const selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
-                selectList.forEach((value, index) => {
+                let selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
+                selectList = selectList.filter((value, index) => {
                     let result = true
                     // 删除掉没匹配上的
                     if (selectors === 'ip') {
@@ -140,9 +143,7 @@
                     } else {
                         result = this.dynamicGroupList.find(item => item.id === value.id)
                     }
-                    if (!result) {
-                        selectList.splice(index, 1)
-                    }
+                    return result
                 })
                 this.$emit('change', selectors, selectList)
                 this.curSelectorTab.hasDiff = false
@@ -150,13 +151,16 @@
             loopDynamicIpList (list, objId, instId) {
                 return list.some(item => {
                     if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
-                        return false
-                    } else if (item.child && item.child.length) {
-                        this.loopDynamicIpList(item.child, objId, instId)
-                    } else {
                         return true
+                    } else if (item.child && item.child.length) {
+                        return this.loopDynamicIpList(item.child, objId, instId)
+                    } else {
+                        return false
                     }
                 })
+            },
+            onStaticIpTableSettingChange (val) {
+                this.$emit('change', 'static_ip_table_config', val)
             },
             onStaticIpChange (val) {
                 this.$emit('change', 'ip', val)

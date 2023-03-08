@@ -146,21 +146,6 @@
                 </div>
             </div>
         </bk-dialog>
-        <bk-dialog
-            width="400"
-            padding="30px"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="projectStatusTitle"
-            :value="isOperationDialogShow"
-            @confirm="onChangeStatusConfirm"
-            @cancel="isOperationDialogShow = false">
-            <div class="operation-dialog-tips">
-                {{$t('确认')}}{{operationType === 'start' ? $t('启用') : $t('停用')}}{{$t('项目')}}:{{projectDetail.name}}?
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -173,6 +158,8 @@
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'project_id',
@@ -276,9 +263,7 @@
                 totalPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
-                isOperationDialogShow: false,
                 dialogType: 'create',
-                operationType: 'stop',
                 projectDetailLoading: false,
                 addPengding: false,
                 updatePending: false,
@@ -326,9 +311,6 @@
             }),
             projectDialogTitle () {
                 return this.dialogType === 'create' ? i18n.t('新建项目') : i18n.t('编辑项目')
-            },
-            projectStatusTitle () {
-                return this.operationType === 'stop' ? i18n.t('停用') : i18n.t('启用')
             }
         },
         async created () {
@@ -381,7 +363,11 @@
                         creator: creator || undefined
                     }
 
-                    const projectList = await this.loadUserProjectList(data)
+                    const source = new CancelRequest()
+                    const projectList = await this.loadUserProjectList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     this.projectList = (projectList.results || []).map(item => {
                         if (!item.from_cmdb) {
                             item.bk_biz_id = '--'
@@ -476,7 +462,6 @@
                     }
                     await this.updateProject(data)
                     this.isProjectDialogShow = false
-                    this.isOperationDialogShow = false
                     this.clearProjectDetail()
                     this.getProjectList()
                 } catch (e) {
@@ -636,19 +621,21 @@
                     this.applyForPermission(['project_edit'], project.auth_actions, resourceData)
                     return
                 }
-                this.operationType = type
                 this.projectDetail = {
                     id: project.id,
                     name: project.name,
                     timeZone: project.time_zone,
                     desc: project.desc
                 }
-                this.isOperationDialogShow = true
-            },
-            onChangeStatusConfirm () {
-                const disabled = this.operationType === 'stop'
-                this.isOperationDialogShow = false
-                this.changeProject(disabled)
+                const title = i18n.t('确认') + i18n.t(type === 'start' ? '启用' : '停用') + i18n.t('项目') + ': ' + project.name + '?'
+                this.$bkInfo({
+                    title,
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.changeProject(type === 'stop')
+                    }
+                })
             },
             /**
              * 是否显示操作按钮

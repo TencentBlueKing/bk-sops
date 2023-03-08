@@ -30,6 +30,8 @@ from drf_yasg.utils import swagger_auto_schema
 
 from pipeline_web.preview import preview_template_tree_with_schemes
 
+from django.utils.translation import ugettext_lazy as _
+
 logger = logging.getLogger("root")
 
 
@@ -59,9 +61,11 @@ class TemplateFormWithSchemesView(APIView):
             else:
                 template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            err_msg = "[form_with_schemes] project[{}] template[{}] doesn't exist".format(project_id, template_id)
-            logger.exception(err_msg)
-            return Response({"result": False, "message": err_msg, "data": {}})
+            message = _(
+                f"请求参数信息失败: 项目[ID: {project_id}], 模板[ID: {template_id}] 不存在, 请重试. 如持续失败可联系管理员处理 | form_with_schemes"
+            )
+            logger.exception(message)
+            return Response({"result": False, "message": message, "data": {}})
         except CommonTemplate.DoesNotExist:
             err_msg = "[form_with_schemes] common template[{}] doesn't exist".format(template_id)
             logger.exception(err_msg)
@@ -70,9 +74,9 @@ class TemplateFormWithSchemesView(APIView):
         try:
             template_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
         except Exception as e:
-            err_msg = "[preview_template_tree_with_schemes]get template form with schemes fail: {}".format(e)
-            logger.exception(err_msg)
-            return Response({"result": False, "message": err_msg, "data": {}})
+            message = _(f"请求参数信息失败: 批量获取带执行方案的流程表单失败, 错误信息: {e}, 请重试. 如持续失败可联系管理员处理 | form_with_schemes")
+            logger.exception(message)
+            return Response({"result": False, "message": message, "data": {}})
 
         data = {
             "form": {**template_data["pipeline_tree"]["constants"], **template_data["custom_constants"]},

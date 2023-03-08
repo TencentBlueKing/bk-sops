@@ -241,10 +241,45 @@
     .bk-option.is-selected .bk-option-icon{
         display: inline-block;
     }
+    .bk-select-extension {
+        padding: 0;
+        &:hover {
+            background-color: initial;
+        }
+    }
     .label-select-extension {
+        height: 40px;
+        display: flex;
         text-align: center;
+        line-height: 40px;
         cursor: pointer;
-        & > .icon-plus-circle {
+        .add-label,
+        .label-manage {
+            position: relative;
+            flex: 1;
+            &:hover {
+                background: #f0f1f5;
+            }
+            &::after {
+                content: '';
+                position: absolute;
+                width: 1px;
+                height: 16px;
+                display: block;
+                right: -1px;
+                top: 12px;
+                background: #dcdee5;
+            }
+        }
+        .refresh-label {
+            flex-shrink: 0;
+            padding: 0 16px;
+            &:hover {
+                background: #f0f1f5;
+            }
+        }
+        & .common-icon-label,
+        & .icon-plus-circle {
             font-size: 14px;
             color: #979ba5;
         }
@@ -317,6 +352,11 @@
 
 .bk-notify-content-text {
     @include scrollbar;
+    &.is-expand {
+        display: block !important;
+        max-height: 300px;
+        overflow-y: auto !important;
+    }
 }
 
 // 流程模板跨页全选和本页全选下拉框样式

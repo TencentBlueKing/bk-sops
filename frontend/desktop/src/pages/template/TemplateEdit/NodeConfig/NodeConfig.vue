@@ -265,7 +265,7 @@
                                     :disabled="inputLoading || (isSubflow && subflowListLoading)"
                                     data-test-id="templateEdit_form_saveNodeConfig"
                                     @click="onSaveConfig">
-                                    {{ $t('保存') }}
+                                    {{ $t('确定') }}
                                 </bk-button>
                                 <bk-button
                                     theme="default"
@@ -309,6 +309,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
+    import formSchema from '@/utils/formSchema.js'
 
     export default {
         name: 'NodeConfig',
@@ -366,7 +367,8 @@
                 quickOperateVariableVisable: false,
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 unhookingVarForm: {}, // 正被取消勾选的表单配置
-                isUpdateConstants: false // 是否更新输入参数配置
+                isUpdateConstants: false, // 是否更新输入参数配置
+                isDataChange: false // 数据是否改变
             }
         },
         computed: {
@@ -586,6 +588,8 @@
                 if (location && location.status === 'FAILED') {
                     this.validate()
                 }
+                // 获取插件配置时会去更新baseInfo，这个时候数据并没有修改
+                this.isDataChange = false
             },
             /**
              * 加载标准插件节点输入参数表单配置项，获取输出参数列表
@@ -682,9 +686,10 @@
             async getSubflowDetail (tpl, version = '') {
                 this.subflowLoading = true
                 try {
+                    const schemeIds = this.basicInfo.schemeIdList.filter(item => item)
                     const params = {
                         template_id: tpl,
-                        scheme_id_list: this.basicInfo.schemeIdList,
+                        scheme_id_list: schemeIds,
                         version
                     }
                     if (this.isCommonTpl) {
@@ -1090,10 +1095,12 @@
              * 填写基础信息表单，切换插件/子流程，选择插件版本，子流程更新
              */
             updateBasicInfo (data) {
+                this.isDataChange = true
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
             },
             // 输入参数表单值更新
             updateInputsValue (val) {
+                this.isDataChange = true
                 this.inputsParamValue = val
             },
             /**
@@ -1249,6 +1256,7 @@
             },
             // 是否渲染豁免切换
             onRenderConfigChange (data) {
+                this.isDataChange = true
                 const [key, val] = data
                 this.inputsRenderConfig[key] = val
             },
@@ -1384,7 +1392,7 @@
                         template_id: tpl,
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
-                        scheme_id_list: schemeIdList,
+                        scheme_id_list: schemeIdList.filter(item => item),
                         retryable,
                         skippable,
                         error_ignorable: ignorable,
@@ -1548,8 +1556,7 @@
                     this.$refs.variableEdit.handleMaskClick()
                     return false
                 }
-                const config = this.getNodeFullConfig()
-                if (tools.isDataEqual(config, this.nodeConfig) && !this.isOutputsChanged()) {
+                if (!this.isDataChange && !this.isOutputsChanged()) {
                     this.onClosePanel()
                     return true
                 } else {
@@ -1572,7 +1579,7 @@
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
                                 desc, nodeName, autoRetry, timeoutConfig, executor_proxy
                         } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig }
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, isActived: false }
                         if (this.common) {
                             nodeData['executor_proxy'] = executor_proxy.join(',')
                         }
@@ -1589,6 +1596,20 @@
                             if (!alwaysUseLatest && latestVersion && latestVersion !== version) {
                                 this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
                             }
+                            // 更新子流程已勾选的变量值
+                            Object.keys(this.localConstants).forEach(key => {
+                                const constantValue = this.localConstants[key]
+                                const formValue = this.subflowForms[key]
+                                if (constantValue.is_meta && formValue) {
+                                    const schema = formSchema.getSchema(formValue.key, this.inputs)
+                                    constantValue['form_schema'] = schema
+                                    constantValue.meta = formValue.meta
+                                    // 如果之前选中的下拉项被删除了，则删除对应的值
+                                    const curVal = constantValue.value
+                                    const isMatch = curVal ? schema.attrs.items.find(item => item.value === curVal) : true
+                                    constantValue.value = isMatch ? curVal : ''
+                                }
+                            })
                         }
                         this.syncActivity()
                         // 将第三方插件信息传给父级存起来
@@ -1609,6 +1630,7 @@
                 })
             },
             onClosePanel (openVariablePanel) {
+                this.$emit('updateNodeInfo', this.nodeId, { isActived: false })
                 this.$emit('close', openVariablePanel)
             }
         }

@@ -48,7 +48,7 @@ class MockClient(object):
 
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.update_module.v1_0.get_client_by_user"
-CC_GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user'
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
 CC_LIST_MATCH_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.update_module.v1_0.cc_list_match_node_inst_id"
 )
@@ -264,7 +264,10 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     name="fail case: select module by text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "不存在该拓扑路径：蓝鲸>Yun>set>module"}),
+    execute_assertion=ExecuteAssertion(
+        success=False,
+        outputs={"ex_data": "拓扑路径 [蓝鲸>Yun>set>module] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"},
+    ),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[

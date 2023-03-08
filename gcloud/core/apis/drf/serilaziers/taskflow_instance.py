@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import json
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from gcloud.core.models import Project
@@ -20,7 +21,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE
+from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, DATETIME_FORMAT
 from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.exceptions import PipelineException
@@ -41,9 +42,29 @@ class TaskFlowInstanceSerializer(TaskSerializer):
 
 class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
     pipeline_tree = serializers.SerializerMethodField()
+    primitive_template_id = serializers.SerializerMethodField()
+    primitive_template_source = serializers.SerializerMethodField()
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
+
+    def get_primitive_template_id(self, obj):
+        primitive_template_id = obj.template_id
+        if getattr(obj, "is_child_taskflow", False) and getattr(obj, "extra_info", None):
+            extra_info = json.loads(obj.extra_info)
+            primitive_template_id = extra_info.get("primitive_template_id")
+            if primitive_template_id:
+                return str(primitive_template_id)
+        return primitive_template_id
+
+    def get_primitive_template_source(self, obj):
+        primitive_template_source = obj.template_source
+        if getattr(obj, "is_child_taskflow", False) and getattr(obj, "extra_info", None):
+            extra_info = json.loads(obj.extra_info)
+            primitive_template_source = extra_info.get("primitive_template_source")
+            if primitive_template_source:
+                return primitive_template_source
+        return primitive_template_source
 
 
 class CreateTaskFlowInstanceSerializer(TaskSerializer):
@@ -113,5 +134,35 @@ class RootTaskflowQuerySerializer(serializers.Serializer):
     project_id = serializers.IntegerField(help_text="项目ID, 用于鉴权")
 
 
+class NodeSnapshotQuerySerializer(serializers.Serializer):
+    node_id = serializers.CharField(help_text="节点ID", required=True)
+    subprocess_stack = serializers.CharField(help_text="子流程节点堆栈信息", required=True)
+
+    def to_representation(self, instance):
+        data = super(NodeSnapshotQuerySerializer, self).to_representation(instance)
+        data["subprocess_stack"] = json.loads(data.get("subprocess_stack", "[]"))
+        return data
+
+
+class NodeSnapshotResponseSerializer(serializers.Serializer):
+    component = serializers.DictField(help_text="组件快照信息")
+
+
 class RootTaskflowResponseSerializer(serializers.Serializer):
     has_children_taskflow = serializers.DictField(help_text="是否有子任务流, key为任务ID, value为是否有子任务")
+
+
+class NodeExecutionRecordQuerySerializer(serializers.Serializer):
+    template_node_id = serializers.CharField(help_text="查询节点对应的流程节点 ID")
+
+
+class NodeExecutionTimeSerializer(serializers.Serializer):
+    archived_time = serializers.DateTimeField(
+        help_text="归档时间", default_timezone=timezone.get_current_timezone(), format=DATETIME_FORMAT
+    )
+    elapsed_time = serializers.IntegerField(help_text="执行耗时")
+
+
+class NodeExecutionRecordResponseSerializer(serializers.Serializer):
+    execution_time = serializers.ListField(child=NodeExecutionTimeSerializer(help_text="执行时间"))
+    total = serializers.IntegerField(help_text="执行总数")

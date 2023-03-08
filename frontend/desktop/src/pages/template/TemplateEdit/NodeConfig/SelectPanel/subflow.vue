@@ -179,7 +179,7 @@
                     const searchStr = this.escapeRegExp(this.searchStr)
                     const data = {
                         label_ids: this.labels.join(','),
-                        pipeline_template__name__icontains: searchStr || undefined,
+                        pipeline_template__name__icontains: this.searchStr || undefined,
                         limit: this.limit,
                         offset: (this.crtPage - 1) * this.limit
                     }
@@ -198,7 +198,7 @@
                         if (searchStr !== '') {
                             const reg = new RegExp(searchStr, 'i')
                             if (reg.test(tpl.name)) {
-                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${searchStr}</span>`)
+                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${this.searchStr}</span>`)
                             }
                         }
                         result.push(tplCopy)
@@ -340,7 +340,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .subflow-select-panel {
-    padding: 26px 32px;
+    padding: 25px 32px 20px;
     height: 100%;
 }
 .select-title {
@@ -383,6 +383,9 @@
         .tpl-label {
             display: flex;
             align-items: center;
+            > span {
+                flex-shrink: 0;
+            }
             .label-select-wrap {
                 cursor: pointer;
             }

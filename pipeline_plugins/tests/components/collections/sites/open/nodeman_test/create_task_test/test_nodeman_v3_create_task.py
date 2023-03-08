@@ -69,9 +69,12 @@ GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
-GET_HOST_ID_BY_INNER_IP = (
+
+GET_HOST_ID_BY_INNER_IP_BASE = (
     "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v3_0.get_host_id_by_inner_ip"
 )
+
+GET_HOST_ID_BY_INNER_IP = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_host_id_by_inner_ip"
 ENCRYPT_AUTH_KEY = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v3_0.encrypt_auth_key"
 
 # mock clients
@@ -255,7 +258,10 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -377,11 +383,15 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP_BASE, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
@@ -458,7 +468,10 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=DETAILS_FAIL_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.get_job_log,
             calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
@@ -469,6 +482,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=DETAILS_FAIL_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP_BASE, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
@@ -499,7 +513,10 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -549,7 +566,10 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": ""}),
     schedule_assertion=ScheduleAssertion(
-        success=True, callback_data=None, schedule_finished=True, outputs={"job_id": ""},
+        success=True,
+        callback_data=None,
+        schedule_finished=True,
+        outputs={"job_id": ""},
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -707,7 +727,12 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(
-            target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
+            target=GET_HOST_ID_BY_INNER_IP,
+            return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
+        ),
+        Patcher(
+            target=GET_HOST_ID_BY_INNER_IP_BASE,
+            return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
         ),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
@@ -780,7 +805,10 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -818,12 +846,16 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, side_effect=[{"1.1.1.1": 1}, {"2.2.2.2": 2}]),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP_BASE, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
     ],
 )
 
@@ -920,7 +952,10 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),

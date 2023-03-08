@@ -33,7 +33,9 @@ def record_template_operation_helper(operator, operate_type, template_id, operat
         logger.error("record operate failed, error:{}".format(traceback.format_exc()))
 
 
-def record_task_operation_helper(operator, operate_type, taskflow_id, operate_source, project_id=-1, node_id=""):
+def record_task_operation_helper(
+    operator, operate_type, taskflow_id, operate_source, project_id=-1, node_id="", extra_info=""
+):
     try:
         TaskOperateRecord.objects.create(
             operator=operator,
@@ -42,6 +44,7 @@ def record_task_operation_helper(operator, operate_type, taskflow_id, operate_so
             operate_source=operate_source,
             project_id=project_id,
             node_id=node_id,
+            extra_info=extra_info,
         )
     except Exception:
         logger.error("record operate failed, error:{}".format(traceback.format_exc()))

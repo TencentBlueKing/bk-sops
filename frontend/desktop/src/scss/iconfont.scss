@@ -398,17 +398,14 @@
 .common-icon-sys-tcm:before {
 	content: "\e190";
 }
-.common-icon-bkflow-delete:before {
-	content: "\e191";
-}
 .common-icon-bkflow-setting:before {
 	content: "\e192";
 }
-.common-icon-bkflow-copy:before {
-	content: "\e193";
-}
 .common-icon-help:before {
 	content: "\e196";
+}
+.common-icon-rate:before {
+	content: "\e1e3";
 }
 .common-icon-small-map:before {
 	content: "\e197";
@@ -532,4 +529,31 @@
 }
 .common-icon-fail-skip:before {
 	content: "\e1e1";
+}
+.common-icon-label:before {
+	content: "\e1e2";
+}
+.common-icon-var:before {
+	content: "\e1e4";
+}
+.common-icon-stop:before {
+	content: "\e1e5";
+}
+.common-icon-dark-stop:before {
+	content: "\e1e6";
+}
+.common-icon-bkflow-disconnect:before {
+	content: "\e1e8";
+}
+.common-icon-bkflow-copy:before {
+	content: "\e1e9";
+}
+.common-icon-bkflow-copy-insert:before {
+	content: "\e1ea";
+}
+.common-icon-bkflow-delete:before {
+	content: "\e1eb";
+}
+.common-icon-enter-config:before {
+	content: "\e1f5";
 }

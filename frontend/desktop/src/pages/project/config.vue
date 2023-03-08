@@ -70,7 +70,7 @@
                     <bk-form-item :label="$t('执行代理人')">
                         <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
                     </bk-form-item>
-                    <bk-form-item :label="$t('白名单用户')">
+                    <bk-form-item :label="$t('免代理用户')">
                         <div class="user-list">{{ agent.executor_proxy_exempts || '--' }}</div>
                     </bk-form-item>
                 </bk-form>
@@ -120,7 +120,16 @@
                             </bk-table-column>
                             <bk-table-column :label="$t('标签引用')" :width="200" show-overflow-tooltip :render-header="renderTableHeader">
                                 <template slot-scope="props">
-                                    {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
+                                    <router-link
+                                        class="citation"
+                                        :to="{
+                                            name: 'processHome',
+                                            params: { project_id: id },
+                                            query: { label_ids: String(props.row.id) }
+                                        }">
+                                        {{ labelCount[props.row.id] || 0 }}
+                                    </router-link>
+                                    {{ $t('个流程在引用') }}
                                 </template>
                             </bk-table-column>
                             <bk-table-column :label="$t('系统默认标签')" :width="300" :render-header="renderTableHeader">
@@ -159,7 +168,7 @@
                             <bk-table-column :label="$t('操作')">
                                 <template slot-scope="props">
                                     <bk-button theme="primary" text @click="onAddVariable('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                                    <bk-button theme="primary" text @click="onRemove(props.row.id)">{{ $t('删除') }}</bk-button>
+                                    <bk-button theme="primary" text @click="onRemove(props.row)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
                         </bk-table>
@@ -225,21 +234,6 @@
             </bk-form>
         </bk-dialog>
         <bk-dialog
-            :mask-close="false"
-            :auto-close="false"
-            :header-position="'left'"
-            :ext-cls="'common-dialog'"
-            :title="$t('删除')"
-            width="400"
-            :loading="pending.delete"
-            :value="isDeleteStaffDialogShow"
-            @confirm="deleteStaffGroupConfirm"
-            @cancel="isDeleteStaffDialogShow = false">
-            <div class="delete-dialog">
-                {{$t('确认删除') + '"' + deletingStaffDetail.name + '"' + '?' }}
-            </div>
-        </bk-dialog>
-        <bk-dialog
             width="600"
             ext-cls="common-dialog label-dialog"
             header-position="left"
@@ -285,21 +279,6 @@
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
-        <bk-dialog
-            :mask-close="false"
-            :auto-close="false"
-            :header-position="'left'"
-            :ext-cls="'common-dialog'"
-            :title="$t('删除')"
-            width="400"
-            :loading="pending.deleteLabel"
-            :value="isDeleteLabelDialogShow"
-            @confirm="deleteLabelGroupConfirm"
-            @cancel="isDeleteLabelDialogShow = false">
-            <div class="delete-dialog">
-                {{$t('确认删除') + '"' + deletingLabelDetail.name + '"' + '?' }}
-            </div>
-        </bk-dialog>
         <!-- 新增变量 -->
         <bk-dialog
             :mask-close="false"
@@ -326,24 +305,6 @@
                     <bk-input type="textarea" v-model="variableFormData.desc" :placeholder="$t('请填入项目变量说明')"></bk-input>
                 </bk-form-item>
             </bk-form>
-        </bk-dialog>
-        <!-- 删除变量 -->
-        <bk-dialog
-            width="430"
-            :mask-close="false"
-            :auto-close="false"
-            :show-footer="false"
-            :loading="pending.deletevariable"
-            :ext-cls="'delete-variable-dialog'"
-            :header-position="'center'"
-            :value="isDeleteVariableDialogShow"
-            @confirm="deleteLabelGroupConfirm"
-            @cancel="isDeleteVariableDialogShow = false">
-            <i>{{$t('确认删除变量')}}</i>
-            <div class="delete-options">
-                <bk-button :theme="'primary'" @click="onDeleteVariable">{{ $t('确定') }}</bk-button>
-                <bk-button :theme="'default'" @click="isDeleteVariableDialogShow = false">{{ $t('取消') }}</bk-button>
-            </div>
         </bk-dialog>
     </div>
 </template>
@@ -378,15 +339,11 @@
                 agentLoading: false,
                 staffGroup: [],
                 staffGroupDetail: {},
-                deletingStaffDetail: {},
                 isStaffDialogShow: false,
-                isDeleteStaffDialogShow: false,
                 staffGroupLoading: false,
                 labelList: [],
                 labelLoading: false,
                 isLabelDialogShow: false,
-                deletingLabelDetail: {},
-                isDeleteLabelDialogShow: false,
                 labelDetail: {},
                 labelCount: {},
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
@@ -504,14 +461,12 @@
                 },
                 active: 'variable',
                 isAddVariableDialogShow: false,
-                isDeleteVariableDialogShow: false,
                 variableFormData: {
                     name: '',
                     key: '',
                     value: '',
                     desc: ''
-                },
-                delId: '' // 删除变量的id
+                }
             }
         },
         computed: {
@@ -520,6 +475,8 @@
             })
         },
         created () {
+            const { configActive } = this.$route.query
+            this.active = configActive || 'variable'
             this.getProjectDetail()
             this.getAgentData()
             this.getStaffGroupData()
@@ -540,7 +497,7 @@
                 'updateTemplateLabel',
                 'createTemplateLabel',
                 'delTemplateLabel',
-                'getlabelsCitedCount',
+                'getLabelsCitedCount',
                 'loadEnvVariableList',
                 'createEnvVariable',
                 'deleteEnvVariable',
@@ -724,18 +681,23 @@
                 }
             },
             onDelStaffGroup (group) {
-                this.deletingStaffDetail = { ...group }
-                this.isDeleteStaffDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('分组') + '"' + group.name + '"?',
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.deleteStaffGroupConfirm(group)
+                    }
+                })
             },
-            async deleteStaffGroupConfirm () {
+            async deleteStaffGroupConfirm (group) {
                 if (this.pending.staff) {
                     return
                 }
                 this.pending.staff = true
                 try {
-                    const resp = await this.delProjectStaffGroup(this.deletingStaffDetail.id)
+                    const resp = await this.delProjectStaffGroup(group.id)
                     if (resp.result) {
-                        this.isDeleteStaffDialogShow = false
                         this.getStaffGroupData()
                     }
                 } catch (e) {
@@ -758,7 +720,7 @@
                         this.labelList = [...normalList, ...defaultList]
                         if (resp.data.length > 0) {
                             const ids = resp.data.map(item => item.id).join(',')
-                            const labelData = await this.getlabelsCitedCount({ ids, project_id: this.id })
+                            const labelData = await this.getLabelsCitedCount({ ids, project_id: this.id })
                             if (labelData.result) {
                                 this.labelCount = labelData.data
                             }
@@ -814,18 +776,24 @@
                 }
             },
             onDelLabel (label) {
-                this.deletingLabelDetail = { ...label }
-                this.isDeleteLabelDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除该标签?'),
+                    subTitle: i18n.t('关联的流程将同时移除本标签'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.deleteLabelGroupConfirm(label)
+                    }
+                })
             },
-            async deleteLabelGroupConfirm () {
+            async deleteLabelGroupConfirm (label) {
                 if (this.pending.deleteLabel) {
                     return
                 }
                 this.pending.deleteLabel = true
                 try {
-                    const resp = await this.delTemplateLabel(this.deletingLabelDetail.id)
+                    const resp = await this.delTemplateLabel(label.id)
                     if (resp.result) {
-                        this.isDeleteLabelDialogShow = false
                         this.getTplLabels()
                     }
                 } catch (e) {
@@ -869,18 +837,24 @@
                     this.pending.variable = false
                 }
             },
-            onRemove (id) {
-                this.delId = id
-                this.isDeleteVariableDialogShow = true
+            onRemove (variable) {
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('项目变量') + `"${variable.key}"?`,
+                    subTitle: i18n.t('若该变量被流程的节点引用，请及时检查并更新节点配置'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteVariable(variable)
+                    }
+                })
             },
-            async onDeleteVariable () {
+            async onDeleteVariable (variable) {
                 if (this.pending.deletevariable) {
                     return
                 }
                 this.pending.deletevariable = true
                 try {
-                    await this.deleteEnvVariable(this.delId)
-                    this.isDeleteVariableDialogShow = false
+                    await this.deleteEnvVariable(variable.id)
                     this.getVariableData()
                 } catch (e) {
                     console.log(e)
@@ -1009,6 +983,9 @@
         color: #63656e;
         border-radius: 8px;
     }
+    .citation {
+        color: #3a84ff;
+    }
     .agent-dialog,
     .scheme-dialog,
     .delete-dialog {
@@ -1025,27 +1002,6 @@
         .create-variable-form {
             display: flex;
             flex-direction: column;
-        }
-    }
-    .delete-variable-dialog {
-        height: 220px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        i {
-            text-align: center;
-            display: block;
-            font-style: unset;
-            font-size: 20px;
-            margin-top: 30px;
-        }
-        .delete-options {
-            width: 200px;
-            margin: 0 auto;
-            button {
-                width: 80px;
-                margin: 30px 5px 14px;
-            }
         }
     }
 </style>

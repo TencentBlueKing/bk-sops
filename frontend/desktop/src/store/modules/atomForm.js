@@ -214,6 +214,12 @@ const atomForm = {
          */
         loadAnalysisComponentList ({ commit }) {
             return axios.get('/analysis/get_component_list/').then(response => response.data)
+        },
+        /**
+         * 获取第三方插件分类
+         */
+        getThirdPluginTags ({ commit }, params) {
+            return axios.get('plugin_service/tags/', { params }).then(response => response.data)
         }
     }
 }

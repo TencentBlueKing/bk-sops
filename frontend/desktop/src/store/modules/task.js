@@ -261,8 +261,9 @@ const task = {
                 params: {
                     instance_id,
                     subprocess_id
-                }
-            }, { cancelToken }).then(response => response.data)
+                },
+                cancelToken
+            }).then(response => response.data)
         },
         /**
          * 开始执行任务实例
@@ -289,7 +290,7 @@ const task = {
             return axios.post(`taskflow/api/action/resume/${project_id}/`, { instance_id }).then(response => response.data)
         },
         /**
-         * 撤销任务实例执行
+         * 终止任务实例执行
          * @param {String} instance_id 任务实例id
          */
         instanceRevoke ({ commit }, instance_id) {
@@ -322,6 +323,13 @@ const task = {
          */
         instanceModifyParams ({ commit }, data) {
             return axios.post(`taskflow/api/update_task_constants/${data.instance_id}/`, data).then(response => response.data)
+        },
+        /**
+         * 获取任务执行过的变量
+         * @param {Object} data 表单配置数据
+         */
+        getTaskUsedConstants ({ commit }, data) {
+            return axios.get(`taskflow/api/update_task_constants/${data.instance_id}/`).then(response => response.data)
         },
         /**
          * 获取节点执行详情
@@ -502,6 +510,25 @@ const task = {
         },
         getInstanceRetryParams ({ commit }, data) {
             return axios.get(`api/v3/taskflow/${data.id}/enable_fill_retry_params/`).then(response => response.data)
+        },
+        // 节点执行记录
+        getNodeExecutionRecord ({ commit }, data) {
+            return axios.get(`api/v3/taskflow/${data.taskId}/node_execution_record/`, {
+                params: {
+                    template_node_id: data.tempNodeId
+                }
+            }).then(response => response.data)
+        },
+        // 节点快照
+        getNodeSnapshotConfig ({ commit }, params) {
+            const { instance_id, node_id, component_code, subprocess_stack } = params
+            return axios.get(`api/v3/taskflow/${instance_id}/node_snapshot_config/`, {
+                params: {
+                    node_id,
+                    component_code,
+                    subprocess_stack
+                }
+            }).then(response => response.data)
         }
     }
 }

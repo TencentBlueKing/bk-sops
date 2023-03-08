@@ -110,22 +110,22 @@
                                     </div>
                                     <div v-else class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
-                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执⾏')}}</a>
+                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执行')}}</a>
                                         <a
                                             v-else-if="!hasCreateTaskPerm(props.row)"
                                             v-cursor
                                             class="text-permission-disable task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
-                                            {{$t('重新执⾏')}}
+                                            {{$t('重新执行')}}
                                         </a>
                                         <a
                                             v-else
-                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执⾏')"
+                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执行')"
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">
-                                            {{$t('重新执⾏')}}
+                                            {{$t('重新执行')}}
                                         </a>
                                         <a
                                             v-if="executeStatus[props.$index] && executeStatus[props.$index].text === $t('未执行')"
@@ -168,20 +168,6 @@
                 </div>
             </skeleton>
         </div>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: deletaLoading, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -195,6 +181,8 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -219,7 +207,7 @@
             children: [
                 { id: 'nonExecution', name: i18n.t('未执行') },
                 { id: 'running', name: i18n.t('未完成') },
-                { id: 'revoked', name: i18n.t('撤销') },
+                { id: 'revoked', name: i18n.t('终止') },
                 { id: 'finished', name: i18n.t('完成') }
             ]
         },
@@ -394,10 +382,7 @@
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 isInitCreateMethod: false,
-                isDeleteDialogShow: false,
                 deletaLoading: false,
-                theDeleteTaskId: undefined,
-                theDeleteTaskName: '',
                 initOpenTask: [],
                 selectedTaskId: ''
             }
@@ -486,31 +471,35 @@
                     if (start_time && start_time[0] && start_time[1]) {
                         if (this.template_source === 'common') {
                             data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (create_time && create_time[0] && create_time[1]) {
                         if (this.template_source === 'common') {
                             data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__create_time__lte'] = moment(create_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['pipeline_instance__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (finish_time && finish_time[0] && finish_time[1]) {
                         if (this.template_source === 'common') {
                             data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['pipeline_instance__finish_time_gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    const taskListData = await this.loadTaskList(data)
+                    const source = new CancelRequest()
+                    const taskListData = await this.loadTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = taskListData.results
                     // 设置level初始值
                     list.forEach(item => {
@@ -719,17 +708,21 @@
                     this.onTaskPermissonCheck(['task_delete'], task)
                     return
                 }
-                this.theDeleteTaskId = task.id
-                this.theDeleteTaskName = task.name
-                this.isDeleteDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('任务') + '"' + task.name + '"?',
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(task.id)
+                    }
+                })
             },
-            async onDeleteConfirm () {
+            async onDeleteConfirm (taskId) {
                 if (this.deletaLoading) return
                 this.deletaLoading = true
                 try {
-                    await this.deleteTask(this.theDeleteTaskId)
-                    this.theDeleteTaskId = undefined
-                    this.theDeleteTaskName = ''
+                    await this.deleteTask(taskId)
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -746,14 +739,8 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.isDeleteDialogShow = false
                     this.deletaLoading = false
                 }
-            },
-            onDeleteCancel () {
-                this.theDeleteTaskId = undefined
-                this.theDeleteTaskName = ''
-                this.isDeleteDialogShow = false
             },
             /**
              * 单个任务操作项点击时校验

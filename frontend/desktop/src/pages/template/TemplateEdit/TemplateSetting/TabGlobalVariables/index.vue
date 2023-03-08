@@ -90,7 +90,7 @@
                             theme="default"
                             class="delete-variable-btn"
                             data-test-id="templateEdit_form_deleteVariable"
-                            @click="deleteVarListVisible = true">
+                            @click="onDeleteVarList">
                             {{ $t('删除') }}
                         </bk-button>
                         <span class="delete-variable-txt">{{ $t('已选择x项', { num: deleteVarListLen }) }}</span>
@@ -137,16 +137,17 @@
                                 @handleFilter="handleFilter">
                             </thead-popover>
                         </span>
-                        <span class="col-attributes t-head">
+                        <!-- 隐藏来源字段 -->
+                        <!-- <span class="col-attributes t-head">
                             {{ $t('来源') }}
                             <thead-popover
                                 :content-list="varAttrList"
                                 type="attributes"
                                 @handleFilter="handleFilter">
                             </thead-popover>
-                        </span>
+                        </span> -->
                         <span class="col-show t-head">
-                            {{ $t('显示') }}
+                            {{ $t('显示（入参）') }}
                             <thead-popover
                                 :content-list="varShowList"
                                 type="show"
@@ -205,15 +206,6 @@
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
-            <bk-dialog v-model="deleteVarListVisible"
-                theme="primary"
-                header-position="left"
-                :mask-close="false"
-                :title="$t('删除')"
-                @confirm="onDeleteVarList">
-                <span v-if="deleteVarListLen === 1">{{ $t('确认删除') }} “{{deleteVarList[0].name}} / {{deleteVarList[0].key}}” ?</span>
-                <span v-else-if="deleteVarListLen">{{ $t('确认删除所选的x个变量？', { num: deleteVarListLen }) }}</span>
-            </bk-dialog>
             <variable-clone
                 :is-var-clone-dialog-show="isVarCloneDialogShow"
                 :var-type-list="varTypeList"
@@ -301,7 +293,6 @@
                 deleteVarKey: '',
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 deleteVarList: [], // 批量删除变量
-                deleteVarListVisible: false,
                 quickOperateVariableVisable: false,
                 isVarCloneDialogShow: false,
                 newCloneKeys: [] // 新增/跨流程克隆的变量key值
@@ -397,7 +388,7 @@
                         this.varTypeList = await this.loadCustomVarCollection()
                     }
                     const varTypeList = tools.deepClone(this.varTypeList)
-                    let isHasComponent = false
+                    const nodeCheckVarList = new Set()
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
                             const varInfo = this.internalVariable[cur.key]
@@ -410,14 +401,18 @@
                                 result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
                             } else {
-                                this.$set(cur, 'type', i18n.t('组件'))
-                                isHasComponent = true
+                                const name = cur.source_type === 'component_outputs' ? i18n.t('节点输出') : i18n.t('节点输入')
+                                this.$set(cur, 'type', name)
+                                nodeCheckVarList.add(cur.source_type)
                             }
                         }
                         return acc
                     }, [])
-                    if (isHasComponent) {
-                        listData.unshift({ checked: this.checkedTypeList.includes('component'), name: i18n.t('组件'), code: 'component' })
+                    if (nodeCheckVarList.size) {
+                        [...nodeCheckVarList].forEach(code => {
+                            const name = code === 'component_outputs' ? i18n.t('节点输出') : i18n.t('节点输入')
+                            listData.unshift({ checked: this.checkedTypeList.includes(code), name, code })
+                        })
                     }
                     if (!this.isHideSystemVar) {
                         const internalVar = [
@@ -461,7 +456,7 @@
                                         const varInfo = this.internalVariable[item.key]
                                         str = varInfo.source_type === 'system' ? 'system' : 'project'
                                     } else {
-                                        str = item[key] || 'component'
+                                        str = item[key] || item.source_type
                                     }
                                 } else if (key === 'source_type') {
                                     const isInput = item.source_type !== 'component_outputs'
@@ -568,6 +563,7 @@
                 if (variableData) {
                     variableData.show_type = checked ? 'show' : 'hide'
                     this.editVariable({ key, variable: variableData })
+                    this.$emit('templateDataChanged')
                 }
             },
             /**
@@ -610,12 +606,27 @@
                 }
             },
             onDeleteVarList () {
-                this.deleteVarList.forEach(variableData => {
-                    this.deleteVariable(variableData.key)
+                let title = ''
+                if (this.deleteVarListLen === 1) {
+                    title = i18n.t('确认删除') + i18n.t('全局变量') + `"${this.deleteVarList[0].key}"?`
+                } else {
+                    title = i18n.t('确认删除所选的x个变量?', { num: this.deleteVarListLen })
+                }
+                this.$bkInfo({
+                    title,
+                    subTitle: i18n.t('若该变量被节点引用，请及时检查并更新节点配置'),
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.getVariableCitedData() // 删除变量后更新引用数据
+                        this.deleteVarList.forEach(variableData => {
+                            this.deleteVariable(variableData.key)
+                        })
+                        this.deleteVarList = []
+                        this.$emit('templateDataChanged')
+                    }
                 })
-                this.deleteVarList = []
-                this.$emit('templateDataChanged')
-                this.getVariableCitedData() // 删除变量后更新引用数据
             },
             // 编辑变量后点击保存
             onSaveEditing () {
@@ -734,6 +745,7 @@
         padding: 0 10px;
     }
     .add-variable {
+        position: relative;
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
@@ -816,7 +828,9 @@
                 }
             }
         }
-        .col-show,
+        .col-show {
+            width: 100px;
+        }
         .col-output {
             width: 50px;
         }

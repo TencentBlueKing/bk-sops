@@ -34,7 +34,7 @@
                 </div>
                 <div class="log-version-right">
                     <slot name="detail">
-                        <div class="detail-container" v-html="logDetail"></div>
+                        <div :class="['detail-container', { 'markdown-theme-style': mdMode }]" v-html="content"></div>
                     </slot>
                 </div>
             </div>
@@ -43,6 +43,7 @@
 </template>
 <script>
     import { bkDialog, bkLoading } from 'bk-magic-vue'
+    import { marked } from 'marked'
 
     export default {
         name: 'bk-magic-log-version',
@@ -61,6 +62,7 @@
                 type: String,
                 default: ''
             },
+            mdMode: Boolean,
             loading: Boolean,
             dialogProps: {
                 type: Object,
@@ -71,6 +73,14 @@
             return {
                 visible: false,
                 active: 0
+            }
+        },
+        computed: {
+            content () {
+                if (this.mdMode) {
+                    return marked(this.logDetail)
+                }
+                return this.logDetail
             }
         },
         watch: {
@@ -172,12 +182,18 @@
         }
         &-right {
             flex: 1;
-            padding: 25px 0 50px;
-            .detail-container {
-                padding: 0 30px 0 45px;
+            padding: 25px 30px 50px 45px;
+            .markdown-container {
                 max-height: 525px;
                 overflow: auto;
             }
         }
     }
+    .detail-container {
+        max-height: 525px;
+        overflow: auto;
+    }
+</style>
+<style lang="scss">
+    @import '@/scss/markdown-theme.scss';
 </style>

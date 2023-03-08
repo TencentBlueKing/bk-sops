@@ -71,7 +71,21 @@
             ref="thirdPartyPanel"
             name="thirdParty"
             :label="$t('第三方插件')"
-            v-bkloading="{ isLoading: thirdPluginLoading }">
+            v-bkloading="{ isLoading: thirdPluginTagsLoading || thirdPluginLoading }">
+            <div class="group-area" v-if="isThirdPartyGroupShow">
+                <template v-for="group in thirdPluginGroup">
+                    <div
+                        :class="['group-item', {
+                            active: group.id === thirdActiveGroup
+                        }]"
+                        v-if="group.isShow"
+                        :key="group.id"
+                        :data-test-id="`templateEdit_thirdList_${group.id}`"
+                        @click="onSelectThirdGroup(group.id)">
+                        <span v-html="group.name"></span>
+                    </div>
+                </template>
+            </div>
             <div class="third-party-list">
                 <template v-if="thirdPartyPlugin.length > 0">
                     <div
@@ -125,6 +139,9 @@
                 builtInPluginGroup: this.builtInPlugin.slice(0),
                 activeGroup: this.getDefaultActiveGroup(),
                 thirdPartyPlugin: [],
+                thirdActiveGroup: '',
+                thirdPluginGroup: [],
+                thirdPluginTagsLoading: false,
                 thirdPluginLoading: false,
                 thirdPluginPagelimit: 15,
                 isThirdPluginCompleteLoading: false,
@@ -137,10 +154,14 @@
             activeGroupPlugin () {
                 const group = this.builtInPluginGroup.find(item => item.type === this.activeGroup)
                 return group ? group.list : []
+            },
+            isThirdPartyGroupShow () {
+                return this.thirdPluginGroup && this.thirdPluginGroup.some(item => item.isShow)
             }
         },
-        mounted () {
+        async mounted () {
             if (this.isThirdParty) {
+                await this.getThirdPluginGroup()
                 this.setThirdParScrollLoading()
             }
         },
@@ -184,26 +205,43 @@
                 }
                 try {
                     this.thirdPluginLoading = true
+                    // 搜索时拉取全量插件列表
                     const params = {
+                        fetch_all: this.searchStr ? true : undefined,
                         limit: this.thirdPluginPagelimit,
                         offset: this.thirdPluginOffset,
-                        search_term: this.searchStr,
-                        exclude_not_deployed: true
+                        search_term: this.searchStr || undefined,
+                        exclude_not_deployed: true,
+                        tag_id: this.thirdActiveGroup || undefined
                     }
                     const resp = await this.$store.dispatch('atomForm/loadPluginServiceList', params)
                     const { next_offset, plugins, return_plugin_count } = resp.data
                     const searchStr = this.escapeRegExp(this.searchStr)
                     const reg = new RegExp(searchStr, 'i')
-                    const pluginList = plugins.map(item => {
+                    const pluginTagIds = []
+                    let pluginList = plugins.map(item => {
                         const pluginItem = Object.assign({}, item.plugin, item.profile)
                         if (this.searchStr !== '') {
                             pluginItem.highlightName = item.plugin.name.replace(reg, `<span style="color: #ff9c01;">${this.searchStr}</span>`)
+                            pluginTagIds.push(item.profile.tag || -1)
                         }
                         return pluginItem
                     })
+                    if (this.searchStr) {
+                        // 当第三方插件搜索时，反向映射插件分类
+                        this.thirdPluginGroup.forEach(group => {
+                            if (pluginTagIds.includes(group.id)) {
+                                group.isShow = true
+                                if (!this.thirdActiveGroup) {
+                                    this.thirdActiveGroup = group.id
+                                }
+                            }
+                        })
+                        pluginList = pluginList.filter(item => this.thirdActiveGroup === (item.tag || -1))
+                    }
                     this.thirdPluginOffset = return_plugin_count ? next_offset : 0
                     this.thirdPartyPlugin.push(...pluginList)
-                    if (return_plugin_count < this.thirdPluginPagelimit) {
+                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPagelimit) {
                         this.isThirdPluginCompleteLoading = true
                     }
                 } catch (error) {
@@ -233,16 +271,19 @@
                     return
                 }
                 const { scrollTop, clientHeight, scrollHeight } = e.target
-                const isScrollBottom = scrollHeight === (scrollTop + clientHeight)
-                if (isScrollBottom) {
+                if (scrollHeight - scrollTop - clientHeight < 10) {
                     this.getThirdPartyPlugin()
                 }
             },
             // 切换tab
-            onTabChange (val) {
+            async onTabChange (val) {
                 this.curTab = val
-                this.searchStr = ''
-                console.log(this.thirdPartyPlugin, this.thirdPluginOffset)
+                // 获取第三方插件分组
+                if (!this.thirdPluginGroup.length) {
+                    await this.getThirdPluginGroup()
+                }
+                // 切换tab时需要重新搜索
+                this.handleSearch(this.searchStr)
                 if (this.thirdPartyPlugin.length === 0 && this.thirdPluginOffset === 0) {
                     this.$nextTick(() => {
                         this.setThirdParScrollLoading()
@@ -261,6 +302,11 @@
                 if (this.curTab === 'builtIn') {
                     this.setBuiltInPluginSearchResult(val)
                 } else {
+                    // 搜索时清空插件分类，由插件列表反向映射插件分类
+                    this.thirdPluginGroup.forEach(item => {
+                        item.isShow = !val
+                    })
+                    this.thirdActiveGroup = val ? '' : this.thirdPluginGroup[0].id
                     this.thirdPartyPlugin = []
                     this.thirdPluginOffset = 0
                     this.getThirdPartyPlugin()
@@ -323,6 +369,38 @@
             onSelectGroup (val) {
                 this.activeGroup = val
                 this.$refs.selectorArea.scrollTop = 0
+            },
+            // 获取第三方插件分组
+            async getThirdPluginGroup () {
+                try {
+                    this.thirdPluginTagsLoading = true
+                    let tagId = ''
+                    // 插件重选时，选择对应的分类id
+                    if (this.isThirdParty && this.crtPlugin) {
+                        const pluginInfo = await this.$store.dispatch('atomForm/loadPluginServiceAppDetail', { plugin_code: this.crtPlugin })
+                        const tagInfo = pluginInfo.data.tag_info
+                        tagId = tagInfo ? tagInfo.id : -1
+                    }
+                    const resp = await this.$store.dispatch('atomForm/getThirdPluginTags')
+                    if (resp.result) {
+                        this.thirdActiveGroup = tagId || (this.searchStr ? '' : resp.data[0].id)
+                        this.thirdPluginGroup = resp.data.map(item => {
+                            return { ...item, isShow: true }
+                        })
+                    }
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.thirdPluginTagsLoading = false
+                }
+            },
+            // 选中第三方插件分组
+            onSelectThirdGroup (val) {
+                this.thirdActiveGroup = val
+                this.thirdPartyPlugin = []
+                this.isThirdPluginCompleteLoading = false
+                this.thirdPluginOffset = 0
+                this.getThirdPartyPlugin()
             },
             async onSelectThirdPartyPlugin (plugin) {
                 try {
@@ -455,7 +533,7 @@
             margin-bottom: 4px;
         }
         .plugin-desc {
-            width: 645px;
+            width: 375px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;

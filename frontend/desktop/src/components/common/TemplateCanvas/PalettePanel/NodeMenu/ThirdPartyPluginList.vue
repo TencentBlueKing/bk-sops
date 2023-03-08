@@ -113,8 +113,7 @@
                     return
                 }
                 const { scrollTop, clientHeight, scrollHeight } = e.target
-                const isScrollBottom = scrollHeight === (scrollTop + clientHeight)
-                if (isScrollBottom) {
+                if (scrollHeight - scrollTop - clientHeight < 10) {
                     this.getPluginList()
                 }
             },

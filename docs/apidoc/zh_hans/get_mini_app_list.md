@@ -50,7 +50,6 @@
     ],
     "count": 1,
     "code": 0,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -63,7 +62,6 @@
 | data       | dict   | result=true 时成功数据，详细信息请见下面说明 |
 | message    | string | result=false 时错误信息           |
 | count      | int    | data列表数量                     |
-| request_id | string | esb 请求 id                    |
 | trace_id   | string | open telemetry trace_id      |
 
 #### data

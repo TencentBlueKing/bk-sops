@@ -85,7 +85,6 @@ Query a task or task node execution status
         }
     },
     "code": 0,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -97,7 +96,6 @@ Query a task or task node execution status
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |
 
 #### data

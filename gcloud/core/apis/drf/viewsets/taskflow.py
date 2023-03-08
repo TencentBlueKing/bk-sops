@@ -12,14 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 import re
 
+from django.conf import settings
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
+from pipeline.models import Snapshot
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import generics, permissions, status
 from django_filters import FilterSet
 
+from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud import err_code
 from gcloud.core.apis.drf.exceptions import ValidationException
@@ -35,6 +38,10 @@ from gcloud.core.apis.drf.serilaziers import (
     ListChildrenTaskFlowResponseSerializer,
     RootTaskflowQuerySerializer,
     RootTaskflowResponseSerializer,
+    NodeExecutionRecordQuerySerializer,
+    NodeExecutionRecordResponseSerializer,
+    NodeSnapshotQuerySerializer,
+    NodeSnapshotResponseSerializer,
 )
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation, TaskConfig
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -54,6 +61,11 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
+from gcloud.contrib.operate_record.utils import extract_extra_info
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 iam = get_iam_client()
 
@@ -92,6 +104,12 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
             IAMMeta.TASK_DELETE_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
         "enable_fill_retry_params": IamPermissionInfo(pass_all=True),
+        "node_snapshot_config": IamPermissionInfo(
+            IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
+        ),
+        "node_execution_record": IamPermissionInfo(
+            IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
+        ),
     }
 
     def has_permission(self, request, view):
@@ -280,6 +298,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             root_pipeline_id=pipeline_instance.instance_id,
             pipeline_tree=pipeline_instance.execution_data,
         )
+        constants = pipeline_instance.execution_data.get("constants")
+        extra_info = extract_extra_info(constants)
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.task.name,
@@ -288,13 +308,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             operate_source=OperateSource.app.name,
             instance_id=serializer.instance.id,
             project_id=serializer.instance.project.id,
+            extra_info=extra_info,
         )
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.is_started:
             if not (instance.is_finished or instance.is_revoked):
-                message = "无法删除未进入完成或撤销状态的流程"
+                message = _("任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态")
+                logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_destroy(instance)
         # 记录操作流水
@@ -376,8 +398,138 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         root_task_info = {task_id: True if task_id in root_task_ids else False for task_id in task_ids}
         return Response({"has_children_taskflow": root_task_info})
 
+    @swagger_auto_schema(
+        methods=["GET"],
+        operation_summary="获取节点历史执行记录数据",
+        query_serializer=NodeExecutionRecordQuerySerializer,
+        responses={200: NodeExecutionRecordResponseSerializer},
+    )
+    @action(methods=["GET"], detail=True)
+    def node_execution_record(self, request, *args, **kwargs):
+        params = NodeExecutionRecordQuerySerializer(data=request.query_params)
+        params.is_valid(raise_exception=True)
+        template_node_id = params.data["template_node_id"]
+        task = self.get_object()
+        execution_data = (
+            TaskflowExecutedNodeStatistics.objects.filter(
+                template_node_id=template_node_id, status=True, is_skip=False, trigger_template_id=task.template_id
+            )
+            .order_by("-archived_time")
+            .values("archived_time", "elapsed_time")
+        )
+        execution_total_time = len(execution_data)
+        execution_time_data = execution_data[: settings.MAX_RECORDED_NODE_EXECUTION_TIMES]
+        node_execution_record_serializer = NodeExecutionRecordResponseSerializer(
+            data={"execution_time": execution_time_data, "total": execution_total_time}
+        )
+        node_execution_record_serializer.is_valid(raise_exception=True)
+        return Response(node_execution_record_serializer.validated_data)
+
     @swagger_auto_schema(method="GET", operation_summary="查询任务是否支持重试填参")
     @action(methods=["GET"], detail=True)
     def enable_fill_retry_params(self, request, *args, **kwargs):
         task_id = kwargs["pk"]
         return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task_id)})
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="获取某个节点的节点配置快照",
+        query_serializer=NodeSnapshotQuerySerializer,
+        responses={200: NodeSnapshotResponseSerializer},
+    )
+    @action(methods=["GET"], detail=True)
+    def node_snapshot_config(self, request, *args, **kwargs):
+        """
+        获取某个节点的快照配置
+        params: subprocess_stack 堆栈信息
+        param: node_id: 节点 ID, string, query, required
+        return: dict 根据 result 字段判断是否请求成功
+        {
+            "result": true, 根据result 判断是否正常
+            "data": {
+                "component": {
+                    "code": "sleep_timer",
+                    "data": {
+                        "bk_timing": {
+                            "hook": false,
+                            "need_render": true,
+                            "value": "10"
+                        },
+                        "force_check": {
+                            "hook": false,
+                            "need_render": true,
+                            "value": true
+                        }
+                    },
+                    "version": "legacy"
+                },
+                "error_ignorable": false,
+                "id": "node7a63244b7837ef15ef3b474b47bd",
+                "incoming": [
+                    "line02c5d5f7d1b996bb050f153e077b"
+                ],
+                "loop": null,
+                "name": "定时",
+                "optional": true,
+                "outgoing": "linee702fc4ff57920950c78e987ea96",
+                "stage_name": "",
+                "type": "ServiceActivity",
+                "retryable": true,
+                "skippable": true,
+                "auto_retry": {
+                    "enable": false,
+                    "interval": 0,
+                    "times": 1
+                },
+                "timeout_config": {
+                    "enable": false,
+                    "seconds": 10,
+                    "action": "forced_fail"
+                }
+            }
+        }
+
+        """
+        ser = NodeSnapshotQuerySerializer(data=request.GET)
+        ser.is_valid(raise_exception=True)
+
+        node_id = ser.data["node_id"]
+        subprocess_stack = ser.data["subprocess_stack"]
+        task = self.get_object()
+
+        execution_data = task.pipeline_instance.execution_data
+
+        # 如果存在子流程
+        if subprocess_stack:
+
+            version = {}
+
+            def _get_node_info(pipeline: dict, subprocess_stack: list):
+                # go deeper
+                if subprocess_stack:
+                    component_act = pipeline["activities"][subprocess_stack[0]]
+                    version["version_id"] = component_act.get("version")
+                    return _get_node_info(component_act["pipeline"], subprocess_stack[1:])
+
+                return pipeline["activities"][node_id]
+
+            node_info = _get_node_info(execution_data, subprocess_stack)
+            version_id = version.get("version_id")
+            template_node_id = node_info.get("template_node_id")
+            # 如果没有拿到对应的template_node_id，直接返回
+            if version_id is None or template_node_id is None:
+                return Response()
+
+            snapshot_data = Snapshot.objects.filter(md5sum=version_id).order_by("-id").first().data
+            snapshot_node_info = snapshot_data["activities"].get(template_node_id)
+            return Response(snapshot_node_info)
+
+        # 不存在子流程，则直接查找
+        template_node_id = execution_data["activities"].get(node_id, {}).get("template_node_id")
+
+        # 旧的流程拿不到模板node_id, 直接返回空即可
+        if template_node_id is None:
+            return Response()
+
+        node_snapshot_config = task.pipeline_instance.snapshot.data["activities"].get(template_node_id)
+        return Response(node_snapshot_config)

@@ -3,7 +3,11 @@
         <template v-if="!Object.keys(executeInfo).length">
             <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo">
                 <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
-                <div class="fail-text" v-if="executeInfo.ex_data" v-html="executeInfo.failInfo"></div>
+                <div class="fail-text" v-if="executeInfo.ex_data">
+                    <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
+                    <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
+                    <span class="expand-btn" v-if="isExpandTextShow" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('显示全部') }}</span>
+                </div>
                 <p class="not-fail" v-else>{{ $t('暂无异常') }}</p>
             </section>
             <section class="info-section" data-test-id="taskExcute_form_excuteInfo">
@@ -28,17 +32,22 @@
                 </ul>
                 <NoData v-else :message="$t('暂无执行信息')"></NoData>
             </section>
-            <InputParams
-                :inputs="executeInfo.inputs"
-                :render-config="executeInfo.renderConfig"
-                :constants="executeInfo.constants"
-                :render-data="executeInfo.renderData">
-            </InputParams>
-            <OutputParams
-                :is-ready-status="isReadyStatus"
-                :outputs="executeInfo.outputsInfo"
-                :node-detail-config="nodeDetailConfig">
-            </OutputParams>
+            <!-- 任务节点才允许展示输入、输出配置 -->
+            <template v-if="['tasknode', 'subflow'].includes(location.type)">
+                <InputParams
+                    :admin-view="adminView"
+                    :inputs="executeInfo.inputs"
+                    :render-config="executeInfo.renderConfig"
+                    :constants="executeInfo.constants"
+                    :render-data="executeInfo.renderData">
+                </InputParams>
+                <OutputParams
+                    :is-ready-status="isReadyStatus"
+                    :admin-view="adminView"
+                    :outputs="executeInfo.outputsInfo"
+                    :node-detail-config="nodeDetailConfig">
+                </OutputParams>
+            </template>
         </template>
         <NoData v-else :message="$t('暂无执行信息')"></NoData>
     </div>
@@ -57,6 +66,18 @@
             NoData
         },
         props: {
+            adminView: {
+                type: Boolean,
+                default: false
+            },
+            loading: {
+                type: Boolean,
+                default: false
+            },
+            location: {
+                type: Object,
+                default: () => ({})
+            },
             isReadyStatus: {
                 type: Boolean,
                 default: false
@@ -76,7 +97,17 @@
         },
         data () {
             return {
-                
+                isExpand: false,
+                isExpandTextShow: false
+            }
+        },
+        mounted () {
+            const showDom = document.querySelector('.show-html-text')
+            const hideDom = document.querySelector('.hide-html-text')
+            if (showDom && hideDom) {
+                const showDomHeight = showDom.getBoundingClientRect().height
+                const hideDomHeight = hideDom.getBoundingClientRect().height
+                this.isExpandTextShow = hideDomHeight > showDomHeight
             }
         },
         methods: {
@@ -96,13 +127,35 @@
 <style lang="scss" scoped>
 .execute-record {
     /deep/.fail-text {
+        position: relative;
         font-size: 12px;
-        padding: 8px 15px;
+        padding: 8px 16px;
         color: #313238;
         background: #fff3e1;
         border: 1px solid #ffb848;
         border-radius: 2px;
         word-break: break-all;
+        .hide-html-text {
+            position: absolute;
+            z-index: -1;
+        }
+        .is-fold {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 10;
+        }
+        .expand-btn {
+            position: absolute;
+            right: 16px;
+            bottom: 8px;
+            padding: 5px 0 0 5px;
+            color: #3a84ff;
+            background: #fff3e1;
+            cursor: pointer;
+        }
         a {
             color: #3a84ff;
         }
@@ -195,6 +248,9 @@
     }
     .info-section:not(:last-child) {
         margin-bottom: 32px;
+    }
+    .no-data-wrapper {
+        margin-top: 32px;
     }
 }
 </style>

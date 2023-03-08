@@ -94,7 +94,7 @@
                                     v-if="props.row.template_deleted || props.row.template_source === 'onetime'"
                                     class="task-operation-btn disabled"
                                     data-test-id="taskList_table_reexecuteBtn">
-                                    {{$t('重新执⾏')}}
+                                    {{$t('重新执行')}}
                                 </a>
                                 <a
                                     v-else-if="!hasCreateTaskPerm(props.row)"
@@ -102,15 +102,15 @@
                                     class="text-permission-disable task-operation-btn"
                                     data-test-id="taskList_table_reexecuteBtn"
                                     @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
-                                    {{$t('重新执⾏')}}
+                                    {{$t('重新执行')}}
                                 </a>
                                 <a
                                     v-else
-                                    v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执⾏')"
+                                    v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执行')"
                                     class="task-operation-btn"
                                     data-test-id="taskList_table_reexecuteBtn"
                                     @click="getCreateTaskUrl(props.row)">
-                                    {{$t('重新执⾏')}}
+                                    {{$t('重新执行')}}
                                 </a>
                             </template>
                         </bk-table-column>
@@ -138,6 +138,7 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const SEARCH_LIST = [
         {
@@ -349,23 +350,27 @@
                     if (start_time && start_time[0] && start_time[1]) {
                         if (this.template_source === 'common') {
                             data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (finish_time && finish_time[0] && finish_time[1]) {
                         if (this.template_source === 'common') {
                             data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['pipeline_instance__finish_time_gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
 
-                    const appmakerListData = await this.loadTaskList(data)
+                    const source = new CancelRequest()
+                    const appmakerListData = await this.loadTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = appmakerListData.results
                     // 设置level初始值
                     list.forEach(item => {

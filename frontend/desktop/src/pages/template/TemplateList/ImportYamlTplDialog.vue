@@ -442,7 +442,7 @@
                 const file = e.target.files[0]
                 if (file) {
                     if (file.size > 2 * 1024 * 1024 * 1024) {
-                        this.$bkMessage({ message: i18n.t('上传失败，YAML类型文件最大为2G'), theme: 'error' })
+                        this.$bkMessage({ message: i18n.t('上传失败，YAML类型文件最大为2G'), theme: 'error', delay: 10000 })
                         return
                     }
                     const filename = file.name
@@ -562,7 +562,8 @@
                             this.$bkMessage({
                                 message: i18n.t('流程') + tpl.name + i18n.t('不能被重复覆盖'),
                                 theme: 'error',
-                                ellipsisLine: 0
+                                ellipsisLine: 0,
+                                delay: 10000
                             })
                             return true
                         } else {
@@ -575,7 +576,8 @@
                             this.$bkMessage({
                                 message: i18n.t('请选择流程“x”需要覆盖的流程', { x: tpl.meta.name }),
                                 theme: 'error',
-                                ellipsisLine: 0
+                                ellipsisLine: 0,
+                                delay: 10000
                             })
                             return true
                         }
@@ -592,7 +594,8 @@
                             this.$bkMessage({
                                 message: i18n.t('请选择流程“x”需要使用的流程', { x: tpl.meta.name }),
                                 theme: 'error',
-                                ellipsisLine: 0
+                                ellipsisLine: 0,
+                                delay: 10000
                             })
                             return true
                         }

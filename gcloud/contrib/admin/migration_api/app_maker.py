@@ -27,6 +27,10 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.models import TemplateScheme
 
 from .decorators import require_migrate_token
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -38,10 +42,12 @@ def migrate_app_maker(request):
     try:
         params = json.loads(request.body)
     except Exception as e:
+        message = _(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_app_maker")
+        logger.error(message)
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": message,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

@@ -74,7 +74,7 @@ SAVE_CRON_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": ("调用作业平台(JOB)接口jobv3.save_cron返回失败, params={params}, " "error=save_cron fail").format(
+            "ex_data": ("调用作业平台(JOB)接口jobv3.save_cron返回失败, error=save_cron fail, params={params}").format(
                 params=json.dumps(
                     {
                         "bk_scope_type": "biz",
@@ -151,13 +151,10 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "cron_id": 1,
-            "ex_data": (
-                "新建定时任务成功但是启动失败：调用作业平台(JOB)接口jobv3.update_cron_status返回失败, "
-                "params={params}, error=update_cron_status fail"
-            ).format(
-                params=json.dumps({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "status": 1, "id": 1})
-            ),
             "status": "暂停",
+            "ex_data": "定时任务启动失败: [作业平台]定时任务启动发生异常：调用作业平台(JOB)接口jobv3.update_cron_status返回失败, "
+            "error=update_cron_status fail, "
+            'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"status":1,"id":1}',
         },
     ),
     schedule_assertion=None,

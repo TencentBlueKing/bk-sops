@@ -314,7 +314,8 @@
                 if (isschemeNameExist) {
                     this.$bkMessage({
                         message: i18n.t('方案名称已存在'),
-                        theme: 'error'
+                        theme: 'error',
+                        delay: 10000
                     })
                     return
                 }

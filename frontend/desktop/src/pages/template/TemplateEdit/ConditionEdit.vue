@@ -60,20 +60,20 @@
                     </label>
                     <div class="code-wrapper">
                         <div class="condition-tips">
-                            <p>
-                                {{ $t('支持 "==、!=、>、>=、&lt;、&lt;=、in、notin" 等二元比较操作符和 "and、or、True/true、False/false" 等关键字语法,更多细节可参考') }}
+                            <p>{{ $t('支持 "==、!=、>、>=、&lt;、&lt;=、in、notin" 等二元比较操作符') }}</p>
+                            <p>{{ $t('支持 "and、or、True/true、False/false" 等关键字语法') }}</p>
+                            <p>{{ $t('表达式更多细节请参考') }}
                                 <bk-link theme="primary" href="https://boolrule.readthedocs.io/en/latest/expressions.html#basic-comparison-operators" target="_blank">
                                     {{ 'boolrule' }}
-                                </bk-link>
-                                {{ $t('。') }}
-                            </p>
-                            <p>{{ $t('操作符两侧的比较对象支持通过 ${key} 或${int(key)} 等方式引用全局变量。') }}</p>
-                            <p>{{ $t('全局变量支持基于python基础表达式进行处理，函数仅可使用内置函数和datetime、re、hashlib、random、time、os.path模块。') }}</p>
+                                </bk-link></p>
+                            <br>
+                            <p>{{ $t('支持使用全局变量，如') }}<code class="code">${key}</code>、<code class="code">${int(key)}</code></p>
+                            <p>{{ $t('支持使用内置函数、datetime、re、hashlib、random、time、os.path模块处理全局变量') }}</p>
                             <br>
                             <p>{{ $t('示例：') }}</p>
-                            <p>{{ $t('字符串比较：') }} "${key}" == "my string"</p>
-                            <p>{{ $t('数值比较：') }} ${int(key)} >= 3</p>
-                            <p>{{ $t('包含：') }} ${key} in (1,2,3)</p>
+                            <p>{{ $t('字符串比较：') }}<code class="code">${key} == "my string"</code></p>
+                            <p>{{ $t('数值比较：') }}<code class="code">${int(key)} >= 3</code></p>
+                            <p>{{ $t('包含：') }}<code class="code">${key} in (1,2,3)</code></p>
                         </div>
                         <full-code-editor
                             v-validate="expressionRule"
@@ -87,7 +87,7 @@
                 </div>
             </div>
             <div class="btn-wrap">
-                <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
+                <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('确定') }}</bk-button>
                 <bk-button theme="default" @click="close(false)">{{ isReadonly ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
         </div>
@@ -254,6 +254,14 @@
                         .bk-link-text {
                             font-size: 12px;
                         }
+                    }
+                    .code {
+                        background-color: #eff1f3;
+                        color: #9e938a;
+                        border-radius: 4px;
+                        padding: 0 4px;
+                        margin: 0 2px;
+                        font: 0.85em/1.8 ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;
                     }
                 }
             }

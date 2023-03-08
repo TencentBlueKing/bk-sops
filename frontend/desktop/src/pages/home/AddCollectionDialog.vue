@@ -279,8 +279,10 @@
             },
             async getAppMakerList (projectId, searchStr) {
                 const data = await this.loadAppmaker({
-                    project__id: projectId,
-                    q: searchStr || undefined
+                    params: {
+                        project__id: projectId,
+                        q: searchStr || undefined
+                    }
                 })
                 return data.results || []
             },

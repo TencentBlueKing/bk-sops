@@ -23,9 +23,9 @@ from pipeline.component_framework.component import Component
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, CCPluginIPMixin
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str
+from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -70,7 +70,7 @@ def verify_host_property(executor, supplier_account, language, cc_host_property,
     return True, ""
 
 
-class CCBatchUpdateHostService(Service):
+class CCBatchUpdateHostService(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -112,45 +112,27 @@ class CCBatchUpdateHostService(Service):
             for column in host_property_custom:
                 column_result = chunk_table_data(column, separator)
                 if not column_result["result"]:
-                    message = _("单行扩展失败，请检查输入参数格式是否合法, error={}".format(column_result["message"]))
+                    message = _(f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}")
                     data.outputs.ex_data = message
                     self.logger.error(message)
                     return False
                 host_property_data.extend(column_result["data"])
             host_property_custom = host_property_data
 
-        bk_host_innerip_list = []
-        for host in host_property_custom:
-            bk_host_innerip_list.append(host["bk_host_innerip"])
-
-        ip_str = ",".join(bk_host_innerip_list)
-        ip_list = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
-        if not ip_list["result"] or not ip_list["ip_count"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
-            return False
-        if ip_list["invalid_ip"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
-            data.outputs.invalid_ip = ",".join(ip_list["invalid_ip"])
-            return False
-
-        ip_dir = {}
-        for host in ip_list["ip_result"]:
-            ip_dir.update({host["InnerIP"]: host["HostID"]})
-
         # do not operate inputs data directly
         host_property_copy = deepcopy(host_property_custom)
         update_host_message = []
         for host_property_dir in host_property_copy:
             inner_host_ip = host_property_dir["bk_host_innerip"]
-            # 兼容填写云区域ID：IP的情况, 只获取对应IP
-            if ":" in inner_host_ip:
+            # 兼容填写云区域ID：IP的情况, 只获取对应IP, 判断ipv4
+            if plat_ip_reg.match(inner_host_ip) and ":" in inner_host_ip:
                 inner_host_ip = inner_host_ip.split(":")[1]
-            if inner_host_ip not in ip_dir:
-                message = _("innerip【{}】找不到对应的host_id".format(inner_host_ip))
-                data.outputs.ex_data = message
-                self.logger.error(message)
+
+            host_result = self.get_host_list(executor, biz_cc_id, inner_host_ip, supplier_account)
+            if not host_result["result"]:
+                data.outputs.ex_data = host_result.get("message")
                 return False
-            host_id = ip_dir[inner_host_ip]
+            host_id = int(host_result["data"][0])
             host_update = {"bk_host_id": host_id}
             host_property_dir.pop("bk_host_innerip")
             properties = {}

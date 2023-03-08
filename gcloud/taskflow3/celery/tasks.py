@@ -35,6 +35,7 @@ from gcloud.taskflow3.models import (
 )
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.shortcuts.message import send_task_flow_message
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("celery")
 
@@ -150,8 +151,8 @@ def execute_node_timeout_strategy(node_id, version):
     ).exists()
     node_match = State.objects.filter(node_id=node_id, version=version).exists()
     if not (node_match and is_process_current_node):
-        message = (
-            f"[execute_node_timeout_strategy] node {node_id} with version {version} in task {task_id} has been passed."
+        message = _(
+            f"超时策略激活失败: 节点[ID: {node_id}], 版本[{version}], 任务[ID: {task_id}] 现已通过 | execute_node_timeout_strategy"
         )
         logger.error(message)
         return {"result": False, "message": message, "data": None}
