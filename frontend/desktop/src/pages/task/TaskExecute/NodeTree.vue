@@ -293,7 +293,7 @@
                 if (type === 'gateway') {
                     // 分支条件没有id,使用name 代替
                     if (node.state === 'Gateway') {
-                        this.curSelectId = node.name
+                        this.curSelectId = node.id || node.name
                         this.$emit('onOpenGatewayInfo', node.callbackData, true)
                         return
                     }
@@ -325,6 +325,7 @@
                     }
                 }
                 if (this.curSelectId === node.id) {
+                    // 当打回节点选中时，还原该条件id
                     node.id = node.cacheId ? node.cacheId : node.id
                     return
                 }
