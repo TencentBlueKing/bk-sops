@@ -228,8 +228,8 @@
                 const nodeClass = node.parent !== null ? `node ${this.nodeStateMap[node.state]} ` : `root-node ${this.nodeStateMap[node.state]}`
                 // 处理条件分支
                 if (node.isGateway) {
-                    return <span class={conditionClass} v-bk-tooltips={callbackTip}>
-                        <span class={'commonicon-icon common-icon-return-arrow callback'} onClick={(e) => this.onSelectNode(e, node, 'callback')}></span>
+                    return <span class={conditionClass}>
+                        <span class={'commonicon-icon common-icon-return-arrow callback'} onClick={(e) => this.onSelectNode(e, node, 'callback')} v-bk-tooltips={callbackTip}></span>
                         <span class={isActive} style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.title} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else if (this.gatewayType[node.type]) {
@@ -324,7 +324,11 @@
                         node.id = node.callbackData ? node.callbackData.id : node.id
                     }
                 }
-                if (this.curSelectId === node.id) return
+                if (this.curSelectId === node.id) {
+                    // 当打回节点选中时，还原该条件id
+                    node.id = node.cacheId ? node.cacheId : node.id
+                    return
+                }
                 this.curSelectId = node.id
                 const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
                 node.selected = nodeType !== 'subflow'
