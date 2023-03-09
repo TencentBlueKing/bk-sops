@@ -42,7 +42,7 @@
                         <p>{{ $t('支持使用内置函数、datetime、re、hashlib、random、time、os.path模块处理全局变量') }}</p>
                         <br>
                         <p>{{ $t('示例：') }}</p>
-                        <p>{{ $t('字符串比较：') }}<code class="code">${key} == "my string"</code></p>
+                        <p>{{ $t('字符串比较：') }}<code class="code">"${key}" == "my string"</code></p>
                         <p>{{ $t('数值比较：') }}<code class="code">${int(key)} >= 3</code></p>
                         <p>{{ $t('包含：') }}<code class="code">${key} in (1,2,3)</code></p>
                     </div>
