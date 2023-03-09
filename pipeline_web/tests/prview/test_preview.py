@@ -170,7 +170,8 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                     "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"}
                 },
                 "constants_not_referred": {
-                    "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"}
+                    "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"},
+                    "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"},
                 },
                 "outputs": {
                     "${outputs_param1}": {

@@ -163,8 +163,10 @@ def compute_nodes_fill_num(pipeline, orders):
                     final_dummy_nums[source_id] = value
                     # 网关前面的的节点需要重新计算
                     gateway = gateways[source_id]
-                    for gateway_incoming in gateway[PWE.incoming]:
-                        compute_node_right_to_left(pipeline, gateway_incoming, value, nodes_dummy_nums)
+                    # 针对汇聚网关之前的节点，暂时取消向前更新赋值
+                    if gateway["type"] in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]:
+                        for gateway_incoming in gateway[PWE.incoming]:
+                            compute_node_right_to_left(pipeline, gateway_incoming, value, nodes_dummy_nums)
 
     converge_gateway_node_nums = {}
     # 所有分支网关，条件分支网关，条件网关的汇聚网关与之一致
