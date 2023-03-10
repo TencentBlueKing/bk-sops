@@ -61,6 +61,7 @@
     import { mapState, mapActions } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
     import permission from '@/mixins/permission.js'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'ProjectSelector',
@@ -120,6 +121,14 @@
 
                 return projects
             }
+        },
+        created () {
+            bus.$on('cancelRoute', (val) => {
+                const { project_id } = this.$route.params
+                if (project_id !== this.crtProject) {
+                    this.crtProject = project_id
+                }
+            })
         },
         methods: {
             ...mapActions([
