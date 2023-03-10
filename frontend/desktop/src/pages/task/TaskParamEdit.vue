@@ -278,7 +278,7 @@
                     this.$emit('onChangeConfigLoading', false)
                 })
             },
-            setAtomDisable (atomList, disabled = true) {
+            setAtomDisable (atomList, disabled = false) {
                 atomList.forEach(item => {
                     if (!item.attrs) {
                         item.attrs = {}
