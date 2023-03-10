@@ -19,6 +19,7 @@
         </template>
         <template slot="menu">
             <bk-navigation-menu
+                :key="randomKey"
                 :default-active="currentNav"
                 :toggle-active="true"
                 item-default-icon-color="#949ba5"
@@ -76,6 +77,7 @@
     import { COMMON_ROUTE_LIST, ADMIN_ROUTE_LIST, APPMAKER_ROUTE_LIST } from '@/constants/routes.js'
     import tools from '@/utils/tools.js'
     import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
+    import bus from '@/utils/bus.js'
 
     export default {
         inject: ['reload'],
@@ -90,7 +92,8 @@
                 sideNavOpen,
                 title: '',
                 currentNav: '',
-                logo: require('../../assets/images/logo/logo_icon.svg')
+                logo: require('../../assets/images/logo/logo_icon.svg'),
+                randomKey: null
             }
         },
         computed: {
@@ -148,6 +151,15 @@
             routerList (val) {
                 this.setNavigationTitle(this.$route)
             }
+        },
+        created () {
+            bus.$on('cancelRoute', (val) => {
+                const { name } = this.$route
+                if (name !== this.currentNav) {
+                    this.setNavigationTitle(this.$route)
+                    this.randomKey = new Date().getTime()
+                }
+            })
         },
         methods: {
             ...mapActions('project', [
