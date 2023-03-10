@@ -386,8 +386,7 @@
                 nodeDisplayStatus: {},
                 showNodeList: [0, 1, 2],
                 converNodeList: [],
-                isCondition: false,
-                temporaryId: -1
+                isCondition: false
             }
         },
         computed: {
