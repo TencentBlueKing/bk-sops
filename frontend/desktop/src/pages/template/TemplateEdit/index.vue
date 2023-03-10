@@ -1690,19 +1690,33 @@
              * 移动画布，将节点放到画布左上角
              */
             moveNodeToView (id) {
-                const { x, y } = this.locations.find(item => item.id === id)
-                const offsetX = 200 - x
-                const offsetY = 200 - y
-                this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
-
-                // 移动画布到选中节点位置的摇晃效果
+                // 获取对应dom
                 const nodeEl = document.querySelector(`#${id} .canvas-node-item`)
+                // 判断dom是否存在当前视图中
+                const isInViewPort = this.judgeInViewPort(nodeEl)
+                // 如果存在只需要节点摇晃，不存在需要将节点挪到画布中间并节点摇晃
+                if (!isInViewPort) {
+                    const { width, height } = document.querySelector('#canvasContainer').getBoundingClientRect()
+                    const { x, y } = this.locations.find(item => item.id === id)
+                    const offsetX = (width - 154) / 2 - x
+                    const offsetY = (height - 54) / 2 - y
+                    this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
+                }
+                // 移动画布到选中节点位置的摇晃效果
                 if (nodeEl) {
                     nodeEl.classList.add('node-shake')
                     setTimeout(() => {
                         nodeEl.classList.remove('node-shake')
                     }, 500)
                 }
+            },
+            // dom是否存在当前视图中
+            judgeInViewPort (element) {
+                if (!element) return false
+                const viewWidth = window.innerWidth || document.documentElement.clientWidth
+                const viewHeight = window.innerHeight || document.documentElement.clientHeight
+                const { top, right, bottom, left } = element.getBoundingClientRect()
+                return top >= 0 && left >= 0 && right <= viewWidth && bottom <= viewHeight
             },
             // 开启子流程更新的小红点动画效果
             showDotAnimation (id) {
