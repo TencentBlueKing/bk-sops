@@ -1616,7 +1616,8 @@ const en = {
     '去修改': 'To modify',
     '任务已暂停执行': 'Task has been paused',
     '任务已继续执行': 'Task has resumed',
-    '操作记录': 'Operate record'
+    '操作记录': 'Operate record',
+    '参数未修改，任务已继续执行': 'The parameter was not modified and the task continued'
 }
 
 export default en

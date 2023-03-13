@@ -269,12 +269,12 @@
                         this.$emit('nodeTaskRetry')
                         return
                     }
-                    let message = i18n.t('参数修改成功')
+                    let message = i18n.t('参数未修改')
                     let theme = 'warning'
                     // 节点暂停时提交修改，如果未修改则不继续报错直接继续执行任务
                     if (this.state === 'SUSPENDED') {
                         await this.instanceResume(this.instance_id)
-                        message = i18n.t('参数修改成功，任务已继续执行')
+                        message = i18n.t('参数未修改，任务已继续执行')
                         theme = 'success'
                     }
                     this.$bkMessage({
