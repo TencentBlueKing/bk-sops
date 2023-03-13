@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+import logging
 
 import requests
 from drf_yasg.utils import swagger_auto_schema
@@ -28,6 +29,8 @@ from gcloud.core.apis.drf.serilaziers.common_space import CommonSpaceSerializer,
 from gcloud.core.apis.drf.viewsets import GcloudModelViewSet
 from gcloud.iam_auth import res_factory, IAMMeta
 from gcloud.iam_auth.utils import grant_or_revoke_common_space_actions_to_user
+
+logger = logging.getLogger("root")
 
 
 class CommonSpacePermission(IamPermission):
@@ -114,9 +117,13 @@ class CommonSpaceViewSet(GcloudModelViewSet):
             headers=headers,
             data=json.dumps(data),
         )
-        result = response.json()
-        if result["code"] != 0:
-            return Response({"result": False, "message": result["message"]})
+        try:
+            result = response.json()
+            if result["code"] != 0:
+                return Response({"result": False, "message": result["message"]})
+        except Exception as e:
+            logger.exception(e)
+            return Response({"result": False, "message": f"get users from iam search engine error: {e}"})
         join_data, manage_data = result["data"]["results"]
         return Response(
             {

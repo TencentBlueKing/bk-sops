@@ -43,6 +43,8 @@ class ApiMixin(GenericViewSet):
                 else:
                     errors.append(error)
             return ",".join([str(e) for e in errors if isinstance(e, ErrorDetail)])
+        elif isinstance(original_error, list):
+            return ",".join([str(e) for e in original_error])
         else:
             return original_error
 
@@ -51,7 +53,7 @@ class ApiMixin(GenericViewSet):
         if isinstance(response, Response):
             if response.exception is True:
                 error = (
-                    response.data.get("detail")
+                    (isinstance(response.data, dict) and response.data.get("detail"))
                     or response.data
                     or ErrorDetail("Error from API exception", err_code.UNKNOWN_ERROR.code)
                 )
