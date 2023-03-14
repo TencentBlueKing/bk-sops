@@ -15,8 +15,9 @@ import os
 
 RUN_VER = os.getenv("RUN_VER", "open")
 
-IS_PAAS_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3
+IS_PAAS_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", 2)) == 3
 IS_OPEN_V3 = IS_PAAS_V3 and RUN_VER == "open"
+PAAS_MAJOR_VERSION = int(os.getenv("BKPAAS_MAJOR_VERSION", 2))
 
 if IS_OPEN_V3:
     from env_v3 import *  # noqa

@@ -106,6 +106,7 @@ def mysetting(request):
         "FILE_MANAGER_TYPE": EnvironmentVariables.objects.get_var(file_manager_type, env.BKAPP_FILE_MANAGER_TYPE),
         "MAX_NODE_EXECUTE_TIMEOUT": settings.MAX_NODE_EXECUTE_TIMEOUT,
         "BK_PLUGIN_DEVELOP_URL": settings.BK_PLUGIN_DEVELOP_URL,
+        "PAAS_MAJOR_VERSION": settings.PAAS_MAJOR_VERSION,
     }
 
     # custom context config
