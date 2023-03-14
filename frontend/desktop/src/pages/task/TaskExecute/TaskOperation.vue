@@ -1898,7 +1898,7 @@
                     } else if (isEqual === false) {
                         this.$bkInfo({
                             ...this.infoBasicConfig,
-                            cancelFn: () => {
+                            confirmFn: () => {
                                 this.isNodeInfoPanelShow = false
                                 this.retryNodeId = undefined
                             }

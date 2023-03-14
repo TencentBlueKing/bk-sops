@@ -1545,7 +1545,7 @@
                 this.isBackViewMode = true
                 this.$bkInfo({
                     ...this.infoBasicConfig,
-                    cancelFn: () => {
+                    confirmFn: () => {
                         // 返回查看模式时初始化数据
                         this.isTemplateDataChanged = false
                         this.isGlobalVariableUpdate = false
@@ -1562,7 +1562,7 @@
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.isEditProcessPage = true
                             this.isTemplateDataChanged = false
                         }
@@ -1712,7 +1712,7 @@
             onBeforeClose () {
                 this.$bkInfo({
                     ...this.infoBasicConfig,
-                    cancelFn: () => {
+                    confirmFn: () => {
                         this.isShowConditionEdit = false
                     }
                 })
@@ -1950,7 +1950,7 @@
                 this.leaveToPath = to.fullPath
                 this.$bkInfo({
                     ...this.infoBasicConfig,
-                    cancelFn: () => {
+                    confirmFn: () => {
                         this.allowLeave = true
                         this.$router.push({ path: this.leaveToPath })
                     }
