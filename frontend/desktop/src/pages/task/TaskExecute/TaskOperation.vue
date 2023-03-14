@@ -386,7 +386,8 @@
                 nodeDisplayStatus: {},
                 showNodeList: [0, 1, 2],
                 converNodeList: [],
-                isCondition: false
+                isCondition: false,
+                conditionOutgoing: []
             }
         },
         computed: {
@@ -1358,6 +1359,7 @@
                             }
                             conditions.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children, item.isLoop)
+                                if (item.children.length === 0) this.conditionOutgoing.push(item.outgoing)
                                 item.children.forEach(i => {
                                     if (!this.nodeIds.includes(i.id)) {
                                         this.nodeIds.push(i.id)
@@ -1404,14 +1406,24 @@
                                     list.push(converList[item])
                                 }
                             })
-                            if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {
+                            const outgoingList = []
+                            list.forEach(item => {
+                                if (Array.isArray(item.outgoing)) {
+                                    item.outgoing.forEach(ite => {
+                                        outgoingList.push(ite)
+                                    })
+                                } else {
+                                    outgoingList.push(item.outgoing)
+                                }
+                            })
+
+                            if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
                                 // 汇聚网关push在最近的条件网关下
                                 const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
-                                if (!prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
+                                if (prev && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
                                     prev.children.push(gateway)
                                 }
-                                // ordered.push(gateway)
                                 if (!this.nodeIds.includes(gateway.id)) {
                                     this.nodeIds.push(gateway.id)
                                 }
@@ -1665,19 +1677,22 @@
                 if (this.nodeDetailConfig.node_id) {
                     this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
-                const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
+                const heirarchyList = nodeHeirarchy.split('.')
+                heirarchyList.pop()
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
                     heirarchyList.forEach((key, index) => {
                         nodeActivities = index ? nodeActivities.pipeline.activities[key] : nodeActivities[key]
-                        nodePath.push({
-                            id: nodeActivities.id,
-                            name: nodeActivities.name,
-                            nodeId: nodeActivities.id,
-                            type: nodeActivities.type
-                        })
-                        if (nodeActivities.type === 'SubProcess') {
-                            parentNodeActivities = nodeActivities
+                        if (nodeActivities) {
+                            nodePath.push({
+                                id: nodeActivities.id,
+                                name: nodeActivities.name,
+                                nodeId: nodeActivities.id,
+                                type: nodeActivities.type
+                            })
+                            if (nodeActivities.type === 'SubProcess') {
+                                parentNodeActivities = nodeActivities
+                            }
                         }
                     })
                     this.selectedFlowPath = nodePath

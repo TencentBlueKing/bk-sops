@@ -115,7 +115,8 @@
                 stateColor,
                 nodeStateMap,
                 curSubId: '',
-                cacheSubflowSelectNode: '',
+                cacheSubflowSelectNode: {},
+                curSelectTreeId: '',
                 setDefaultGateway: false
             }
         },
@@ -138,16 +139,20 @@
             nodeNav: {
                 handler (val, old) {
                     // 当为面包屑数量不为根节点时重新渲染结构
+                    const cur = this.findSubChildren(this.data[0].children, val[val.length - 1].id)
+                    this.curSelectTreeId = val[val.length - 1].nodeId
                     if (val) {
-                        const cur = this.findSubChildren(this.treeData, val[val.length - 1].id)
-                        if (cur.length === 0) this.setDefaultGateway = true
+                        this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
                         if (val.length === 1 && old && val.length !== old.length) {
+                            this.treeData = tools.deepClone(this.cacheSubflowSelectNode[this.curSelectTreeId] || this.data[0].children)
                             this.curSubId = ''
-                            this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
-                            this.treeData = tools.deepClone(this.cacheSubflowSelectNode || this.data[0].children)
                             this.curSelectId = '' // 返回时清除选中
                         } else {
-                            this.renderSubProcessData(...cur)
+                            this.$nextTick(() => {
+                                if (this.cacheSubflowSelectNode[cur[0]] && this.cacheSubflowSelectNode[cur[0]].id) this.$set(cur[0], 'subChildren', this.cacheSubflowSelectNode[cur[0].id])
+                                this.renderSubProcessData(cur[0])
+                                this.curSelectId = ''
+                            })
                         }
                     }
                 },
@@ -163,8 +168,12 @@
         methods: {
             findSubChildren (data, id, node = []) {
                 data.forEach(item => {
-                    if (item.id === id) {
-                        node.push(item)
+                    if (item.type === 'SubProcess') {
+                        if (item.id === id) {
+                            node.push(item)
+                        } else {
+                            this.findSubChildren(item.subChildren, id, node)
+                        }
                     } else {
                         if (item.children) {
                             this.findSubChildren(item.children, id, node)
@@ -181,12 +190,13 @@
                 this.curSelectId = node.id
                 const nodeType = node.type === 'SubProcess'
                 if (nodeType) {
+                    this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
                     this.$emit('onNodeClick', node.id, 'subflow')
-                    this.cacheSubflowSelectNode = tools.deepClone(this.treeData)
                     this.renderSubProcessData(node)
                 } else {
-                    const str = this.curSubId ? this.curSubId + '.' + node.id : node.id
-                    this.$emit('onSelectNode', str, node.id, 'tasknode')
+                    const parentIds = this.nodeNav.slice(1).map(item => item.id).toString().split(',').join('.')
+                    const nodeHeirarchy = parentIds ? parentIds + '.' + node.id : node.id
+                    this.$emit('onSelectNode', nodeHeirarchy, node.id, 'tasknode')
                 }
             },
             renderSubProcessData (node) {
@@ -196,22 +206,24 @@
                 }
             },
             nodeAddStatus (data, states) {
-                data.forEach(item => {
-                    if (item.id && states[item.id]) {
-                        item.state = states[item.id].skip ? 'SKIP' : states[item.id].state
-                    } else {
-                        item.state = 'WAIT'
-                    }
-                    if (item.isGateway) {
-                        item.state = 'Gateway'
-                    }
-                    if (item.type === 'SubProcess') {
-                        this.nodeAddStatus(item.subChildren, states)
-                    }
-                    if (item.children && item.children.length !== 0) {
-                        this.nodeAddStatus(item.children, states)
-                    }
-                })
+                if (data) {
+                    data.forEach(item => {
+                        if (item.id && states[item.id]) {
+                            item.state = states[item.id].skip ? 'SKIP' : states[item.id].state
+                        } else {
+                            item.state = 'WAIT'
+                        }
+                        if (item.isGateway) {
+                            item.state = 'Gateway'
+                        }
+                        if (item.type === 'SubProcess') {
+                            this.nodeAddStatus(item.subChildren, states)
+                        }
+                        if (item.children && item.children.length !== 0) {
+                            this.nodeAddStatus(item.children, states)
+                        }
+                    })
+                }
             },
             tpl (node) {
                 if (!this.allNodeDate[node.id] && node.id !== 'undefined') {
@@ -335,7 +347,7 @@
                 node.selected = nodeType !== 'subflow'
                 if (nodeType === 'subflow') {
                     this.$emit('onNodeClick', node.id, 'subflow')
-                    this.cacheSubflowSelectNode = tools.deepClone(this.treeData)
+                    this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
                     this.renderSubProcessData(node)
                     return
                 }
