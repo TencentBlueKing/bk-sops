@@ -169,6 +169,8 @@ if env.IS_PAAS_V3:
 
     BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE = os.path.join(BASE_DIR, "gcloud", "apigw", "docs", "apigw-docs.tgz")
 
+PAAS_MAJOR_VERSION = env.PAAS_MAJOR_VERSION
+
 # 默认数据库AUTO字段类型
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
