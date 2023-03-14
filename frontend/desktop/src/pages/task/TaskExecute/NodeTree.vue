@@ -151,7 +151,6 @@
                             this.$nextTick(() => {
                                 if (this.cacheSubflowSelectNode[cur[0]] && this.cacheSubflowSelectNode[cur[0]].id) this.$set(cur[0], 'subChildren', this.cacheSubflowSelectNode[cur[0].id])
                                 this.renderSubProcessData(cur[0])
-                                this.curSelectId = ''
                             })
                         }
                     }
