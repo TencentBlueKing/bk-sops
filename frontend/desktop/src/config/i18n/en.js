@@ -1413,8 +1413,8 @@ const en = {
     '标签颜色': 'Label color',
     '新建标签': 'New label',
     '流程标签修改成功': 'Process tag modified successfully',
-    '确认离开当前页面吗？': 'Are you sure to leave the current page?',
-    '离开将会丢失未保存信息，建议保存后离开': 'If you leave, you will lose the unsaved information. It is recommended to save and leave.',
+    '确认离开当前页?': 'Are you sure to leave the current page?',
+    '离开将会导致未保存信息丢失': 'Leaving will result in loss of unsaved information',
     '留在此页': 'Stay on this page',
     '直接离开': 'Just leave',
     '流程名': 'FlowName',
@@ -1616,7 +1616,9 @@ const en = {
     '去修改': 'To modify',
     '任务已暂停执行': 'Task has been paused',
     '任务已继续执行': 'Task has resumed',
-    '操作记录': 'Operate record'
+    '操作记录': 'Operate record',
+    '参数未修改，任务已继续执行': 'The parameter was not modified and the task continued',
+    '离开': 'Leave'
 }
 
 export default en

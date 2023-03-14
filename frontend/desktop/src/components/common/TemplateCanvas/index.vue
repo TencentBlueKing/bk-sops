@@ -1681,7 +1681,7 @@
                     this.isPerspectivePanelShow = true
                 }
                 // 展开节点历史执行时间
-                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode') {
+                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode' && !node.skip) {
                     this.execRecordLoading = true
                     this.isExecRecordPanelShow = true
                     this.$emit('nodeExecRecord', node.id)

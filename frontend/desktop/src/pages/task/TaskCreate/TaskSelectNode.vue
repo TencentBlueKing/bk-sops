@@ -541,7 +541,7 @@
             setTaskSchemeDialog () {
                 this.$bkInfo({
                     ...this.infoBasicConfig,
-                    cancelFn: () => {
+                    confirmFn: () => {
                         this.onCancelClick()
                     }
                 })
@@ -660,7 +660,7 @@
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.onCancelClick()
                         }
                     })
