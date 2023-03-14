@@ -87,7 +87,8 @@
                 'EmptyEndEvent': 'commonicon-icon common-icon-node-endpoint-en',
                 'ParallelGateway': 'commonicon-icon common-icon-node-parallelgateway-shortcut',
                 'ExclusiveGateway': 'commonicon-icon common-icon-node-branchgateway',
-                'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway conver'
+                'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway conver',
+                'ConditionalParallelGateway': 'commonicon-icon common-icon-node-conditionalparallelgateway'
             }
             const stateColor = {
                 FINISHED: 'color:#61c861;',

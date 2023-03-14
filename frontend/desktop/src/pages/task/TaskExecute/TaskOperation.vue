@@ -1315,7 +1315,7 @@
                                     loopList.push(...curNode.incoming)
                                 }
                             })
-                            const conditions = Object.keys(gateway.conditions).map(item => {
+                            const conditions = Object.keys(gateway.conditions).map((item, index) => {
                                 // 给需要打回的条件添加节点id
                                 const callback = loopList.includes(item) ? activities[flows[item].target] : ''
                                 const { evaluate, tag } = gateway.conditions[item]
@@ -1328,10 +1328,10 @@
                                     value: evaluate
                                 }
                                 return {
-                                    id: gateway.conditions[item].name,
+                                    id: gateway.conditions[item].name + '-' + item,
                                     conditionsId: '',
                                     callbackName: callback.name,
-                                    name: gateway.conditions[item].name,
+                                    name: gateway.conditions[item].name + '-' + item,
                                     title: gateway.conditions[item].name,
                                     isGateway: true,
                                     expanded: false,
@@ -1345,7 +1345,8 @@
                             if (gateway.default_condition) {
                                 const defaultCondition = [
                                     {
-                                        name: gateway.default_condition.name,
+                                        id: gateway.default_condition.name + '-' + gateway.default_condition.flow_id,
+                                        name: gateway.default_condition.name + '-' + gateway.default_condition.flow_id,
                                         title: gateway.default_condition.name,
                                         isGateway: true,
                                         expanded: false,
@@ -1537,7 +1538,8 @@
             onOpenConditionEdit (data, isCondition = true) {
                 if (isCondition && data) {
                     this.onNodeClick(data.nodeId)
-                    this.defaultActiveId = data.name
+                    // 生成网关添加id 条件name + 分支条件outgoning
+                    this.defaultActiveId = data.name + '-' + data.id
                     this.isCondition = true
                     this.isShowConditionEdit = true
                     this.conditionData = { ...data }
