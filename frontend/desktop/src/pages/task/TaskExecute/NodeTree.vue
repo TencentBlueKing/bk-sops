@@ -116,7 +116,6 @@
                 gatewayType,
                 stateColor,
                 nodeStateMap,
-                curSubId: '',
                 cacheSubflowSelectNode: {},
                 curSelectTreeId: '',
                 setDefaultGateway: false
@@ -124,9 +123,18 @@
         },
         watch: {
             data: {
-                handler () {
-                    this.treeData = tools.deepClone(this.data[0].children)
-                    this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
+                handler (value) {
+                    const nodeNavLength = this.nodeNav.length
+                    if (nodeNavLength === 1) {
+                        this.treeData = tools.deepClone(value[0].children)
+                    } else {
+                        const cur = this.findSubChildren(value[0].children, this.nodeNav[nodeNavLength - 1].id)
+                        this.treeData = tools.deepClone(cur[0].subChildren)
+                    }
+                    this.$nextTick(() => {
+                        this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
+                        this.setDefaultActiveId(this.treeData, this.treeData, this.defaultActiveId)
+                    })
                 },
                 deep: true,
                 immediate: true
@@ -145,16 +153,15 @@
                     this.curSelectTreeId = val[val.length - 1].nodeId
                     if (val) {
                         if (cur.length === 0) this.setDefaultGateway = true // 从画布点击自动网关、条件展开
-                        this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
                         if (val.length === 1 && old && val.length !== old.length) {
                             this.treeData = tools.deepClone(this.cacheSubflowSelectNode[this.curSelectTreeId] || this.data[0].children)
-                            this.curSubId = ''
                             this.curSelectId = '' // 返回时清除选中
                         } else {
                             this.$nextTick(() => {
                                 if (this.cacheSubflowSelectNode[cur[0]] && this.cacheSubflowSelectNode[cur[0]].id) this.$set(cur[0], 'subChildren', this.cacheSubflowSelectNode[cur[0].id])
                                 this.renderSubProcessData(cur[0])
                             })
+                            this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
                         }
                     }
                 },
@@ -203,8 +210,9 @@
             },
             renderSubProcessData (node) {
                 if (node) {
-                    this.curSubId = node.id
-                    this.treeData = node.subChildren
+                    this.$nextTick(() => {
+                        this.treeData = node.subChildren
+                    })
                 }
             },
             nodeAddStatus (data, states) {
@@ -263,9 +271,6 @@
                 this.curSelectId = id
                 if (nodes) {
                     nodes.forEach(node => {
-                        if (node.children) {
-                            this.setDefaultActiveId(data, node.children, id)
-                        }
                         if (node.id === id) {
                             this.$set(node, 'selected', true)
                             if (this.setDefaultGateway) {
@@ -277,6 +282,9 @@
                             }
                         } else {
                             this.$set(node, 'selected', false)
+                        }
+                        if (node.children) {
+                            this.setDefaultActiveId(data, node.children, id)
                         }
                     })
                 }
@@ -297,7 +305,10 @@
             onSelectNode (e, node, type) {
                 // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
                 this.setDefaultGateway = false
-                node.selected = node.id === this.curSelectId
+                if (node.selected && node.type === 'SubProcess') {
+                    node.selected = false
+                    node.parent.expanded = true
+                }
                 if (node.expanded && !node.selected) e.stopPropagation()
                 if (node.title === this.$t('并行') && type === 'gateway') {
                     node.expanded = !node.expanded
@@ -340,6 +351,13 @@
                     }
                 }
                 if (this.curSelectId === node.id) {
+                    // 画布节点参数入口 子流程选中状态可点击
+                    if (node.type === 'SubProcess') {
+                        this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
+                        this.$emit('onNodeClick', node.id, 'subflow')
+                        this.renderSubProcessData(node)
+                        return
+                    }
                     // 当打回节点选中时，还原该条件id
                     node.id = node.cacheId ? node.cacheId : node.id
                     return
@@ -370,6 +388,7 @@
                 this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
                 // 取缓存id
                 node.id = node.cacheId ? node.cacheId : node.id
+                node.selected = node.id === this.curSelectId
             }
         }
     }
