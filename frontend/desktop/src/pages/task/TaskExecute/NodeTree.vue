@@ -96,14 +96,16 @@
                 WAIT: 'color:#dedfe6;',
                 BLOCKED: 'color:#4b81f7;',
                 RUNNING: 'color:#4d83f7;',
-                SKIP: 'color: #edbbb8'
+                SKIP: 'color: #edbbb8',
+                SUSPENDED: 'color: #699df4'
             }
             const nodeStateMap = {
                 FINISHED: 'finished',
                 FAILED: 'failed',
                 WAIT: 'wait',
                 RUNNING: 'running',
-                SKIP: 'skip'
+                SKIP: 'skip',
+                SUSPENDED: 'running'
             }
             return {
                 curSelectId: '',
@@ -142,6 +144,7 @@
                     const cur = this.findSubChildren(this.data[0].children, val[val.length - 1].id)
                     this.curSelectTreeId = val[val.length - 1].nodeId
                     if (val) {
+                        if (cur.length === 0) this.setDefaultGateway = true // 从画布点击自动网关、条件展开
                         this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
                         if (val.length === 1 && old && val.length !== old.length) {
                             this.treeData = tools.deepClone(this.cacheSubflowSelectNode[this.curSelectTreeId] || this.data[0].children)
