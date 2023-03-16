@@ -589,7 +589,7 @@
                         claimant: claimant || undefined,
                         task__project__id: selectedProject || undefined,
                         status: claimStatus || undefined,
-                        task_id: task_id || undefined,
+                        id: task_id || undefined,
                         task__pipeline_instance__is_started,
                         task__pipeline_instance__is_finished,
                         task__pipeline_instance__is_revoked
