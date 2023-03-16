@@ -1420,7 +1420,8 @@
                             if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
                                 // 汇聚网关push在最近的条件网关下
                                 const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
-                                if (prev && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
+                                // 独立子流程的children为 subChildren
+                                if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
                                     prev.children.push(gateway)
                                 }
