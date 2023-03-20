@@ -112,7 +112,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
                 filter_set,
                 filter_service_template,
                 produce_method,
-                var_module_name=var_ip_selector["var_ip_manual_value"]["var_module_name"],
+                var_module_name=var_ip_selector["var_ip_select_value"]["var_module_name"],
             )
         elif produce_method == "manual":
             set_input_method = "var_manual_set"
@@ -127,7 +127,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
                 filter_set,
                 filter_service_template,
                 produce_method,
-                var_module_name=var_ip_selector["var_ip_select_value"]["var_module_name"],
+                var_module_name=var_ip_selector["var_ip_manual_value"]["var_module_name"],
             )
 
         else:
