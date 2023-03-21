@@ -258,7 +258,7 @@
                 } else if (this.gatewayType[node.type]) {
                     return <span style={'font-size: 16px'}>
                         <span class={iconClass} style={this.stateColor[node.state]}></span>
-                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
+                        <span class={isActive} data-node-id={node.id} data-gateway-type={node.gatewayType} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
@@ -310,7 +310,7 @@
                     node.parent.expanded = true
                 }
                 if (node.expanded && !node.selected) e.stopPropagation()
-                if (node.title === this.$t('并行') && type === 'gateway') {
+                if ((node.conditionType === 'parallel' || node.conditionType === 'default') && type === 'gateway') {
                     node.expanded = !node.expanded
                     e.stopPropagation()
                     return
@@ -330,7 +330,7 @@
                         const curNodeIndex = node.parent.children.findIndex(item => item.id === node.id)
                         node.parent.children.forEach((item, index) => {
                             if (item.type === 'ConvergeGateway') {
-                                const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
+                                const converge = treeNodes.filter(dom => dom.dataset.gatewayType === 'converge')
                                 if (index > curNodeIndex) {
                                     if (!node.expanded) {
                                         converge.forEach(cdom => {
@@ -424,6 +424,9 @@
 }
 .conver {
     margin-left: -20px;
+    background: #fff;
+    position: relative;
+    z-index: 99;
 }
 .node-tree-wrapper {
     display: inline-block;
@@ -567,23 +570,14 @@
     border-radius: 1px;
     color: #968E4D;
     position: relative;
-    border-left: none;
     padding-right: 4px;
     cursor: pointer;
     user-select: none;
-    ::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -20px;
-        width: 20px;
-        height: 16px;
-        background-color: #FBF9E2;
-        border: 1px solid #CCC79E;
-        border-right: none;
-        border-radius: 1px;
-        color: #968E4D;
-        z-index: 88;
+    left: -20px;
+    padding-left: 20px;
+    z-index: 88;
+    .callback {
+        display: none;
     }
 }
 .default-conditon {
@@ -593,22 +587,13 @@
     border-radius: 1px;
     color: #968E4D;
     position: relative;
-    border-left: none;
     padding-right: 4px;
     user-select: none;
-    ::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -20px;
-        width: 20px;
-        height: 16px;
-        background-color: #F0F1F5;
-        border: 1px solid #C4C6CC;
-        border-right: none;
-        border-radius: 1px;
-        color: #968E4D;
-        z-index: 88;
+    left: -20px;
+    padding-left: 20px;
+    z-index: 88;
+    .callback {
+        display: none;
     }
 }
 .tpl-gateway {
