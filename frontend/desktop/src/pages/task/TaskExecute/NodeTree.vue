@@ -311,7 +311,7 @@
                     node.parent.expanded = true
                 }
                 if (node.expanded && !node.selected) e.stopPropagation()
-                if ((node.title === this.$t('并行') || node.title === this.$t('默认')) && type === 'gateway') {
+                if ((node.title === this.$t('并行') || node.conditionType === 'default') && type === 'gateway') {
                     node.expanded = !node.expanded
                     e.stopPropagation()
                     return

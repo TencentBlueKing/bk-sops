@@ -1350,6 +1350,7 @@
                                         name: gateway.default_condition.name + '-' + gateway.default_condition.flow_id,
                                         title: gateway.default_condition.name,
                                         isGateway: true,
+                                        conditionType: 'default',
                                         expanded: false,
                                         outgoing: gateway.default_condition.flow_id,
                                         children: []
