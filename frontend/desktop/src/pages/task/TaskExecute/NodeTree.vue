@@ -303,7 +303,6 @@
                 return false
             },
             onSelectNode (e, node, type) {
-                console.log(node)
                 // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
                 this.setDefaultGateway = false
                 if (node.selected && node.type === 'SubProcess') {
