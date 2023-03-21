@@ -303,6 +303,7 @@
                 return false
             },
             onSelectNode (e, node, type) {
+                console.log(node)
                 // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
                 this.setDefaultGateway = false
                 if (node.selected && node.type === 'SubProcess') {
@@ -310,7 +311,7 @@
                     node.parent.expanded = true
                 }
                 if (node.expanded && !node.selected) e.stopPropagation()
-                if (node.title === this.$t('并行') && type === 'gateway') {
+                if ((node.title === this.$t('并行') || node.title === this.$t('默认')) && type === 'gateway') {
                     node.expanded = !node.expanded
                     e.stopPropagation()
                     return
@@ -589,7 +590,12 @@
     position: relative;
     padding-right: 4px;
     user-select: none;
+    left: -20px;
+    padding-left: 20px;
     z-index: 88;
+    .callback {
+        display: none;
+    }
 }
 .tpl-gateway {
     font-size: 10px;
