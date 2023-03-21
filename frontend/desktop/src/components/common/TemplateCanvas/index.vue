@@ -146,6 +146,7 @@
                     </p>
                     <ul :class="['content-list', { 'lot-record': nodeExecRecordInfo.count > 5 }]">
                         <li class="content-item running" v-if="nodeExecRecordInfo.curTime">
+                            <i class="common-icon-exec-loading"></i>
                             {{ $t('已运行') + ' ' + nodeExecRecordInfo.curTime || '--' }}
                         </li>
                         <template v-if="nodeExecRecordInfo.count">
@@ -2601,11 +2602,15 @@
                 &.running {
                     color: #3a84ff;
                     &::before {
-                        top: 5px;
+                        content: none;
+                    }
+                    .common-icon-exec-loading {
+                        position: absolute;
+                        top: 6px;
                         left: -2px;
-                        height: 13px;
-                        width: 13px;
+                        font-size: 13px;
                         border-color: #3a84ff;
+                        background: #fff;
                     }
                 }
                 &.empty {
