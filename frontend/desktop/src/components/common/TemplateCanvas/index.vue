@@ -745,7 +745,19 @@
                 this.connectionDragging = false
             },
             onConnectionClick (conn, e) {
+                if (!this.editable) return
                 this.activeCon = conn
+                // 打开快捷面板
+                const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
+                const { pageX, pageY } = e
+                const nodeId = conn.sourceId
+                this.activeNode = this.canvasData.locations.find(item => item.id === nodeId)
+                this.shortcutPanelNodeOperate = false
+                this.shortcutPanelDeleteLine = true
+                const left = pageX - wrapGap.x + 10
+                const top = pageY - wrapGap.y - 50
+                this.shortcutPanelPosition = { left, top }
+                this.showShortcutPanel = true
                 // const [sEdp, tEdp] = conn.endpoints
                 // const { sourceId, targetId } = conn
                 // this.replaceEndpoint(sEdp, sourceId, true)
@@ -2057,39 +2069,6 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
-                if (!this.editable) {
-                    return
-                }
-                const connectorDom = document.querySelector('svg.bk-sops-connector-hover')
-                if (!connectorDom) return
-                // 节点hover到分支条件上不触发操作面板
-                if (dom.parentClsContains('branch-condition', e.target)) return
-                // 当鼠标hover到新的连线时关闭旧的快捷面板
-                const { top, left } = connectorDom.style
-                if (tools.isDataEqual({ top, left }, this.connectorPosition)) {
-                    return
-                } else {
-                    this.connectorPosition = { top, left }
-                    this.showShortcutPanel = false
-                }
-                if (!this.showShortcutPanel) {
-                    // 手动触发path元素的click事件
-                    const pathDom = connectorDom.querySelector('path')
-                    const event = document.createEvent('MouseEvent')
-                    event.initMouseEvent('click', true, true)
-                    pathDom.dispatchEvent(event)
-                    // 打开快捷面板
-                    const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
-                    const { pageX, pageY } = e
-                    const nodeId = this.activeCon.sourceId
-                    this.activeNode = this.canvasData.locations.find(item => item.id === nodeId)
-                    this.shortcutPanelNodeOperate = false
-                    this.shortcutPanelDeleteLine = true
-                    const left = pageX - wrapGap.x + 10
-                    const top = pageY - wrapGap.y - 50
-                    this.shortcutPanelPosition = { left, top }
-                    this.showShortcutPanel = true
-                }
             },
             // 画布整体鼠标移入事件
             onCanvasContainerMouseMove (e) {
