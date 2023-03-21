@@ -424,6 +424,9 @@
 }
 .conver {
     margin-left: -20px;
+    background: #fff;
+    position: relative;
+    z-index: 99;
 }
 .node-tree-wrapper {
     display: inline-block;
@@ -567,23 +570,14 @@
     border-radius: 1px;
     color: #968E4D;
     position: relative;
-    border-left: none;
     padding-right: 4px;
     cursor: pointer;
     user-select: none;
-    ::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -20px;
-        width: 20px;
-        height: 16px;
-        background-color: #FBF9E2;
-        border: 1px solid #CCC79E;
-        border-right: none;
-        border-radius: 1px;
-        color: #968E4D;
-        z-index: 88;
+    left: -20px;
+    padding-left: 20px;
+    z-index: 88;
+    .callback {
+        display: none;
     }
 }
 .default-conditon {
@@ -593,23 +587,9 @@
     border-radius: 1px;
     color: #968E4D;
     position: relative;
-    border-left: none;
     padding-right: 4px;
     user-select: none;
-    ::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -20px;
-        width: 20px;
-        height: 16px;
-        background-color: #F0F1F5;
-        border: 1px solid #C4C6CC;
-        border-right: none;
-        border-radius: 1px;
-        color: #968E4D;
-        z-index: 88;
-    }
+    z-index: 88;
 }
 .tpl-gateway {
     font-size: 10px;
