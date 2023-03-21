@@ -258,7 +258,7 @@
                 } else if (this.gatewayType[node.type]) {
                     return <span style={'font-size: 16px'}>
                         <span class={iconClass} style={this.stateColor[node.state]}></span>
-                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
+                        <span class={isActive} data-node-id={node.id} data-gateway-type={node.gatewayType} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
@@ -310,7 +310,7 @@
                     node.parent.expanded = true
                 }
                 if (node.expanded && !node.selected) e.stopPropagation()
-                if ((node.title === this.$t('并行') || node.conditionType === 'default') && type === 'gateway') {
+                if ((node.conditionType === 'parallel' || node.conditionType === 'default') && type === 'gateway') {
                     node.expanded = !node.expanded
                     e.stopPropagation()
                     return
@@ -330,7 +330,7 @@
                         const curNodeIndex = node.parent.children.findIndex(item => item.id === node.id)
                         node.parent.children.forEach((item, index) => {
                             if (item.type === 'ConvergeGateway') {
-                                const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
+                                const converge = treeNodes.filter(dom => dom.dataset.gatewayType === 'converge')
                                 if (index > curNodeIndex) {
                                     if (!node.expanded) {
                                         converge.forEach(cdom => {

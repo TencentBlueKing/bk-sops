@@ -1335,6 +1335,7 @@
                                     name: gateway.conditions[item].name + '-' + item,
                                     title: gateway.conditions[item].name,
                                     isGateway: true,
+                                    conditionType: 'condition', // 条件、条件并行网关
                                     expanded: false,
                                     outgoing: item,
                                     children: [],
@@ -1380,6 +1381,7 @@
                                     title: this.$t('并行'),
                                     isGateway: true,
                                     expanded: false,
+                                    conditionType: 'parallel',
                                     outgoing: item,
                                     children: []
                                 }
@@ -1424,6 +1426,7 @@
                                 // 独立子流程的children为 subChildren
                                 if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
+                                    gateway.gatewayType = 'converge'
                                     prev.children.push(gateway)
                                 }
                                 if (!this.nodeIds.includes(gateway.id)) {
