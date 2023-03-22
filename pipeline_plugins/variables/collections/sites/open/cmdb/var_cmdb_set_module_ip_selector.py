@@ -25,7 +25,6 @@ from pipeline_plugins.variables.utils import (
     get_service_template_list_by_names,
     get_list_by_selected_names,
     filter_ip,
-    get_module_list,
     get_set_list,
     get_service_template_list,
     list_biz_hosts,
@@ -359,13 +358,8 @@ def get_ip_result_by_input_method(
     module_ids = get_module_id_list(
         bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template, bk_supplier_account
     )
-    if not var_module_name or var_module_name == "ip":
-        # 根据模块 id 列表获取 ip 并返回
-        data = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
-    else:
-        # 根据模块属性名获取模块信息
-        kwargs = {"bk_ids": module_ids, "fields": var_module_name.split(",")}
-        data = [module_attr[var_module_name] for module_attr in get_module_list(username, bk_biz_id, kwargs=kwargs)]
+    # 根据模块 id 列表获取 ip 并返回
+    data = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
     return data
 
 
