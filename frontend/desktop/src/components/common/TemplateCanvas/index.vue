@@ -2459,7 +2459,7 @@
         .reference-line-horizontal {
             z-index: 6;
         }
-        .bk-sops-connector-hover {
+        .jtk-connector.bk-sops-connector-hover {
             z-index: 3;
         }
     }
