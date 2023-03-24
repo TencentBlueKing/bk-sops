@@ -51,9 +51,7 @@ GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module" ".v1_0.get_client_by_user"
 )
 CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
-CC_GET_HOST_ID_BY_INNERIP = (
-    "pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module.v1_0" ".cc_get_host_id_by_innerip"
-)
+CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 CC_LIST_SELECT_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module.v1_0"
     ".cc_list_select_node_inst_id"

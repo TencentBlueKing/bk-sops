@@ -104,8 +104,7 @@
                             data-test-id="periodicEdit_form_selectScheme"
                             v-if="!isPreview && !isTplDeleted"
                             :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')"
-                            property="schemeId"
-                            :required="formData.is_latest !== null">
+                            property="schemeId">
                             <div class="scheme-wrapper">
                                 <p v-if="formData.is_latest === null" class="exclude-wrapper" v-bk-overflow-tips>
                                     {{ includeNodes }}
@@ -114,10 +113,10 @@
                                     v-else
                                     v-model="formData.schemeId"
                                     :searchable="true"
-                                    :placeholder="$t('请选择')"
+                                    :placeholder="schemeSelectPlaceholder"
                                     :multiple="true"
                                     :clearable="false"
-                                    :disabled="formData.is_latest !== true || !formData.template_id || previewDataLoading"
+                                    :disabled="isSelectSchemeDisable"
                                     :loading="isLoading || schemeLoading"
                                     @selected="onSelectScheme">
                                     <bk-option
@@ -138,7 +137,7 @@
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
-                            <p v-if="formData.is_latest === false" class="schema-disable-tip">
+                            <p v-if="formData.schemeId.length && formData.is_latest === false" class="schema-disable-tip">
                                 {{ $t('当前流程非最新，执行方案不可更改，请先更新流程') }}
                             </p>
                             <p v-if="formData.is_latest === null" class="schema-disable-tip">
@@ -163,7 +162,7 @@
                 <section class="config-section">
                     <p class="title">{{$t('参数信息')}}</p>
                     <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
-                        <NoData v-if="isVariableEmpty" :message="$t('没有参数需要配置')"></NoData>
+                        <NoData v-if="isVariableEmpty" :message="$t('暂无参数')"></NoData>
                         <TaskParamEdit
                             v-else
                             ref="TaskParamEdit"
@@ -270,7 +269,7 @@
                     is_latest: this.isEdit ? is_latest : true,
                     task_template_name,
                     template_id,
-                    schemeId: this.isEdit ? (schemeId.length ? schemeId : [0]) : []
+                    schemeId: this.isEdit ? (schemeId.length ? schemeId : []) : []
                 },
                 initFormData: {},
                 templateData: {},
@@ -320,16 +319,6 @@
                             },
                             message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'change'
-                        }
-                    ],
-                    schemeId: [
-                        {
-                            required: true,
-                            validator: (val) => {
-                                return this.formData.schemeId
-                            },
-                            message: i18n.t('请选择执行方案'),
-                            trigger: 'blur'
                         }
                     ],
                     flow: [
@@ -401,6 +390,13 @@
             hasNoCreatePerm () {
                 const { id, auth_actions } = this.templateData
                 return this.isEdit || !id ? false : !this.hasPermission(['flow_create_periodic_task'], auth_actions)
+            },
+            schemeSelectPlaceholder () {
+                return !this.formData.template_id || this.isLoading || this.schemeLoading ? i18n.t('请选择') : i18n.t('此流程无执行方案，无需选择')
+            },
+            isSelectSchemeDisable () {
+                const { is_latest, template_id } = this.formData
+                return is_latest !== true || !template_id || this.previewDataLoading || !this.schemeList.length
             }
         },
         created () {
@@ -519,7 +515,7 @@
                             this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                         }
                     } else if (!this.isEdit) {
-                        this.formData.schemeId = [0]
+                        this.formData.schemeId = this.schemeList.length ? [0] : []
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
                     }
@@ -564,12 +560,14 @@
                     })
                     const { activities } = this.templateData.pipeline_tree
                     const nodeList = Object.keys(activities)
-                    this.schemeList.unshift({
-                        data: JSON.stringify(nodeList),
-                        id: 0,
-                        idDefault: false,
-                        name: '<' + i18n.t('不使用执行方案') + '>'
-                    })
+                    if (this.schemeList.length) {
+                        this.schemeList.unshift({
+                            data: JSON.stringify(nodeList),
+                            id: 0,
+                            idDefault: false,
+                            name: '<' + i18n.t('不使用执行方案') + '>'
+                        })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -706,7 +704,7 @@
                     lines: line,
                     locations: location.map(item => {
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode, code }
+                        return { ...item, mode, code, status: '' }
                     }),
                     branchConditions
                 }
@@ -908,7 +906,7 @@
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.onCancelSave()
                         }
                     })
@@ -1070,9 +1068,6 @@
     right: 16px;
     top: 8px;
     font-size: 16px;
-}
-/deep/.no-data-wrapper {
-    margin: 150px 0;
 }
 .btn-footer {
     position: fixed;

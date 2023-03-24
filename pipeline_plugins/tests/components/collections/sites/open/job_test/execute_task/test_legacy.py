@@ -225,7 +225,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": ("调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, params={params}, " "error=message token").format(
+            "ex_data": ("调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, error=message token, params={params}").format(
                 params=json.dumps(
                     {
                         "bk_scope_type": "biz",
@@ -481,7 +481,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
             "ex_data": (
                 "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
-                "返回失败, params={params}, error=global var message token"
+                "返回失败, error=global var message token, params={params}"
             ).format(
                 params=json.dumps(
                     {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789}
@@ -785,7 +785,7 @@ IP_IS_EXIST_CASE = ComponentTestCase(
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 2.2.2.2"}
+        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"}
     ),
     schedule_assertion=None,
     execute_call_assertion=[

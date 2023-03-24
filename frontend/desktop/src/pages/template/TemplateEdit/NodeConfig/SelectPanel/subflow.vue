@@ -90,7 +90,12 @@
                             </div>
                         </div>
                     </template>
-                    <bk-exception v-else class="exception-part" type="empty" scene="part"></bk-exception>
+                    <NoData
+                        v-else
+                        :type="searchStr ? 'search-empty' : 'empty'"
+                        :message="searchStr ? $t('搜索结果为空') : ''"
+                        @searchClear="handleSearch('')">
+                    </NoData>
                 </div>
             </div>
         </div>
@@ -99,9 +104,13 @@
 <script>
     import permission from '@/mixins/permission.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'Subflow',
+        components: {
+            NoData
+        },
         mixins: [permission],
         props: {
             common: [String, Number],
@@ -352,9 +361,6 @@
         width: 240px;
     }
 }
-.exception-part {
-    margin: 50px 0;
-}
 .list-table {
     margin-top: 16px;
     border: 1px solid #dcdee5;
@@ -405,9 +411,6 @@
     max-height: calc(100vh - 260px);
     overflow: auto;
     @include scrollbar;
-    .no-data-wrapper {
-        margin: 100px 0;
-    }
 }
 .tpl-item {
     display: flex;

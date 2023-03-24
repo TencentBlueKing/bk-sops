@@ -59,6 +59,7 @@ class TaskflowExecutedNodeStatistics(models.Model):
     version = models.CharField(_("插件版本"), max_length=255, default="legacy")
     template_id = models.CharField(_("Pipeline模板ID"), max_length=32)
     task_template_id = models.CharField(_("Task模板ID"), max_length=32)
+    trigger_template_id = models.CharField(_("触发模版ID，独立子流程根流程 ID"), max_length=32, null=True, blank=True)
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id", db_index=True)
     instance_create_time = models.DateTimeField(_("Pipeline实例创建时间"), db_index=True)
     instance_start_time = models.DateTimeField(_("Pipeline实例启动时间"), null=True, blank=True)

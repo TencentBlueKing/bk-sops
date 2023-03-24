@@ -57,7 +57,7 @@ def sync_projects_from_cmdb(username, use_cache=True):
             "cc_owner": biz["bk_supplier_account"],
             "cc_company": biz.get("bk_supplier_id") or 0,
             "time_zone": biz.get("time_zone", ""),
-            "life_cycle": biz.get("life_cycle", ""),
+            "life_cycle": biz.get("life_cycle") or "",
             "status": biz_status,
         }
 

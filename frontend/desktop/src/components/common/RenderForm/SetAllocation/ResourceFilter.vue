@@ -364,11 +364,12 @@
                         validator (val) {
                             if ($this.formData.modules[$this.validatingTabIndex].selectMethod === 1) {
                                 const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
+                                const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
                                 const ipString = $this.formData.modules[$this.validatingTabIndex].customIpList
                                 const arr = ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
                                 return arr.every(item => {
                                     if (item.trim()) {
-                                        return ipPattern.test(item)
+                                        return ipPattern.test(item) || ipv6Regexp.test(item)
                                     }
                                     return true
                                 })
@@ -929,7 +930,8 @@
                     this.$bkMessage({
                         message: gettext('模块') + cycled.join(',') + gettext('存在循环引用'),
                         theme: 'error',
-                        ellipsisLine: 0
+                        ellipsisLine: 0,
+                        delay: 10000
                     })
                     return false
                 }
@@ -954,7 +956,8 @@
                     if (!tabValid) {
                         this.$bkMessage({
                             message: gettext('参数错误，请检查模块表单项'),
-                            theme: 'error'
+                            theme: 'error',
+                            delay: 10000
                         })
                     } else {
                         return true
@@ -965,7 +968,7 @@
             async getHostsAndSave () {
                 try {
                     this.pending.host = true
-                    const fields = []
+                    const fields = ['bk_host_innerip_v6']
 
                     this.formData.modules.forEach(md => { // 取出所有模块的筛选、排除条件字段
                         md.hostFilterList.forEach(item => {
@@ -1038,12 +1041,14 @@
                                 if (moduleHosts[md.name].length === Number(md.count)) {
                                     return true
                                 }
-                                if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
+                                const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6, is_innerip_v6: isV6 } = h
+                                const ip = isV6 ? ipv6 : ipv4
+                                if (!usedHosts.includes(ip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
                                     if (md.muteMethod === 1 && innerMuteAttr.includes(h[this.formData.muteAttribute])) { // 模块内互斥
                                         return
                                     }
-                                    moduleHosts[md.name].push(h.bk_host_innerip)
-                                    usedHosts.push(h.bk_host_innerip)
+                                    moduleHosts[md.name].push(ip)
+                                    usedHosts.push(ip)
                                     innerMuteAttr.push(h[this.formData.muteAttribute])
                                 }
                             })
@@ -1077,11 +1082,19 @@
                     if (selectMethod !== 2) { // 复用其他模块，则暂时不计算该模块的主机
                         if (selectMethod === 1) { // 模块手动填写 ip
                             const ipArr = customIpList.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
+                            const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
                             ipArr.forEach(ipItem => {
                                 const ipStr = ipItem.trim()
-                                const matchedData = data.find(item => item.bk_host_innerip === ipItem)
+                                let text = ipItem
+                                if (ipv6Regexp.test(ipItem)) { // 判断是否为ipv6地址
+                                    text = tools.tranSimIpv6ToFullIpv6(ipItem) // 将缩写的ipv6转换为全写
+                                }
+                                const matchedData = data.find(item => [item.bk_host_innerip, item.bk_host_innerip_v6].includes(text))
                                 if (ipStr && matchedData) {
-                                    list.push(matchedData)
+                                    list.push({
+                                        ...matchedData,
+                                        is_innerip_v6: ipv6Regexp.test(ipItem) // 添加是否为ipv6的标识
+                                    })
                                 }
                             })
                             fullMdHosts.push({
@@ -1091,7 +1104,10 @@
                             })
                         } else { // 默认筛选方式，则计算本模块数据
                             if (hostFilterList.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                                list = data
+                                list = data.map(item => {
+                                    // ipv4不存在时找ipv6
+                                    return { ...item, is_innerip_v6: !item.bk_host_innerip }
+                                })
                             } else {
                                 const filterObj = this.transFieldArrToObj(validFilters)
                                 const excludeObj = this.transFieldArrToObj(validExclude)
@@ -1121,7 +1137,10 @@
                                     }
 
                                     if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                        list.push(item)
+                                        list.push({
+                                            ...item,
+                                            is_innerip_v6: !item.bk_host_innerip // ipv4不存在时找ipv6
+                                        })
                                     }
                                 })
                             }
@@ -1202,7 +1221,7 @@
                     const moduleItem = this.formData.modules.find(item => item.id === mid)
                     if (moduleItem.muteMethod === 2 && moduleItem.muteModule.includes(id)) {
                         prevModulesHost.forEach(ip => {
-                            const hostItem = hosts.find(item => item.bk_host_innerip === ip)
+                            const hostItem = hosts.find(item => [item.bk_host_innerip, item.bk_host_innerip_v6].includes(ip))
                             if (!mutedHostAttrs.includes(hostItem[this.formData.muteAttribute])) {
                                 mutedHostAttrs.push(hostItem[this.formData.muteAttribute])
                             }

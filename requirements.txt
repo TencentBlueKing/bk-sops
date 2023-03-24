@@ -79,7 +79,7 @@ gevent==1.2.2
 django-test-toolkit==1.0.0
 
 # apigw
-apigw-manager[cryptography]==1.1.1
+apigw-manager[cryptography]==1.1.5
 
 # rsa
 pyCryptodome==3.9.7

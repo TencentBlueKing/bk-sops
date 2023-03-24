@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.26.2"
+app_version: "3.28.0"
 app:
     region: default
     bk_app_code: bk_sops
@@ -66,6 +66,7 @@ modules:
                 - bk_app_code: "bk_iam"
                 - bk_app_code: "bk_user_manage"
                 - bk_app_code: "bk_nodeman"
+                - bk_app_code: "bk_gsekit"
                 - bk_app_code: "bk_sops"
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
@@ -122,6 +123,7 @@ modules:
                 - bk_app_code: "bk_iam"
                 - bk_app_code: "bk_user_manage"
                 - bk_app_code: "bk_nodeman"
+                - bk_app_code: "bk_gsekit"
                 - bk_app_code: "bk_sops"
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
@@ -227,6 +229,7 @@ modules:
               - bk_app_code: "bk_iam"
               - bk_app_code: "bk_user_manage"
               - bk_app_code: "bk_nodeman"
+              - bk_app_code: "bk_gsekit"
               - bk_app_code: "bk_sops"
               - bk_app_code: "bk_sops"
                 module_name: "callback"
@@ -281,6 +284,7 @@ modules:
               - bk_app_code: "bk_iam"
               - bk_app_code: "bk_user_manage"
               - bk_app_code: "bk_nodeman"
+              - bk_app_code: "bk_gsekit"
               - bk_app_code: "bk_sops"
               - bk_app_code: "bk_sops"
                 module_name: "callback"

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
@@ -36,13 +37,30 @@ class MonitorBaseService(Service):
 
     def get_ip_dimension_config(self, scope_value, bk_biz_id, username):
         ip_list = scope_value.split(",")
-        hosts = cmdb.get_business_host(
-            username=username,
-            bk_biz_id=bk_biz_id,
-            supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
-            host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
-            ip_list=ip_list,
-        )
+        if settings.ENABLE_IPV6:
+            hosts = cmdb.get_business_host_ipv6(
+                username=username,
+                bk_biz_id=bk_biz_id,
+                supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
+                host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip", "bk_host_innerip_v6"],
+                ip_list=ip_list,
+            )
+            # 监控接口不支持 host_id, 进支持 ip
+            host_without_innerip = [host for host in hosts if host["bk_host_innerip"] == ""]
+            if host_without_innerip:
+                raise Exception(
+                    _("主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参").format(
+                        ",".join([str(host["bk_host_id"]) for host in host_without_innerip])
+                    )
+                )
+        else:
+            hosts = cmdb.get_business_host(
+                username=username,
+                bk_biz_id=bk_biz_id,
+                supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
+                host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
+                ip_list=ip_list,
+            )
         if not hosts:
             raise Exception("cmdb.get_business_host return empty")
 

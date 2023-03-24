@@ -52,6 +52,7 @@
                                 :prop="item.id"
                                 :render-header="renderTableHeader"
                                 :width="item.width"
+                                show-overflow-tooltip
                                 :min-width="item.min_width">
                                 <template slot-scope="props">
                                     <!--任务名称-->
@@ -109,22 +110,22 @@
                                     </div>
                                     <div v-else class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
-                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执⾏')}}</a>
+                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执行')}}</a>
                                         <a
                                             v-else-if="!hasCreateTaskPerm(props.row)"
                                             v-cursor
                                             class="text-permission-disable task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
-                                            {{$t('重新执⾏')}}
+                                            {{$t('重新执行')}}
                                         </a>
                                         <a
                                             v-else
-                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执⾏')"
+                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执行')"
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">
-                                            {{$t('重新执⾏')}}
+                                            {{$t('重新执行')}}
                                         </a>
                                         <a
                                             v-if="executeStatus[props.$index] && executeStatus[props.$index].text === $t('未执行')"
@@ -155,26 +156,18 @@
                                     @setting-change="handleSettingChange">
                                 </bk-table-setting-content>
                             </bk-table-column>
-                            <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                            <div class="empty-data" slot="empty">
+                                <NoData
+                                    :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                    :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                    @searchClear="searchSelectValue = []">
+                                </NoData>
+                            </div>
                         </bk-table>
                     </div>
                 </div>
             </skeleton>
         </div>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: deletaLoading, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -214,7 +207,7 @@
             children: [
                 { id: 'nonExecution', name: i18n.t('未执行') },
                 { id: 'running', name: i18n.t('未完成') },
-                { id: 'revoked', name: i18n.t('撤销') },
+                { id: 'revoked', name: i18n.t('终止') },
                 { id: 'finished', name: i18n.t('完成') }
             ]
         },
@@ -389,10 +382,7 @@
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 isInitCreateMethod: false,
-                isDeleteDialogShow: false,
                 deletaLoading: false,
-                theDeleteTaskId: undefined,
-                theDeleteTaskName: '',
                 initOpenTask: [],
                 selectedTaskId: ''
             }
@@ -718,17 +708,21 @@
                     this.onTaskPermissonCheck(['task_delete'], task)
                     return
                 }
-                this.theDeleteTaskId = task.id
-                this.theDeleteTaskName = task.name
-                this.isDeleteDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('任务') + '"' + task.name + '"?',
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(task.id)
+                    }
+                })
             },
-            async onDeleteConfirm () {
+            async onDeleteConfirm (taskId) {
                 if (this.deletaLoading) return
                 this.deletaLoading = true
                 try {
-                    await this.deleteTask(this.theDeleteTaskId)
-                    this.theDeleteTaskId = undefined
-                    this.theDeleteTaskName = ''
+                    await this.deleteTask(taskId)
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -745,14 +739,8 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.isDeleteDialogShow = false
                     this.deletaLoading = false
                 }
-            },
-            onDeleteCancel () {
-                this.theDeleteTaskId = undefined
-                this.theDeleteTaskName = ''
-                this.isDeleteDialogShow = false
             },
             /**
              * 单个任务操作项点击时校验
@@ -800,7 +788,12 @@
                     return h('span', {
                         'class': 'recorded_executor_proxy-label'
                     }, [
-                        column.label,
+                        h('p', {
+                            'class': 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [column.label]),
                         h('i', {
                             'class': 'common-icon-info table-header-tips',
                             directives: [{
@@ -819,7 +812,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -1071,17 +1071,18 @@
     /deep/.expand-row {
         background: #fafbfd;
     }
-    .empty-data {
-        padding: 120px 0;
-    }
     .template-operate-btn {
         color: $blueDefault;
     }
-    /deep/.table-header-tips {
-        margin-left: 4px;
-        font-size: 14px;
-        color: #c4c6cc;
-        cursor: pointer;
+    /deep/.recorded_executor_proxy-label {
+        display: flex;
+        align-items: center;
+        .table-header-tips {
+            flex-shrink: 0;
+            margin-left: 4px;
+            font-size: 14px;
+            color: #c4c6cc;
+        }
     }
     /deep/ .cell .task-id {
         margin-left: 16px;

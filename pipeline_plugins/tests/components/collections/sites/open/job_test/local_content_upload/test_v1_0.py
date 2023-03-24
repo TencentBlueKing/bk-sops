@@ -62,9 +62,7 @@ GET_CLIENT_BY_USER = (
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.get_node_callback_url"
 )
-CC_GET_IPS_INFO_BY_STR = (
-    "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.cc_get_ips_info_by_str"
-)
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.job_handle_api_error"
 )
@@ -151,14 +149,12 @@ KWARGS = {
     "account_alias": "root",
     "file_target_path": "/tmp/bk_sops_test/",
     "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-    "target_server": {
-        "ip_list": [],
-    },
+    "target_server": {"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
 }
 
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口jobv3.push_config_file返回失败, params={params}, error={error}, "
+    "ex_data": "调用作业平台(JOB)接口jobv3.push_config_file返回失败, error={error}, params={params}, "
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(KWARGS), error=FAIL_RESULT["message"])
 }
 
@@ -183,21 +179,16 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        schedule_finished=True,
-        outputs=dict(list(SUCCESS_OUTPUTS.items())),
+        success=True, schedule_finished=True, outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"ip_result": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
     ],
 )
 
@@ -217,10 +208,10 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
     ],
 )
 
@@ -235,13 +226,10 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"ip_result": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
     ],
 )
 
@@ -269,18 +257,16 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
                         "account_alias": "root",
                         "file_target_path": "/tmp/bk_sops_test/",
                         "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-                        "target_server": {
-                            "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": "2"}],
-                        },
+                        "target_server": {"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": "2"}]},
                     }
                 )
             ],
         ),
     ],
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
     ],
 )
