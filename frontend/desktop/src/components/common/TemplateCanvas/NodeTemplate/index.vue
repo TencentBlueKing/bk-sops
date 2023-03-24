@@ -14,6 +14,8 @@
         class="canvas-node-item"
         @mousedown="onMousedown"
         @mouseenter="$emit('onNodeMouseEnter', node)"
+        @mousemove="$emit('onNodeMouseMove', node, $event)"
+        @mouseleave="$emit('onNodeMouseLeave', node)"
         @click="onNodeClick"
         @dblclick="onNodeDblclick">
         <div class="canvas-node-content">
@@ -135,13 +137,13 @@
     @import '@/scss/mixins/multiLineEllipsis.scss';
     @import '@/scss/mixins/scrollbar.scss';
 
-    $grayDark: #c4c6cc;
+    $grayDark: #b4becd;
     $blueDark: #699df4;
     $defaultColor: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9c01;
-    $greenDark: #a5e8a9;
-    $brightRedDark: #fd9c9c;
+    $greenDark: #9adc9e;
+    $brightRedDark: #f0a0a0;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
     $activeShadow: rgba(0, 0, 0, 0.3);
@@ -246,9 +248,6 @@
             }
             &.finished {
                 @include circleStatusStyle($greenDark);
-                &.end-point {
-                    @include circleStatusStyle(#2dcb56);
-                }
             }
             &.running {
                 @include circleStatusStyle($blueDark)
@@ -333,12 +332,9 @@
             text-align: center;
             background: #ffffff;
             border-radius: 4px;
-            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
             cursor: pointer;
             &:hover {
-                .node-name {
-                    border-color: $defaultColor;
-                }
+                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
             }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
@@ -356,6 +352,9 @@
                 }
             }
             &.failed {
+                .node-name {
+                    border-color: $redDark;
+                }
                 @include taskNodeStyle ($redDark);
                 &.actived {
                     @include nodeClick ($redDark);
@@ -368,6 +367,9 @@
                 }
             }
             &.running {
+                .node-name {
+                    border-color: $blueDark;
+                }
                 @include taskNodeStyle ($blueDark);
                 &.actived {
                     @include nodeClick ($blueDark);
@@ -425,6 +427,7 @@
                 border-top: none;
                 border-bottom-left-radius: 4px;
                 border-bottom-right-radius: 4px;
+                border-color: $grayDark;
                 .name-text {
                     display: -webkit-box;
                     width: 100%;

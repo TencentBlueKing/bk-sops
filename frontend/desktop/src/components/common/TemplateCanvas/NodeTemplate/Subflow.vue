@@ -43,35 +43,37 @@
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
         <node-right-icon-status :node="node"></node-right-icon-status>
-        <!-- tooltip提示 -->
+        <!-- tooltip提示（任务终止时禁止节点操作） -->
         <div class="state-icon">
-            <template v-if="node.status === 'FAILED' && node.type === 'tasknode'">
-                <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
-                    <i class="common-icon-retry"></i>
-                    {{ $t('重试') }}
-                </span>
-                <span v-if="isShowSkipBtn" @click.stop="$emit('onSkipClick', node.id)">
-                    <i class="common-icon-skip"></i>
-                    {{ $t('跳过') }}
+            <template v-if="node.task_state !== 'REVOKED'">
+                <template v-if="node.status === 'FAILED' && node.type === 'tasknode'">
+                    <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
+                        <i class="common-icon-retry"></i>
+                        {{ $t('重试') }}
+                    </span>
+                    <span v-if="isShowSkipBtn" @click.stop="$emit('onSkipClick', node.id)">
+                        <i class="common-icon-skip"></i>
+                        {{ $t('跳过') }}
+                    </span>
+                </template>
+                <template v-if="!isSubProcessNode && node.status === 'RUNNING'">
+                    <span @click.stop="onSubflowPauseResumeClick('pause')">
+                        <i class="common-icon-mandatory-failure"></i>
+                        {{ $t('暂停') }}
+                    </span>
+                    <span v-if="hasAdminPerm" @click.stop="$emit('onForceFail', node.id)">
+                        <i class="common-icon-resume"></i>
+                        {{ $t('强制终止') }}
+                    </span>
+                </template>
+                <span v-if="!isSubProcessNode && node.status === 'SUSPENDED'" @click.stop="onSubflowPauseResumeClick('resume')">
+                    <i class="common-icon-play"></i>
+                    {{ $t('继续') }}
                 </span>
             </template>
             <span v-if="!isSubProcessNode" @click.stop="$emit('onSubflowDetailClick', node.id)">
                 <i class="common-icon-bkflow-setting"></i>
                 {{ $t('节点参数') }}
-            </span>
-            <template v-if="!isSubProcessNode && node.status === 'RUNNING'">
-                <span @click.stop="onSubflowPauseResumeClick('pause')">
-                    <i class="common-icon-mandatory-failure"></i>
-                    {{ $t('暂停') }}
-                </span>
-                <span v-if="hasAdminPerm" @click.stop="$emit('onForceFail', node.id)">
-                    <i class="common-icon-resume"></i>
-                    {{ $t('强制终止') }}
-                </span>
-            </template>
-            <span v-if="!isSubProcessNode && node.status === 'SUSPENDED'" @click.stop="onSubflowPauseResumeClick('resume')">
-                <i class="common-icon-play"></i>
-                {{ $t('继续') }}
             </span>
         </div>
     </div>

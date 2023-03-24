@@ -20,7 +20,7 @@
                     <span class="desc">{{ statsInfo.name + $t('总数') }}</span>
                 </div>
             </div>
-            <no-data class="canvas-content" v-else></no-data>
+            <NoData v-else></NoData>
             <div class="percent-table">
                 <bk-table
                     :data="statsList"
@@ -32,7 +32,8 @@
                         :min-width="item.width"
                         :label="item.label"
                         :align="item.align"
-                        :resizable="false"
+                        show-overflow-tooltip
+                        :render-header="renderTableHeader"
                         :prop="item.prop">
                         <template slot-scope="{ row, $index }">
                             <div v-if="item.prop === 'name'" class="business-name">
@@ -46,6 +47,7 @@
                             <span v-else>{{ row[item.prop] }}</span>
                         </template>
                     </bk-table-column>
+                    <NoData slot="empty"></NoData>
                 </bk-table>
             </div>
         </section>
@@ -218,6 +220,16 @@
                     }
                 })
             },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
+            },
             updateChart (labels, backgroundColor, data, counts) {
                 this.chart.data.labels = labels
                 const datasets = this.chart.data.datasets[0]
@@ -341,16 +353,13 @@
                     }
                 }
                 .business-name {
-                    display: flex;
-                    align-items: center;
                     .color-block {
+                        display: inline-block;
                         width: 12px;
                         height: 12px;
                         margin-right: 8px;
+                        vertical-align: middle;
                     }
-                }
-                .bk-table-empty-text {
-                    height: 200px;
                 }
             }
         }

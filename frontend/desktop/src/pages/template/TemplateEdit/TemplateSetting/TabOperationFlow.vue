@@ -3,17 +3,20 @@
         :is-show="true"
         :width="800"
         ext-cls="operate-flow"
-        :title="$t('任务操作记录')"
+        :title="$t('操作记录')"
         :quick-close="true"
         :before-close="closeTab">
         <template slot="content">
             <bk-table
                 ext-cls="operate-flow-table"
                 :data="operateFlowData">
-                <bk-table-column min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
-                <bk-table-column :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
-                <bk-table-column :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
-                <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作人')" prop="operator"></bk-table-column>
+                <div class="static-ip-empty" slot="empty">
+                    <NoData></NoData>
+                </div>
             </bk-table>
         </template>
     </bk-sideslider>
@@ -22,7 +25,11 @@
 <script>
     import { mapActions } from 'vuex'
     import moment from 'moment'
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
+        components: {
+            NoData
+        },
         data () {
             return {
                 operateFlowData: []
@@ -50,6 +57,16 @@
                 } catch (error) {
                     console.warn(error)
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             closeTab () {
                 this.$emit('closeTab')

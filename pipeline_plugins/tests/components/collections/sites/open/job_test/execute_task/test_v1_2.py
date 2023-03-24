@@ -230,7 +230,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": ("调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, params={params}, " "error=message token").format(
+            "ex_data": ("调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, error=message token, params={params}").format(
                 params=json.dumps(
                     {
                         "bk_scope_type": "biz",
@@ -405,8 +405,8 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_name": "job_name_token",
             "client": JOB_EXECUTE_NOT_SUCCESS_CLIENT,
             "ex_data": "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value返回失败, "
-            'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"job_instance_id":56789}, '
-            "error=global var message token",
+            "error=global var message token, "
+            'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"job_instance_id":56789}',
             "job_tagged_ip_dict": {
                 "name": "JOB执行IP分组",
                 "key": "job_tagged_ip_dict",
@@ -503,7 +503,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             },
             "ex_data": (
                 "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
-                "返回失败, params={params}, error=global var message token"
+                "返回失败, error=global var message token, params={params}"
             ).format(
                 params=json.dumps(
                     {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789}
@@ -650,8 +650,8 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                                 "name": "key_3",
                                 "server": {
                                     "ip_list": [
-                                        {"ip": "4.4.4.4", "bk_cloud_id": 0},
-                                        {"ip": "3.3.3.3", "bk_cloud_id": 0},
+                                        {"ip": "4.4.4.4", "bk_cloud_id": "0"},
+                                        {"ip": "3.3.3.3", "bk_cloud_id": "0"},
                                     ],
                                 },
                             },
@@ -827,7 +827,7 @@ IP_IS_EXIST_CASE = ComponentTestCase(
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 2.2.2.2"}
+        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"}
     ),
     schedule_assertion=None,
     execute_call_assertion=[

@@ -44,7 +44,7 @@ class JobRepoManagerTestCase(TestCase):
         with patch("files.managers.job_repo.JobRepoStorage.generate_temporary_upload_url", upload_url_return):
             with patch(
                 "files.managers.job_repo.JobRepoStorage.save",
-                MagicMock(return_value={"result": True, "data": {}, "message": ""}),
+                MagicMock(return_value={"result": True, "data": {"nodeInfo": {"md5": "file_md5"}}, "message": ""}),
             ):
                 with patch("files.managers.job_repo.Project.objects.filter", MagicMock(return_value=qs_filter)):
                     kwargs = {"project_id": 1, "username": "user_name"}
@@ -54,7 +54,12 @@ class JobRepoManagerTestCase(TestCase):
                     )
                     manager.storage.save.assert_called_once_with(self.upload_url, self.file_name, self.content)
                     self.assertEqual(
-                        tag, {"type": "job_repo", "tags": {"file_path": self.path, "name": self.file_name}}
+                        tag,
+                        {
+                            "type": "job_repo",
+                            "tags": {"file_path": self.path, "name": self.file_name},
+                            "md5": "file_md5",
+                        },
                     )
 
     def test_push_files_to_ips__success(self):

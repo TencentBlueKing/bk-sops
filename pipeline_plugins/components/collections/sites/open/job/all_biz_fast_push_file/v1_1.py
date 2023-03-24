@@ -16,11 +16,11 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service import (
     BaseAllBizJobFastPushFileService,
 )
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -52,15 +52,17 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
             ),
         ]
 
-    def get_params_list(self, data):
+    def get_params_list(self, data, parent_data):
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
+        file_source = self.get_file_source(data, parent_data)
+
+        executor = parent_data.get_one_of_inputs("executor")
+        supplier_account = supplier_account_for_business(biz_cc_id)
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
-        job_source_files = data.get_one_of_inputs("job_source_files", [])
-        file_source = self.get_file_source(job_source_files)
 
         # 如果开启了滚动执行，填充rolling_config配置
         if job_rolling_execute:
@@ -75,18 +77,19 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
         for attr in data.get_one_of_inputs("job_dispatch_attr"):
             job_account = attr["job_target_account"]
             job_target_path = attr["job_target_path"]
-            ip_list = [
-                {"ip": _ip, "bk_cloud_id": int(attr["bk_cloud_id"]) if attr["bk_cloud_id"] else 0}
-                for _ip in get_ip_by_regex(attr["job_ip_list"])
-            ]
+            result, target_server = self.get_target_server_biz_set(
+                executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
+            )
+
+            if not result:
+                raise Exception("目标服务器查询失败，请检查ip配置是否正确")
+
             job_kwargs = {
                 "bk_scope_type": self.biz_scope_type,
                 "bk_scope_id": str(biz_cc_id),
                 "bk_biz_id": biz_cc_id,
                 "file_source_list": file_source,
-                "target_server": {
-                    "ip_list": ip_list,
-                },
+                "target_server": target_server,
                 "account_alias": job_account,
                 "file_target_path": job_target_path,
             }

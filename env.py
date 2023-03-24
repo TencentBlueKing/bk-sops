@@ -97,6 +97,9 @@ CLEAN_EXPIRED_V2_TASK_INSTANCE = bool(os.getenv("BKAPP_CLEAN_EXPIRED_V2_TASK_INS
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = os.getenv("BKAPP_ENABLE_SWAGGER_UI", False)
 
+ENABLE_IPV6 = False if os.getenv("BKAPP_ENABLE_IPV6") is None else True
+
+
 # 流程最高嵌套层数
 TEMPLATE_MAX_RECURSIVE_NUMBER = int(os.getenv("BKAPP_TEMPLATE_MAX_RECURSIVE_NUMBER", 200))
 

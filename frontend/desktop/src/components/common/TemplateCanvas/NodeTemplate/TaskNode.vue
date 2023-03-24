@@ -48,8 +48,8 @@
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
         <node-right-icon-status :node="node"></node-right-icon-status>
-        <!-- tooltip提示 -->
-        <div class="state-icon" v-if="node.mode === 'execute'">
+        <!-- tooltip提示（任务终止时禁止节点操作） -->
+        <div class="state-icon" v-if="node.mode === 'execute' && node.task_state !== 'REVOKED'">
             <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
                 <i class="common-icon-retry"></i>
                 {{ $t('重试') }}
@@ -59,19 +59,15 @@
                 {{ $t('跳过') }}
             </span>
             <template v-if="node.status === 'RUNNING'">
-                <!-- <span v-if="node.code === 'sleep_timer'" @click.stop="$emit('onModifyTimeClick', node.id)">
-                    <i class="common-icon-clock"></i>
-                    {{ $t('修改时间') }}
-                </span> -->
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
                     <i class="common-icon-play"></i>
                     {{ $t('继续') }}
                 </span>
-                <span v-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
+                <span v-else-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
                     <i class="common-icon-circulation"></i>
                     {{ $t('审批') }}
                 </span>
-                <span v-if="node.code !== 'bk_approve' && node.code !== 'pause_node'" @click.stop="$emit('onForceFail', node.id)">
+                <span v-else @click.stop="$emit('onForceFail', node.id)">
                     <i class="common-icon-mandatory-failure"></i>
                     {{ $t('强制终止') }}
                 </span>

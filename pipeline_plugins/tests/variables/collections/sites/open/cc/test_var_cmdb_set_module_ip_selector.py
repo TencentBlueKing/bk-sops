@@ -219,6 +219,11 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             ],
                         },
                     },
+                    find_module_batch_return={
+                        "result": True,
+                        "message": "find module batch success",
+                        "data": [{"bk_module_id": 1111, "ip": "1.1.1.1"}, {"bk_module_id": 2222, "ip": "2.2.2.2"}],
+                    },
                 )
             ),
         )
@@ -1194,7 +1199,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip,空闲机"},
+                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip"},
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "集群1,集群2",
                 "var_filter_module": "db,空闲机",
@@ -1227,7 +1232,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip,空闲机"},
+                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip"},
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "空闲机池,集群2",
                 "var_filter_module": "空闲机",
@@ -1267,7 +1272,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip,空闲机"},
+                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip"},
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "",
                 "var_filter_module": "",

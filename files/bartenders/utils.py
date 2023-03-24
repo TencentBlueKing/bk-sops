@@ -22,6 +22,8 @@ INVALID_CHAR_REGEX = re.compile('[\\/:*?"<>|,]')
 
 
 def common_process_request(request, manager, *args, **kwargs):
+    use_md5_in_file_tag = bool(kwargs.pop("use_md5_in_file_tag", False))
+
     file_obj = request.FILES["file"]
     project_id = request.META["HTTP_APP_PROJECTID"]
     file_name = file_obj.name
@@ -50,10 +52,12 @@ def common_process_request(request, manager, *args, **kwargs):
     }
 
     # 计算文件md5
-    file_local_md5 = hashlib.md5(file_obj.read()).hexdigest()
+    file_local_md5 = hashlib.md5(file_obj.read()).hexdigest() if not use_md5_in_file_tag else None
 
     try:
         file_tag = manager.save(name=file_name, content=file_obj, shims=shims, **kwargs)
+        if use_md5_in_file_tag and "md5" in file_tag:
+            file_local_md5 = file_tag.pop("md5")
     except Exception as e:
         message = _(f"文件上传失败: 文件归档失败请重试, 如持续失败可联系管理员处理, {e} | common_process_request")
         logger.error(message)

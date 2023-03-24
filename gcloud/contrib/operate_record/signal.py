@@ -36,15 +36,12 @@ def record_template_handler(operator, operate_type, operate_source, instance_id,
 @receiver(operate_record_signal, sender=RecordType.common_template.name)
 def record_common_template_handler(operator, operate_type, operate_source, instance_id, **kwargs):
     record_template_operation_helper(
-        operator=operator,
-        operate_type=operate_type,
-        operate_source=operate_source,
-        template_id=instance_id,
+        operator=operator, operate_type=operate_type, operate_source=operate_source, template_id=instance_id,
     )
 
 
 @receiver(operate_record_signal, sender=RecordType.task.name)
-def record_task_handler(operator, operate_type, operate_source, instance_id, project_id, extra_info, **kwargs):
+def record_task_handler(operator, operate_type, operate_source, instance_id, project_id, extra_info="", **kwargs):
     record_task_operation_helper(
         operator=operator,
         operate_type=operate_type,

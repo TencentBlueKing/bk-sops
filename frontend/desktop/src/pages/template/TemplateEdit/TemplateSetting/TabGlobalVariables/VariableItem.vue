@@ -44,7 +44,7 @@
                 @click.stop="onPreviewValue">
                 {{ variableData.type || '--' }}
             </span>
-            <span class="col-item col-attributes">
+            <!-- <span class="col-item col-attributes">
                 <i
                     v-if="variableData.source_type !== 'component_outputs'"
                     class="common-icon-show-left"
@@ -64,7 +64,7 @@
                     }"
                     @click.stop="viewClick">
                 </i>
-            </span>
+            </span> -->
             <span class="col-item col-show" @click.stop>
                 <bk-switcher
                     size="small"
@@ -99,7 +99,7 @@
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">
                         <p class="operate-item" @click.stop="onCloneVariable()">{{ $t('克隆') }}</p>
-                        <p class="operate-item" @click.stop="deleteVarVisible = true">{{ $t('删除') }}</p>
+                        <p class="operate-item" @click.stop="onDeleteVariable">{{ $t('删除') }}</p>
                     </template>
                 </bk-popover>
             </span>
@@ -114,14 +114,6 @@
             :keyid="variableData.key"
             :params="previewParams">
         </VariablePreviewValue>
-        <bk-dialog v-model="deleteVarVisible"
-            theme="primary"
-            header-position="left"
-            :mask-close="false"
-            :title="$t('删除')"
-            @confirm="onDeleteVariable">
-            <span>{{ $t('确认删除') }} “{{variableData.name}} / {{variableData.key}}” ?</span>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -150,8 +142,7 @@
                 showCitedList: false,
                 showPreviewValue: false,
                 copyText: '',
-                previewParams: {},
-                deleteVarVisible: false
+                previewParams: {}
             }
         },
         computed: {
@@ -286,7 +277,16 @@
                 }
             },
             onDeleteVariable () {
-                this.$emit('onDeleteVariable', this.variableData.key)
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('全局变量') + `"${this.variableData.key}"?`,
+                    subTitle: i18n.t('若该变量被节点引用，请及时检查并更新节点配置'),
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: () => {
+                        this.$emit('onDeleteVariable', this.variableData.key)
+                    }
+                })
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
@@ -399,7 +399,9 @@ $localBorderColor: #d8e2e7;
             color: #339dff;
         }
     }
-    .col-show,
+    .col-show {
+        width: 100px;
+    }
     .col-output {
         width: 50px;
     }

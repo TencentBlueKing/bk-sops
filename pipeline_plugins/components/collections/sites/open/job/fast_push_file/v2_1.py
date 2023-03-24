@@ -20,6 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
@@ -34,14 +35,12 @@ from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
 
-from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
-
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFastPushFileService(JobScheduleService):
+class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
     need_show_failure_inst_url = True
 
     def inputs_format(self):
@@ -132,13 +131,15 @@ class JobFastPushFileService(JobScheduleService):
 
         file_source = []
         for item in original_source_files:
-            result, ip_list = get_biz_ip_from_frontend_hybrid(executor, item["ip"], biz_cc_id, data)
-            if not result:
+            clean_source_ip_result, server = self.get_target_server_hybrid(
+                executor, biz_cc_id, data, item["ip"], logger_handle=self.logger
+            )
+            if not clean_source_ip_result:
                 return False
             file_source.append(
                 {
                     "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "server": {"ip_list": ip_list},
+                    "server": server,
                     "account": {
                         "alias": loose_strip(item["account"]),
                     },
@@ -173,15 +174,18 @@ class JobFastPushFileService(JobScheduleService):
         params_list = []
         for attr in attr_list:
             # 获取目标IP
-            result, ip_list = get_biz_ip_from_frontend_hybrid(executor, attr["job_ip_list"], biz_cc_id, data)
-            if not result:
+            original_ip_list = attr["job_ip_list"]
+            clean_result, target_server = self.get_target_server_hybrid(
+                executor, biz_cc_id, data, original_ip_list, logger_handle=self.logger
+            )
+            if not clean_result:
                 return False
             job_kwargs = {
                 "bk_scope_type": JobBizScopeType.BIZ.value,
                 "bk_scope_id": str(biz_cc_id),
                 "bk_biz_id": biz_cc_id,
                 "file_source_list": file_source,
-                "target_server": {"ip_list": ip_list},
+                "target_server": target_server,
                 "account_alias": attr["job_account"],
                 "file_target_path": attr["job_target_path"],
             }

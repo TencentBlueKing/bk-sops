@@ -69,7 +69,7 @@
                 <span class="td">{{ !('always_use_latest' in componentValue) ? '--' : componentValue.always_use_latest ? $t('是') : $t('否') }}</span>
             </li>
         </ul>
-        <template v-if="(nodeActivity.original_template_id && !templateConfig.isOldData) || !isSubProcessNode">
+        <template v-if="inputAndOutputWrapShow">
             <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
             <div class="input-wrap" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                 <template v-if="Array.isArray(inputs)">
@@ -83,7 +83,7 @@
                         :form-data="inputsFormData"
                         :render-config="inputsRenderConfig">
                     </render-form>
-                    <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                    <no-data v-else :message="$t('暂无参数')"></no-data>
                 </template>
                 <template v-else>
                     <jsonschema-input-params
@@ -91,7 +91,7 @@
                         :inputs="inputs"
                         :value="inputsFormData">
                     </jsonschema-input-params>
-                    <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                    <no-data v-else :message="$t('暂无参数')"></no-data>
                 </template>
             </div>
             <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
@@ -127,7 +127,7 @@
                         </template>
                     </bk-table-column>
                 </bk-table>
-                <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                <no-data v-else :message="$t('暂无参数')"></no-data>
             </div>
         </template>
     </section>
@@ -213,11 +213,11 @@
             timeoutTextValue () {
                 const timeoutConfig = this.nodeActivity['timeout_config']
                 if (!timeoutConfig || !timeoutConfig.enable) return '--'
-                const actionText = timeoutConfig.action === 'forced_fail' ? i18n.t('强制失败') : i18n.t('强制失败后跳过')
+                const actionText = timeoutConfig.action === 'forced_fail' ? i18n.t('强制终止') : i18n.t('强制终止后跳过')
                 return i18n.t('超时') + ' ' + timeoutConfig.seconds + ' ' + i18n.tc('秒', 0) + i18n.t('后') + i18n.t('则') + actionText
             },
             componentValue () {
-                if (this.nodeActivity.component) {
+                if (this.isSubProcessNode) {
                     return this.nodeActivity.component.data.subprocess.value
                 }
                 return {}
@@ -230,13 +230,23 @@
             },
             outputList () {
                 return this.getOutputsList()
+            },
+            inputAndOutputWrapShow () {
+                const { original_template_id, type } = this.nodeActivity
+                // 普通任务节点展示/该功能上线后的独立子流程任务展示
+                return (!this.isSubProcessNode && type !== 'SubProcess')
+                    || (original_template_id && !this.templateConfig.isOldData)
             }
         },
         mounted () {
+            $.context.exec_env = 'NODE_EXEC_DETAIL'
             this.initData()
             if (this.nodeActivity.original_template_id) {
                 this.getTemplateData()
             }
+        },
+        beforeDestroy () {
+            $.context.exec_env = ''
         },
         methods: {
             ...mapActions('template/', [
@@ -256,10 +266,11 @@
                 try {
                     // 获取对应模板配置
                     let tplConfig = {}
-                    if (!this.nodeDetailConfig.subprocess_stack) { // 旧版子流程任务节点不支持查看节点快照配置
+                    if (this.nodeActivity.type !== 'SubProcess') { // 旧版子流程任务节点不支持查看节点快照配置
                         tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
                     }
                     this.templateConfig = tplConfig.data || { ...this.nodeActivity, isOldData: true } || {}
+                    if (this.nodeActivity.type === 'SubProcess') return
                     if (this.isSubProcessNode) { // 子流程任务节点
                         // tplConfig.data为null为该功能之前的旧数据，没有original_template_id字段的，不调接口
                         if (!tplConfig.data || !this.nodeActivity.original_template_id) {
@@ -329,7 +340,7 @@
                         scheme_id_list: this.nodeActivity.schemeIdList || [],
                         version
                     }
-                    if (this.isCommonTpl) {
+                    if (this.componentValue.template_source === 'common') {
                         params.template_source = 'common'
                     } else {
                         params.project_id = this.project_id
@@ -416,7 +427,7 @@
              */
             async getAtomConfig (config) {
                 const { plugin, version, classify, name, isThird } = config
-                const project_id = this.isCommonTpl ? undefined : this.project_id
+                const project_id = this.componentValue.template_source === 'common' ? undefined : this.project_id
                 try {
                     // 先取标准节点缓存的数据
                     const pluginGroup = this.pluginConfigs[plugin]

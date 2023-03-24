@@ -192,8 +192,8 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }
@@ -226,8 +226,8 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }
@@ -258,8 +258,8 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }
@@ -291,8 +291,8 @@ SELECT_BY_TOPO_SUCCESS_INPUTS = {
         {
             "bk_set_name": "1",
             "bk_set_desc": "1",
-            "bk_set_env": "测试",
-            "bk_service_status": "关闭",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
             "description": "1",
             "bk_capacity": "1",
         }

@@ -410,15 +410,17 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         params.is_valid(raise_exception=True)
         template_node_id = params.data["template_node_id"]
         task = self.get_object()
-        execution_time_data = (
+        execution_data = (
             TaskflowExecutedNodeStatistics.objects.filter(
-                template_node_id=template_node_id, status=True, is_skip=False, task_template_id=task.template_id
+                template_node_id=template_node_id, status=True, is_skip=False, trigger_template_id=task.template_id
             )
             .order_by("-archived_time")
             .values("archived_time", "elapsed_time")
-        )[: settings.MAX_RECORDED_NODE_EXECUTION_TIMES]
+        )
+        execution_total_time = len(execution_data)
+        execution_time_data = execution_data[: settings.MAX_RECORDED_NODE_EXECUTION_TIMES]
         node_execution_record_serializer = NodeExecutionRecordResponseSerializer(
-            data={"execution_time": execution_time_data}
+            data={"execution_time": execution_time_data, "total": execution_total_time}
         )
         node_execution_record_serializer.is_valid(raise_exception=True)
         return Response(node_execution_record_serializer.validated_data)
