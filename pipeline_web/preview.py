@@ -56,7 +56,6 @@ def preview_template_tree_with_schemes(template, version, scheme_id_list):
         if value["show_type"] == "show" and key not in pipeline_tree["constants"]:
             if value["source_type"] == "custom":
                 custom_constants[key] = value
-                continue
 
             constants_not_referred[key] = value
 

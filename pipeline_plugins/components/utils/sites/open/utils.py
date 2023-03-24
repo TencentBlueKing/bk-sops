@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import re
 import logging
+from collections import Counter
 
 from cryptography.fernet import Fernet
 
@@ -23,7 +24,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
 from gcloud.utils import cmdb
-from gcloud.utils.ip import get_ip_by_regex
+from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str, get_ipv6_and_cloud_id_from_ipv6_cloud_str
 from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
 
@@ -45,6 +46,280 @@ ip_re = r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d
 plat_ip_reg = re.compile(r"(\d+:)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 set_module_ip_reg = re.compile(r"[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|" + ip_re)
 ip_pattern = re.compile(ip_re)
+
+
+def compare_ip_list_and_return(host_list, ip_list, host_key="bk_host_innerip", raise_exception=True):
+    if len(host_list) > len(ip_list):
+        # find repeat innerip host
+        host_counter = Counter([host[host_key] for host in host_list])
+        mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
+        if raise_exception:
+            raise Exception("mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)))
+        return mutiple_innerip_hosts
+    if len(host_list) < len(ip_list):
+        return_innerip_set = {host[host_key] for host in host_list}
+        absent_innerip = set(ip_list).difference(return_innerip_set)
+        return absent_innerip
+    return set()
+
+
+def get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list):
+    ipv6_info_list = cmdb.get_business_host_topo(
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip_v6", "bk_host_id", "bk_cloud_id"],
+        property_filters={
+            "host_property_filter": {
+                "condition": "AND",
+                "rules": [{"field": "bk_host_innerip_v6", "operator": "in", "value": ipv6_list}],
+            }
+        },
+    )
+    if len(ipv6_list) != len(ipv6_info_list):
+        return (
+            False,
+            compare_ip_list_and_return(
+                [item["host"] for item in ipv6_info_list],
+                ipv6_list,
+                host_key="bk_host_innerip_v6",
+                raise_exception=False,
+            ),
+        )
+
+    ip_result = []
+    for ip_info in ipv6_info_list:
+        ip_result.append(
+            {
+                "InnerIP": ip_info["host"]["bk_host_innerip_v6"],
+                "HostID": ip_info["host"]["bk_host_id"],
+                "Source": ip_info["host"].get("bk_cloud_id", -1),
+                "Sets": ip_info["set"],
+                "Modules": ip_info["module"],
+            }
+        )
+
+    return True, ip_result
+
+
+def get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list):
+    ip_result = []
+
+    if not ipv4_list:
+        return True, []
+
+    ipv4_info_list = cmdb.get_business_host_topo(
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
+        ip_list=ipv4_list,
+    )
+
+    if len(ipv4_list) != len(ipv4_info_list):
+        return (
+            False,
+            compare_ip_list_and_return(
+                [item["host"] for item in ipv4_info_list], ipv4_list, host_key="bk_host_innerip", raise_exception=False
+            ),
+        )
+
+    for ip_info in ipv4_info_list:
+        ip_result.append(
+            {
+                "InnerIP": ip_info["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "HostID": ip_info["host"]["bk_host_id"],
+                "Source": ip_info["host"].get("bk_cloud_id", -1),
+                "Sets": ip_info["set"],
+                "Modules": ip_info["module"],
+            }
+        )
+
+    return True, ip_result
+
+
+def get_ipv4_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv4_list_with_cloud_id):
+    ip_list = [_ip.split(":")[1] for _ip in ipv4_list_with_cloud_id]
+
+    if not ip_list:
+        return True, []
+
+    ipv4_info_list = cmdb.get_business_host_topo(
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
+        ip_list=ip_list,
+    )
+
+    ipv4_info_with_cloud_valid = []
+    for ip_info in ipv4_info_list:
+        # 清洗出来所有带云区域带ip
+        plat_ip = "{}:{}".format(ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""))
+        if plat_ip in ipv4_list_with_cloud_id:
+            ipv4_info_with_cloud_valid.append(ip_info)
+
+    # 再比较查询结果和输入结果数量是否一致
+    compare_data = compare_ip_list_and_return(
+        [item["host"] for item in ipv4_info_with_cloud_valid], ip_list, "bk_host_innerip", raise_exception=False
+    )
+    if compare_data:
+        return False, compare_data
+    ip_result = []
+    for item in ipv4_info_with_cloud_valid:
+        ip_result.append(
+            {
+                "InnerIP": item["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "HostID": item["host"]["bk_host_id"],
+                "Source": item["host"].get("bk_cloud_id", -1),
+                "Sets": item["set"],
+                "Modules": item["module"],
+            }
+        )
+
+    return True, ip_result
+
+
+def get_ipv6_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv6_list_with_cloud_id):
+    if not ipv6_list_with_cloud_id:
+        return True, []
+
+    # 先把所有的ip拿出来去查询符合条件的主机
+    ipv6_list = []
+    for item in ipv6_list_with_cloud_id:
+        _, ip = get_ipv6_and_cloud_id_from_ipv6_cloud_str(item)
+        ipv6_list.append(ip)
+
+    ipv6_info_list = cmdb.get_business_host_topo(
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip_v6", "bk_host_id", "bk_cloud_id"],
+        property_filters={
+            "host_property_filter": {
+                "condition": "AND",
+                "rules": [{"field": "bk_host_innerip_v6", "operator": "in", "value": ipv6_list}],
+            }
+        },
+    )
+
+    ipv6_info_with_cloud_valid = []
+    for ip_info in ipv6_info_list:
+        # 清洗出来所有带云区域带ip
+        plat_ip = "{}:[{}]".format(
+            ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip_v6", "")
+        )
+        if plat_ip in ipv6_list_with_cloud_id:
+            ipv6_info_with_cloud_valid.append(ip_info)
+
+    compare_data = compare_ip_list_and_return(
+        [item["host"] for item in ipv6_info_with_cloud_valid],
+        ipv6_list,
+        host_key="bk_host_innerip_v6",
+        raise_exception=False,
+    )
+
+    if compare_data:
+        return False, compare_data
+
+    ip_result = []
+    for item in ipv6_info_with_cloud_valid:
+        ip_result.append(
+            {
+                "InnerIP": item["host"]["bk_host_innerip_v6"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "HostID": item["host"]["bk_host_id"],
+                "Source": item["host"].get("bk_cloud_id", -1),
+                "Sets": item["set"],
+                "Modules": item["module"],
+            }
+        )
+
+    return True, ip_result
+
+
+def get_host_info_list(username, biz_cc_id, supplier_account, host_id_list):
+    ip_result = []
+    host_info_list = cmdb.get_business_host_topo(
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip_v6", "bk_host_innerip", "bk_host_id", "bk_cloud_id"],
+        property_filters={
+            "host_property_filter": {
+                "condition": "AND",
+                "rules": [
+                    {"field": "bk_host_id", "operator": "in", "value": [int(host_id) for host_id in host_id_list]}
+                ],
+            }
+        },
+    )
+    if len(host_id_list) != len(host_info_list):
+        return (
+            False,
+            compare_ip_list_and_return(
+                [item["host"] for item in host_info_list], host_id_list, host_key="bk_host_id", raise_exception=False
+            ),
+        )
+
+    # 默认使用bk_host_innerip地址
+    for ip_info in host_info_list:
+        bk_host_innerip = ip_info["host"]["bk_host_innerip"]
+        if not bk_host_innerip:
+            bk_host_innerip = ip_info["host"]["bk_host_innerip_v6"]
+
+        ip_result.append(
+            {
+                "InnerIP": bk_host_innerip,  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "HostID": ip_info["host"]["bk_host_id"],
+                "Source": ip_info["host"].get("bk_cloud_id", -1),
+                "Sets": ip_info["set"],
+                "Modules": ip_info["module"],
+            }
+        )
+
+    return True, ip_result
+
+
+def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
+    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id = extract_ip_from_ip_str(
+        ip_str
+    )
+
+    supplier_account = supplier_account_for_business(biz_cc_id)
+
+    ipv6_result, ipv6_data = get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list)
+    if not ipv6_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_data}
+
+    # ipv6带云区域
+    ipv6_list_with_cloud_id_result, ipv6_list_with_cloud_id_data = get_ipv6_info_list_with_cloud_id(
+        username, biz_cc_id, supplier_account, ipv6_list_with_cloud_id
+    )
+    if not ipv6_list_with_cloud_id_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_list_with_cloud_id_data}
+
+    ipv4_result, ipv4_data = get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list)
+    if not ipv4_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv4_data}
+
+    host_result, host_data = get_host_info_list(username, biz_cc_id, supplier_account, host_id_list)
+    if not host_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": host_data}
+
+    ipv4_with_cloud_id_result, ipv4_info_with_cloud_id_data = get_ipv4_info_list_with_cloud_id(
+        username, biz_cc_id, supplier_account, ipv4_list_with_cloud_id
+    )
+    if not ipv4_with_cloud_id_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv4_with_cloud_id_result}
+
+    ip_result = ipv6_data + ipv4_data + host_data + ipv4_info_with_cloud_id_data + ipv6_list_with_cloud_id_data
+
+    return {
+        "result": True,
+        "ip_result": ip_result,
+        "ip_count": len(ip_result),
+        "invalid_ip": [],
+    }
 
 
 def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):

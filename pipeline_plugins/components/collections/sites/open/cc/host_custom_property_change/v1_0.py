@@ -21,7 +21,8 @@ from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -32,7 +33,7 @@ VERSION = "v1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCHostCustomPropertyChangeService(Service):
+class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
     class FileCode(object):
         host_rule = "1"
         set_rule = "2"
@@ -44,7 +45,10 @@ class CCHostCustomPropertyChangeService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("IP"), key="cc_ip_list", type="string", schema=StringItemSchema(description=_("多个用换行分隔")),
+                name=_("IP"),
+                key="cc_ip_list",
+                type="string",
+                schema=StringItemSchema(description=_("多个用换行分隔")),
             ),
             self.InputItem(
                 name=_("自定义属性"),
@@ -106,13 +110,13 @@ class CCHostCustomPropertyChangeService(Service):
             return False
 
         hostname_rule = sorted(hostname_rule, key=lambda e: str(e.__getitem__("field_order")))
-
-        ip_list = cc_get_ips_info_by_str(username=operator, biz_cc_id=biz_cc_id, ip_str=sa_ip_list, use_cache=False)
+        supplier_account = supplier_account_for_business(biz_cc_id)
+        ip_list = self.get_ip_info_list(operator, biz_cc_id, sa_ip_list, supplier_account)
         if not ip_list["result"] or not ip_list["ip_count"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
             return False
         if ip_list["invalid_ip"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
             data.outputs.invalid_ip = ",".join(ip_list["invalid_ip"])
             return False
 

@@ -16,13 +16,14 @@ export default class ErrorNotify {
             message: h('div',
                 [
                     traceId || msg ? h('p', {
+                        class: 'toggle-btn',
                         style: { position: 'absolute', top: '24px', right: '36px', color: '#3a84ff', cursor: 'pointer' },
                         on: {
                             click: () => {
                                 this.toggleShowMore()
                             }
                         }
-                    }, [i18n.t('查看更多')]) : '',
+                    }, [i18n.t('展开详情')]) : '',
                     h('div', {
                         class: 'bk-notify-content-text',
                         style: this.showMore ? {} : {
@@ -48,7 +49,7 @@ export default class ErrorNotify {
                         style: { display: 'none', position: 'relative', margin: '10px 10px 0 auto' },
                         on: {
                             click: () => {
-                                this.handleCopy(vueInstance, traceId ? `trace_id：${traceId}\n${msg}` : msg)
+                                this.handleCopy(vueInstance, errorInfo)
                             }
                         }
                     }, [i18n.t('复制')])
@@ -87,7 +88,14 @@ export default class ErrorNotify {
             const infoArr = info.split(': ')
             content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
         } else {
-            content = isTitle ? JSON.parse(info).message.split(': ')[0] : JSON.parse(info).message.split(': ').slice(1).join(': ').split(' | ')[msgIndex]
+            const { message } = JSON.parse(info)
+            const regex = /([^:]*)?: (.*)?/ // 标准数据结构
+            if (regex.test(message)) {
+                const arr = message.match(regex)
+                content = isTitle ? arr[1] : arr[2]?.split(' | ')[msgIndex]
+            } else {
+                content = isTitle ? message : message?.split(' | ')[msgIndex]
+            }
         }
         if (isTitle && (!content || content.length > 21)) { // 21为标题能容纳的最大数量
             content = errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）')
@@ -125,6 +133,11 @@ export default class ErrorNotify {
     }
     toggleShowMore () {
         this.showMore = !this.showMore
+        // 设置切换按钮文案
+        const btnDom = this.notify.$el.querySelector('.toggle-btn')
+        if (btnDom) {
+            btnDom.innerHTML = this.showMore ? i18n.t('隐藏详情') : i18n.t('展开详情')
+        }
         // 计算当前展开的notify最大层级
         const notifyErrorDoms = document.querySelectorAll('.bk-notify')
         const zIndexList = [2500] // 默认层级2500
@@ -149,13 +162,25 @@ export default class ErrorNotify {
         const errorMsg = instance.$el.textContent
         bus.$emit('onCloseErrorNotify', errorMsg)
     }
-    handleCopy (vueInstance, msg) {
+    handleCopy (vueInstance, errorInfo) {
+        const { msg, traceId, errorSource } = errorInfo
+        let copyMsg = ''
+        if (msg) {
+            copyMsg = this.setNotifyTitleAndContent(msg, true, errorSource) + '\n'
+            copyMsg = copyMsg + this.setNotifyTitleAndContent(msg, false, errorSource, 0) + '\n'
+        }
+        if (traceId) {
+            copyMsg = copyMsg + `trace_id：${traceId}` + '\n'
+        }
+        if (msg && errorSource === 'result') {
+            copyMsg = copyMsg + 'error_function: ' + this.setNotifyTitleAndContent(msg, false, errorSource, 1) || '--'
+        }
         const textarea = document.createElement('textarea')
         document.body.appendChild(textarea)
         textarea.style.position = 'fixed'
         textarea.style.clip = 'rect(0 0 0 0)'
         textarea.style.top = '10px'
-        textarea.value = msg
+        textarea.value = copyMsg
         textarea.select()
         document.execCommand('copy', true)
         document.body.removeChild(textarea)

@@ -36,6 +36,9 @@
                             :display-tag="true"
                             :multiple="true"
                             searchable
+                            :popover-options="{
+                                onHide: () => !labelDialogShow
+                            }"
                             :disabled="isViewMode"
                             @toggle="onSelectLabel">
                             <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">
@@ -155,7 +158,7 @@
                 </section>
             </bk-form>
             <div class="btn-wrap">
-                <bk-button v-if="!isViewMode" class="save-btn" theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                <bk-button v-if="!isViewMode" class="save-btn" theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onSaveConfig">{{ $t('确定') }}</bk-button>
                 <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
             <bk-dialog
@@ -454,7 +457,7 @@
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.closeTab()
                         }
                     })

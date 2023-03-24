@@ -67,7 +67,7 @@ DISABLE_SHIELD_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "data": {
-                "result": "调用监控平台(Monitor)接口monitor.disable_shield返回失败, " 'params={"id":"1"}, error=disable shield fail'
+                "result": "调用监控平台(Monitor)接口monitor.disable_shield返回失败, error=disable shield fail, " 'params={"id":"1"}'
             },
             "status_code": 500,
         },

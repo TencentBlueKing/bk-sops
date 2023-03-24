@@ -80,7 +80,7 @@
         {
             type: 'dynamicIp',
             id: 'topo',
-            name: gettext('动态 IP'),
+            name: gettext('动态拓扑'),
             hasDiff: false
         },
         {
@@ -152,7 +152,7 @@
                 'getDynamicGroup'
             ]),
             getData () {
-                const staticIpExtraFields = ['agent']
+                const staticIpExtraFields = ['agent', 'bk_host_innerip_v6']
                 const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
                 if (!urls['cc_search_host'] || !urls['cc_search_topo_tree'] || !urls['cc_get_mainline_object_topo']) {
                     return
@@ -192,10 +192,10 @@
                                 case 1:
                                     this.dynamicIpList = v.data
                                     // 判断动态IP数据与最新的CMDB动态IP配置是否存在差异
-                                    hasDiff = topo.some(item => {
+                                    hasDiff = topo.every(item => {
                                         return this.loopDynamicIpList(this.dynamicIpList, item.bk_obj_id, item.bk_inst_id)
                                     })
-                                    this.selectorTabs[1].hasDiff = hasDiff
+                                    this.selectorTabs[1].hasDiff = !hasDiff
                                     break
                                 case 2:
                                     this.topoModelList = v.data
@@ -221,11 +221,11 @@
             loopDynamicIpList (list, objId, instId) {
                 return list.some(item => {
                     if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
-                        return false
-                    } else if (item.child && item.child.length) {
-                        this.loopDynamicIpList(item.child, objId, instId)
-                    } else {
                         return true
+                    } else if (item.child && item.child.length) {
+                        return this.loopDynamicIpList(item.child, objId, instId)
+                    } else {
+                        return false
                     }
                 })
             },

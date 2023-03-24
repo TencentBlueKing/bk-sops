@@ -73,6 +73,7 @@ class BKRepoManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        target_server=None,
         rolling_config=None,
     ):
         try:
@@ -111,10 +112,16 @@ class BKRepoManager(Manager):
                     "file_source_id": file_source_id,
                 }
             ],
-            "target_server": {"ip_list": ips},
         }
+
+        if target_server is not None:
+            job_kwargs["target_server"] = target_server
+        else:
+            job_kwargs["target_server"] = {"ip_list": ips}
+
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
+
         if rolling_config is not None:
             job_kwargs["rolling_config"] = rolling_config
         if callback_url:

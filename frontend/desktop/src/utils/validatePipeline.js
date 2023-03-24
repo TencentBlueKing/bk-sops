@@ -266,6 +266,7 @@ const validatePipeline = {
         const { activities, start_event, end_event, gateways, flows } = data
         let valid = validator(data)
         let message = ''
+        let errorId = ''
         if (!valid) {
             const error = validator.errors[0]
             let nodeName = ''
@@ -275,6 +276,7 @@ const validatePipeline = {
                 const activity = activities[matchResult[1]]
                 if (activity) {
                     nodeName = activity.name
+                    errorId = activity.id
                 }
             }
             message = `${nodeName} ${error.dataPath} ${error.message}`
@@ -294,10 +296,71 @@ const validatePipeline = {
                 message = result.message
                 return true
             }
+            // 检查并行网关/条件并行网关是否和汇聚网关相连
+            if (['ParallelGateway', 'ConditionalParallelGateway'].includes(node.type)) {
+                let branchSinkNodes = new Set()
+                this.getBranchNodes(data, node.id, '', branchSinkNodes)
+                branchSinkNodes = [...branchSinkNodes]
+                if (branchSinkNodes.length === 1 && gateways[branchSinkNodes[0]]?.type === 'ConvergeGateway') {
+                    return false
+                } else {
+                    message = node.type === 'ParallelGateway'
+                        ? i18n.t('并行网关缺少对应的汇聚网关')
+                        : i18n.t('条件并行网关缺少对应的汇聚网关')
+                    errorId = node.id
+                    return true
+                }
+            }
             return false
         })
 
-        return this.getMessage(valid, message)
+        return this.getMessage(valid, message, errorId)
+    },
+    /**
+     * id 起始节点
+     * firstId 分支上首个节点
+     * branchSinkNodes 存在分支
+     */
+    getBranchNodes (data, id, firstId, branchSinkNodes) {
+        const { flows, activities, gateways, end_event } = data
+        const targetIds = Object.values(flows).reduce((acc, cur) => {
+            if (cur.source === id) {
+                acc.push(cur.target)
+            }
+            return acc
+        }, [])
+        if (targetIds.length > 1) {
+            if (branchSinkNodes.has(firstId)) {
+                branchSinkNodes.delete(firstId)
+            }
+            // 先获取到所有的分支再去递归查找!
+            targetIds.forEach(targetId => {
+                branchSinkNodes.add(targetId)
+            })
+            targetIds.forEach(targetId => {
+                this.getBranchNodes(data, targetId, targetId, branchSinkNodes)
+            })
+        } else if (targetIds.length === 1) {
+            const targetId = targetIds[0]
+            const curId = firstId ? id : targetId
+            const { incoming = [], type } = activities[curId] || gateways[curId] || {}
+            // 如果只有一条分支并且找到了汇聚网关则退出递归
+            if (branchSinkNodes.size <= 1 && type === 'ConvergeGateway') {
+                branchSinkNodes.delete(firstId)
+                branchSinkNodes.add(curId)
+            } else if (incoming.length <= 1) { // 单条输出
+                // 找到结束节点则退出递归
+                if (end_event.id === targetId) {
+                    branchSinkNodes.clear(firstId)
+                } else {
+                    this.getBranchNodes(data, targetId, firstId, branchSinkNodes)
+                }
+            } else {
+                // 如果该节点有多个输入连线则不继续查找
+                branchSinkNodes.delete(firstId)
+                branchSinkNodes.add(curId)
+            }
+        }
     },
     getMessage (result = true, message = '', errorId) {
         return { result, message, errorId }

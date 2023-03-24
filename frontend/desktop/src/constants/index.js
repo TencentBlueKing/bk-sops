@@ -19,7 +19,7 @@ const TASK_STATE_DICT = {
     'NODE_SUSPENDED': i18n.t('节点暂停'),
     'FAILED': i18n.t('失败'),
     'FINISHED': i18n.t('完成'),
-    'REVOKED': i18n.t('撤销')
+    'REVOKED': i18n.t('终止')
 }
 
 const NODE_DICT = {

@@ -64,6 +64,7 @@ class GetTaskNodeDetailAPITest(APITest):
             self.assertEqual(data["data"], assert_data)
             mock_taskflow.get_node_detail.assert_called_once_with(
                 component_code="component_code",
+                loop=None,
                 node_id="node_id",
                 project_id="123",
                 subprocess_stack=[1, 2, 3],

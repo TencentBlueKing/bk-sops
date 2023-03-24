@@ -49,9 +49,7 @@
                 </OutputParams>
             </template>
         </template>
-        <bk-exception v-else class="exception-part" type="empty" scene="part">
-            <span>{{ $t('暂无执行数据') }}</span>
-        </bk-exception>
+        <NoData v-else :message="$t('暂无执行信息')"></NoData>
     </div>
 </template>
 

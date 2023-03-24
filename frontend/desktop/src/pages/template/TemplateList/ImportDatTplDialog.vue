@@ -78,10 +78,8 @@
                                     </template>
                                     <template v-if="isEmpty">
                                         <tr>
-                                            <td colspan="2">
-                                                <NoData v-if="!pending.upload">
-                                                    <div>{{ $t('无数据') }}</div>
-                                                </NoData>
+                                            <td colspan="2" class="p0">
+                                                <NoData v-if="!pending.upload"></NoData>
                                                 <div v-else class="uploading-tip">
                                                     <i class="common-icon-loading"></i>
                                                 </div>
@@ -280,7 +278,7 @@
                 const file = e.target.files[0]
                 if (file) {
                     if (file.size > 2 * 1024 * 1024 * 1024) {
-                        this.$bkMessage({ message: i18n.t('上传失败，DAT类型文件最大为2G'), theme: 'error' })
+                        this.$bkMessage({ message: i18n.t('上传失败，DAT类型文件最大为2G'), theme: 'error', delay: 10000 })
                         return
                     }
                     const filename = file.name
@@ -480,7 +478,7 @@
         }
     }
     .template-fileList {
-        height: 252px;
+        height: 282px;
         border: 1px solid #c3cdd7;
         overflow-x: hidden;
         overflow-y: auto;
@@ -511,16 +509,6 @@
                 white-space: nowrap;
                 overflow: hidden;
                 border-bottom: 1px solid #c3cdd7;
-            }
-            /deep/ .no-data-wrapper {
-                margin-top: 90px;
-                .common-icon-no-data {
-                    font-size: 32px;
-                }
-                .no-data-wording {
-                    margin: 0;
-                    font-size: 12px;
-                }
             }
             .template-table-conflict {
                 .conflict-id {

@@ -117,7 +117,7 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
             self.biz_scope_type = JobBizScopeType.BIZ.value
         return super().schedule(data, parent_data, callback_data)
 
-    def get_job_params(self, data):
+    def get_job_params(self, data, parent_data):
         """
         子类需要重新编写实现
         @param data:
@@ -137,7 +137,7 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
         if not has_biz_set(int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
-        job_kwargs = self.get_job_params(data)
+        job_kwargs = self.get_job_params(data, parent_data)
         job_result = client.jobv3.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:

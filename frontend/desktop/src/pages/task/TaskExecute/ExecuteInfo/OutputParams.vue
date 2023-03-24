@@ -3,7 +3,7 @@
         <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
         <div class="origin-value" v-if="isReadyStatus && !adminView">
             <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-            {{ 'JSON' }}
+            {{ 'Code' }}
         </div>
         <NoData v-if="!isReadyStatus" :message="$t('暂无输出')"></NoData>
         <template v-else-if="!adminView">

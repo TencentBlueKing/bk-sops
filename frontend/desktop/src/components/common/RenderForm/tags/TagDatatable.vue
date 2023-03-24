@@ -16,7 +16,7 @@
                 v-if="add_btn"
                 class="add-column button-item"
                 size="small"
-                :disabled="!formEdit"
+                :disabled="!formEdit || disabled"
                 @click="add_row">
                 {{ i18n.add_text }}
             </bk-button>
@@ -27,7 +27,7 @@
                     type="default"
                     size="small"
                     :key="btn.type"
-                    :disabled="!formEdit"
+                    :disabled="!formEdit || disabled"
                     @click.stop="onBtnClick(btn.callback)">
                     {{ btn.text}}
                 </bk-button>
@@ -39,12 +39,12 @@
                     :key="btn.type"
                     :show-file-list="false"
                     :on-change="importExcel"
-                    :disabled="!formEdit"
+                    :disabled="!formEdit || disabled"
                     :auto-upload="false">
                     <bk-button
                         slot="trigger"
                         size="small"
-                        :disabled="!formEdit"
+                        :disabled="!formEdit || disabled"
                         type="default">
                         {{ btn.text }}
                     </bk-button>
@@ -93,12 +93,12 @@
                     :label="i18n.operate_text">
                     <template slot-scope="scope">
                         <div v-if="(pagination ? (currentPage - 1) * page_size + scope.$index : scope.$index) === editRowNumber">
-                            <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
-                            <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
+                            <bk-button :text="true" :disabled="disabled" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</bk-button>
+                            <bk-button :text="true" :disabled="disabled" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</bk-button>
                         </div>
                         <div v-else>
-                            <a v-if="rowEditable" class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
-                            <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
+                            <bk-button :text="true" v-if="rowEditable" :disabled="disabled" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</bk-button>
+                            <bk-button :text="true" v-if="deleteable" :disabled="disabled" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</bk-button>
                         </div>
                     </template>
                 </el-table-column>
@@ -163,6 +163,12 @@
             required: false,
             default: true,
             desc: 'show edit and delete button or not'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'disable edit and delete button or not'
         },
         rowEditable: {
             type: Boolean,
@@ -402,7 +408,8 @@
                 if (!fileTypeValid) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件')
+                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'),
+                        delay: 10000
                     })
                     return
                 }
