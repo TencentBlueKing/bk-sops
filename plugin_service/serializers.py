@@ -78,14 +78,25 @@ class PluginDetailListSerializer(serializers.Serializer):
     plugins = PluginDetailedInfoSerializer(help_text="插件信息及部署状态信息", many=True)
 
 
+class PluginTagSerializer(serializers.Serializer):
+    code_name = serializers.CharField(help_text="Tag 编码")
+    name = serializers.CharField(help_text="Tag 名称")
+    id = serializers.IntegerField(help_text="Tag ID")
+
+
 class PluginDetailListResponseSerializer(StandardResponseSerializer):
     data = PluginDetailListSerializer(help_text="插件列表及详情信息")
+
+
+class PluginTagListResponseSerializer(StandardResponseSerializer):
+    data = serializers.ListSerializer(help_text="插件tag列表", child=PluginTagSerializer())
 
 
 class PluginListQuerySerializer(serializers.Serializer):
     search_term = serializers.CharField(help_text="插件名称搜索过滤字段", required=False)
     limit = serializers.IntegerField(help_text="分页配置，接口一次最多100条", required=False, default=100)
     offset = serializers.IntegerField(help_text="分页配置", required=False, default=0)
+    tag_id = serializers.IntegerField(help_text="插件tag id", required=False)
 
     def validate_limit(self, limit):
         if limit < 0:
@@ -102,6 +113,16 @@ class PluginListQuerySerializer(serializers.Serializer):
 
 class PluginDetailListQuerySerializer(PluginListQuerySerializer):
     exclude_not_deployed = serializers.BooleanField(help_text="是否排除当前环境未部署数据", required=False, default=True)
+    fetch_all = serializers.BooleanField(help_text="是否一次性获取全部数据", required=False, default=False)
+
+    def validate(self, data):
+        if data.get("fetch_all") and not data.get("search_term"):
+            raise serializers.ValidationError("cannot fetch all plugins without search_term params")
+        return data
+
+
+class PluginTagsListQuerySerializer(serializers.Serializer):
+    with_unknown_tag = serializers.BooleanField(help_text="是否返回未知 tag 标签", required=False)
 
 
 class LogResponseSerializer(StandardResponseSerializer):

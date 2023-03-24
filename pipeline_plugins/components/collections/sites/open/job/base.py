@@ -175,11 +175,12 @@ def get_job_instance_log(
                 if ip_result["ip"] == target_ip:
                     step_ip_result = ip_result
             if step_ip_result is None:
-                message = (
-                    f"[get_job_instance_log] target_ip: {target_ip} does not match any ip in "
-                    f"ip_list: [{','.join([instance['ip'] for instance in step_instance['step_ip_result_list']])}]"
+                message = _(
+                    f"执行历史请求失败: IP:[{target_ip}], 不属于IP列表: "
+                    f"[{','.join([instance['ip'] for instance in step_instance['step_ip_result_list']])}]"
+                    f" | get_job_instance_log"
                 )
-                service_logger.warning(message)
+                service_logger.error(message)
                 return {"result": False, "message": message}
         else:
             step_ip_result = step_instance["step_ip_result_list"][0]
@@ -209,6 +210,14 @@ def get_job_instance_log(
     return {"result": True, "data": log_text}
 
 
+def get_ip_from_step_ip_result(step_ip_result):
+    ip = step_ip_result.get("ip")
+    if not ip:
+        ip = step_ip_result.get("ipv6", "")
+    # 防止极端情况下，ipv6 仍然不可用
+    return ip or ""
+
+
 def get_job_tagged_ip_dict(
     client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value
 ):
@@ -223,12 +232,7 @@ def get_job_tagged_ip_dict(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(
-            __group_name__,
-            "jobv3.get_job_instance_status",
-            kwargs,
-            result,
-        )
+        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
         service_logger.warning(message)
         return False, message
 
@@ -241,10 +245,11 @@ def get_job_tagged_ip_dict(
         tag_key = step_ip_result["tag"]
         if not tag_key:
             continue
+        ip = get_ip_from_step_ip_result(step_ip_result)
         if tag_key in tagged_ip_dict:
-            tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
+            tagged_ip_dict[tag_key] += f",{ip}"
         else:
-            tagged_ip_dict[tag_key] = step_ip_result["ip"]
+            tagged_ip_dict[tag_key] = ip
 
     return True, tagged_ip_dict
 
@@ -327,12 +332,7 @@ def get_job_tagged_ip_dict_complex(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(
-            __group_name__,
-            "jobv3.get_job_instance_status",
-            kwargs,
-            result,
-        )
+        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
         service_logger.warning(message)
         return False, message
 
@@ -353,7 +353,7 @@ def get_job_tagged_ip_dict_complex(
         tag_key = step_ip_result["tag"]
         status = step_ip_result["status"]
         status_key = JOB_STEP_IP_RESULT_STATUS_MAP.get(status, status)
-        ip = step_ip_result["ip"]
+        ip = get_ip_from_step_ip_result(step_ip_result)
 
         # 执行成功的分类到执行成功里面，JOB_SUCCESS
         if status == 9:
@@ -508,9 +508,7 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -750,9 +748,7 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -909,12 +905,7 @@ class GetJobHistoryResultMixin(object):
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(
-                __group_name__,
-                "jobv3.get_job_instance_status",
-                job_kwargs,
-                job_result,
-            )
+            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -922,7 +913,7 @@ class GetJobHistoryResultMixin(object):
 
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
-            message = "[get_job_instance_status] Job_instance:{id} is not success.".format(id=job_success_id)
+            message = _(f"执行历史请求失败: 任务实例[ID: {job_success_id}], 异常信息: {job_result['result']} | get_job_history_result")
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -934,10 +925,7 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client,
-            self.logger,
-            job_success_id,
-            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(

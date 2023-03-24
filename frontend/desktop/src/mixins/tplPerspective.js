@@ -86,28 +86,20 @@ const tplPerspective = {
                 const nodeCitedInfo = Object.keys(variableCited).reduce((acc, key) => {
                     const values = variableCited[key]
                     const nodeInfo = variableList[key]
+                    let outputIds = []
                     if (nodeInfo.source_type === 'component_outputs') {
-                        const outputIds = Object.keys(nodeInfo.source_info) || []
-                        outputIds.forEach(nodeId => {
-                            if (!(nodeId in acc)) {
-                                acc[nodeId] = {
-                                    'input': [],
-                                    'output': []
-                                }
-                            }
-                            acc[nodeId]['output'].push(key)
-                        })
-                    } else {
-                        values.activities.forEach(nodeId => {
-                            if (!(nodeId in acc)) {
-                                acc[nodeId] = {
-                                    'input': [],
-                                    'output': []
-                                }
-                            }
-                            acc[nodeId]['input'].push(key)
-                        })
+                        outputIds = Object.keys(nodeInfo.source_info) || []
                     }
+                    values.activities.forEach(nodeId => {
+                        if (!(nodeId in acc)) {
+                            acc[nodeId] = {
+                                'input': [],
+                                'output': []
+                            }
+                        }
+                        const sourceType = outputIds.includes(nodeId) ? 'output' : 'input'
+                        acc[nodeId][sourceType].push(key)
+                    })
                     return acc
                 }, {})
                 // 去重

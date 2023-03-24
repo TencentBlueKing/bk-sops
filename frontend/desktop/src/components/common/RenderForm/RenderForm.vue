@@ -257,6 +257,7 @@
                             break
                         case 'ip_selector':
                             val = {
+                                static_ip_table_config: [],
                                 selectors: [],
                                 ip: [],
                                 topo: [],
@@ -408,6 +409,43 @@
         }
     }
 </script>
+<style lang="scss">
+.rf-tag-used {
+    .el-input__inner,
+    .el-select__inner,
+    .el-textarea__inner {
+        border-color: #ff5656;
+    }
+}
+.html-used-tippy-popper {
+    .tippy-tooltip {
+        font-style: 12px;
+        padding: 8px 12px;
+        border: 1px solid #dcdee5;
+        box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+        .bk-tooltip-content {
+            .tip-title {
+                color: #63656e;
+                font-size: 12px;
+                margin-bottom: 9px;
+                i {
+                    font-size: 14px;
+                    color: #ff9c01;
+                }
+            }
+            .tip-content {
+                color: #979ba5;
+                margin: 0 0 8px 18px;
+            }
+            .tip-btn {
+                text-align: right;
+                color: #3a84ff;
+                cursor: pointer;
+            }
+        }
+    }
+}
+</style>
 <style lang="scss" scoped>
 .render-form {
     /deep/ .rf-group-name {
@@ -435,6 +473,7 @@
                 background: #ffd695;
             }
         }
+        .used-tip,
         .not-reuse-tip,
         .pre-mako-tip {
             color: #979ba5;

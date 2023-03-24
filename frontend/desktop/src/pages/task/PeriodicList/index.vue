@@ -49,6 +49,7 @@
                                 :prop="item.id"
                                 :width="item.width"
                                 :render-header="renderTableHeader"
+                                show-overflow-tooltip
                                 :min-width="item.min_width">
                                 <template slot-scope="{ row }">
                                     <!--任务-->
@@ -106,9 +107,28 @@
                                         <span :title="row.project.name">{{ row.project.name }}</span>
                                     </div>
                                     <!--周期规则-->
-                                    <div v-else-if="item.id === 'cron'">
-                                        <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
-                                    </div>
+                                    <template v-else-if="item.id === 'cron'">
+                                        <bk-popover placement="right">
+                                            <div>{{ splitPeriodicCron(row.cron) }}</div>
+                                            <template slot="content" v-if="row.parseValue.length > 1">
+                                                <template v-if="row.parseValue[0]">
+                                                    <span class="month">{{ row.parseValue[0] }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[1]">
+                                                    <span class="dayOfMonth">{{ row.parseValue[1] }}</span>
+                                                    <span v-if="row.parseValue[2]">{{ $t('以及当月') }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[2]">
+                                                    <span class="dayOfWeek">{{ row.parseValue[2] }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[3]">
+                                                    <span class="hour">{{ row.parseValue[3] }}</span>
+                                                </template>
+                                                <span class="minute">{{ row.parseValue[4] }}</span>
+                                            </template>
+                                        </bk-popover>
+
+                                    </template>
                                     <!-- 其他 -->
                                     <template v-else>
                                         <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -183,7 +203,13 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -216,13 +242,6 @@
             :id="selectedPeriodicId"
             @onClose="isBootRecordDialogShow = false">
         </BootRecordDialog>
-        <DeletePeriodicDialog
-            :is-delete-dialog-show="isDeleteDialogShow"
-            :template-name="selectedTemplateName"
-            :deleting="deleting"
-            @onDeletePeriodicConfirm="onDeletePeriodicConfirm"
-            @onDeletePeriodicCancel="onDeletePeriodicCancel">
-        </DeletePeriodicDialog>
     </div>
 </template>
 <script>
@@ -235,10 +254,12 @@
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import BootRecordDialog from './BootRecordDialog.vue'
-    import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import moment from 'moment-timezone'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import Translate from '@/utils/cron.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -326,8 +347,7 @@
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,
-            BootRecordDialog,
-            DeletePeriodicDialog
+            BootRecordDialog
         },
         mixins: [permission],
         props: {
@@ -380,16 +400,14 @@
                 listLoading: false,
                 deleting: false,
                 totalPage: 1,
-                isDeleteDialogShow: false,
                 isModifyDialogShow: false,
                 isBootRecordDialogShow: false,
                 selectedPeriodicId: undefined,
                 periodicList: [],
                 collectingId: '', // 正在被收藏/取消收藏的周期任务id
-                selectedCron: undefined,
+                selectedCron: '*/5 * * * *',
                 constants: {},
                 modifyDialogLoading: false,
-                selectedTemplateName: undefined,
                 periodEntrance: '',
                 taskCategory: [],
                 requestData: {
@@ -471,24 +489,31 @@
 
                     if (last_run_at && last_run_at[0] && last_run_at[1]) {
                         data['task__last_run_at__gte'] = moment.tz(last_run_at[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (create_time && create_time[0] && create_time[1]) {
                         data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (edit_time && edit_time[0] && edit_time[1]) {
                         data['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
 
                     if (!this.admin) {
                         data.project__id = this.project_id
                     }
 
-                    const periodicListData = await this.loadPeriodicList(data)
+                    const source = new CancelRequest()
+                    const periodicListData = await this.loadPeriodicList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = periodicListData.results
-                    this.periodicList = list
+                    this.periodicList = list.map(item => {
+                        item.parseValue = Translate(item.cron)
+                        return item
+                    })
                     this.pagination.count = periodicListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -563,9 +588,15 @@
                     this.onPeriodicPermissonCheck(['periodic_task_delete'], periodic)
                     return
                 }
-                this.isDeleteDialogShow = true
-                this.selectedDeleteTaskId = periodic.id
-                this.selectedTemplateName = periodic.name
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('周期任务') + '"' + periodic.name + '"?',
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeletePeriodicConfirm(periodic.id)
+                    }
+                })
             },
             // 表格功能选项
             handleSettingChange ({ fields, size }) {
@@ -589,7 +620,37 @@
                 this.getPeriodicList()
             },
             renderTableHeader (h, { column, $index }) {
-                if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
+                if (column.property === 'cron') {
+                    return h('span', {
+                        'class': 'cron-label'
+                    }, [
+                        column.label,
+                        h('bk-popover', {
+                            props: {
+                                placement: 'top',
+                                theme: 'light',
+                                distance: 0,
+                                'tippy-options': {
+                                    hideOnClick: false
+                                }
+                            }
+                        }, [
+                            h('i', {
+                                'class': 'common-icon-info table-header-tips'
+                            }),
+                            h('div', {
+                                slot: 'content'
+                            }, [
+                                h('img', {
+                                    'class': 'mode-item',
+                                    attrs: {
+                                        src: require('@/assets/images/' + i18n.t('task-zh') + '.png')
+                                    }
+                                }, [])
+                            ])
+                        ])
+                    ])
+                } else if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
                     const index = this.adminView ? $index : $index + 1
                     const id = this.setting.selectedFields[index].id
                     const date = this.requestData[id]
@@ -600,7 +661,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -729,21 +797,17 @@
                 this.constants = periodic.form
                 this.modifyDialogLoading = false
             },
-            onDeletePeriodicConfirm () {
-                this.deleteSelecedPeriodic()
-            },
-            async deleteSelecedPeriodic () {
+            async onDeletePeriodicConfirm (taskId) {
                 if (this.deleting) {
                     return
                 }
                 try {
                     this.deleting = true
-                    await this.deletePeriodic(this.selectedDeleteTaskId)
+                    await this.deletePeriodic(taskId)
                     this.$bkMessage({
-                        'message': i18n.t('周期任务') + i18n.t('删除成功'),
+                        'message': i18n.t('周期任务删除成功'),
                         'theme': 'success'
                     })
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -759,11 +823,15 @@
                     this.deleting = false
                 }
             },
-            onDeletePeriodicCancel () {
-                this.isDeleteDialogShow = false
-            },
             splitPeriodicCron (cron) {
-                return cron.split('(')[0].trim()
+                const values = cron.split('(')[0].trim().split(' ')
+                const keys = cron.split('(')[1].split(')')[0].split('/')
+                const cronMap = {}
+                keys.forEach((key, index) => {
+                    cronMap[key] = values[index] || '*'
+                })
+                const cronRule = cronMap['m'] + ' ' + cronMap['h'] + ' ' + cronMap['dM'] + ' ' + cronMap['MY'] + ' ' + cronMap['d']
+                return cronRule
             },
             onCreatePeriodTask () {
                 this.curRow = {}
@@ -969,6 +1037,12 @@
             background: #dcdee5;
             border-radius: 50%;
         }
+    }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
     }
     .empty-data {
         padding: 120px 0;

@@ -85,7 +85,7 @@
                         </td>
                     </tr>
                     <tr v-if="!snapshoots.length" class="empty-snapshoot-tip">
-                        <td><NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData></td>
+                        <NoData :message="$t('无数据，请手动添加快照或等待自动保存')"></NoData>
                     </tr>
                 </tbody>
             </table>
@@ -273,17 +273,7 @@
             }
         }
         .empty-snapshoot-tip {
-            td {
-                width: 742px;
-                border-bottom: none;
-            }
-            .no-data-wrapper {
-                margin-top: 120px;
-                line-height: 1;
-                /deep/ .no-data-wording {
-                    font-size: 12px;
-                }
-            }
+            height: 280px;
         }
         .common-icon-dark-circle-close:hover {
             color: #cecece;

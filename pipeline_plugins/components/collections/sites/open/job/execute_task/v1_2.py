@@ -15,7 +15,6 @@ specific language governing permissions and limitations under the License.
 from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
 from .execute_task_base import JobExecuteTaskServiceBase
 from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
 from pipeline.component_framework.component import Component
@@ -75,12 +74,6 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
             job_scope_type=self.biz_scope_type,
         )
         return result, tagged_ip_dict
-
-    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
-        result, ip_list = get_biz_ip_from_frontend_hybrid(executor, val, biz_cc_id, data)
-        if not result:
-            return []
-        return ip_list
 
     def execute(self, data, parent_data):
         job_success_id = data.get_one_of_inputs("job_success_id")

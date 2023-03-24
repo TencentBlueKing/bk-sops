@@ -24,44 +24,58 @@
                     content: item.tips,
                     delay: 500
                 }"
+                :data-test-id="`templateCanvas_panel_${item.key}`"
                 :class="['nodes-item', `common-icon-node-${item.key}-shortcut`]"
                 @click.stop="onAppendNode(item.key)">
             </li>
         </ul>
         <ul class="operate-btns" v-if="nodeOperate || deleteLine">
-            <template v-if="nodeOperate && ['tasknode', 'subflow'].includes(node.type)">
-                <li
-                    v-bk-tooltips="{
-                        content: $t('节点配置'),
-                        delay: 500
-                    }"
-                    class="btn-item common-icon-bkflow-setting"
-                    @click.stop="onConfigBtnClick">
-                </li>
+            <template v-if="nodeOperate">
                 <li
                     v-bk-tooltips="{
                         content: $t('复制节点'),
                         delay: 500
                     }"
+                    data-test-id="templateCanvas_panel_nodeCopy"
                     class="btn-item common-icon-bkflow-copy"
-                    @click.stop="onCopyBtnClick">
+                    @click.stop="onAppendNode(node.type, true)">
+                </li>
+                <li
+                    v-bk-tooltips="{
+                        content: $t('复制并插入'),
+                        delay: 500
+                    }"
+                    data-test-id="templateCanvas_panel_nodeCopyInsert"
+                    class="btn-item common-icon-bkflow-copy-insert"
+                    @click.stop="onAppendNode(node.type, true, true)">
+                </li>
+                <li
+                    v-if="isHasLines"
+                    v-bk-tooltips="{
+                        content: $t('解除连线'),
+                        delay: 500
+                    }"
+                    data-test-id="templateCanvas_panel_nodeDisconnect"
+                    class="btn-item common-icon-bkflow-disconnect"
+                    @click.stop="$emit('onNodeRemove', node, false)">
+                </li>
+                <li
+                    v-bk-tooltips="{
+                        content: $t('删除节点'),
+                        delay: 500
+                    }"
+                    data-test-id="templateCanvas_panel_nodeDelete"
+                    class="btn-item common-icon-bkflow-delete"
+                    @click.stop="$emit('onNodeRemove', node)">
                 </li>
             </template>
-            <li
-                v-if="nodeOperate"
-                v-bk-tooltips="{
-                    content: $t('删除节点'),
-                    delay: 500
-                }"
-                class="btn-item common-icon-bkflow-delete"
-                @click.stop="$emit('onNodeRemove', node)">
-            </li>
             <li
                 v-if="deleteLine"
                 v-bk-tooltips="{
                     content: $t('删除连线'),
                     delay: 500
                 }"
+                data-test-id="templateCanvas_panel_lineDelete"
                 class="btn-item common-icon-bkflow-delete"
                 @click.stop="$emit('onDeleteLineClick')">
             </li>
@@ -127,6 +141,12 @@
                 ]
             }
         },
+        computed: {
+            isHasLines () {
+                const lines = this.canvasData.lines.filter(line => [line.source.id, line.target.id].includes(this.node.id))
+                return !!lines.length
+            }
+        },
         methods: {
             onConfigBtnClick () {
                 this.$emit('onConfigBtnClick', this.node.id)
@@ -135,7 +155,7 @@
              * 添加节点
              * @param {String} type -添加节点类型
              */
-            onAppendNode (type, isFillParam = false) {
+            onAppendNode (type, isFillParam = false, insert = false) {
                 const { x, y, id, type: currType } = this.node
                 const endX = x + 200
                 const newNodeId = 'node' + uuid()
@@ -179,6 +199,11 @@
                     }
                 }
 
+                // 复制节点并且不插入
+                if (isFillParam && !insert) {
+                    this.$emit('onCopyNode', location)
+                    return
+                }
                 /**
                  * 添加规则
                  * 当前节点类型为并行/分支网管：都是 onAppendNode
@@ -248,11 +273,6 @@
                     }
                 })
                 return needNodeLocation
-            },
-            // 克隆当前节点
-            onCopyBtnClick () {
-                this.onAppendNode(this.node.type, true)
-                this.$bkMessage({ message: i18n.t('复制成功'), theme: 'success' })
             }
         }
     }
@@ -295,18 +315,20 @@
         }
     }
     .operate-btns {
-        padding: 5px 12px;
+        padding: 6px 12px;
         text-align: left;
         background: #f5f7fa;
         .btn-item {
             display: inline-block;
-            margin-left: 4px;
-            padding: 2px;
+            margin-left: 8px;
             color: #52699d;
-            font-size: 14px;
+            font-size: 16px;
             cursor: pointer;
             &:hover {
                 color: #3a84ff;
+            }
+            &:first-child {
+                margin-left: 0;
             }
         }
     }

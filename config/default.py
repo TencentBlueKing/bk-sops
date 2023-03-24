@@ -86,6 +86,7 @@ INSTALLED_APPS += (
     "pipeline.contrib.statistics",
     "pipeline.contrib.periodic_task",
     "pipeline.contrib.external_plugins",
+    "pipeline.contrib.engine_admin",
     "pipeline.django_signal_valve",
     "pipeline_plugins",
     "pipeline_plugins.components",
@@ -202,7 +203,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.26.9"
+STATIC_VERSION = "3.28.0"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -752,6 +753,7 @@ EXPIRED_TASK_CLEAN_NUM_LIMIT = env.EXPIRED_TASK_CLEAN_NUM_LIMIT
 TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
 MAX_EXPIRED_SESSION_CLEAN_NUM = env.MAX_EXPIRED_SESSION_CLEAN_NUM
 EXPIRED_SESSION_CLEAN_CRON = env.EXPIRED_SESSION_CLEAN_CRON
+ENABLE_IPV6 = env.ENABLE_IPV6
 
 # V2引擎任务清理配置
 ENABLE_CLEAN_EXPIRED_V2_TASK = env.ENABLE_CLEAN_EXPIRED_V2_TASK
@@ -765,3 +767,14 @@ ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
 
 # 流程最高嵌套层数
 TEMPLATE_MAX_RECURSIVE_NUMBER = env.TEMPLATE_MAX_RECURSIVE_NUMBER
+
+# 节点历史最大执行记录数
+MAX_RECORDED_NODE_EXECUTION_TIMES = env.MAX_RECORDED_NODE_EXECUTION_TIMES
+
+
+# engine admin permission settings
+def check_engine_admin_permission(request, *args, **kwargs):
+    return request.user.is_superuser
+
+
+PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"

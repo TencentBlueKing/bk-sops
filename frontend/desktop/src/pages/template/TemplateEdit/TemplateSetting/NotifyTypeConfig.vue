@@ -27,8 +27,10 @@
                             </bk-switcher>
                             <span v-else>{{ props.$index === 0 ? $t('成功') : $t('失败') }}</span>
                         </template>
-                    </bk-table-column>
-                </bk-table>
+                        <div class="empty-data" slot="empty">
+                            <NoData></NoData>
+                        </div>
+                    </bk-table-column></bk-table>
             </bk-form-item>
             <bk-form-item property="notifyGroup" :label="notifyGroupLabel" data-test-id="notifyTypeConfig_form_notifyGroup">
                 <bk-checkbox-group
@@ -53,7 +55,11 @@
     import { mapState, mapActions, mapMutations } from 'vuex'
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
+        components: {
+            NoData
+        },
         props: {
             notifyTypeLabel: {
                 type: String,
@@ -171,10 +177,24 @@
                 if (col.type) {
                     return h('div', { 'class': 'notify-table-heder' }, [
                         h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
-                        h('span', { style: 'word-break: break-all;' }, [col.label])
+                        h('p', {
+                            class: 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [
+                            col.label
+                        ])
                     ])
                 } else {
-                    return h('span', {}, [col.text])
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        col.text
+                    ])
                 }
             },
             onSelectNotifyType (row, type, val) {

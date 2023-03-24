@@ -43,7 +43,6 @@
 {
     "result": true,
     "data": {},
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -55,5 +54,4 @@
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict  |      result=true 时返回数据      |
 |  message     |    string  |      result=false 时错误信息     |
-|  request_id     |    string  |      esb 请求 id     |
 |  trace_id     |    string  |      open telemetry trace_id     |

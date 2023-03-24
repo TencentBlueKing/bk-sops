@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="rf-form-group" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
+    <div class="rf-form-group" :key="randomKey" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
         <!-- 分组名称和提示 -->
         <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
             <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
@@ -18,13 +18,37 @@
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ $t('未能重用') }}
             </span>
-            <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">
+            <!-- 编辑模式下才显示常量禁止修改tip -->
+            <span class="pre-mako-tip" v-if="option.formEdit && scheme.attrs.pre_mako_tip">
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ scheme.attrs.pre_mako_tip }}
+            </span>
+            <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
+                <i class="common-icon-dark-circle-warning"></i>
+                {{ scheme.attrs.used_tip }}
             </span>
         </div>
         <!-- 分组描述 -->
         <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
+        <!-- 参数被使用占位popover -->
+        <bk-popover
+            v-if="scheme.attrs.html_used_tip"
+            ref="htmlUsedTipPopper"
+            placement="top-start"
+            theme="light"
+            always
+            class="html-used-tippy"
+            ext-cls="html-used-tippy-popper">
+            <div class="empty-box"></div>
+            <template slot="content">
+                <p class="tip-title">
+                    <i class="common-icon-dark-circle-warning"></i>
+                    {{ scheme.attrs.used_tip }}
+                </p>
+                <p class="tip-content">{{ $t('将沿用原参数值提交') }}</p>
+                <p class="tip-btn" @click="handleFoldUsedTip">{{ $t('知道了') }}</p>
+            </template>
+        </bk-popover>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
             <label v-if="option.showLabel" class="rf-tag-label">
@@ -147,6 +171,7 @@
                 : !!this.option.showHook
 
             return {
+                randomKey: null,
                 eventActions: {}, // combine 类型配置项定义的事件回调函数
                 groupOption,
                 showForm, // combine 类型 Tag 组是否显示
@@ -292,6 +317,30 @@
                 }
 
                 return isValid
+            },
+            handleFoldUsedTip () {
+                this.$refs['htmlUsedTipPopper'].hideHandler()
+                this.scheme.attrs.html_used_tip = false
+                this.scheme.attrs.disabled = true
+                if (this.scheme.attrs.children) {
+                    this.setAtomDisable(this.scheme.attrs.children)
+                }
+                const value = this.constants[this.scheme.tag_code].value
+                for (const key in value) {
+                    this.updateForm([key], value[key])
+                }
+                this.randomKey = new Date().getTime()
+            },
+            setAtomDisable (atomList) {
+                atomList.forEach(item => {
+                    if (!item.attrs) {
+                        item.attrs = {}
+                    }
+                    item.attrs['disabled'] = true
+                    if (item.attrs.children) {
+                        this.setAtomDisable(item.attrs.children)
+                    }
+                })
             }
         }
     }
@@ -310,6 +359,15 @@
     }
     .rf-group-name {
         display: block
+    }
+    .html-used-tippy {
+        position: absolute;
+        z-index: -2;
+        left: 130px;
+        .empty-box {
+            width: 32px;
+            height: 32px;
+        }
     }
     .rf-tag-hook {
         position: absolute;
@@ -354,7 +412,7 @@
     }
 }
 .rf-label-tips {
-    max-width: 480px;
+    max-width: 240px;
     .tippy-tooltip {
         color: #63656e;
         border: 1px solid #dcdee5;

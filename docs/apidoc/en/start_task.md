@@ -37,7 +37,6 @@ Start a task
     },
     "message": "success",
     "code": 3545100,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -50,5 +49,4 @@ Start a task
 |  data     |    dict    |      data returned when result is true            |
 |  message  |    string  |      error message returned when result is false  |
 |  task_url |    string  |      url of the task  |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |

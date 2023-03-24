@@ -54,6 +54,7 @@
                             :prop="item.id"
                             :width="item.width"
                             :render-header="renderTableHeader"
+                            show-overflow-tooltip
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <!--所属项目-->
@@ -156,7 +157,13 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -290,6 +297,8 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -329,7 +338,7 @@
             children: [
                 { id: 'nonExecution', name: i18n.t('未执行') },
                 { id: 'running', name: i18n.t('未完成') },
-                { id: 'revoked', name: i18n.t('撤销') },
+                { id: 'revoked', name: i18n.t('终止') },
                 { id: 'finished', name: i18n.t('完成') }
             ]
         }
@@ -580,7 +589,7 @@
                         claimant: claimant || undefined,
                         task__project__id: selectedProject || undefined,
                         status: claimStatus || undefined,
-                        task_id: task_id || undefined,
+                        id: task_id || undefined,
                         task__pipeline_instance__is_started,
                         task__pipeline_instance__is_finished,
                         task__pipeline_instance__is_revoked
@@ -588,22 +597,26 @@
                     if (create_time && create_time[0] && create_time[1]) {
                         if (this.common) {
                             data['pipeline_template__start_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (claim_time && claim_time[0] && claim_time[1]) {
                         if (this.common) {
                             data['pipeline_template__claim_time__gte'] = moment(claim_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['claim_time__gte'] = moment.tz(claim_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    const functorListData = await this.loadFunctionTaskList(data)
+                    const source = new CancelRequest()
+                    const functorListData = await this.loadFunctionTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = functorListData.results
                     const taskList = functorListData.results.map(m => m.task)
                     this.functorList = list
@@ -627,7 +640,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -757,7 +777,9 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadUserProjectList({ is_disable: false })
+                    const businessData = await this.loadUserProjectList({
+                        params: { is_disable: false }
+                    })
                     this.business.list = businessData.results
                 } catch (e) {
                     console.log(e)
@@ -1197,9 +1219,6 @@
         color: #3a84ff;
         font-size: 12px;
         cursor: pointer;
-    }
-    .empty-data {
-        padding: 120px 0;
     }
     .task-status {
        @include ui-task-status;

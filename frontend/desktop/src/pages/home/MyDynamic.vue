@@ -43,6 +43,8 @@
                 :prop="item.prop"
                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                 :min-width="item.min_width"
+                show-overflow-tooltip
+                :render-header="renderTableHeader"
                 :sortable="item.sortable">
                 <template slot-scope="props">
                     <template v-if="item.prop === 'status'">
@@ -80,7 +82,13 @@
                     </template>
                 </template>
             </bk-table-column>
-            <div class="empty-data" slot="empty"><no-data></no-data></div>
+            <div class="empty-data" slot="empty">
+                <NoData
+                    :type="currentMethod !== 'all' ? 'search-empty' : 'empty'"
+                    :message="currentMethod !== 'all' ? $t('搜索结果为空') : ''"
+                    @searchClear="onSelectMethod('all')">
+                </NoData>
+            </div>
         </bk-table>
     </div>
 </template>
@@ -90,6 +98,8 @@
     import task from '@/mixins/task.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const tableColumn = [
         {
             label: 'ID',
@@ -180,7 +190,11 @@
                         user_type: 'user',
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
                     }
-                    const res = await this.loadTaskList(data)
+                    const source = new CancelRequest()
+                    const res = await this.loadTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.results)
 
@@ -206,6 +220,16 @@
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             onSelectMethod (val) {
                 this.currentMethod = val

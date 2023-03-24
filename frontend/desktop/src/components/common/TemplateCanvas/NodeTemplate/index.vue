@@ -13,7 +13,9 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
-        @mouseenter="$emit('onMouseEnter')"
+        @mouseenter="$emit('onNodeMouseEnter', node)"
+        @mousemove="$emit('onNodeMouseMove', node, $event)"
+        @mouseleave="$emit('onNodeMouseLeave', node)"
         @click="onNodeClick"
         @dblclick="onNodeDblclick">
         <div class="canvas-node-content">
@@ -31,21 +33,6 @@
                 @onForceFail="$emit('onForceFail', $event)"
                 @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
                 @onSubflowDetailClick="onSubflowDetailClick" />
-        </div>
-        <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
-        <div class="perspective-tips-context" v-if="isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)">
-            <div class="tips-content">
-                <p>{{ $t('引用变量') }}</p>
-                <template v-if="nodeVar.input.length">
-                    <p v-for="item in nodeVar.input" :key="item">{{ item }}</p>
-                </template>
-                <template v-else>{{ '--' }}</template>
-                <p>{{ $t('输出变量') }}</p>
-                <template v-if="nodeVar.output.length">
-                    <p v-for="item in nodeVar.output" :key="item">{{ item }}</p>
-                </template>
-                <template v-else>{{ '--' }}</template>
-            </div>
         </div>
     </div>
 </template>
@@ -75,17 +62,9 @@
                 type: Boolean,
                 default: false
             },
-            nodeVariableInfo: {
-                type: Object,
-                default: () => ({})
-            },
             activities: {
                 type: Object,
                 default: () => ({})
-            },
-            isPerspective: {
-                type: Boolean,
-                default: false
             }
         },
         data () {
@@ -113,13 +92,6 @@
                     return this.components.subflow
                 }
                 return this.components[this.node.type.toLowerCase()]
-            },
-            nodeVar () {
-                const { id } = this.node
-                if (id in this.nodeVariableInfo) {
-                    return this.nodeVariableInfo[id]
-                }
-                return { input: [], output: [] }
             }
         },
         methods: {
@@ -165,13 +137,13 @@
     @import '@/scss/mixins/multiLineEllipsis.scss';
     @import '@/scss/mixins/scrollbar.scss';
 
-    $grayDark: #c4c6cc;
+    $grayDark: #b4becd;
     $blueDark: #699df4;
     $defaultColor: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9c01;
-    $greenDark: #a5e8a9;
-    $brightRedDark: #fd9c9c;
+    $greenDark: #9adc9e;
+    $brightRedDark: #f0a0a0;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
     $activeShadow: rgba(0, 0, 0, 0.3);
@@ -276,9 +248,6 @@
             }
             &.finished {
                 @include circleStatusStyle($greenDark);
-                &.end-point {
-                    @include circleStatusStyle(#2dcb56);
-                }
             }
             &.running {
                 @include circleStatusStyle($blueDark)
@@ -363,12 +332,9 @@
             text-align: center;
             background: #ffffff;
             border-radius: 4px;
-            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
             cursor: pointer;
             &:hover {
-                .node-name {
-                    border-color: $defaultColor;
-                }
+                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
             }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
@@ -386,6 +352,9 @@
                 }
             }
             &.failed {
+                .node-name {
+                    border-color: $redDark;
+                }
                 @include taskNodeStyle ($redDark);
                 &.actived {
                     @include nodeClick ($redDark);
@@ -398,6 +367,9 @@
                 }
             }
             &.running {
+                .node-name {
+                    border-color: $blueDark;
+                }
                 @include taskNodeStyle ($blueDark);
                 &.actived {
                     @include nodeClick ($blueDark);
@@ -406,7 +378,7 @@
             &.finished {
                 @include taskNodeStyle ($greenDark);
                 &.actived {
-                    @include nodeClick ($greenDark);
+                     @include nodeClick ($greenDark);
                 }
             }
             &.fail-skip {
@@ -455,6 +427,7 @@
                 border-top: none;
                 border-bottom-left-radius: 4px;
                 border-bottom-right-radius: 4px;
+                border-color: $grayDark;
                 .name-text {
                     display: -webkit-box;
                     width: 100%;
@@ -623,45 +596,6 @@
                 &.phase-error {
                     color: $redDark;
                 }
-            }
-        }
-        .perspective-tips-context {
-            position: absolute;
-            top: 52px;
-            left: -140px;
-            width: 188px;
-            padding-top: 10px;
-            display: none;
-            .tips-content {
-                max-height: 120px;
-                padding: 4px 10px;
-                font-size: 12px;
-                color: #63656e;
-                line-height: 16px;
-                background: #fff;
-                border: 1px solid #dcdee5;
-                border-radius: 2px;
-                box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.09);
-                overflow-y: auto;
-                @include scrollbar;
-            }
-            &::after {
-                content: '';
-                width: 11px;
-                height: 11px;
-                position: absolute;
-                top: 5px;
-                left: 155px;
-                background: #fff;
-                transform: rotate(45deg);
-            }
-            &:hover {
-                display: block;
-            }
-        }
-        &:hover {
-            .perspective-tips-context {
-                display: block;
             }
         }
     }

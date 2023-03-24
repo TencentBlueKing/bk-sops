@@ -202,7 +202,6 @@ constant value, the type of value should be same with data from API[get_template
         "task_id": 5,
         "task_url": "http://{PAAS_HOST}/taskflow/execute/3/?instance_id=5"
     },
-    "request_id": "xxx"
     "trace_id": "ebc2a953abbc4955a993f88242c7f808"
 }
 ```
@@ -214,7 +213,6 @@ constant value, the type of value should be same with data from API[get_template
 |  result      |    bool    |   true/false, indicate success or failure    |
 |  data        |    dict  |   data returned when result is true, details are described below       |
 |  message     |    string  |   error message returned when result is false |
-|  request_id     |    string  | esb request id |
 |  trace_id     |    string  | open telemetry trace_id|
 
 #### data

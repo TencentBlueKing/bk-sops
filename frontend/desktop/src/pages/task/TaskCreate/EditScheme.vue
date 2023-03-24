@@ -22,18 +22,21 @@
                 </bk-form-item>
                 <bk-form-item :label="$t('变更节点对比')">
                     <bk-table :data="orderedNodeData">
-                        <bk-table-column :label="$t('步骤名称')">
+                        <bk-table-column show-overflow-tooltip :label="$t('步骤名称')">
                             <template slot-scope="props">
                                 {{ props.row.stage_name || '--' }}
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('节点名称')" prop="name"></bk-table-column>
-                        <bk-table-column :label="$t('选中状态')">
+                        <bk-table-column show-overflow-tooltip :label="$t('节点名称')" prop="name"></bk-table-column>
+                        <bk-table-column show-overflow-tooltip :label="$t('选中状态')">
                             <template slot-scope="props">
                                 <span v-if="props.row.optional && excludeNodes.includes(props.row.id)" class="unselect">{{ $t('否') }}</span>
                                 <span v-else>{{ $t('是') }}</span>
                             </template>
                         </bk-table-column>
+                        <div class="empty-data" slot="empty">
+                            <NoData></NoData>
+                        </div>
                     </bk-table>
                 </bk-form-item>
             </bk-form>
@@ -46,9 +49,13 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'EditScheme',
+        components: {
+            NoData
+        },
         props: {
             orderedNodeData: Array
         },

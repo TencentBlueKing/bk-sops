@@ -122,22 +122,13 @@ def get_service_template_list_by_names(service_template_names, service_template_
 
 
 def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list):
-    module_id = [{
-        "default": 0,
-        "bk_module_id": 1
-    }, {
-        "default": 0,
-        "bk_module_id": 2
-    }, {
-        "default": 0,
-        "bk_module_id": 3
-    }, {
-        "default": 0,
-        "bk_module_id": 4
-    }, {
-        "default": 0,
-        "bk_module_id": 5
-    }]
+    module_id = [
+        {"default": 0, "bk_module_id": 1},
+        {"default": 0, "bk_module_id": 2},
+        {"default": 0, "bk_module_id": 3},
+        {"default": 0, "bk_module_id": 4},
+        {"default": 0, "bk_module_id": 5},
+    ]
     return module_id
 
 
@@ -150,14 +141,15 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "shield_id": "",
-            "message": '调用监控平台(Monitor)接口monitor.create_shield返回失败, params={"begin_time":"2020-09-28 11:18:58",'
-                       '"bk_biz_id":2,"category":"scope","cycle_config":{"begin_time":"","end_time":"","day_list":[],'
-                       '"week_list":[],"type":1},"description":"shield by bk_sops","dimension_config":'
-                       '{"scope_type":"node","target":[{"bk_obj_id":"module","bk_inst_id":1},{"bk_obj_id":"module",'
-                       '"bk_inst_id":2},{"bk_obj_id":"module","bk_inst_id":3},{"bk_obj_id":"module","bk_inst_id":4},'
-                       '{"bk_obj_id":"module","bk_inst_id":5}],"metric_id":["bk_monitor.system.load.load5",'
-                       '"bk_monitor.system.cpu_summary.usage"]},"end_time":"2020-09-28 11:18:58","notice_config":{},'
-                       '"shield_notice":false}, error=create shield fail',
+            "message": "调用监控平台(Monitor)接口monitor.create_shield返回失败, error=create shield fail, "
+            'params={"begin_time":"2020-09-28 11:18:58",'
+            '"bk_biz_id":2,"category":"scope","cycle_config":{"begin_time":"","end_time":"","day_list":[],'
+            '"week_list":[],"type":1},"description":"shield by bk_sops","dimension_config":'
+            '{"scope_type":"node","target":[{"bk_obj_id":"module","bk_inst_id":1},{"bk_obj_id":"module",'
+            '"bk_inst_id":2},{"bk_obj_id":"module","bk_inst_id":3},{"bk_obj_id":"module","bk_inst_id":4},'
+            '{"bk_obj_id":"module","bk_inst_id":5}],"metric_id":["bk_monitor.system.load.load5",'
+            '"bk_monitor.system.cpu_summary.usage"]},"end_time":"2020-09-28 11:18:58","notice_config":{},'
+            '"shield_notice":false}',
         },
     ),
     schedule_assertion=None,

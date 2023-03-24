@@ -104,8 +104,7 @@
                             data-test-id="periodicEdit_form_selectScheme"
                             v-if="!isPreview && !isTplDeleted"
                             :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')"
-                            property="schemeId"
-                            :required="formData.is_latest !== null">
+                            property="schemeId">
                             <div class="scheme-wrapper">
                                 <p v-if="formData.is_latest === null" class="exclude-wrapper" v-bk-overflow-tips>
                                     {{ includeNodes }}
@@ -114,10 +113,10 @@
                                     v-else
                                     v-model="formData.schemeId"
                                     :searchable="true"
-                                    :placeholder="$t('请选择')"
+                                    :placeholder="schemeSelectPlaceholder"
                                     :multiple="true"
                                     :clearable="false"
-                                    :disabled="formData.is_latest !== true || !formData.template_id || previewDataLoading"
+                                    :disabled="isSelectSchemeDisable"
                                     :loading="isLoading || schemeLoading"
                                     @selected="onSelectScheme">
                                     <bk-option
@@ -138,7 +137,7 @@
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
-                            <p v-if="formData.is_latest === false" class="schema-disable-tip">
+                            <p v-if="formData.schemeId.length && formData.is_latest === false" class="schema-disable-tip">
                                 {{ $t('当前流程非最新，执行方案不可更改，请先更新流程') }}
                             </p>
                             <p v-if="formData.is_latest === null" class="schema-disable-tip">
@@ -153,17 +152,17 @@
                             <bk-input :clearable="true" v-model="formData.name"></bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('周期表达式')" :required="true" property="loop" data-test-id="periodicEdit_form_loop">
-                            <LoopRuleSelect
-                                ref="loopRuleSelect"
+                            <CronRuleSelect
+                                ref="cronRuleSelect"
                                 class="loop-rule"
-                                :manual-input-value="cron" />
+                                v-model="cronExpression" />
                         </bk-form-item>
                     </bk-form>
                 </section>
                 <section class="config-section">
                     <p class="title">{{$t('参数信息')}}</p>
                     <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
-                        <NoData v-if="isVariableEmpty" :message="$t('没有参数需要配置')"></NoData>
+                        <NoData v-if="isVariableEmpty" :message="$t('暂无参数')"></NoData>
                         <TaskParamEdit
                             v-else
                             ref="TaskParamEdit"
@@ -228,7 +227,7 @@
     import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { PERIODIC_REG, NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import CronRuleSelect from '@/components/common/Individualization/cronRuleSelect.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
@@ -240,7 +239,7 @@
         components: {
             TaskParamEdit,
             NoData,
-            LoopRuleSelect,
+            CronRuleSelect,
             NotifyTypeConfig,
             NodePreview
         },
@@ -270,7 +269,7 @@
                     is_latest: this.isEdit ? is_latest : true,
                     task_template_name,
                     template_id,
-                    schemeId: this.isEdit ? (schemeId.length ? schemeId : [0]) : []
+                    schemeId: this.isEdit ? (schemeId.length ? schemeId : []) : []
                 },
                 initFormData: {},
                 templateData: {},
@@ -322,16 +321,6 @@
                             trigger: 'change'
                         }
                     ],
-                    schemeId: [
-                        {
-                            required: true,
-                            validator: (val) => {
-                                return this.formData.schemeId
-                            },
-                            message: i18n.t('请选择执行方案'),
-                            trigger: 'blur'
-                        }
-                    ],
                     flow: [
                         {
                             required: true,
@@ -355,7 +344,8 @@
                 },
                 flowName: '',
                 isTplDeleted: false, // 旧数据模板是否被删除
-                hasDeleteScheme: false // 是否存在执行方案被删除
+                hasDeleteScheme: false, // 是否存在执行方案被删除
+                cronExpression: this.cron // 周期表达式
             }
         },
         computed: {
@@ -400,6 +390,13 @@
             hasNoCreatePerm () {
                 const { id, auth_actions } = this.templateData
                 return this.isEdit || !id ? false : !this.hasPermission(['flow_create_periodic_task'], auth_actions)
+            },
+            schemeSelectPlaceholder () {
+                return !this.formData.template_id || this.isLoading || this.schemeLoading ? i18n.t('请选择') : i18n.t('此流程无执行方案，无需选择')
+            },
+            isSelectSchemeDisable () {
+                const { is_latest, template_id } = this.formData
+                return is_latest !== true || !template_id || this.previewDataLoading || !this.schemeList.length
             }
         },
         created () {
@@ -518,7 +515,7 @@
                             this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                         }
                     } else if (!this.isEdit) {
-                        this.formData.schemeId = [0]
+                        this.formData.schemeId = this.schemeList.length ? [0] : []
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
                     }
@@ -563,12 +560,14 @@
                     })
                     const { activities } = this.templateData.pipeline_tree
                     const nodeList = Object.keys(activities)
-                    this.schemeList.unshift({
-                        data: JSON.stringify(nodeList),
-                        id: 0,
-                        idDefault: false,
-                        name: '<' + i18n.t('不使用执行方案') + '>'
-                    })
+                    if (this.schemeList.length) {
+                        this.schemeList.unshift({
+                            data: JSON.stringify(nodeList),
+                            id: 0,
+                            idDefault: false,
+                            name: '<' + i18n.t('不使用执行方案') + '>'
+                        })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -705,7 +704,7 @@
                     lines: line,
                     locations: location.map(item => {
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode, code }
+                        return { ...item, mode, code, status: '' }
                     }),
                     branchConditions
                 }
@@ -782,8 +781,8 @@
                     this.applyForPermission(['flow_create_periodic_task'], auth_actions, resourceData)
                     return
                 }
-                const loopRule = this.$refs.loopRuleSelect.validationExpression()
-                if (!loopRule.check) return
+                const isCronError = this.$refs.cronRuleSelect.isError
+                if (isCronError) return
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$refs.basicConfigForm.validate().then(async (result) => {
                     let formValid = true
@@ -793,7 +792,7 @@
                         constants = formData
                         formValid = paramEditComp.validate()
                     }
-                    const cronArray = loopRule.rule.split(' ')
+                    const cronArray = this.cronExpression.split(' ')
                     if (cronArray.length !== 5) {
                         this.$bkMessage({
                             'message': i18n.t('输入周期表达式非法，请校验'),
@@ -808,9 +807,9 @@
                     const jsonCron = {
                         'minute': cronArray[0],
                         'hour': cronArray[1],
-                        'day_of_week': cronArray[2],
-                        'day_of_month': cronArray[3],
-                        'month_of_year': cronArray[4]
+                        'day_of_week': cronArray[4],
+                        'day_of_month': cronArray[2],
+                        'month_of_year': cronArray[3]
                     }
                     const pipelineData = {
                         ...this.previewData,
@@ -896,8 +895,7 @@
                 const taskParamEdit = this.$refs.TaskParamEdit
                 const sameRenderData = taskParamEdit ? taskParamEdit.judgeDataEqual() : true
                 const sameFormData = tools.isDataEqual(this.formData, this.initFormData)
-                const loopRule = this.$refs.loopRuleSelect.validationExpression()
-                const sameCronDate = this.cron ? this.cron === loopRule.rule : true
+                const sameCronDate = this.cron ? this.cron === this.cronExpression : true
                 const same = sameFormData && sameCronDate && sameRenderData
                 return same
             },
@@ -908,7 +906,7 @@
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.onCancelSave()
                         }
                     })
@@ -938,7 +936,7 @@
     z-index: 3000;
 }
 .loop-rule {
-    width: 530px;
+    padding: 16px 20px;
 }
 
 .config-section {
@@ -969,12 +967,6 @@
         }
         .bk-form-content {
             width: 598px;
-        }
-        .loop-rule-select {
-            width: 555px;
-        }
-        .rule-tips {
-            top: 6px;
         }
         .scheme-form-item {
             .tooltips-icon {
@@ -1076,9 +1068,6 @@
     right: 16px;
     top: 8px;
     font-size: 16px;
-}
-/deep/.no-data-wrapper {
-    margin: 150px 0;
 }
 .btn-footer {
     position: fixed;

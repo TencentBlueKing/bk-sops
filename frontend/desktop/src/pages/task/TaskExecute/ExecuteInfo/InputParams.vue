@@ -3,7 +3,7 @@
         <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
         <div class="origin-value" v-if="!adminView">
             <bk-switcher size="small" @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
-            {{ 'JSON' }}
+            {{ 'Code' }}
         </div>
         <template v-if="!adminView">
             <div class="input-table" v-if="!isShowInputOrigin">

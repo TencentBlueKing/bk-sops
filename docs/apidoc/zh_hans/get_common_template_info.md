@@ -169,7 +169,6 @@
         "id": 30,
         "editor": "admin"
     },
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -181,7 +180,6 @@
 | result    | bool     | true/false 查询成功与否 |
 | data      | dict     | result=true 时模板详情，详细信息见下面说明 |
 | message   | string   | result=false 时错误信息 |
-|  request_id     |    string  |      esb 请求 id     |
 |  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
@@ -199,15 +197,16 @@
 
 #### data.category
 
-| 返回值        | 描述     |
-|--------------|----------|
-| OpsTools     | 运维工具  |
-| MonitorAlarm | 监控告警  |
-| ConfManage   | 配置管理  |
-| DevTools     | 开发工具  |
-| EnterpriseIT | 企业IT   |
-| OfficeApp    | 办公应用  |
-| Other        | 其它     |
+| 返回值          | 描述   |
+|--------------|------|
+| OpsTools     | 运维工具 |
+| MonitorAlarm | 监控告警 |
+| ConfManage   | 配置管理 |
+| DevTools     | 开发工具 |
+| EnterpriseIT | 企业IT |
+| OfficeApp    | 办公应用 |
+| Other        | 其它   |
+| Default      | 默认   |
 
 #### data.pipeline_tree
 

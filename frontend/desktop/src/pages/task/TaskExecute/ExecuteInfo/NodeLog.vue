@@ -8,11 +8,12 @@
                     position: 'top',
                     height: '2px'
                 }"
+                :class="{ 'empty-tab': !logInfo && !thirdPartyNodeLog }"
                 :active.sync="curPluginTab"
                 type="unborder-card">
-                <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
+                <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('平台日志') }"></bk-tab-panel>
                 <bk-tab-panel
-                    v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
+                    v-bind="{ name: 'third_party_plugin', label: $t('第三方插件日志') }">
                 </bk-tab-panel>
             </bk-tab>
             <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
@@ -50,6 +51,10 @@
             thirdPartyNodeCode: {
                 type: String,
                 default: ''
+            },
+            adminView: {
+                type: Boolean,
+                default: false
             },
             engineVer: {
                 type: Number,
@@ -106,6 +111,9 @@
             ...mapActions('atomForm/', [
                 'loadPluginServiceLog'
             ]),
+            ...mapActions('admin/', [
+                'taskflowHistroyLog'
+            ]),
             initLog () {
                 const { state, history_id, version, outputs } = this.executeInfo
                 // 获取节点日志
@@ -127,13 +135,14 @@
                 try {
                     this.isLogLoading = true
                     let performLog = {}
-                    // 不同引擎版本的任务调用不同的接口
-                    if (this.engineVer === 1) {
+                    if (this.adminView) { // 管理端日志
+                        performLog = await this.taskflowHistroyLog(query)
+                    } else if (this.engineVer === 1) { // 不同引擎版本的任务调用不同的接口
                         performLog = await this.getNodeExecutionRecordLog(query)
                     } else if (this.engineVer === 2) {
                         performLog = await this.getEngineVerNodeLog(query)
                     }
-                    this.logInfo = this.logInfo + (this.logInfo ? '\n' : '') + performLog.data
+                    this.logInfo = this.logInfo + (this.logInfo ? '\n' : '') + (this.adminView ? performLog.data.log : performLog.data)
                     this.nodeLogPageInfo = performLog.page
                     if (this.nodeLogPageInfo && !this.editScrollDom) {
                         this.watchEditorScroll()
@@ -239,6 +248,10 @@
                 .bk-tab-section {
                     padding: 0;
                 }
+                &.empty-tab {
+                    width: 100%;
+                    background: #2e2e2e;
+                }
             }
             .full-code-editor {
                 margin: 0 !important;
@@ -257,7 +270,7 @@
         }
         .no-data-wrapper {
             height: initial;
-            margin-top: 50px;
+            margin-top: 100px;
         }
     }
 </style>

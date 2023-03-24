@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 from gcloud.conf import settings
@@ -67,7 +67,7 @@ def batch_request(
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
         except Exception as e:
-            message = "[batch_request] please input correct page param, {}".format(e)
+            message = _(f"批量请求接口分页参数错误: {e} | batch_request")
             logger.error(message)
             raise ApiRequestError(message)
     else:

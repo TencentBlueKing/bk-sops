@@ -15,9 +15,11 @@ const functionTask = {
     namespaced: true,
     actions: {
         loadFunctionTaskList ({ commit }, data) {
-            const querystring = Object.assign({}, data)
+            const { params, config = {} } = data
+            const querystring = Object.assign({}, params)
             return axios.get('api/v3/function_task/', {
-                params: querystring
+                params: querystring,
+                ...config
             }).then(response => response.data.data)
         },
         transferFunctionTask ({ commit }, params) {

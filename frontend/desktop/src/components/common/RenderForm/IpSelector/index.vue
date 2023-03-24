@@ -37,6 +37,7 @@
                 :dynamic-ip-list="dynamicIpList"
                 :dynamic-group-list="dynamicGroupList"
                 :selectors="selectors"
+                :static-ip-table-config="staticIpTableConfig"
                 :static-ips="ip"
                 :dynamic-ips="topo"
                 :dynamic-groups="group"
@@ -104,6 +105,7 @@
                 type: Object,
                 default () {
                     return {
+                        static_ip_table_config: [],
                         selectors: [],
                         ip: [],
                         topo: [],
@@ -164,9 +166,10 @@
             }
         },
         data () {
-            const { selectors, ip, topo, group, filters, excludes, with_cloud_id, separator, manual_input } = this.value
+            const { static_ip_table_config = [], selectors, ip, topo, group, filters, excludes, with_cloud_id, separator, manual_input } = this.value
             const conditions = this.getConditions(filters, excludes)
             return {
+                staticIpTableConfig: static_ip_table_config,
                 selectors: selectors.slice(0),
                 ip: ip.slice(0),
                 topo: topo.slice(0),
@@ -192,7 +195,8 @@
         watch: {
             value: {
                 handler (val) {
-                    const { selectors, ip, topo, group, filters, excludes, manual_input } = this.value
+                    const { static_ip_table_config = [], selectors, ip, topo, group, filters, excludes, manual_input } = this.value
+                    this.staticIpTableConfig = static_ip_table_config.slice(0)
                     this.selectors = selectors.slice(0)
                     this.ip = ip.slice(0)
                     this.topo = topo.slice(0)

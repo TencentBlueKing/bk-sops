@@ -154,6 +154,63 @@ const tools = {
             return ''
         }
         return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
+    },
+    prettyDateTimeFormat (target) {
+        if (!target) {
+            return ''
+        }
+        const formatStr = (str) => {
+            if (String(str).length === 1) {
+                return `0${str}`
+            }
+            return str
+        }
+        const d = new Date(target)
+        const year = d.getFullYear()
+        const month = formatStr(d.getMonth() + 1)
+        const date = formatStr(d.getDate())
+        const hours = formatStr(d.getHours())
+        const minutes = formatStr(d.getMinutes())
+        const seconds = formatStr(d.getSeconds())
+        return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`
+    },
+    // ipv6地址正则
+    getIpv6Regexp () {
+        return /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/
+    },
+    // ipv6缩写展开
+    tranSimIpv6ToFullIpv6 (simpleIpv6) {
+        if (simpleIpv6 === '::') {
+            return '0000:0000:0000:0000:0000:0000:0000:0000'
+        }
+        const arr = ['0000', '0000', '0000', '0000', '0000', '0000', '0000', '0000']
+        if (simpleIpv6.startsWith('::')) {
+            const tmpArr = simpleIpv6.substring(2).split(':')
+            for (let i = 0; i < tmpArr.length; i++) {
+                arr[i + 8 - tmpArr.length] = ('0000' + tmpArr[i]).slice(-4)
+            }
+        } else if (simpleIpv6.endsWith('::')) {
+            const tmpArr = simpleIpv6.substring(0, simpleIpv6.length - 2).split(':')
+            for (let i = 0; i < tmpArr.length; i++) {
+                arr[i] = ('0000' + tmpArr[i]).slice(-4)
+            }
+        } else if (simpleIpv6.indexOf('::') >= 0) {
+            const tmpArr = simpleIpv6.split('::')
+            const tmpArr0 = tmpArr[0].split(':')
+            for (let i = 0; i < tmpArr0.length; i++) {
+                arr[i] = ('0000' + tmpArr0[i]).slice(-4)
+            }
+            const tmpArr1 = tmpArr[1].split(':')
+            for (let i = 0; i < tmpArr1.length; i++) {
+                arr[i + 8 - tmpArr1.length] = ('0000' + tmpArr1[i]).slice(-4)
+            }
+        } else {
+            const tmpArr = simpleIpv6.split(':')
+            for (let i = 0; i < tmpArr.length; i++) {
+                arr[i + 8 - tmpArr.length] = ('0000' + tmpArr[i]).slice(-4)
+            }
+        }
+        return arr.join(':')
     }
 }
 

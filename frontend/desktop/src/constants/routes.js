@@ -86,7 +86,7 @@ const ADMIN_ROUTE_LIST = [
                 {
                     id: 'manage',
                     name: i18n.t('后台管理'),
-                    subRoutes: ['adminSearch', 'adminPeriodic', 'sourceManage', 'packageEdit', 'cacheEdit', 'sourceSync'],
+                    subRoutes: ['adminSearch', 'adminPeriodic', 'adminClocked', 'sourceManage', 'packageEdit', 'cacheEdit', 'sourceSync'],
                     url: '/admin/manage/search/'
                 },
                 {

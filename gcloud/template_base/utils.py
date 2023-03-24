@@ -24,6 +24,7 @@ from gcloud.constants import COMMON, PROJECT
 from pipeline.core.constants import PE
 from gcloud import err_code
 from gcloud.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -32,7 +33,9 @@ def read_encoded_template_data(content):
     try:
         data = json.loads(base64.b64decode(content))
     except Exception:
-        return {"result": False, "message": "Template data is corrupt", "code": err_code.REQUEST_PARAM_INVALID.code}
+        message = _("模板解析失败: 文件解析异常, 模板参数缺陷. 请重试或联系管理员处理 | read_encoded_template_data")
+        logger.error(message)
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     # check the validation of file
     templates_data = data["template_data"]
@@ -40,7 +43,9 @@ def read_encoded_template_data(content):
 
     if not check_digest(salt=settings.TEMPLATE_DATA_SALT):
         if not check_digest(salt=settings.OLD_COMMUNITY_TEMPLATE_DATA_SALT):
-            return {"result": False, "message": "Invalid template data", "code": err_code.VALIDATION_ERROR.code}
+            message = _("模板解析失败: 文件解析异常, 模板参数非法. 请重试或联系管理员处理 | read_encoded_template_data")
+            logger.error(message)
+            return {"result": False, "message": message, "code": err_code.VALIDATION_ERROR.code}
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}
 
 
@@ -74,6 +79,17 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
                 act["template_id"] = str(template.pk)
 
 
+def inject_template_node_id(pipeline_tree: dict):
+    """pipeline_tree需要在unfold_subprocess之后才可递归处理"""
+    for act_id, act in pipeline_tree[PE.activities].items():
+        act["template_node_id"] = act.get("template_node_id") or act_id
+        if act[PE.type] == PE.SubProcess:
+            if "pipeline_tree" in act:
+                inject_template_node_id(act["pipeline_tree"])
+            if "pipeline" in act:
+                inject_template_node_id(act["pipeline"])
+
+
 def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
     service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
     for act in service_acts:
@@ -90,7 +106,9 @@ def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
 
 
 def fetch_templates_info(
-    pipeline_template_ids: List, fetch_fields: Tuple, appointed_template_type: Optional[str] = None,
+    pipeline_template_ids: List,
+    fetch_fields: Tuple,
+    appointed_template_type: Optional[str] = None,
 ) -> List[Dict]:
     """
     根据pipeline template id列表获取上层template数据，

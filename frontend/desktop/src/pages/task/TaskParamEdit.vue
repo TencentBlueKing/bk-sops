@@ -14,12 +14,13 @@
         <RenderForm
             ref="renderForm"
             v-if="!isConfigLoading"
+            :key="randomKey"
             :scheme="renderConfig"
             :constants="variables"
             :form-option="renderOption"
             v-model="renderData">
         </RenderForm>
-        <NoData v-if="isNoData && !isConfigLoading" :message="$t('没有参数需要配置')"></NoData>
+        <NoData v-if="isNoData && !isConfigLoading" :message="$t('暂无参数')"></NoData>
     </div>
 </template>
 <script>
@@ -42,6 +43,10 @@
                     return {}
                 }
             },
+            isUsedTipShow: {
+                type: Boolean,
+                default: true
+            },
             preMakoDisabled: {
                 type: Boolean,
                 default: false
@@ -53,10 +58,15 @@
             showRequired: {
                 type: Boolean,
                 default: true
+            },
+            unUsedConstants: {
+                type: Array,
+                default: () => ([])
             }
         },
         data () {
             return {
+                randomKey: new Date().getTime(),
                 variables: tools.deepClone(this.constants),
                 renderOption: {
                     showRequired: true,
@@ -91,7 +101,8 @@
                 this.getFormData()
             },
             editable (val) {
-                this.$set(this.renderOption, 'editable', val)
+                this.$set(this.renderOption, 'formEdit', val)
+                this.randomKey = new Date().getTime()
             }
         },
         created () {
@@ -164,18 +175,28 @@
                             atomConfig = tools.deepClone(this.atomFormConfig[atom][version])
                         }
                     }
-                    if (this.preMakoDisabled && variable.pre_render_mako) { // 修改参数页变量预渲染禁止编辑
-                        atomConfig.forEach(item => {
-                            if (!item.attrs) {
-                                item.attrs = {}
-                            }
-                            item.attrs['disabled'] = true
+
+                    const isPreRenderMako = this.preMakoDisabled && variable.pre_render_mako // 变量预渲染
+                    /* 暂不进行变量是否被使用判断 */
+                    // const isUsed = this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key) // 变量是否被使用
+                    const isUsed = false
+                    atomConfig.forEach(item => {
+                        if (!item.attrs) {
+                            item.attrs = {}
+                        }
+                        item.attrs['disabled'] = isPreRenderMako || isUsed
+                        if (isPreRenderMako) {
                             item.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
-                            if (item.attrs.children) { // 预渲染变量下包含子组件配置禁止编辑
-                                this.setAtomDisable(item.attrs.children)
-                            }
-                        })
-                    }
+                        } else if (isUsed) {
+                            // item.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
+                        } else {
+                            delete item.attrs['pre_mako_tip']
+                            delete item.attrs['used_tip']
+                        }
+                        if (item.attrs.children) { // 子组件是否禁用
+                            this.setAtomDisable(item.attrs.children, isPreRenderMako || isUsed)
+                        }
+                    })
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     // 任务参数重用(元变量单独处理)
                     if (pipelineTree && !variable.is_meta) {
@@ -198,6 +219,15 @@
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
+                            // 执行过的元变量，attr配置需要单独处理
+                            if (this.preMakoDisabled && variable.pre_render_mako) {
+                                currentFormConfig.attrs['disabled'] = true
+                                currentFormConfig.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
+                            }
+                            // else if (this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key)) {
+                            //     currentFormConfig.attrs['disabled'] = true
+                            //     currentFormConfig.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
+                            // }
                             this.metaConfig[key] = tools.deepClone(variable)
                             // 任务参数重用(元变量)
                             const { remote_url } = currentFormConfig.attrs
@@ -248,12 +278,12 @@
                     this.$emit('onChangeConfigLoading', false)
                 })
             },
-            setAtomDisable (atomList) {
+            setAtomDisable (atomList, disabled = false) {
                 atomList.forEach(item => {
                     if (!item.attrs) {
                         item.attrs = {}
                     }
-                    item.attrs['disabled'] = true
+                    item.attrs['disabled'] = disabled
                     if (item.attrs.children) {
                         this.setAtomDisable(item.attrs.children)
                     }
@@ -292,6 +322,14 @@
                 } else {
                     return false
                 }
+            },
+            getChangeParams () {
+                return Object.keys(this.initalRenderData).reduce((acc, key) => {
+                    if (!(key in this.renderData) || !tools.isDataEqual(this.initalRenderData[key], this.renderData[key])) {
+                        acc.push(key)
+                    }
+                    return acc
+                }, [])
             },
             async getVariableData () {
                 // renderform表单校验

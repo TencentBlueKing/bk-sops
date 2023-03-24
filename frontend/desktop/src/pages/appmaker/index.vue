@@ -44,12 +44,14 @@
                             @getCollectList="getCollectList">
                         </app-card>
                     </div>
-                    <div v-else-if="searchMode" class="empty-app-list">
-                        <NoData>
-                            <p>{{$t('未找到相关轻应用')}}</p>
-                        </NoData>
-                    </div>
-                    <div v-else class="empty-app-content">
+                    <NoData
+                        v-else-if="searchMode"
+                        class="empty-app-list"
+                        type="search-empty"
+                        :message="$t('未找到相关轻应用')"
+                        @searchClear="searchSelectValue = []">
+                    </NoData>
+                    <div v-else-if="!loading" class="empty-app-content">
                         <div class="appmaker-info">
                             <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
                             <p class="appmaker-info-text">{{$t('流程任务的一种快捷方式，它是基于流程生成并可直接在蓝鲸应用市场&桌面以SaaS方式搜索、添加及打开。这种无需开发、快速生成的类SaaS应用称为“轻应用”。')}}</p>
@@ -74,21 +76,6 @@
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
         </AppEditDialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            data-test-id="appmaker_form_appDeleteDialog"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除轻应用？')}}
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -100,6 +87,8 @@
     import AppEditDialog from './AppEditDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'flowName',
@@ -142,7 +131,6 @@
                 currentAppData: undefined,
                 isCreateNewApp: false,
                 isEditDialogShow: false,
-                isDeleteDialogShow: false,
                 pending: {
                     edit: false,
                     delete: false
@@ -191,7 +179,11 @@
                         project__id: this.project_id,
                         name__icontains: flowName || undefined
                     }
-                    const resp = await this.loadAppmaker(data)
+                    const source = new CancelRequest()
+                    const resp = await this.loadAppmaker({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     // logo_url相同会造成浏览器缓存,兼容不同环境下接口返回的logo_url
                     this.appList = resp.results.map(item => {
                         if (item.logo_url.indexOf('v=') === -1) {
@@ -239,15 +231,21 @@
                 this.currentAppData = app
             },
             onCardDelete (app) {
-                this.isDeleteDialogShow = true
-                this.currentAppData = app
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('轻应用') + `"${app.name}"?`,
+                    width: 450,
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(app.id)
+                    }
+                })
             },
-            async onDeleteConfirm () {
+            async onDeleteConfirm (appId) {
                 if (this.pending.delete) return
                 this.pending.delete = true
-                this.isDeleteDialogShow = false
                 try {
-                    await this.appmakerDelete(this.currentAppData.id)
+                    await this.appmakerDelete(appId)
                     this.loadData()
                     this.$bkMessage({
                         message: i18n.t('轻应用') + i18n.t('删除成功！'),
@@ -258,9 +256,6 @@
                 } finally {
                     this.pending.delete = false
                 }
-            },
-            onDeleteCancel () {
-                this.isDeleteDialogShow = false
             },
             async onEditConfirm (app, callback) {
                 if (this.pending.edit) return
@@ -354,7 +349,6 @@
         width: 120px;
     }
     .empty-app-list {
-        padding: 200px 0;
         background: $whiteDefault;
         border: 1px solid $commonBorderColor;
     }

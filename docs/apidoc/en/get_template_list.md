@@ -45,6 +45,8 @@ Query flow templates list of the business
             "bk_biz_id": "2",
             "creator": "admin",
             "bk_biz_name": "blueking",
+            "project_id": 3,
+            "project_name": "蓝鲸",
             "id": 32,
             "editor": "admin",
             "creator":"admin",
@@ -67,6 +69,8 @@ Query flow templates list of the business
             "bk_biz_id": "2",
             "creator": "admin",
             "bk_biz_name": "blueking",
+            "project_id": 3,
+            "project_name": "蓝鲸",
             "id": 31,
             "editor": null,
             "creator":"admin",
@@ -89,6 +93,8 @@ Query flow templates list of the business
             "bk_biz_id": "2",
             "creator": "admin",
             "bk_biz_name": "blueking",
+            "project_id": 3,
+            "project_name": "蓝鲸",
             "id": 30,
             "editor": "admin",
             "creator":"admin",
@@ -121,18 +127,20 @@ Query flow templates list of the business
 
 #### data
 
-| Field      | Type      | Description      |
-|-----------|----------|-----------|
-|  bk_biz_id     |    string    |      the business ID      |
-|  bk_biz_name   |    string    |      the business name    |
-|  id            |    int       |      flow template ID             |
-|  name          |    string    |      flow template name            |
-|  category      |    string    |      flow template type, the value is described below    |
-|  creator       |    string    |      person who created this flow template      |
-|  create_time   |    string    |      datetime when this flow template created   |
-|  editor        |    string or null | person who edited this flow template last |
-|  edit_time     |    string    |      datetime when this flow template edited          |
-|  auth_actions      |    array   |      actions with permissions for the current user   |
+| Field        | Type      | Description                                      |
+|--------------|----------|--------------------------------------------------|
+| bk_biz_id    |    string    | the business ID                                  |
+| bk_biz_name  |    string    | the business name                                |
+| project_id   |    string    | the project ID                                   |
+| project_name |    string    | the project name                                 |
+| id           |    int       | flow template ID                                 |
+| name         |    string    | flow template name                               |
+| category     |    string    | flow template type, the value is described below |
+| creator      |    string    | person who created this flow template            |
+| create_time  |    string    | datetime when this flow template created         |
+| editor       |    string or null | person who edited this flow template last        |
+| edit_time    |    string    | datetime when this flow template edited          |
+| auth_actions |    array   | actions with permissions for the current user    |
 
 #### data.category
 

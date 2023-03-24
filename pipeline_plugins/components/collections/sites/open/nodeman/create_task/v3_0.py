@@ -24,12 +24,12 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
     get_host_id_by_inner_ip,
     get_nodeman_rsa_public_key,
+    get_host_id_by_inner_ipv6,
 )
 
 __group_name__ = _("节点管理(Nodeman)")
@@ -45,7 +45,10 @@ OPERATE_JOB = ["UPGRADE_PROXY", "UPGRADE_AGENT", "UNINSTALL_AGENT", "UNINSTALL_P
 REMOVE_JOB = ["REMOVE_AGENT", "REMOVE_PROXY"]
 
 # 主机其它参数
-HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip"]
+HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip", "inner_ipv6", "outer_ipv6"]
+
+# 主机其他参数——IPV6
+HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 
 
 class NodemanCreateTaskService(NodeManBaseService):
@@ -74,16 +77,14 @@ class NodemanCreateTaskService(NodeManBaseService):
 
         # 拼接任务类型
         job_name = "_".join([op_type, node_type])
-
         if job_name in itertools.chain.from_iterable([OPERATE_JOB, REMOVE_JOB]):
 
             # 获取bk_host_id
             bk_host_ids = []
             for host in nodeman_other_hosts:
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
-                ip_list = get_ip_by_regex(host["nodeman_ip_str"])
-                bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
-                bk_host_ids.extend([bk_host_id for bk_host_id in bk_host_id_dict.values()])
+                ip_str = host["nodeman_ip_str"]
+                bk_host_ids.extend(self.get_host_id_list(ip_str, executor, bk_cloud_id, bk_biz_id))
             # 操作类任务（升级、卸载等）
             if job_name in OPERATE_JOB:
                 kwargs = {
@@ -114,7 +115,14 @@ class NodemanCreateTaskService(NodeManBaseService):
                 ap_id = host["nodeman_ap_id"]
                 auth_type = host["auth_type"]
                 auth_key = host["auth_key"]
-                inner_ip_list = get_ip_by_regex(host.get("inner_ip"))
+                use_inner_ip = True if host.get("inner_ip") else False
+                # use_inner_ip 判定用户输入的的是ipv4还是ipv6
+                inner_ip_list = self.get_ip_list(
+                    host.get("inner_ipv6", "")
+                    if not use_inner_ip and settings.ENABLE_IPV6
+                    else host.get("inner_ip", "")
+                )
+
                 if not inner_ip_list:
                     data.set_outputs("ex_data", _("请确认内网Ip是否合法host_info:{host}".format(host=host["inner_ip"])))
                     return False
@@ -146,7 +154,9 @@ class NodemanCreateTaskService(NodeManBaseService):
 
                 # 支持表格中一行多ip操作, 拼装表格内的inner_ip参数
                 for index, inner_ip in enumerate(inner_ip_list):
-                    one = {"inner_ip": inner_ip}
+                    one = {}
+                    if use_inner_ip:
+                        one = {"inner_ip": inner_ip}
                     if auth_type == "PASSWORD":
                         one["password"] = auth_key
                     else:
@@ -154,9 +164,14 @@ class NodemanCreateTaskService(NodeManBaseService):
 
                     # 重装必须要bk_host_id
                     if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT"]:
-                        bk_host_id_dict = get_host_id_by_inner_ip(
-                            executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
-                        )
+                        if settings.ENABLE_IPV6 and not use_inner_ip:
+                            bk_host_id_dict = get_host_id_by_inner_ipv6(
+                                executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                            )
+                        else:
+                            bk_host_id_dict = get_host_id_by_inner_ip(
+                                executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                            )
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
@@ -165,17 +180,18 @@ class NodemanCreateTaskService(NodeManBaseService):
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
                     for ip_type in HOST_EXTRA_PARAMS:
+                        # 没有开启ipv6的情况下不对ipv6的字段做处理
+                        if not settings.ENABLE_IPV6 and ip_type in HOST_EXTRA_PARAMS_IPV6:
+                            continue
                         if host.get(ip_type, False):
-                            others_ip_list = get_ip_by_regex(host[ip_type])
+                            others_ip_list = self.get_ip_list(host[ip_type])
                             if len(others_ip_list) == len(inner_ip_list):
                                 one[ip_type] = others_ip_list[index]
                             else:
                                 data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
                                 return False
                     one.update(base_params)
-
                     row_host_params_list.append(one)
-
             all_hosts.extend(row_host_params_list)
 
             kwargs = {"job_type": job_name, "hosts": all_hosts, "action": "job_install"}

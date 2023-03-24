@@ -62,12 +62,7 @@
                     </li>
                 </ul>
                 <!-- 无数据提示 -->
-                <bk-exception
-                    v-else
-                    class="exception-wrap-item exception-part"
-                    type="empty"
-                    scene="part">
-                </bk-exception>
+                <NoData v-else></NoData>
             </div>
         </div>
     </div>
@@ -77,9 +72,13 @@
     import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'TaskScheme',
+        components: {
+            NoData
+        },
         mixins: [permission],
         props: {
             template_id: {
@@ -315,7 +314,8 @@
                 if (isschemeNameExist) {
                     this.$bkMessage({
                         message: i18n.t('方案名称已存在'),
-                        theme: 'error'
+                        theme: 'error',
+                        delay: 10000
                     })
                     return
                 }
@@ -559,9 +559,6 @@
                     border-bottom: none;
                 }
             }
-        }
-        .exception-part {
-            margin: 55px 0;
         }
         .scheme-preview-mode {
             position: relative;

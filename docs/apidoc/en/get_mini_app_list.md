@@ -50,7 +50,6 @@ Get a list of mini apps
     ],
     "count": 1,
     "code": 0,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -63,7 +62,6 @@ Get a list of mini apps
 | data       | list   | data returned when result is true, details are described below |
 | message    | string | error message returned when result is false                    |
 | count      | int    | amount of data list                                            |
-| request_id | string | esb request id                                                 |
 | trace_id   | string | open telemetry trace_id                                        |
 
 #### data[item]

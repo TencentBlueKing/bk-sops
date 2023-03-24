@@ -1,5 +1,6 @@
 // 接口异常通知提示，出现在页面右上角，10s后自动关闭，鼠标hover时暂停计时
 import i18n from '@/config/i18n/index.js'
+import bus from '@/utils/bus.js'
 export default class ErrorNotify {
     constructor (errorInfo, vueInstance) {
         const { msg, type, traceId, errorSource } = errorInfo
@@ -11,30 +12,44 @@ export default class ErrorNotify {
             limit: 5,
             limitLine: 0,
             delay: 0,
-            title: errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）'),
+            title: this.setNotifyTitleAndContent(msg, true, errorSource),
             message: h('div',
                 [
                     traceId || msg ? h('p', {
-                        style: { position: 'absolute', top: '24px', right: '60px', color: '#3a84ff', cursor: 'pointer' },
+                        class: 'toggle-btn',
+                        style: { position: 'absolute', top: '24px', right: '36px', color: '#3a84ff', cursor: 'pointer' },
                         on: {
                             click: () => {
                                 this.toggleShowMore()
                             }
                         }
-                    }, [i18n.t('查看更多')]) : '',
+                    }, [i18n.t('展开详情')]) : '',
                     h('div', {
                         class: 'bk-notify-content-text',
-                        style: { display: 'none', maxHeight: '300px', overflow: 'auto' }
+                        style: this.showMore ? {} : {
+                            'display': '-webkit-box',
+                            'overflow': 'hidden',
+                            'text-overflow': 'ellipsis',
+                            'word-break': 'break-all',
+                            '-webkit-line-clamp': '2',
+                            '-webkit-box-orient': 'vertical'
+                        }
+                    }, [
+                        msg ? this.setNotifyTitleAndContent(msg, false, errorSource, 0) : ''
+                    ]),
+                    h('div', {
+                        class: 'bk-notify-trace-content',
+                        style: { display: 'none', maxHeight: '300px', overflow: 'auto', margin: '10px 0 0 0' }
                     }, [
                         traceId ? h('p', [`trace_id：${traceId}`]) : '',
-                        msg ? h('p', [msg]) : ''
+                        msg && errorSource === 'result' ? h('p', ['error_function: ', this.setNotifyTitleAndContent(msg, false, errorSource, 1) || '--']) : ''
                     ]),
                     h('bk-button', {
                         class: 'copy-btn',
                         style: { display: 'none', position: 'relative', margin: '10px 10px 0 auto' },
                         on: {
                             click: () => {
-                                this.handleCopy(vueInstance, traceId ? `trace_id：${traceId}\n${msg}` : msg)
+                                this.handleCopy(vueInstance, errorInfo)
                             }
                         }
                     }, [i18n.t('复制')])
@@ -42,7 +57,7 @@ export default class ErrorNotify {
             ),
             onClose: this.handleClose
         })
-
+        
         // 内容区域及进度条样式处理
         this.notify.$el.style.width = '450px'
         this.notify.$el.style.zIndex = '2500'
@@ -54,11 +69,38 @@ export default class ErrorNotify {
         progressWrap.appendChild(bar)
         this.notify.$el.appendChild(progressWrap)
 
+        // title 样式处理
+        const notifyContentDom = document.querySelector('.bk-notify-content')
+        const titleDom = document.querySelector('.bk-notify-content-title')
+        notifyContentDom.style.cssText = 'width: 90%'
+        titleDom.style.cssText = 'width: 80%; white-space: nowrap;overflow: hidden; text-overflow: ellipsis;'
+        titleDom.title = this.setNotifyTitleAndContent(msg, true, errorSource) || ''
+
         this.remainingTime = 10000 // 倒数10s
         this.timer = null // 定时器示例
         this.errorMsg = msg // 来自window.msg_list的错误信息
         this.startTimeCountDown(this.remainingTime)
         this.handleMouseEvent()
+    }
+    setNotifyTitleAndContent (info, isTitle, errorSource, msgIndex) {
+        let content = ''
+        if (errorSource !== 'result') {
+            const infoArr = info.split(': ')
+            content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
+        } else {
+            const { message } = JSON.parse(info)
+            const regex = /([^:]*)?: (.*)?/ // 标准数据结构
+            if (regex.test(message)) {
+                const arr = message.match(regex)
+                content = isTitle ? arr[1] : arr[2]?.split(' | ')[msgIndex]
+            } else {
+                content = isTitle ? message : message?.split(' | ')[msgIndex]
+            }
+        }
+        if (isTitle && (!content || content.length > 21)) { // 21为标题能容纳的最大数量
+            content = errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）')
+        }
+        return content
     }
     // 开始倒计时
     startTimeCountDown () {
@@ -91,6 +133,11 @@ export default class ErrorNotify {
     }
     toggleShowMore () {
         this.showMore = !this.showMore
+        // 设置切换按钮文案
+        const btnDom = this.notify.$el.querySelector('.toggle-btn')
+        if (btnDom) {
+            btnDom.innerHTML = this.showMore ? i18n.t('隐藏详情') : i18n.t('展开详情')
+        }
         // 计算当前展开的notify最大层级
         const notifyErrorDoms = document.querySelectorAll('.bk-notify')
         const zIndexList = [2500] // 默认层级2500
@@ -100,19 +147,40 @@ export default class ErrorNotify {
             })
         }
         this.notify.$el.style.zIndex = this.showMore ? Math.max(...zIndexList) + 1 : 2500
-        this.notify.$el.querySelector('.bk-notify-content-text').style.display = this.showMore ? 'block' : 'none'
+        const contentTextDom = this.notify.$el.querySelector('.bk-notify-content-text')
+        if (this.showMore) {
+            contentTextDom.classList.add('is-expand')
+        } else {
+            contentTextDom.scrollTop = 0
+            contentTextDom.classList.remove('is-expand')
+        }
+        this.notify.$el.querySelector('.bk-notify-trace-content').style.display = this.showMore ? 'block' : 'none'
         this.notify.$el.querySelector('.copy-btn').style.display = this.showMore ? 'block' : 'none'
     }
     handleClose (instance) {
-        instance.$el.querySelector('.bk-notify-content-text').style.display = 'none'
+        instance.$el.querySelector('.bk-notify-trace-content').style.display = 'none'
+        const errorMsg = instance.$el.textContent
+        bus.$emit('onCloseErrorNotify', errorMsg)
     }
-    handleCopy (vueInstance, msg) {
+    handleCopy (vueInstance, errorInfo) {
+        const { msg, traceId, errorSource } = errorInfo
+        let copyMsg = ''
+        if (msg) {
+            copyMsg = this.setNotifyTitleAndContent(msg, true, errorSource) + '\n'
+            copyMsg = copyMsg + this.setNotifyTitleAndContent(msg, false, errorSource, 0) + '\n'
+        }
+        if (traceId) {
+            copyMsg = copyMsg + `trace_id：${traceId}` + '\n'
+        }
+        if (msg && errorSource === 'result') {
+            copyMsg = copyMsg + 'error_function: ' + this.setNotifyTitleAndContent(msg, false, errorSource, 1) || '--'
+        }
         const textarea = document.createElement('textarea')
         document.body.appendChild(textarea)
         textarea.style.position = 'fixed'
         textarea.style.clip = 'rect(0 0 0 0)'
         textarea.style.top = '10px'
-        textarea.value = msg
+        textarea.value = copyMsg
         textarea.select()
         document.execCommand('copy', true)
         document.body.removeChild(textarea)

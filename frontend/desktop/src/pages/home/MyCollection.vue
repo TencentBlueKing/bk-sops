@@ -52,20 +52,6 @@
             :is-create-task-dialog-show="isCreateTaskDialogShow"
             @cancel="onHideCreateTask">
         </select-create-task-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除收藏？')}}
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -90,7 +76,6 @@
                 collectionList: [],
                 collectionGrounpList: [],
                 categorySwitchMap: {},
-                isDeleteDialogShow: false, // 显示确认删除
                 deleteCollectLoading: false, // 确认删除按钮 loading
                 isCreateTaskDialogShow: false, // 显示创建任务 dialog
                 collectionBodyLoading: false, // 收藏 body
@@ -169,20 +154,21 @@
             },
             // card 点击删除
             onDeleteCard (data) {
-                this.isDeleteDialogShow = true
-                this.deleteCollectId = data.id
+                this.$bkInfo({
+                    title: i18n.t('确认删除收藏?'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(data.id)
+                    }
+                })
             },
             // 确定删除
-            async onDeleteConfirm () {
+            async onDeleteConfirm (collectId) {
                 this.deleteCollectLoading = true
-                await this.deleteCollect(this.deleteCollectId)
+                await this.deleteCollect(collectId)
                 this.deleteCollectLoading = false
-                this.isDeleteDialogShow = false
                 this.initData()
-            },
-            // 取消删除
-            onDeleteCancel () {
-                this.isDeleteDialogShow = false
             },
             // card 点击
             onCardClick (template) {
