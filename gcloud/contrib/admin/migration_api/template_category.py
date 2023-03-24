@@ -24,6 +24,10 @@ from gcloud.constants import TASK_CATEGORY
 from gcloud import err_code
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -34,10 +38,12 @@ def migrate_template_category(request):
     try:
         params = json.loads(request.body)
     except Exception as e:
+        message = _(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_template_category")
+        logger.error(message)
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": message,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

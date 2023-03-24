@@ -47,6 +47,7 @@ from gcloud.utils.strings import string_to_boolean
 from gcloud.exceptions import FlowExportError
 from gcloud.template_base.utils import read_template_data_file
 from gcloud.utils.yaml import NoAliasSafeDumper
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -173,10 +174,12 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
         )
     except Exception:
         logger.error(traceback.format_exc())
+        message = _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理 | base_import_templates")
+        logger.error(message)
         return JsonResponse(
             {
                 "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
+                "message": message,
                 "code": err_code.UNKNOWN_ERROR.code,
                 "data": None,
             }
@@ -305,7 +308,9 @@ def import_yaml_templates(request: Request):
         convert_result = convertor_handler.reconvert(yaml_docs)
     except Exception as e:
         logger.exception("[import_yaml_templates] error: {}".format(e))
-        return JsonResponse({"result": False, "data": None, "message": f"模版转换过程出错: {e}"})
+        message = _(f"流程导入失败: 文件解析异常: {e}, 可能内容不合法. 请重试或联系管理员处理 | import_yaml_templates")
+        logger.error(message)
+        return JsonResponse({"result": False, "data": None, "message": message})
 
     if not convert_result["result"]:
         return JsonResponse({"result": False, "data": None, "message": convert_result["message"]})
@@ -409,10 +414,12 @@ def base_template_parents(request: Request, template_model_cls: object, filters:
     qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
 
     if len(qs) != 1:
+        message = _(f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理, 根据过滤条件: {filters}, 找到{len(qs)}条数据 | base_template_parents")
+        logger.error(message)
         return JsonResponse(
             {
                 "result": False,
-                "message": "find {} template for filters: {}".format(len(qs), filters),
+                "message": message,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
                 "data": None,
             }

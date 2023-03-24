@@ -4,6 +4,39 @@
         <div v-if="!isProjectHidden" class="project-select">
             <ProjectSelector :read-only="isProjectReadOnly" @reloadHome="reloadHome"></ProjectSelector>
         </div>
+        <!-- 语言 -->
+        <div
+            class="language-icon"
+            v-bk-tooltips="{
+                placement: 'bottom-end',
+                allowHtml: 'true',
+                arrow: false,
+                distance: 17,
+                theme: 'light',
+                hideOnClick: false,
+                extCls: 'more-language-tips',
+                content: '#more-language-html'
+            }">
+            <i :class="`bk-icon icon-${curLanguage}`"></i>
+        </div>
+        <div id="more-language-html">
+            <div
+                class="operate-item"
+                :class="{ 'active': curLanguage === 'chinese' }"
+                data-test-id="navHeader_list_chinese"
+                @click="toggleLanguage('chinese')">
+                <i class="bk-icon icon-chinese"></i>
+                {{ $t('中文') }}
+            </div>
+            <div
+                class="operate-item"
+                :class="{ 'active': curLanguage === 'english' }"
+                data-test-id="navHeader_list_english"
+                @click="toggleLanguage('english')">
+                <i class="bk-icon icon-english"></i>
+                {{ 'English' }}
+            </div>
+        </div>
         <!-- 更多操作 -->
         <div
             :class="['help-icon', { active: isMoreOperateActive }]"
@@ -48,6 +81,7 @@
             ref="versionLog"
             :log-list="logList"
             :log-detail="logDetail"
+            :md-mode="true"
             :loading="logListLoading || logDetailLoading"
             @active-change="handleVersionChange">
         </version-log>
@@ -57,6 +91,7 @@
     import { mapActions, mapMutations, mapState } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
+    import Cookies from 'js-cookie'
 
     export default {
         name: 'NavigatorHeadRight',
@@ -73,7 +108,8 @@
                 logDetail: '',
                 isMoreOperateActive: false,
                 logListLoading: false,
-                logDetailLoading: false
+                logDetailLoading: false,
+                curLanguage: 'chinese'
             }
         },
         computed: {
@@ -103,8 +139,11 @@
             }
         },
         async created () {
+            this.curLanguage = getCookie('blueking_language') === 'en' ? 'english' : 'chinese'
             if (this.view_mode !== 'appmaker') {
-                await this.loadUserProjectList({ is_disable: false })
+                await this.loadUserProjectList({
+                    params: { is_disable: false }
+                })
                 if (this.projectList.length && !this.project_id) {
                     const projectId = this.projectList[0].id
                     this.setProjectId(projectId)
@@ -124,6 +163,16 @@
             ...mapMutations('project', [
                 'setProjectId'
             ]),
+            toggleLanguage (language) {
+                this.curLanguage = language
+                const local = language === 'chinese' ? 'zh-cn' : 'en'
+                Cookies.set('blueking_language', local, {
+                    expires: 1,
+                    domain: window.location.hostname.replace(/^[^.]+(.*)$/, '$1'),
+                    path: '/'
+                })
+                window.location.reload()
+            },
             goToHelpDoc () {
                 window.open(this.bkDocUrl, '_blank')
             },
@@ -188,6 +237,7 @@
                 background: #fff;
             }
         }
+        .language-icon,
         .help-icon {
             display: flex;
             justify-content: center;
@@ -205,6 +255,10 @@
                     color: #3a84ff;
                 }
             }
+        }
+        .language-icon {
+            font-size: 18px;
+            margin-right: 10px;
         }
         .user-avatar {
             margin-left: 16px;
@@ -229,6 +283,7 @@
     }
 </style>
 <style lang="scss">
+    .tippy-popper.more-language-tips,
     .tippy-popper.logout-tips,
     .tippy-popper.more-operation-tips {
         .tippy-tooltip {
@@ -237,6 +292,7 @@
             box-shadow: 0 2px 6px 0 rgba(0,0,0,0.10);
             border-radius: 2px;
         }
+        #more-language-html,
         #logout-html,
         #more-operation-html {
             .operate-item {
@@ -250,6 +306,18 @@
                 white-space: nowrap;
                 cursor: pointer;
                 &:hover {
+                    background-color: #eaf3ff;
+                    color: #3a84ff;
+                }
+            }
+        }
+        #more-language-html {
+            .operate-item {
+                padding: 0 14px;
+                .bk-icon {
+                    font-size: 14px;
+                }
+                &.active {
                     background-color: #eaf3ff;
                     color: #3a84ff;
                 }

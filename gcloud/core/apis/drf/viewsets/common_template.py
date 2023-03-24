@@ -74,7 +74,7 @@ class CommonTemplateFilter(PropertyFilterSet):
     class Meta:
         model = CommonTemplate
         fields = {
-            "id": ["exact"],
+            "id": ["exact", "in"],
             "pipeline_template__name": ["icontains"],
             "pipeline_template__creator": ["exact"],
             "pipeline_template__editor": ["exact"],

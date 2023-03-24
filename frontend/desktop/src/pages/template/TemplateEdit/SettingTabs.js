@@ -15,7 +15,7 @@ const SETTING_TABS = [
     {
         id: 'operationFlowTab',
         icon: 'common-icon-branchs',
-        title: i18n.t('操作流水')
+        title: i18n.t('操作记录')
     },
     {
         id: 'globalVariableTab',
@@ -37,7 +37,7 @@ const SETTING_TABS = [
     {
         id: 'templateDataEditTab',
         icon: 'common-icon-paper',
-        title: i18n.t('模板数据')
+        title: 'Code'
     }
 ]
 

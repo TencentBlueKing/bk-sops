@@ -7,6 +7,8 @@
                 right-icon="bk-icon icon-search"
                 :placeholder="$t('搜索插件')"
                 :clearable="true"
+                @change="handleSearchChange"
+                @clear="handleSearchClear"
                 @enter="handleSearch">
             </bk-input>
         </div>
@@ -29,18 +31,25 @@
                         logo_url: plugin.logo_url
                     }">
                 </node-item>
-                <bk-exception v-if="pluginList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
+                <NoData
+                    v-if="pluginList.length === 0"
+                    :type="searchStr ? 'search-empty' : 'empty'"
+                    :message="searchStr ? $t('搜索结果为空') : ''"
+                    @searchClear="handleSearchClear">
+                </NoData>
             </div>
         </div>
     </div>
 </template>
 <script>
     import NodeItem from '../NodeItem.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ThirdPartyPluginList',
         components: {
-            NodeItem
+            NodeItem,
+            NoData
         },
         data () {
             return {
@@ -91,9 +100,7 @@
                     })
                     this.pluginPageOffset = next_offset
                     this.pluginList.push(...list)
-                    if (return_plugin_count < this.pagelimit) {
-                        this.isCompleteLoading = true
-                    }
+                    this.isCompleteLoading = return_plugin_count < this.pagelimit
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -106,12 +113,23 @@
                     return
                 }
                 const { scrollTop, clientHeight, scrollHeight } = e.target
-                const isScrollBottom = scrollHeight === (scrollTop + clientHeight)
-                if (isScrollBottom) {
+                if (scrollHeight - scrollTop - clientHeight < 10) {
                     this.getPluginList()
                 }
             },
+            handleSearchChange (val) {
+                if (val === '') {
+                    this.handleSearchClear()
+                }
+            },
+            handleSearchClear () {
+                this.searchStr = ''
+                this.handleSearch()
+            },
             handleSearch (val) {
+                this.pluginList = []
+                this.pluginPageOffset = 0
+                this.getPluginList()
             }
         }
     }

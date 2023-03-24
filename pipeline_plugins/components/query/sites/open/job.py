@@ -23,7 +23,10 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
+from gcloud.utils.cmdb import get_business_set_host
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import format_host_with_ipv6
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -170,10 +173,11 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             "job_plan_id": task_id,
         }
     )
+
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口jobv3.get_job_plan_detail返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
+        message = _(
+            f"请求执行方案失败: 查询作业平台(JOB)的作业模板详情[app_id={biz_cc_id}]接口jobv3.get_job_plan_detail. "
+            f"返回失败: {job_result['message']}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail"
         )
         check_and_raise_raw_auth_fail_exception(job_result, message)
 
@@ -186,7 +190,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var = []
     steps = []
     if not task_detail:
-        message = "请求作业平台执行方案详情返回数据为空: {}".format(job_result)
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -198,14 +202,26 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         if var["type"] in JOB_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
         elif var["type"] == JOB_VAR_CATEGORY_IP:
-            value = ",".join(
-                [
-                    "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var.get("server", {}).get("ip_list") or []
-                ]
-            )
+            if settings.ENABLE_IPV6:
+                bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
+                hosts = get_business_set_host(
+                    request.user.username,
+                    supplier_account_for_business(biz_cc_id),
+                    host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
+                    ip_list=bk_host_ids,
+                    filter_field="bk_host_id",
+                )
+                value = ",".join([format_host_with_ipv6(host, with_cloud=True) for host in hosts])
+            else:
+                value = ",".join(
+                    [
+                        "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
+                        for ip_item in var.get("server", {}).get("ip_list") or []
+                    ]
+                )
         else:
-            logger.warning("unknow type var: {}".format(var))
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | job_get_job_task_detail")
+            logger.warning(message)
             continue
 
         global_var.append(
@@ -246,12 +262,13 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     }
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
+        message = _(
+            f"执行历史请求失败: 查询作业平台(JOB)的作业模板[app_id={biz_cc_id}]接口job.get_task. "
+            f"异常消息: {job_result['message']} | job_get_instance_detail"
+        )
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
-        return JsonResponse(
-            {"result": False, "message": "job instance log fetch error: {}".format(job_result["message"])}
-        )
+        return JsonResponse({"result": False, "message": message})
 
     ip_details = {}
     for step in job_result["data"]:
@@ -355,7 +372,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     plan_detail = jobv3_result["data"]
     global_var = []
     if not plan_detail:
-        message = _("请求作业平台执行方案详情返回数据为空: {}").format(jobv3_result)
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {jobv3_result}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_job_plan_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -364,14 +381,25 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
         if var["type"] in JOBV3_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
         elif var["type"] == JOBV3_VAR_CATEGORY_IP:
-            value = ",".join(
-                [
-                    "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var.get("server", {}).get("ip_list") or []
-                ]
-            )
+            if settings.ENABLE_IPV6:
+                bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
+                hosts = get_business_set_host(
+                    request.user.username,
+                    supplier_account_for_business(biz_cc_id),
+                    host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
+                    ip_list=bk_host_ids,
+                    filter_field="bk_host_id",
+                )
+                value = ",".join([format_host_with_ipv6(host, with_cloud=True) for host in hosts])
+            else:
+                value = ",".join(
+                    [
+                        "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
+                        for ip_item in var.get("server", {}).get("ip_list") or []
+                    ]
+                )
         else:
-            message = "unknow type var: {}".format(var)
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | jobv3_get_job_plan_detail")
             logger.error(message)
             result = {"result": False, "message": message}
             return JsonResponse(result)
@@ -406,16 +434,14 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
     }
     job_result = client.jobv3.get_job_instance_list(job_kwargs)
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_instance_list返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
+        message = _(
+            f"请求执行方案失败: 查询作业平台(JOB)的作业模板[app_id={biz_cc_id}]接口jobv3.get_job_instance_list."
+            f"返回失败: {job_result['message']}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_instance_list"
         )
 
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
-        return JsonResponse(
-            {"result": False, "message": "job instance list fetch error: {}".format(job_result["message"])}
-        )
+        return JsonResponse({"result": False, "message": message})
     result_data = job_result["data"]["data"]
     if not result_data:
         return JsonResponse({"result": True, "data": []})
@@ -452,10 +478,7 @@ job_urlpatterns = [
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_script_by_script_version/(?P<biz_cc_id>\d+)/$", job_get_script_by_script_version),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),

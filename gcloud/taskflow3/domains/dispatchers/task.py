@@ -50,6 +50,7 @@ from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_
 from gcloud.project_constants.domains.context import get_project_constants_context
 from engine_pickle_obj.context import SystemObject
 from .base import EngineCommandDispatcher, ensure_return_is_dict
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -165,7 +166,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         )
 
         if not update_success:
-            return {"result": False, "message": "task already started", "code": err_code.INVALID_OPERATION.code}
+            message = _("任务操作失败: 已启动的任务不可再次启动 | start_v2")
+            logger.error(message)
+            return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
 
         try:
             # convert web pipeline to pipeline
@@ -193,9 +196,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
                 start_time=None, is_started=False, executor="",
             )
+            message = _(f"任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理. {e} | start_v2")
+            logger.error(message)
             return {
                 "result": False,
-                "message": "run pipeline failed: {}".format(e),
+                "message": message,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
 
@@ -259,6 +264,43 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
+        # 产品需要，暂时放开修改，不进行检查
+        # taskflow_model = apps.get_model("taskflow3", "TaskFlowInstance")
+        # try:
+        #     taskflow = taskflow_model.objects.get(id=self.taskflow_id)
+        # except taskflow_model.DoesNotExist as e:
+        #     logger.exception(f"[set_task_constants] Taskflow does not exist: {e}")
+        #     return {
+        #         "result": False,
+        #         "message": _(f"校验失败: 任务[{self.taskflow_id}]不存在"),
+        #         "data": None,
+        #         "code": err_code.REQUEST_PARAM_INVALID.code,
+        #     }
+
+        # # 检查是否是根任务
+        # if taskflow.is_child_taskflow:
+        #     return {
+        #         "result": False,
+        #         "message": _(f"校验失败: 任务[{taskflow.id}]不是根任务"),
+        #         "data": None,
+        #         "code": err_code.REQUEST_PARAM_INVALID.code,
+        #     }
+
+        # # 检查是否有已使用的变量被修改
+        # handler = TaskConstantsHandler(taskflow)
+        # rendered_keys = handler.get_rendered_constant_keys()
+        # modify_keys = set(constants.keys()).union(set(meta_constants.keys()))
+        # invalid_keys = modify_keys.intersection(rendered_keys)
+        # if invalid_keys:
+        #     message = _(f"任务[{self.taskflow_id}]参数设置失败: 以下参数已被使用，不可修改: {','.join(invalid_keys)}")
+        #     logger.error(message)
+        #     return {
+        #         "result": False,
+        #         "message": message,
+        #         "data": None,
+        #         "code": err_code.REQUEST_PARAM_INVALID.code,
+        #     }
+
         exec_data = self.pipeline_instance.execution_data
 
         pre_render_constants = []
@@ -278,10 +320,14 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 component_outputs.append(key)
 
         if pre_render_constants or hide_constants or component_outputs:
+            message = _(
+                f"任务参数设置失败: 常量、输出参数 {pre_render_constants}、隐藏变量 {hide_constants}, 不可修改值, "
+                f"输出为 {component_outputs}. 请检查变量配置 | set_task_constants"
+            )
+            logger.error(message)
             return {
                 "result": False,
-                "message": "can't modify consntans, pre-render: %s hided: %s output: %s"
-                % (pre_render_constants, hide_constants, component_outputs),
+                "message": message,
                 "data": None,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
@@ -301,9 +347,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "TaskFlow set_task_constants error:id=%s, constants=%s, error=%s"
                 % (self.taskflow_id, json.dumps(constants), traceback.format_exc())
             )
+            message = _("任务参数设置失败: 非法的任务参数, 请修改后重试 | set_task_constants")
+            logger.error(message)
             return {
                 "result": False,
-                "message": "constants is not valid",
+                "message": message,
                 "data": None,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
@@ -331,17 +379,43 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         with transaction.atomic():
             if task_is_started:
+                # 对修改参数的任务状态进行检查
+                status_result = self.get_task_status(subprocess_id=None, with_ex_data=False)
+                if status_result is False:
+                    logger.error(
+                        f"update context values failed: get pipeline states error, "
+                        f"error message is {status_result['message']}"
+                    )
+                    message = _(f"任务参数设置失败: 获取任务状态失败，错误信息为{status_result['message']}。")
+                    return {"result": False, "message": message, "data": None, "code": err_code.VALIDATION_ERROR.code}
+                if status_result["data"].get("state") not in [
+                    bamboo_engine_states.FAILED,
+                    bamboo_engine_states.READY,
+                    bamboo_engine_states.CREATED,
+                    bamboo_engine_states.SUSPENDED,
+                    bamboo_engine_states.BLOCKED,
+                ]:
+                    logger.error(
+                        f"update context values failed: pipeline instance state error, "
+                        f"tree state is {status_result}"
+                    )
+                    message = _(f"任务参数设置失败: 任务状态校验失败，" f"任务状态为{status_result['data']['state']}，不支持进行参数修改。")
+                    return {"result": False, "data": "", "message": message, "code": err_code.VALIDATION_ERROR.code}
+
+                bamboo_runtime = BambooDjangoRuntime()
                 update_res = bamboo_engine_api.update_context_values(
-                    runtime=BambooDjangoRuntime(),
+                    runtime=bamboo_runtime,
                     pipeline_id=self.pipeline_instance.instance_id,
                     context_values=context_values,
                 )
                 if not update_res.result:
                     logger.error("update context values failed: %s" % update_res.exc_trace)
+                    message = _(f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants")
+                    logger.error(message)
                     return {
                         "result": False,
                         "data": "",
-                        "message": "update pipeline context value failed: %s" % update_res.message,
+                        "message": message,
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
             self.pipeline_instance.set_execution_data(exec_data)
@@ -399,10 +473,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 logger.error(f"node relationship does not exist: {e}")
                 task_status = self.CREATED_STATUS
             except Exception:
-                logger.exception("task.get_status fail")
+                message = _("任务数据请求失败: 请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
+                logger.exception(message)
                 return {
                     "result": False,
-                    "message": "task.get_status fail",
+                    "message": message,
                     "data": {},
                     "code": err_code.UNKNOWN_ERROR.code,
                 }
@@ -414,10 +489,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 # do not raise error when subprocess not exist or has not been executed
                 task_status = self.CREATED_STATUS
             except Exception:
-                logger.exception("pipeline_api.get_status_tree(subprocess_id:{}) fail".format(subprocess_id))
+                message = _(f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
+                logger.exception(message)
                 return {
                     "result": False,
-                    "message": "pipeline_api.get_status_tree(subprocess_id:{}) fail",
+                    "message": message,
                     "data": {},
                     "code": err_code.UNKNOWN_ERROR.code,
                 }

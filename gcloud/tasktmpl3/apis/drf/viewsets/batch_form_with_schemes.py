@@ -33,6 +33,7 @@ from gcloud.tasktmpl3.apis.drf.permissions import BatchTemplateFormWithSchemesPe
 from drf_yasg.utils import swagger_auto_schema
 
 from pipeline_web.preview import preview_template_tree_with_schemes
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -113,9 +114,9 @@ class BatchTemplateFormWithSchemesView(APIView):
                 try:
                     preview_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
                 except Exception as e:
-                    err_msg = "batch get template form with schemes fail: {}".format(e)
-                    logger.exception(err_msg)
-                    return Response({"result": False, "message": err_msg, "data": {}})
+                    message = _(f"请求参数信息失败: 批量获取带执行方案的流程表单失败, 错误信息: {e}, 请重试. 如持续失败可联系管理员处理 | batch form with schemes")
+                    logger.error(message)
+                    return Response({"result": False, "message": message, "data": {}})
                 data[template_id].append(
                     {
                         "form": {**preview_data["pipeline_tree"]["constants"], **preview_data["custom_constants"]},

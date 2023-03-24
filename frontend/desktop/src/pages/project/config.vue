@@ -70,12 +70,12 @@
                     <bk-form-item :label="$t('执行代理人')">
                         <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
                     </bk-form-item>
-                    <bk-form-item :label="$t('白名单用户')">
+                    <bk-form-item :label="$t('免代理用户')">
                         <div class="user-list">{{ agent.executor_proxy_exempts || '--' }}</div>
                     </bk-form-item>
                 </bk-form>
             </section>
-            <bk-tab :active.sync="active" type="unborder-card">
+            <bk-tab :active.sync="active" type="unborder-card" @tab-change="handleTabChange">
                 <bk-tab-panel :label="$t('人员分组设置')" name="staffing_group_settings">
                     <section class="mandate-section">
                         <div class="title">
@@ -83,9 +83,9 @@
                             <bk-button theme="primary" @click="onEditStaffGroup('create')">{{ $t('增加分组') }}</bk-button>
                         </div>
                         <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1, zIndex: 100 }">
-                            <bk-table-column :label="$t('序号')" :width="150" property="id"></bk-table-column>
-                            <bk-table-column :label="$t('分组名称')" :width="300" property="name"></bk-table-column>
-                            <bk-table-column :label="$t('成员')">
+                            <bk-table-column :label="$t('序号')" show-overflow-tooltip :width="150" property="id"></bk-table-column>
+                            <bk-table-column :label="$t('分组名称')" show-overflow-tooltip :width="300" property="name" :render-header="renderTableHeader"></bk-table-column>
+                            <bk-table-column :label="$t('成员')" show-overflow-tooltip>
                                 <template slot-scope="props">
                                     {{props.row.members || '--'}}
                                 </template>
@@ -96,6 +96,9 @@
                                     <bk-button :text="true" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
+                            <div class="empty-data" slot="empty">
+                                <NoData></NoData>
+                            </div>
                         </bk-table>
                     </section>
                 </bk-tab-panel>
@@ -106,24 +109,33 @@
                             <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
                         </div>
                         <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1, zIndex: 100 }">
-                            <bk-table-column :label="$t('标签名称')" property="name" :min-width="150">
+                            <bk-table-column :label="$t('标签名称')" property="name" :min-width="150" show-overflow-tooltip :render-header="renderTableHeader">
                                 <template slot-scope="props">
                                     <span class="label-name"
                                         :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
                                         {{ props.row.name }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('标签描述')" :min-width="300">
+                            <bk-table-column :label="$t('标签描述')" :min-width="300" show-overflow-tooltip :render-header="renderTableHeader">
                                 <template slot-scope="props">
                                     {{ props.row.description || '--' }}
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('标签引用')" :width="200">
+                            <bk-table-column :label="$t('标签引用')" :width="200" show-overflow-tooltip :render-header="renderTableHeader">
                                 <template slot-scope="props">
-                                    {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
+                                    <router-link
+                                        class="citation"
+                                        :to="{
+                                            name: 'processHome',
+                                            params: { project_id: id },
+                                            query: { label_ids: String(props.row.id) }
+                                        }">
+                                        {{ labelCount[props.row.id] || 0 }}
+                                    </router-link>
+                                    {{ $t('个流程在引用') }}
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('系统默认标签')" :width="300">
+                            <bk-table-column :label="$t('系统默认标签')" :width="300" :render-header="renderTableHeader">
                                 <template slot-scope="props">
                                     {{ props.row.is_default ? $t('是') : $t('否') }}
                                 </template>
@@ -142,6 +154,9 @@
                                     </bk-popover>
                                 </template>
                             </bk-table-column>
+                            <div class="empty-data" slot="empty">
+                                <NoData></NoData>
+                            </div>
                         </bk-table>
                     </section>
                 </bk-tab-panel>
@@ -152,16 +167,19 @@
                             <bk-button :theme="'primary'" @click="onAddVariable('create')">{{ $t('新增项目变量') }}</bk-button>
                         </div>
                         <bk-table style="margin-top: 15px;" :data="variableData">
-                            <bk-table-column :label="$t('变量名称')" prop="name"></bk-table-column>
-                            <bk-table-column :label="$t('KEY')" prop="key"></bk-table-column>
-                            <bk-table-column :label="$t('值')" prop="value"></bk-table-column>
-                            <bk-table-column :label="$t('说明')" prop="desc"></bk-table-column>
+                            <bk-table-column show-overflow-tooltip :label="$t('变量名称')" prop="name" :render-header="renderTableHeader"></bk-table-column>
+                            <bk-table-column show-overflow-tooltip :label="$t('KEY')" prop="key"></bk-table-column>
+                            <bk-table-column show-overflow-tooltip :label="$t('值')" prop="value"></bk-table-column>
+                            <bk-table-column show-overflow-tooltip :label="$t('说明')" prop="desc"></bk-table-column>
                             <bk-table-column :label="$t('操作')">
                                 <template slot-scope="props">
                                     <bk-button theme="primary" text @click="onAddVariable('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                                    <bk-button theme="primary" text @click="onRemove(props.row.id)">{{ $t('删除') }}</bk-button>
+                                    <bk-button theme="primary" text @click="onRemove(props.row)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
+                            <div class="empty-data" slot="empty">
+                                <NoData></NoData>
+                            </div>
                         </bk-table>
                     </section>
                 </bk-tab-panel>
@@ -225,21 +243,6 @@
             </bk-form>
         </bk-dialog>
         <bk-dialog
-            :mask-close="false"
-            :auto-close="false"
-            :header-position="'left'"
-            :ext-cls="'common-dialog'"
-            :title="$t('删除')"
-            width="400"
-            :loading="pending.delete"
-            :value="isDeleteStaffDialogShow"
-            @confirm="deleteStaffGroupConfirm"
-            @cancel="isDeleteStaffDialogShow = false">
-            <div class="delete-dialog">
-                {{$t('确认删除') + '"' + deletingStaffDetail.name + '"' + '?' }}
-            </div>
-        </bk-dialog>
-        <bk-dialog
             width="600"
             ext-cls="common-dialog label-dialog"
             header-position="left"
@@ -285,21 +288,6 @@
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
-        <bk-dialog
-            :mask-close="false"
-            :auto-close="false"
-            :header-position="'left'"
-            :ext-cls="'common-dialog'"
-            :title="$t('删除')"
-            width="400"
-            :loading="pending.deleteLabel"
-            :value="isDeleteLabelDialogShow"
-            @confirm="deleteLabelGroupConfirm"
-            @cancel="isDeleteLabelDialogShow = false">
-            <div class="delete-dialog">
-                {{$t('确认删除') + '"' + deletingLabelDetail.name + '"' + '?' }}
-            </div>
-        </bk-dialog>
         <!-- 新增变量 -->
         <bk-dialog
             :mask-close="false"
@@ -327,24 +315,6 @@
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
-        <!-- 删除变量 -->
-        <bk-dialog
-            width="430"
-            :mask-close="false"
-            :auto-close="false"
-            :show-footer="false"
-            :loading="pending.deletevariable"
-            :ext-cls="'delete-variable-dialog'"
-            :header-position="'center'"
-            :value="isDeleteVariableDialogShow"
-            @confirm="deleteLabelGroupConfirm"
-            @cancel="isDeleteVariableDialogShow = false">
-            <i>{{$t('确认删除变量')}}</i>
-            <div class="delete-options">
-                <bk-button :theme="'primary'" @click="onDeleteVariable">{{ $t('确定') }}</bk-button>
-                <bk-button :theme="'default'" @click="isDeleteVariableDialogShow = false">{{ $t('取消') }}</bk-button>
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -354,12 +324,14 @@
     import { mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'Mandate',
         components: {
             BkUserSelector,
-            PageHeader
+            PageHeader,
+            NoData
         },
         mixins: [permission],
         props: {
@@ -378,15 +350,11 @@
                 agentLoading: false,
                 staffGroup: [],
                 staffGroupDetail: {},
-                deletingStaffDetail: {},
                 isStaffDialogShow: false,
-                isDeleteStaffDialogShow: false,
                 staffGroupLoading: false,
                 labelList: [],
                 labelLoading: false,
                 isLabelDialogShow: false,
-                deletingLabelDetail: {},
-                isDeleteLabelDialogShow: false,
                 labelDetail: {},
                 labelCount: {},
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
@@ -504,14 +472,12 @@
                 },
                 active: 'variable',
                 isAddVariableDialogShow: false,
-                isDeleteVariableDialogShow: false,
                 variableFormData: {
                     name: '',
                     key: '',
                     value: '',
                     desc: ''
-                },
-                delId: '' // 删除变量的id
+                }
             }
         },
         computed: {
@@ -520,6 +486,8 @@
             })
         },
         created () {
+            const { configActive } = this.$route.query
+            this.active = configActive || 'variable'
             this.getProjectDetail()
             this.getAgentData()
             this.getStaffGroupData()
@@ -540,7 +508,7 @@
                 'updateTemplateLabel',
                 'createTemplateLabel',
                 'delTemplateLabel',
-                'getlabelsCitedCount',
+                'getLabelsCitedCount',
                 'loadEnvVariableList',
                 'createEnvVariable',
                 'deleteEnvVariable',
@@ -580,6 +548,16 @@
                 } finally {
                     this.agentLoading = false
                 }
+            },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
             },
             onOpenDescEdit () {
                 if (!this.hasPermission(['project_edit'], this.project.auth_actions)) {
@@ -667,6 +645,14 @@
                     executor_proxy_exempts: this.agent.executor_proxy_exempts.split(',').filter(item => item.trim())
                 }
             },
+            handleTabChange (name) {
+                this.$router.replace({
+                    name: 'projectConfig',
+                    query: {
+                        configActive: name
+                    }
+                })
+            },
             onEditStaffGroup (type, group) {
                 let editingData = { name: '', members: [] }
                 if (type === 'edit') {
@@ -714,18 +700,23 @@
                 }
             },
             onDelStaffGroup (group) {
-                this.deletingStaffDetail = { ...group }
-                this.isDeleteStaffDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('分组') + '"' + group.name + '"?',
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.deleteStaffGroupConfirm(group)
+                    }
+                })
             },
-            async deleteStaffGroupConfirm () {
+            async deleteStaffGroupConfirm (group) {
                 if (this.pending.staff) {
                     return
                 }
                 this.pending.staff = true
                 try {
-                    const resp = await this.delProjectStaffGroup(this.deletingStaffDetail.id)
+                    const resp = await this.delProjectStaffGroup(group.id)
                     if (resp.result) {
-                        this.isDeleteStaffDialogShow = false
                         this.getStaffGroupData()
                     }
                 } catch (e) {
@@ -748,7 +739,7 @@
                         this.labelList = [...normalList, ...defaultList]
                         if (resp.data.length > 0) {
                             const ids = resp.data.map(item => item.id).join(',')
-                            const labelData = await this.getlabelsCitedCount({ ids, project_id: this.id })
+                            const labelData = await this.getLabelsCitedCount({ ids, project_id: this.id })
                             if (labelData.result) {
                                 this.labelCount = labelData.data
                             }
@@ -804,18 +795,24 @@
                 }
             },
             onDelLabel (label) {
-                this.deletingLabelDetail = { ...label }
-                this.isDeleteLabelDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除该标签?'),
+                    subTitle: i18n.t('关联的流程将同时移除本标签'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.deleteLabelGroupConfirm(label)
+                    }
+                })
             },
-            async deleteLabelGroupConfirm () {
+            async deleteLabelGroupConfirm (label) {
                 if (this.pending.deleteLabel) {
                     return
                 }
                 this.pending.deleteLabel = true
                 try {
-                    const resp = await this.delTemplateLabel(this.deletingLabelDetail.id)
+                    const resp = await this.delTemplateLabel(label.id)
                     if (resp.result) {
-                        this.isDeleteLabelDialogShow = false
                         this.getTplLabels()
                     }
                 } catch (e) {
@@ -859,18 +856,24 @@
                     this.pending.variable = false
                 }
             },
-            onRemove (id) {
-                this.delId = id
-                this.isDeleteVariableDialogShow = true
+            onRemove (variable) {
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('项目变量') + `"${variable.key}"?`,
+                    subTitle: i18n.t('若该变量被流程的节点引用，请及时检查并更新节点配置'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteVariable(variable)
+                    }
+                })
             },
-            async onDeleteVariable () {
+            async onDeleteVariable (variable) {
                 if (this.pending.deletevariable) {
                     return
                 }
                 this.pending.deletevariable = true
                 try {
-                    await this.deleteEnvVariable(this.delId)
-                    this.isDeleteVariableDialogShow = false
+                    await this.deleteEnvVariable(variable.id)
                     this.getVariableData()
                 } catch (e) {
                     console.log(e)
@@ -999,6 +1002,9 @@
         color: #63656e;
         border-radius: 8px;
     }
+    .citation {
+        color: #3a84ff;
+    }
     .agent-dialog,
     .scheme-dialog,
     .delete-dialog {
@@ -1015,27 +1021,6 @@
         .create-variable-form {
             display: flex;
             flex-direction: column;
-        }
-    }
-    .delete-variable-dialog {
-        height: 220px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        i {
-            text-align: center;
-            display: block;
-            font-style: unset;
-            font-size: 20px;
-            margin-top: 30px;
-        }
-        .delete-options {
-            width: 200px;
-            margin: 0 auto;
-            button {
-                width: 80px;
-                margin: 30px 5px 14px;
-            }
         }
     }
 </style>

@@ -43,7 +43,7 @@
                                     :render-config="subflow.currentForm.inputsRenderConfig"
                                     :constants="$store.state.template.constants">
                                 </input-params>
-                                <no-data v-else></no-data>
+                                <no-data v-else :message="$t('暂无参数')"></no-data>
                             </div>
                         </section>
                         <!-- 输出参数 -->
@@ -58,7 +58,7 @@
                                     :version="subflow.currentForm.version"
                                     :node-id="subflow.id">
                                 </output-params>
-                                <no-data v-else></no-data>
+                                <no-data v-else :message="$t('暂无参数')"></no-data>
                             </div>
                         </section>
                     </div>
@@ -84,7 +84,7 @@
                                     @renderConfigChange="onRenderConfigChange(subflow.id, $event)"
                                     @update="updateInputsValue(subflow.id, $event)">
                                 </input-params>
-                                <no-data v-else></no-data>
+                                <no-data v-else :message="$t('暂无参数')"></no-data>
                             </div>
                         </section>
                         <!-- 输出参数 -->
@@ -100,7 +100,7 @@
                                     :node-id="subflow.id"
                                     @hookChange="onHookChange">
                                 </output-params>
-                                <no-data v-else></no-data>
+                                <no-data v-else :message="$t('暂无参数')"></no-data>
                             </div>
                         </section>
                     </div>

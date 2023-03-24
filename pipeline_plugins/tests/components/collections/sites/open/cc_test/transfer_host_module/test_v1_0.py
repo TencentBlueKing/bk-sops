@@ -53,14 +53,11 @@ class MockClient(object):
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".get_client_by_user"
 )
-CC_GET_HOST_ID_BY_INNERIP = (
-    "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".cc_get_host_id_by_innerip"
-)
+CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 CC_LIST_MATCH_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".cc_list_match_node_inst_id"
 )
-CC_GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user'
-GET_IP_BY_REGEX = "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0.get_ip_by_regex"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
 
 COMMON_MAINLINE = {
     "result": True,
@@ -206,7 +203,6 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )
@@ -254,7 +250,6 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )
@@ -279,7 +274,10 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     name="fail case: select module by text text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "不存在该拓扑路径：蓝鲸>Yun>set>module"}),
+    execute_assertion=ExecuteAssertion(
+        success=False,
+        outputs={"ex_data": "拓扑路径 [蓝鲸>Yun>set>module] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"},
+    ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("admin", 2, ["1.1.1.1", "2.2.2.2"], 0)])
@@ -287,7 +285,6 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )
@@ -320,7 +317,6 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )

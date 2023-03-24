@@ -38,7 +38,6 @@ callback specific node
 {
     "result": true,
     "message": "success",
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -49,5 +48,4 @@ callback specific node
 | ------------  | ---------- | ------------------------------ |
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  message  |    string  |      error message returned when result is false  |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |

@@ -102,7 +102,6 @@ Get functionalization task list, support filtering with functionalization task s
     ],
     "code": 0,
     "count": 2,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -115,7 +114,6 @@ Get functionalization task list, support filtering with functionalization task s
 | data    | list   | data returned when result is true, details are described below |
 | message | string | error message returned when result is false                  |
 | count   | int    | amount of data list                                          |
-|  request_id     |    string  | esb request id             |
 |  trace_id     |    string  | open telemetry trace_id        |
 
 ##### data[item]

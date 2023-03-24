@@ -21,8 +21,6 @@ from gcloud.conf import settings
 
 __group_name__ = _("作业平台(JOB)")
 
-from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
-
 
 class JobLocalContentUploadService(BaseJobLocalContentUploadService):
     def inputs_format(self):
@@ -50,15 +48,16 @@ class JobLocalContentUploadService(BaseJobLocalContentUploadService):
 
     def get_ip_list(self, data, executor, biz_cc_id):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
-        clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, original_ip_list, biz_cc_id, data)
-        if not clean_result:
-            raise Exception("[get_ip_list] 从CMDB查询IP失败")
-        return ip_list
+        # 获取 IP
+        clean_result, target_server = self.get_target_server_hybrid(
+            executor, biz_cc_id, data, original_ip_list, logger_handle=self.logger
+        )
+        return clean_result, target_server
 
     def get_job_kwargs(self, biz_cc_id, data, ip_list):
-
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
+
         job_kwargs = super(JobLocalContentUploadService, self).get_job_kwargs(biz_cc_id, data, ip_list)
 
         # 如果开启了滚动执行，填充rolling_config配置

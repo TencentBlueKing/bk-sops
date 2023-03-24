@@ -18,65 +18,21 @@
         </ip-search-input>
         <div class="ip-list-wrap">
             <template v-if="type === 'select'">
-                <table class="ip-table">
-                    <thead>
-                        <tr>
-                            <th width="40">
-                                <span
-                                    :class="['checkbox', {
-                                        'checked': listAllSelected,
-                                        'half-checked': selectedIp.length > 0 && selectedIp.length < list.length
-                                    }]"
-                                    @click="onSelectAllClick">
-                                </span>
-                            </th>
-                            <th>{{i18n.cloudArea}}</th>
-                            <th width="120">
-                                IP
-                                <span class="sort-group">
-                                    <i :class="['sort-icon', 'up', { 'active': ipSortActive === 'up' }]" @click="onIpSort('up')"></i>
-                                    <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
-                                </span>
-                            </th>
-                            <th width="160">
-                                {{i18n.hostName}}
-                                <span class="sort-group">
-                                    <i :class="['sort-icon', 'up', { 'active': hostNameSortActive === 'up' }]" @click="onHostNameSort('up')"></i>
-                                    <i :class="['sort-icon', { 'active': hostNameSortActive === 'down' }]" @click="onHostNameSort('down')"></i>
-                                </span>
-                            </th>
-                            <th width="160">Agent {{i18n.status}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template v-if="listInPage.length">
-                            <tr v-for="item in listInPage" :key="item.bk_host_id">
-                                <td>
-                                    <span
-                                        :class="['checkbox', { 'checked': selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id) > -1 }]"
-                                        @click="onHostItemClick(item)">
-                                    </span>
-                                </td>
-                                <td
-                                    class="ui-ellipsis"
-                                    :title="item.cloud[0] && item.cloud[0].bk_inst_name">
-                                    {{ item.cloud[0] && item.cloud[0].bk_inst_name }}
-                                </td>
-                                <td>{{item.bk_host_innerip}}</td>
-                                <td>{{item.bk_host_name}}</td>
-                                <td
-                                    class="ui-ellipsis"
-                                    :class="item.agent ? 'agent-normal' : 'agent-failed'"
-                                    :title="item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error">
-                                    {{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}
-                                </td>
-                            </tr>
-                        </template>
-                        <tr v-else>
-                            <td class="static-ip-empty" colspan="4"><no-data></no-data></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <IpSelectorTable
+                    :selection="true"
+                    :editable="true"
+                    :operate="false"
+                    :is-search-mode="isSearchMode"
+                    :default-selected="selectedIp"
+                    :static-ip-list="staticIpList"
+                    :list-in-page="listInPage"
+                    :static-ip-table-config="staticIpTableConfig"
+                    @onIpSort="onIpSort"
+                    @onHostNameSort="onHostNameSort"
+                    @onTableConfigChange="onTableConfigChange"
+                    @handleSelectionChange="handleSelectionChange">
+                </IpSelectorTable>
+                
                 <bk-pagination
                     v-if="isPaginationShow"
                     class="table-pagination"
@@ -123,7 +79,8 @@
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import IpSearchInput from './IpSearchInput.vue'
-    import NoData from '@/components/common/base/NoData.vue'
+    import IpSelectorTable from './IpSelectorTable.vue'
+    import tools from '@/utils/tools.js'
 
     const i18n = {
         add: gettext('添加'),
@@ -146,11 +103,12 @@
         name: 'StaticIpAddingPanel',
         components: {
             IpSearchInput,
-            NoData
+            IpSelectorTable
         },
         props: {
             allowUnfoldInput: Boolean,
             staticIpList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array,
             type: String
         },
@@ -160,7 +118,6 @@
             const totalPage = Math.ceil(this.staticIpList.length / listCountPerPage)
 
             return {
-                listAllSelected: false,
                 isPaginationShow: totalPage > 1,
                 selectedIp: this.staticIps.slice(0),
                 isSearchMode: false,
@@ -224,8 +181,17 @@
                     const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
                         return item.trim() !== ''
                     })
+                    const ipv6Regexp = tools.getIpv6Regexp()
                     const list = this.staticIpList.filter(item => {
-                        return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
+                        const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
+                        return keyArr.some(str => {
+                            let text = str
+                            if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                            }
+                            return ipv4.indexOf(text) > -1
+                                || (ipv6 && ipv6.indexOf(text) > -1)
+                        })
                     })
                     this.searchResult = list
                     this.setPanigation(list)
@@ -235,28 +201,11 @@
                     this.isSearchMode = false
                 }
             },
-            onSelectAllClick () {
-                if (this.listAllSelected) {
-                    this.selectedIp = []
-                    this.listAllSelected = false
-                } else {
-                    this.selectedIp = [...this.list]
-                    this.listAllSelected = true
-                }
+            handleSelectionChange (ips) {
+                this.selectedIp = ips
             },
-            onHostItemClick (host) {
-                const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
-                if (index > -1) {
-                    this.selectedIp.splice(index, 1)
-                } else {
-                    this.selectedIp.push(host)
-                }
-                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.list.length
-                if (half || this.selectedIp.length === 0) {
-                    this.listAllSelected = false
-                } else {
-                    this.listAllSelected = true
-                }
+            onTableConfigChange (data) {
+                this.$emit('onTableConfigChange', data)
             },
             getSortIpList (list, way = 'up') {
                 const srotList = list.slice(0)
@@ -288,18 +237,10 @@
             },
             onIpSort (way) {
                 this.hostNameSortActive = ''
-                if (this.ipSortActive === way) {
-                    this.ipSortActive = ''
-                    return
-                }
                 this.ipSortActive = way
             },
             onHostNameSort (way) {
                 this.ipSortActive = ''
-                if (this.hostNameSortActive === way) {
-                    this.hostNameSortActive = ''
-                    return
-                }
                 this.hostNameSortActive = way
             },
             onPageChange (page) {
@@ -314,19 +255,24 @@
                     const ipInvalidList = []
                     const ipNotExistList = []
                     const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
+                    const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
                     const arr = this.ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
                     arr.forEach(item => {
                         const str = item.trim()
                         if (str) {
-                            if (!ipPattern.test(str)) { // 字符串不是合法 ip 地址
+                            if (!ipPattern.test(str) && !ipv6Regexp.test(str)) { // 字符串不是合法 ip 地址
                                 ipInvalidList.push(str)
                             } else {
-                                const ipInList = this.list.find(i => i.bk_host_innerip === str)
-                                if (!ipInList) { // ip 地址不在可选列表里
+                                let text = str
+                                if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                    text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                                }
+                                const ipInList = this.list.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
+                                if (!ipInList) { // ip 地址/ipv6地址不在可选列表里
                                     ipNotExistList.push(str)
                                 } else {
-                                    const ipInSelected = this.selectedIp.find(i => i.bk_host_innerip === str)
-                                    if (!ipInSelected) { // ip 地址在可选列表并且不在已选列表
+                                    const ipInSelected = this.selectedIp.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
+                                    if (!ipInSelected) { // ip 地址/ipv6地址在可选列表并且不在已选列表
                                         selectedIp.push(ipInList)
                                     }
                                 }
@@ -366,108 +312,6 @@
 }
 .ip-list-wrap {
     position: relative;
-    .ip-table {
-        width: 100%;
-        border: 1px solid #dde4eb;
-        border-collapse: collapse;
-        table-layout:fixed;
-        tr {
-            border-bottom: 1px solid #dde4eb;
-        }
-        th {
-            color: #313238;
-        }
-        th,td {
-            padding: 12px 8px;
-            line-height: 1;
-            font-size: 12px;
-            font-weight: normal;
-            text-align: left;
-            &.agent-normal {
-                color: #22a945;
-            }
-            &.agent-failed {
-                color: #ea3636;
-            }
-        }
-        .loading-wraper {
-            height: 300px;
-        }
-        .static-ip-empty {
-            height: 300px;
-            text-align: center;
-            color: #c4c6cc;
-            .add-ip-btn {
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
-        .checkbox {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
-            vertical-align: middle;
-            cursor: pointer;
-            &.checked {
-                background: #3a84ff;
-                border-color: #3a84ff;
-                &:before {
-                    content: '';
-                    position: absolute;
-                    left: 2px;
-                    top: 2px;
-                    height: 4px;
-                    width: 8px;
-                    border-left: 1px solid;
-                    border-bottom: 1px solid;
-                    border-color: #ffffff;
-                    transform: rotate(-45deg);
-                }
-            }
-            &.half-checked {
-                background: #3a84ff;
-                border-color: #3a84ff;
-                &:before {
-                    content: '';
-                    position: absolute;
-                    left: 2px;
-                    top: 5px;
-                    height: 1px;
-                    width: 8px;
-                    background: #ffffff;
-                }
-            }
-        }
-        .sort-group {
-            display: inline-block;
-            margin-left: 6px;
-            vertical-align: top;
-            .sort-icon {
-                display: block;
-                width: 0;
-                height: 0;
-                border-style: solid;
-                border-width: 5px 5px 0 5px;
-                border-color: #c4c6cc transparent transparent transparent;
-                cursor: pointer;
-                &.up {
-                    margin-bottom: 2px;
-                    transform: rotate(180deg);
-                }
-                &.active {
-                    border-color: #3a84ff transparent transparent transparent;
-                }
-            }
-        }
-        .ui-ellipsis {
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;
-        }
-    }
     .table-pagination {
         position: absolute;
         right: 0;

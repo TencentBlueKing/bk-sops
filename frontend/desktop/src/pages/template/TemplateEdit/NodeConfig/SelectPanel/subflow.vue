@@ -90,7 +90,12 @@
                             </div>
                         </div>
                     </template>
-                    <bk-exception v-else class="exception-part" type="empty" scene="part"></bk-exception>
+                    <NoData
+                        v-else
+                        :type="searchStr ? 'search-empty' : 'empty'"
+                        :message="searchStr ? $t('搜索结果为空') : ''"
+                        @searchClear="handleSearch('')">
+                    </NoData>
                 </div>
             </div>
         </div>
@@ -99,9 +104,13 @@
 <script>
     import permission from '@/mixins/permission.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'Subflow',
+        components: {
+            NoData
+        },
         mixins: [permission],
         props: {
             common: [String, Number],
@@ -170,7 +179,7 @@
                     const searchStr = this.escapeRegExp(this.searchStr)
                     const data = {
                         label_ids: this.labels.join(','),
-                        pipeline_template__name__icontains: searchStr || undefined,
+                        pipeline_template__name__icontains: this.searchStr || undefined,
                         limit: this.limit,
                         offset: (this.crtPage - 1) * this.limit
                     }
@@ -189,7 +198,7 @@
                         if (searchStr !== '') {
                             const reg = new RegExp(searchStr, 'i')
                             if (reg.test(tpl.name)) {
-                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${searchStr}</span>`)
+                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${this.searchStr}</span>`)
                             }
                         }
                         result.push(tplCopy)
@@ -331,7 +340,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .subflow-select-panel {
-    padding: 26px 32px;
+    padding: 25px 32px 20px;
     height: 100%;
 }
 .select-title {
@@ -351,9 +360,6 @@
         right: 0;
         width: 240px;
     }
-}
-.exception-part {
-    margin: 50px 0;
 }
 .list-table {
     margin-top: 16px;
@@ -377,6 +383,9 @@
         .tpl-label {
             display: flex;
             align-items: center;
+            > span {
+                flex-shrink: 0;
+            }
             .label-select-wrap {
                 cursor: pointer;
             }
@@ -402,9 +411,6 @@
     max-height: calc(100vh - 260px);
     overflow: auto;
     @include scrollbar;
-    .no-data-wrapper {
-        margin: 100px 0;
-    }
 }
 .tpl-item {
     display: flex;

@@ -40,7 +40,7 @@
                 @onChangeConfigLoading="onUnrefVarLoadingChange">
             </TaskParamEdit>
         </div>
-        <NoData v-if="isNoData" :message="$t('没有参数需要配置')"></NoData>
+        <NoData v-if="isNoData" :message="$t('暂无参数')"></NoData>
     </div>
 </template>
 <script>
@@ -66,7 +66,10 @@
                 return this.getReferencedStatus(this.referencedVariable)
             },
             isUnreferencedShow () {
-                return this.getReferencedStatus(this.unReferencedVariable)
+                if (this.taskMessageLoading) return false
+                const variableKeys = Object.keys(this.unReferencedVariable)
+                const unreferenced = variableKeys.filter(key => this.unReferencedVariable[key].show_type === 'show')
+                return !!unreferenced.length
             },
             isParameterInfoLoading () {
                 return this.isRefVarLoading || this.isUnrefVarLoading

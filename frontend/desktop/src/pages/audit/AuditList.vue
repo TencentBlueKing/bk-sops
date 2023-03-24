@@ -38,6 +38,7 @@
                             :prop="item.id"
                             :width="item.width"
                             :render-header="renderTableHeader"
+                            show-overflow-tooltip
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <!--所属项目-->
@@ -106,7 +107,13 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -124,6 +131,8 @@
     import task from '@/mixins/task.js'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -153,7 +162,7 @@
             children: [
                 { id: 'nonExecution', name: i18n.t('未执行') },
                 { id: 'running', name: i18n.t('未完成') },
-                { id: 'revoked', name: i18n.t('撤销') },
+                { id: 'revoked', name: i18n.t('终止') },
                 { id: 'finished', name: i18n.t('完成') }
             ]
         }
@@ -340,22 +349,26 @@
                     if (start_time && start_time[0] && start_time[1]) {
                         if (this.common) {
                             data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (finish_time && finish_time[0] && finish_time[1]) {
                         if (this.common) {
                             data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['pipeline_instance__finish_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    const auditListData = await this.loadAuditTaskList(data)
+                    const source = new CancelRequest()
+                    const auditListData = await this.loadAuditTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = auditListData.results
                     this.auditList = list
                     this.pagination.count = auditListData.count
@@ -379,7 +392,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -564,9 +584,6 @@
     }
     .audit-operation-btn {
         color: #3a84ff;
-    }
-    .empty-data {
-        padding: 120px 0;
     }
 }
 .panagation {

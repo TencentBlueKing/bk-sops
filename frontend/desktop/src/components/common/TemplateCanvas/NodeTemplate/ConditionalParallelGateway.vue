@@ -41,7 +41,9 @@
         },
         computed: {
             isOpenTooltip () {
-                return this.node.status === 'FAILED'
+                const { status, task_state } = this.node
+                // 任务终止时禁止节点操作
+                return task_state !== 'REVOKED' && status === 'FAILED'
             }
         },
         methods: {

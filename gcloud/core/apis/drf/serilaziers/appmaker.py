@@ -25,6 +25,7 @@ class AppmakerSerializer(serializers.ModelSerializer):
     desktop_url = serializers.SerializerMethodField(help_text="桌面url", read_only=True)
     template_name = serializers.CharField(source="task_template_name", read_only=True)
     template_id = serializers.IntegerField(source="task_template.id", read_only=True)
+    edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
 
     def get_desktop_url(self, obj):
         return "{}?app={}".format(env.BK_PAAS_DESKTOP_HOST, obj.code)

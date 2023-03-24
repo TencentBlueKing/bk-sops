@@ -169,7 +169,6 @@ Query common flow template details
         "id": 30,
         "editor": "admin"
     },
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -181,7 +180,6 @@ Query common flow template details
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
-|  request_id     |    string  | esb request id             |
 |  trace_id     |    string  | open telemetry trace_id        |
 
 #### data
@@ -199,15 +197,16 @@ Query common flow template details
 
 #### data.category
 
-| Value        | Description     |
-|--------------|----------|
-| OpsTools     | operation tools  |
-| MonitorAlarm | monitor alarm  |
-| ConfManage   | configuration management  |
-| DevTools     | development tools  |
-| EnterpriseIT | enterprise IT   |
-| OfficeApp    | official APPs  |
-| Other        | other     |
+| Value        | Description              |
+|--------------|--------------------------|
+| OpsTools     | operation tools          |
+| MonitorAlarm | monitor alarm            |
+| ConfManage   | configuration management |
+| DevTools     | development tools        |
+| EnterpriseIT | enterprise IT            |
+| OfficeApp    | official APPs            |
+| Other        | other                    |
+| Default      | default                  |
 
 #### data.pipeline_tree
 

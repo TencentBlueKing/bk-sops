@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import re
 import logging
 import traceback
@@ -32,17 +31,19 @@ class UploadModuleBartender(UploadRequestBartender):
         file_local_md5 = request.POST.get("file_local_md5")
 
         if not file_name:
-            logger.error("[FILE_UPLOAD]invalid file_name: {}".format(file_name))
-            return {"result": False, "message": "invalid file_name", "code": 400}
+            message = _(f"文件上传失败: 文件名[{file_name}]不符合要求, 请修改后重试 | process_request")
+            logger.error(message)
+            return {"result": False, "message": message, "code": 400}
 
         if INVALID_CHAR_REGEX.findall(file_name):
-            message = _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符')
-            logger.error("[FILE_UPLOAD]invalid file_name: {}".format(message))
+            message = _('文件上传失败: 文件名不能包含\\/:*?"<>|等特殊字符 | process_request')
+            logger.error(message)
             return {"result": False, "message": message, "code": 400}
 
         if not file_path:
-            logger.error("[FILE_UPLOAD]invalid file_path: {}".format(file_path))
-            return {"result": False, "message": "invalid file_path", "code": 400}
+            message = _(f"文件上传失败: 文件路径[{file_path}]不符合要求, 请修改后重试 | process_request")
+            logger.error(message)
+            return {"result": False, "message": message, "code": 400}
 
         if not source_ip:
             logger.error("[FILE_UPLOAD]invalid source_ip: {}".format(source_ip))
@@ -51,8 +52,9 @@ class UploadModuleBartender(UploadRequestBartender):
         try:
             file_tag = self.manager.save(name=file_name, content=None, source_ip=source_ip, file_path=file_path)
         except Exception as e:
-            logger.error("[FILE_UPLOAD]file upload save err: {}".format(traceback.format_exc()))
-            return {"result": False, "message": _("文件上传归档失败，请联系管理员") + f":{e}", "code": 500}
+            message = _(f"文件上传失败: 文件归档失败请重试, 如持续失败可联系管理员处理, {traceback.format_exc()} | process_request")
+            logger.error(message)
+            return {"result": False, "message": message + f":{e}", "code": 500}
 
         logger.info("[FILE_UPLOAD] will return: {}".format(file_tag))
         return {"result": True, "tag": file_tag, "md5": file_local_md5, "code": 200}

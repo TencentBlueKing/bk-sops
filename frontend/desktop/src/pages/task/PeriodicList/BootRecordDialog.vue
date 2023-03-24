@@ -29,13 +29,13 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('序号')" prop="id"></bk-table-column>
-                <bk-table-column :width="200" :label="$t('启动时间')" prop="start_at"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :width="200" :label="$t('启动时间')" prop="start_at"></bk-table-column>
                 <bk-table-column :label="$t('是否启动成功')">
                     <template slot-scope="props">
                         {{ props.row.start_success ? $t('是') : $t('否') }}
                     </template>
                 </bk-table-column>
-                <bk-table-column :width="80" :label="$t('异常信息')">
+                <bk-table-column show-overflow-tooltip :width="80" :label="$t('异常信息')">
                     <template slot-scope="props">
                         <span
                             v-if="!props.row.start_success"

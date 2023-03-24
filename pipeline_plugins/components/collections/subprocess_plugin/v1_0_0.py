@@ -31,11 +31,12 @@ from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from pydantic import BaseModel
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskCallBackRecord, TaskFlowRelation
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service
+from django.utils.translation import ugettext_lazy as _
 
 
 class Subprocess(BaseModel):
@@ -43,7 +44,7 @@ class Subprocess(BaseModel):
     pipeline: dict
     template_id: str
     always_use_latest: bool = False
-    template_source: str = "business"
+    template_source: str = PROJECT
     scheme_id_list: List[int] = []
 
 
@@ -131,11 +132,12 @@ class SubprocessPluginService(Service):
                 "pipeline_tree": pipeline_tree,
                 "description": "",
             }
-            template = (
-                CommonTemplate(pipeline_template=None)
-                if subprocess.template_source not in NON_COMMON_TEMPLATE_TYPES
-                else TaskTemplate(pipeline_template=None)
+            pipeline_template = PipelineTemplate.objects.filter(template_id=subprocess.template_id).first()
+            template_cls = (
+                CommonTemplate if subprocess.template_source not in NON_COMMON_TEMPLATE_TYPES else TaskTemplate
             )
+            template = template_cls(pipeline_template=pipeline_template)
+            primitive_template = template_cls.objects.filter(pipeline_template=pipeline_template).first()
             pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(
                 template=template, independent_subprocess=True, **pipeline_instance_kwargs
             )
@@ -144,7 +146,7 @@ class SubprocessPluginService(Service):
                 "pipeline_instance": pipeline_instance,
                 "category": parent_task.category,
                 "template_id": parent_task.template_id,
-                "template_source": subprocess.template_source,
+                "template_source": parent_task.template_source,
                 "create_method": parent_task.create_method,
                 "create_info": parent_task.create_info,
                 "flow_type": parent_task.flow_type,
@@ -153,6 +155,17 @@ class SubprocessPluginService(Service):
                 "recorded_executor_proxy": parent_task.recorded_executor_proxy,
                 "is_child_taskflow": True,
             }
+            if subprocess.template_source and getattr(primitive_template, "id", None):
+                taskflow_kwargs.update(
+                    {
+                        "extra_info": json.dumps(
+                            {
+                                "primitive_template_source": subprocess.template_source,
+                                "primitive_template_id": str(primitive_template.id),
+                            }
+                        )
+                    }
+                )
             task = TaskFlowInstance.objects.create(**taskflow_kwargs)
             try:
                 root_task_id = TaskFlowRelation.objects.get(task_id=parent_task_id).root_task_id
@@ -199,7 +212,7 @@ class SubprocessPluginService(Service):
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)
         except TaskFlowInstance.DoesNotExist:
-            message = f"subprocess task {task_id} not found"
+            message = _(f"子任务[{task_id}]不存在")
             self.logger.error(message)
             data.set_outputs("ex_data", message)
             return False

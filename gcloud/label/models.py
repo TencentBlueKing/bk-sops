@@ -13,10 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from collections import defaultdict
+from typing import List
 
 from django.db import models
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
+
+from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("root")
 
@@ -107,6 +110,18 @@ class TemplateLabelManager(models.Manager):
         for relation in relations:
             label_template_ids[relation.label_id].append(relation.template_id)
         return label_template_ids
+
+    def fetch_label_template_count(self, label_ids: List[int], project_id: int = None):
+        relations = self.filter(label_id__in=label_ids)
+
+        if project_id is not None:
+            project_template_ids = TaskTemplate.objects.filter(project_id=project_id, is_deleted=False).values_list(
+                "id", flat=True
+            )
+            relations = relations.filter(template_id__in=project_template_ids)
+
+        label_template_count = relations.values("label_id").annotate(count=Count("label_id"))
+        return label_template_count
 
     def delete_relations_based_on_template(self, template_id):
         self.filter(template_id=template_id).delete()

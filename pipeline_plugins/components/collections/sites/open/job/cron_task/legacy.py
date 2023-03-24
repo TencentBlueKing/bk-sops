@@ -123,7 +123,7 @@ class JobCronTaskService(Service):
             if job_update_result["result"]:
                 data.outputs.status = _("启动")
             else:
-                message = _("新建定时任务成功但是启动失败：{error}").format(
+                message = _("定时任务启动失败: [作业平台]定时任务启动发生异常：{error}").format(
                     error=job_handle_api_error(
                         "jobv3.update_cron_status",
                         job_update_cron_kwargs,

@@ -47,9 +47,7 @@ BATCH_UPDATE_HOST_FAIL_CLIENT = MockClient(
 )
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = (
-    "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.cc_get_ips_info_by_str"
-)
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 VERIFY_HOST_PROPERTY = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.verify_host_property"
 )
@@ -67,7 +65,7 @@ INPUT_DATA = {
     "cc_host_update_method": "auto",
     "cc_host_property_custom": [
         {
-            "bk_host_innerip": "1.1.1.1,2.2.2.2,3.3.3.3",
+            "bk_host_innerip": "1.1.1.1",
             "bk_host_outerip": "",
             "operator": "admin",
             "bk_bak_operator": "admin",
@@ -86,12 +84,7 @@ INPUT_DATA = {
 
 CC_GET_IPS_INFO_BY_STR_VALUE = {
     "result": True,
-    "ip_count": 3,
-    "ip_result": [
-        {"ModuleID": 1111, "HostID": 1212, "InnerIP": "1.1.1.1", "SetID": 111},
-        {"ModuleID": 2222, "HostID": 3434, "InnerIP": "2.2.2.2", "SetID": 222},
-        {"ModuleID": 3333, "HostID": 4545, "InnerIP": "3.3.3.3", "SetID": 333},
-    ],
+    "data": ["111"],
     "invalid_ip": [],
 }
 
@@ -103,7 +96,12 @@ INVALID_IP_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"}),
     schedule_assertion=None,
     execute_call_assertion=None,
-    patchers=[Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": False, "ip_count": 0, "ip_result": []})],
+    patchers=[
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"result": False, "message": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"},
+        )
+    ],
 )
 
 # cc_host_prop_value不合法
@@ -128,10 +126,7 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2,3.3.3.3", use_cache=False)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, ["1.1.1.1"], 0)],),
         CallAssertion(
             func=BATCH_UPDATE_HOST_SUCCESS_CLIENT.cc.batch_update_host,
             calls=[
@@ -140,20 +135,12 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
                         "bk_supplier_account": 0,
                         "update": [
                             {
-                                "bk_host_id": 1212,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                            {
-                                "bk_host_id": 3434,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                            {
-                                "bk_host_id": 4545,
+                                "bk_host_id": 111,
                                 "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
                             },
                         ],
                     }
-                )
+                ),
             ],
         ),
     ],
@@ -173,18 +160,15 @@ BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": "调用配置平台(CMDB)接口cc.batch_update_host返回失败, "
-            'params={"bk_supplier_account":0,"update":[{"bk_host_id":1212,"properties":{"operator":"admin",'
-            '"bk_bak_operator":"admin","bk_comment":"test"}},{"bk_host_id":3434,"properties":'
-            '{"operator":"admin","bk_bak_operator":"admin","bk_comment":"test"}},{"bk_host_id":4545,"properties"'
-            ':{"operator":"admin","bk_bak_operator":"admin","bk_comment":"test"}}]}, error=error'
+            "error=error, "
+            'params={"bk_supplier_account":0,'
+            '"update":[{"bk_host_id":111,"properties":{"operator":"admin","bk_bak_operator":"admin",'
+            '"bk_comment":"test"}}]}'
         },
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2,3.3.3.3", use_cache=False)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, ["1.1.1.1"], 0)],),
         CallAssertion(
             func=BATCH_UPDATE_HOST_FAIL_CLIENT.cc.batch_update_host,
             calls=[
@@ -193,15 +177,7 @@ BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
                         "bk_supplier_account": 0,
                         "update": [
                             {
-                                "bk_host_id": 1212,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                            {
-                                "bk_host_id": 3434,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                            {
-                                "bk_host_id": 4545,
+                                "bk_host_id": 111,
                                 "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
                             },
                         ],

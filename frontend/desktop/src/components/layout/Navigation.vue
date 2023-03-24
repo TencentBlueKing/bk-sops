@@ -226,7 +226,9 @@
                     const routeInfo = this.routerList[groupIndex][routeIndex]
                     // 如果没有项目列表，切换路由时则去拉取用户项目列表
                     if (!this.projectList.length && (routeInfo.hasProjectId || routeInfo.id === 'home')) {
-                        await this.loadUserProjectList({ is_disable: false })
+                        await this.loadUserProjectList({
+                            params: { is_disable: false }
+                        })
                         if (this.projectList.length && !this.project_id) {
                             const projectId = this.projectList[0].id
                             this.setProjectId(projectId)

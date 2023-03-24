@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
-
 import traceback
 
 from pipeline.exceptions import PipelineException
@@ -23,6 +22,10 @@ from pipeline.models import PipelineTemplate, TemplateRelationship
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 class TemplateManager:
@@ -50,13 +53,13 @@ class TemplateManager:
         try:
             validate_web_pipeline_tree(pipeline_tree)
         except PipelineException as e:
+            message = _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {e} | create_pipeline")
+            logger.error(message)
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
-                "verbose_message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(
-                    traceback.format_exc()
-                ),
+                "message": message,
+                "verbose_message": _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | create_pipeline"),
             }
 
         create_template_kwargs = {
@@ -68,14 +71,15 @@ class TemplateManager:
         try:
             pipeline_template = self.template_model_cls.objects.create_pipeline_template(**create_template_kwargs)
         except Exception as e:
+            message = _(f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], 失败原因: [{e}] | create_pipeline")
+            logger.error(message)
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]create_pipeline_template({kwargs}) failed: {e}".format(
-                    kwargs=create_template_kwargs, e=str(e)
-                ),
-                "verbose_message": "[TemplateManager]create_pipeline_template({kwargs}) failed: {trace}".format(
-                    kwargs=create_template_kwargs, trace=traceback.format_exc()
+                "message": message,
+                "verbose_message": _(
+                    f"保存流程失败: 创建Pipeline流程失败, 请检查流程. "
+                    f"创建参数[{create_template_kwargs}], 失败原因: [{traceback.format_exc()}] | create_pipeline"
                 ),
             }
 
@@ -110,14 +114,14 @@ class TemplateManager:
         try:
             template = self.template_model_cls.objects.create(**template_kwargs)
         except Exception as e:
+            message = _(f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{e}] | create")
+            logger.error(message)
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]create objects.create({kwargs}) failed: {e}".format(
-                    kwargs=template_kwargs, e=str(e)
-                ),
-                "verbose_message": "[TemplateManager]create objects.create({kwargs}) failed: {trace}".format(
-                    kwargs=template_kwargs, trace=traceback.format_exc()
+                "message": message,
+                "verbose_message": _(
+                    f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{traceback.format_exc()}] | create"
                 ),
             }
 
@@ -159,12 +163,14 @@ class TemplateManager:
             try:
                 validate_web_pipeline_tree(pipeline_tree)
             except PipelineException as e:
+                message = _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {e} | update_pipeline")
+                logger.error(message)
                 return {
                     "result": False,
                     "data": None,
-                    "message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
-                    "verbose_message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(
-                        traceback.format_exc()
+                    "message": message,
+                    "verbose_message": _(
+                        f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | update_pipeline"
                     ),
                 }
 
@@ -177,14 +183,14 @@ class TemplateManager:
             try:
                 pipeline_template.update_template(**update_kwargs)
             except Exception as e:
+                message = _(f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}] | update_pipeline")
+                logger.error(message)
                 return {
                     "result": False,
                     "data": None,
-                    "message": "[TemplateManager]update_template({update_kwargs}) failed: {e}".format(
-                        update_kwargs=update_kwargs, e=str(e)
-                    ),
-                    "verbose_message": "[TemplateManager]update_template({update_kwargs}) failed: {trace}".format(
-                        update_kwargs=update_kwargs, trace=traceback.format_exc()
+                    "message": message,
+                    "verbose_message": _(
+                        f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{traceback.format_exc()}"
                     ),
                 }
 
@@ -242,38 +248,54 @@ class TemplateManager:
         """
         referencer = template.referencer()
         if referencer:
+            message = _(
+                "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                    ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
+                )
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by other templates[{}], please delete them first".format(
-                    ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
-                ),
+                message,
             )
 
         appmaker_referencer = template.referencer_appmaker()
         if appmaker_referencer:
+            message = _(
+                "流程删除失败: 流程已被其他轻应用引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                    ",".join([f'{item["id"]}:{item["name"]}' for item in appmaker_referencer])
+                )
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by mini apps[{}], please delete them first".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in appmaker_referencer])
-                ),
+                message,
             )
 
         clocked_task_referencer = template.referencer_clocked_task()
         if clocked_task_referencer:
+            message = _(
+                "流程删除失败: 流程已被其他计划任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                    ",".join([f'{item["id"]}:{item["name"]}' for item in clocked_task_referencer])
+                )
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by clocked tasks[{}], please delete them first".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in clocked_task_referencer])
-                ),
+                message,
             )
 
         periodic_task_referencer = template.referencer_periodic_task()
         if periodic_task_referencer:
+            message = _(
+                "流程删除失败: 流程已被其他周期任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                    ",".join([f'{item["id"]}:{item["name"]}' for item in periodic_task_referencer])
+                )
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by periodic tasks[{}], please delete them first".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in periodic_task_referencer])
-                ),
+                message,
             )
 
         return True, ""

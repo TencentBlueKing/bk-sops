@@ -123,7 +123,7 @@ COMMON_CLIENT = MockClient(
         "data": [
             {
                 "bk_inst_id": 2,
-                "bk_inst_name": u"蓝鲸",
+                "bk_inst_name": "蓝鲸",
                 "bk_obj_id": "biz",
                 "bk_obj_name": "business",
                 "child": [
@@ -187,7 +187,7 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
     "biz_cc_id": 2,
     "cc_select_set_parent_method": "text",
     "cc_set_parent_select_topo": [],
-    "cc_set_parent_select_text": u"蓝鲸>Tun\n\n   ",
+    "cc_set_parent_select_text": "蓝鲸>Tun\n\n   ",
     "cc_set_info": [
         {
             "bk_set_name": "1",
@@ -221,7 +221,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
     "biz_cc_id": 2,
     "cc_select_set_parent_method": "text",
     "cc_set_parent_select_topo": [],
-    "cc_set_parent_select_text": u"蓝鲸>blue>Tun\n\n   ",
+    "cc_set_parent_select_text": "蓝鲸>blue>Tun\n\n   ",
     "cc_set_info": [
         {
             "bk_set_name": "1",
@@ -239,7 +239,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CAST = ComponentTestCase(
     name="fail case: select parent bt text with error level",
     inputs=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": u"输入文本路径[蓝鲸>blue>Tun]与业务拓扑层级不匹配"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "输入文本路径[蓝鲸>blue>Tun]与业务拓扑层级不匹配"}),
     schedule_assertion=[],
     execute_call_assertion=[],
     patchers=[
@@ -253,7 +253,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
     "biz_cc_id": 2,
     "cc_select_set_parent_method": "text",
     "cc_set_parent_select_topo": [],
-    "cc_set_parent_select_text": u"蓝鲸 > blue",
+    "cc_set_parent_select_text": "蓝鲸 > blue",
     "cc_set_info": [
         {
             "bk_set_name": "1",
@@ -270,7 +270,9 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CAST = ComponentTestCase(
     name="fail case: select parent bt text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": u"不存在该拓扑路径：蓝鲸>blue"}),
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": "拓扑路径 [蓝鲸>blue] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"}
+    ),
     schedule_assertion=[],
     execute_call_assertion=[],
     patchers=[

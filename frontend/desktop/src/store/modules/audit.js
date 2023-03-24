@@ -15,9 +15,11 @@ const auditTask = {
     namespaced: true,
     actions: {
         loadAuditTaskList ({ commit }, data) {
-            const querystring = Object.assign({}, data)
+            const { params, config = {} } = data
+            const querystring = Object.assign({}, params)
             return axios.get('api/v3/taskflow/', {
-                params: querystring
+                params: querystring,
+                ...config
             }).then(response => response.data.data)
         }
     }

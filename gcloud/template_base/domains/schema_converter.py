@@ -19,6 +19,10 @@ import jsonschema
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
 from pipeline_web.drawing_new.drawing import draw_pipeline
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 class BaseSchemaConverter(metaclass=ABCMeta):
@@ -117,7 +121,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            return {"result": False, "data": yaml_data, "message": {"file": ["YAML数据格式有误: {}".format(e)]}}
+            message = _(f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data")
+            logger.error(message)
+            return {"result": False, "data": yaml_data, "message": message}
         # 检查流程间是否有环引用的情况
 
         errors = {}
@@ -172,7 +178,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         data = copy.deepcopy(full_data)
         template_data = {}
         templates = data["pipeline_template_data"]["template"]
-        for _, template_meta in data["template"].items():
+        for i, template_meta in data["template"].items():
             templates[template_meta["pipeline_template_id"]].update(template_meta)
         for pipeline_id, template in templates.items():
             template_data[pipeline_id] = self._convert_template(template)
@@ -346,7 +352,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         # 统一处理各种类型节点的incoming和outgoing类型
         incoming_str_types = ["EmptyStartEvent"]
         outgoing_str_types = ["EmptyStartEvent", "ServiceActivity", "SubProcess", "EmptyEndEvent", "ConvergeGateway"]
-        for _, node in nodes.items():
+        for i, node in nodes.items():
             if node["type"] in incoming_str_types:
                 node["incoming"] = node["incoming"][0] if node["incoming"] else ""
             if node["type"] in outgoing_str_types:
@@ -380,14 +386,13 @@ class YamlSchemaConverter(BaseSchemaConverter):
         if "constants" in template:
             for constant_key, constant_attrs in template["constants"].items():
                 reconverted_constant, is_create = self._reconvert_constant(
-                    constant={**constant_attrs, "key": constant_key},
-                    cur_constants=reconverted_tree["constants"],
+                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
         # constants添加index
         index_num = 0
-        for _, constant in reconverted_tree["constants"].items():
+        for i, constant in reconverted_tree["constants"].items():
             constant.update({"index": index_num})
             index_num += 1
 
@@ -520,7 +525,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             nodes[flow["target"]].setdefault("last", []).append(flow["source"])
             if nodes[flow["source"]]["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                 default_condition = nodes[flow["source"]].get("default_condition")
-                if default_condition and default_condition["flow_id"] == flow["id"]:
+                if default_condition and default_condition.get("flow_id") == flow["id"]:
                     nodes[flow["source"]]["default_condition"] = {flow["target"]: default_condition}
                 else:
                     condition = nodes[flow["source"]]["conditions"].pop(flow["id"])
