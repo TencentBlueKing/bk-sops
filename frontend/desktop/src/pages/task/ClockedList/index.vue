@@ -37,6 +37,7 @@
                             :prop="item.id"
                             :width="item.width"
                             :render-header="renderTableHeader"
+                            show-overflow-tooltip
                             :min-width="item.min_width">
                             <template slot-scope="{ row }">
                                 <!--流程模板-->
@@ -138,7 +139,13 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -161,13 +168,6 @@
             @onSaveConfig="onSaveConfig"
             @onCloseConfig="onCloseConfig">
         </EditClockedTask>
-        <DeleteClockedDialog
-            :is-delete-dialog-show="isDeleteDialogShow"
-            :template-name="selectedTemplateName"
-            :deleting="deleting"
-            @onDeleteClockedConfirm="onDeleteClockedConfirm"
-            @onDeleteClockedCancel="onDeleteClockedCancel">
-        </DeleteClockedDialog>
     </div>
 </template>
 
@@ -181,7 +181,6 @@
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import EditClockedTask from './EditClockedTask.vue'
-    import DeleteClockedDialog from './DeleteClockedDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import CancelRequest from '@/api/cancelRequest.js'
@@ -263,8 +262,7 @@
             NoData,
             SearchSelect,
             TaskCreateDialog,
-            EditClockedTask,
-            DeleteClockedDialog
+            EditClockedTask
         },
         mixins: [permission],
         props: {
@@ -339,9 +337,6 @@
                 isNewTaskDialogShow: false,
                 taskCategory: [],
                 businessInfoLoading: true,
-                isDeleteDialogShow: false,
-                selectedDeleteTaskId: 0,
-                selectedTemplateName: '',
                 deleting: false,
                 curRow: {},
                 sideSliderType: '',
@@ -505,7 +500,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -651,21 +653,26 @@
                     this.onClockedPermissonCheck(['clocked_task_delete'], row)
                     return
                 }
-                this.isDeleteDialogShow = true
-                this.selectedDeleteTaskId = row.id
-                this.selectedTemplateName = row.task_name
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('计划任务') + '"' + row.task_name + '"?',
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteClockedConfirm(row.id)
+                    }
+                })
             },
             // 同意删除计划任务
-            async onDeleteClockedConfirm () {
+            async onDeleteClockedConfirm (taskId) {
                 if (this.deleting) return
                 try {
                     this.deleting = true
-                    await this.deleteClocked({ id: this.selectedDeleteTaskId })
+                    await this.deleteClocked({ id: taskId })
                     this.$bkMessage({
-                        'message': i18n.t('计划任务') + i18n.t('删除成功'),
+                        'message': i18n.t('计划任务删除成功'),
                         'theme': 'success'
                     })
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (this.pagination.current > 1 && this.clockedList.length === 1) {
                         this.pagination.current -= 1
@@ -677,10 +684,6 @@
                 } finally {
                     this.deleting = false
                 }
-            },
-            // 取消删除计划任务
-            onDeleteClockedCancel () {
-                this.isDeleteDialogShow = false
             }
         }
     }

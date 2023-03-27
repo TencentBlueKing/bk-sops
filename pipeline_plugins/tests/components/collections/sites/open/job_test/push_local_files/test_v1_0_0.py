@@ -137,7 +137,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         },
         parent_data={"executor": "executor", "project_id": "project_id"},
         execute_assertion=ExecuteAssertion(
-            success=False, outputs={"ex_data": '调用作业平台(JOB)接口api token返回失败, params="kwargs token", error=msg token'}
+            success=False, outputs={"ex_data": '调用作业平台(JOB)接口api token返回失败, error=msg token, params="kwargs token"'}
         ),
         schedule_assertion=None,
         execute_call_assertion=[
@@ -154,9 +154,10 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),
@@ -219,9 +220,12 @@ def CALLBACK_INVALID_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}, {"ip": "2.2.2.2", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={
+                            "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}, {"ip": "2.2.2.2", "bk_cloud_id": 0}]
+                        },
                     )
                 ],
             ),
@@ -234,12 +238,7 @@ def CALLBACK_INVALID_CASE():
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
             Patcher(
                 target=CC_GET_IPS_INFO_BY_STR,
-                return_value={
-                    "ip_result": [
-                        {"InnerIP": "1.1.1.1", "Source": 0},
-                        {"InnerIP": "2.2.2.2", "Source": 0},
-                    ]
-                },
+                return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}, {"InnerIP": "2.2.2.2", "Source": 0}]},
             ),
         ],
     )
@@ -293,9 +292,10 @@ def CALLBACK_STRUCT_ERR_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),
@@ -362,9 +362,10 @@ def CALLBACK_FAIL_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),
@@ -423,9 +424,10 @@ def SUCCESS_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),

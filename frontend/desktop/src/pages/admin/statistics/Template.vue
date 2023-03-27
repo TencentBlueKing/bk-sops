@@ -21,6 +21,7 @@
                 :selector-list="projectSelector"
                 :data-list="categoryData"
                 :data-loading="categoryDataLoading"
+                @onClearChartFilter="categoryFilterClear"
                 @onFilterClick="categoryFilterChange">
             </horizontal-bar-chart>
             <horizontal-bar-chart
@@ -29,6 +30,7 @@
                 :data-list="projectData"
                 :data-loading="projectDataLoading"
                 :biz-useage-data="bizUseageData"
+                @onClearChartFilter="projectFilterClear"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
             <horizontal-bar-chart
@@ -59,7 +61,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="projectList.length === 0"
-                                @change="tplFilterChange">
+                                @clear="tplFilterChange"
+                                @selected="tplFilterChange">
                                 <bk-option
                                     v-for="option in projectList"
                                     :key="option.id"
@@ -76,7 +79,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="categoryList.length === 0"
-                                @change="tplFilterChange">
+                                @clear="tplFilterChange"
+                                @selected="tplFilterChange">
                                 <bk-option
                                     v-for="option in categoryList"
                                     :key="option.id"
@@ -100,6 +104,8 @@
                             :label="item.label"
                             :prop="item.prop"
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                            show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -131,7 +137,13 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><no-data></no-data></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="(tplProject || tplCategory) ? 'search-empty' : 'empty'"
+                                :message="(tplProject || tplCategory) ? $t('搜索结果为空') : ''"
+                                @searchClear="handleSearchClear">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>
@@ -483,17 +495,43 @@
                     console.warn(error)
                 }
             },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
+            },
             categoryFilterChange (val) {
                 this.categoryDataProject = val
+                this.getCategoryData()
+            },
+            categoryFilterClear () {
+                this.projectSelector[0].checked = ''
+                this.categoryDataProject = ''
                 this.getCategoryData()
             },
             projectFilterChange (val) {
                 this.projectDataCategory = val
                 this.getProjectData()
             },
+            projectFilterClear () {
+                this.categorySelector[0].checked = ''
+                this.projectDataCategory = ''
+                this.getProjectData()
+            },
             tplFilterChange () {
                 this.pagination.current = 1
                 this.getTplData()
+            },
+            handleSearchClear () {
+                this.tplProject = ''
+                this.tplCategory = ''
+                this.tplSort = ''
+                this.tplFilterChange()
             },
             handleSortChange (val) {
                 if (val.order === 'ascending') {

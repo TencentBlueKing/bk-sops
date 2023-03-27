@@ -90,7 +90,7 @@ class TaskTemplateFilter(PropertyFilterSet):
     class Meta:
         model = TaskTemplate
         fields = {
-            "id": ["exact"],
+            "id": ["exact", "in"],
             "pipeline_template__name": ["icontains"],
             "pipeline_template__creator": ["exact"],
             "pipeline_template__editor": ["exact"],
@@ -103,8 +103,10 @@ class TaskTemplateFilter(PropertyFilterSet):
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
 
     def filter_by_label_ids(self, query, name, value):
-        label_ids = [int(label_id) for label_id in value.strip().split(",")]
-        template_ids = list(TemplateLabelRelation.objects.fetch_template_ids_using_union_labels(label_ids))
+        label_ids = [int(label_id) for label_id in value.strip().split("|")]
+        template_ids = list(
+            TemplateLabelRelation.objects.filter(label_id__in=label_ids).values_list("template_id", flat=True)
+        )
         condition = {"id__in": template_ids}
         return query.filter(**condition)
 
@@ -137,16 +139,15 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         """
         创建或更新模板时同步模板标签数据
         """
-        if label_ids:
-            label_ids = list(set(label_ids))
-            if not Label.objects.check_label_ids(label_ids):
-                message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables")
-                logger.error(message)
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-            try:
-                TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids)
-            except Exception as e:
-                return Response({"detail": ErrorDetail(str(e), err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        label_ids = list(set(label_ids))
+        if not Label.objects.check_label_ids(label_ids):
+            message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables")
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        try:
+            TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids)
+        except Exception as e:
+            return Response({"detail": ErrorDetail(str(e), err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

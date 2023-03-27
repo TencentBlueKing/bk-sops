@@ -29,5 +29,5 @@ resource_docs:
   archivefile: {{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}
 
 release:
-  version: {{ settings.STATIC_VERSION }}
+  version: {{ settings.STATIC_VERSION }}+{{ settings.DEPLOY_DATETIME }}
   comment: "auto release by bk-sops"

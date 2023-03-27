@@ -16,6 +16,7 @@
             :project_id="project_id"
             :template_id="template_id"
             :primitive-tpl-id="primitiveTplId"
+            :primitive-tpl-source="primitiveTplSource"
             :template-source="templateSource"
             :node-info-type="nodeInfoType"
             :task-operation-btns="taskOperationBtns"
@@ -70,7 +71,24 @@
             </div>
         </div>
         <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="960" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
-            <div slot="header">{{sideSliderTitle}}</div>
+            <div slot="header">
+                <div class="header">
+                    <span>{{sideSliderTitle}}</span>
+                    <div class="bread-crumbs-wrapper" v-if="['executeInfo', 'viewNodeDetails'].includes(nodeInfoType)">
+                        <span
+                            :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
+                            v-for="(path, index) in nodeNav"
+                            :key="path.id"
+                            :title="showNodeList.includes(index) ? path.name : ''">
+                            <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
+                            <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
+                                {{path.name}}
+                            </span>
+                            <span class="node-ellipsis" v-else-if="index === 1">...</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
                     ref="modifyParams"
@@ -88,18 +106,28 @@
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :state="state"
                     :node-data="nodeData"
+                    :node-nav="nodeNav"
                     :engine-ver="engineVer"
+                    :node-display-status="nodeDisplayStatus"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
                     :pipeline-data="nodePipelineData"
                     :default-active-id="defaultActiveId"
+                    :is-condition="isCondition"
                     :node-detail-config="nodeDetailConfig"
+                    :is-readonly="true"
+                    :is-show.sync="isShowConditionEdit"
+                    :gateways="pipelineData.gateways"
+                    :condition-data="conditionData"
+                    @onOpenGatewayInfo="onOpenConditionEdit"
+                    @close="onCloseConfigPanel"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onForceFail="onForceFailClick"
                     @onApprovalClick="onApprovalClick"
+                    @onNodeClick="onNodeClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -147,59 +175,12 @@
             @onConfirm="onConfirmGatewaySelect"
             @onCancel="onCancelGatewaySelect">
         </gatewaySelectDialog>
-        <revokeDialog
-            :is-revoke-dialog-show="isRevokeDialogShow"
-            @onConfirmRevokeTask="onConfirmRevokeTask"
-            @onCancelRevokeTask="onCancelRevokeTask">
-        </revokeDialog>
         <injectVariableDialog
             :is-inject-var-dialog-show="isInjectVarDialogShow"
             @onConfirmInjectVar="onConfirmInjectVar"
             @onCancelInjectVar="onCancelInjectVar">
         </injectVariableDialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('跳过节点')"
-            :loading="pending.skip"
-            :value="isSkipDialogShow"
-            data-test-id="taskExcute_dialog_skipNodeDialog"
-            @confirm="nodeTaskSkip(skipNodeId)"
-            @cancel="onSkipCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('强制失败')"
-            :loading="pending.forceFail"
-            :value="isForceFailDialogShow"
-            data-test-id="taskExcute_dialog_forceFailDialog"
-            @confirm="nodeForceFail(forceFailId)"
-            @cancel="onForceFailCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行失败？') }}</div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('继续执行')"
-            :loading="pending.parseNodeResume"
-            :value="isNodeResumeDialogShow"
-            data-test-id="taskExcute_dialog_resumeDialog"
-            @confirm="nodeResume(nodeResumeId)"
-            @cancel="onTaskNodeResumeCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
-        </bk-dialog>
-        <condition-edit
+        <!-- <condition-edit
             v-if="isShowConditionEdit"
             ref="conditionEdit"
             :is-readonly="true"
@@ -207,7 +188,7 @@
             :gateways="pipelineData.gateways"
             :condition-data="conditionData"
             @close="onCloseConfigPanel">
-        </condition-edit>
+        </condition-edit> -->
         <bk-dialog
             width="600"
             :theme="'primary'"
@@ -254,11 +235,9 @@
     import GlobalVariable from './GlobalVariable.vue'
     import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
-    import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
-    import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
     import injectVariableDialog from './InjectVariableDialog.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
 
@@ -283,7 +262,7 @@
         },
         revoke: {
             action: 'revoke',
-            icon: 'common-icon-return-arrow',
+            icon: 'common-icon-stop',
             text: i18n.t('终止')
         }
     }
@@ -306,10 +285,8 @@
             GlobalVariable,
             TaskInfo,
             gatewaySelectDialog,
-            revokeDialog,
             TaskOperationHeader,
             TemplateData,
-            ConditionEdit,
             injectVariableDialog
         },
         mixins: [permission, tplPerspective],
@@ -321,6 +298,7 @@
             instanceName: String,
             template_id: [Number, String],
             primitiveTplId: [Number, String],
+            primitiveTplSource: String,
             templateSource: String,
             instanceActions: Array,
             routerType: String
@@ -350,7 +328,7 @@
                 rootState: '', // 根流程状态
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
-                cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、撤销时才存在
+                cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、终止时才存在
                 instanceStatus: {},
                 taskParamsType: '',
                 timer: null,
@@ -373,14 +351,7 @@
                     subflowResume: false
                 },
                 activeOperation: '', // 当前任务操作（头部区域操作按钮触发）
-                isRevokeDialogShow: false,
-                isSkipDialogShow: false,
-                skipNodeId: undefined,
                 retryNodeId: undefined,
-                isForceFailDialogShow: false,
-                forceFailId: undefined,
-                isNodeResumeDialogShow: false,
-                nodeResumeId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
@@ -411,7 +382,12 @@
                 isExecRecordOpen: false,
                 nodeExecRecordInfo: {},
                 isInjectVarDialogShow: false,
-                nodeIds: []
+                nodeIds: [],
+                nodeDisplayStatus: {},
+                showNodeList: [0, 1, 2],
+                converNodeList: [],
+                isCondition: false,
+                conditionOutgoing: []
             }
         },
         computed: {
@@ -561,11 +537,11 @@
             async loadTaskStatus () {
                 try {
                     let instanceStatus = {}
-                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/撤销时,取实例缓存数据
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/终止时,取实例缓存数据
                         instanceStatus = await this.getGlobalCacheStatus(this.taskId)
                     } else if (
                         this.instanceStatus.state
-                        && this.instanceStatus.state === 'FINISHED' // 任务实例才会出现撤销，子流程不存在
+                        && this.instanceStatus.state === 'FINISHED' // 任务实例才会出现终止，子流程不存在
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
                     ) { // 局部：完成时，取局部缓存数据
@@ -606,15 +582,25 @@
                         if (this.state === 'SUSPENDED') {
                             suspendedRunning = Object.values(instanceStatus.data.children).some(item => item.state === 'RUNNING')
                         }
-                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
-                            if (this.isExecRecordOpen) {
-                                const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
-                                this.nodeExecRecordInfo.curTime = this.formatDuring(execNodeConfig.elapsed_time)
-                                if (execNodeConfig.state === 'RUNNING') { // 节点执行中一秒查一次
-                                    this.setTaskStatusTimer(1000)
-                                } else {
-                                    this.setTaskStatusTimer()
+                        // 节点执行记录显示时，重新计算当前执行时间/判断是否还在执行中
+                        if (this.isExecRecordOpen) {
+                            const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
+                            if (execNodeConfig) {
+                                const elapsedTime = this.formatDuring(execNodeConfig.elapsed_time)
+                                if (execNodeConfig.state === 'RUNNING') {
+                                    this.nodeExecRecordInfo.curTime = elapsedTime
+                                } else if (this.nodeExecRecordInfo.curTime) {
+                                    // 如果节点执行完成，需要把当前执行的时间插入到执行历史里面，count + 1
+                                    this.nodeExecRecordInfo.curTime = ''
+                                    this.nodeExecRecordInfo.execTime.unshift(elapsedTime)
+                                    this.nodeExecRecordInfo.count += 1
                                 }
+                                this.nodeExecRecordInfo.state = execNodeConfig.state
+                            }
+                        }
+                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
+                            if (this.isExecRecordOpen && this.nodeExecRecordInfo.state) { // 节点执行中一秒查一次
+                                this.setTaskStatusTimer(1000)
                             } else {
                                 this.setTaskStatusTimer()
                             }
@@ -633,6 +619,7 @@
                             this.setTaskStatusTimer()
                         }
                     }
+                    this.nodeDisplayStatus = tools.deepClone(this.instanceStatus)
                     this.modifyPageIcon()
                 } catch (e) {
                     this.cancelTaskStatusTimer()
@@ -769,7 +756,7 @@
                     if (res.result) {
                         this.state = 'SUSPENDED'
                         this.$bkMessage({
-                            message: i18n.t('任务暂停成功'),
+                            message: i18n.t('任务已暂停执行'),
                             theme: 'success'
                         })
                     }
@@ -795,7 +782,7 @@
                         this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: i18n.t('任务继续成功'),
+                            message: i18n.t('任务已继续执行'),
                             theme: 'success'
                         })
                     }
@@ -807,11 +794,12 @@
             },
             async taskRevoke () {
                 try {
+                    this.activeOperation = 'revoke'
                     const res = await this.instanceRevoke(this.instance_id)
                     if (res.result) {
                         this.state = 'REVOKED'
                         this.$bkMessage({
-                            message: i18n.t('任务撤销成功'),
+                            message: i18n.t('任务终止成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -839,9 +827,7 @@
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
                         this.isNodeInfoPanelShow = false
-                        this.isSkipDialogShow = false
                         this.nodeInfoType = ''
-                        this.skipNodeId = undefined
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
                             theme: 'success'
@@ -869,13 +855,11 @@
                     const res = await this.forceFail(params)
                     if (res.result) {
                         this.$bkMessage({
-                            message: i18n.t('强制失败执行成功'),
+                            message: i18n.t('强制终止执行成功'),
                             theme: 'success'
                         })
-                        this.isForceFailDialogShow = false
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
-                        this.forceFailId = undefined
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -927,10 +911,8 @@
                             message: i18n.t('继续成功'),
                             theme: 'success'
                         })
-                        this.isNodeResumeDialogShow = false
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
-                        this.nodeResumeId = undefined
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -973,7 +955,6 @@
                         errorIgnorable = nodeActivities.error_ignorable
                         autoRetry = nodeActivities.auto_retry
                     }
-
                     const data = {
                         code,
                         skippable,
@@ -985,7 +966,8 @@
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
                         auto_retry: autoRetry,
-                        ready: false
+                        ready: false,
+                        task_state: this.state // 任务状态
                     }
 
                     this.setTaskNodeStatus(id, data)
@@ -1026,7 +1008,7 @@
                             await this.loadNodeInfo(id)
                         }
                     } else {
-                        this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
+                        this.openNodeInfoPanel('modifyParams', i18n.t('重试'))
                         this.retryNodeId = id
                     }
                 } catch (error) {
@@ -1094,12 +1076,15 @@
                 }
             },
             onSkipClick (id) {
-                this.isSkipDialogShow = true
-                this.skipNodeId = id
-            },
-            onSkipCancel () {
-                this.isSkipDialogShow = false
-                this.skipNodeId = undefined
+                this.$bkInfo({
+                    title: i18n.t('确定跳过当前节点?'),
+                    subTitle: i18n.t('跳过节点将忽略当前失败节点继续往后执行'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.nodeTaskSkip(id)
+                    }
+                })
             },
             async nodeTaskRetry () {
                 try {
@@ -1150,12 +1135,15 @@
                 }
             },
             onForceFailClick (id) {
-                this.forceFailId = id
-                this.isForceFailDialogShow = true
-            },
-            onForceFailCancel () {
-                this.isForceFailDialogShow = false
-                this.forceFailId = undefined
+                this.$bkInfo({
+                    title: i18n.t('确定强制终止当前节点?'),
+                    subTitle: i18n.t('强制终止将强行修改节点状态为失败，但不会中断已经发送到其它系统的请求'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.nodeForceFail(id)
+                    }
+                })
             },
             onModifyTimeClick (id) {
                 this.openNodeInfoPanel('modifyTime', i18n.t('修改时间'))
@@ -1185,12 +1173,14 @@
                 this.isGatewaySelectDialogShow = true
             },
             onTaskNodeResumeClick (id) {
-                this.nodeResumeId = id
-                this.isNodeResumeDialogShow = true
-            },
-            onTaskNodeResumeCancel () {
-                this.isNodeResumeDialogShow = false
-                this.nodeResumeId = undefined
+                this.$bkInfo({
+                    title: i18n.t('确定继续往后执行?'),
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.nodeResume(id)
+                    }
+                })
             },
             onApprovalClick (id) {
                 this.approval.id = id
@@ -1271,27 +1261,32 @@
             },
             getOrderedTree (data) {
                 const startNode = tools.deepClone(data.start_event)
+                const endNode = tools.deepClone(data.end_event)
                 const fstLine = startNode.outgoing
                 const orderedData = [Object.assign({}, startNode, {
                     title: this.$t('开始节点'),
                     name: this.$t('开始节点'),
                     expanded: false
                 })]
+                const endEvent = Object.assign({}, endNode, {
+                    title: this.$t('结束节点'),
+                    name: this.$t('结束节点'),
+                    expanded: false
+                })
                 this.retrieveLines(data, fstLine, orderedData)
-                const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
-                const endEvent = orderedData.splice(endEventIndex, 1)
-                orderedData.push(endEvent[0])
-                return orderedData.filter(item => !this.nodeIds.includes(item.id))
+                orderedData.push(endEvent)
+                // 过滤root最上层汇聚网关
+                return orderedData
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Boolean} isGateway 是否网关结构内的节点
+             * @param {Boolean} isLoop 条件网关节点是否有循环
              *
              */
-            retrieveLines (data, lineId, ordered, isGateway = false) {
+            retrieveLines (data, lineId, ordered, isLoop = false) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
@@ -1305,85 +1300,161 @@
                     } else {
                         outgoing = node.outgoing ? [node.outgoing] : []
                     }
-
-                    if (endEvent) {
-                        if (isGateway) return
-                        const name = this.$t('结束节点')
-                        endEvent.title = name
-                        endEvent.name = name
-                        endEvent.expanded = false
-                        ordered.push(endEvent)
-                    } else if (gateway) { // 网关节点
-                        if (isGateway) return
+                    // 当前tree是否已存在
+                    const isAt = !this.nodeIds.includes(node.id)
+                    if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
                         gateway.children = []
-                        if (gateway.conditions) {
-                            const conditions = Object.keys(gateway.conditions).map(item => {
-                                return {
+                        if (isAt && (gateway.conditions || gateway.default_condition)) {
+                            const loopList = [] // 需要打回的node的incoming
+                            outgoing.forEach(item => {
+                                const curNode = activities[flows[item].target] || gateways[flows[item].target]
+                                if (curNode && (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id)))) {
+                                    loopList.push(...curNode.incoming)
+                                }
+                            })
+                            const conditions = Object.keys(gateway.conditions).map((item, index) => {
+                                // 给需要打回的条件添加节点id
+                                const callback = loopList.includes(item) ? activities[flows[item].target] : ''
+                                const { evaluate, tag } = gateway.conditions[item]
+                                const callbackData = {
+                                    id: callback.id,
                                     name: gateway.conditions[item].name,
+                                    nodeId: gateway.id,
+                                    overlayId: 'condition' + item,
+                                    tag,
+                                    value: evaluate
+                                }
+                                return {
+                                    id: gateway.conditions[item].name + '-' + item,
+                                    conditionsId: '',
+                                    callbackName: callback.name,
+                                    name: gateway.conditions[item].name + '-' + item,
                                     title: gateway.conditions[item].name,
                                     isGateway: true,
+                                    conditionType: 'condition', // 条件、条件并行网关
                                     expanded: false,
+                                    outgoing: item,
+                                    children: [],
+                                    isLoop: loopList.includes(item),
+                                    callbackData
+                                }
+                            })
+                            // 添加条件分支默认节点
+                            if (gateway.default_condition) {
+                                const defaultCondition = [
+                                    {
+                                        id: gateway.default_condition.name + '-' + gateway.default_condition.flow_id,
+                                        name: gateway.default_condition.name + '-' + gateway.default_condition.flow_id,
+                                        title: gateway.default_condition.name,
+                                        isGateway: true,
+                                        conditionType: 'default',
+                                        expanded: false,
+                                        outgoing: gateway.default_condition.flow_id,
+                                        children: []
+                                    }
+                                ]
+                                conditions.unshift(...defaultCondition)
+                            }
+                            conditions.forEach(item => {
+                                this.retrieveLines(data, item.outgoing, item.children, item.isLoop)
+                                if (item.children.length === 0) this.conditionOutgoing.push(item.outgoing)
+                                item.children.forEach(i => {
+                                    if (!this.nodeIds.includes(i.id)) {
+                                        this.nodeIds.push(i.id)
+                                    }
+                                })
+                            })
+                            gateway.children.push(...conditions)
+                            ordered.push(gateway)
+                            outgoing.forEach(line => {
+                                this.retrieveLines(data, line, ordered)
+                            })
+                        } else if (isAt && gateway.type === 'ParallelGateway') {
+                            // 添加并行默认条件
+                            const defaultCondition = gateway.outgoing.map((item, index) => {
+                                return {
+                                    name: this.$t('并行') + (index + 1),
+                                    title: this.$t('并行'),
+                                    isGateway: true,
+                                    expanded: false,
+                                    conditionType: 'parallel',
                                     outgoing: item,
                                     children: []
                                 }
                             })
-                            conditions.forEach(item => {
-                                for (const ite in activities) {
-                                    if (activities[ite].incoming.includes(item.outgoing)) {
-                                        item.children.push(Object.assign(activities[ite], { isGateway: true }))
-                                        this.retrieveLines(data, activities[ite].outgoing, item.children, true)
-                                        item.children.forEach(i => {
-                                            if (!this.nodeIds.includes(i.id)) {
-                                                this.nodeIds.push(i.id)
-                                            }
-                                        })
+                            gateway.children.push(...defaultCondition)
+                            defaultCondition.forEach(item => {
+                                this.retrieveLines(data, item.outgoing, item.children)
+                                item.children.forEach(i => {
+                                    if (!this.nodeIds.includes(i.id)) {
+                                        this.nodeIds.push(i.id)
                                     }
-                                }
+                                })
                             })
-                            gateway.children.push(...conditions)
-                        } else if (gateway.type === 'ParallelGateway') {
-                            gateway.outgoing.forEach(item => {
-                                for (const ite in activities) {
-                                    if (activities[ite].incoming.includes(item)) {
-                                        gateway.children.push(Object.assign(activities[ite], { isGateway: true }))
-                                        gateway.children.forEach(i => {
-                                            if (!this.nodeIds.includes(i.id)) {
-                                                this.nodeIds.push(i.id)
-                                            }
-                                        })
-                                    }
-                                }
+                            ordered.push(gateway)
+                            outgoing.forEach(line => {
+                                this.retrieveLines(data, line, ordered)
                             })
                         }
-                        ordered.push(gateway)
-                        outgoing.forEach(line => {
-                            this.retrieveLines(data, line, ordered)
-                        })
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
-                            if (gateway.incoming.every(item => ordered.map(ite => ite.outgoing).includes(item))) {
-                                ordered.push(gateway)
+                            const list = []
+                            const converList = Object.assign({}, activities, gateways)
+                            this.nodeIds.forEach(item => {
+                                if (converList[item]) {
+                                    list.push(converList[item])
+                                }
+                            })
+                            const outgoingList = []
+                            list.forEach(item => {
+                                if (Array.isArray(item.outgoing)) {
+                                    item.outgoing.forEach(ite => {
+                                        outgoingList.push(ite)
+                                    })
+                                } else {
+                                    outgoingList.push(item.outgoing)
+                                }
+                            })
+
+                            if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
+                                // 汇聚网关push在最近的条件网关下
+                                const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
+                                // 独立子流程的children为 subChildren
+                                if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
+                                    this.converNodeList.push(gateway.id)
+                                    gateway.gatewayType = 'converge'
+                                    prev.children.push(gateway)
+                                }
+                                if (!this.nodeIds.includes(gateway.id)) {
+                                    this.nodeIds.push(gateway.id)
+                                }
                                 outgoing.forEach(line => {
-                                    this.retrieveLines(data, line, ordered, isGateway)
+                                    this.retrieveLines(data, line, ordered)
                                 })
                             }
                         }
                     } else if (activity) { // 任务节点
-                        if (activity.pipeline) {
-                            activity.children = this.getOrderedTree(activity.pipeline)
+                        if (isLoop) return
+                        if (isAt) {
+                            if (activity.type === 'SubProcess') {
+                                if (activity.pipeline) {
+                                    activity.subChildren = this.getOrderedTree(activity.pipeline)
+                                } else {
+                                    if (activity.component.data && activity.component.data.subprocess) {
+                                        activity.subChildren = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
+                                    }
+                                }
+                            }
+                            activity.title = activity.name
+                            activity.expanded = activity.pipeline
+                            ordered.push(activity)
                         }
-                        activity.title = activity.name
-                        activity.expanded = activity.pipeline
-                        if (isGateway) {
-                            Object.assign(activity, { isGateway: true })
-                        }
-                        ordered.push(activity)
                         outgoing.forEach(line => {
-                            this.retrieveLines(data, line, ordered, isGateway)
+                            this.retrieveLines(data, line, ordered)
                         })
                     }
                 }
@@ -1394,28 +1465,12 @@
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, name) {
                 if (type === 'viewNodeDetails') {
-                    let nodeData = tools.deepClone(this.nodeData[0].children)
-                    let firstTaskNode = null
-                    const subprocessStack = []
-                    while (nodeData) {
-                        const activityNode = nodeData.find(item => item.type === 'ServiceActivity' || item.type === 'SubProcess')
-                        if (activityNode.type === 'ServiceActivity') {
-                            firstTaskNode = activityNode
-                            nodeData = null
-                        } else {
-                            subprocessStack.push(activityNode.id)
-                            nodeData = null
-                        }
-                    }
-                    this.defaultActiveId = firstTaskNode.id
-                    this.nodeDetailConfig = {
-                        component_code: firstTaskNode.component.code,
-                        version: firstTaskNode.component.version || 'legacy',
-                        node_id: firstTaskNode.id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
-                    this.nodePipelineData = { ...this.pipelineData }
+                    const { start_event, flows, location } = this.pipelineData
+                    const nodeId = flows[start_event.outgoing].target
+                    const locInfo = location.find(item => item.id === nodeId)
+                    const type = locInfo.type === 'subflow' ? 'subflowDetail' : locInfo.type
+                    this.onNodeClick(nodeId, type)
+                    return
                 }
                 if (type === 'templateData') {
                     this.templateData = JSON.stringify(this.pipelineData, null, 4)
@@ -1423,10 +1478,11 @@
                 this.openNodeInfoPanel(type, name)
             },
             // 打开节点参数信息面板
-            openNodeInfoPanel (type, name) {
+            openNodeInfoPanel (type, name, isCondition = false) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
+                this.isCondition = isCondition
             },
             // 注入全局变量
             onInjectGlobalVariable () {
@@ -1459,7 +1515,15 @@
                 }
 
                 if (action === 'revoke') {
-                    this.isRevokeDialogShow = true
+                    this.$bkInfo({
+                        title: i18n.t('确定终止当前任务?'),
+                        subTitle: i18n.t('终止任务将停止执行任务，但执行中节点将运行完成'),
+                        maskClose: false,
+                        confirmLoading: true,
+                        confirmFn: async () => {
+                            await this.taskRevoke()
+                        }
+                    })
                     return
                 }
                 this.pending.task = true
@@ -1488,9 +1552,16 @@
                 }
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
-            onOpenConditionEdit (data) {
-                this.isShowConditionEdit = true
-                this.conditionData = { ...data }
+            onOpenConditionEdit (data, isCondition = true) {
+                if (isCondition && data) {
+                    this.onNodeClick(data.nodeId)
+                    // 生成网关添加id 条件name + 分支条件outgoning
+                    this.defaultActiveId = data.name + '-' + data.id
+                    this.isCondition = true
+                    this.isShowConditionEdit = true
+                    this.conditionData = { ...data }
+                }
+                this.isCondition = isCondition
             },
             /**
              * 切换为子流程画布
@@ -1515,24 +1586,28 @@
                     const tempNodeId = this.pipelineData.activities[nodeId]?.template_node_id
                     if (tempNodeId) {
                         const resp = await this.getNodeExecutionRecord({ tempNodeId, taskId: this.instance_id })
-                        const { execution_time = [] } = resp.data
+                        const { execution_time = [], total = 0 } = resp.data
                         this.nodeExecRecordInfo = {}
-                        let latestTime, meanTime, deadline
-                        execution_time.forEach((item, index) => {
-                            if (index === 0) {
-                                latestTime = item.elapsed_time
-                                deadline = item.archived_time
-                            }
-                            meanTime = (meanTime || 0) + item.elapsed_time
+                        const execTime = execution_time.map(item => {
+                            return this.formatDuring(item.elapsed_time)
                         })
                         const execNodeConfig = this.instanceStatus.children[nodeId]
+                        let curTime = this.formatDuring(execNodeConfig.elapsed_time)
+                        let count = total
+                        // 如果节点执行完成，任务未之前完成，需要把当前执行的时间插入到执行历史里面，count + 1
+                        if (execNodeConfig.state === 'FINISHED') {
+                            if (this.state !== 'FINISHED') {
+                                execTime.unshift(curTime)
+                                count += 1
+                            }
+                            curTime = ''
+                        }
                         this.nodeExecRecordInfo = {
                             nodeId,
-                            latestTime: this.formatDuring(latestTime),
-                            meanTime: this.formatDuring(meanTime / execution_time.length),
-                            deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
-                            curTime: this.formatDuring(execNodeConfig.elapsed_time),
-                            count: execution_time.length
+                            curTime: curTime,
+                            execTime,
+                            state: execNodeConfig.state,
+                            count
                         }
                     } else {
                         this.$refs.templateCanvas.closeNodeExecRecord()
@@ -1542,7 +1617,10 @@
                 }
             },
             formatDuring (time) {
-                if (!time) return '--'
+                if (!time && time !== 0) return '--'
+                if (time === 0) {
+                    return `${i18n.tc('小于')} ${i18n.tc('秒', 1)}`
+                }
                 const days = parseInt(time / (60 * 60 * 24))
                 const hours = parseInt((time % (60 * 60 * 24)) / (60 * 60))
                 const minutes = parseInt((time % (60 * 60)) / (60))
@@ -1588,7 +1666,7 @@
                     })
                     this.pipelineData = nodeActivities.pipeline
                 }
-                this.isNodeInfoPanelShow = false
+                // this.isNodeInfoPanelShow = false
                 this.nodeDetailConfig = {}
                 this.cancelTaskStatusTimer()
                 this.updateTaskStatus(id)
@@ -1604,19 +1682,22 @@
                 if (this.nodeDetailConfig.node_id) {
                     this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
-                const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
+                const heirarchyList = nodeHeirarchy.split('.')
+                heirarchyList.pop()
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
                     heirarchyList.forEach((key, index) => {
                         nodeActivities = index ? nodeActivities.pipeline.activities[key] : nodeActivities[key]
-                        nodePath.push({
-                            id: nodeActivities.id,
-                            name: nodeActivities.name,
-                            nodeId: nodeActivities.id,
-                            type: nodeActivities.type
-                        })
-                        if (nodeActivities.type === 'SubProcess') {
-                            parentNodeActivities = nodeActivities
+                        if (nodeActivities) {
+                            nodePath.push({
+                                id: nodeActivities.id,
+                                name: nodeActivities.name,
+                                nodeId: nodeActivities.id,
+                                type: nodeActivities.type
+                            })
+                            if (nodeActivities.type === 'SubProcess') {
+                                parentNodeActivities = nodeActivities
+                            }
                         }
                     })
                     this.selectedFlowPath = nodePath
@@ -1647,7 +1728,6 @@
                     await this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
-
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
                 this.nodePipelineData = { ...this.pipelineData }
@@ -1795,14 +1875,6 @@
             onCancelGatewaySelect () {
                 this.isGatewaySelectDialogShow = false
             },
-            onConfirmRevokeTask () {
-                this.isRevokeDialogShow = false
-                this.activeOperation = 'revoke'
-                this.taskRevoke()
-            },
-            onCancelRevokeTask () {
-                this.isRevokeDialogShow = false
-            },
             async onConfirmInjectVar (context) {
                 try {
                     const params = {
@@ -1825,7 +1897,7 @@
                 this.isInjectVarDialogShow = false
             },
             unclickableOperation (type) {
-                // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击
+                // 失败时不允许点击暂停按钮，创建是不允许点击终止按钮，操作执行过程不允许点击
                 return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading || !this.isTopTask
             },
             packUp () {
@@ -1848,7 +1920,7 @@
                     } else if (isEqual === false) {
                         this.$bkInfo({
                             ...this.infoBasicConfig,
-                            cancelFn: () => {
+                            confirmFn: () => {
                                 this.isNodeInfoPanelShow = false
                                 this.retryNodeId = undefined
                             }
@@ -1932,14 +2004,57 @@
             }
         }
         .task-management-page {
-            /deep/ .canvas-wrapper.jsflow .jtk-endpoint {
-                z-index: 2 !important;
+            /deep/ .canvas-wrapper.jsflow {
+                background: #f5f7fa;
+                .jtk-endpoint {
+                    z-index: 2 !important;
+                }
             }
         }
     }
 }
 /deep/.bk-sideslider-content {
     height: calc(100% - 60px);
+}
+.header {
+    display: flex;
+    .bread-crumbs-wrapper {
+        margin-left: 10px;
+        font-size: 0;
+        .path-item {
+            display: inline-block;
+            font-size: 14px;
+            overflow: hidden;
+            &.name-ellipsis {
+                max-width: 190px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            .node-name {
+                margin: 0 4px;
+                font-size: 14px;
+                color: #3a84ff;
+                cursor: pointer;
+            }
+            .node-ellipsis {
+                margin-right: 4px;
+            }
+            &:first-child {
+                .node-name {
+                    margin-left: 0px;
+                }
+            }
+            &:last-child {
+                .node-name {
+                    &:last-child {
+                        color: #313238;
+                        cursor: text;
+                    }
+                }
+            }
+        }
+    }
 }
 .node-info-panel {
     height: 100%;

@@ -82,17 +82,16 @@
                             class="scheme-form-item"
                             data-test-id="clockedEdit_form_selectScheme"
                             :label="isLatest ? $t('执行方案') : $t('已排除节点')"
-                            property="schemeId"
-                            :required="isLatest">
+                            property="schemeId">
                             <div class="scheme-wrapper">
                                 <bk-select
                                     v-if="isLatest"
                                     v-model="formData.schemeId"
                                     :searchable="true"
-                                    :placeholder="$t('请选择')"
+                                    :placeholder="schemeSelectPlaceholder"
                                     :clearable="false"
                                     :multiple="true"
-                                    :disabled="!formData.template_id"
+                                    :disabled="!formData.template_id || !schemeList.length"
                                     :loading="isLoading || schemeLoading"
                                     @clear="onClearScheme"
                                     @selected="onSelectScheme">
@@ -251,7 +250,7 @@
             const taskName = this.type === 'clone' ? task_name + '_clone' : task_name
             const startTime = plan_start_time.split('+')[0]
             const tempSchemeId = task_parameters.template_schemes_id || []
-            const schemeId = this.type === 'create' ? [] : tempSchemeId.length ? tempSchemeId : [0]
+            const schemeId = this.type === 'create' ? [] : tempSchemeId.length ? tempSchemeId : []
             return {
                 formData: {
                     template_id,
@@ -293,16 +292,6 @@
                             },
                             message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'change'
-                        }
-                    ],
-                    schemeId: [
-                        {
-                            required: true,
-                            validator: (val) => {
-                                return this.formData.schemeId
-                            },
-                            message: i18n.t('请选择执行方案'),
-                            trigger: 'blur'
                         }
                     ],
                     flow: [
@@ -416,6 +405,9 @@
             hasNoCreatePerm () {
                 const { id, auth_actions } = this.templateData
                 return this.type === 'edit' || !id ? false : !this.hasPermission(['flow_create_clocked_task'], auth_actions)
+            },
+            schemeSelectPlaceholder () {
+                return !this.formData.template_id || this.isLoading || this.schemeLoading ? i18n.t('请选择') : i18n.t('此流程无执行方案，无需选择')
             }
         },
         created () {
@@ -572,14 +564,16 @@
                     })
                     const { activities } = this.templateData.pipeline_tree
                     const nodeList = Object.keys(activities)
-                    this.schemeList.unshift({
-                        data: JSON.stringify(nodeList),
-                        id: 0,
-                        idDefault: false,
-                        name: '<' + i18n.t('不使用执行方案') + '>'
-                    })
+                    if (this.schemeList.length) {
+                        this.schemeList.unshift({
+                            data: JSON.stringify(nodeList),
+                            id: 0,
+                            idDefault: false,
+                            name: '<' + i18n.t('不使用执行方案') + '>'
+                        })
+                    }
                     if (this.type === 'create') {
-                        this.formData.schemeId = [0]
+                        this.formData.schemeId = this.schemeList.length ? [0] : []
                     } else if (this.formData.schemeId.length) {
                         // 执行方案被删除逻辑
                         this.hasDeleteScheme = false
@@ -721,7 +715,7 @@
                     lines: line,
                     locations: location.map(item => {
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode, code }
+                        return { ...item, mode, code, status: '' }
                     }),
                     branchConditions
                 }
@@ -882,7 +876,7 @@
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.onCancelSave()
                         }
                     })
@@ -961,9 +955,6 @@
         }
         margin-bottom: 17px;
     }
-}
-/deep/.no-data-wrapper {
-    margin: 150px 0;
 }
 .btn-footer {
     position: fixed;

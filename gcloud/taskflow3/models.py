@@ -727,6 +727,7 @@ class TaskFlowInstance(models.Model):
     engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=2)
     recorded_executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default=None, blank=True, null=True)
     is_child_taskflow = models.BooleanField(_("是否为子任务"), default=False)
+    extra_info = models.TextField(_("额外信息"), blank=True, null=True)
 
     objects = TaskFlowInstanceManager()
 
@@ -920,9 +921,7 @@ class TaskFlowInstance(models.Model):
 
     def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):
-            message = _(
-                f"节点状态请求失败: 任务[ID: {self.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_data"
-            )
+            message = _(f"节点状态请求失败: 任务[ID: {self.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_data")
             logger.error(message)
 
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}

@@ -99,6 +99,9 @@
                                                 </bk-link>
                                             </template>
                                         </bk-table-column>
+                                        <div class="empty-data" slot="empty">
+                                            <NoData></NoData>
+                                        </div>
                                     </bk-table>
                                 </div>
                             </bk-popover>
@@ -117,7 +120,7 @@
             </div>
             <template slot="content">
                 <!-- 插件/插件版本不存在面板 -->
-                <bk-exception v-if="isNotExistAtomOrVerion" class="exception-wrap" type="500">
+                <bk-exception v-if="isNotExistAtomOrVersion" class="exception-wrap" type="500">
                     <span>{{ $t('未找到可用的插件或插件版本') }}</span>
                     <div class="text-wrap" @click="handleReslectPlugin">{{ $t('重选插件') }}</div>
                 </bk-exception>
@@ -224,7 +227,7 @@
                                                     @renderConfigChange="onRenderConfigChange"
                                                     @update="updateInputsValue">
                                                 </input-params>
-                                                <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                                                <no-data v-else :message="$t('暂无参数')"></no-data>
                                             </template>
                                             <template v-else>
                                                 <jsonschema-input-params
@@ -233,7 +236,7 @@
                                                     :value="inputsParamValue"
                                                     @update="updateInputsValue">
                                                 </jsonschema-input-params>
-                                                <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                                                <no-data v-else :message="$t('暂无参数')"></no-data>
                                             </template>
                                         </template>
                                     </div>
@@ -256,7 +259,7 @@
                                                 @hookChange="onHookChange"
                                                 @openVariablePanel="openVariablePanel">
                                             </output-params>
-                                            <no-data v-else :message="$t('没有参数需要配置')"></no-data>
+                                            <no-data v-else :message="$t('暂无参数')"></no-data>
                                         </template>
                                     </div>
                                 </section>
@@ -268,7 +271,7 @@
                                     :disabled="inputLoading || (isSubflow && subflowListLoading)"
                                     data-test-id="templateEdit_form_saveNodeConfig"
                                     @click="onSaveConfig">
-                                    {{ $t('保存') }}
+                                    {{ $t('确定') }}
                                 </bk-button>
                                 <bk-button
                                     theme="default"
@@ -339,7 +342,7 @@
             common: [String, Number],
             subflowListLoading: Boolean,
             backToVariablePanel: Boolean,
-            isNotExistAtomOrVerion: Boolean,
+            isNotExistAtomOrVersion: Boolean,
             pluginLoading: Boolean,
             isViewMode: Boolean
         },
@@ -371,7 +374,8 @@
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 unhookingVarForm: {}, // 正被取消勾选的表单配置
                 isUpdateConstants: false, // 是否更新输入参数配置
-                hookKey: '' // 输出变量勾选的key值
+                hookKey: '', // 输出变量勾选的key值
+                isDataChange: false // 数据是否改变
             }
         },
         computed: {
@@ -591,6 +595,8 @@
                 if (location && location.status === 'FAILED') {
                     this.validate()
                 }
+                // 获取插件配置时会去更新baseInfo，这个时候数据并没有修改
+                this.isDataChange = false
             },
             /**
              * 加载标准插件节点输入参数表单配置项，获取输出参数列表
@@ -687,9 +693,10 @@
             async getSubflowDetail (tpl, version = '') {
                 this.subflowLoading = true
                 try {
+                    const schemeIds = this.basicInfo.schemeIdList.filter(item => item)
                     const params = {
                         template_id: tpl,
-                        scheme_id_list: this.basicInfo.schemeIdList,
+                        scheme_id_list: schemeIds,
                         version
                     }
                     if (this.isCommonTpl) {
@@ -791,7 +798,7 @@
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
-                    if (component.code && !this.isNotExistAtomOrVerion) { // 节点插件存在
+                    if (component.code && !this.isNotExistAtomOrVersion) { // 节点插件存在
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
@@ -879,7 +886,7 @@
              * 获取某一标准插件所有版本列表
              */
             getAtomVersions (code, isThirdParty = false) {
-                if (!code || this.isNotExistAtomOrVerion) {
+                if (!code || this.isNotExistAtomOrVersion) {
                     return []
                 }
                 let atom
@@ -1107,10 +1114,12 @@
              * 填写基础信息表单，切换插件/子流程，选择插件版本，子流程更新
              */
             updateBasicInfo (data) {
+                this.isDataChange = true
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
             },
             // 输入参数表单值更新
             updateInputsValue (val) {
+                this.isDataChange = true
                 this.inputsParamValue = val
             },
             /**
@@ -1222,7 +1231,7 @@
             },
             // 重选插件
             handleReslectPlugin () {
-                this.$parent.isNotExistAtomOrVerion = false
+                this.$parent.isNotExistAtomOrVersion = false
                 this.isSelectorPanelShow = true
             },
             // 查看子流程模板
@@ -1266,6 +1275,7 @@
             },
             // 是否渲染豁免切换
             onRenderConfigChange (data) {
+                this.isDataChange = true
                 const [key, val] = data
                 this.inputsRenderConfig[key] = val
             },
@@ -1320,7 +1330,7 @@
                             sourceInfo[id].splice(atomIndex, 1)
                         }
                         const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                        refDom && refDom.setFormData()
+                        refDom && refDom.setFormData({ ...this.unhookingVarForm })
                     }
                 }
             },
@@ -1404,7 +1414,7 @@
                         template_id: tpl,
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
-                        scheme_id_list: schemeIdList,
+                        scheme_id_list: schemeIdList.filter(item => item),
                         retryable,
                         skippable,
                         error_ignorable: ignorable,
@@ -1571,14 +1581,13 @@
                     this.$refs.variableEdit.handleMaskClick()
                     return false
                 }
-                const config = this.getNodeFullConfig()
-                if (tools.isDataEqual(config, this.nodeConfig) && !this.isOutputsChanged()) {
+                if (!this.isDataChange && !this.isOutputsChanged()) {
                     this.onClosePanel()
                     return true
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.onClosePanel()
                         }
                     })
@@ -1595,7 +1604,7 @@
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
                                 desc, nodeName, autoRetry, timeoutConfig, executor_proxy
                         } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig }
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, isActived: false }
                         if (this.common) {
                             nodeData['executor_proxy'] = executor_proxy.join(',')
                         }
@@ -1662,6 +1671,7 @@
                 })
             },
             onClosePanel (openVariablePanel) {
+                this.$emit('updateNodeInfo', this.nodeId, { isActived: false })
                 this.$emit('close', openVariablePanel)
             }
         }
@@ -1781,7 +1791,8 @@
         overflow: hidden;
     }
     .exception-wrap {
-        margin-top: 146px;
+        height: 280px;
+        justify-content: center;
         .bk-exception-img {
             width: 220px;
             height: 110px;
