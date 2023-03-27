@@ -36,6 +36,7 @@ class FunctionTaskViewSet(GcloudListViewSet):
     )
     permission_classes = [permissions.IsAuthenticated, FunctionTaskPermission]
     filter_fields = {
+        "id": ["exact"],
         "task_id": ["exact"],
         "task__project__id": ["exact"],
         "task__pipeline_instance__name": ["icontains", "contains"],

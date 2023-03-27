@@ -1413,8 +1413,8 @@ const en = {
     '标签颜色': 'Label color',
     '新建标签': 'New label',
     '流程标签修改成功': 'Process tag modified successfully',
-    '确认离开当前页面吗？': 'Are you sure to leave the current page?',
-    '离开将会丢失未保存信息，建议保存后离开': 'If you leave, you will lose the unsaved information. It is recommended to save and leave.',
+    '确认离开当前页?': 'Are you sure to leave the current page?',
+    '离开将会导致未保存信息丢失': 'Leaving will result in loss of unsaved information',
     '留在此页': 'Stay on this page',
     '直接离开': 'Just leave',
     '流程名': 'FlowName',
@@ -1569,6 +1569,9 @@ const en = {
     '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project',
     '长度超过100个字符，请修改规则': 'The length exceeds 100 characters, please modify the rules',
     '参数未修改': 'parameter is not modified',
+    'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and it is recommended to use script parameters to pass in.',
+    '不再支持': 'no supported',
+    '添加收藏': 'Collection',
     '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified',
     '动态拓扑': 'Dynamic topology',
     '计划任务删除成功': 'Clocked task deleted successfully',
@@ -1616,7 +1619,9 @@ const en = {
     '去修改': 'To modify',
     '任务已暂停执行': 'Task has been paused',
     '任务已继续执行': 'Task has resumed',
-    '操作记录': 'Operate record'
+    '操作记录': 'Operate record',
+    '参数未修改，任务已继续执行': 'The parameter was not modified and the task continued',
+    '离开': 'Leave'
 }
 
 export default en

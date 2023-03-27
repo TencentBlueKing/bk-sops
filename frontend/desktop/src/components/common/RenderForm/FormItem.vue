@@ -109,6 +109,7 @@
                 v-bind="getDefaultAttrs()"
                 :tag-code="scheme.tag_code"
                 :hook="hook"
+                :render="render"
                 :constants="constants"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
@@ -120,7 +121,7 @@
                 @onHide="onHideForm">
             </component>
             <!-- 变量勾选checkbox -->
-            <div class="rf-tag-hook" v-if="showHook">
+            <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
                 <i
                     :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
@@ -131,6 +132,7 @@
                     @click="onHookForm(!hook)">
                 </i>
                 <i
+                    v-if="isShowRenderIcon"
                     :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                     v-bk-tooltips="{
                         content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
@@ -249,7 +251,8 @@
                 i18n: {
                     hooked: gettext('取消变量引用'),
                     cancelHook: gettext('设置为变量')
-                }
+                },
+                isShowRenderIcon: true // 是否展示免渲染icon
             }
         },
         computed: {
@@ -280,6 +283,29 @@
             Object.keys(tagComponent).forEach(item => {
                 this.$options.components[item] = tagComponent[item]
             })
+        },
+        created () {
+            // 针对job的代码编辑框，移除「变量免渲染」的功能开关
+            const { type, attrs } = this.scheme
+            if (type === 'code_editor' && !attrs.variable_render) { // variable_render 是否开启变量渲染
+                /**
+                 * need_render:
+                    1. false
+                        之前已勾选，现在去掉免渲染icon
+                    2.true，判断value
+                        a. 不包含${}，需要把need_render置为false，去掉免渲染icon
+                        b. 包含${}，保留免渲染icon
+                 */
+                if (this.render) {
+                    const regex = /\${[a-zA-Z_]\w*}/
+                    if (!regex.test(this.value)) {
+                        this.isShowRenderIcon = false
+                        this.onRenderChange()
+                    }
+                } else {
+                    this.isShowRenderIcon = false
+                }
+            }
         },
         methods: {
             getDefaultAttrs () {
@@ -596,6 +622,9 @@
         }
         .hook-icon {
             font-size: 19px;
+        }
+        &.hide-render-icon {
+            justify-content: center;
         }
     }
     .rf-view-value {

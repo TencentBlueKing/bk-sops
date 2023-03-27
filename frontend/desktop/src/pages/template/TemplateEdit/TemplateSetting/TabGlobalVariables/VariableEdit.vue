@@ -749,7 +749,7 @@
                 if (!this.variableData.key) {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.$emit('closeEditingPanel')
                         }
                     })
@@ -766,7 +766,7 @@
                     } else {
                         this.$bkInfo({
                             ...this.infoBasicConfig,
-                            cancelFn: () => {
+                            confirmFn: () => {
                                 this.$emit('closeEditingPanel')
                             }
                         })
