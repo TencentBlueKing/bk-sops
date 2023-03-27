@@ -866,8 +866,10 @@
                     return
                 }
                 this.$bkInfo({
-                    type: 'warning',
-                    title: `${i18n.t('确认删除所选的')}${this.selectedTpls.length}${i18n.t('项流程吗')}`,
+                    title: `${i18n.t('确认删除所选的')} ${this.selectedTpls.length} ${i18n.t('项流程吗') + '?'}`,
+                    subTitle: i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除'),
+                    maskClose: false,
+                    width: 450,
                     confirmLoading: true,
                     confirmFn: async () => {
                         await this.batchDeleteConfirm()

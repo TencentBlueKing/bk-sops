@@ -102,7 +102,7 @@
                 if (this.isDataChange) {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.$emit('closeTab')
                         }
                     })

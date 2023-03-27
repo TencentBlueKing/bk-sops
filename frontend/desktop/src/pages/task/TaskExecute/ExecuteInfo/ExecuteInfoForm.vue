@@ -217,7 +217,7 @@
                 return i18n.t('超时') + ' ' + timeoutConfig.seconds + ' ' + i18n.tc('秒', 0) + i18n.t('后') + i18n.t('则') + actionText
             },
             componentValue () {
-                if (this.nodeActivity.component) {
+                if (this.isSubProcessNode) {
                     return this.nodeActivity.component.data.subprocess.value
                 }
                 return {}
@@ -340,7 +340,7 @@
                         scheme_id_list: this.nodeActivity.schemeIdList || [],
                         version
                     }
-                    if (this.isCommonTpl) {
+                    if (this.componentValue.template_source === 'common') {
                         params.template_source = 'common'
                     } else {
                         params.project_id = this.project_id
@@ -427,7 +427,7 @@
              */
             async getAtomConfig (config) {
                 const { plugin, version, classify, name, isThird } = config
-                const project_id = this.isCommonTpl ? undefined : this.project_id
+                const project_id = this.componentValue.template_source === 'common' ? undefined : this.project_id
                 try {
                     // 先取标准节点缓存的数据
                     const pluginGroup = this.pluginConfigs[plugin]

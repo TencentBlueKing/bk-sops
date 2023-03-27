@@ -87,7 +87,8 @@
                 'EmptyEndEvent': 'commonicon-icon common-icon-node-endpoint-en',
                 'ParallelGateway': 'commonicon-icon common-icon-node-parallelgateway-shortcut',
                 'ExclusiveGateway': 'commonicon-icon common-icon-node-branchgateway',
-                'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway conver'
+                'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway conver',
+                'ConditionalParallelGateway': 'commonicon-icon common-icon-node-conditionalparallelgateway'
             }
             const stateColor = {
                 FINISHED: 'color:#61c861;',
@@ -95,14 +96,16 @@
                 WAIT: 'color:#dedfe6;',
                 BLOCKED: 'color:#4b81f7;',
                 RUNNING: 'color:#4d83f7;',
-                SKIP: 'color: #edbbb8'
+                SKIP: 'color: #edbbb8',
+                SUSPENDED: 'color: #699df4'
             }
             const nodeStateMap = {
                 FINISHED: 'finished',
                 FAILED: 'failed',
                 WAIT: 'wait',
                 RUNNING: 'running',
-                SKIP: 'skip'
+                SKIP: 'skip',
+                SUSPENDED: 'running'
             }
             return {
                 curSelectId: '',
@@ -113,16 +116,25 @@
                 gatewayType,
                 stateColor,
                 nodeStateMap,
-                curSubId: '',
-                cacheSubflowSelectNode: '',
+                cacheSubflowSelectNode: {},
+                curSelectTreeId: '',
                 setDefaultGateway: false
             }
         },
         watch: {
             data: {
-                handler () {
-                    this.treeData = tools.deepClone(this.data[0].children)
-                    this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
+                handler (value) {
+                    const nodeNavLength = this.nodeNav.length
+                    if (nodeNavLength === 1) {
+                        this.treeData = tools.deepClone(value[0].children)
+                    } else {
+                        const cur = this.findSubChildren(value[0].children, this.nodeNav[nodeNavLength - 1].id)
+                        this.treeData = tools.deepClone(cur[0].subChildren)
+                    }
+                    this.$nextTick(() => {
+                        this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
+                        this.setDefaultActiveId(this.treeData, this.treeData, this.defaultActiveId)
+                    })
                 },
                 deep: true,
                 immediate: true
@@ -137,16 +149,19 @@
             nodeNav: {
                 handler (val, old) {
                     // 当为面包屑数量不为根节点时重新渲染结构
+                    const cur = this.findSubChildren(this.data[0].children, val[val.length - 1].id)
+                    this.curSelectTreeId = val[val.length - 1].nodeId
                     if (val) {
-                        const cur = this.findSubChildren(this.treeData, val[val.length - 1].id)
-                        if (cur.length === 0) this.setDefaultGateway = true
+                        if (cur.length === 0) this.setDefaultGateway = true // 从画布点击自动网关、条件展开
                         if (val.length === 1 && old && val.length !== old.length) {
-                            this.curSubId = ''
-                            this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
-                            this.treeData = tools.deepClone(this.cacheSubflowSelectNode || this.data[0].children)
+                            this.treeData = tools.deepClone(this.cacheSubflowSelectNode[this.curSelectTreeId] || this.data[0].children)
                             this.curSelectId = '' // 返回时清除选中
                         } else {
-                            this.renderSubProcessData(...cur)
+                            this.$nextTick(() => {
+                                if (this.cacheSubflowSelectNode[cur[0]] && this.cacheSubflowSelectNode[cur[0]].id) this.$set(cur[0], 'subChildren', this.cacheSubflowSelectNode[cur[0].id])
+                                this.renderSubProcessData(cur[0])
+                            })
+                            this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
                         }
                     }
                 },
@@ -162,8 +177,12 @@
         methods: {
             findSubChildren (data, id, node = []) {
                 data.forEach(item => {
-                    if (item.id === id) {
-                        node.push(item)
+                    if (item.type === 'SubProcess') {
+                        if (item.id === id) {
+                            node.push(item)
+                        } else {
+                            this.findSubChildren(item.subChildren, id, node)
+                        }
                     } else {
                         if (item.children) {
                             this.findSubChildren(item.children, id, node)
@@ -180,37 +199,41 @@
                 this.curSelectId = node.id
                 const nodeType = node.type === 'SubProcess'
                 if (nodeType) {
+                    this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
                     this.$emit('onNodeClick', node.id, 'subflow')
-                    this.cacheSubflowSelectNode = tools.deepClone(this.treeData)
                     this.renderSubProcessData(node)
                 } else {
-                    const str = this.curSubId ? this.curSubId + '.' + node.id : node.id
-                    this.$emit('onSelectNode', str, node.id, 'tasknode')
+                    const parentIds = this.nodeNav.slice(1).map(item => item.id).toString().split(',').join('.')
+                    const nodeHeirarchy = parentIds ? parentIds + '.' + node.id : node.id
+                    this.$emit('onSelectNode', nodeHeirarchy, node.id, 'tasknode')
                 }
             },
             renderSubProcessData (node) {
                 if (node) {
-                    this.curSubId = node.id
-                    this.treeData = node.subChildren
+                    this.$nextTick(() => {
+                        this.treeData = node.subChildren
+                    })
                 }
             },
             nodeAddStatus (data, states) {
-                data.forEach(item => {
-                    if (item.id && states[item.id]) {
-                        item.state = states[item.id].skip ? 'SKIP' : states[item.id].state
-                    } else {
-                        item.state = 'WAIT'
-                    }
-                    if (item.isGateway) {
-                        item.state = 'Gateway'
-                    }
-                    if (item.type === 'SubProcess') {
-                        this.nodeAddStatus(item.subChildren, states)
-                    }
-                    if (item.children && item.children.length !== 0) {
-                        this.nodeAddStatus(item.children, states)
-                    }
-                })
+                if (data) {
+                    data.forEach(item => {
+                        if (item.id && states[item.id]) {
+                            item.state = states[item.id].skip ? 'SKIP' : states[item.id].state
+                        } else {
+                            item.state = 'WAIT'
+                        }
+                        if (item.isGateway) {
+                            item.state = 'Gateway'
+                        }
+                        if (item.type === 'SubProcess') {
+                            this.nodeAddStatus(item.subChildren, states)
+                        }
+                        if (item.children && item.children.length !== 0) {
+                            this.nodeAddStatus(item.children, states)
+                        }
+                    })
+                }
             },
             tpl (node) {
                 if (!this.allNodeDate[node.id] && node.id !== 'undefined') {
@@ -235,7 +258,7 @@
                 } else if (this.gatewayType[node.type]) {
                     return <span style={'font-size: 16px'}>
                         <span class={iconClass} style={this.stateColor[node.state]}></span>
-                        <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
+                        <span class={isActive} data-node-id={node.id} data-gateway-type={node.gatewayType} domPropsInnerHTML={node.name} onClick={(e) => this.onSelectNode(e, node, 'gateway')}></span>
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
@@ -248,9 +271,6 @@
                 this.curSelectId = id
                 if (nodes) {
                     nodes.forEach(node => {
-                        if (node.children) {
-                            this.setDefaultActiveId(data, node.children, id)
-                        }
                         if (node.id === id) {
                             this.$set(node, 'selected', true)
                             if (this.setDefaultGateway) {
@@ -262,6 +282,9 @@
                             }
                         } else {
                             this.$set(node, 'selected', false)
+                        }
+                        if (node.children) {
+                            this.setDefaultActiveId(data, node.children, id)
                         }
                     })
                 }
@@ -282,9 +305,12 @@
             onSelectNode (e, node, type) {
                 // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
                 this.setDefaultGateway = false
-                node.selected = node.id === this.curSelectId
+                if (node.selected && node.type === 'SubProcess') {
+                    node.selected = false
+                    node.parent.expanded = true
+                }
                 if (node.expanded && !node.selected) e.stopPropagation()
-                if (node.title === this.$t('并行') && type === 'gateway') {
+                if ((node.conditionType === 'parallel' || node.conditionType === 'default') && type === 'gateway') {
                     node.expanded = !node.expanded
                     e.stopPropagation()
                     return
@@ -304,7 +330,7 @@
                         const curNodeIndex = node.parent.children.findIndex(item => item.id === node.id)
                         node.parent.children.forEach((item, index) => {
                             if (item.type === 'ConvergeGateway') {
-                                const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
+                                const converge = treeNodes.filter(dom => dom.dataset.gatewayType === 'converge')
                                 if (index > curNodeIndex) {
                                     if (!node.expanded) {
                                         converge.forEach(cdom => {
@@ -325,6 +351,13 @@
                     }
                 }
                 if (this.curSelectId === node.id) {
+                    // 画布节点参数入口 子流程选中状态可点击
+                    if (node.type === 'SubProcess') {
+                        this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
+                        this.$emit('onNodeClick', node.id, 'subflow')
+                        this.renderSubProcessData(node)
+                        return
+                    }
                     // 当打回节点选中时，还原该条件id
                     node.id = node.cacheId ? node.cacheId : node.id
                     return
@@ -334,7 +367,7 @@
                 node.selected = nodeType !== 'subflow'
                 if (nodeType === 'subflow') {
                     this.$emit('onNodeClick', node.id, 'subflow')
-                    this.cacheSubflowSelectNode = tools.deepClone(this.treeData)
+                    this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
                     this.renderSubProcessData(node)
                     return
                 }
@@ -355,6 +388,7 @@
                 this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
                 // 取缓存id
                 node.id = node.cacheId ? node.cacheId : node.id
+                node.selected = node.id === this.curSelectId
             }
         }
     }
@@ -390,6 +424,9 @@
 }
 .conver {
     margin-left: -20px;
+    background: #fff;
+    position: relative;
+    z-index: 99;
 }
 .node-tree-wrapper {
     display: inline-block;
@@ -533,23 +570,14 @@
     border-radius: 1px;
     color: #968E4D;
     position: relative;
-    border-left: none;
     padding-right: 4px;
     cursor: pointer;
     user-select: none;
-    ::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -20px;
-        width: 20px;
-        height: 16px;
-        background-color: #FBF9E2;
-        border: 1px solid #CCC79E;
-        border-right: none;
-        border-radius: 1px;
-        color: #968E4D;
-        z-index: 88;
+    left: -20px;
+    padding-left: 20px;
+    z-index: 88;
+    .callback {
+        display: none;
     }
 }
 .default-conditon {
@@ -559,22 +587,13 @@
     border-radius: 1px;
     color: #968E4D;
     position: relative;
-    border-left: none;
     padding-right: 4px;
     user-select: none;
-    ::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -20px;
-        width: 20px;
-        height: 16px;
-        background-color: #F0F1F5;
-        border: 1px solid #C4C6CC;
-        border-right: none;
-        border-radius: 1px;
-        color: #968E4D;
-        z-index: 88;
+    left: -20px;
+    padding-left: 20px;
+    z-index: 88;
+    .callback {
+        display: none;
     }
 }
 .tpl-gateway {

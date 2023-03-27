@@ -386,7 +386,8 @@
                 nodeDisplayStatus: {},
                 showNodeList: [0, 1, 2],
                 converNodeList: [],
-                isCondition: false
+                isCondition: false,
+                conditionOutgoing: []
             }
         },
         computed: {
@@ -1315,7 +1316,7 @@
                                     loopList.push(...curNode.incoming)
                                 }
                             })
-                            const conditions = Object.keys(gateway.conditions).map(item => {
+                            const conditions = Object.keys(gateway.conditions).map((item, index) => {
                                 // 给需要打回的条件添加节点id
                                 const callback = loopList.includes(item) ? activities[flows[item].target] : ''
                                 const { evaluate, tag } = gateway.conditions[item]
@@ -1328,12 +1329,13 @@
                                     value: evaluate
                                 }
                                 return {
-                                    id: gateway.conditions[item].name,
+                                    id: gateway.conditions[item].name + '-' + item,
                                     conditionsId: '',
                                     callbackName: callback.name,
-                                    name: gateway.conditions[item].name,
+                                    name: gateway.conditions[item].name + '-' + item,
                                     title: gateway.conditions[item].name,
                                     isGateway: true,
+                                    conditionType: 'condition', // 条件、条件并行网关
                                     expanded: false,
                                     outgoing: item,
                                     children: [],
@@ -1345,9 +1347,11 @@
                             if (gateway.default_condition) {
                                 const defaultCondition = [
                                     {
-                                        name: gateway.default_condition.name,
+                                        id: gateway.default_condition.name + '-' + gateway.default_condition.flow_id,
+                                        name: gateway.default_condition.name + '-' + gateway.default_condition.flow_id,
                                         title: gateway.default_condition.name,
                                         isGateway: true,
+                                        conditionType: 'default',
                                         expanded: false,
                                         outgoing: gateway.default_condition.flow_id,
                                         children: []
@@ -1357,6 +1361,7 @@
                             }
                             conditions.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children, item.isLoop)
+                                if (item.children.length === 0) this.conditionOutgoing.push(item.outgoing)
                                 item.children.forEach(i => {
                                     if (!this.nodeIds.includes(i.id)) {
                                         this.nodeIds.push(i.id)
@@ -1376,6 +1381,7 @@
                                     title: this.$t('并行'),
                                     isGateway: true,
                                     expanded: false,
+                                    conditionType: 'parallel',
                                     outgoing: item,
                                     children: []
                                 }
@@ -1403,14 +1409,26 @@
                                     list.push(converList[item])
                                 }
                             })
-                            if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {
+                            const outgoingList = []
+                            list.forEach(item => {
+                                if (Array.isArray(item.outgoing)) {
+                                    item.outgoing.forEach(ite => {
+                                        outgoingList.push(ite)
+                                    })
+                                } else {
+                                    outgoingList.push(item.outgoing)
+                                }
+                            })
+
+                            if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
                                 // 汇聚网关push在最近的条件网关下
                                 const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
-                                if (!prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
+                                // 独立子流程的children为 subChildren
+                                if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
+                                    gateway.gatewayType = 'converge'
                                     prev.children.push(gateway)
                                 }
-                                // ordered.push(gateway)
                                 if (!this.nodeIds.includes(gateway.id)) {
                                     this.nodeIds.push(gateway.id)
                                 }
@@ -1537,7 +1555,8 @@
             onOpenConditionEdit (data, isCondition = true) {
                 if (isCondition && data) {
                     this.onNodeClick(data.nodeId)
-                    this.defaultActiveId = data.name
+                    // 生成网关添加id 条件name + 分支条件outgoning
+                    this.defaultActiveId = data.name + '-' + data.id
                     this.isCondition = true
                     this.isShowConditionEdit = true
                     this.conditionData = { ...data }
@@ -1663,19 +1682,22 @@
                 if (this.nodeDetailConfig.node_id) {
                     this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
-                const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
+                const heirarchyList = nodeHeirarchy.split('.')
+                heirarchyList.pop()
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
                     heirarchyList.forEach((key, index) => {
                         nodeActivities = index ? nodeActivities.pipeline.activities[key] : nodeActivities[key]
-                        nodePath.push({
-                            id: nodeActivities.id,
-                            name: nodeActivities.name,
-                            nodeId: nodeActivities.id,
-                            type: nodeActivities.type
-                        })
-                        if (nodeActivities.type === 'SubProcess') {
-                            parentNodeActivities = nodeActivities
+                        if (nodeActivities) {
+                            nodePath.push({
+                                id: nodeActivities.id,
+                                name: nodeActivities.name,
+                                nodeId: nodeActivities.id,
+                                type: nodeActivities.type
+                            })
+                            if (nodeActivities.type === 'SubProcess') {
+                                parentNodeActivities = nodeActivities
+                            }
                         }
                     })
                     this.selectedFlowPath = nodePath
@@ -1898,7 +1920,7 @@
                     } else if (isEqual === false) {
                         this.$bkInfo({
                             ...this.infoBasicConfig,
-                            cancelFn: () => {
+                            confirmFn: () => {
                                 this.isNodeInfoPanelShow = false
                                 this.retryNodeId = undefined
                             }

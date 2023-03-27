@@ -75,7 +75,7 @@
                     </bk-form-item>
                 </bk-form>
             </section>
-            <bk-tab :active.sync="active" type="unborder-card">
+            <bk-tab :active.sync="active" type="unborder-card" @tab-change="handleTabChange">
                 <bk-tab-panel :label="$t('人员分组设置')" name="staffing_group_settings">
                     <section class="mandate-section">
                         <div class="title">
@@ -644,6 +644,14 @@
                     executor_proxy: this.agent.executor_proxy.split(',').filter(item => item.trim()),
                     executor_proxy_exempts: this.agent.executor_proxy_exempts.split(',').filter(item => item.trim())
                 }
+            },
+            handleTabChange (name) {
+                this.$router.replace({
+                    name: 'projectConfig',
+                    query: {
+                        configActive: name
+                    }
+                })
             },
             onEditStaffGroup (type, group) {
                 let editingData = { name: '', members: [] }
