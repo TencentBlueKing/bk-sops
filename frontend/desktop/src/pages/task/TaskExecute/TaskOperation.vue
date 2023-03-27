@@ -274,6 +274,7 @@
     // 执行按钮的变更
     const STATE_OPERATIONS = {
         'RUNNING': 'pause',
+        'NODE_SUSPENDED': 'pause',
         'SUSPENDED': 'resume',
         'CREATED': 'execute',
         'FAILED': 'pause'
@@ -1321,7 +1322,7 @@
                     case 'execute':
                         return this.state === 'CREATED' && this.isTopTask
                     case 'pause':
-                        return this.state === 'RUNNING'
+                        return ['RUNNING', 'NODE_SUSPENDED'].includes(this.state)
                     case 'resume':
                         return this.state === 'SUSPENDED'
                     case 'revoke':
