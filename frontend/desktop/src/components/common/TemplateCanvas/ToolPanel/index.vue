@@ -112,7 +112,7 @@
                     'actived': isPerspective
                 }]"
                 v-bk-tooltips="{
-                    content: $t('⿏标移动到节点时展示引⽤和输出的变量'),
+                    content: $t('变量引用预览'),
                     delay: 300,
                     placements: ['bottom']
                 }"
@@ -230,7 +230,12 @@
         &:last-child {
             margin-right: 0;
         }
-        &.actived, &:hover {
+        &:hover {
+            color: #699df4;
+            background: #f4f7ff;
+            border-radius: 1px;
+        }
+        &.actived {
             color: #3a84ff;
             background: #f4f7ff;
             border-radius: 1px;

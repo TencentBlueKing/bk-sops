@@ -100,6 +100,7 @@
                             :width="item.width"
                             :min-width="item.min_width"
                             :class-name="item.id.replace(/_/g, '-')"
+                            show-overflow-tooltip
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
                             :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
@@ -149,6 +150,9 @@
                                             :display-tag="true"
                                             :multiple="true"
                                             searchable
+                                            :popover-options="{
+                                                onHide: () => !labelDialogShow
+                                            }"
                                             ext-cls="label-select"
                                             @toggle="onToggleTplLabel">
                                             <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">
@@ -318,7 +322,13 @@
                             {{ $t('当前已选择 x 条数据', { num: selectedTpls.length }) }}{{ $t('，') }}
                             <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清除选择') }}</bk-link>
                         </div>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -342,20 +352,6 @@
             :project_id="project_id"
             :type="exportType">
         </ExportTemplateDialog>
-        <bk-dialog
-            width="400"
-            :mask-close="false"
-            :header-position="'left'"
-            :ext-cls="'common-dialog'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            :auto-close="false"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
-            </div>
-        </bk-dialog>
         <bk-dialog
             width="480"
             ext-cls="common-dialog label-dialog"
@@ -606,12 +602,10 @@
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
                 sortableCols: [],
-                isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isImportYamlDialogShow: false,
                 isExportDialogShow: false,
                 isAuthorityDialogShow: false,
-                theDeleteTemplateId: undefined,
                 theAuthorityManageId: undefined,
                 active: true,
                 pending: {
@@ -834,17 +828,18 @@
                  */
                 const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                 const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
+                const tplIds = template_id?.split('|').map(item => item.trim()).join(',') || undefined
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     pipeline_template__name__icontains: flowName || undefined,
                     pipeline_template__creator: creator || undefined,
-                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
+                    label_ids: label_ids && label_ids.length ? label_ids.join('|') : undefined,
                     subprocess_has_update__exact: subprocess_has_update,
                     pipeline_template__has_subprocess: has_subprocess,
                     project__id: this.project_id,
                     new: true,
-                    id: template_id || undefined,
+                    id__in: tplIds,
                     pipeline_template__editor: editor || undefined
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
@@ -958,7 +953,16 @@
                         projectId: this.project_id,
                         common: false
                     })
-                    if (!resp.result) return
+                    if (!resp.result) {
+                        if ('errorId' in resp) {
+                            this.$bkMessage({
+                                message: resp.message,
+                                theme: 'error',
+                                delay: 10000
+                            })
+                        }
+                        return
+                    }
                     // 前端修改对应模板的labels
                     curRow.template_labels = this.templateLabels.reduce((acc, cur) => {
                         const { id, name, color } = cur
@@ -1201,9 +1205,14 @@
                     return
                 }
                 this.$bkInfo({
-                    type: 'warning',
-                    title: `${i18n.t('确认删除所选的')}${this.selectedTpls.length}${i18n.t('项流程吗')}`,
-                    confirmFn: this.batchDeleteConfirm
+                    title: `${i18n.t('确认删除所选的')} ${this.selectedTpls.length} ${i18n.t('项流程吗') + '?'}`,
+                    subTitle: i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除'),
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.batchDeleteConfirm()
+                    }
                 })
             },
             async batchDeleteConfirm () {
@@ -1213,25 +1222,59 @@
                 }
                 const res = await this.batchDeleteTpl(data)
                 if (res.result) {
-                    if (Array.isArray(res.data.success) && res.data.success.length > 0) {
-                        res.data.success.forEach(id => {
-                            const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
-                            this.selectedTpls.splice(index, 1)
+                    const { success, fail } = res.data
+                    if (fail.length) {
+                        const h = this.$createElement
+                        const self = this
+                        this.$bkMessage({
+                            message: h('p', {
+                                style: {
+                                    margin: 0
+                                }
+                            }, [
+                                i18n.t('x 项删除成功,', { num: success.length }),
+                                h('span', {
+                                    style: {
+                                        color: '#3a84ff',
+                                        cursor: 'pointer',
+                                        margin: '0 5px'
+                                    },
+                                    on: {
+                                        click: function () {
+                                            self.filterDeleteErrorTpls(fail.join(','))
+                                        }
+                                    }
+                                }, fail.length),
+                                i18n.t('项删除失败')
+                            ]),
+                            theme: 'error',
+                            delay: 10000
                         })
+                    } else {
                         this.$bkMessage({
                             message: i18n.t('流程') + i18n.t('删除成功！'),
                             theme: 'success'
                         })
+                    }
+                    if (success.length) {
+                        success.forEach(id => {
+                            const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
+                            this.selectedTpls.splice(index, 1)
+                        })
                         this.pagination.current = 1
                         this.getTemplateList()
-                    } else if (Object.keys(res.data.references).length) {
-                        this.$bkMessage({
-                            message: i18n.t('流程当前被使用中，无法删除'),
-                            theme: 'error'
-                        })
                     }
                 }
                 return Promise.resolve()
+            },
+            filterDeleteErrorTpls (templateIds) {
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'template_id')
+                if (creatorInfo) {
+                    creatorInfo.values = templateIds
+                } else {
+                    const form = this.searchList.find(item => item.id === 'template_id')
+                    this.searchSelectValue.push({ ...form, values: [templateIds] })
+                }
             },
             onImportConfirm () {
                 this.isImportDialogShow = false
@@ -1254,9 +1297,16 @@
                     this.onTemplatePermissionCheck(['flow_delete'], template)
                     return
                 }
-                this.theDeleteTemplateId = template.id
-                this.deleteTemplateName = template.name
-                this.isDeleteDialogShow = true
+                this.$bkInfo({
+                    title: i18n.t('确认删除') + i18n.t('流程') + '"' + template.name + '"' + '?',
+                    subTitle: i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除'),
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm(template.id)
+                    }
+                })
             },
             // 表格功能选项
             handleSettingChange ({ fields, size, order }) {
@@ -1303,10 +1353,15 @@
             },
             renderTableHeader (h, { column, $index }) {
                 if (column.property === 'category') {
-                    return h('span', {
+                    return h('p', {
                         'class': 'category-label'
                     }, [
-                        column.label,
+                        h('p', {
+                            'class': 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [column.label]),
                         h('i', {
                             'class': 'common-icon-info table-header-tips',
                             directives: [{
@@ -1328,7 +1383,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -1401,20 +1463,17 @@
                 const authActions = [...this.authActions, ...template.auth_actions]
                 this.applyForPermission(required, authActions, { flow: [template], project: [project] })
             },
-            async onDeleteConfirm () {
+            async onDeleteConfirm (templateId) {
                 if (this.pending.delete) return
                 this.pending.delete = true
                 try {
-                    const data = {
-                        templateId: this.theDeleteTemplateId
-                    }
+                    const data = { templateId }
                     const resp = await this.deleteTemplate(data)
                     if (resp.result === false) return
-                    if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
-                        const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
+                    if (this.selectedTpls.find(tpl => tpl.id === templateId)) {
+                        const index = this.selectedTpls.findIndex(tpl => tpl.id === templateId)
                         this.selectedTpls.splice(index, 1)
                     }
-                    this.theDeleteTemplateId = undefined
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -1432,12 +1491,7 @@
                     console.log(e)
                 } finally {
                     this.pending.delete = false
-                    this.isDeleteDialogShow = false
                 }
-            },
-            onDeleteCancel () {
-                this.theDeleteTemplateId = undefined
-                this.isDeleteDialogShow = false
             },
             /**
              * 获取模版操作的跳转链接
@@ -1675,16 +1729,13 @@
             height: 42px;
         }
     }
-    .flow-name-column {
-        display: flex;
-        align-items: center;
-    }
     .icon-favorite {
         position: absolute;
         left: -9px;
         font-size: 14px;
         color: #c4c6cc;
         display: none;
+        margin-top: 1px;
         &.is-active {
             display: block;
             color: #ff9c01;
@@ -1734,9 +1785,6 @@
             border-radius: 50%;
         }
     }
-    .empty-data {
-        padding: 120px 0;
-    }
     .subflow-has-update {
         color: $redDefault;
         .red-dot {
@@ -1768,11 +1816,16 @@
             color: #979ba5;
         }
     }
-    /deep/.table-header-tips {
-        margin-left: 4px;
-        font-size: 14px;
-        color: #c4c6cc;
-        cursor: pointer;
+    /deep/.category-label {
+        display: flex;
+        align-items: center;
+        .table-header-tips {
+            flex-shrink: 0;
+            margin-left: 4px;
+            font-size: 14px;
+            color: #c4c6cc;
+            cursor: pointer;
+        }
     }
     /deep/.edit-time,
     /deep/.create-time {

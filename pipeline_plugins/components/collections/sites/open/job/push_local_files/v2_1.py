@@ -19,7 +19,6 @@ from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 from pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service import (
     BaseJobPushLocalFilesService,
 )
-from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
 from gcloud.conf import settings
 
 __group_name__ = _("作业平台(JOB)")
@@ -50,10 +49,12 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
         ]
 
     def get_ip_list(self, data, target_ip_list, executor, biz_cc_id):
-        clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, target_ip_list, biz_cc_id, data)
-        return clean_result, ip_list
+        clean_result, target_server = self.get_target_server_hybrid(
+            executor, biz_cc_id, data, target_ip_list, self.logger
+        )
+        return clean_result, target_server
 
-    def get_params_list(self, client, data, ip_list, local_files_and_target_path):
+    def get_params_list(self, client, data, target_server, local_files_and_target_path):
         biz_cc_id = data.inputs.biz_cc_id
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
@@ -77,7 +78,8 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
                     if _file["response"]["result"] is True
                 ],
                 "target_path": push_files_info["target_path"],
-                "ips": ip_list,
+                "ips": None,
+                "target_server": target_server,
                 "account": target_account,
                 "rolling_config": rolling_config,
             }

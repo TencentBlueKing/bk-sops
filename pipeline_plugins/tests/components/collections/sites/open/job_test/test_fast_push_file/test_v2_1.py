@@ -183,7 +183,7 @@ CLL_INFO = MagicMock(
 
 def PUSH_FILE_TO_IPS_FAIL_CASE():
     return ComponentTestCase(
-        name="all biz fast_push_files v2_1  call fail case",
+        name="all biz fast_push_files v2_1 call fail case",
         inputs=INPUT,
         parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
         execute_assertion=ExecuteAssertion(

@@ -45,10 +45,7 @@ class PauseService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("描述"),
-                key="description",
-                type="string",
-                schema=StringItemSchema(description=_("描述")),
+                name=_("描述"), key="description", type="string", schema=StringItemSchema(description=_("描述")),
             )
         ]
 
@@ -58,16 +55,13 @@ class PauseService(Service):
                 name=_("API回调数据"),
                 key="callback_data",
                 type="object",
-                schema=ObjectItemSchema(
-                    description=_("通过node_callback API接口回调并传入数据,支持dict数据"),
-                    property_schemas={},
-                ),
+                schema=ObjectItemSchema(description=_("通过node_callback API接口回调并传入数据,支持dict数据"), property_schemas={},),
             ),
         ]
 
 
 class PauseComponent(Component):
-    name = _("暂停")
+    name = _("人工确认(暂停)")
     code = "pause_node"
     bound_service = PauseService
     form = settings.STATIC_URL + "components/atoms/bk/pause.js"

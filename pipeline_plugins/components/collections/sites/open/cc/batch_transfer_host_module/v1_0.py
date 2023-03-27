@@ -25,8 +25,8 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
-    cc_get_host_id_by_innerip,
     cc_list_select_node_inst_id,
+    CCPluginIPMixin,
 )
 
 
@@ -39,7 +39,7 @@ VERSION = "1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCBatchTransferHostModule(Service):
+class CCBatchTransferHostModule(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -64,10 +64,7 @@ class CCBatchTransferHostModule(Service):
                 schema=StringItemSchema(description=_("在自动填参时使用的扩展分割符")),
             ),
             self.InputItem(
-                name=_("更新方式"),
-                key="is_append",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("更新方式")),
+                name=_("更新方式"), key="is_append", type="boolean", schema=BooleanItemSchema(description=_("更新方式")),
             ),
         ]
 
@@ -114,11 +111,9 @@ class CCBatchTransferHostModule(Service):
         success_update = []
         failed_update = []
         for attr in attr_list:
-            cc_host_ip_list = [attr["cc_transfer_host_ip"]]
             cc_module_path = attr["cc_transfer_host_target_module"]
-
             # 获取主机id列表
-            host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, cc_host_ip_list, supplier_account)
+            host_result = self.get_host_list(executor, biz_cc_id, attr["cc_transfer_host_ip"], supplier_account)
             if not host_result["result"]:
                 message = _(f"主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机属性:{attr}, 错误信息: {host_result['message']}")
                 self.logger.info(message)
@@ -156,9 +151,7 @@ class CCBatchTransferHostModule(Service):
                 self.logger.info("主机所属业务模块更新成功, data={}".format(cc_kwargs))
                 success_update.append(attr)
             else:
-                message = _(
-                    f"主机所属业务模块更新失败: 主机属性={attr}, kwargs: {cc_kwargs}, 错误信息: {update_result['message']}"
-                )
+                message = _(f"主机所属业务模块更新失败: 主机属性={attr}, kwargs: {cc_kwargs}, 错误信息: {update_result['message']}")
                 self.logger.info(message)
                 failed_update.append(message)
 

@@ -45,10 +45,10 @@ const store = new Vuex.Store({
             actions: []
         },
         infoBasicConfig: {
-            title: i18n.t('确认离开当前页面吗？'),
-            subTitle: i18n.t('离开将会丢失未保存信息，建议保存后离开'),
-            okText: i18n.t('留在此页'),
-            cancelText: i18n.t('直接离开'),
+            title: i18n.t('确认离开当前页?'),
+            subTitle: i18n.t('离开将会导致未保存信息丢失'),
+            okText: i18n.t('离开'),
+            cancelText: i18n.t('取消'),
             maskClose: false,
             closeFn: () => {
                 return true

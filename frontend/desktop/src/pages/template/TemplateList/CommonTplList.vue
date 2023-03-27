@@ -49,6 +49,7 @@
                             :width="item.width"
                             :min-width="item.min_width"
                             :class-name="item.id.replace(/_/g, '-')"
+                            show-overflow-tooltip
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
                             :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
@@ -115,7 +116,13 @@
                                 @setting-change="handleSettingChange">
                             </table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -376,6 +383,7 @@
             },
             getQueryData () {
                 const { creator, create_time, edit_time, flowName, template_id, editor } = this.requestData
+                const tplIds = template_id?.split('|').map(item => item.trim()).join(',') || undefined
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -385,7 +393,7 @@
                     pipeline_template__editor: editor || undefined,
                     project__id: this.project_id,
                     new: true,
-                    id: template_id
+                    id__in: tplIds
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -495,7 +503,12 @@
                     return h('span', {
                         'class': 'category-label'
                     }, [
-                        column.label,
+                        h('p', {
+                            'class': 'label-text',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [column.label]),
                         h('i', {
                             'class': 'common-icon-info table-header-tips',
                             directives: [{
@@ -516,7 +529,14 @@
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
-                    return column.label
+                    return h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
+                    }, [
+                        column.label
+                    ])
                 }
             },
             handleDateTimeFilter (date = [], id) {
@@ -829,9 +849,6 @@ a {
             border-radius: 50%;
         }
     }
-    .empty-data {
-        padding: 120px 0;
-    }
     .subflow-has-update {
         color: $redDefault;
     }
@@ -854,11 +871,16 @@ a {
             color: #979ba5;
         }
     }
-    /deep/.table-header-tips {
-        margin-left: 4px;
-        font-size: 14px;
-        color: #c4c6cc;
-        cursor: pointer;
+    /deep/.category-label {
+        display: flex;
+        align-items: center;
+        .table-header-tips {
+            flex-shrink: 0;
+            margin-left: 4px;
+            font-size: 14px;
+            color: #c4c6cc;
+            cursor: pointer;
+        }
     }
     /deep/.edit-time,
     /deep/.create-time {

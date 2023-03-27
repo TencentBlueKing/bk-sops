@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import requests
-from django.core.files.base import File
+import time
 
 from files.exceptions import InvalidOperationError, ApiResultError
 from files.managers.base import Manager
@@ -46,10 +46,13 @@ class JobRepoStorage:
         headers = {
             "X-BKREPO-OVERWRITE": str(allow_overwrite),
         }
-        fh = File(file=content, name=name)
         try:
-            response = requests.put(upload_url, headers=headers, data=fh)
+            before_upload = time.time()
+            response = requests.put(upload_url, headers=headers, data=content, verify=False)
             data = response.json()
+            logger.info(
+                f"[JobRepoStorage save] upload file to job repo, cost: {time.time() - before_upload}, data: {data}"
+            )
         except Exception as e:
             message = f"[upload job_repo file failed]: {e}"
             logger.exception(message)
@@ -58,7 +61,6 @@ class JobRepoStorage:
 
 
 class JobRepoManager(Manager):
-
     type = "job_repo"
 
     def __init__(self):
@@ -79,7 +81,11 @@ class JobRepoManager(Manager):
         upload_result = self.storage.save(upload_url, file_name, content)
         if not upload_result["result"]:
             raise ApiResultError(f'upload file failed: {upload_result["message"]}')
-        return {"type": "job_repo", "tags": {"file_path": upload_path, "name": file_name}}
+        return {
+            "type": "job_repo",
+            "tags": {"file_path": upload_path, "name": file_name},
+            "md5": upload_result["data"]["nodeInfo"]["md5"],
+        }
 
     def push_files_to_ips(
         self,
@@ -92,6 +98,7 @@ class JobRepoManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        target_server=None,
         rolling_config=None,
     ):
 
@@ -105,8 +112,13 @@ class JobRepoManager(Manager):
             "account_alias": account,
             "file_target_path": target_path,
             "file_source_list": [{"file_list": [tag["tags"]["file_path"] for tag in file_tags], "file_type": 2}],
-            "target_server": {"ip_list": ips},
         }
+
+        if target_server is not None:
+            job_kwargs["target_server"] = target_server
+        else:
+            job_kwargs["target_server"] = {"ip_list": ips}
+
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
         if rolling_config is not None:

@@ -101,7 +101,7 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
-                    :is-not-exist-atom-or-verion="isNotExistAtomOrVerion"
+                    :is-not-exist-atom-or-verion="isNotExistAtomOrVersion"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -313,7 +313,8 @@
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
                 isMultipleTabCount: 0,
-                isNotExistAtomOrVerion: false // 选中的节点插件/插件版本是否存在
+                isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
+                isParallelGwErrorMsg: '' // 缺少汇聚网关的报错信息
             }
         },
         computed: {
@@ -783,10 +784,10 @@
                                          )
                                      ]
                         ),
-                        confirmFn: () => {
+                        confirmFn: async () => {
                             const constants = ins.handleIllegalKeys()
                             this.setConstants(constants)
-                            this.saveTemplate()
+                            await this.saveTemplate()
                         }
                     })
                     return true
@@ -810,7 +811,19 @@
 
                 try {
                     const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
-                    if (!resp.result) return
+                    if (!resp.result) {
+                        // 前端校验返回数据包含errorId，此时采用message消息提醒
+                        if ('errorId' in resp) {
+                            this.$bkMessage({
+                                message: resp.message,
+                                theme: 'error',
+                                delay: 10000
+                            })
+                            this.isParallelGwErrorMsg = resp.message
+                            this.validateConnectFailList.push(resp.errorId)
+                        }
+                        return
+                    }
                     const data = resp.data
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
@@ -1060,7 +1073,7 @@
                     }
                 })
                 if (!isAllValid) {
-                    let message = i18n.t('任务节点参数错误，请点击错误节点查看详情')
+                    let message = this.isParallelGwErrorMsg || i18n.t('任务节点参数错误，请点击错误节点查看详情')
                     if (this.typeOfNodeNameEmpty) {
                         message = this.typeOfNodeNameEmpty === 'serviceActivity' ? i18n.t('请选择节点的插件类型') : i18n.t('请选择节点的子流程')
                     }
@@ -1069,7 +1082,8 @@
                     }
                     this.$bkMessage({
                         message,
-                        theme: 'error'
+                        theme: 'error',
+                        delay: 10000
                     })
                 }
                 return isAllValid
@@ -1185,12 +1199,12 @@
                 if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name && nodeConfig.component.code !== 'remote_plugin') {
                     let atom = true
                     atom = this.atomList.find(item => item.code === nodeConfig.component.code)
-                    this.isNotExistAtomOrVerion = false
+                    this.isNotExistAtomOrVersion = false
                     if (!atom) {
-                        this.isNotExistAtomOrVerion = true
+                        this.isNotExistAtomOrVersion = true
                     } else {
                         const matchResult = atom.list.find(item => item.version === nodeConfig.component.version)
-                        this.isNotExistAtomOrVerion = !matchResult
+                        this.isNotExistAtomOrVersion = !matchResult
                     }
                 }
                 // 点击节点时，清除校验异常状态
@@ -1208,7 +1222,7 @@
                         const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
                         // 第三方插件是否存在
                         if (!resp.result && resp.message.indexOf('404') > -1) {
-                            this.isNotExistAtomOrVerion = true
+                            this.isNotExistAtomOrVersion = true
                             this.showConfigPanel(id)
                             return
                         }
@@ -1229,7 +1243,7 @@
                         if (versions.includes(version)) {
                             this.thirdPartyList[id] = group
                         } else {
-                            this.isNotExistAtomOrVerion = true
+                            this.isNotExistAtomOrVersion = true
                         }
                     }
                     this.showConfigPanel(id)
@@ -1260,7 +1274,8 @@
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
-                        ellipsisLine: 0
+                        ellipsisLine: 0,
+                        delay: 10000
                     })
                     return
                 }
@@ -1308,6 +1323,8 @@
              */
             async onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
+                // 节点编辑时只更新position不更新activities
+                if (changeType === 'edit') return
                 switch (location.type) {
                     case 'tasknode':
                     case 'subflow':
@@ -1359,11 +1376,80 @@
                         this.setEndpoint({ type: changeType, location })
                         break
                 }
+                // 异常节点状态处理
+                if (!this.validateConnectFailList.length) return
                 // 删除节点时，清除对应的校验失败节点
-                if (changeType === 'delete' && this.validateConnectFailList.length) {
+                if (changeType === 'delete') {
                     const index = this.validateConnectFailList.findIndex(val => val === location.id)
                     if (index > -1) {
                         this.validateConnectFailList.splice(index, 1)
+                        this.isParallelGwErrorMsg = ''
+                    }
+                } else if (changeType === 'add' && location.type === 'convergegateway') { // 新增汇聚网关时，判断下是否有并行网关校验失败
+                    this.$nextTick(() => {
+                        this.checkParallelGwConnect()
+                    })
+                }
+            },
+            // 检查并行网关/条件并行网关的连线是否包含汇聚网关
+            checkParallelGwConnect () {
+                const index = this.validateConnectFailList.findIndex(val => {
+                    const gateway = this.gateways[val]
+                    if (gateway && ['ParallelGateway', 'ConditionalParallelGateway'].includes(gateway.type)) {
+                        let branchSinkNodes = new Set()
+                        this.getBranchNodes(gateway.id, '', branchSinkNodes)
+                        branchSinkNodes = [...branchSinkNodes]
+                        return branchSinkNodes.length === 1 && this.gateways[branchSinkNodes[0]]?.type === 'ConvergeGateway'
+                    }
+                })
+                if (index > -1) {
+                    this.validateConnectFailList.splice(index, 1)
+                    this.isParallelGwErrorMsg = ''
+                }
+            },
+            /**
+             * id 起始节点
+             * firstId 分支上首个节点
+             * branchSinkNodes 存在分支
+             */
+            getBranchNodes (id, firstId, branchSinkNodes) {
+                const { lines, activities, gateways, end_event } = this
+                const targetIds = lines.reduce((acc, cur) => {
+                    if (cur.source.id === id) {
+                        acc.push(cur.target.id)
+                    }
+                    return acc
+                }, [])
+                if (targetIds.length > 1) {
+                    if (branchSinkNodes.has(firstId)) {
+                        branchSinkNodes.delete(firstId)
+                    }
+                    // 先获取到所有的分支再去递归查找!
+                    targetIds.forEach(targetId => {
+                        branchSinkNodes.add(targetId)
+                    })
+                    targetIds.forEach(targetId => {
+                        this.getBranchNodes(targetId, targetId, branchSinkNodes)
+                    })
+                } else if (targetIds.length === 1) {
+                    const targetId = targetIds[0]
+                    const curId = firstId ? id : targetId
+                    const { incoming = [], type } = activities[curId] || gateways[curId] || {}
+                    // 如果只有一条分支并且找到了汇聚网关则退出递归
+                    if (branchSinkNodes.size <= 1 && type === 'ConvergeGateway') {
+                        branchSinkNodes.delete(firstId)
+                        branchSinkNodes.add(id)
+                    } else if (incoming.length <= 1) { // 单条输出
+                        // 找到结束节点则退出递归
+                        if (end_event.id === targetId) {
+                            branchSinkNodes.clear(firstId)
+                        } else {
+                            this.getBranchNodes(targetId, firstId || id, branchSinkNodes)
+                        }
+                    } else {
+                        // 如果该节点有多个输入连线则不继续查找
+                        branchSinkNodes.delete(firstId)
+                        branchSinkNodes.add(curId)
                     }
                 }
             },
@@ -1375,21 +1461,27 @@
             onLineChange (changeType, line) {
                 this.setLine({ type: changeType, line })
                 // 对校验失败节点进行处理
-                if (changeType === 'add' && this.validateConnectFailList.length) {
-                    const idList = [line.target.id, line.source.id]
-                    const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
-                    if (!nodeList || !nodeList.length) return
-                    nodeList.forEach(node => {
-                        let nodeInfo = this.activities[node] || this.locations[node] || this.gateways[node]
-                        if (!nodeInfo) {
-                            nodeInfo = node === this.start_event.id ? this.start_event : node === this.end_event.id ? this.end_event : {}
-                        }
-                        if (nodeInfo.id) {
-                            const index = this.validateConnectFailList.findIndex(val => val === node)
-                            this.validateConnectFailList.splice(index, 1)
-                        }
-                    })
+                if (!this.validateConnectFailList.length) return
+                const idList = [line.target.id, line.source.id]
+                const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
+                // 新增连线时如果并行网关异常，检查网关的连线是否包含汇聚网关
+                if (this.isParallelGwErrorMsg && changeType === 'add') {
+                    this.checkParallelGwConnect()
+                    return
                 }
+                // 没有直接修改与问题节点的连线则不进行后续处理
+                if (!nodeList || !nodeList.length) return
+                nodeList.forEach(node => {
+                    let nodeInfo = this.activities[node] || this.locations[node] || this.gateways[node]
+                    if (!nodeInfo) {
+                        nodeInfo = node === this.start_event.id ? this.start_event : node === this.end_event.id ? this.end_event : {}
+                    }
+                    if (nodeInfo.id) {
+                        const index = this.validateConnectFailList.findIndex(val => val === node)
+                        this.validateConnectFailList.splice(index, 1)
+                        this.isParallelGwErrorMsg = ''
+                    }
+                })
             },
             /**
              * 节点位置移动
@@ -1454,7 +1546,7 @@
                 this.isBackViewMode = true
                 this.$bkInfo({
                     ...this.infoBasicConfig,
-                    cancelFn: () => {
+                    confirmFn: () => {
                         // 返回查看模式时初始化数据
                         this.isTemplateDataChanged = false
                         this.isGlobalVariableUpdate = false
@@ -1471,7 +1563,7 @@
                 } else {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.isEditProcessPage = true
                             this.isTemplateDataChanged = false
                         }
@@ -1548,7 +1640,8 @@
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
-                        ellipsisLine: 2
+                        ellipsisLine: 2,
+                        delay: 10000
                     })
                     return
                 }
@@ -1557,14 +1650,15 @@
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
-                    let message = i18n.t('任务节点参数错误，请点击错误节点查看详情')
+                    let message = this.isParallelGwErrorMsg || i18n.t('任务节点参数错误，请点击错误节点查看详情')
                     if (this.typeOfNodeNameEmpty) {
                         message = this.typeOfNodeNameEmpty === 'serviceActivity' ? i18n.t('请选择节点的插件类型') : i18n.t('请选择节点的子流程')
                     }
                     this.$bkMessage({
                         message,
                         theme: 'error',
-                        ellipsisLine: 2
+                        ellipsisLine: 2,
+                        delay: 10000
                     })
                     return
                 }
@@ -1619,7 +1713,7 @@
             onBeforeClose () {
                 this.$bkInfo({
                     ...this.infoBasicConfig,
-                    cancelFn: () => {
+                    confirmFn: () => {
                         this.isShowConditionEdit = false
                     }
                 })

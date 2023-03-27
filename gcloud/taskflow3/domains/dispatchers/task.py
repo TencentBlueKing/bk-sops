@@ -17,7 +17,6 @@ import logging
 import traceback
 from typing import Optional
 
-from django.apps import apps
 from django.utils import timezone
 from django.db import transaction
 from bamboo_engine import api as bamboo_engine_api
@@ -51,7 +50,6 @@ from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_
 from gcloud.project_constants.domains.context import get_project_constants_context
 from engine_pickle_obj.context import SystemObject
 from .base import EngineCommandDispatcher, ensure_return_is_dict
-from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
 from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
@@ -266,41 +264,42 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
-        taskflow_model = apps.get_model("taskflow3", "TaskFlowInstance")
-        try:
-            taskflow = taskflow_model.objects.get(id=self.taskflow_id)
-        except taskflow_model.DoesNotExist as e:
-            logger.exception(f"[set_task_constants] Taskflow does not exist: {e}")
-            return {
-                "result": False,
-                "message": _(f"校验失败: 任务[{self.taskflow_id}]不存在"),
-                "data": None,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+        # 产品需要，暂时放开修改，不进行检查
+        # taskflow_model = apps.get_model("taskflow3", "TaskFlowInstance")
+        # try:
+        #     taskflow = taskflow_model.objects.get(id=self.taskflow_id)
+        # except taskflow_model.DoesNotExist as e:
+        #     logger.exception(f"[set_task_constants] Taskflow does not exist: {e}")
+        #     return {
+        #         "result": False,
+        #         "message": _(f"校验失败: 任务[{self.taskflow_id}]不存在"),
+        #         "data": None,
+        #         "code": err_code.REQUEST_PARAM_INVALID.code,
+        #     }
 
-        # 检查是否是根任务
-        if taskflow.is_child_taskflow:
-            return {
-                "result": False,
-                "message": _(f"校验失败: 任务[{taskflow.id}]不是根任务"),
-                "data": None,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+        # # 检查是否是根任务
+        # if taskflow.is_child_taskflow:
+        #     return {
+        #         "result": False,
+        #         "message": _(f"校验失败: 任务[{taskflow.id}]不是根任务"),
+        #         "data": None,
+        #         "code": err_code.REQUEST_PARAM_INVALID.code,
+        #     }
 
-        # 检查是否有已使用的变量被修改
-        handler = TaskConstantsHandler(taskflow)
-        rendered_keys = handler.get_rendered_constant_keys()
-        modify_keys = set(constants.keys()).union(set(meta_constants.keys()))
-        invalid_keys = modify_keys.intersection(rendered_keys)
-        if invalid_keys:
-            message = _(f"任务[{self.taskflow_id}]参数设置失败: 以下参数已被使用，不可修改: {','.join(invalid_keys)}")
-            logger.error(message)
-            return {
-                "result": False,
-                "message": message,
-                "data": None,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+        # # 检查是否有已使用的变量被修改
+        # handler = TaskConstantsHandler(taskflow)
+        # rendered_keys = handler.get_rendered_constant_keys()
+        # modify_keys = set(constants.keys()).union(set(meta_constants.keys()))
+        # invalid_keys = modify_keys.intersection(rendered_keys)
+        # if invalid_keys:
+        #     message = _(f"任务[{self.taskflow_id}]参数设置失败: 以下参数已被使用，不可修改: {','.join(invalid_keys)}")
+        #     logger.error(message)
+        #     return {
+        #         "result": False,
+        #         "message": message,
+        #         "data": None,
+        #         "code": err_code.REQUEST_PARAM_INVALID.code,
+        #     }
 
         exec_data = self.pipeline_instance.execution_data
 
@@ -380,8 +379,30 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         with transaction.atomic():
             if task_is_started:
+                # 对修改参数的任务状态进行检查
+                status_result = self.get_task_status(subprocess_id=None, with_ex_data=False)
+                if status_result is False:
+                    logger.error(
+                        f"update context values failed: get pipeline states error, "
+                        f"error message is {status_result['message']}"
+                    )
+                    message = _(f"任务参数设置失败: 获取任务状态失败，错误信息为{status_result['message']}。")
+                    return {"result": False, "message": message, "data": None, "code": err_code.VALIDATION_ERROR.code}
+                if status_result["data"].get("state") not in [
+                    bamboo_engine_states.FAILED,
+                    bamboo_engine_states.READY,
+                    bamboo_engine_states.CREATED,
+                    bamboo_engine_states.SUSPENDED,
+                    bamboo_engine_states.BLOCKED,
+                ]:
+                    logger.error(
+                        f"update context values failed: pipeline instance state error, "
+                        f"tree state is {status_result}"
+                    )
+                    message = _(f"任务参数设置失败: 任务状态校验失败，" f"任务状态为{status_result['data']['state']}，不支持进行参数修改。")
+                    return {"result": False, "data": "", "message": message, "code": err_code.VALIDATION_ERROR.code}
+
                 bamboo_runtime = BambooDjangoRuntime()
-                bamboo_engine_api.pause_pipeline(runtime=bamboo_runtime, pipeline_id=self.pipeline_instance.instance_id)
                 update_res = bamboo_engine_api.update_context_values(
                     runtime=bamboo_runtime,
                     pipeline_id=self.pipeline_instance.instance_id,
@@ -397,9 +418,6 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         "message": message,
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
-                bamboo_engine_api.resume_pipeline(
-                    runtime=bamboo_runtime, pipeline_id=self.pipeline_instance.instance_id
-                )
             self.pipeline_instance.set_execution_data(exec_data)
 
         return {

@@ -77,7 +77,6 @@ def nodeman_get_plugin_list(request, category):
     data = plugin_list["data"]
 
     result = [{"text": ap["name"], "value": ap["name"]} for ap in data]
-
     plugin_list["data"] = result
     return JsonResponse(plugin_list)
 

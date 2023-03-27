@@ -17,15 +17,22 @@ from api.collections.nodeman import BKNodeManClient
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
+from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("节点管理(Nodeman)")
+
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
 
 
 def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
     """
     根据inner_ip获取bk_host_id 对应关系dict
     """
+
+    if not ip_list:
+        return {}
+
     client = BKNodeManClient(username=executor)
     kwargs = {
         "bk_biz_id": [bk_biz_id],
@@ -40,6 +47,28 @@ def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, 
         return {}
 
     return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
+
+
+def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
+    """
+    根据inner_ip获取bk_host_id 对应关系dict, ipv6 版本
+    """
+    if not ip_list:
+        return {}
+
+    client = BKNodeManClient(username=executor)
+    kwargs = {
+        "bk_biz_id": [bk_biz_id],
+        "pagesize": -1,
+        "conditions": [{"key": "ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
+    }
+    result = client.search_host_plugin(**kwargs)
+    if not result["result"]:
+        error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
+        logger.error(error)
+        return {}
+
+    return {host["inner_ipv6"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
 def get_nodeman_rsa_public_key(executor, logger):
@@ -60,6 +89,25 @@ def get_nodeman_rsa_public_key(executor, logger):
 class NodeManBaseService(Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
+
+    def get_ip_list(self, ip_str):
+        if settings.ENABLE_IPV6:
+            ipv6_list, ipv4_list, *_ = extract_ip_from_ip_str(ip_str)
+            return ipv6_list + ipv4_list
+        return get_ip_by_regex(ip_str)
+
+    def get_host_id_list(self, ip_str, executor, bk_cloud_id, bk_biz_id):
+        # 如果开启了ipv6的逻辑，则执行
+        if settings.ENABLE_IPV6:
+            ipv6_list, ipv4_list, _, _ = extract_ip_from_ip_str(ip_str)
+            ip_list = ipv4_list + ipv6_list
+            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
+
+            return list(bk_host_id_dict_ipv6.values())
+
+        ip_list = get_ip_by_regex(ip_str)
+        bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
+        return [bk_host_id for bk_host_id in bk_host_id_dict.values()]
 
     def outputs_format(self):
         return [

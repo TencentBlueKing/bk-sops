@@ -21,7 +21,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, DATETIME_FORMAT, COMMON
+from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, DATETIME_FORMAT
 from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.exceptions import PipelineException
@@ -43,20 +43,28 @@ class TaskFlowInstanceSerializer(TaskSerializer):
 class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
     pipeline_tree = serializers.SerializerMethodField()
     primitive_template_id = serializers.SerializerMethodField()
+    primitive_template_source = serializers.SerializerMethodField()
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
 
     def get_primitive_template_id(self, obj):
         primitive_template_id = obj.template_id
-        if getattr(obj, "is_child_taskflow", False):
-            template_cls = CommonTemplate if obj.template_source == COMMON else TaskTemplate
-            primitive_template = template_cls.objects.filter(
-                pipeline_template_id=obj.pipeline_instance.template.template_id
-            ).first()
-            if primitive_template:
-                primitive_template_id = str(primitive_template.id)
+        if getattr(obj, "is_child_taskflow", False) and getattr(obj, "extra_info", None):
+            extra_info = json.loads(obj.extra_info)
+            primitive_template_id = extra_info.get("primitive_template_id")
+            if primitive_template_id:
+                return str(primitive_template_id)
         return primitive_template_id
+
+    def get_primitive_template_source(self, obj):
+        primitive_template_source = obj.template_source
+        if getattr(obj, "is_child_taskflow", False) and getattr(obj, "extra_info", None):
+            extra_info = json.loads(obj.extra_info)
+            primitive_template_source = extra_info.get("primitive_template_source")
+            if primitive_template_source:
+                return primitive_template_source
+        return primitive_template_source
 
 
 class CreateTaskFlowInstanceSerializer(TaskSerializer):
@@ -157,3 +165,4 @@ class NodeExecutionTimeSerializer(serializers.Serializer):
 
 class NodeExecutionRecordResponseSerializer(serializers.Serializer):
     execution_time = serializers.ListField(child=NodeExecutionTimeSerializer(help_text="执行时间"))
+    total = serializers.IntegerField(help_text="执行总数")

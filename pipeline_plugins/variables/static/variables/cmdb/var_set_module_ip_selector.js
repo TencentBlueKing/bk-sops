@@ -155,6 +155,14 @@
                                         name: gettext("使用模块属性名"),
                                         placeholder: gettext("请输入需要使用的模块属性，多个用英文逗号分隔，不填默认为ip属性")
                                     },
+                                    events: [{
+                                        source: "var_module_name",
+                                        type: "init",
+                                        action: function (value) {
+                                            var self = this;
+                                            self.hide();
+                                        }
+                                    }]
                                 }
                             ]
                         },
@@ -226,6 +234,14 @@
                                         name: gettext("使用模块属性名"),
                                         placeholder: gettext("请输入需要使用的模块属性，多个用英文逗号分隔，不填默认为ip属性")
                                     },
+                                    events: [{
+                                        source: "var_module_name",
+                                        type: "init",
+                                        action: function (value) {
+                                            var self = this;
+                                            self.hide();
+                                        }
+                                    }]
                                 }
                             ]
                         },

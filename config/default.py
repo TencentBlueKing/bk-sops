@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import datetime
 import sys
 import importlib
 from urllib.parse import urlparse
@@ -202,7 +203,8 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.26.2"
+STATIC_VERSION = "3.28.0"
+DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -751,6 +753,7 @@ EXPIRED_TASK_CLEAN_NUM_LIMIT = env.EXPIRED_TASK_CLEAN_NUM_LIMIT
 TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
 MAX_EXPIRED_SESSION_CLEAN_NUM = env.MAX_EXPIRED_SESSION_CLEAN_NUM
 EXPIRED_SESSION_CLEAN_CRON = env.EXPIRED_SESSION_CLEAN_CRON
+ENABLE_IPV6 = env.ENABLE_IPV6
 
 # V2引擎任务清理配置
 ENABLE_CLEAN_EXPIRED_V2_TASK = env.ENABLE_CLEAN_EXPIRED_V2_TASK

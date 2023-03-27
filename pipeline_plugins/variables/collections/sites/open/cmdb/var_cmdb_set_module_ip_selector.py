@@ -20,12 +20,11 @@ from gcloud.constants import BIZ_INTERNAL_SET, Type
 from gcloud.core.models import Project
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
-from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str
+from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 from pipeline_plugins.variables.utils import (
     get_service_template_list_by_names,
     get_list_by_selected_names,
     filter_ip,
-    get_module_list,
     get_set_list,
     get_service_template_list,
     list_biz_hosts,
@@ -69,13 +68,6 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
         produce_method = var_ip_selector["var_ip_method"]
 
         if produce_method == "custom":
-            # 自定义输入ip
-            custom_value = var_ip_selector["var_ip_custom_value"]
-            ip_filter_result = cc_get_ips_info_by_str(username, bk_biz_id, custom_value)
-            # 过滤输入的ip
-            ip_filter_result_list = ",".join([ip["InnerIP"] for ip in ip_filter_result["ip_result"]])
-            logger.info("[SetModuleIpSelector.get_value] ip_filter_result_list: %s" % ip_filter_result_list)
-
             # 根据输入获取空闲机module id
             service_template_list = get_service_template_list(username, bk_biz_id, bk_supplier_account)
             # 如果勾选的set中有空闲机池，则会将所有空闲机module id添加进去
@@ -95,9 +87,33 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
             )
             logger.info("[SetModuleIpSelector.get_value] module_ids: %s" % module_ids)
 
-            set_module_filter_ip_list = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
-            # 获取在集群模块筛选的ip列表中的自定义输入ip
-            data = filter_ip(ip_filter_result_list, set_module_filter_ip_list)
+            # 自定义输入ip
+            custom_value = var_ip_selector["var_ip_custom_value"]
+            if settings.ENABLE_IPV6:
+                ip_filter_result = cc_get_ips_info_by_str_ipv6(username, bk_biz_id, custom_value)
+                logger.info("[SetModuleIpSelector.get_value] ip_filter_result: %s" % ip_filter_result)
+
+                set_module_filter_host_id_list = get_host_id_list_by_module_id(
+                    username, bk_biz_id, bk_supplier_account, module_ids
+                )
+                data = ",".join(
+                    [
+                        ip["InnerIP"]
+                        for ip in ip_filter_result["ip_result"]
+                        if ip["HostID"] in set(set_module_filter_host_id_list)
+                    ]
+                )
+            else:
+                ip_filter_result = cc_get_ips_info_by_str(username, bk_biz_id, custom_value)
+                # 过滤输入的ip
+                ip_filter_result_list = ",".join([ip["InnerIP"] for ip in ip_filter_result["ip_result"]])
+                logger.info("[SetModuleIpSelector.get_value] ip_filter_result_list: %s" % ip_filter_result_list)
+
+                set_module_filter_ip_list = get_ip_list_by_module_id(
+                    username, bk_biz_id, bk_supplier_account, module_ids
+                )
+                # 获取在集群模块筛选的ip列表中的自定义输入ip
+                data = filter_ip(ip_filter_result_list, set_module_filter_ip_list)
         elif produce_method == "select":
             set_input_method = "var_set"
             module_input_method = "var_module"
@@ -112,7 +128,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
                 filter_set,
                 filter_service_template,
                 produce_method,
-                var_module_name=var_ip_selector["var_ip_manual_value"]["var_module_name"],
+                var_module_name=var_ip_selector["var_ip_select_value"]["var_module_name"],
             )
         elif produce_method == "manual":
             set_input_method = "var_manual_set"
@@ -127,9 +143,8 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
                 filter_set,
                 filter_service_template,
                 produce_method,
-                var_module_name=var_ip_selector["var_ip_select_value"]["var_module_name"],
+                var_module_name=var_ip_selector["var_ip_manual_value"]["var_module_name"],
             )
-
         else:
             # 输入ip方式不存在
             logger.error("[SetModuleIpSelector.get_value] input ip method: {} not exist".format(produce_method))
@@ -293,6 +308,41 @@ def get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_id
     return ",".join([ip["bk_host_innerip"] for ip in ip_result])
 
 
+def get_ip_list_by_module_id_with_ipv6(username, bk_biz_id, bk_supplier_account, module_ids):
+    """
+    @summary 根据模块id获取模块下主机ip，支持ipv6
+    @param username: 执行用户名
+    @param bk_biz_id: 业务id
+    @param bk_supplier_account: 供应商账号
+    @param module_ids: 模块id列表
+    @return: 逗号分隔的ip字符串
+    """
+    if not module_ids:
+        return ""
+    kwargs = {
+        "bk_module_ids": [module_id["bk_module_id"] for module_id in module_ids],
+        "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+    }
+    ip_result = list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs)
+    return ",".join([ip.get("bk_host_innerip") or ip.get("bk_host_innerip_v6") for ip in ip_result])
+
+
+def get_host_id_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids) -> list:
+    """
+    @summary 根据模块id获取模块下主机id
+    @param username: 执行用户名
+    @param bk_biz_id: 业务id
+    @param bk_supplier_account: 供应商账号
+    @param module_ids: 模块id列表
+    @return: 主机id列表
+    """
+    if not module_ids:
+        return ""
+    kwargs = {"bk_module_ids": [module_id["bk_module_id"] for module_id in module_ids], "fields": ["bk_host_id"]}
+    ip_result = list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs)
+    return [ip["bk_host_id"] for ip in ip_result]
+
+
 def get_ip_result_by_input_method(
     set_input_method,
     module_input_method,
@@ -368,13 +418,11 @@ def get_ip_result_by_input_method(
     module_ids = get_module_id_list(
         bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template, bk_supplier_account
     )
-    if not var_module_name or var_module_name == "ip":
-        # 根据模块 id 列表获取 ip 并返回
-        data = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
+    # 根据模块 id 列表获取 ip 并返回
+    if settings.ENABLE_IPV6:
+        data = get_ip_list_by_module_id_with_ipv6(username, bk_biz_id, bk_supplier_account, module_ids)
     else:
-        # 根据模块属性名获取模块信息
-        kwargs = {"bk_ids": module_ids, "fields": var_module_name.split(",")}
-        data = [module_attr[var_module_name] for module_attr in get_module_list(username, bk_biz_id, kwargs=kwargs)]
+        data = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
     return data
 
 

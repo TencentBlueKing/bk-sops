@@ -24,9 +24,23 @@ from pipeline.core.flow.activity import Service
 
 from gcloud.utils import cmdb
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
+from gcloud.utils.ip import (
+    get_ip_by_regex,
+    get_ip_by_regex_type,
+    ipv6_pattern,
+    ip_pattern,
+    extract_ip_from_ip_str,
+    IpRegexType,
+)
 from gcloud.utils.handlers import handle_api_error
-
+from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
+    get_ipv6_host_list,
+    get_ipv4_host_list,
+    get_ipv4_host_with_cloud_list,
+    get_hosts_by_hosts_ids,
+    get_ipv6_host_list_with_cloud_list,
+)
+from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -118,6 +132,68 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         return {"result": False, "message": message}
 
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
+
+
+def cc_get_host_by_innerip_with_ipv6(
+    executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False, host_id_detail=False
+):
+    """
+    根据一个ip字符串查询host列表，ip字符串支持ipv4,ipv6,host_id,0:ipv4混输入模式，当is_biz_set=True时，bk_biz_set可以不填，
+    此时 该接口主要用于 业务集相关当插件，比如业务集快速执行脚本，这个时候需要全业务去查询
+    @param executor: 执行人
+    @param bk_biz_id: 业务id，当is_biz_set=True时可以不填
+    @param ip_str: ip字符串
+    @param supplier_account: 服务商
+    @param is_biz_set: 是否跨业务
+    @param host_id_detail: 是否针对 host_id_detail 也要查询详情
+    @return:
+    """
+    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id = extract_ip_from_ip_str(
+        ip_str
+    )
+    # 先查ipv6
+    ipv6_host_list_result = get_ipv6_host_list(executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=is_biz_set)
+    # 遇到情况，终止查询
+    if not ipv6_host_list_result["result"]:
+        return ipv6_host_list_result
+
+    # 查IPV6带云区域
+    ipv6_host_with_cloud_list_result = get_ipv6_host_list_with_cloud_list(
+        executor, bk_biz_id, supplier_account, ipv6_list_with_cloud_id, is_biz_set=is_biz_set
+    )
+    if not ipv6_host_with_cloud_list_result["result"]:
+        return ipv6_host_with_cloud_list_result
+
+    # 查询ipv4
+    ipv4_host_list_result = get_ipv4_host_list(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=is_biz_set)
+    if not ipv4_host_list_result["result"]:
+        return ipv4_host_list_result
+
+    # 查询ipv4带云区域
+    ipv4_host_with_cloud_list_result = get_ipv4_host_with_cloud_list(
+        executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=is_biz_set
+    )
+
+    if not ipv4_host_with_cloud_list_result["result"]:
+        return ipv4_host_with_cloud_list_result
+
+    # 用户直接输入的host_id list 则不做处理
+    if host_id_detail:
+        host_list_result = get_hosts_by_hosts_ids(executor, bk_biz_id, supplier_account, host_id_list)
+        if not host_list_result["result"]:
+            return host_list_result
+        host_list = host_list_result["data"]
+    else:
+        host_list = [{"bk_host_id": host_id} for host_id in host_id_list]
+    data = (
+        ipv6_host_list_result["data"]
+        + ipv4_host_list_result["data"]
+        + host_list
+        + ipv6_host_with_cloud_list_result["data"]
+        + ipv4_host_with_cloud_list_result["data"]
+    )
+
+    return {"result": True, "data": data}
 
 
 def get_module_set_id(topo_data, module_id):
@@ -345,7 +421,85 @@ def cc_list_select_node_inst_id(
     return {"result": True, "data": cc_list_match_node_inst_id_return["data"]}
 
 
-class BaseTransferHostToModuleService(Service, metaclass=ABCMeta):
+class CCPluginIPMixin:
+    def get_host_list(self, executor, biz_cc_id, ip_str, supplier_account):
+        """
+        获取host_list
+        @param executor: executor 执行人
+        @param biz_cc_id: biz_cc_id 业务id
+        @param ip_str: ip_str ip字符串
+        @param supplier_account: supplier_account
+        @return:
+        """
+        # 如果开启IPV6
+        if settings.ENABLE_IPV6:
+            host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
+            if not host_result["result"]:
+                return host_result
+            return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}
+        ip_list = get_ip_by_regex(ip_str)
+        return cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+
+    def get_ip_info_list(self, executor, biz_cc_id, ip_str, supplier_account):
+        """
+        @param executor: 执行人
+        @param biz_cc_id: 业务id
+        @param ip_str: ip串
+        @param supplier_account: 服务商账号
+        @return:
+        result = {
+                    "result": True,
+                    "ip_result": ip_result,
+                    "ip_count": len(ip_result),
+                    "invalid_ip": invalid_ip,
+              }
+        """
+        # 如果开启IPV6, 则走IPV6的实现
+        if settings.ENABLE_IPV6:
+            return cc_get_ips_info_by_str_ipv6(executor, biz_cc_id, ip_str, supplier_account)
+        return cc_get_ips_info_by_str(executor, biz_cc_id, ip_str, supplier_account)
+
+    def get_host_topo(self, executor, biz_cc_id, supplier_account, host_attrs, ip_str):
+        """获取主机拓扑"""
+        if not settings.ENABLE_IPV6:
+            ip_list = get_ip_by_regex(ip_str)
+            return cmdb.get_business_host_topo(executor, biz_cc_id, supplier_account, host_attrs, ip_list)
+
+        property_filters = {}
+        # 如果是ipv6的主机
+        if ipv6_pattern.match(ip_str):
+            ipv6_list, _ = get_ip_by_regex_type(IpRegexType.IPV6.value, ip_str)
+            property_filters = {
+                "host_property_filter": {
+                    "condition": "AND",
+                    "rules": [{"field": "bk_host_innerip_v6", "operator": "in", "value": ipv6_list}],
+                }
+            }
+        elif ip_pattern.match(ip_str):
+            ipv4_list, _ = get_ip_by_regex_type(IpRegexType.IPV4.value, ip_str)
+            property_filters = {
+                "host_property_filter": {
+                    "condition": "AND",
+                    "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ipv4_list}],
+                }
+            }
+        elif ip_str.isdigit():
+            host_id_list, _ = get_ip_by_regex_type(IpRegexType.HOST_ID.value, ip_str)
+            property_filters = {
+                "host_property_filter": {
+                    "condition": "AND",
+                    "rules": [
+                        {"field": "bk_host_id", "operator": "in", "value": [int(host_id) for host_id in host_id_list]}
+                    ],
+                }
+            }
+
+        return cmdb.get_business_host_topo(
+            executor, biz_cc_id, supplier_account, host_attrs, ip_list=None, property_filters=property_filters
+        )
+
+
+class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMeta):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -376,8 +530,8 @@ class BaseTransferHostToModuleService(Service, metaclass=ABCMeta):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         # 查询主机id
-        ip_list = get_ip_by_regex(data.get_one_of_inputs("cc_host_ip"))
-        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        ip_str = data.get_one_of_inputs("cc_host_ip")
+        host_result = self.get_host_list(executor, biz_cc_id, ip_str, supplier_account)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False

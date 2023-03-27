@@ -85,7 +85,8 @@
                 selectedIps: this.dynamicIps.map(item => `${item.bk_inst_id}_${item.bk_obj_id}`),
                 selectedIpsPath: [],
                 dataError: false,
-                i18n
+                i18n,
+                matchedList: []
             }
         },
         watch: {
@@ -97,12 +98,11 @@
                         // 清除默认选中 改为通过点击的方式选中
                         this.$refs.topoTree.setChecked(item, { checked: false })
                         this.getCheckedNodeInfo(this.topoList, item)
-                        this.checkedNode.id = this.checkedNode.uniqueId
-                        this.onNodeCheckClick(this.selectedIps, this.checkedNode)
+                        if (this.checkedNode) {
+                            this.checkedNode.id = this.checkedNode.uniqueId
+                            this.onNodeCheckClick(this.selectedIps, this.checkedNode, false)
+                        }
                     })
-                })
-                this.$nextTick(() => {
-                    this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
                 })
             },
             dynamicIps (val) {
@@ -137,28 +137,6 @@
                 return list
             },
             /**
-             * 设置默认被禁用的节点
-             */
-            setNodesDefaultDisabled () {
-                if (this.selectedIps && this.$refs.topoTree) {
-                    let defaultDisabledIds = []
-                    this.selectedIps.forEach(id => {
-                        const node = this.$refs.topoTree.getNodeById(id)
-                        if (node.children && node.children.length > 0) {
-                            defaultDisabledIds = defaultDisabledIds.concat(this.traverseNodesToList(node.children))
-                        }
-                    })
-                    this.$refs.topoTree.setDisabled(defaultDisabledIds, { disabled: true })
-                }
-                // 禁止编辑时将topo树最外层的节点设置为禁止状态
-                if (!this.editable) {
-                    this.topoList.forEach(item => {
-                        const nodeId = item.uniqueId || item.id
-                        this.$refs.topoTree.setDisabled(nodeId, { disabled: true })
-                    })
-                }
-            },
-            /**
              * 遍历获取子节点列表
              */
             traverseNodesToList (nodes) {
@@ -185,21 +163,41 @@
                         const selectedIpsPath = []
                         this.selectedIps.forEach(key => {
                             const selectedNode = this.$refs.topoTree.getNodeById(key)
-                            const namePath = this.getNodeNamePath(selectedNode)
-                            selectedIpsPath.push({ key, namePath })
+                            if (selectedNode) {
+                                const namePath = this.getNodeNamePath(selectedNode)
+                                selectedIpsPath.push({ key, namePath })
+                            }
                         })
                         this.selectedIpsPath = selectedIpsPath
                     })
                 }
             },
             onTopoSearch (keyword) {
+                this.matchedList = []
                 this.$refs.topoTree.filter(String(keyword).toLowerCase())
             },
             filterNode (value, node) {
                 if (!value) return true
-                return String(node.data.label).toLowerCase().indexOf(value) > -1
+                const { data, id, level, children, parent } = node
+                const keyword = String(data.label).toLowerCase()
+                if (keyword.indexOf(value) > -1) {
+                    // 当节点匹配到以后, 如果有子节点则记录节点id, level
+                    if (children.length) {
+                        this.matchedList.push({ id, level })
+                    }
+                    return true
+                } else {
+                    // 当节点没有匹配上, 但父节点匹配上时, 父节点底下所有子孙节点默认显示
+                    const matchParent = this.matchedList.find(item => item.id === parent.id && item.level === parent.level)
+                    if (matchParent) {
+                        if (children.length) {
+                            this.matchedList.push({ id, level })
+                        }
+                        return true
+                    }
+                }
             },
-            onNodeCheckClick (selectedNodes, node) {
+            onNodeCheckClick (selectedNodes, node, update = true) {
                 const checkedList = selectedNodes.slice(0)
                 if (checkedList.length >= this.lastSelectedNodes.length) {
                     this.selectedNodeList.push(node.id)
@@ -227,9 +225,13 @@
                     const [bk_inst_id, bk_obj_id] = uniqueId.split('_')
                     return { bk_inst_id: Number(bk_inst_id), bk_obj_id }
                 })
-                this.$refs.topoTree.setChecked(checkedList, { checked: true })
-                this.$emit('change', selectedList)
-                this.validate()
+                checkedList.forEach(id => {
+                    this.$refs.topoTree.setChecked(id, { checked: true })
+                })
+                if (update) { // 初始化时不更新选中数据
+                    this.$emit('change', selectedList)
+                    this.validate()
+                }
             },
             changeChildrenNodeState (node, checkedList, isChecked) {
                 node.children.forEach(item => {

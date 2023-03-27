@@ -39,6 +39,8 @@
                             :label="item.label"
                             :prop="item.id"
                             :width="item.width"
+                            show-overflow-tooltip
+                            :render-header="renderTableHeader"
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 {{ props.row[item.id] || '--' }}
@@ -74,7 +76,13 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                                @searchClear="searchSelectValue = []">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -136,21 +144,6 @@
                         <span v-show="veeErrors.has('projectDesc')" class="common-error-tip error-msg">{{ veeErrors.first('projectDesc') }}</span>
                     </div>
                 </div>
-            </div>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            padding="30px"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="projectStatusTitle"
-            :value="isOperationDialogShow"
-            @confirm="onChangeStatusConfirm"
-            @cancel="isOperationDialogShow = false">
-            <div class="operation-dialog-tips">
-                {{$t('确认')}}{{operationType === 'start' ? $t('启用') : $t('停用')}}{{$t('项目')}}:{{projectDetail.name}}?
             </div>
         </bk-dialog>
     </div>
@@ -270,9 +263,7 @@
                 totalPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
-                isOperationDialogShow: false,
                 dialogType: 'create',
-                operationType: 'stop',
                 projectDetailLoading: false,
                 addPengding: false,
                 updatePending: false,
@@ -320,9 +311,6 @@
             }),
             projectDialogTitle () {
                 return this.dialogType === 'create' ? i18n.t('新建项目') : i18n.t('编辑项目')
-            },
-            projectStatusTitle () {
-                return this.operationType === 'stop' ? i18n.t('停用') : i18n.t('启用')
             }
         },
         async created () {
@@ -425,6 +413,16 @@
                     this.projectDetailLoading = false
                 }
             },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
+            },
 
             async addProject () {
                 if (this.addPengding) {
@@ -464,7 +462,6 @@
                     }
                     await this.updateProject(data)
                     this.isProjectDialogShow = false
-                    this.isOperationDialogShow = false
                     this.clearProjectDetail()
                     this.getProjectList()
                 } catch (e) {
@@ -624,19 +621,21 @@
                     this.applyForPermission(['project_edit'], project.auth_actions, resourceData)
                     return
                 }
-                this.operationType = type
                 this.projectDetail = {
                     id: project.id,
                     name: project.name,
                     timeZone: project.time_zone,
                     desc: project.desc
                 }
-                this.isOperationDialogShow = true
-            },
-            onChangeStatusConfirm () {
-                const disabled = this.operationType === 'stop'
-                this.isOperationDialogShow = false
-                this.changeProject(disabled)
+                const title = i18n.t('确认') + i18n.t(type === 'start' ? '启用' : '停用') + i18n.t('项目') + ': ' + project.name + '?'
+                this.$bkInfo({
+                    title,
+                    maskClose: false,
+                    confirmLoading: true,
+                    confirmFn: async () => {
+                        await this.changeProject(type === 'stop')
+                    }
+                })
             },
             /**
              * 是否显示操作按钮

@@ -29,6 +29,7 @@
                 :selector-list="projectSelector"
                 :data-list="categoryData"
                 :data-loading="categoryDataLoading"
+                @onClearChartFilter="categoryFilterClear"
                 @onFilterClick="categoryFilterChange">
             </horizontal-bar-chart>
             <horizontal-bar-chart
@@ -39,6 +40,7 @@
                 :data-loading="projectDataLoading"
                 :biz-useage-data="bizUseageData"
                 :color-block-list="colorBlockList"
+                @onClearChartFilter="projectFilterClear"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -49,7 +51,8 @@
                 :data-list="timeDataList"
                 :data-loading="timeDataLoading"
                 :color-block-list="colorBlockList"
-                @onFilterClick="timeFilterChange">
+                @onFilterClick="timeFilterChange"
+                @onClearTimeFilter="onClearTimeFilter">
             </vertical-bar-chart>
         </div>
         <div class="tab-content-area">
@@ -64,7 +67,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="projectList.length === 0"
-                                @change="instanceFilterChange">
+                                @clear="instanceFilterChange"
+                                @selected="instanceFilterChange">
                                 <bk-option
                                     v-for="option in projectList"
                                     :key="option.id"
@@ -81,7 +85,8 @@
                                 :searchable="true"
                                 :clearable="true"
                                 :disabled="categoryList.length === 0"
-                                @change="instanceFilterChange">
+                                @clear="instanceFilterChange"
+                                @selected="instanceFilterChange">
                                 <bk-option
                                     v-for="option in categoryList"
                                     :key="option.id"
@@ -107,6 +112,8 @@
                                 :prop="item.prop"
                                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                                 :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
+                                show-overflow-tooltip
+                                :render-header="renderTableHeader"
                                 :sortable="item.sortable">
                                 <template slot-scope="props">
                                     <a
@@ -122,19 +129,27 @@
                                     </template>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column
-                                v-else
-                                :key="item.prop"
-                                :label="item.label"
-                                :prop="item.prop"
-                                :min-width="120"
-                                :render-header="renderFilterHeader">
-                                <template slot-scope="props">
-                                    <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
-                                </template>
-                            </bk-table-column>
+                            <template v-else>
+                                <bk-table-column
+                                    :key="item.prop"
+                                    :label="item.label"
+                                    :prop="item.prop"
+                                    :min-width="120"
+                                    show-overflow-tooltip
+                                    :render-header="renderFilterHeader">
+                                    <template slot-scope="props">
+                                        <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                    </template>
+                                </bk-table-column>
+                            </template>
                         </template>
-                        <div class="empty-data" slot="empty"><no-data></no-data></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="isSearch ? 'search-empty' : 'empty'"
+                                :message="isSearch ? $t('搜索结果为空') : ''"
+                                @searchClear="handleSearchClear">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>
@@ -360,7 +375,10 @@
         computed: {
             ...mapState({
                 site_url: state => state.site_url
-            })
+            }),
+            isSearch () {
+                return this.instanceProject || this.instanceCategory || this.selectedFilter.length
+            }
         },
         watch: {
             dateRange (val) {
@@ -577,8 +595,18 @@
                 this.categoryDataProject = val
                 this.getCategoryData()
             },
+            categoryFilterClear () {
+                this.projectSelector[0].selected = ''
+                this.categoryDataProject = ''
+                this.getCategoryData()
+            },
             projectFilterChange (val) {
                 this.projectDataCategory = val
+                this.getProjectData()
+            },
+            projectFilterClear () {
+                this.categorySelector[0].selected = ''
+                this.projectDataCategory = ''
                 this.getProjectData()
             },
             timeFilterChange (val, selector) {
@@ -593,8 +621,28 @@
                 }
                 this.getTimeData()
             },
+            onClearTimeFilter () {
+                this.timeSelectorList.forEach(item => {
+                    item.selected = item.id === 'time' ? 'day' : ''
+                })
+                this.timeDataProject = ''
+                this.timeDataCategory = ''
+                this.timeDataType = 'day'
+                this.getTimeData()
+            },
             instanceFilterChange () {
                 this.pagination.current = 1
+                this.getTableData()
+            },
+            handleSearchClear () {
+                this.instanceProject = ''
+                this.instanceCategory = ''
+                this.instanceSort = ''
+                this.selectedFilter = []
+                this.filterList.forEach(item => {
+                    item.checked = false
+                })
+                this.getTimeData()
                 this.getTableData()
             },
             handleSortChange (val) {
@@ -607,23 +655,37 @@
                 }
                 this.getTableData()
             },
+            renderTableHeader (h, { column, $index }) {
+                return h('p', {
+                    class: 'label-text',
+                    directives: [{
+                        name: 'bk-overflow-tips'
+                    }]
+                }, [
+                    column.label
+                ])
+            },
             renderFilterHeader (h, data) {
                 const self = this
                 return h('div', {
                     'class': 'creat-method-filter-header'
                 }, [
-                    h('div', {
-                        'class': 'render-header'
+                    h('p', {
+                        class: 'label-text',
+                        directives: [{
+                            name: 'bk-overflow-tips'
+                        }]
                     }, [
-                        h('span', [i18n.t('任务类型')]),
-                        h('i', {
-                            'class': {
-                                'bk-icon icon-funnel': true,
-                                'is-checked': self.selectedFilter.length
-                            }
-                        })
-                    ])
-                ])
+                        data.column.label
+                    ]),
+                    h('i', {
+                        'class': {
+                            'bk-icon icon-funnel': true,
+                            'is-checked': self.selectedFilter.length
+                        }
+                    })
+                ]
+                )
             },
             onSwitchCheckStatus (val) {
                 const selectFilter = this.filterList.find(item => item.value === val.value)

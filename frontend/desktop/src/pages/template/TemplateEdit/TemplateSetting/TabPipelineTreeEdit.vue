@@ -13,7 +13,7 @@
     <bk-sideslider
         :is-show="true"
         :width="800"
-        :title="$t('模板数据')"
+        title="Code"
         :quick-close="true"
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">
@@ -26,7 +26,7 @@
             </div>
             <div class="btn-wrap">
                 <template v-if="hasAdminPerm">
-                    <bk-button v-if="!isViewMode" class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                    <bk-button v-if="!isViewMode" class="save-btn" theme="primary" @click="onConfirm">{{ $t('确定') }}</bk-button>
                     <bk-button theme="default" @click="closeTab">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
                 </template>
                 <bk-button v-else theme="primary" @click="closeTab">{{ $t('关闭') }}</bk-button>
@@ -80,7 +80,8 @@
                     this.$bkMessage({
                         theme: 'error',
                         ellipsisLine: 0,
-                        message: error
+                        message: error,
+                        delay: 10000
                     })
                     return
                 }
@@ -89,18 +90,19 @@
                     this.$bkMessage({
                         theme: 'error',
                         ellipsisLine: 0,
-                        message: validateResult.message
+                        message: validateResult.message,
+                        delay: 10000
                     })
                     return
                 }
                 this.$emit('modifyTemplateData', pipelineData)
-                this.closeTab()
+                this.$emit('closeTab')
             },
             closeTab () {
                 if (this.isDataChange) {
                     this.$bkInfo({
                         ...this.infoBasicConfig,
-                        cancelFn: () => {
+                        confirmFn: () => {
                             this.$emit('closeTab')
                         }
                     })

@@ -8,7 +8,9 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline.core.flow.io import (
     StringItemSchema,
     IntItemSchema,
@@ -33,7 +35,7 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 plat_reg = re.compile(r"(\d+:)")
 
 
-class BaseAllBizJobExecuteJobPlanService(Jobv3Service):
+class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
     need_get_sops_var = True
 
     biz_scope_type = JobBizScopeType.BIZ_SET.value
@@ -92,6 +94,18 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service):
             )
         ]
 
+    def get_ip_list(self, val):
+        """
+        在IP_V6环境下, 直接传入字符串即可
+        @param val:
+        @return:
+        """
+        if settings.ENABLE_IPV6:
+            return val
+        plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
+        ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
+        return ip_list
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -101,6 +115,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service):
 
         config_data = data.get_one_of_inputs("all_biz_job_config")
         biz_cc_id = config_data.get("all_biz_cc_id")
+        supplier_account = supplier_account_for_business(biz_cc_id)
         is_tagged_ip = config_data.get("is_tagged_ip", False)
         data.inputs.biz_cc_id = biz_cc_id
         data.inputs.is_tagged_ip = is_tagged_ip
@@ -115,16 +130,17 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service):
             val = loose_strip(_value["value"])
             if _value["type"] == JOBV3_VAR_CATEGORY_IP:
 
-                plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
-                ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
+                ip_list = self.get_ip_list(val)
+                result, server = self.get_target_server_biz_set(
+                    executor, ip_list, supplier_account=supplier_account, logger_handle=self.logger, need_build_ip=False
+                )
 
-                plats = plat_reg.findall(val)
-                if len(ip_list) != len(plats):
-                    data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(val))
+                if not result:
+                    data.outputs.ex_data = "ip查询失败, 请检查ip配置是否正确，ip_list={}".format(ip_list)
                     return False
 
-                if ip_list:
-                    global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
+                if result:
+                    global_var_list.append({"id": _value["id"], "server": server})
             else:
                 global_var_list.append({"id": _value["id"], "value": val})
 

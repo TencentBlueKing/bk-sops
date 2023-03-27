@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.component import Component
 
-from gcloud.utils.ip import get_ip_by_regex
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service import (
     BaseAllBizJobFastPushFileService,
 )
@@ -25,31 +25,33 @@ __group_name__ = _("作业平台(JOB)")
 
 
 class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
-    def get_params_list(self, data):
+    def get_params_list(self, data, parent_data):
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
-        job_source_files = data.get_one_of_inputs("job_source_files", [])
-        file_source = self.get_file_source(job_source_files)
+        file_source = self.get_file_source(data, parent_data)
+
+        executor = parent_data.get_one_of_inputs("executor")
+        supplier_account = supplier_account_for_business(biz_cc_id)
         # 拼装参数列表
         params_list = []
         for source in file_source:
             for attr in data.get_one_of_inputs("job_dispatch_attr"):
                 job_account = attr["job_target_account"]
                 job_target_path = attr["job_target_path"]
-                ip_list = [
-                    {"ip": _ip, "bk_cloud_id": int(attr["bk_cloud_id"]) if attr["bk_cloud_id"] else 0}
-                    for _ip in get_ip_by_regex(attr["job_ip_list"])
-                ]
+                result, target_server = self.get_target_server_biz_set(
+                    executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
+                )
+                if not result:
+                    raise Exception("源文件信息处理失败，请检查ip配置是否正确")
+
                 job_kwargs = {
                     "bk_scope_type": self.biz_scope_type,
                     "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
                     "file_source_list": [source],
-                    "target_server": {
-                        "ip_list": ip_list,
-                    },
+                    "target_server": target_server,
                     "account_alias": job_account,
                     "file_target_path": job_target_path,
                 }
