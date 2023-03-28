@@ -29,6 +29,8 @@
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
             :params-can-be-modify="paramsCanBeModify"
+            :creator-name="creatorName"
+            :flow-type="flowType"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick"
@@ -306,7 +308,9 @@
             templateSource: String,
             isChildTaskFlow: Boolean,
             instanceActions: Array,
-            routerType: String
+            routerType: String,
+            creatorName: String,
+            flowType: String
         },
         data () {
             const $this = this
@@ -401,7 +405,8 @@
             ...mapState({
                 view_mode: state => state.view_mode,
                 hasAdminPerm: state => state.hasAdminPerm,
-                infoBasicConfig: state => state.infoBasicConfig
+                infoBasicConfig: state => state.infoBasicConfig,
+                username: state => state.username
             }),
             ...mapState('project', {
                 projectId: state => state.project_id,
@@ -480,6 +485,16 @@
 
                     executePauseBtn.disabled = !this.getOptBtnIsClickable(executePauseBtn.action)
                     revokeBtn.disabled = !this.getOptBtnIsClickable(revokeBtn.action)
+
+                    if (
+                        this.state === 'CREATE'
+                        && this.flowType === 'common_func'
+                        && this.isTopTask
+                        && this.creatorName !== this.username
+                    ) {
+                        executePauseBtn.disabled = true
+                        executePauseBtn.text = this.$t('未认领的职能化任务不允许执行')
+                    }
 
                     operationBtns.push(executePauseBtn, revokeBtn)
                 }
@@ -1708,6 +1723,27 @@
                         confirmLoading: true,
                         confirmFn: async () => {
                             await this.taskRevoke()
+                        }
+                    })
+                    return
+                }
+                // 职能化任务--【任务创建人】执行时弹出二次确认弹框
+                if (
+                    action === 'execute'
+                    && this.flowType === 'common_func'
+                    && this.isTopTask
+                    && this.creatorName === this.username
+                ) {
+                    this.$bkInfo({
+                        title: this.$t('确认执行后将任务类型更新为 常规，并从职能化列表删除?'),
+                        width: 500,
+                        maskClose: false,
+                        confirmLoading: true,
+                        confirmFn: async () => {
+                            this.pending.task = true
+                            this.activeOperation = action
+                            const actionType = 'task' + action.charAt(0).toUpperCase() + action.slice(1)
+                            this[actionType]()
                         }
                     })
                     return

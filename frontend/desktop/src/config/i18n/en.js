@@ -1742,7 +1742,16 @@ const en = {
     '重试节点将从当前节点开始重新执行': 'Retrying the node will re-execute from current node',
     '子任务中任务入参不允许修改': 'The input parameters of sub-task don\'t allow to change',
     '默认升序': 'Ascend',
-    '默认降序': 'Descend'
+    '默认降序': 'Descend',
+    '任务阶段': 'Task stage',
+    '选择节点': 'Select node',
+    '填写参数': 'Fill parameters',
+    '去执行': 'To execute',
+    '常规': 'Conventional',
+    '提交职能化': 'Submit functional',
+    '提交成功，请通知职能化人员认领': 'The submission is successful, please notify the functional personnel to claim',
+    '未认领的职能化任务不允许执行': 'Unclaimed functional tasks are not allowed to execute',
+    '确认执行后将任务类型更新为 常规，并从职能化列表删除?': 'After confirming the execution update the task type to General and delete it from the functionalized list?'
 }
 
 export default en

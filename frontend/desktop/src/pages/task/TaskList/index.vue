@@ -96,6 +96,10 @@
                                         <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                         <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                                     </div>
+                                    <!--任务类型-->
+                                    <div v-else-if="item.id === 'task_type'">
+                                        {{ props.row.flow_type === 'common_func' ? $t('职能化') : $t('常规') }}
+                                    </div>
                                     <!-- 其他 -->
                                     <template v-else>
                                         <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
@@ -273,6 +277,11 @@
         {
             id: 'create_method',
             label: i18n.t('创建方式'),
+            width: 100
+        },
+        {
+            id: 'task_type',
+            label: i18n.t('任务类型'),
             width: 100
         },
         {
