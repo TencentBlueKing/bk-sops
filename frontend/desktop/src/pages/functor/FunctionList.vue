@@ -324,7 +324,7 @@
         },
         {
             id: 'claimStatus',
-            name: i18n.t('认领状态'),
+            name: i18n.t('任务阶段'),
             children: [
                 { id: 'submitted', name: i18n.t('未认领') },
                 { id: 'claimed', name: i18n.t('已认领') },
@@ -376,7 +376,7 @@
             width: 120
         }, {
             id: 'claim_status',
-            label: i18n.t('认领状态'),
+            label: i18n.t('任务阶段'),
             width: 120
         }, {
             id: 'excute_status',

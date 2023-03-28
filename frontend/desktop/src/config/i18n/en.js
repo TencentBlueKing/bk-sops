@@ -1621,7 +1621,16 @@ const en = {
     '任务已继续执行': 'Task has resumed',
     '操作记录': 'Operate record',
     '参数未修改，任务已继续执行': 'The parameter was not modified and the task continued',
-    '离开': 'Leave'
+    '离开': 'Leave',
+    '任务阶段': 'Task stage',
+    '选择节点': 'Select node',
+    '填写参数': 'Fill parameters',
+    '去执行': 'To execute',
+    '常规': 'Conventional',
+    '提交职能化': 'Submit functional',
+    '提交成功，请通知职能化人员认领': 'The submission is successful, please notify the functional personnel to claim',
+    '未认领的职能化任务不允许执行': 'Unclaimed functional tasks are not allowed to execute',
+    '确认执行后将任务类型更新为 常规，并从职能化列表删除?': 'After confirming the execution update the task type to General and delete it from the functionalized list?'
 }
 
 export default en

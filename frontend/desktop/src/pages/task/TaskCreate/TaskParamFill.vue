@@ -34,19 +34,19 @@
                         v-if="isTaskTypeShow"
                         data-test-id="createTask_form_processType"
                         class="common-form-item">
-                        <label class="required">{{ $t('流程类型') }}</label>
+                        <label class="required">{{ $t('任务类型') }}</label>
                         <div class="common-form-content">
                             <div class="bk-button-group">
                                 <bk-button
                                     :theme="isSelectFunctionalType ? 'default' : 'primary'"
                                     @click="onSwitchTaskType(false)">
-                                    {{ $t('默认任务流程') }}
+                                    {{ $t('常规') }}
                                 </bk-button>
                                 <bk-button
                                     v-if="viewMode !== 'appmaker' || !isCustomizeType"
                                     :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                     @click="onSwitchTaskType(true)">
-                                    {{ $t('职能化任务流程') }}
+                                    {{ $t('职能化') }}
                                 </bk-button>
                             </div>
                         </div>
@@ -101,7 +101,7 @@
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 data-test-id="createTask_form_createTask"
                 @click="onCreateTask">
-                {{ (viewMode === 'appmaker' && isCustomizeType) ? $t('执行') : $t('下一步') }}
+                {{ nextStepText }}
             </bk-button>
         </div>
     </div>
@@ -216,6 +216,13 @@
             },
             reuseTaskId () {
                 return this.$route.query.task_id
+            },
+            nextStepText () {
+                return (this.viewMode === 'appmaker' && this.isCustomizeType)
+                    ? this.$t('执行')
+                    : (this.isSelectFunctionalType || this.entrance === 'function')
+                        ? this.$t('提交职能化')
+                        : this.$t('下一步')
             }
         },
         created () {
@@ -515,17 +522,17 @@
                                 params: { project_id: this.project_id },
                                 query: { instance_id: taskData.id, common: this.common }
                             }
-                        } else if (this.isSelectFunctionalType) { // 手动选择职能化流程
-                            url = {
-                                name: 'taskList',
-                                params: { project_id: this.project_id },
-                                query: { common: this.common }
-                            }
                         } else {
                             url = {
                                 name: 'taskExecute',
                                 params: { project_id: this.project_id },
                                 query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
+                            }
+                            if (this.isSelectFunctionalType) {
+                                this.$bkMessage({
+                                    message: i18n.t('提交成功，请通知职能化人员认领'),
+                                    theme: 'success'
+                                })
                             }
                         }
                         this.$router.push(url)
