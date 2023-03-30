@@ -42,12 +42,20 @@
         </div>
         <div class="operation-container" slot="expand">
             <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
-                <template v-for="operation in taskOperationBtns">
+                <div
+                    v-for="operation in taskOperationBtns"
+                    :key="operation.action"
+                    v-bk-tooltips="{
+                        content: operation.text,
+                        placements: ['top']
+                    }"
+                    :class="[
+                        'operation-btn',
+                        { 'btn-permission-disable': !hasPermission(['task_operate'], instanceActions) }
+                    ]">
                     <bk-button
                         :class="[
-                            'operation-btn',
-                            operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn',
-                            { 'btn-permission-disable': !hasPermission(['task_operate'], instanceActions) }
+                            operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn'
                         ]"
                         theme="default"
                         hide-text="true"
@@ -55,15 +63,11 @@
                         :key="operation.action"
                         :loading="operation.loading"
                         :disabled="operation.disabled"
-                        v-bk-tooltips="{
-                            content: operation.text,
-                            placements: ['top']
-                        }"
                         v-cursor="{ active: !hasPermission(['task_operate'], instanceActions) }"
                         :data-test-id="`taskExcute_form_${operation.action}Btn`"
                         @click="onOperationClick(operation.action)">
                     </bk-button>
-                </template>
+                </div>
             </div>
             <div class="task-params-btns">
                 <i
@@ -345,6 +349,7 @@
             }
         }
         .task-operation-btns {
+            display: flex;
             margin-right: 35px;
             line-height: initial;
             border-right: 1px solid #dde4eb;

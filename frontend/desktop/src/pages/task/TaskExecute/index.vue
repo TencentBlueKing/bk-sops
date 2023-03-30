@@ -37,7 +37,7 @@
                 :is-child-task-flow="isChildTaskFlow"
                 :instance-actions="instanceActions"
                 :creator-name="creatorName"
-                :flow-type="flowType">
+                :unclaim-func-task="unclaimFuncTask">
             </TaskOperation>
         </template>
     </div>
@@ -76,7 +76,7 @@
                 primitiveTplSource: '', // 任务原始模板来源
                 isChildTaskFlow: false, // 是否为独立子流程任务
                 creatorName: '',
-                flowType: ''
+                unclaimFuncTask: false // 是否为未执行的职能化任务
             }
         },
         created () {
@@ -113,7 +113,7 @@
                     this.instanceActions = auth_actions
                     this.isChildTaskFlow = is_child_taskflow
                     this.creatorName = creator_name
-                    this.flowType = flow_type
+                    this.unclaimFuncTask = flow_type === 'common_func' && current_flow === 'func_claim'
 
                     // 将节点树存起来
                     const pipelineData = JSON.parse(pipeline_tree)
