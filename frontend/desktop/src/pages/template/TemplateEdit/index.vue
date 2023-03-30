@@ -1423,32 +1423,34 @@
                     if (branchSinkNodes.has(firstId)) {
                         branchSinkNodes.delete(firstId)
                     }
-                    // 先获取到所有的分支再去递归查找!
                     targetIds.forEach(targetId => {
                         branchSinkNodes.add(targetId)
-                    })
-                    targetIds.forEach(targetId => {
                         this.getBranchNodes(targetId, targetId, branchSinkNodes)
                     })
                 } else if (targetIds.length === 1) {
                     const targetId = targetIds[0]
                     const curId = firstId ? id : targetId
-                    const { incoming = [], type } = activities[curId] || gateways[curId] || {}
-                    // 如果只有一条分支并且找到了汇聚网关则退出递归
-                    if (branchSinkNodes.size <= 1 && type === 'ConvergeGateway') {
+                    const { type } = activities[curId] || gateways[curId] || {}
+                    // 如果当前节点为网关节点时，需要在branchSinkNodes里删除掉
+                    if (gateways[id]?.type === 'ConvergeGateway') {
+                        branchSinkNodes.delete(id)
+                    }
+                    // 找到了汇聚网关则退出递归
+                    if (type === 'ConvergeGateway') {
                         branchSinkNodes.delete(firstId)
                         branchSinkNodes.add(id)
-                    } else if (incoming.length <= 1) { // 单条输出
+                        if (branchSinkNodes.size > 1) {
+                            branchSinkNodes.forEach(nodeId => {
+                                this.getBranchNodes(nodeId, '', branchSinkNodes)
+                            })
+                        }
+                    } else {
                         // 找到结束节点则退出递归
                         if (end_event.id === targetId) {
-                            branchSinkNodes.clear(firstId)
+                            branchSinkNodes.clear()
                         } else {
                             this.getBranchNodes(targetId, firstId || id, branchSinkNodes)
                         }
-                    } else {
-                        // 如果该节点有多个输入连线则不继续查找
-                        branchSinkNodes.delete(firstId)
-                        branchSinkNodes.add(curId)
                     }
                 }
             },
