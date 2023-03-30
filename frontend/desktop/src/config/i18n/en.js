@@ -1630,7 +1630,10 @@ const en = {
     '提交职能化': 'Submit functional',
     '提交成功，请通知职能化人员认领': 'The submission is successful, please notify the functional personnel to claim',
     '未认领的职能化任务不允许执行': 'Unclaimed functional tasks are not allowed to execute',
-    '确认执行后将任务类型更新为 常规，并从职能化列表删除?': 'After confirming the execution update the task type to General and delete it from the functionalized list?'
+    '确认执行后将任务类型更新为 常规，并从职能化列表删除?': 'After confirming the execution update the task type to General and delete it from the functionalized list?',
+    '确定执行?': 'OK to execute?',
+    '该任务为职能化任务，建议通知职能化人员认领、执行。': 'This task is a functional task, and it is recommended to notify the functional personnel to claim and execute it.',
+    '确认执行后任务转为常规任务，职能化人员无法操作任务': 'After the execution is confirmed, the task is converted into a routine task, and functional personnel cannot operate the task'
 }
 
 export default en

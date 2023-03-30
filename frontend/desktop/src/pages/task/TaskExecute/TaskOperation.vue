@@ -29,8 +29,6 @@
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
             :params-can-be-modify="paramsCanBeModify"
-            :creator-name="creatorName"
-            :flow-type="flowType"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick"
@@ -305,7 +303,7 @@
             instanceActions: Array,
             routerType: String,
             creatorName: String,
-            flowType: String
+            unclaimFuncTask: Boolean
         },
         data () {
             const $this = this
@@ -480,8 +478,8 @@
                     revokeBtn.disabled = !this.getOptBtnIsClickable(revokeBtn.action)
 
                     if (
-                        this.state === 'CREATE'
-                        && this.flowType === 'common_func'
+                        this.state === 'CREATED'
+                        && this.unclaimFuncTask
                         && this.isTopTask
                         && this.creatorName !== this.username
                     ) {
@@ -541,7 +539,8 @@
                 'getNodeExecutionRecord',
                 'getNodeActInfo',
                 'instanceRetry',
-                'subflowNodeRetry'
+                'subflowNodeRetry',
+                'taskFlowConvertCommonTask'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -1544,20 +1543,39 @@
                 // 职能化任务--【任务创建人】执行时弹出二次确认弹框
                 if (
                     action === 'execute'
-                    && this.flowType === 'common_func'
+                    && this.unclaimFuncTask
                     && this.isTopTask
                     && this.creatorName === this.username
                 ) {
+                    const h = this.$createElement
                     this.$bkInfo({
-                        title: this.$t('确认执行后将任务类型更新为 常规，并从职能化列表删除?'),
+                        title: this.$t('确定执行?'),
+                        subHeader: h('div', {
+                            style: {
+                                'font-size': '14px',
+                                'color': '#63656e',
+                                'line-height': '1.5',
+                                'text-align': 'center',
+                                'word-break': 'break-all'
+                            }
+                        }, [
+                            h('p', this.$t('该任务为职能化任务，建议通知职能化人员认领、执行。')),
+                            h('p', this.$t('确认执行后任务转为常规任务，职能化人员无法操作任务'))
+                        ]),
                         width: 500,
                         maskClose: false,
                         confirmLoading: true,
                         confirmFn: async () => {
                             this.pending.task = true
-                            this.activeOperation = action
-                            const actionType = 'task' + action.charAt(0).toUpperCase() + action.slice(1)
-                            this[actionType]()
+                            const resp = await this.taskFlowConvertCommonTask({ taskId: this.instance_id })
+                            if (resp.result) {
+                                this.$parent.unclaimFuncTask = false
+                                this.activeOperation = action
+                                const actionType = 'task' + action.charAt(0).toUpperCase() + action.slice(1)
+                                this[actionType]()
+                            } else {
+                                this.pending.task = false
+                            }
                         }
                     })
                     return

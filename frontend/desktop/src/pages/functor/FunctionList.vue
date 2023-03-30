@@ -87,6 +87,9 @@
                                 <div v-else-if="item.id === 'claim_status'">
                                     <span :class="statusClass(props.row.status)"></span>
                                     {{statusMethod(props.row.status, props.row.status_name)}}
+                                    <template v-if="props.row.task.executor_name">
+                                        {{ '/ ' + props.row.task.executor_name }}
+                                    </template>
                                 </div>
                                 <!--执行状态-->
                                 <div v-else-if="item.id === 'excute_status'" class="task-status">
@@ -377,7 +380,7 @@
         }, {
             id: 'claim_status',
             label: i18n.t('任务阶段'),
-            width: 120
+            width: 170
         }, {
             id: 'excute_status',
             label: i18n.t('执行状态'),
