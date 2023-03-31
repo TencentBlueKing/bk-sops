@@ -382,10 +382,11 @@
                     }
                     rootNode = rootNode.parent
                 }
+                const parentIds = this.nodeNav.slice(1).map(item => item.id).toString().split(',').join('.')
                 // 最外层网关为null时传递id
                 nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
                 this.setDefaultActiveId(this.treeData, this.treeData, node.id)
-                this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
+                this.$emit('onSelectNode', parentIds ? parentIds + '.' + nodeHeirarchy : nodeHeirarchy, node.id, nodeType)
                 // 取缓存id
                 node.id = node.cacheId ? node.cacheId : node.id
                 node.selected = node.id === this.curSelectId
