@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 from rest_framework import serializers
 
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -31,6 +31,7 @@ class TaskSerializer(serializers.ModelSerializer):
     is_finished = serializers.BooleanField(source="pipeline_instance.is_finished", read_only=True)
     is_revoked = serializers.BooleanField(source="pipeline_instance.is_revoked", read_only=True)
     is_started = serializers.BooleanField(source="pipeline_instance.is_started", read_only=True)
+    executor_name = serializers.CharField(help_text="执行者名称", read_only=True)
     name = serializers.CharField(source="pipeline_instance.name", read_only=True)
     subprocess_info = serializers.JSONField(read_only=True)
     pipeline_tree = serializers.CharField(read_only=True)

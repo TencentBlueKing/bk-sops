@@ -14,6 +14,7 @@ import logging
 import re
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
@@ -30,6 +31,7 @@ from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.operate_record.constants import (
     OperateSource,
     OperateType,
@@ -121,6 +123,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         ),
         "node_execution_record": IamPermissionInfo(
             IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
+        ),
+        "convert_to_common_task": IamPermissionInfo(
+            IAMMeta.TASK_OPERATE_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
     }
 
@@ -545,3 +550,33 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
         node_snapshot_config = task.pipeline_instance.snapshot.data["activities"].get(template_node_id)
         return Response(node_snapshot_config)
+
+    @swagger_auto_schema(method="POST", operation_summary="职能化任务转化为普通任务，并删除关联的职能化任务")
+    @action(methods=["POST"], detail=True)
+    def convert_to_common_task(self, request, *args, **kwargs):
+        task = self.get_object()
+        if task.creator != request.user.username:
+            return Response({"result": False, "message": "Only task creator can do this action.", "data": None})
+        if task.current_flow != "func_claim":
+            return Response(
+                {
+                    "result": False,
+                    "message": "Only task with current_flow of func_claim can be converted.",
+                    "data": None,
+                }
+            )
+        func_task_qs = FunctionTask.objects.filter(task_id=task.id)
+        if task.flow_type != "common_func" or len(func_task_qs) != 1:
+            return Response(
+                {
+                    "result": False,
+                    "message": "the flow_type of task should be common_func and "
+                    "the number of corresponding function task should be 1. ",
+                }
+            )
+        with transaction.atomic():
+            task.flow_type = "common"
+            task.current_flow = "execute_task"
+            task.save(update_fields=["flow_type", "current_flow"])
+            FunctionTask.objects.filter(task_id=task.id).delete()
+        return Response({"result": True, "message": "convert to common task success", "data": None})
