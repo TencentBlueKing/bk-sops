@@ -566,7 +566,5 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             task.flow_type = "common"
             task.current_flow = "execute_task"
             task.save(update_fields=["flow_type", "current_flow"])
-            func_task = FunctionTask.objects.filter(task_id=task.id)
-            if func_task:
-                func_task.delete()
+            FunctionTask.objects.filter(task_id=task.id).delete()
         return Response({"result": True, "message": "convert to common task success", "data": None})
