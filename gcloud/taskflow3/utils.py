@@ -86,7 +86,7 @@ def add_node_name_to_status_tree(pipeline_tree, status_tree_children):
     for node_id, status in status_tree_children.items():
         status["name"] = pipeline_tree.get("activities", {}).get(node_id, {}).get("name", "")
         children = status.get("children", {})
-        add_node_name_to_status_tree(pipeline_tree["activities"].get(node_id, {}).get("pipeline", {}), children)
+        add_node_name_to_status_tree(pipeline_tree.get("activities", {}).get(node_id, {}).get("pipeline", {}), children)
 
 
 def parse_node_timeout_configs(pipeline_tree: dict) -> list:
