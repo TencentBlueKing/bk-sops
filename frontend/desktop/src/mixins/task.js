@@ -57,7 +57,7 @@ const task = {
                             break
                         case 'SUSPENDED':
                             status.cls = 'execute common-icon-dark-circle-pause'
-                            status.text = i18n.t('暂停')
+                            status.text = i18n.t('已暂停')
                             break
                         case 'NODE_SUSPENDED':
                             status.cls = 'execute'
