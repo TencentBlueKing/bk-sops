@@ -1136,7 +1136,7 @@
             },
             onForceFailClick (id) {
                 this.$bkInfo({
-                    title: i18n.t('确定强制终止当前节点?'),
+                    title: i18n.t('确定强制终止当前节点？'),
                     subTitle: i18n.t('强制终止将强行修改节点状态为失败，但不会中断已经发送到其它系统的请求'),
                     maskClose: false,
                     confirmLoading: true,

@@ -610,7 +610,7 @@
                 if (this.deleteVarListLen === 1) {
                     title = i18n.t('确认删除') + i18n.t('全局变量') + `"${this.deleteVarList[0].key}"?`
                 } else {
-                    title = i18n.t('确认删除所选的x个变量?', { num: this.deleteVarListLen })
+                    title = i18n.t('确认删除所选的x个变量？', { num: this.deleteVarListLen })
                 }
                 this.$bkInfo({
                     title,
