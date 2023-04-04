@@ -31,6 +31,7 @@ urlpatterns = [
     url(r"^api/get_template_count/(?P<project_id>\d+)/$", api.get_template_count),
     url(r"^api/get_templates_with_expired_subprocess/(?P<project_id>\d+)/$", api.get_templates_with_expired_subprocess),
     url(r"^api/get_constant_preview_result/$", api.get_constant_preview_result),
+    url(r"^api/preview_task_referenced_constants/$", api.preview_task_referenced_constants),
     url(r"^api/analysis_constants_ref/$", api.analysis_constants_ref),
     url(r"^api/parents/(?P<project_id>\d+)/$", api.parents),
     url(r"^api/variable_field_explain/$", VariableFieldExplainView.as_view()),
