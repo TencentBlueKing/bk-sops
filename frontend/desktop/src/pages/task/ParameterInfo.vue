@@ -14,8 +14,10 @@
         <TaskParamEdit
             v-if="isReferencedShow"
             class="task-param-wrapper"
-            ref="TaskParamEdit"
-            :constants="referencedVariable"
+            ref="taskParamEdit"
+            :constants="refVariable"
+            @blur="handleFormBlur"
+            @change="onFormChange"
             @onChangeConfigLoading="onRefVarLoadingChange">
         </TaskParamEdit>
         <div
@@ -33,9 +35,10 @@
             </div>
             <TaskParamEdit
                 class="unreferenced"
+                ref="unRefTaskParamEdit"
                 v-show="isUnrefVarShow"
                 :show-required="false"
-                :constants="unReferencedVariable"
+                :constants="unRefVariable"
                 :editable="false"
                 @onChangeConfigLoading="onUnrefVarLoadingChange">
             </TaskParamEdit>
@@ -44,6 +47,8 @@
     </div>
 </template>
 <script>
+    import tools from '@/utils/tools.js'
+    import { mapState, mapActions, mapGetters } from 'vuex'
     import TaskParamEdit from './TaskParamEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
@@ -52,23 +57,44 @@
             TaskParamEdit,
             NoData
         },
-        props: ['referencedVariable', 'unReferencedVariable', 'taskMessageLoading'],
+        props: [
+            'common',
+            'projectId',
+            'referencedVariable',
+            'unReferencedVariable',
+            'taskMessageLoading'
+        ],
         data () {
             return {
                 isUnrefVarShow: false,
                 isRefVarLoading: true,
-                isUnrefVarLoading: true
+                isUnrefVarLoading: true,
+                renderConfig: [],
+                renderData: {},
+                refVariable: {},
+                unRefVariable: {},
+                variableCited: {},
+                watchVarInfo: {},
+                changeVarInfo: {}
 
             }
         },
         computed: {
+            ...mapState({
+                'username': state => state.username,
+                'bizId': state => state.project.bizId,
+                'activities': state => state.template.activities,
+                'gateways': state => state.template.gateways,
+                'constants': state => state.template.constants,
+                'internalVariable': state => state.template.internalVariable
+            }),
             isReferencedShow () {
                 return this.getReferencedStatus(this.referencedVariable)
             },
             isUnreferencedShow () {
                 if (this.taskMessageLoading) return false
-                const variableKeys = Object.keys(this.unReferencedVariable)
-                const unreferenced = variableKeys.filter(key => this.unReferencedVariable[key].show_type === 'show')
+                const variableKeys = Object.keys(this.unRefVariable)
+                const unreferenced = variableKeys.filter(key => this.unRefVariable[key].show_type === 'show')
                 return !!unreferenced.length
             },
             isParameterInfoLoading () {
@@ -90,10 +116,30 @@
                     if (!this.isUnreferencedShow) {
                         this.isUnrefVarLoading = false
                     }
+                    this.getVariableCitedData()
                 }
+            },
+            referencedVariable (val) {
+                if (!val) return
+                this.refVariable = tools.deepClone(val)
+                this.getVarChangeMap(val)
+            },
+            unReferencedVariable (val) {
+                if (!val) return
+                this.unRefVariable = tools.deepClone(val)
             }
         },
+        mounted () {
+            this.onFormChange = tools.debounce(this.handleFormChange, 500)
+        },
         methods: {
+            ...mapActions('template/', [
+                'getTaskReferencedConstants',
+                'getVariableCite'
+            ]),
+            ...mapGetters('template/', [
+                'getPipelineTree'
+            ]),
             onToggleUnreferenceShow () {
                 this.isUnrefVarShow = !this.isUnrefVarShow
             },
@@ -111,6 +157,192 @@
                 return (this.taskMessageLoading || !variable)
                     ? false
                     : !!Object.keys(variable).length
+            },
+            handleFormBlur (key) {
+                let result = true
+                // "显示参数"条件隐藏
+                if (Object.keys(this.watchVarInfo).length) {
+                    const value = this.renderData[key]
+                    result = this.setVariableHideLogic(key, value)
+                }
+                // 该变量被网关分支引用时，更新参数引用
+                if (!result && this.variableCited[key]?.conditions.length) {
+                    this.updateReferencedConstants()
+                }
+            },
+            handleFormChange (formData, key) {
+                // 获取所有变量的配置,数据
+                if (!this.renderConfig.length) {
+                    const taskParamEdit = this.$refs.taskParamEdit
+                    const unRefTaskParamEdit = this.$refs.unRefTaskParamEdit
+                    this.renderConfig = [
+                        ...taskParamEdit?.renderConfig || [],
+                        ...unRefTaskParamEdit?.renderConfig || []
+                    ] || []
+                    this.renderData = {
+                        ...taskParamEdit?.renderData || {},
+                        ...unRefTaskParamEdit?.renderData || {}
+                    } || {}
+                } else {
+                    // 更新renderData
+                    Object.assign(this.renderData, formData)
+                }
+                // 如果类型为输入框/下拉框/文本框/密码框，则不进行后续处理
+                const config = this.renderConfig.find(item => item.tag_code === key)
+                if (config && ['input', 'select'].includes(config.type)) return
+
+                let result = true
+                // "显示参数"条件隐藏
+                if (Object.keys(this.watchVarInfo).length) {
+                    const value = this.renderData[key]
+                    result = this.setVariableHideLogic(key, value)
+                }
+                // 该变量被网关分支引用时，更新参数引用
+                if (!result && this.variableCited[key]?.conditions.length) {
+                    this.updateReferencedConstants()
+                }
+            },
+            // 更新参数引用
+            async updateReferencedConstants () {
+                try {
+                    const constants = Object.values(this.constants).reduce((acc, cur) => {
+                        const value = cur.key in this.renderData ? this.renderData[cur.key] : cur.value
+                        acc[cur.key] = {
+                            ...cur,
+                            value
+                        }
+                        return acc
+                    }, {})
+                    const pipelineTree = this.getPipelineTree()
+                    const data = {
+                        constants,
+                        extra_data: {
+                            executor: this.username,
+                            project_id: this.common ? undefined : this.projectId,
+                            biz_cc_id: this.common ? undefined : this.bizId
+                        },
+                        pipeline_tree: JSON.stringify(pipelineTree)
+                    }
+                    const resp = await this.getTaskReferencedConstants(data)
+                    if (!resp.result) return
+                    const referenced = resp.data.referenced_constants
+                    const refVariable = {}
+                    const unRefVariable = {}
+                    for (const [key, value] of Object.entries(this.constants)) {
+                        if (referenced.includes(key)) {
+                            refVariable[key] = value
+                        } else {
+                            unRefVariable[key] = value
+                        }
+                    }
+                    this.refVariable = refVariable
+                    this.unRefVariable = unRefVariable
+                    this.updateRenderFormConfig()
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            // 获取节点与变量的依赖关系
+            async getVariableCitedData () {
+                try {
+                    const constants = { ...this.internalVariable, ...this.constants }
+                    const data = {
+                        activities: this.activities,
+                        gateways: this.gateways,
+                        constants
+                    }
+                    const resp = await this.getVariableCite(data)
+                    if (resp.result) {
+                        this.variableCited = resp.data.defined
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
+            },
+            getVarChangeMap (constants) {
+                // 设置变量自动隐藏对象
+                const watchVarInfo = {}
+                const changeVarInfo = {}
+                Object.values(constants).forEach(item => {
+                    if (!item.hide_condition || !item.hide_condition.length) return
+                    item.hide_condition.forEach(val => {
+                        const { constant_key: key, operator, value } = val
+                        // 隐藏的变量和对应的监听变量
+                        if (!(item.key in changeVarInfo)) {
+                            changeVarInfo[item.key] = {}
+                        }
+                        changeVarInfo[item.key][key] = false
+                        // 监听的变量和对应的隐藏变量
+                        const params = {
+                            target_key: item.key,
+                            operator,
+                            value,
+                            isOr: true // 与逻辑或或逻辑 默认或逻辑
+                        }
+                        if (key in watchVarInfo) {
+                            watchVarInfo[key].push(params)
+                        } else {
+                            watchVarInfo[key] = [params]
+                        }
+                    })
+                })
+                this.watchVarInfo = watchVarInfo
+                this.changeVarInfo = changeVarInfo
+            },
+            // 设置变量隐藏逻辑
+            setVariableHideLogic (key, val) {
+                if (!(key in this.watchVarInfo)) return false
+                const values = this.watchVarInfo[key]
+                return values.some(item => {
+                    let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
+                    const relatedVarInfo = this.changeVarInfo[item.target_key]
+                    // 计算输入值是否匹配
+                    isEqual = (item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)
+                    relatedVarInfo[key] = isEqual
+                    // 相关运算逻辑
+                    let isMatch = false
+                    const relatedVarValues = Object.values(relatedVarInfo)
+                    if (item.isOr) {
+                        isMatch = relatedVarValues.some(option => option)
+                    } else {
+                        isMatch = relatedVarValues.every(option => option)
+                    }
+                    // 显示隐藏
+                    if (isMatch) {
+                        const varInfo = tools.deepClone(this.refVariable[item.target_key])
+                        this.$delete(this.refVariable, item.target_key)
+                        this.unRefVariable[item.target_key] = varInfo
+                        this.updateRenderFormConfig()
+                        return true
+                    } else {
+                        if (!this.refVariable[item.target_key]) {
+                            const varInfo = tools.deepClone(this.unRefVariable[item.target_key])
+                            this.$delete(this.unRefVariable, item.target_key)
+                            this.refVariable[item.target_key] = varInfo
+                            this.updateRenderFormConfig()
+                            return true
+                        }
+                        return false
+                    }
+                })
+            },
+            updateRenderFormConfig () {
+                const taskParamEdit = this.$refs.taskParamEdit
+                const unRefTaskParamEdit = this.$refs.unRefTaskParamEdit
+                if (taskParamEdit) {
+                    taskParamEdit.formScheme = this.renderConfig.filter(item => item.tag_code in this.refVariable)
+                    taskParamEdit.renderData = taskParamEdit.formScheme.reduce((acc, cur) => {
+                        acc[cur.tag_code] = this.renderData[cur.tag_code]
+                        return acc
+                    }, {})
+                }
+                if (unRefTaskParamEdit) {
+                    unRefTaskParamEdit.formScheme = this.renderConfig.filter(item => item.tag_code in this.unRefVariable)
+                    unRefTaskParamEdit.renderData = unRefTaskParamEdit.formScheme.reduce((acc, cur) => {
+                        acc[cur.tag_code] = this.renderData[cur.tag_code]
+                        return acc
+                    }, {})
+                }
             }
         }
     }

@@ -107,6 +107,8 @@
                 <div>
                     <ParameterInfo
                         ref="ParameterInfo"
+                        :common="common"
+                        :project-id="project_id"
                         :referenced-variable="pipelineData.constants"
                         :un-referenced-variable="unreferenced"
                         :task-message-loading="taskMessageLoading"

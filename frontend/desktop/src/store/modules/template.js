@@ -1056,6 +1056,10 @@ const template = {
         getCommonTemplatePublicData ({ commit }, data) {
             const { templateId } = data
             return axios.get(`/api/v3/common_template/${templateId}/common_info/`).then(response => response.data)
+        },
+        // 基于当前变量填值，获取任务中被引用的变量列表
+        getTaskReferencedConstants ({ commit }, params) {
+            return axios.post('template/api/preview_task_referenced_constants/', params).then(response => response.data)
         }
     },
     getters: {

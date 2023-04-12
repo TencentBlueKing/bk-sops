@@ -89,6 +89,7 @@
                 this.encrypted = false
             },
             encryptPassword () {
+                this.$emit('blur')
                 let val
                 const pubKey = this.pubKey || this.rsa_pub_key
                 if (this.password === this.passwordPlaceholder) {
