@@ -115,6 +115,7 @@
                 :atom-methods="scheme.methods"
                 :value="formValue"
                 :parent-value="parentValue"
+                @blur="$emit('blur', scheme.tag_code)"
                 @init="$emit('init', $event)"
                 @change="updateForm"
                 @onShow="onShowForm"

@@ -15,10 +15,12 @@
             ref="renderForm"
             v-if="!isConfigLoading"
             :key="randomKey"
-            :scheme="renderConfig"
+            :scheme="formScheme"
             :constants="variables"
             :form-option="renderOption"
-            v-model="renderData">
+            v-model="renderData"
+            @blur="$emit('blur', $event)"
+            @change="onFormChange">
         </RenderForm>
         <NoData v-if="isNoData && !isConfigLoading" :message="$t('暂无参数')"></NoData>
     </div>
@@ -77,6 +79,7 @@
                     formEdit: this.editable
                 },
                 renderConfig: [],
+                formScheme: [],
                 metaConfig: {},
                 renderData: {},
                 initalRenderData: {},
@@ -98,7 +101,10 @@
         watch: {
             constants (val) {
                 this.variables = tools.deepClone(val)
-                this.getFormData()
+                // 只调一遍接口
+                if (!Object.keys(this.initalRenderData).length) {
+                    this.getFormData()
+                }
             },
             editable (val) {
                 this.$set(this.renderOption, 'formEdit', val)
@@ -272,6 +278,7 @@
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
                 }
+                this.formScheme = tools.deepClone(this.renderConfig)
                 this.initalRenderData = this.renderData
                 this.$nextTick(() => {
                     this.isConfigLoading = false
@@ -372,6 +379,11 @@
                     }
                 }
                 return Promise.resolve(variables)
+            },
+            onFormChange (data, fieldArr) {
+                if (!fieldArr) return
+                const key = fieldArr[fieldArr.length - 1]
+                this.$emit('change', data, key)
             }
         }
     }
