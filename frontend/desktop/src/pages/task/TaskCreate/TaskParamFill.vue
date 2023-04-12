@@ -34,56 +34,23 @@
                         v-if="isTaskTypeShow"
                         data-test-id="createTask_form_processType"
                         class="common-form-item">
-                        <label class="required">{{ $t('流程类型') }}</label>
+                        <label class="required">{{ $t('任务类型') }}</label>
                         <div class="common-form-content">
                             <div class="bk-button-group">
                                 <bk-button
                                     :theme="isSelectFunctionalType ? 'default' : 'primary'"
                                     @click="onSwitchTaskType(false)">
-                                    {{ $t('默认任务流程') }}
+                                    {{ $t('常规') }}
                                 </bk-button>
                                 <bk-button
                                     v-if="viewMode !== 'appmaker' || !isCustomizeType"
                                     :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                     @click="onSwitchTaskType(true)">
-                                    {{ $t('职能化任务流程') }}
+                                    {{ $t('职能化') }}
                                 </bk-button>
                             </div>
                         </div>
                     </div>
-                    <div
-                        v-if="isStartNow === 'periodic'"
-                        class="common-form-item">
-                        <label class="required">{{$t('周期表达式')}}</label>
-                        <div class="common-form-content step-form-item-cron">
-                            <LoopRuleSelect
-                                ref="loopRuleSelect"
-                                :manual-input-value="periodicCron">
-                            </LoopRuleSelect>
-                        </div>
-                    </div>
-                    <template v-if="isStartNow === 'clocked'">
-                        <div class="common-form-item">
-                            <label class="required">{{$t('启动时间')}}</label>
-                            <div class="common-form-content">
-                                <bk-date-picker
-                                    ref="datePickerRef"
-                                    :clearable="false"
-                                    :type="'datetime'"
-                                    :value="timeRange"
-                                    :placeholder="$t('请选择启动时间')"
-                                    v-validate="deatPickerRule"
-                                    :options="pickerOptions"
-                                    @open-change="onPickerOpenChange"
-                                    @change="onPickerChange">
-                                </bk-date-picker>
-                                <span class="time-zone">{{ locTimeZone }}</span>
-                                <span v-if="isDateError" class="common-error-tip error-msg">
-                                    {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
-                                </span>
-                            </div>
-                        </div>
-                    </template>
                 </div>
             </div>
             <div class="param-info" data-test-id="createTask_form_paramInfo">
@@ -134,7 +101,7 @@
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 data-test-id="createTask_form_createTask"
                 @click="onCreateTask">
-                {{ (viewMode === 'appmaker' && isCustomizeType) ? $t('执行') : $t('下一步') }}
+                {{ nextStepText }}
             </bk-button>
         </div>
     </div>
@@ -144,18 +111,16 @@
     // moment用于时区使用
     import moment from 'moment-timezone'
     import { mapState, mapActions, mapMutations } from 'vuex'
-    import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
-    import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
-            ParameterInfo,
-            LoopRuleSelect
+            ParameterInfo
         },
         mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
@@ -185,13 +150,7 @@
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                isStartNow: 'now',
                 btnGroup,
-                periodicCron: '*/5 * * * *',
-                periodicRule: {
-                    required: true,
-                    regex: PERIODIC_REG
-                },
                 periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 lastTaskName: '',
                 node: {},
@@ -204,11 +163,6 @@
                 nextBtnDisable: false,
                 disabledButton: true,
                 tplActions: [],
-                deatPickerRule: {
-                    required: true
-                },
-                timeRange: '',
-                isDateError: false,
                 pickerOptions: {
                     disabledDate (date) {
                         return date.getTime() + 86400000 < Date.now()
@@ -216,8 +170,7 @@
                 },
                 notifyType: [[]],
                 receiverGroup: [],
-                remoteData: {}, // 文本值下拉框变量远程数据源
-                locTimeZone: '' // 本地时区后缀
+                remoteData: {} // 文本值下拉框变量远程数据源
             }
         },
         computed: {
@@ -239,7 +192,7 @@
                 return Number(this.$route.query.common) === 1
             },
             isTaskTypeShow () {
-                return this.entrance !== 'function' && this.isStartNow === 'now'
+                return this.entrance !== 'function'
             },
             isPeriodicSelectShow () {
                 return this.entrance.indexOf('periodicTask') > -1
@@ -248,13 +201,7 @@
                 if (this.viewMode === 'appmaker') {
                     return ['mini_app_create_task']
                 } else {
-                    if (this.isStartNow === 'now') {
-                        return this.common ? ['common_flow_create_task'] : ['flow_create_task']
-                    } else if (this.isStartNow === 'periodic') {
-                        return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
-                    } else {
-                        return ['flow_create_clocked_task']
-                    }
+                    return this.common ? ['common_flow_create_task'] : ['flow_create_task']
                 }
             },
             actions () {
@@ -269,15 +216,16 @@
             },
             reuseTaskId () {
                 return this.$route.query.task_id
+            },
+            nextStepText () {
+                return (this.viewMode === 'appmaker' && this.isCustomizeType)
+                    ? this.$t('执行')
+                    : (this.isSelectFunctionalType || this.entrance === 'function')
+                        ? this.$t('提交职能化')
+                        : this.$t('下一步')
             }
         },
         created () {
-            if (this.entrance === 'periodicTask') {
-                this.isStartNow = 'periodic'
-            } else if (this.entrance === 'clockedTask') {
-                this.isStartNow = 'clocked'
-                this.locTimeZone = new Date().toTimeString().slice(12, 17)
-            }
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
             }
@@ -300,12 +248,6 @@
                 'getSchemeDetail',
                 'loadPreviewNodeData',
                 'createTask'
-            ]),
-            ...mapActions('periodic/', [
-                'createPeriodic'
-            ]),
-            ...mapActions('clocked/', [
-                'createClocked'
             ]),
             ...mapMutations('template/', [
                 'setTemplateData'
@@ -436,19 +378,6 @@
                 }
                 this.$router.push(url)
             },
-            onPickerChange (date) {
-                this.timeRange = date
-                if (this.isDateError) {
-                    const timeRange = new Date(date).getTime() || 0
-                    this.isDateError = timeRange <= new Date().getTime()
-                }
-            },
-            onPickerOpenChange (state) {
-                if (!state) {
-                    const timeRange = new Date(this.timeRange).getTime() || 0
-                    this.isDateError = timeRange <= new Date().getTime()
-                }
-            },
             onCreateTask () {
                 let hasNextPermission = false
                 if (this.common) {
@@ -501,14 +430,8 @@
                     return
                 }
 
-                const loopRule = this.isStartNow === 'periodic' ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
-                if (!loopRule.check || this.isSubmit) {
+                if (this.isSubmit) {
                     return false
-                }
-                if (this.isStartNow === 'clocked') {
-                    const timeRange = new Date(this.timeRange).getTime() || 0
-                    this.isDateError = timeRange <= new Date().getTime()
-                    if (this.isDateError) return
                 }
                 // 页面中是否有 TaskParamEdit 组件
                 const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
@@ -564,152 +487,61 @@
                         // 普通任务
                         flowType = 'common'
                     }
-                    if (this.isStartNow === 'now') {
-                        const data = {
-                            'name': this.taskName,
-                            'description': '',
-                            'templateId': this.template_id,
-                            'execData': JSON.stringify(pipelineData),
-                            'flowType': flowType,
-                            'common': this.common
-                        }
-                        try {
-                            const taskData = await this.createTask(data)
-                            let url = {}
-                            if (this.viewMode === 'appmaker') {
-                                const { template_id } = this.$route.query
-                                if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
-                                    url = {
-                                        name: 'appmakerTaskHome',
-                                        params: { app_id: this.app_id, project_id: this.project_id },
-                                        query: { template_id }
-                                    }
-                                } else {
-                                    url = {
-                                        name: 'appmakerTaskExecute',
-                                        params: { app_id: this.app_id, project_id: this.project_id },
-                                        query: { instance_id: taskData.id, template_id }
-                                    }
-                                }
-                                if (this.isCustomizeType) {
-                                    url.params.is_now = true
-                                }
-                            } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                    const data = {
+                        'name': this.taskName,
+                        'description': '',
+                        'templateId': this.template_id,
+                        'execData': JSON.stringify(pipelineData),
+                        'flowType': flowType,
+                        'common': this.common
+                    }
+                    try {
+                        const taskData = await this.createTask(data)
+                        let url = {}
+                        if (this.viewMode === 'appmaker') {
+                            const { template_id } = this.$route.query
+                            if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
                                 url = {
-                                    name: 'functionTaskExecute',
-                                    params: { project_id: this.project_id },
-                                    query: { instance_id: taskData.id, common: this.common }
-                                }
-                            } else if (this.isSelectFunctionalType) { // 手动选择职能化流程
-                                url = {
-                                    name: 'taskList',
-                                    params: { project_id: this.project_id },
-                                    query: { common: this.common }
+                                    name: 'appmakerTaskHome',
+                                    params: { app_id: this.app_id, project_id: this.project_id },
+                                    query: { template_id }
                                 }
                             } else {
                                 url = {
-                                    name: 'taskExecute',
-                                    params: { project_id: this.project_id },
-                                    query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
+                                    name: 'appmakerTaskExecute',
+                                    params: { app_id: this.app_id, project_id: this.project_id },
+                                    query: { instance_id: taskData.id, template_id }
                                 }
                             }
-                            this.$router.push(url)
-                        } catch (e) {
-                            console.log(e)
-                        } finally {
-                            this.isSubmit = false
+                            if (this.isCustomizeType) {
+                                url.params.is_now = true
+                            }
+                        } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                            url = {
+                                name: 'functionTaskExecute',
+                                params: { project_id: this.project_id },
+                                query: { instance_id: taskData.id, common: this.common }
+                            }
+                        } else {
+                            url = {
+                                name: 'taskExecute',
+                                params: { project_id: this.project_id },
+                                query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
+                            }
+                            if (this.isSelectFunctionalType) {
+                                this.$bkMessage({
+                                    message: i18n.t('提交成功，请通知职能化人员认领'),
+                                    theme: 'success'
+                                })
+                            }
                         }
-                    } else if (this.isStartNow === 'periodic') {
-                        // 创建周期任务
-                        const cronArray = loopRule.rule.split(' ')
-                        const cron = {
-                            'minute': cronArray[0],
-                            'hour': cronArray[1],
-                            'day_of_week': cronArray[2],
-                            'day_of_month': cronArray[3],
-                            'month_of_year': cronArray[4]
-                        }
-                        const data = {
-                            'name': this.taskName,
-                            'cron': cron,
-                            'templateId': this.template_id,
-                            'execData': JSON.stringify(pipelineData),
-                            'templateSource': this.common ? 'common' : undefined
-                        }
-                        try {
-                            const response = await this.createPeriodic(data)
-                            if (!response.result) return
-                            this.$bkMessage({
-                                'message': i18n.t('创建周期任务成功'),
-                                'theme': 'success'
-                            })
-                            this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id } })
-                        } catch (e) {
-                            console.log(e)
-                        } finally {
-                            this.isSubmit = false
-                        }
-                    } else {
-                        const testParams = {
-                            constants: {},
-                            exclude_task_nodes_id: this.excludeNode
-                        }
-                        for (const [key, val] of Object.entries(pipelineData.constants)) {
-                            testParams.constants[key] = val.value
-                        }
-                        const data = {
-                            task_parameters: testParams,
-                            project_id: this.project_id,
-                            task_name: this.taskName,
-                            template_id: this.template_id,
-                            template_name: this.templateName,
-                            template_source: 'project',
-                            notify_receivers: {
-                                receiver_group: this.receiverGroup,
-                                more_receiver: []
-                            },
-                            notify_type: {
-                                success: this.notifyType[0],
-                                fail: this.notifyType[1]
-                            },
-                            plan_start_time: this.timeRange + this.locTimeZone
-                        }
-                        try {
-                            await this.createClocked(data)
-                            this.$bkMessage({
-                                'message': i18n.t('创建计划任务成功'),
-                                'theme': 'success'
-                            })
-                            this.$router.push({ name: 'clockedTemplate', params: { project_id: this.project_id } })
-                        } catch (e) {
-                            console.log(e)
-                        } finally {
-                            this.isSubmit = false
-                        }
+                        this.$router.push(url)
+                    } catch (e) {
+                        console.log(e)
+                    } finally {
+                        this.isSubmit = false
                     }
                 })
-            },
-            onChangeStartNow (value) {
-                if (value === this.isStartNow) {
-                    return
-                }
-                this.isStartNow = value
-                if (this.common) {
-                    this.queryCommonTplCreateTaskPerm()
-                }
-                this.$emit('togglePeriodicStep', !value, this.isSelectFunctionalType)
-                if (value === 'periodic') {
-                    this.lastTaskName = this.taskName
-                    this.taskName = this.templateName
-                } else {
-                    this.taskName = this.lastTaskName || this.taskName
-                }
-                // 切换其他则情况时计划任务数据
-                if (value !== 'clocked') {
-                    this.timeRange = ''
-                } else {
-                    this.locTimeZone = new Date().toTimeString().slice(12, 17)
-                }
             },
             paramsLoadingChange (val) {
                 this.paramsLoading = val
@@ -761,15 +593,6 @@
         label {
             color: #313238;
             font-weight: normal;
-        }
-        .bk-date-picker {
-            width: 500px;
-        }
-        .time-zone {
-            position: relative;
-            font-size: 12px;
-            margin: 0 8px 0 -50px;
-            color: #979ba5;
         }
     }
 }
@@ -842,12 +665,6 @@
         left: 13px;
         background-color: $whiteDefault;
         border: 1px solid #dddddd;
-    }
-}
-.step-form-item-cron {
-    position: relative;
-    input {
-        vertical-align: top;
     }
 }
 /deep/.notify-type-wrapper {

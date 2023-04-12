@@ -50,15 +50,15 @@
     const STEP_DICT = [
         {
             step: 'selectnode',
-            title: i18n.t('节点选择')
+            title: i18n.t('选择节点')
         },
         {
             step: 'paramfill',
-            title: i18n.t('参数填写')
+            title: i18n.t('填写参数')
         },
         {
             step: 'taskexecute',
-            title: i18n.t('任务执行')
+            title: i18n.t('去执行')
         }
     ]
     export default {

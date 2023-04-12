@@ -34,7 +34,9 @@
                 :primitive-tpl-id="primitiveTplId"
                 :primitive-tpl-source="primitiveTplSource"
                 :template-source="templateSource"
-                :instance-actions="instanceActions">
+                :instance-actions="instanceActions"
+                :creator-name="creatorName"
+                :unclaim-func-task="unclaimFuncTask">
             </TaskOperation>
         </template>
     </div>
@@ -70,7 +72,9 @@
                 instanceActions: [],
                 templateId: '',
                 primitiveTplId: '', // 任务原始模板id
-                primitiveTplSource: '' // 任务原始模板来源
+                primitiveTplSource: '', // 任务原始模板来源
+                creatorName: '',
+                unclaimFuncTask: false // 是否为未执行的职能化任务
             }
         },
         created () {
@@ -87,7 +91,7 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver, primitive_template_id, primitive_template_source } = instanceData
+                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver, primitive_template_id, primitive_template_source, creator_name } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
                     } else {
@@ -102,17 +106,12 @@
                     this.primitiveTplSource = primitive_template_source
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
+                    this.creatorName = creator_name
+                    this.unclaimFuncTask = flow_type === 'common_func' && current_flow === 'func_claim'
+
                     // 将节点树存起来
                     const pipelineData = JSON.parse(pipeline_tree)
                     this.setPipelineTree(pipelineData)
-                    // 职能化任务通过普通任务执行链接访问时，重定向到职能化任务链接
-                    if (this.$route.name === 'taskExecute' && flow_type === 'common_func') {
-                        this.$router.replace({
-                            name: 'functionTaskExecute',
-                            params: { project_id: this.project_id },
-                            query: { instance_id: this.$route.query.instance_id }
-                        })
-                    }
                 } catch (e) {
                     console.log(e)
                 } finally {

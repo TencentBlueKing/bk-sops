@@ -301,7 +301,9 @@
             primitiveTplSource: String,
             templateSource: String,
             instanceActions: Array,
-            routerType: String
+            routerType: String,
+            creatorName: String,
+            unclaimFuncTask: Boolean
         },
         data () {
             const $this = this
@@ -394,7 +396,8 @@
             ...mapState({
                 view_mode: state => state.view_mode,
                 hasAdminPerm: state => state.hasAdminPerm,
-                infoBasicConfig: state => state.infoBasicConfig
+                infoBasicConfig: state => state.infoBasicConfig,
+                username: state => state.username
             }),
             ...mapState('project', {
                 projectId: state => state.project_id,
@@ -474,6 +477,16 @@
                     executePauseBtn.disabled = !this.getOptBtnIsClickable(executePauseBtn.action)
                     revokeBtn.disabled = !this.getOptBtnIsClickable(revokeBtn.action)
 
+                    if (
+                        this.state === 'CREATED'
+                        && this.unclaimFuncTask
+                        && this.isTopTask
+                        && this.creatorName !== this.username
+                    ) {
+                        executePauseBtn.disabled = true
+                        executePauseBtn.text = this.$t('未认领的职能化任务不允许执行')
+                    }
+
                     operationBtns.push(executePauseBtn, revokeBtn)
                 }
                 return operationBtns
@@ -526,7 +539,8 @@
                 'getNodeExecutionRecord',
                 'getNodeActInfo',
                 'instanceRetry',
-                'subflowNodeRetry'
+                'subflowNodeRetry',
+                'taskFlowConvertCommonTask'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -1522,6 +1536,46 @@
                         confirmLoading: true,
                         confirmFn: async () => {
                             await this.taskRevoke()
+                        }
+                    })
+                    return
+                }
+                // 职能化任务--【任务创建人】执行时弹出二次确认弹框
+                if (
+                    action === 'execute'
+                    && this.unclaimFuncTask
+                    && this.isTopTask
+                    && this.creatorName === this.username
+                ) {
+                    const h = this.$createElement
+                    this.$bkInfo({
+                        title: this.$t('确定执行?'),
+                        subHeader: h('div', {
+                            style: {
+                                'font-size': '14px',
+                                'color': '#63656e',
+                                'line-height': '1.5',
+                                'text-align': 'center',
+                                'word-break': 'break-all'
+                            }
+                        }, [
+                            h('p', this.$t('该任务为职能化任务，建议通知职能化人员认领、执行。')),
+                            h('p', this.$t('确认执行后任务转为常规任务，职能化人员无法操作任务'))
+                        ]),
+                        width: 500,
+                        maskClose: false,
+                        confirmLoading: true,
+                        confirmFn: async () => {
+                            this.pending.task = true
+                            const resp = await this.taskFlowConvertCommonTask({ taskId: this.instance_id })
+                            if (resp.result) {
+                                this.$parent.unclaimFuncTask = false
+                                this.activeOperation = action
+                                const actionType = 'task' + action.charAt(0).toUpperCase() + action.slice(1)
+                                this[actionType]()
+                            } else {
+                                this.pending.task = false
+                            }
                         }
                     })
                     return
