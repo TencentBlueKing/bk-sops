@@ -184,7 +184,6 @@
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
-    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import { endpointOptions, connectorOptions, nodeOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
 
@@ -1355,10 +1354,6 @@
             },
             // 节点拖动回调
             onNodeMoving (node) {
-                // 关闭快捷菜单面板
-                if (this.activeNode) {
-                    this.closeShortcutPanel()
-                }
                 this.adjustLineEndpoint(node.id)
                 // 获取节点的动态坐标
                 const nodeDom = document.querySelector(`#${node.id}`)
@@ -1380,6 +1375,10 @@
                 // 节点执行历史面板跟着节点移动
                 if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
                     this.judgeNodeExecRecordPanelPos(location)
+                }
+                // 节点快捷操作面板跟随节点移动
+                if (this.showShortcutPanel) {
+                    this.openShortcutPanel('node')
                 }
             },
             /**
@@ -1711,31 +1710,30 @@
             judgeNodeExecRecordPanelPos (node) {
                 if (!node) return
                 // 节点提示面板宽度
-                const { x, y, type, id } = node
                 // 计算判断节点右边的距离是否够展示气泡卡片
-                const nodeDom = document.querySelector(`#${id}`)
+                const nodeDom = document.querySelector(`#${node.id}`)
                 if (!nodeDom) return
-                const { left: nodeLeft, right: nodeRight } = nodeDom.getBoundingClientRect()
-                const bodyWidth = document.body.offsetWidth
+                const { left: nodeLeft, right: nodeRight, top: nodeTop } = nodeDom.getBoundingClientRect()
+                const canvasDom = document.querySelector('#canvasContainer')
+                const { left: canvasLeft, top: canvasTop } = canvasDom.getBoundingClientRect()
                 // 200节点的气泡卡片展示最小宽度
+                const bodyWidth = document.body.offsetWidth
                 const isRight = bodyWidth - nodeRight > 200
                 // 设置坐标
-                const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
-                const top = y + offsetY - 10
-                const nodeWidth = ['tasknode', 'subflow'].includes(type) ? 154 : 34
+                let top = nodeTop - canvasTop - 10
+                let left, padding
                 if (isRight) {
-                    const left = x + offsetX + nodeWidth + (this.editable ? 60 : 0) // 60为画布左边栏的宽度
-                    this.nodeTipsPanelPosition = {
-                        top: `${top}px`,
-                        left: `${left}px`,
-                        padding: '0 0 0 15px'
-                    }
+                    left = nodeRight - canvasLeft
+                    padding = '0 0 0 15px'
                 } else {
-                    this.nodeTipsPanelPosition = {
-                        top: `${top}px`,
-                        right: `${bodyWidth - nodeLeft}px`,
-                        padding: '0 15px 0 0'
-                    }
+                    left = nodeLeft - canvasLeft - 200
+                    padding = '0 15px 0 0'
+                }
+                top = top > 0 ? top : 0
+                this.nodeTipsPanelPosition = {
+                    top: `${top}px`,
+                    left: `${left}px`,
+                    padding: padding
                 }
             },
             // 鼠标在节点上拖动，处理快捷连线高亮目标端点
@@ -1814,24 +1812,14 @@
             openShortcutPanel (type, e) {
                 let left, top
                 if (type === 'node') {
-                    const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
-                    const { x, y } = this.activeNode
-                    switch (this.activeNode.type) {
-                        case 'tasknode':
-                        case 'subflow':
-                            left = x + offsetX + NODES_SIZE_POSITION.ACTIVITY_SIZE[0] / 2 + 80
-                            top = y + offsetY + NODES_SIZE_POSITION.ACTIVITY_SIZE[1] + 10
-                            this.shortcutPanelNodeOperate = true
-                            break
-                        case 'startpoint':
-                            left = x + offsetX + NODES_SIZE_POSITION.EVENT_SIZE[0] / 2 + 80
-                            top = y + offsetY + NODES_SIZE_POSITION.EVENT_SIZE[1] + 10
-                            break
-                        default:
-                            left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0] / 2 + 80
-                            top = y + offsetY + NODES_SIZE_POSITION.GATEWAY_SIZE[1] + 10
-                            this.shortcutPanelNodeOperate = true
-                    }
+                    const nodeDom = document.querySelector(`#${this.activeNode.id}`)
+                    const { left: nodeLeft, bottom: nodeBottom, width: nodeWidth } = nodeDom.getBoundingClientRect()
+                    const canvasDom = document.querySelector('#canvasContainer')
+                    const { left: canvasLeft, top: canvasTop } = canvasDom.getBoundingClientRect()
+                    left = nodeLeft - canvasLeft + (nodeWidth / 2) + 20
+                    top = nodeBottom - canvasTop + 10
+                    top = top > 0 ? top : 0
+                    this.shortcutPanelNodeOperate = this.activeNode.type !== 'startpoint'
                     this.shortcutPanelDeleteLine = false
                 } else {
                     const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
@@ -2064,6 +2052,23 @@
                     const left = Number(leftStr.replace('px', ''))
                     const top = Number(topStr.replace('px', ''))
                     this.setCanvasPosition(left - e.deltaX / 2, top - e.deltaY / 2)
+                }
+                // 计算节点快捷操作面板/执行历史面板面板坐标
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    this.judgeNodeExecRecordPanelPos(this.activeNode)
+                }
+                if (this.showShortcutPanel) {
+                    if (this.activeCon) {
+                        // 画布放大缩小时保持现状
+                        if (e.ctrlKey) return
+                        // 鼠标滑轮滚动时清除连线的hover状态, 关闭面板
+                        const { sourceId, targetId } = this.activeCon
+                        const line = this.canvasData.lines.find(item => item.source.id === sourceId && item.target.id === targetId)
+                        this.setPaintStyle(line.id)
+                        this.closeShortcutPanel()
+                    } else {
+                        this.openShortcutPanel('node')
+                    }
                 }
             },
             // 记录缩放点
