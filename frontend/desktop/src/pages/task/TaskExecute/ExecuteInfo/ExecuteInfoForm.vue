@@ -2,7 +2,7 @@
     <section class="info-section" data-test-id="taskExecute_form_excuteInfo">
         <h4 class="common-section-title">{{ $t('基础信息') }}</h4>
         <ul class="operation-table">
-            <li v-if="isSubProcessNode">
+            <li v-if="isSubProcessNode || isLegacySubProcess">
                 <span class="th">{{ $t('流程模板') }}</span>
                 <span v-if="templateName" class="td">
                     {{ templateName }}
@@ -30,15 +30,11 @@
                 <span class="th">{{ $t('步骤名称') }}</span>
                 <span class="td">{{ templateConfig.stage_name || '--' }}</span>
             </li>
-            <li v-if="isSubProcessNode">
+            <li v-if="isSubProcessNode || isLegacySubProcess">
                 <span class="th">{{ $t('执行方案') }}</span>
                 <span class="td">{{ schemeTextValue || '--' }}</span>
             </li>
-            <li>
-                <span class="th">{{ $t('是否可选') }}</span>
-                <span class="td">{{ templateConfig.optional ? $t('是') : $t('否') }}</span>
-            </li>
-            <li>
+            <li v-if="!isLegacySubProcess">
                 <span class="th">{{ $t('失败处理') }}</span>
                 <span class="error-handle-td td" v-if="templateConfig.ignorable || templateConfig.skippable || templateConfig.retryable || (templateConfig.auto_retry && templateConfig.auto_retry.enable)">
                     <template v-if="templateConfig.ignorable">
@@ -60,11 +56,15 @@
                 </span>
                 <span v-else class="td">{{ '--' }}</span>
             </li>
-            <!-- <li>
+            <li v-if="!isSubProcessNode && !isLegacySubProcess">
                 <span class="th">{{ $t('超时控制') }}</span>
                 <span class="td">{{ timeoutTextValue }}</span>
-            </li> -->
-            <li v-if="isSubProcessNode">
+            </li>
+            <li>
+                <span class="th">{{ $t('是否可选') }}</span>
+                <span class="td">{{ templateConfig.optional ? $t('是') : $t('否') }}</span>
+            </li>
+            <li v-if="isSubProcessNode || isLegacySubProcess">
                 <span class="th">{{ $t('总是使用最新版本') }}</span>
                 <span class="td">{{ !('always_use_latest' in componentValue) ? '--' : componentValue.always_use_latest ? $t('是') : $t('否') }}</span>
             </li>
@@ -236,6 +236,9 @@
                 // 普通任务节点展示/该功能上线后的独立子流程任务展示
                 return (!this.isSubProcessNode && type !== 'SubProcess')
                     || (original_template_id && !this.templateConfig.isOldData)
+            },
+            isLegacySubProcess () {
+                return !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
             }
         },
         mounted () {
