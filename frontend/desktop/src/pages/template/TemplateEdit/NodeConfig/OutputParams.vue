@@ -14,32 +14,83 @@
             <bk-table-column show-overflow-tooltip :label="$t('名称')" :width="180" prop="name"></bk-table-column>
             <bk-table-column show-overflow-tooltip :label="$t('说明')">
                 <template slot-scope="props">
-                    <div
+                    {{ props.row.name }}
+                    <i
                         v-if="props.row.description"
-                        v-bk-overflow-tips>
-                        {{ props.row.description }}
-                    </div>
-                    <span v-else>--</span>
+                        v-bk-tooltips="props.row.description"
+                        class="common-icon-tooltips">
+                    </i>
                 </template>
             </bk-table-column>
             <bk-table-column label="KEY" class-name="param-key" :width="260">
-                <template slot-scope="props">
-                    <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
-                    <span class="hook-icon-wrap">
+                <div slot-scope="props" class="param-key-wrap">
+                    <div
+                        v-bk-tooltips="{
+                            content: props.row.key,
+                            disabled: props.row.hooked ? !props.row.isTooLong : true
+                        }"
+                        class="variable-key"
+                        :class="{ 'is-too-long': props.row.isTooLong }">
+                        <template v-if="props.row.isTooLong">
+                            <span class="prev-span">{{ props.row.key.slice(0, -6) }}</span>
+                            <span class="next-span">{{ props.row.key.slice(-6) }}</span>
+                        </template>
+                        <template v-else>
+                            {{ props.row.key }}
+                        </template>
+                    </div>
+                    <template v-if="props.row.hooked">
+                        <bk-select
+                            v-model="props.row.assignmentType"
+                            :clearable="false"
+                            :disabled="isViewMode"
+                            class="assignment-select">
+                            <bk-option id="direct" :name="$t('直接赋值给')"></bk-option>
+                            <!-- <bk-option id="splice" :name="$t('拼接赋值给')"></bk-option> -->
+                        </bk-select>
+                        <bk-select
+                            v-model="props.row.variableValue"
+                            :clearable="false"
+                            :placeholder="$t('请选择变量')"
+                            :search-placeholder="$t('请输入变量名/key')"
+                            :class="['variable-select', { 'is-unselect': props.row.isUnselect }]"
+                            ext-popover-cls="variable-select-popover"
+                            searchable
+                            :disabled="isViewMode"
+                            @toggle="onValSelectToggle($event, props.row)">
+                            <bk-option
+                                v-for="variable in variableList"
+                                :key="variable.key"
+                                :id="variable.key"
+                                :name="variable.name + '（' + variable.key + '）'">
+                            </bk-option>
+                            <div slot="extension" class="variable-popover-extension" @click="$emit('openVariablePanel', defaultOpts, props.row.key)">
+                                <i class="bk-icon icon-plus-circle"></i>
+                                <span>{{ $t('新建变量') }}</span>
+                            </div>
+                        </bk-select>
                         <i
-                            :class="['common-icon-variable-cite hook-icon', {
-                                actived: props.row.hooked,
-                                disabled: isViewMode || !hook
-                            }]"
-                            v-bk-tooltips="{
-                                content: props.row.hooked ? $t('取消变量引用') : $t('设置为变量'),
-                                placement: 'bottom',
-                                zIndex: 3000
-                            }"
-                            @click="onHookChange(props)">
+                            v-if="props.row.isUnselect"
+                            v-bk-tooltips="$t('请选择变量')"
+                            class="bk-icon icon-exclamation-circle-shape">
                         </i>
-                    </span>
-                </template>
+                    </template>
+                    <div
+                        class="hook-icon-wrap"
+                        :class="{ actived: props.row.hooked, disabled: isViewMode || !hook }"
+                        v-bk-tooltips="{
+                            content: props.row.hooked ? $t('取消赋值给变量') : $t('赋值给变量'),
+                            placement: 'bottom',
+                            zIndex: 3000,
+                            extCls: 'variable-hook-tips',
+                            arrow: false,
+                            theme: 'light'
+                        }"
+                        @click="onHookChange(props)">
+                        <i class="common-icon-var"></i>
+                        <i class="bk-icon icon-angle-up-fill"></i>
+                    </div>
+                </div>
             </bk-table-column>
         </bk-table>
         <bk-dialog
@@ -79,7 +130,6 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
     export default {
         name: 'OutputParams',
@@ -94,11 +144,28 @@
             isSubflow: Boolean,
             isViewMode: Boolean,
             nodeId: String,
-            version: String // 标准插件版本或子流程版本
+            version: String, // 标准插件版本或子流程版本
+            hookKey: String
         },
         data () {
             const list = this.getOutputsList(this.params)
             const $this = this
+            const len = Object.keys(this.constants).length
+            const defaultOpts = {
+                name: '',
+                key: '',
+                desc: '',
+                custom_type: '',
+                source_info: {},
+                source_tag: '',
+                value: '',
+                show_type: 'hide',
+                source_type: 'component_outputs',
+                validation: '',
+                index: len,
+                version: '',
+                plugin_code: ''
+            }
             return {
                 list,
                 isShow: false,
@@ -152,7 +219,13 @@
                         }
                     ]
                 },
-                unhookingVarIndex: 0 // 正被取消勾选的表单下标
+                unhookingVarIndex: 0, // 正被取消勾选的表单下标
+                defaultOpts
+            }
+        },
+        computed: {
+            variableList () {
+                return Object.values(this.constants).filter(item => item.source_type === 'component_outputs')
             }
         },
         watch: {
@@ -165,24 +238,33 @@
                 const list = []
                 const varKeys = Object.keys(this.constants)
                 this.params.forEach(param => {
-                    let key = param.key
-                    const isHooked = varKeys.some(item => {
+                    let variableValue = ''
+                    let isHooked = varKeys.some(item => {
                         const varItem = this.constants[item]
                         if (varItem.source_type === 'component_outputs') {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
-                                key = item
+                                variableValue = item
                                 return true
                             }
                         }
                     })
+                    if (this.hookKey === param.key) {
+                        isHooked = true
+                        const varValues = Object.values(this.constants)
+                        variableValue = varValues.sort((a, b) => b.index - a.index)[0].key
+                    }
                     list.push({
-                        key,
+                        key: param.key,
                         name: param.name,
-                        description: param.schema ? param.schema.description : '--',
+                        description: param.schema?.description,
                         version: param.version,
                         status: param.status,
-                        hooked: isHooked
+                        hooked: isHooked || param.key === this.hookKey,
+                        isTooLong: false,
+                        isUnselect: false,
+                        assignmentType: param.assignmentType || 'direct',
+                        variableValue
                     })
                 })
                 return list
@@ -190,52 +272,30 @@
             getRowClassName ({ row }) {
                 return row.status || ''
             },
+            onValSelectToggle (val, row) {
+                if (val) {
+                    row.isUnselect = false
+                } else if (!row.variableValue) {
+                    row.isUnselect = true
+                }
+            },
             /**
              * 输出参数勾选切换
              */
             onHookChange (props) {
                 if (this.isViewMode) return
-                const index = props.$index
+                const { $index, row } = props
+                const index = $index
                 this.unhookingVarIndex = index
-                if (!props.row.hooked) {
-                    props.row.hooked = true
-                    // 输出选中默认新建不弹窗，直接生成变量。 如果有冲突则如下弹窗
-                    const { key, version, plugin_code } = props.row
-                    const value = /^\$\{\w+\}$/.test(key) ? key : `\${${key}}`
-                    if (value in this.constants) {
-                        this.isShow = true
-                        this.formData = tools.deepClone(props.row)
-                        this.formData.key = ''
-                        this.selectIndex = index
-                    } else {
-                        let setKey = ''
-                        if ((/^\$\{((?!\{).)*\}$/).test(key)) {
-                            props.row.key = key
-                            setKey = key
-                        } else {
-                            props.row.key = `\$\{${key}\}`
-                            setKey = `\$\{${key}\}`
-                        }
-                        const config = {
-                            name: props.row.name,
-                            key: setKey,
-                            source_info: {
-                                [this.nodeId]: [this.params[index].key]
-                            },
-                            version,
-                            plugin_code: this.isSubflow ? plugin_code : (this.thirdPartyCode || '')
-                        }
-                        this.createVariable(config)
-                    }
+                if (!row.hooked) {
+                    row.hooked = true
+                    // 判断key值是否超出最大宽度
+                    const varKeyDom = document.querySelectorAll('.variable-key')[index]
+                    const width = varKeyDom.offsetWidth || 0
+                    row.isTooLong = width > 198
                 } else {
-                    const config = ({
-                        type: 'delete',
-                        id: this.nodeId,
-                        key: props.row.key,
-                        tagCode: props.row.key,
-                        source: 'output'
-                    })
-                    this.$emit('hookChange', 'delete', config)
+                    row.hooked = false
+                    row.isUnselect = false
                 }
             },
             // 变量勾选/取消勾选后，需重新对form进行赋值
@@ -244,6 +304,7 @@
                 this.list[index].key = this.params[index].key
                 this.list[index].name = this.params[index].name
                 this.list[index].hooked = false
+                this.list[index].isTooLong = false
             },
             onConfirm ($event) {
                 this.$refs.form.validate().then(result => {
@@ -278,29 +339,100 @@
                 this.list[this.selectIndex].hooked = false
             },
             createVariable (variableOpts) {
-                const len = Object.keys(this.constants).length
-                const defaultOpts = {
-                    name: '',
-                    key: '',
-                    desc: '',
-                    custom_type: '',
-                    source_info: {},
-                    source_tag: '',
-                    value: '',
-                    show_type: 'hide',
-                    source_type: 'component_outputs',
-                    validation: '',
-                    index: len,
-                    version: '',
-                    plugin_code: ''
-                }
-                const variable = Object.assign({}, defaultOpts, variableOpts)
+                const variable = Object.assign({}, this.defaultOpts, variableOpts)
                 this.$emit('hookChange', 'create', variable)
+            },
+            validate () {
+                let result = true
+                this.list.forEach(item => {
+                    if (item.hooked && !item.variableValue) {
+                        item.isUnselect = true
+                        result = false
+                    }
+                })
+                return result
             }
         }
     }
 </script>
+<style lang="scss">
+    .tippy-popper.variable-hook-tips {
+        .tippy-tooltip {
+            color: #63656e;
+            padding: 10px 13px;
+            border: 1px solid #dcdee5;
+            box-shadow: 0 2px 6px 0 rgba(0,0,0,0.10);
+            border-radius: 2px;
+        }
+        .tippy-content {
+            line-height: 20px;
+        }
+    }
+    .variable-select-popover {
+        .bk-select-extension {
+            background: #fafbfd;
+            border-radius: 0 0 2px 2px;
+            &:hover {
+                background: #f0f1f5;
+            }
+        }
+        .variable-popover-extension {
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            cursor: pointer;
+        }
+    }
+</style>
 <style lang="scss" scoped>
+    .output-params {
+        .common-icon-tooltips {
+            font-size: 14px;
+        }
+        .param-key-wrap {
+            display: flex;
+            align-items: center;
+            .variable-key {
+                display: flex;
+                overflow: hidden;
+                .prev-span{
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                .next-span{
+                    white-space: nowrap;
+                }
+                &.is-too-long {
+                    max-width: 198px;
+                }
+            }
+            .bk-select {
+                margin-left: 8px;
+            }
+            .assignment-select {
+                width: 96px;
+                /deep/.bk-select-name {
+                    padding-right: 23px;
+                }
+            }
+            .variable-select {
+                width: 240px;
+                min-width: 180px;
+                &.is-unselect {
+                    border-color: #ff5656;
+                }
+            }
+            >.icon-exclamation-circle-shape {
+                position: relative;
+                left: -19px;
+                font-size: 14px;
+                color: #ea3636;
+                background: #fff;
+                cursor: pointer;
+            }
+        }
+    }
     .variable-dialog {
         padding: 30px;
         .new-var-notice {
@@ -323,32 +455,39 @@
                 background: rgba(220,255,226,0.30);
             }
             .param-key .cell {
-                padding-right: 50px;
+                padding-right: 74px;
             }
         }
     }
     .hook-icon-wrap {
         position: absolute;
-        right: 22px;
-        top: 9px;
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-        line-height: 24px;
+        right: 16px;
+        top: 5px;
+        width: 50px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #979ba5;
         background: #f0f1f5;
-        text-align: center;
+        cursor: pointer;
         border-radius: 2px;
-        .hook-icon {
-            font-size: 18px;
-            color: #979ba5;
-            cursor: pointer;
-            &.disabled {
-                color: #c4c6cc;
-                cursor: not-allowed;
-            }
-            &.actived {
-                color: #3a84ff;
-            }
+        .common-icon-var {
+            font-size: 16px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin-left: 6px;
+        }
+        &.disabled {
+            color: #c4c6cc;
+            cursor: not-allowed;
+        }
+        &:hover,
+        &.actived {
+            color: #3a84ff;
+            background: #e1ecff;
         }
     }
 </style>

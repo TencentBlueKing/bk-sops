@@ -2,44 +2,16 @@
     <div class="variable-edit">
         <div class="variable-edit-content">
             <section class="form-section">
-                <h3>{{ $t('基础信息') }}</h3>
-                <!-- 名称 -->
-                <div class="form-item clearfix">
-                    <label class="required">{{ $t('名称') }}</label>
-                    <div class="form-content">
-                        <bk-input
-                            name="variableName"
-                            v-model="theEditingData.name"
-                            v-validate="variableNameRule"
-                            :readonly="isViewMode || isInternalVal">
-                        </bk-input>
-                        <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
-                    </div>
-                </div>
-                <!-- key -->
-                <div class="form-item clearfix">
-                    <label class="required">KEY</label>
-                    <div class="form-content">
-                        <bk-input
-                            name="variableKey"
-                            v-model="theEditingData.key"
-                            v-validate="variableKeyRule"
-                            :readonly="isViewMode || isInternalVal"
-                            :disabled="isHookedVar && variableData.key !== ''">
-                        </bk-input>
-                        <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
-                    </div>
-                </div>
                 <!-- 类型 -->
-                <div class="form-item variable-type clearfix" v-if="!isInternalVal">
+                <div class="form-item variable-type clearfix">
                     <label>{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="currentValType"
-                            :disabled="isViewMode || isHookedVar"
+                            :disabled="isViewMode || isInternalVal || isHookedVar"
                             :clearable="false"
                             @change="onValTypeChange">
-                            <template v-if="isHookedVar">
+                            <template v-if="isInternalVal || isHookedVar">
                                 <bk-option
                                     v-for="(option, optionIndex) in varTypeList"
                                     :key="optionIndex"
@@ -64,6 +36,36 @@
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
                     <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
+                </div>
+            </section>
+            <section class="form-section">
+                <h3>{{ $t('基础信息') }}</h3>
+                <!-- 名称 -->
+                <div class="form-item clearfix">
+                    <label class="required">{{ $t('名称') }}</label>
+                    <div class="form-content">
+                        <bk-input
+                            name="variableName"
+                            v-model="theEditingData.name"
+                            v-validate="variableNameRule"
+                            :readonly="isViewMode || isInternalVal">
+                        </bk-input>
+                        <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
+                    </div>
+                </div>
+                <!-- key -->
+                <div class="form-item clearfix">
+                    <label class="required">KEY</label>
+                    <div class="form-content">
+                        <bk-input
+                            name="variableKey"
+                            v-model="theEditingData.key"
+                            v-validate="variableKeyRule"
+                            :readonly="isViewMode || isInternalVal"
+                            :disabled="isHookedVar && variableData.key !== '' && !isOutputVal">
+                        </bk-input>
+                        <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
+                    </div>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal" class="form-item clearfix">
@@ -157,7 +159,7 @@
                     </div>
                 </div>
                 <!-- 模板预渲染 -->
-                <div class="form-item clearfix" v-if="!isInternalVal">
+                <div class="form-item clearfix" v-if="!isInternalVal && !isOutputVal">
                     <label class="form-label">
                         <span v-bk-tooltips.top="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')" class="condition-tip">{{ $t('常量')}}</span>
                     </label>
@@ -208,7 +210,15 @@
         </div>
         <div class="btn-wrap">
             <template v-if="!isInternalVal">
-                <bk-button v-if="!isViewMode" theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('确定') }}</bk-button>
+                <template v-if="isHookVarCreate">
+                    <bk-button theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable(true)">
+                        {{ $t('保存并引用') }}
+                    </bk-button>
+                    <bk-button :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable()">
+                        {{ $t('保存') }}
+                    </bk-button>
+                </template>
+                <bk-button v-else-if="!isViewMode" theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable()">{{ $t('保存') }}</bk-button>
                 <bk-button @click="$emit('closeEditingPanel')">{{ $t('取消') }}</bk-button>
             </template>
             <bk-button v-else theme="primary" @click="$emit('closeEditingPanel')">{{ $t('返回') }}</bk-button>
@@ -233,13 +243,15 @@
         props: {
             variableData: Object,
             common: [String, Number],
-            isViewMode: Boolean
+            isViewMode: Boolean,
+            isHookVarCreate: Boolean
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
-            const currentValType = isHookedVar ? 'component' : custom_type
+            const isInternalVal = ['system', 'project'].includes(source_type)
+            const currentValType = isInternalVal ? 'internal' : isHookedVar ? 'component' : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
 
             return {
@@ -303,6 +315,10 @@
                 const keys = Object.keys(this.internalVariable)
                 return keys.some(key => key === this.variableData.key)
             },
+            // 是否为节点输出变量
+            isOutputVal () {
+                return this.theEditingData.source_type === 'component_outputs'
+            },
             /**
              * 变量配置项code
              */
@@ -322,7 +338,7 @@
                     '1': i18n.t('即将下线'),
                     '2': i18n.t('已下线')
                 }
-                if (this.currentValType !== 'component' && this.varTypeList.length) {
+                if (!['component', 'internal'].includes(this.currentValType) && this.varTypeList.length) {
                     this.varTypeList.some(group => {
                         return group.children.some(item => {
                             if (item.code === this.currentValType) {
@@ -351,7 +367,7 @@
             // 当前选中类型变量配置描述
             variableDesc () {
                 let desc = ''
-                if (this.isHookedVar) {
+                if (this.isInternalVal || this.isHookedVar) {
                     const item = this.varTypeList.find(i => i.code === this.currentValType)
                     if (item) {
                         desc = item.description
@@ -374,8 +390,16 @@
         async mounted () {
             const { is_meta, custom_type, source_tag, source_type } = this.theEditingData
 
-            if (this.isHookedVar) {
-                this.varTypeList = [{ code: 'component', name: i18n.t('组件') }]
+            if (this.isInternalVal) {
+                this.varTypeList = [{
+                    code: 'internal',
+                    name: source_type === 'system' ? i18n.t('系统变量') : i18n.t('项目变量')
+                }]
+            } else if (this.isHookedVar) {
+                this.varTypeList = [{
+                    code: 'component',
+                    name: source_type === 'component_outputs' ? i18n.t('节点输出') : i18n.t('节点输入')
+                }]
             } else {
                 await this.getVarTypeList()
                 // 若当前编辑变量为自定义变量类型的元变量，则取meta_tag
@@ -774,7 +798,7 @@
                 }
             },
             // 保存变量数据
-            onSaveVariable () {
+            onSaveVariable (saveAndQuote = false) {
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
                     const variable = this.theEditingData
@@ -850,7 +874,7 @@
                             this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
                         }
                     }
-                    this.$emit('onSaveEditing')
+                    this.$emit('onSaveEditing', saveAndQuote)
                     return true
                 })
             }

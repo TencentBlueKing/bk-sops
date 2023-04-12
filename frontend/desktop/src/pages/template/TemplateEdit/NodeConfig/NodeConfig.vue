@@ -145,8 +145,9 @@
                         ref="variableEdit"
                         :variable-data="variableData"
                         :common="common"
-                        @closeEditingPanel="isVariablePanelShow = false"
-                        @onSaveEditing="isVariablePanelShow = false">
+                        :is-hook-var-create="!!hookKey"
+                        @closeEditingPanel="closeEditingPanel"
+                        @onSaveEditing="onSaveEditing">
                     </variable-edit>
                 </div>
                 <!-- 插件/子流程表单面板 -->
@@ -254,7 +255,9 @@
                                                 :node-id="nodeId"
                                                 :is-third-party="isThirdParty"
                                                 :is-view-mode="isViewMode"
-                                                @hookChange="onHookChange">
+                                                :hook-key="hookKey"
+                                                @hookChange="onHookChange"
+                                                @openVariablePanel="openVariablePanel">
                                             </output-params>
                                             <no-data v-else :message="$t('暂无参数')"></no-data>
                                         </template>
@@ -371,6 +374,7 @@
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 unhookingVarForm: {}, // 正被取消勾选的表单配置
                 isUpdateConstants: false, // 是否更新输入参数配置
+                hookKey: '', // 输出变量勾选的key值
                 isDataChange: false // 数据是否改变
             }
         },
@@ -1044,6 +1048,18 @@
                 }
                 this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
             },
+            // 变量新建/编辑取消
+            closeEditingPanel () {
+                this.isVariablePanelShow = false
+                this.hookKey = ''
+            },
+            // 变量新建/编辑保存
+            onSaveEditing (variableKey = false) {
+                this.isVariablePanelShow = false
+                if (!variableKey) {
+                    this.hookKey = ''
+                }
+            },
             /**
              * 标准插件版本切换
              */
@@ -1366,11 +1382,14 @@
             // 节点配置面板表单校验，基础信息和输入参数
             validate () {
                 return this.$refs.basicInfo.validate().then(validator => {
+                    let result = true
                     if (this.$refs.inputParams) {
-                        return this.$refs.inputParams.validate()
-                    } else {
-                        return true
+                        result = this.$refs.inputParams.validate()
                     }
+                    if (result && this.$refs.outputParams) {
+                        result = this.$refs.outputParams.validate()
+                    }
+                    return result
                 })
             },
             getNodeFullConfig () {
@@ -1521,8 +1540,11 @@
                 return !tools.isDataEqual(localOutputs, outputs)
             },
             // 打开全局变量编辑面板
-            openVariablePanel (variable = {}) {
+            openVariablePanel (variable = {}, hookKey) {
                 if (variable.key) {
+                    this.variableData = variable
+                } else if (hookKey) {
+                    this.hookKey = hookKey
                     this.variableData = variable
                 } else {
                     this.variableData = {
@@ -1614,6 +1636,22 @@
                                 }
                             })
                         }
+                        // 输出参数赋值变量保存
+                        const outputParams = this.$refs.outputParams
+                        outputParams.list.forEach(item => {
+                            const { hooked, key: parmaKey, variableValue: variableKey } = item
+                            if (hooked && variableKey in this.localConstants) {
+                                const { source_info: sourceInfo } = this.localConstants[variableKey]
+                                if (this.nodeId in sourceInfo) {
+                                    const index = sourceInfo[this.nodeId].findIndex(item => item === parmaKey)
+                                    if (index === -1) {
+                                        sourceInfo[this.nodeId].push(parmaKey)
+                                    }
+                                } else {
+                                    sourceInfo[this.nodeId] = [parmaKey]
+                                }
+                            }
+                        })
                         this.syncActivity()
                         // 将第三方插件信息传给父级存起来
                         if (this.isThirdParty) {
