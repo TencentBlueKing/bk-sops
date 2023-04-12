@@ -42,6 +42,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import dom from '@/utils/dom.js'
     import { getFormMixins } from '../formMixins.js'
@@ -59,13 +60,13 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用表单输入')
+            desc: i18n.t('禁用表单输入')
         },
         showPassword: {
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('是否以密码模式显示')
+            desc: i18n.t('是否以密码模式显示')
         },
         value: {
             type: [String, Number],

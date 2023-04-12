@@ -12,7 +12,7 @@
 <template>
     <div class="separator-select">
         <bk-form>
-            <bk-form-item :label="i18n.separator" :label-width="70">
+            <bk-form-item :label="$t('分隔符：')" :label-width="70">
                 <bk-radio-group :value="value" @change="onChange">
                     <bk-radio
                         v-for="option in options"
@@ -27,14 +27,7 @@
     </div>
 </template>
 <script>
-    const i18n = {
-        separator: gettext('分隔符：'),
-        comma: gettext('逗号'),
-        semicolon: gettext('分号'),
-        verticalbar: gettext('竖线'),
-        linebreak: gettext('换行符')
-    }
-
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'SeparatorSelect',
         model: {
@@ -48,17 +41,16 @@
                 type: Array,
                 default () {
                     return [
-                        { label: i18n.comma, value: ',' },
-                        { label: i18n.semicolon, value: ';' },
-                        { label: i18n.verticalbar, value: '|' },
-                        { label: i18n.linebreak, value: '\n' }
+                        { label: i18n.t('逗号'), value: ',' },
+                        { label: i18n.t('分号'), value: ';' },
+                        { label: i18n.t('竖线'), value: '|' },
+                        { label: i18n.t('换行符'), value: '\n' }
                     ]
                 }
             }
         },
         data () {
             return {
-                i18n,
                 localValue: this.value
             }
         },

@@ -1,6 +1,6 @@
 <template>
     <div class="subflow-select-panel" ref="subflowSelectPanel">
-        <p class="select-title">请选择流程进行节点配置</p>
+        <p class="select-title">{{ $t('请选择流程进行节点配置') }}</p>
         <div class="type-select-wrapper">
             <!-- 公共流程编辑不显示切换流程类型下拉框 -->
             <bk-select
@@ -9,13 +9,13 @@
                 :value="tplType"
                 :clearable="false"
                 @change="onTplTypeChange">
-                <bk-option id="business" name="项目流程"></bk-option>
-                <bk-option id="common" name="公共流程"></bk-option>
+                <bk-option id="business" :name="$t('项目流程')"></bk-option>
+                <bk-option id="common" :name="$t('公共流程')"></bk-option>
             </bk-select>
             <bk-input
                 v-model="searchStr"
                 class="search-text-input"
-                placeholder="请输入流程名称"
+                :placeholder="$t('请输入流程名称')"
                 :clearable="true"
                 right-icon="bk-icon icon-search"
                 @paste="handleSearchPaste"

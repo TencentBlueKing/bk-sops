@@ -12,7 +12,7 @@
 <template>
     <div class="node-tree-wrapper">
         <div class="tree-item" v-for="tree in treeData" :key="tree.id" data-test-id="taskExcute_tree_nodeTree">
-            <div v-if="!tree.children || tree.name === '汇聚网关' || tree.type === 'SubProcess'" :class="['tree-item-info', tree.isGateway ? 'gateway' : '']">
+            <div v-if="!tree.children || tree.name === $t('汇聚网关') || tree.type === 'SubProcess'" :class="['tree-item-info', tree.isGateway ? 'gateway' : '']">
                 <div class="tree-line"></div>
                 <div class="tree-item-status">
                     <span class="tree-item-expanded"></span>

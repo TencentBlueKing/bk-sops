@@ -28,6 +28,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
     import SetAllocation from '../SetAllocation/index.vue'
 
@@ -36,7 +37,7 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('组件禁用态')
+            desc: i18n.t('组件禁用态')
         },
         remote_url: {
             type: [Object, Function],
@@ -44,7 +45,7 @@
             default () {
                 return {}
             },
-            desc: gettext('组件内部调用接口地址')
+            desc: i18n.t('组件内部调用接口地址')
         },
         value: {
             type: [Object, String],

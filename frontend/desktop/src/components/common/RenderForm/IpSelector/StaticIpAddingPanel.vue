@@ -51,7 +51,7 @@
                     <bk-input
                         type="textarea"
                         :rows="10"
-                        :placeholder="i18n.manualPlaceholder"
+                        :placeholder="$t('请输入IP，多个以逗号或者换行符隔开')"
                         v-model="ipString">
                     </bk-input>
                 </div>
@@ -62,14 +62,14 @@
         </div>
         <div class="adding-footer">
             <div class="ip-list-btns">
-                <bk-button theme="primary" size="small" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
-                <bk-button theme="default" size="small" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
+                <bk-button theme="primary" size="small" @click.stop="onAddIpConfirm">{{$t('添加')}}</bk-button>
+                <bk-button theme="default" size="small" @click.stop="onAddIpCancel">{{$t('取消')}}</bk-button>
             </div>
             <div class="message-wrap">
-                <span v-if="type === 'select'">{{i18n.selected}} {{selectedIp.length}} {{i18n.number}}</span>
+                <span v-if="type === 'select'">{{$t('已选择')}} {{selectedIp.length}} {{$t('个')}}</span>
                 <span v-if="type === 'manual' && errorIpList.length > 0">
                     <span style="color: red;">{{ errorIpList.length }}</span>{{ errorStr }}
-                    <span class="view-error-ip-btn" v-bk-tooltips="tooltipConfig">{{ i18n.viewDetail }}</span>
+                    <span class="view-error-ip-btn" v-bk-tooltips="tooltipConfig">{{ $t('查看详情') }}</span>
                 </span>
             </div>
         </div>
@@ -81,23 +81,6 @@
     import IpSearchInput from './IpSearchInput.vue'
     import IpSelectorTable from './IpSelectorTable.vue'
     import tools from '@/utils/tools.js'
-
-    const i18n = {
-        add: gettext('添加'),
-        selected: gettext('已选择'),
-        number: gettext('个'),
-        cloudArea: gettext('云区域'),
-        status: gettext('状态'),
-        error: gettext('异常'),
-        noData: gettext('无数据'),
-        normal: gettext('正常'),
-        cancel: gettext('取消'),
-        manualPlaceholder: gettext('请输入IP，多个以逗号或者换行符隔开'),
-        ipInvalid: gettext('IP地址不合法，'),
-        ipNotExist: gettext('IP地址不存在，'),
-        viewDetail: gettext('查看详情'),
-        hostName: gettext('主机名')
-    }
 
     export default {
         name: 'StaticIpAddingPanel',
@@ -139,7 +122,6 @@
                     content: '#error-ips-content',
                     placement: 'top'
                 },
-                i18n,
                 isSearchInputFocus: false
             }
         },
@@ -280,12 +262,12 @@
                         }
                     })
                     if (ipInvalidList.length > 0) {
-                        this.errorStr = ` ${this.i18n.number} ${this.i18n.ipInvalid}`
+                        this.errorStr = ` ${this.$t('个')} ${this.$t('IP地址不合法，')}`
                         this.errorIpList = ipInvalidList
                         return
                     }
                     if (ipNotExistList.length > 0) {
-                        this.errorStr = ` ${this.i18n.number} ${this.i18n.ipNotExist}`
+                        this.errorStr = ` ${this.$t('个')} ${this.$t('IP地址不存在，')}`
                         this.errorIpList = ipNotExistList
                         return
                     }
