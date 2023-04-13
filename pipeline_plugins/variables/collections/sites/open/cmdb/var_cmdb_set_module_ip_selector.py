@@ -34,7 +34,6 @@ from pipeline_plugins.variables.utils import (
 from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 ALL_SELECTED_STR = "all"
-V1_ALL_SELECTED_STR = "所有模块(all)"
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -386,17 +385,14 @@ def get_ip_result_by_input_method(
     # 获取全部集群列表
     set_list = get_set_list(username, bk_biz_id, bk_supplier_account)
     # 集群全选，筛选条件不为空则调接口获取集群id列表
-    if ALL_SELECTED_STR not in selected_set_names and V1_ALL_SELECTED_STR not in selected_set_names:
+    if ALL_SELECTED_STR not in selected_set_names:
         logger.info(f"[get_ip_result_by_input_method]selected_set_names: {selected_set_names}")
         # 根据选中的集群名称获取选中的集群列表
         set_list = get_list_by_selected_names(selected_set_names, set_list)
     # 获取全部服务模板列表
     service_template_list = get_service_template_list(username, bk_biz_id, bk_supplier_account)
     # 服务模板全选，则调接口获取服务模板列表
-    if (
-        ALL_SELECTED_STR not in selected_service_template_names
-        and V1_ALL_SELECTED_STR not in selected_service_template_names
-    ):
+    if ALL_SELECTED_STR not in selected_service_template_names:
         logger.info(
             f"[get_ip_result_by_input_method]selected_service_template_names: {selected_service_template_names}"
         )
