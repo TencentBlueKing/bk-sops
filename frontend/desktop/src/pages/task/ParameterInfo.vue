@@ -75,8 +75,12 @@
                 unRefVariable: {},
                 variableCited: {},
                 watchVarInfo: {},
-                changeVarInfo: {}
-
+                changeVarInfo: {},
+                isVariableLoading: true,
+                wasChangeVarMap: {
+                    wasRef: [],
+                    wasUnRef: []
+                }
             }
         },
         computed: {
@@ -89,7 +93,7 @@
                 'internalVariable': state => state.template.internalVariable
             }),
             isReferencedShow () {
-                return this.getReferencedStatus(this.referencedVariable)
+                return this.getReferencedStatus(this.refVariable)
             },
             isUnreferencedShow () {
                 if (this.taskMessageLoading) return false
@@ -98,15 +102,24 @@
                 return !!unreferenced.length
             },
             isParameterInfoLoading () {
-                return this.isRefVarLoading || this.isUnrefVarLoading
+                return this.isRefVarLoading || this.isUnrefVarLoading || this.isVariableLoading
             },
             isNoData () {
-                return !this.taskMessageLoading && !this.isReferencedShow && !this.isUnreferencedShow
+                return !this.taskMessageLoading && !this.isReferencedShow && !this.isUnreferencedShow && !this.isVariableLoading
             }
         },
         watch: {
-            isParameterInfoLoading (Val) {
-                this.$emit('paramsLoadingChange', Val)
+            isParameterInfoLoading (val) {
+                this.$emit('paramsLoadingChange', val)
+                if (!val && Object.keys(this.watchVarInfo).length) {
+                    this.getRenderConfig()
+                    for (const [key, value] of Object.entries(this.renderData)) {
+                        const result = this.setVariableHideLogic(key, value)
+                        if (result) {
+                            this.updateRenderFormConfig()
+                        }
+                    }
+                }
             },
             taskMessageLoading (val) {
                 if (!val) {
@@ -116,17 +129,13 @@
                     if (!this.isUnreferencedShow) {
                         this.isUnrefVarLoading = false
                     }
+                    // 获取变量引用关系
                     this.getVariableCitedData()
+                    // 获取监听变量字典
+                    this.getVarChangeMap()
+                    // 更新变量
+                    this.updateReferencedConstants()
                 }
-            },
-            referencedVariable (val) {
-                if (!val) return
-                this.refVariable = tools.deepClone(val)
-                this.getVarChangeMap(val)
-            },
-            unReferencedVariable (val) {
-                if (!val) return
-                this.unRefVariable = tools.deepClone(val)
             }
         },
         mounted () {
@@ -158,49 +167,53 @@
                     ? false
                     : !!Object.keys(variable).length
             },
-            handleFormBlur (key) {
-                let result = true
-                // "显示参数"条件隐藏
-                if (Object.keys(this.watchVarInfo).length) {
-                    const value = this.renderData[key]
-                    result = this.setVariableHideLogic(key, value)
-                }
-                // 该变量被网关分支引用时，更新参数引用
-                if (!result && this.variableCited[key]?.conditions.length) {
-                    this.updateReferencedConstants()
-                }
-            },
-            handleFormChange (formData, key) {
+            async handleFormChange (formData, key) {
                 // 获取所有变量的配置,数据
                 if (!this.renderConfig.length) {
-                    const taskParamEdit = this.$refs.taskParamEdit
-                    const unRefTaskParamEdit = this.$refs.unRefTaskParamEdit
-                    this.renderConfig = [
-                        ...taskParamEdit?.renderConfig || [],
-                        ...unRefTaskParamEdit?.renderConfig || []
-                    ] || []
-                    this.renderData = {
-                        ...taskParamEdit?.renderData || {},
-                        ...unRefTaskParamEdit?.renderData || {}
-                    } || {}
+                    this.getRenderConfig()
                 } else {
                     // 更新renderData
                     Object.assign(this.renderData, formData)
                 }
                 // 如果类型为输入框/下拉框/文本框/密码框，则不进行后续处理
                 const config = this.renderConfig.find(item => item.tag_code === key)
-                if (config && ['input', 'select'].includes(config.type)) return
+                if (!config || ['input', 'select'].includes(config.type)) return
 
-                let result = true
+                this.handleFormBlur(key)
+            },
+            // 表单项失焦
+            async handleFormBlur (key) {
+                let result = false
                 // "显示参数"条件隐藏
                 if (Object.keys(this.watchVarInfo).length) {
+                    this.wasChangeVarMap = {
+                        wasRef: [],
+                        wasUnRef: []
+                    }
                     const value = this.renderData[key]
                     result = this.setVariableHideLogic(key, value)
                 }
                 // 该变量被网关分支引用时，更新参数引用
-                if (!result && this.variableCited[key]?.conditions.length) {
-                    this.updateReferencedConstants()
+                if (this.variableCited[key]?.conditions.length) {
+                    await this.updateReferencedConstants()
+                    result = true
                 }
+                if (result) {
+                    this.updateRenderFormConfig()
+                }
+            },
+            // 获取引用区和未引用区的变量配置
+            getRenderConfig () {
+                const taskParamEdit = this.$refs.taskParamEdit
+                const unRefTaskParamEdit = this.$refs.unRefTaskParamEdit
+                this.renderConfig = [
+                    ...taskParamEdit?.renderConfig || [],
+                    ...unRefTaskParamEdit?.renderConfig || []
+                ] || []
+                this.renderData = {
+                    ...taskParamEdit?.renderData || {},
+                    ...unRefTaskParamEdit?.renderData || {}
+                } || {}
             },
             // 更新参数引用
             async updateReferencedConstants () {
@@ -228,8 +241,14 @@
                     const referenced = resp.data.referenced_constants
                     const refVariable = {}
                     const unRefVariable = {}
+                    // 重新计算引用区和未引用区的变量
+                    const { wasRef, wasUnRef } = this.wasChangeVarMap
                     for (const [key, value] of Object.entries(this.constants)) {
-                        if (referenced.includes(key)) {
+                        if (wasRef.includes(key)) {
+                            refVariable[key] = value
+                        } else if (wasUnRef.includes(key)) {
+                            unRefVariable[key] = value
+                        } else if (referenced.includes(key)) {
                             refVariable[key] = value
                         } else {
                             unRefVariable[key] = value
@@ -237,9 +256,10 @@
                     }
                     this.refVariable = refVariable
                     this.unRefVariable = unRefVariable
-                    this.updateRenderFormConfig()
                 } catch (error) {
                     console.warn(error)
+                } finally {
+                    this.isVariableLoading = false
                 }
             },
             // 获取节点与变量的依赖关系
@@ -259,10 +279,11 @@
                     console.log(e)
                 }
             },
-            getVarChangeMap (constants) {
+            getVarChangeMap () {
                 // 设置变量自动隐藏对象
                 const watchVarInfo = {}
                 const changeVarInfo = {}
+                const constants = { ...this.internalVariable, ...this.constants }
                 Object.values(constants).forEach(item => {
                     if (!item.hide_condition || !item.hide_condition.length) return
                     item.hide_condition.forEach(val => {
@@ -292,8 +313,9 @@
             // 设置变量隐藏逻辑
             setVariableHideLogic (key, val) {
                 if (!(key in this.watchVarInfo)) return false
+                let result = true
                 const values = this.watchVarInfo[key]
-                return values.some(item => {
+                values.forEach(item => {
                     let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
                     const relatedVarInfo = this.changeVarInfo[item.target_key]
                     // 计算输入值是否匹配
@@ -307,42 +329,40 @@
                     } else {
                         isMatch = relatedVarValues.every(option => option)
                     }
-                    // 显示隐藏
                     if (isMatch) {
+                        // 匹配成功时将对应的变量从引用区挪到未引用区
                         const varInfo = tools.deepClone(this.refVariable[item.target_key])
                         this.$delete(this.refVariable, item.target_key)
                         this.unRefVariable[item.target_key] = varInfo
-                        this.updateRenderFormConfig()
-                        return true
+                        // 将被改变显示/隐藏的变量记录起来
+                        this.wasChangeVarMap.wasUnRef.push(item.target_key)
+                    } else if (!this.refVariable[item.target_key]) {
+                        // 匹配失败后，如果引用区没有对应的变量需要从未引用区挪出来
+                        const varInfo = tools.deepClone(this.unRefVariable[item.target_key])
+                        this.$delete(this.unRefVariable, item.target_key)
+                        this.refVariable[item.target_key] = varInfo
+                        this.wasChangeVarMap.wasRef.push(item.target_key)
                     } else {
-                        if (!this.refVariable[item.target_key]) {
-                            const varInfo = tools.deepClone(this.unRefVariable[item.target_key])
-                            this.$delete(this.unRefVariable, item.target_key)
-                            this.refVariable[item.target_key] = varInfo
-                            this.updateRenderFormConfig()
-                            return true
-                        }
-                        return false
+                        result = false
                     }
                 })
+                return result
             },
             updateRenderFormConfig () {
                 const taskParamEdit = this.$refs.taskParamEdit
                 const unRefTaskParamEdit = this.$refs.unRefTaskParamEdit
-                if (taskParamEdit) {
-                    taskParamEdit.formScheme = this.renderConfig.filter(item => item.tag_code in this.refVariable)
-                    taskParamEdit.renderData = taskParamEdit.formScheme.reduce((acc, cur) => {
+                // 更新引用去/未引用区变量的配置，表单值
+                const paramEditRefs = [taskParamEdit, unRefTaskParamEdit]
+                paramEditRefs.forEach((paramEditRef, index) => {
+                    if (!taskParamEdit) return
+                    const variable = index ? this.unRefVariable : this.refVariable
+                    paramEditRef.formScheme = this.renderConfig.filter(item => item.tag_code in variable)
+                    paramEditRef.renderData = paramEditRef.formScheme.reduce((acc, cur) => {
                         acc[cur.tag_code] = this.renderData[cur.tag_code]
                         return acc
                     }, {})
-                }
-                if (unRefTaskParamEdit) {
-                    unRefTaskParamEdit.formScheme = this.renderConfig.filter(item => item.tag_code in this.unRefVariable)
-                    unRefTaskParamEdit.renderData = unRefTaskParamEdit.formScheme.reduce((acc, cur) => {
-                        acc[cur.tag_code] = this.renderData[cur.tag_code]
-                        return acc
-                    }, {})
-                }
+                    paramEditRef.randomKey = new Date().getTime()
+                })
             }
         }
     }

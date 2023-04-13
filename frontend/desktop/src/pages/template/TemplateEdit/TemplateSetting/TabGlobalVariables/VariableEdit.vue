@@ -79,83 +79,85 @@
                         <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
                     </div>
                 </div>
-                <!-- 显示/隐藏 -->
-                <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用')" class="condition-tip">{{ $t('执行时显示')}}</span>
-                    </label>
-                    <div class="form-content">
-                        <bk-select
-                            v-model="theEditingData.show_type"
-                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
-                            :clearable="false"
-                            @change="onToggleShowType">
-                            <bk-option
-                                v-for="(option, index) in showTypeList"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                </div>
-                <!-- 自动隐藏 -->
-                <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
-                    <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')" class="condition-tip">{{ $t('“显示参数”条件隐藏')}}</span>
-                    </label>
-                    <div class="form-content">
-                        <bk-select
-                            v-model="theEditingData.is_condition_hide"
-                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
-                            :clearable="false"
-                            @change="onToggleHideCond">
-                            <bk-option id="true" :name="$t('开启')"></bk-option>
-                            <bk-option id="false" :name="$t('关闭')"></bk-option>
-                        </bk-select>
-                    </div>
-                </div>
-                <!-- 触发条件 -->
-                <div
-                    class="form-item clearfix"
-                    v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide === 'true'">
-                    <label class="form-label">
-                        <span v-bk-tooltips.top="$t('所有变量值都会以字符串类型进行记录和判断，会忽略类型差异')" class="condition-tip">{{ $t('触发条件')}}</span>
-                    </label>
-                    <div class="trigger-condition" @click="isShowErrorMsg = false">
-                        <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
+                <template v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide === 'true'">
+                    <!-- 显示/隐藏 -->
+                    <div class="form-item clearfix" v-if="!isInternalVal">
+                        <label class="form-label ">
+                            <span v-bk-tooltips.top="$t('配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用')" class="condition-tip">{{ $t('执行时显示')}}</span>
+                        </label>
+                        <div class="form-content">
                             <bk-select
-                                ext-cls="select-variable"
-                                v-model="item.constant_key"
-                                :disabled="isViewMode">
+                                v-model="theEditingData.show_type"
+                                :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
+                                :clearable="false"
+                                @change="onToggleShowType">
                                 <bk-option
-                                    v-for="variable in variableList"
-                                    :key="variable.key"
-                                    :id="variable.key"
-                                    :name="variable.name">
+                                    v-for="(option, index) in showTypeList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
-                            <bk-select
-                                ext-cls="select-operator"
-                                v-model="item.operator"
-                                :disabled="isViewMode">
-                                <bk-option id="=" name="="></bk-option>
-                                <bk-option id="!=" name="!="></bk-option>
-                            </bk-select>
-                            <bk-input
-                                ext-cls="variable-value"
-                                v-model="item.value"
-                                :readonly="isViewMode">
-                            </bk-input>
-                            <div class="icon-operat">
-                                <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
-                                <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
-                            </div>
                         </div>
-                        <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
-                        <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
                     </div>
-                </div>
+                    <!-- 自动隐藏 -->
+                    <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
+                        <label class="form-label ">
+                            <span v-bk-tooltips.top="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')" class="condition-tip">{{ $t('“显示参数”条件隐藏')}}</span>
+                        </label>
+                        <div class="form-content">
+                            <bk-select
+                                v-model="theEditingData.is_condition_hide"
+                                :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
+                                :clearable="false"
+                                @change="onToggleHideCond">
+                                <bk-option id="true" :name="$t('开启')"></bk-option>
+                                <bk-option id="false" :name="$t('关闭')"></bk-option>
+                            </bk-select>
+                        </div>
+                    </div>
+                    <!-- 触发条件 -->
+                    <div
+                        class="form-item clearfix"
+                        v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide === 'true'">
+                        <label class="form-label">
+                            <span v-bk-tooltips.top="$t('所有变量值都会以字符串类型进行记录和判断，会忽略类型差异')" class="condition-tip">{{ $t('触发条件')}}</span>
+                        </label>
+                        <div class="trigger-condition" @click="isShowErrorMsg = false">
+                            <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
+                                <bk-select
+                                    ext-cls="select-variable"
+                                    v-model="item.constant_key"
+                                    :disabled="isViewMode">
+                                    <bk-option
+                                        v-for="variable in variableList"
+                                        :key="variable.key"
+                                        :id="variable.key"
+                                        :name="variable.name">
+                                    </bk-option>
+                                </bk-select>
+                                <bk-select
+                                    ext-cls="select-operator"
+                                    v-model="item.operator"
+                                    :disabled="isViewMode">
+                                    <bk-option id="=" name="="></bk-option>
+                                    <bk-option id="!=" name="!="></bk-option>
+                                </bk-select>
+                                <bk-input
+                                    ext-cls="variable-value"
+                                    v-model="item.value"
+                                    :readonly="isViewMode">
+                                </bk-input>
+                                <div class="icon-operat">
+                                    <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
+                                    <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
+                                </div>
+                            </div>
+                            <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
+                            <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
+                        </div>
+                    </div>
+                </template>
                 <!-- 模板预渲染 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
                     <label class="form-label">

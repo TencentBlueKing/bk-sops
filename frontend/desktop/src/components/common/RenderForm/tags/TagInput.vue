@@ -106,7 +106,7 @@
             return {
                 isListOpen: false,
                 input: {
-                    value: '',
+                    value: this.value,
                     focus: false
                 },
                 varList: [],
