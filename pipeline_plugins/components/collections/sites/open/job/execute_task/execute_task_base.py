@@ -151,7 +151,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
         ip_is_exist = self.check_ip_is_exist(data)
-        biz_across = data.get_one_of_inputs("biz_across")
+        biz_across = data.get_one_of_inputs("biz_across", True)
 
         for _value in original_global_var:
             val = loose_strip(_value["value"])
