@@ -62,6 +62,12 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         """
         return False
 
+    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
+        result, ip_list = self.get_target_server_hybrid(executor, biz_cc_id, data, val, logger_handle=self.logger)
+        if not result:
+            return {}
+        return ip_list
+
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
         """
         默认使用ip新版分组

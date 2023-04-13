@@ -103,7 +103,7 @@ class GetJobTargetServerMixin(object):
         if settings.ENABLE_IPV6:
             return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle, data)
         # 获取IP
-        clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data,)
+        clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data)
         if not clean_result:
             return False, {}
 
