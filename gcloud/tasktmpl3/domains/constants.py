@@ -185,8 +185,15 @@ def extract_unused_nodes_via_hydrated_constants(pipeline_tree: dict, hydrated_co
                 expressions = [
                     (flow_id, hydrated_conditions[flow_id]) for flow_id in gateways[node_id][PE.conditions].keys()
                 ]
-                expressions = list(filter(lambda exp: BoolRule(exp[1]).test(context=hydrated_constants), expressions))
-                branch_start_node_ids = [pipeline_tree[PE.flows][exp[0]]["target"] for exp in expressions]
+                filtered_expressions = []
+                for expression in expressions:
+                    try:
+                        if BoolRule(expression[1]).test(context=hydrated_constants):
+                            filtered_expressions.append(expression)
+                    except Exception as e:
+                        logger.exception("evaluate condition {} failed: {}".format(expression, e))
+
+                branch_start_node_ids = [pipeline_tree[PE.flows][exp[0]]["target"] for exp in filtered_expressions]
                 for branch_start_node_id in branch_start_node_ids:
                     branch_nodes, _ = get_ordered_necessary_nodes_and_paths_between_nodes(
                         graph, branch_start_node_id, next_node_id

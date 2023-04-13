@@ -38,6 +38,7 @@ from gcloud.iam_auth.view_interceptors.template import (
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.tasktmpl3.domains.constants import get_constant_values
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 from .validators import (
     ImportValidator,
     GetTemplateCountValidator,
@@ -61,6 +62,7 @@ from gcloud.template_base.apis.django.validators import (
     TemplateParentsValidator,
 )
 from django.utils.translation import ugettext_lazy as _
+
 
 logger = logging.getLogger("root")
 
@@ -124,9 +126,7 @@ def batch_form(request, project_id):
     return base_batch_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
-@swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
-)
+@swagger_auto_schema(methods=["post"], auto_schema=AnnotationAutoSchema)
 @api_view(["POST"])
 @request_validate(ExportTemplateApiViewValidator)
 @is_full_param_process(TaskTemplate, project_related=True)
@@ -151,9 +151,7 @@ def export_templates(request, project_id):
     return base_export_templates(request, TaskTemplate, project_id, [project_id])
 
 
-@swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
-)
+@swagger_auto_schema(methods=["post"], auto_schema=AnnotationAutoSchema)
 @api_view(["POST"])
 @request_validate(ImportValidator)
 @iam_intercept(ImportInterceptor())
@@ -179,9 +177,7 @@ def import_templates(request, project_id):
     return base_import_templates(request, TaskTemplate, {"project_id": project_id})
 
 
-@swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
-)
+@swagger_auto_schema(methods=["post"], auto_schema=AnnotationAutoSchema)
 @api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
 def check_before_import(request, project_id):
@@ -296,9 +292,37 @@ def get_constant_preview_result(request):
     return JsonResponse({"result": True, "data": preview_results, "code": err_code.SUCCESS.code, "message": ""})
 
 
-@swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
-)
+@swagger_auto_schema(methods=["post"], auto_schema=AnnotationAutoSchema)
+@api_view(["POST"])
+def get_gateway_include_nodes(request):
+    """
+    获取网关包含的节点
+
+    body: data
+    {
+        "pipeline_tree(required)": "流程树数据(string)",
+        "gateway_id(required)": "网关节点ID(string)"
+    }
+
+    return: 节点列表
+    {
+        "node_ids": "节点列表(list)"
+    }
+    """
+    gateway_id = request.data.get("gateway_id")
+    pipeline_tree = json.loads(request.data.get("pipeline_tree"))
+    gateway_preview_info = PipelineTemplateWebPreviewer.calculate_gateway_preview_info(gateway_id, pipeline_tree)
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {"node_ids": gateway_preview_info.circle_nodes | gateway_preview_info.nodes},
+            "code": err_code.SUCCESS.code,
+            "message": "",
+        }
+    )
+
+
+@swagger_auto_schema(methods=["post"], auto_schema=AnnotationAutoSchema)
 @api_view(["POST"])
 def preview_task_referenced_constants(request):
     """
@@ -356,9 +380,7 @@ def analysis_constants_ref(request):
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
 
 
-@swagger_auto_schema(
-    methods=["get"], auto_schema=AnnotationAutoSchema,
-)
+@swagger_auto_schema(methods=["get"], auto_schema=AnnotationAutoSchema)
 @api_view(["GET"])
 @request_validate(TemplateParentsValidator)
 @iam_intercept(ParentsInterceptor())

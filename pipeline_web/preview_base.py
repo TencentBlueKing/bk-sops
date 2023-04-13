@@ -22,8 +22,27 @@ from pipeline.core.constants import PE
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
+from pydantic import BaseModel
+
+from pipeline_web.graph import (
+    get_graph_from_pipeline_tree,
+    get_ordered_necessary_nodes_and_paths_between_nodes,
+    get_all_nodes_and_edge_between_nodes,
+    check_node_in_circle,
+    get_all_nodes_and_edges_in_circle,
+)
 
 logger = logging.getLogger("root")
+
+
+class GatewayPreviewInfo(BaseModel):
+    """网关包含的相关信息"""
+
+    converge_node: dict
+    nodes: set
+    edges: set
+    circle_nodes: set
+    circle_edges: set
 
 
 class PipelineTemplateWebPreviewer(object):
@@ -103,6 +122,9 @@ class PipelineTemplateWebPreviewer(object):
             )
 
         PipelineTemplateWebPreviewer._remove_useless_parallel(pipeline_tree, lines, locations)
+        PipelineTemplateWebPreviewer._remove_useless_exclusive_and_conditional_parallel(
+            pipeline_tree, lines, locations, exclude_task_nodes_id
+        )
 
         pipeline_tree["line"] = list(lines.values())
         pipeline_tree["location"] = list(locations.values())
@@ -340,3 +362,101 @@ class PipelineTemplateWebPreviewer(object):
 
             if gateway_count == len(pipeline_tree[PE.gateways]):
                 break
+
+    @staticmethod
+    def calculate_gateway_preview_info(gateway_id: str, pipeline_tree: dict) -> GatewayPreviewInfo:
+        """获取网关包含的节点"""
+        gateway = pipeline_tree[PE.gateways][gateway_id]
+
+        if gateway["type"] not in [PE.ExclusiveGateway, PE.ConditionalParallelGateway, PE.ParallelGateway]:
+            return []
+
+        nx_graph = get_graph_from_pipeline_tree(pipeline_tree)
+        gateway_id = gateway["id"]
+        ordered_nodes, _ = get_ordered_necessary_nodes_and_paths_between_nodes(
+            nx_graph, gateway_id, pipeline_tree[PE.end_event]["id"]
+        )
+        # ordered_nodes 中 gateway的下一个节点为所有分支的汇聚节点
+        converge_node_id = ordered_nodes[1]
+        converge_node = (
+            pipeline_tree[PE.activities].get(converge_node_id)
+            or pipeline_tree[PE.gateways].get(converge_node_id)
+            or pipeline_tree[PE.end_event]
+        )
+        # 如果收敛节点是汇聚网关，则需要将汇聚网关一同忽略
+        if converge_node[PE.type] == PE.ConvergeGateway:
+            converge_outgoing_id = (
+                converge_node[PE.outgoing]
+                if isinstance(converge_node[PE.outgoing], str)
+                else converge_node[PE.outgoing][0]
+            )
+            converge_node_id = pipeline_tree[PE.flows][converge_outgoing_id][PE.target]
+        nodes, edges = get_all_nodes_and_edge_between_nodes(nx_graph, gateway_id, converge_node_id)
+        nodes.remove(converge_node_id)
+
+        circle_nodes, circle_edges = set(), set()
+        if check_node_in_circle(nx_graph, gateway_id):
+            origin_circle_nodes, origin_circle_edges = get_all_nodes_and_edges_in_circle(nx_graph, gateway_id)
+            exclude_nodes, exclude_edges = get_all_nodes_and_edge_between_nodes(
+                nx_graph, pipeline_tree[PE.start_event]["id"], gateway_id
+            )
+            circle_nodes = origin_circle_nodes - exclude_nodes
+            circle_edges = origin_circle_edges - exclude_edges
+
+        return GatewayPreviewInfo(
+            converge_node=converge_node, nodes=nodes, edges=edges, circle_nodes=circle_nodes, circle_edges=circle_edges
+        )
+
+    @staticmethod
+    def _remove_useless_exclusive_and_conditional_parallel(pipeline_tree, lines, locations, exclude_task_nodes_id):
+        """计算清理没有执行节点的网关"""
+        gateways = list(pipeline_tree[PE.gateways].values())
+        removed_gateways = []
+        for gateway in gateways:
+            if (
+                gateway[PE.type] not in [PE.ExclusiveGateway, PE.ConditionalParallelGateway]
+                or gateway[PE.id] in removed_gateways
+            ):
+                continue
+            gateway_preview_info = PipelineTemplateWebPreviewer.calculate_gateway_preview_info(
+                gateway[PE.id], pipeline_tree
+            )
+            converge_node, nodes, edges, circle_nodes, circle_edges = (
+                gateway_preview_info.converge_node,
+                gateway_preview_info.nodes,
+                gateway_preview_info.edges,
+                gateway_preview_info.circle_nodes,
+                gateway_preview_info.circle_edges,
+            )
+            if any(
+                [
+                    (node in pipeline_tree[PE.activities] and node not in exclude_task_nodes_id)
+                    for node in (nodes | circle_nodes)
+                ]
+            ):
+                continue
+            # 网关下所有活动节点都被排除时，删除整个网关
+            removed_gateways.append(gateway[PE.id])
+            gw_incoming_ids = gateway[PE.incoming] if isinstance(gateway[PE.incoming], list) else [gateway[PE.incoming]]
+            if isinstance(converge_node[PE.incoming], list):
+                converge_node[PE.incoming] = list((set(converge_node[PE.incoming]) - edges) | set(gw_incoming_ids))
+            else:
+                converge_node[PE.incoming] = gw_incoming_ids[0] if len(gw_incoming_ids) == 1 else gw_incoming_ids
+
+            converge_node_id = converge_node[PE.id]
+            for incoming_id in gw_incoming_ids:
+                lines[incoming_id][PE.target]["id"] = converge_node_id
+                pipeline_tree[PE.flows][incoming_id][PE.target] = converge_node_id
+
+            for nid in nodes | circle_nodes:
+                if nid in pipeline_tree[PE.gateways]:
+                    removed_gateways.append(nid)
+                locations.pop(nid)
+                pipeline_tree[PE.activities].pop(nid, 0)
+                pipeline_tree[PE.gateways].pop(nid, 0)
+            for eid in edges | circle_edges:
+                pipeline_tree[PE.flows].pop(eid)
+                lines.pop(eid)
+
+            pipeline_tree["line"] = list(lines.values())
+            pipeline_tree["location"] = list(locations.values())

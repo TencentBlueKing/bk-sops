@@ -5,6 +5,9 @@ from pipeline_web.graph import (
     get_graph_from_pipeline_tree,
     get_necessary_nodes_and_paths_between_nodes,
     get_ordered_necessary_nodes_and_paths_between_nodes,
+    get_all_nodes_and_edge_between_nodes,
+    check_node_in_circle,
+    get_all_nodes_and_edges_in_circle,
 )
 
 
@@ -37,3 +40,24 @@ class PipelineWebGraphTestCase(TestCase):
         necessary_nodes, paths = get_ordered_necessary_nodes_and_paths_between_nodes(G, 1, 6)
         self.assertEqual(necessary_nodes, [1, 2, 5, 6])
         self.assertEqual(paths, [[1, 2, 3, 5, 6], [1, 2, 4, 5, 6]])
+
+    def test_get_all_nodes_and_edge_between_nodes(self):
+        G = nx.Graph()
+        G.add_edges_from([(1, 2, {"id": 1}), (2, 3, {"id": 2}), (1, 3, {"id": 3})])
+        nodes, edges = get_all_nodes_and_edge_between_nodes(G, 1, 3)
+        self.assertEqual(nodes, {1, 2, 3})
+        self.assertEqual(edges, {1, 2, 3})
+
+    def test_check_node_in_circle(self):
+        G = nx.DiGraph()
+        G.add_edges_from([(1, 2, {"id": 1}), (2, 3, {"id": 2}), (1, 3, {"id": 3})])
+        self.assertEqual(check_node_in_circle(G, 1), False)
+        G.add_edges_from([(3, 1, {"id": 4})])
+        self.assertEqual(check_node_in_circle(G, 1), True)
+
+    def test_get_all_nodes_and_edges_in_circle(self):
+        G = nx.DiGraph()
+        G.add_edges_from([(1, 2, {"id": 1}), (2, 3, {"id": 2}), (1, 3, {"id": 3}), (3, 1, {"id": 4})])
+        nodes, edges = get_all_nodes_and_edges_in_circle(G, 1)
+        self.assertEqual(nodes, {1, 2, 3})
+        self.assertEqual(edges, {1, 2, 3, 4})

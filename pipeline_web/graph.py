@@ -44,3 +44,39 @@ def get_ordered_necessary_nodes_and_paths_between_nodes(nx_graph, start, end):
     if paths:
         [ordered_nodes.append(node) for node in paths[0] if node in unordered_nodes]
     return ordered_nodes, paths
+
+
+def get_all_nodes_and_edge_between_nodes(nx_graph, start, end):
+    """获取两个节点之间的所有节点和边"""
+    nodes, edges = set(), set()
+    node_paths = nx.all_simple_paths(nx_graph, start, end)
+    for node_path in node_paths:
+        nodes |= set(node_path)
+
+    edge_paths = nx.all_simple_edge_paths(nx_graph, start, end)
+    for edge_path in edge_paths:
+        edge_ids = set([nx_graph.edges[edge]["id"] for edge in edge_path])
+        edges |= edge_ids
+
+    return nodes, edges
+
+
+def check_node_in_circle(nx_graph, node):
+    """检查节点是否在环中"""
+    try:
+        circle = nx.find_cycle(nx_graph, node)
+    except nx.NetworkXNoCycle:
+        return False
+    return True if circle else False
+
+
+def get_all_nodes_and_edges_in_circle(nx_graph, node):
+    """获取环中的所有节点和边"""
+    nodes, edges = set(), set()
+    circles = nx.simple_cycles(nx_graph)
+    for circle in circles:
+        if node in circle:
+            nodes |= set(circle)
+            for line_path in zip(circle, circle[1:] + circle[:1]):
+                edges.add(nx_graph.edges[line_path]["id"])
+    return nodes, edges
