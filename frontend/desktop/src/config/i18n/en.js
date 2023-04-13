@@ -242,7 +242,7 @@ const en = {
     '请填写变量值': 'Please fill in the value of the variable',
     '请填入项目变量说明': 'Please fill in the project variable description',
     '管理项目变量': 'Manage project variables',
-    '变量快捷处理': 'Variable quick processing',
+    '变量快捷处理': 'Variable Processing',
     '运维工具': 'OPS tools',
     '监控告警': 'Monitoring alarm',
     '配置管理': 'Configuration management',
@@ -445,7 +445,7 @@ const en = {
     '该操作需要以下权限': 'Permission required for operation',
     '去申请': 'Apply',
     '项目': 'Project',
-    '选择项目': 'Choose Project',
+    '选择项目': 'Project',
     '请选择项目': 'Please choose project ',
 
     '没找到页面！': 'Page Not Found!',
@@ -984,7 +984,7 @@ const en = {
     '当前访问的页面不存在': 'Page not found',
     'sorry，您没有访问权限!': 'sorry, you have no access permissions!',
     'Sorry，您的权限不足!': 'Sorry, you have no permissions',
-    '秒': 'Second | one second | {n} seconds',
+    '秒': 'Sec | one second | {n} seconds',
     '分钟': 'Minute | one minute | {n} minutes',
     '小时': 'Hour | one hour | {n} hours',
     '天': 'Day | one day | {n} days',
@@ -1692,7 +1692,8 @@ const en = {
     '列表': 'List',
     '请输入IP，多个以逗号或者换行符隔开': 'Please enter the IP, multiple separated by commas or newlines',
     '方法名称不能超过50个字符': 'Method names cannot exceed 50 characters',
-    'IP地址不合法': 'IP address is invalid'
+    'IP地址不合法': 'IP address is invalid',
+    '审批意见': 'Approval comments'
 }
 
 export default en

@@ -773,16 +773,10 @@
                         extCls: 'var-dirty-data-dialog',
                         width: 500,
                         okText: this.$t('清除'),
-                        subHeader: h('p',
-                                     { style: {} },
-                                     [
-                                         this.$t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)'),
-                                         h('p',
-                                           { style: { marginTop: '10px' } },
-                                           [this.$t('问题变量有：'), illegalKeys.join(',')]
-                                         )
-                                     ]
-                        ),
+                        subHeader: h('p', { style: {} }, [
+                            this.$t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)'),
+                            h('p', { style: { marginTop: '10px' } }, [this.$t('问题变量有：'), illegalKeys.join(',')])
+                        ]),
                         confirmFn: async () => {
                             const constants = ins.handleIllegalKeys()
                             this.setConstants(constants)

@@ -962,9 +962,23 @@
                     this.onTemplatePermissonCheck(['common_flow_delete'], template)
                     return
                 }
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('流程') + '"' + template.name + '"' + '?',
-                    subTitle: i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('流程') + '"' + template.name + '"' + '?']),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,

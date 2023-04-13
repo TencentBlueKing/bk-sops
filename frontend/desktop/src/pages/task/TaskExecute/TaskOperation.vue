@@ -206,13 +206,13 @@
                 form-type="vertical"
                 :model="approval"
                 :rules="approval.rules">
-                <bk-form-item label="审批意见" :required="true">
+                <bk-form-item :label="$t('审批意见')" :required="true">
                     <bk-radio-group v-model="approval.is_passed" @change="$refs.approvalForm.clearError()">
                         <bk-radio :value="true">{{ $t('通过') }}</bk-radio>
                         <bk-radio :value="false">{{ $t('拒绝') }}</bk-radio>
                     </bk-radio-group>
                 </bk-form-item>
-                <bk-form-item label="备注" property="message" :required="!approval.is_passed">
+                <bk-form-item :label="$t('备注')" property="message" :required="!approval.is_passed">
                     <bk-input v-model="approval.message" type="textarea" :row="4"></bk-input>
                 </bk-form-item>
             </bk-form>
@@ -1076,9 +1076,23 @@
                 }
             },
             onSkipClick (id) {
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确定跳过当前节点?'),
-                    subTitle: i18n.t('跳过节点将忽略当前失败节点继续往后执行'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确定跳过当前节点?')]),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('跳过节点将忽略当前失败节点继续往后执行')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
                     confirmFn: async () => {
@@ -1135,9 +1149,23 @@
                 }
             },
             onForceFailClick (id) {
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确定强制终止当前节点？'),
-                    subTitle: i18n.t('强制终止将强行修改节点状态为失败，但不会中断已经发送到其它系统的请求'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确定强制终止当前节点？')]),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('强制终止将强行修改节点状态为失败，但不会中断已经发送到其它系统的请求')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
                     confirmFn: async () => {
@@ -1515,9 +1543,23 @@
                 }
 
                 if (action === 'revoke') {
+                    const h = this.$createElement
                     this.$bkInfo({
-                        title: i18n.t('确定终止当前任务?'),
-                        subTitle: i18n.t('终止任务将停止执行任务，但执行中节点将运行完成'),
+                        subHeader: h('div', { class: 'custom-header' }, [
+                            h('div', {
+                                class: 'custom-header-title',
+                                directives: [{
+                                    name: 'bk-overflow-tips'
+                                }]
+                            }, [i18n.t('确定终止当前任务?')]),
+                            h('div', {
+                                class: 'custom-header-sub-title bk-dialog-header-inner',
+                                directives: [{
+                                    name: 'bk-overflow-tips'
+                                }]
+                            }, [i18n.t('终止任务将停止执行任务，但执行中节点将运行完成')])
+                        ]),
+                        extCls: 'dialog-custom-header-title',
                         maskClose: false,
                         confirmLoading: true,
                         confirmFn: async () => {
@@ -2065,6 +2107,9 @@
 .approval-dialog-content {
     /deep/ .bk-form-radio {
         margin-right: 10px;
+    }
+    /deep/.bk-label {
+        width: auto !important;
     }
 }
 </style>
