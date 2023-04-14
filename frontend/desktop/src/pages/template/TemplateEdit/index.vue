@@ -1378,11 +1378,12 @@
                         this.validateConnectFailList.splice(index, 1)
                         this.isParallelGwErrorMsg = ''
                     }
-                } else if (changeType === 'add' && location.type === 'convergegateway') { // 新增汇聚网关时，判断下是否有并行网关校验失败
-                    this.$nextTick(() => {
-                        this.checkParallelGwConnect()
-                    })
                 }
+                // else if (changeType === 'add' && location.type === 'convergegateway') { // 新增汇聚网关时，判断下是否有并行网关校验失败
+                //     this.$nextTick(() => {
+                //         this.checkParallelGwConnect()
+                //     })
+                // }
             },
             // 检查并行网关/条件并行网关的连线是否包含汇聚网关
             checkParallelGwConnect () {
@@ -1460,10 +1461,10 @@
                 const idList = [line.target.id, line.source.id]
                 const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
                 // 新增连线时如果并行网关异常，检查网关的连线是否包含汇聚网关
-                if (this.isParallelGwErrorMsg && changeType === 'add') {
-                    this.checkParallelGwConnect()
-                    return
-                }
+                // if (this.isParallelGwErrorMsg && changeType === 'add') {
+                //     this.checkParallelGwConnect()
+                //     return
+                // }
                 // 没有直接修改与问题节点的连线则不进行后续处理
                 if (!nodeList || !nodeList.length) return
                 nodeList.forEach(node => {
