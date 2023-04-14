@@ -46,16 +46,16 @@
                         {{ selectorTitle }}
                     </span>
                     <!-- 展示选择面板是隐藏 -->
-                    <template v-if="!isSelectorPanelShow">
+                    <div class="operate-panel" v-if="!isSelectorPanelShow">
                         <!-- 全局变量popover -->
-                        <div :class="['view-variable', { 'r30': isViewMode }]">
+                        <div class="view-variable">
                             <bk-popover
                                 v-if="!isSelectorPanelShow"
                                 :key="randomKey"
                                 ext-cls="variable-popover"
                                 placement="bottom-end"
                                 :tippy-options="{ hideOnClick: false }">
-                                <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
+                                <div style="cursor: pointer;" class="variable-text">{{ $t('全局变量') }}</div>
                                 <div class="variable-list" slot="content">
                                     <div class="header-area">
                                         <span>{{ $t('全局变量') }}</span>
@@ -107,15 +107,15 @@
                             </bk-popover>
                         </div>
                         <!-- 快捷操作按钮 -->
-                        <div v-if="!isViewMode" class="quick-insert-btn" @click="quickOperateVariableVisable = true">
-                            {{ $t('变量快捷处理') }}
+                        <div v-if="!isViewMode" class="quick-insert-btn ml30" @click="quickOperateVariableVisable = true">
+                            <span class="quick-operate-text">{{ $t('变量快捷处理') }}</span>
                             <quick-operate-variable
                                 v-if="quickOperateVariableVisable"
                                 :variable-list="variableList"
                                 @closePanel="quickOperateVariableVisable = false">
                             </quick-operate-variable>
                         </div>
-                    </template>
+                    </div>
                 </template>
             </div>
             <template slot="content">
@@ -1655,30 +1655,23 @@
                 cursor: pointer;
             }
         }
-        .quick-insert-btn {
+        .operate-panel {
             position: absolute;
             top: 14px;
             right: 20px;
+            display: flex;
+            align-items: center;
             font-weight: normal;
             line-height: 19px;
             font-size: 14px;
-            padding: 6px 13px;
-            background: #f0f1f5;
-            border-radius: 4px;
             cursor: pointer;
-        }
-        .view-variable {
-            position: absolute;
-            top: 20px;
-            right: 140px;
-            font-size: 14px;
-            line-height: 19px;
-            font-weight: normal;
-            &:hover {
+            .variable-text:hover {
                 color: #3a84ff;
             }
-            &.r30 {
-                right: 30px;
+            .quick-operate-text {
+                padding: 6px 13px;
+                background: #f0f1f5;
+                border-radius: 4px;
             }
         }
         .variable-back-icon {

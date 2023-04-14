@@ -11,6 +11,7 @@
 */
 import tools from '@/utils/tools.js'
 import { checkDataType } from '@/utils/checkDataType.js'
+import i18n from '@/config/i18n/index.js'
 
 export const COMMON_ATTRS = {
     tagCode: {
@@ -33,7 +34,7 @@ export const COMMON_ATTRS = {
         default () {
             return []
         },
-        desc: gettext('请输入校验规则，例如：[{type: required}, {type: custom, args: function(){ return {result: true, error_message: ""}}}]')
+        desc: i18n.t('请输入校验规则，例如：[{type: required}, {type: custom, args: function(){ return {result: true, error_message: ""}}}]')
     },
     default: {
         type: [String, Number, Boolean, Array, Object],
@@ -234,7 +235,7 @@ export const getFormMixins = (attrs = {}) => {
                             }
                             if (valueEmpty) {
                                 valid = false
-                                message = gettext('必填项')
+                                message = this.$t('必填项')
                             }
                             break
                         }

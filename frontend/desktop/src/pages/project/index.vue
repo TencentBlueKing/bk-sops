@@ -628,8 +628,17 @@
                     desc: project.desc
                 }
                 const title = i18n.t('确认') + i18n.t(type === 'start' ? '启用' : '停用') + i18n.t('项目') + ': ' + project.name + '?'
+                const h = this.$createElement
                 this.$bkInfo({
-                    title,
+                    subHeader: h('div', [
+                        h('div', {
+                            class: 'bk-dialog-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [title])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
                     confirmFn: async () => {

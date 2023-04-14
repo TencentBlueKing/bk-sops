@@ -30,6 +30,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
@@ -46,13 +47,13 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('组件禁用态')
+            desc: i18n.t('组件禁用态')
         },
         remote_url: {
             type: [Object, Function],
             required: true,
             default: '',
-            desc: gettext('组件内部调用接口地址')
+            desc: i18n.t('组件内部调用接口地址')
         },
         value: {
             type: [Object, String],
@@ -74,25 +75,25 @@
         {
             type: 'staticIp',
             id: 'ip',
-            name: gettext('静态 IP'),
+            name: i18n.t('静态 IP'),
             hasDiff: false
         },
         {
             type: 'dynamicIp',
             id: 'topo',
-            name: gettext('动态拓扑'),
+            name: i18n.t('动态拓扑'),
             hasDiff: false
         },
         {
             type: 'dynamicGroup',
             id: 'group',
-            name: gettext('动态分组'),
+            name: i18n.t('动态分组'),
             hasDiff: false
         },
         {
             type: 'manualInput',
             id: 'manual',
-            name: gettext('手动输入')
+            name: i18n.t('手动输入')
         }
     ]
     export default {

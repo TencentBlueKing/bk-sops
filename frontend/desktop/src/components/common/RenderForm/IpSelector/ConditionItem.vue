@@ -29,7 +29,7 @@
             <bk-select
                 v-model="condition.field"
                 :disabled="!editable"
-                :placeholder="i18n.select"
+                :placeholder="$t('请选择')"
                 @selected="onConditionSelect">
                 <bk-option
                     v-for="(option, i) in fieldsList"
@@ -38,18 +38,18 @@
                     :name="option.name">
                 </bk-option>
             </bk-select>
-            <span v-show="filedError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
+            <span v-show="filedError" class="common-error-tip error-info">{{$t('必填项')}}</span>
         </div>
         <div :class="['condition-text-wrap', { 'is-view': !editable }]">
             <pre class="textarea-mirror"><span>{{condition.value}}</span><br><br></pre>
             <textarea
-                :placeholder="i18n.desc"
+                :placeholder="$t('请输入，多个用换行分隔')"
                 v-model="condition.value"
                 :class="{ 'disabled': !editable }"
                 :disabled="!editable"
                 @change="onConditionTextChange">
             </textarea>
-            <span v-show="valueError" class="common-error-tip value-error">{{i18n.notEmpty}}</span>
+            <span v-show="valueError" class="common-error-tip value-error">{{$t('必填项')}}</span>
         </div>
         <div class="operation-wrap" v-if="editable">
             <i :class="['operation-btn', 'add-condition', { 'disabled': !editable }]" @click.stop="onAddCondition"></i>
@@ -59,14 +59,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    const i18n = {
-        select: gettext('请选择'),
-        desc: gettext('请输入，多个用换行分隔'),
-        notEmpty: gettext('必填项'),
-        filter: gettext('筛选'),
-        exclude: gettext('排除')
-    }
-
     export default {
         name: 'ConditionItem',
         props: {
@@ -100,19 +92,18 @@
                 typeList: [
                     {
                         id: 'filter',
-                        name: i18n.filter
+                        name: this.$t('筛选')
                     },
                     {
                         id: 'exclude',
-                        name: i18n.exclude
+                        name: this.$t('排除')
                     }
                 ],
                 condition: {
                     type: this.data.type,
                     field: this.data.field,
                     value: this.data.value.join('\n')
-                },
-                i18n
+                }
             }
         },
         watch: {

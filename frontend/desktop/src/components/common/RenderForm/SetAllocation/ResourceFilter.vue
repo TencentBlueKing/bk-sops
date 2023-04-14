@@ -12,7 +12,7 @@
 <template>
     <div class="resource-filter">
         <header class="set-form">
-            <span class="title">{{ i18n.title }}</span>
+            <span class="title">{{ $t('资源筛选') }}</span>
             <div class="btns">
                 <bk-button
                     theme="primary"
@@ -20,20 +20,20 @@
                     :disabled="pending.set || pending.resource || pending.module"
                     :loading="pending.host"
                     @click="onConfigConfirm">
-                    {{ i18n.confirm }}
+                    {{ $t('确认') }}
                 </bk-button>
                 <bk-button
                     theme="default"
                     size="small"
                     @click="$emit('update:showFilter', false)">
-                    {{ i18n.cancel }}
+                    {{ $t('取消') }}
                 </bk-button>
             </div>
         </header>
         <section class="module-form">
             <bk-form ref="setForm" :model="formData" :rules="setRules">
                 <!-- 筛选方案 -->
-                <bk-form-item :label="i18n.scheme" property="scheme">
+                <bk-form-item :label="$t('筛选方案')" property="scheme">
                     <div class="scheme-select">
                         <bk-select :value="formData.scheme" :loading="pending.scheme" @selected="onSchemeSelect">
                             <bk-option
@@ -43,28 +43,28 @@
                                 :name="scheme.name">
                             </bk-option>
                         </bk-select>
-                        <bk-button theme="success" size="small" class="scheme-save-btn" @click="isSchemeDialogShow = true">{{ i18n.saveScheme }}</bk-button>
+                        <bk-button theme="success" size="small" class="scheme-save-btn" @click="isSchemeDialogShow = true">{{ $t('保存筛选方案') }}</bk-button>
                     </div>
                 </bk-form-item>
                 <!-- 集群个数 -->
-                <bk-form-item :label="i18n.cluster" :required="true" property="clusterCount">
+                <bk-form-item :label="$t('集群个数')" :required="true" property="clusterCount">
                     <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
                 </bk-form-item>
                 <!-- 集群模板 -->
-                <bk-form-item :label="i18n.set" :required="true" property="set">
+                <bk-form-item :label="$t('集群模板')" :required="true" property="set">
                     <bk-select
                         ref="setSelect"
                         :value="formData.set[0] && formData.set[0].id"
                         :clearable="false"
                         :loading="pending.set"
                         :disabled="setSelectDisable"
-                        :placeholder="setSelectDisable ? i18n.setPlaceholder : i18n.pleaseSelect "
+                        :placeholder="setSelectDisable ? $t('暂不支持分层层级大于 业务-集群 两层的集群模版') : $t('请选择') "
                         ext-popover-cls="common-bk-select-hide-option"
                         @toggle="handlerSetSelectToggle">
                         <bk-input
                             ext-cls="input-search"
                             clearable
-                            :placeholder="i18n.set"
+                            :placeholder="$t('集群模板')"
                             :left-icon="'bk-icon icon-search'"
                             v-model="setValue"
                             @change="handlerSetInputChange">
@@ -91,7 +91,7 @@
                     </bk-select>
                 </bk-form-item>
                 <!-- 主机资源所属 -->
-                <bk-form-item :label="i18n.resource" :required="true" property="resource">
+                <bk-form-item :label="$t('主机资源所属')" :required="true" property="resource">
                     <bk-select
                         multiple
                         ext-popover-cls="common-bk-select-hide-option"
@@ -102,7 +102,7 @@
                         <bk-input
                             ext-cls="input-search"
                             clearable
-                            :placeholder="i18n.resource"
+                            :placeholder="$t('主机资源所属')"
                             :left-icon="'bk-icon icon-search'"
                             v-model="resourceValue"
                             @change="handlerResourceInputChange">
@@ -128,7 +128,7 @@
                     </bk-select>
                 </bk-form-item>
                 <!-- 互斥属性 -->
-                <bk-form-item :label="i18n.exclusive" property="muteAttribute">
+                <bk-form-item :label="$t('互斥属性')" property="muteAttribute">
                     <bk-select v-model="formData.muteAttribute" @clear="onMuteAttributeClear">
                         <bk-option
                             v-for="condition in conditions"
@@ -138,11 +138,11 @@
                         </bk-option>
                     </bk-select>
                 </bk-form-item>
-                <bk-form-item :label="i18n.filterLock" property="filterLock">
+                <bk-form-item :label="$t('过滤加锁主机')" property="filterLock">
                     <bk-switcher theme="primary" size="small" v-model="formData.filterLock"></bk-switcher>
                 </bk-form-item>
                 <!-- 均摊属性 -->
-                <bk-form-item :label="i18n.shareEqually" property="shareEqually">
+                <bk-form-item :label="$t('均摊属性')" property="shareEqually">
                     <bk-select v-model="formData.shareEqually">
                         <bk-option
                             v-for="condition in conditions"
@@ -165,28 +165,28 @@
                         :label="moduleItem.bk_module_name">
                         <bk-form :model="formData.modules[moduleIndex]" ref="moduleTab" :rules="moduleRules">
                             <!-- 主机数量 -->
-                            <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
+                            <bk-form-item :label="$t('主机数量')" :required="true" property="count">
                                 <bk-input v-model="formData.modules[moduleIndex].count" type="number" :min="0"></bk-input>
                             </bk-form-item>
                             <!-- 筛选方式 -->
-                            <bk-form-item :label="i18n.selectMethod" property="selectMethod">
+                            <bk-form-item :label="$t('筛选方式')" property="selectMethod">
                                 <bk-radio-group v-model="formData.modules[moduleIndex].selectMethod" class="bk-radio-group">
-                                    <bk-radio :value="0">{{ i18n.default }}</bk-radio>
-                                    <bk-radio :value="1">{{ i18n.manual }}</bk-radio>
-                                    <bk-radio :value="2">{{ i18n.reuseModule }}</bk-radio>
+                                    <bk-radio :value="0">{{ $t('默认') }}</bk-radio>
+                                    <bk-radio :value="1">{{ $t('手动指定') }}</bk-radio>
+                                    <bk-radio :value="2">{{ $t('复用模块') }}</bk-radio>
                                 </bk-radio-group>
                             </bk-form-item>
                             <template v-if="formData.modules[moduleIndex].selectMethod === 0">
                                 <!-- 互斥方案 -->
-                                <bk-form-item :label="i18n.muteMethod" property="muteMethod">
+                                <bk-form-item :label="$t('互斥方案')" property="muteMethod">
                                     <bk-radio-group v-model="formData.modules[moduleIndex].muteMethod" class="bk-radio-group">
-                                        <bk-radio :value="0" :disabled="!formData.muteAttribute">{{ i18n.notMute }}</bk-radio>
-                                        <bk-radio :value="1" :disabled="!formData.muteAttribute">{{ i18n.innerMute }}</bk-radio>
-                                        <bk-radio :value="2" :disabled="!formData.muteAttribute">{{ i18n.moduleMute }}</bk-radio>
+                                        <bk-radio :value="0" :disabled="!formData.muteAttribute">{{ $t('不互斥') }}</bk-radio>
+                                        <bk-radio :value="1" :disabled="!formData.muteAttribute">{{ $t('模块内互斥') }}</bk-radio>
+                                        <bk-radio :value="2" :disabled="!formData.muteAttribute">{{ $t('模块间互斥') }}</bk-radio>
                                     </bk-radio-group>
                                 </bk-form-item>
                                 <!-- 互斥模块 -->
-                                <bk-form-item v-if="formData.modules[moduleIndex].muteMethod === 2" :label="i18n.muteModule" property="muteModule" :required="true">
+                                <bk-form-item v-if="formData.modules[moduleIndex].muteMethod === 2" :label="$t('互斥模块')" property="muteModule" :required="true">
                                     <bk-select v-model="formData.modules[moduleIndex].muteModules" multiple>
                                         <bk-option
                                             v-for="item in canMuteModules"
@@ -195,13 +195,13 @@
                                             :id="item.bk_module_id">
                                         </bk-option>
                                     </bk-select>
-                                    <div class="mute-module-tip">{{ i18n.muteModuleTips }}</div>
+                                    <div class="mute-module-tip">{{ $t('如果互斥模块复用本模块，则该互斥约束失效') }}</div>
                                 </bk-form-item>
                                 <!-- 筛选条件 -->
                                 <div class="condition-wrapper">
                                     <select-condition
                                         ref="filterConditions"
-                                        :label="i18n.condition"
+                                        :label="$t('筛选条件和排除条件')"
                                         :condition-fields="conditions"
                                         :conditions="formData.modules[moduleIndex].hostFilterList"
                                         @change="updateCondition($event, formData.modules[moduleIndex])">
@@ -211,12 +211,12 @@
                             <!-- 自定义ip -->
                             <bk-form-item
                                 v-show="formData.modules[moduleIndex].selectMethod === 1"
-                                :label="'ip' + i18n.list"
+                                :label="'ip' + $t('列表')"
                                 property="customIpList">
                                 <bk-input
                                     type="textarea"
                                     :rows="10"
-                                    :placeholder="i18n.ipPlaceholder"
+                                    :placeholder="$t('请输入IP，多个以逗号或者换行符隔开')"
                                     v-model="formData.modules[moduleIndex].customIpList">
                                 </bk-input>
                             </bk-form-item>
@@ -224,7 +224,7 @@
                             <bk-form-item
                                 v-show="formData.modules[moduleIndex].selectMethod === 2"
                                 property="reuse"
-                                :label="i18n.reuseModule"
+                                :label="$t('复用模块')"
                                 :required="true">
                                 <bk-select v-model="formData.modules[moduleIndex].reuse">
                                     <bk-option
@@ -247,15 +247,15 @@
             render-directive="if"
             :mask-close="false"
             :auto-close="false"
-            :title="i18n.scheme"
+            :title="$t('筛选方案')"
             :loading="pending.saveScheme"
             :value="isSchemeDialogShow"
             @confirm="onSchemeConfirm"
             @cancel="isSchemeDialogShow = false">
             <bk-form ref="schemeForm" class="scheme-dialog" :model="schemeData" :rules="schemeNameRules">
-                <bk-form-item property="name" :label="i18n.schemeName">
+                <bk-form-item property="name" :label="$t('方案名称')">
                     <bk-input v-model="schemeData.name" />
-                    <div class="scheme-tip">{{ i18n.schemeTips }}</div>
+                    <div class="scheme-tip">{{ $t('修改名称会新建方案记录') }}</div>
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
@@ -321,12 +321,12 @@
                     name: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: this.$t('必选项'),
                             trigger: 'blur'
                         },
                         {
                             max: 50,
-                            message: gettext('方法名称不能超过50个字符'),
+                            message: this.$t('方法名称不能超过50个字符'),
                             trigger: 'blur'
                         }
                     ]
@@ -335,21 +335,21 @@
                     clusterCount: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: this.$t('必选项'),
                             trigger: 'blur'
                         }
                     ],
                     set: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: this.$t('必选项'),
                             trigger: 'blur'
                         }
                     ],
                     resource: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: this.$t('必选项'),
                             trigger: 'blur'
                         }
                     ]
@@ -357,7 +357,7 @@
                 moduleRules: {
                     count: [{
                         required: true,
-                        message: gettext('必填项'),
+                        message: this.$t('必填项'),
                         trigger: 'blur'
                     }],
                     customIpList: [{
@@ -376,7 +376,7 @@
                             }
                             return true
                         },
-                        message: gettext('IP地址不合法'),
+                        message: this.$t('IP地址不合法'),
                         trigger: 'blur'
                     }],
                     reuse: [{
@@ -388,7 +388,7 @@
                             }
                             return true
                         },
-                        message: gettext('必填项'),
+                        message: this.$t('必填项'),
                         trigger: 'blur'
                     }]
                 },
@@ -409,38 +409,6 @@
                     module: false,
                     condition: false,
                     host: false
-                },
-                i18n: {
-                    title: gettext('资源筛选'),
-                    scheme: gettext('筛选方案'),
-                    schemeName: gettext('方案名称'),
-                    schemeTips: gettext('修改名称会新建方案记录'),
-                    saveScheme: gettext('保存筛选方案'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消'),
-                    cluster: gettext('集群个数'),
-                    set: gettext('集群模板'),
-                    resource: gettext('主机资源所属'),
-                    exclusive: gettext('互斥属性'),
-                    shareEqually: gettext('均摊属性'),
-                    resourceNum: gettext('主机数量'),
-                    selectMethod: gettext('筛选方式'),
-                    default: gettext('默认'),
-                    manual: gettext('手动指定'),
-                    list: gettext('列表'),
-                    ipPlaceholder: gettext('请输入IP，多个以逗号或者换行符隔开'),
-                    reuse: gettext('复用其他模块机器'),
-                    reuseModule: gettext('复用模块'),
-                    muteMethod: gettext('互斥方案'),
-                    notMute: gettext('不互斥'),
-                    innerMute: gettext('模块内互斥'),
-                    moduleMute: gettext('模块间互斥'),
-                    muteModuleTips: gettext('如果互斥模块复用本模块，则该互斥约束失效'),
-                    muteModule: gettext('互斥模块'),
-                    condition: gettext('筛选条件和排除条件'),
-                    filterLock: gettext('过滤加锁主机'),
-                    setPlaceholder: gettext('暂不支持分层层级大于 业务-集群 两层的集群模版'),
-                    pleaseSelect: gettext('请选择')
                 },
                 levelInfo: [], // 集群模板层数
                 setSelectDisable: false // 集群模板是否大于等于三层
@@ -928,7 +896,7 @@
                 // 节点循环引用退出保存，弹出提示
                 if (cycleCiting) {
                     this.$bkMessage({
-                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用'),
+                        message: this.$t('模块') + cycled.join(',') + this.$t('存在循环引用'),
                         theme: 'error',
                         ellipsisLine: 0,
                         delay: 10000
@@ -955,7 +923,7 @@
 
                     if (!tabValid) {
                         this.$bkMessage({
-                            message: gettext('参数错误，请检查模块表单项'),
+                            message: this.$t('参数错误，请检查模块表单项'),
                             theme: 'error',
                             delay: 10000
                         })

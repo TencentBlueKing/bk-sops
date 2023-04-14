@@ -24,6 +24,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '@/components/common/RenderForm/formMixins.js'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     const attrs = {
@@ -36,7 +37,7 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用组件')
+            desc: i18n.t('禁用组件')
         },
         placeholder: {
             type: String,

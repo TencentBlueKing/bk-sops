@@ -33,7 +33,7 @@
                 <bk-button :disabled="!editable || disabled" size="small" theme="primary">{{ uploadText }}</bk-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
-            <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>
+            <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ this.$t('提交') }}</bk-button>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">
@@ -154,12 +154,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
-                fileValue: tools.deepClone(this.value),
-                i18n: {
-                    submit: gettext('提交'),
-                    upload: gettext('点击上传'),
-                    select: gettext('选择文件')
-                }
+                fileValue: tools.deepClone(this.value)
             }
         },
         computed: {
@@ -170,7 +165,7 @@
                 return this.fileValue.map(item => item.name)
             },
             uploadText () {
-                return this.text || (this.auto_upload ? this.i18n.upload : this.i18n.select)
+                return this.text || (this.auto_upload ? this.$t('点击上传') : this.$t('选择文件'))
             },
             // 兼容插件需要自定义上传函数的场景
             customProps () {

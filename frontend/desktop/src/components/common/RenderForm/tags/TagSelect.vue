@@ -77,6 +77,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import bus from '@/utils/bus.js'
     import { getFormMixins } from '../formMixins.js'
 
@@ -85,7 +86,7 @@
             type: [String, Array, Boolean, Number],
             required: false,
             default: '',
-            desc: gettext('下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据')
+            desc: i18n.t('下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据')
         },
         items: {
             type: Array,
@@ -178,7 +179,7 @@
         empty_text: {
             type: String,
             required: false,
-            default: gettext('无数据'),
+            default: i18n.t('无数据'),
             desc: 'tips when data is empty'
         }
     }
@@ -235,7 +236,7 @@
             return {
                 options: this.$attrs.items ? this.$attrs.items.slice(0) : [],
                 loading: false,
-                loading_text: gettext('加载中'),
+                loading_text: this.$t('加载中'),
                 selectInputDom: null
             }
         },
@@ -336,7 +337,7 @@
                         bus.$emit('tagRemoteLoaded', self.tagCode, remoteData)
                     },
                     error: function (resp) {
-                        self.placeholder = gettext('请求数据失败')
+                        self.placeholder = this.$t('请求数据失败')
                         self.loading = false
                     }
                 })

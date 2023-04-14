@@ -26,6 +26,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -38,7 +39,7 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用组件')
+            desc: i18n.t('禁用组件')
         },
         placeholder: {
             type: String,

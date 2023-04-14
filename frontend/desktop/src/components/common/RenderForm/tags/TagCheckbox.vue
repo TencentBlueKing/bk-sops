@@ -24,6 +24,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -33,15 +34,15 @@
             default () {
                 return [
                     {
-                        name: gettext('选项1'),
+                        name: i18n.t('选项1'),
                         value: 'value1'
                     },
                     {
-                        name: gettext('选项2'),
+                        name: i18n.t('选项2'),
                         value: 'value2'
                     },
                     {
-                        name: gettext('选项3'),
+                        name: i18n.t('选项3'),
                         value: 'value3'
                     }
                 ]
@@ -77,7 +78,7 @@
             viewValue () {
                 // 特殊处理只有一个可选项并且label为空的情况，兼容job快速执行脚本滚动执行
                 if (this.items.length === 1 && !this.items[0].label) {
-                    return this.checkedValue.length ? gettext('是') : gettext('否')
+                    return this.checkedValue.length ? this.$t('是') : this.$t('否')
                 }
 
                 if (!this.checkedValue.length) {

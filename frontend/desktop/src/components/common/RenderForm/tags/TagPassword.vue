@@ -28,6 +28,7 @@
 
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import EncryptRSA from '@/utils/encryptRSA.js'
     import { getFormMixins } from '../formMixins.js'
@@ -42,7 +43,7 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用组件')
+            desc: i18n.t('禁用组件')
         },
         value: {
             type: [String, Boolean],
@@ -58,7 +59,7 @@
                 encrypted: false,
                 passwordPlaceholder: '*****',
                 i18n: {
-                    placeholder: gettext('要修改密码请点击后重新输入密码')
+                    placeholder: i18n.t('要修改密码请点击后重新输入密码')
                 }
             }
         },

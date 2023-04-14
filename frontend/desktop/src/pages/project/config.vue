@@ -700,8 +700,17 @@
                 }
             },
             onDelStaffGroup (group) {
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('分组') + '"' + group.name + '"?',
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('分组') + '"' + group.name + '"?'])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
                     confirmFn: async () => {
@@ -795,9 +804,23 @@
                 }
             },
             onDelLabel (label) {
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除该标签?'),
-                    subTitle: i18n.t('关联的流程将同时移除本标签'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除该标签?')]),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('关联的流程将同时移除本标签')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
                     confirmFn: async () => {
@@ -857,9 +880,23 @@
                 }
             },
             onRemove (variable) {
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('项目变量') + `"${variable.key}"?`,
-                    subTitle: i18n.t('若该变量被流程的节点引用，请及时检查并更新节点配置'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('项目变量') + `"${variable.key}"?`]),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('若该变量被流程的节点引用，请及时检查并更新节点配置')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
                     confirmFn: async () => {
