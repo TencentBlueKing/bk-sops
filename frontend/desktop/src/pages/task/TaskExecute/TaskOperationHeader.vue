@@ -16,9 +16,10 @@
             <div class="operation-title">{{$t('任务执行')}}</div>
             <div class="bread-crumbs-wrapper">
                 <span
-                    :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
+                    class="path-item name-ellipsis"
                     v-for="(path, index) in nodeNav"
                     :key="path.id"
+                    v-bk-overflow-tips
                     :title="showNodeList.includes(index) ? path.name : ''">
                     <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
                     <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
