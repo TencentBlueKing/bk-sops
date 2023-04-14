@@ -19,7 +19,8 @@
             :disabled="!editable || !formMode || disabled"
             :autosize="formMode ? { minRows: 2 } : true"
             resize="none"
-            :placeholder="placeholder">
+            :placeholder="placeholder"
+            @blur="$emit('blur')">
         </el-input>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>

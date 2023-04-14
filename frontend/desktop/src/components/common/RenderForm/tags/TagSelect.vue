@@ -29,6 +29,7 @@
                 :no-data-text="empty_text"
                 :filter-method="filterMethod"
                 :placeholder="placeholder"
+                @blur="$emit('blur')"
                 @visible-change="onVisibleChange">
                 <template v-if="showRightBtn" slot="prefix">
                     <i class="right-btn" :class="rightBtnIcon" @click="onRightBtnClick"></i>

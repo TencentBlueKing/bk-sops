@@ -82,6 +82,7 @@
             :option="groupOption"
             :value="value[form.tag_code]"
             :parent-value="value"
+            @blur="$emit('blur')"
             @init="$emit('init', $event)"
             @change="updateForm">
         </component>

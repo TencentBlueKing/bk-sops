@@ -20,6 +20,7 @@
                     :disabled="isDisabled"
                     :show-password="showPassword"
                     :placeholder="placeholder"
+                    @blur="$emit('blur')"
                     @input="handleInputChange">
                 </el-input>
                 <div v-else class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
@@ -105,7 +106,7 @@
             return {
                 isListOpen: false,
                 input: {
-                    value: '',
+                    value: this.value,
                     focus: false
                 },
                 varList: [],
@@ -154,6 +155,10 @@
         created () {
             window.addEventListener('click', this.handleListShow, false)
         },
+        mounted () {
+            const divInputDom = this.$el.querySelector('.div-input')
+            divInputDom.innerHTML = this.value
+        },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
         },
@@ -168,7 +173,7 @@
                 }
             },
             onSelectVal (val) {
-                const divInputDom = document.querySelector('.tag-input .div-input')
+                const divInputDom = this.$el.querySelector('.div-input')
                 divInputDom.innerText = divInputDom.innerText.replace(VAR_REG, val)
                 const replacedValue = this.value.replace(VAR_REG, val)
                 this.input.value = replacedValue
@@ -180,14 +185,14 @@
             handleInputMouseUp (e) {
                 // 判断是否点到变量节点上
                 let isVarTagDom = false
-                const varTagDoms = document.querySelectorAll('.tag-input .var-tag')
+                const varTagDoms = this.$el.querySelectorAll('.var-tag')
                 if (varTagDoms && varTagDoms.length) {
                     isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
                 }
                 if (isVarTagDom) {
                     const varText = e.target.innerText
                     const varTextHtml = `<span contenteditable="false" class="var-tag">${varText}</span>`
-                    const divInputDom = document.querySelector('.tag-input .div-input')
+                    const divInputDom = this.$el.querySelector('.div-input')
                     // 记录光标的位置
                     const selection = window.getSelection()
                     const varTextOffset = selection.anchorOffset
@@ -230,10 +235,9 @@
                     if (!this.isListOpen && this.varList.length) {
                         const newDom = document.createElement('span')
                         newDom.innerHTML = innerHTML.split(0, -1)
-                        const tagInput = document.querySelector('.tag-input')
-                        tagInput.appendChild(newDom)
+                        this.$el.appendChild(newDom)
                         let inputValueWidth = newDom.offsetWidth || 0
-                        tagInput.removeChild(newDom)
+                        this.$el.removeChild(newDom)
                         inputValueWidth = inputValueWidth > 380 ? 380 : inputValueWidth
                         this.varListPositionLeft = inputValueWidth
                     }
@@ -244,12 +248,13 @@
             },
             // 文本框失焦
             handleInputBlur  (e) {
+                this.$emit('blur')
                 this.input.focus = false
                 const varRegexp = /\s?\${[a-zA-Z_]\w*}\s?/g
                 const innerHtml = this.input.value.replace(varRegexp, (match) => {
                     return ` <span contenteditable="false" class="var-tag">${match.trim()}</span> ` // 两边留空格保持间距
                 })
-                const divInputDom = document.querySelector('.tag-input .div-input')
+                const divInputDom = this.$el.querySelector('.div-input')
                 divInputDom.innerHTML = innerHtml
             },
             // 文本框按键事件
@@ -317,6 +322,9 @@
             cursor: not-allowed;
             background-color: #fafbfd;
             border-color: #dcdee5;
+            .div-input {
+                height: 32px;
+            }
         }
     }
     .div-input {
