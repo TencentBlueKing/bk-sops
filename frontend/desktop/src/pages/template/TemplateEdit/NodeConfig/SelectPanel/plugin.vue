@@ -241,7 +241,7 @@
                     }
                     this.thirdPluginOffset = return_plugin_count ? next_offset : 0
                     this.thirdPartyPlugin.push(...pluginList)
-                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPagelimit) {
+                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPage.limit) {
                         this.isThirdPluginCompleteLoading = true
                     }
                 } catch (error) {
