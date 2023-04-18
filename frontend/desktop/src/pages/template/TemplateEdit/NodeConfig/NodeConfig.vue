@@ -1599,11 +1599,17 @@
                             if (!alwaysUseLatest && latestVersion && latestVersion !== version) {
                                 this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
                             }
+                            const inputRef = this.$refs.inputParams
                             // 更新子流程已勾选的变量值
                             Object.keys(this.localConstants).forEach(key => {
                                 const constantValue = this.localConstants[key]
                                 const formValue = this.subflowForms[key]
-                                if (constantValue.is_meta && formValue) {
+                                let hook = false
+                                // 获取输入参数的勾选状态
+                                if (inputRef && inputRef.hooked) {
+                                    hook = inputRef.hooked[key] || false
+                                }
+                                if (constantValue.is_meta && formValue && hook) {
                                     const schema = formSchema.getSchema(formValue.key, this.inputs)
                                     constantValue['form_schema'] = schema
                                     constantValue.meta = formValue.meta
