@@ -83,6 +83,16 @@
                                             :href="`${site_url}template/edit/${props.row.project.id}/?template_id=${props.row.id}`">
                                             {{ $t('编辑') }}
                                         </a>
+                                        <router-link
+                                            v-if="props.row.project"
+                                            class="table-link ml10"
+                                            :to="{
+                                                name: 'taskList',
+                                                params: { project_id: props.row.project.id },
+                                                query: { template_id: props.row.id, template_source: 'project' }
+                                            }">
+                                            {{ $t('执行历史')}}
+                                        </router-link>
                                     </template>
                                 </template>
                                 <template v-else :title="props.row[col.prop]">{{ props.row[col.prop] }}</template>
