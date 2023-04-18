@@ -80,6 +80,12 @@ const NODE_RULE = {
     }
 }
 
+let nodeTargetMaps = {}
+let convergeGwNodes = []
+let pipelineData = {}
+let branchLength = 0 // 分支数
+let branchNodes = [] // 分支上包含的节点
+
 const validatePipeline = {
     /**
      * 判断连线是否合法
@@ -263,7 +269,23 @@ const validatePipeline = {
      * 画布pipeline_tree数据校验
      */
     isPipelineDataValid (data) {
-        const { activities, start_event, end_event, gateways, flows } = data
+        const { activities, start_event, end_event, gateways, flows, line } = data
+        nodeTargetMaps = line.reduce((acc, cur) => {
+            const { source, target } = cur
+            if (acc[source.id]) {
+                acc[source.id].push(target.id)
+            } else {
+                acc[source.id] = [target.id]
+            }
+            return acc
+        }, {})
+        convergeGwNodes = Object.values(gateways).reduce((acc, cur) => {
+            if (cur.type === 'ConvergeGateway') {
+                acc.push(cur.id)
+            }
+            return acc
+        }, [])
+        pipelineData = { ...data }
         let valid = validator(data)
         let message = ''
         let errorId = ''
@@ -297,71 +319,50 @@ const validatePipeline = {
                 return true
             }
             // 检查并行网关/条件并行网关是否和汇聚网关相连
-            // if (['ParallelGateway', 'ConditionalParallelGateway'].includes(node.type)) {
-            //     let branchSinkNodes = new Set()
-            //     this.getBranchNodes(data, node.id, '', branchSinkNodes)
-            //     branchSinkNodes = [...branchSinkNodes]
-            //     if (branchSinkNodes.length === 1 && gateways[branchSinkNodes[0]]?.type === 'ConvergeGateway') {
-            //         return false
-            //     } else {
-            //         message = node.type === 'ParallelGateway'
-            //             ? i18n.t('并行网关缺少对应的汇聚网关')
-            //             : i18n.t('条件并行网关缺少对应的汇聚网关')
-            //         errorId = node.id
-            //         return true
-            //     }
-            // }
+            if (['ParallelGateway', 'ConditionalParallelGateway'].includes(node.type)) {
+                branchLength = 0
+                branchNodes = new Set()
+                this.checkParallelGateway(node.id)
+                if (branchLength === 1) {
+                    return false
+                } else {
+                    message = node.type === 'ParallelGateway'
+                        ? i18n.t('并行网关缺少对应的汇聚网关')
+                        : i18n.t('条件并行网关缺少对应的汇聚网关')
+                    errorId = node.id
+                    return true
+                }
+            }
             return false
         })
 
         return this.getMessage(valid, message, errorId)
     },
-    /**
-     * id 起始节点
-     * firstId 分支上首个节点
-     * branchSinkNodes 存在分支
-     */
-    getBranchNodes (data, id, firstId, branchSinkNodes) {
-        const { flows, activities, gateways, end_event } = data
-        const targetIds = Object.values(flows).reduce((acc, cur) => {
-            if (cur.source === id) {
-                acc.push(cur.target)
-            }
-            return acc
-        }, [])
-        if (targetIds.length > 1) {
-            if (branchSinkNodes.has(firstId)) {
-                branchSinkNodes.delete(firstId)
-            }
-            targetIds.forEach(targetId => {
-                branchSinkNodes.add(targetId)
-                this.getBranchNodes(data, targetId, targetId, branchSinkNodes)
+    // 检查并行网关是否和汇聚网关对应
+    checkParallelGateway (id) {
+        // 记录当前节点
+        branchNodes.add(id)
+
+        const matchNodes = nodeTargetMaps[id]
+        if (matchNodes && matchNodes.length > 1) { // 对应多个节点
+            // 删除一条旧分支，如果当前没有分支则不删，并且添加新分支
+            branchLength = branchLength - (branchLength ? 1 : 0) + matchNodes.length
+            matchNodes.forEach(nodeId => {
+                this.checkParallelGateway(nodeId)
             })
-        } else if (targetIds.length === 1) {
-            const targetId = targetIds[0]
-            const curId = firstId ? id : targetId
-            const { type } = activities[curId] || gateways[curId] || {}
-            // 如果当前节点为网关节点时，需要在branchSinkNodes里删除掉
-            if (gateways[id]?.type === 'ConvergeGateway') {
-                branchSinkNodes.delete(id)
+        } else if (matchNodes) { // 对应一个节点
+            branchLength = branchLength || 1
+            // 出现重复节点退出递归，当前分支无效-1
+            const nodeId = matchNodes[0]
+            if (branchNodes.has(nodeId) && nodeId !== pipelineData.end_event.id) {
+                branchLength = branchLength - 1
+                return
             }
-            // 如找到了汇聚网关则退出递归
-            if (type === 'ConvergeGateway') {
-                branchSinkNodes.delete(firstId)
-                branchSinkNodes.add(curId)
-                if (branchSinkNodes.size > 1) {
-                    branchSinkNodes.forEach(nodeId => {
-                        this.getBranchNodes(data, nodeId, '', branchSinkNodes)
-                    })
-                }
-            } else {
-                // 找到结束节点则退出递归
-                if (end_event.id === targetId) {
-                    branchSinkNodes.clear()
-                } else {
-                    this.getBranchNodes(data, targetId, firstId, branchSinkNodes)
-                }
+            if (branchLength === 1 && convergeGwNodes.includes(nodeId)) {
+                branchNodes.add(nodeId)
+                return
             }
+            this.checkParallelGateway(nodeId)
         }
     },
     getMessage (result = true, message = '', errorId) {
