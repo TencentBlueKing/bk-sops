@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-18 15:01+0800\n"
+"POT-Creation-Date: 2023-04-18 16:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -347,6 +347,7 @@ msgstr "通知执行人"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:178
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:276
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:536
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:55
 msgid "是"
 msgstr "是"
 
@@ -382,6 +383,7 @@ msgstr "是"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:179
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:277
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:537
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:56
 msgid "否"
 msgstr "否"
 
@@ -1315,10 +1317,8 @@ msgstr "可为空, 脚本执行时传入的参数，同脚本在终端执行时�
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:544
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:659
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:620
-#, fuzzy
-#| msgid "单位为秒，为空时使用 JOB 默认值"
 msgid "单位为秒(1 - 86400)，为空时使用 JOB 默认值"
-msgstr "单位为秒，为空时使用 JOB 默认值"
+msgstr "单位为秒(1 - 86400)，为空时使用 JOB 默认值"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:310
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:437
@@ -1428,6 +1428,7 @@ msgstr ""
 " 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
 " 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
 " 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
+" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
 " 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:361
@@ -1520,6 +1521,33 @@ msgstr "滚动机制"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:320
 msgid "滚动执行开启时滚动机制为必填项"
 msgstr "滚动执行开启时滚动机制为必填项"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:661
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:559
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:843
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:546
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:521
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:328
+msgid "默认（执行失败则暂停）"
+msgstr "默认（执行失败则暂停）"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:662
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:560
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:844
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:547
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:522
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:329
+msgid "忽略失败，自动滚动下一批"
+msgstr "忽略失败，自动滚动下一批"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:663
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:561
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:845
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:548
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:523
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:330
+msgid "不自动，每批次都人工确认"
+msgstr "不自动，每批次都人工确认"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:31
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:158
@@ -1665,10 +1693,8 @@ msgstr "请输入绝对路径（可用[FILESRCIP]代替源IP）"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:153
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:269
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:376
-#, fuzzy
-#| msgid "单位为秒，为空时使用 JOB 默认值"
 msgid "单位为秒(1 - 86400)，为空时使用JOB默认值"
-msgstr "单位为秒，为空时使用 JOB 默认值"
+msgstr "单位为秒(1 - 86400)，为空时使用JOB默认值"
 
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:262
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:273
@@ -2893,6 +2919,14 @@ msgstr "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，
 msgid "GSE AGENT状态"
 msgstr "GSE AGENT状态"
 
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:41
+msgid "在线"
+msgstr "在线"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:42
+msgid "不在线"
+msgstr "不在线"
+
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:53
 msgid "输出带云区域"
 msgstr "输出带云区域"
@@ -2900,6 +2934,24 @@ msgstr "输出带云区域"
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:67
 msgid "输出分隔符"
 msgstr "输出分隔符"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:69
+msgid "逗号"
+msgstr "逗号"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:70
+#, fuzzy
+#| msgid " 分"
+msgid "分号"
+msgstr " 分"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:71
+msgid "竖线"
+msgstr "竖线"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:72
+msgid "换行符"
+msgstr "换行符"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_selector.js:18
 msgid "选择服务器"
@@ -3693,20 +3745,6 @@ msgstr "文本框"
 
 #~ msgid "分隔符："
 #~ msgstr "分隔符："
-
-#~ msgid "逗号"
-#~ msgstr "逗号"
-
-#, fuzzy
-#~| msgid " 分"
-#~ msgid "分号"
-#~ msgstr " 分"
-
-#~ msgid "竖线"
-#~ msgstr "竖线"
-
-#~ msgid "换行符"
-#~ msgstr "换行符"
 
 #~ msgid "搜索IP，多个以逗号隔开"
 #~ msgstr "搜索IP，多个以逗号分隔"

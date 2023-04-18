@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-04-18 15:00+0800\n"
+"POT-Creation-Date: 2023-04-18 16:25+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1027,7 +1027,7 @@ msgstr "Staff Group Set"
 #: gcloud/core/models.py:378 gcloud/taskflow3/models.py:728
 #: gcloud/tasktmpl3/models.py:508
 msgid "任务执行人代理"
-msgstr "Task Execution"
+msgstr "Task Executor"
 
 #: gcloud/core/models.py:379
 msgid "不使用执行人代理的用户列表"
@@ -1482,6 +1482,122 @@ msgstr "Tag id"
 msgid "模版标签关系 TemplateLabelRelation"
 msgstr "TemplateLabelRelation"
 
+#: gcloud/mako_template_helper/hub.py:21
+msgid "字符串分割后拼接"
+msgstr "split and join"
+
+#: gcloud/mako_template_helper/hub.py:24 gcloud/mako_template_helper/hub.py:31
+msgid "将 {caller}"
+msgstr "of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:24
+msgid "以 {split_string} 分割后"
+msgstr "split with {split_string}"
+
+#: gcloud/mako_template_helper/hub.py:24
+msgid "以 {join_string} 拼接"
+msgstr "join with {join_string}"
+
+#: gcloud/mako_template_helper/hub.py:28
+msgid "替换字符串中的字符"
+msgstr "replace char"
+
+#: gcloud/mako_template_helper/hub.py:31
+msgid "中的 {old} 字符串"
+msgstr "with {old}"
+
+#: gcloud/mako_template_helper/hub.py:31
+msgid "替换为 {new} 字符串"
+msgstr "replace {new}"
+
+#: gcloud/mako_template_helper/hub.py:35
+msgid "将首字母变成大写"
+msgstr "uppercase the first letter"
+
+#: gcloud/mako_template_helper/hub.py:38
+msgid "将 {caller} 的首字母变成大写"
+msgstr "uppercase the first letter of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:42
+msgid "将字符串变成大写"
+msgstr "uppercase string"
+
+#: gcloud/mako_template_helper/hub.py:45
+msgid "将 {caller} 变成大写"
+msgstr "uppercase first letter of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:49
+msgid "将字符串变成小写"
+msgstr "lowercase string"
+
+#: gcloud/mako_template_helper/hub.py:52
+msgid "将 {caller} 变成小写"
+msgstr "lowercase first letter of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:56
+msgid "获取子字符串出现的次数"
+msgstr "count number of sub-string"
+
+#: gcloud/mako_template_helper/hub.py:59
+msgid "获取 {caller} 中 {sub} 出现的次数"
+msgstr "count number of {sub} in {caller}"
+
+#: gcloud/mako_template_helper/hub.py:63
+msgid "获取字符串的长度"
+msgstr "Get length of string"
+
+#: gcloud/mako_template_helper/hub.py:66
+msgid "获取 {caller} 的长度"
+msgstr "Get length of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:70
+msgid "去除字符串头尾空格"
+msgstr "remove leading and trailing spaces"
+
+#: gcloud/mako_template_helper/hub.py:73
+msgid "去除 {caller} 头尾空格"
+msgstr "remove leading and trailing spaces from {caller}"
+
+#: gcloud/mako_template_helper/hub.py:77
+msgid "去除字符串头部空格"
+msgstr "remove leading spaces"
+
+#: gcloud/mako_template_helper/hub.py:80
+msgid "去除 {caller} 头部空格"
+msgstr "remove leading spaces from {caller}"
+
+#: gcloud/mako_template_helper/hub.py:84
+msgid "去除字符串尾部空格"
+msgstr "remove trailing spaces"
+
+#: gcloud/mako_template_helper/hub.py:87
+msgid "去除 {caller} 尾部空格"
+msgstr "remove trailing spaces from {caller}"
+
+#: gcloud/mako_template_helper/hub.py:91
+msgid "将字符串中单词首字母改为大写"
+msgstr "uppercase first letter of word"
+
+#: gcloud/mako_template_helper/hub.py:94
+msgid "将 {caller} 中单词首字母改为大写"
+msgstr "uppercase first letter of word "
+
+#: gcloud/mako_template_helper/hub.py:98
+msgid "返回路径的基本名称"
+msgstr "return basename"
+
+#: gcloud/mako_template_helper/hub.py:101
+msgid "返回 {path} 的基本名称"
+msgstr "return basename of {path}"
+
+#: gcloud/mako_template_helper/hub.py:105
+msgid "返回路径的目录名"
+msgstr "return dirname"
+
+#: gcloud/mako_template_helper/hub.py:108
+msgid "返回 {path} 的目录名"
+msgstr "return dirname of {path}"
+
 #: gcloud/periodictask/models.py:173
 msgid "pipeline 层周期任务"
 msgstr "Scheduled task in pipeline"
@@ -1566,9 +1682,8 @@ msgstr "Updater"
 
 #: gcloud/project_constants/models.py:30
 #: gcloud/user_custom_config/constants.py:19
-#, fuzzy
 msgid "更新时间"
-msgstr "Date rejected"
+msgstr "Update Time"
 
 #: gcloud/shortcuts/message/common.py:20
 msgid "【标准运维APP通知】执行失败"
@@ -1771,14 +1886,12 @@ msgid "任务所属的CMDB业务名称"
 msgstr "Business Name"
 
 #: gcloud/taskflow3/domains/context.py:120
-#, fuzzy
 msgid "任务的执行人（点击开始执行的人员）"
 msgstr "Task Operator"
 
 #: gcloud/taskflow3/domains/context.py:126
-#, fuzzy
 msgid "任务的执行代理人"
-msgstr "Task Execution"
+msgstr "Task Executor"
 
 #: gcloud/taskflow3/domains/context.py:133
 msgid "任务名称"
@@ -1786,7 +1899,7 @@ msgstr "Task Name"
 
 #: gcloud/taskflow3/domains/task_constants.py:35
 msgid "非法操作: 仅支持 V2 版本的任务 | get_rendered_constant_keys"
-msgstr ""
+msgstr "Illegal operation: only support V2 engine | get_rendered_constant_keys"
 
 #: gcloud/taskflow3/domains/dispatchers/node.py:194
 msgid "非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1"
@@ -1798,11 +1911,11 @@ msgstr "Task operation failed: Started task cannot be started again | start_v2"
 
 #: gcloud/taskflow3/domains/dispatchers/task.py:350
 msgid "任务参数设置失败: 非法的任务参数, 请修改后重试 | set_task_constants"
-msgstr "Task parameter setting failed: invalid task parameter, please modify and try again | set_task_constants"
+msgstr "Task parameter set failed: invalid task parameter, please modify and try again | set_task_constants"
 
 #: gcloud/taskflow3/domains/dispatchers/task.py:402
 msgid "任务参数设置失败: 任务状态校验失败，"
-msgstr ""
+msgstr "Task parameters set failed: task validate failed"
 
 #: gcloud/taskflow3/domains/dispatchers/task.py:476
 msgid "任务数据请求失败: 请重试, 如持续失败可联系管理员处理 | get_task_status_v1"
@@ -2071,7 +2184,7 @@ msgstr "Call back through the node_callback API interface and pass in data, supp
 
 #: pipeline_plugins/components/collections/controller.py:64
 msgid "人工确认(暂停)"
-msgstr ""
+msgstr "Manually Confirm(Pause)"
 
 #: pipeline_plugins/components/collections/controller.py:68
 msgid "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
@@ -2132,7 +2245,7 @@ msgstr "Failed"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:85
 msgid "Gsekit任务执行异常, 任务状态为 {}"
-msgstr ""
+msgstr "The Gsekit task encountered an execution, task status is {}"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:91
 msgid "环境类型"
@@ -2182,11 +2295,11 @@ msgstr "Flow Instance"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:127
 msgid "配置文件模版"
-msgstr ""
+msgstr "Configure template"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:130
 msgid "配置文件模版名"
-msgstr ""
+msgstr "Configure template name"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:190
 #, fuzzy
@@ -2297,7 +2410,7 @@ msgstr "Review Result"
 
 #: pipeline_plugins/components/collections/sites/open/bk/approve/v1_0.py:105
 msgid "审批"
-msgstr ""
+msgstr "Approval"
 
 #: pipeline_plugins/components/collections/sites/open/bk/display/v1_0.py:30
 msgid "展示内容"
@@ -3540,7 +3653,7 @@ msgstr "Business Set Execute Job"
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:43
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_2.py:165
 msgid "按照执行结果将 IP 进行分组：1. 使用 job_tagged_ip_dict[\"value\"][\"SUCCESS\"][\"TAGS\"][\"ALL\"]  获取「执行成功」的 IP， ALL 代表所有 IP，可指定分组名获取特定分组的 IP ；2. 使用 job_tagged_ip_dict[\"value\"][\"SCRIPT_NOT_ZERO_EXIT_CODE\"][\"TAGS\"][\"ALL\"] 获取「脚本返回值非零」的 IP"
-msgstr ""
+msgstr "Use job_tagged_ip_dict[\"value\"][\"SUCCESS\"][\"TAGS\"][\"ALL\"] to get the IP of success, ALL means all IP, you can specify the group name to get the IP of a specific group; 2. Use job_tagged_ip_dict[\"value\"][\"SCRIPT_NOT_ZERO_EXIT_CODE\"][\"TAGS\"][\"ALL\"] to get the IP with non-zero return value"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/v1_1.py:70
 msgid "3. 业务集修改为下拉框获取，默认开启新版IP tag分组, 默认开启失败时提取变量"
@@ -3549,7 +3662,7 @@ msgstr "3. The business set is modified to obtain from the drop-down box, and th
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:35
 #, fuzzy
 msgid "业务集 ID"
-msgstr "Task id"
+msgstr "Business set id"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:38
 msgid "当前操作业务集 ID"
@@ -4332,7 +4445,7 @@ msgstr "Monitor Platform"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/base.py:52
 msgid "主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参"
-msgstr ""
+msgstr "The innerip of host is null,it is required by BK-Monitor"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/base.py:91
 msgid "屏蔽Id"

@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-18 15:01+0800\n"
+"POT-Creation-Date: 2023-04-18 16:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -342,6 +342,7 @@ msgstr "Notification Executor"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:178
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:276
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:536
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:55
 msgid "是"
 msgstr "Yes"
 
@@ -377,6 +378,7 @@ msgstr "Yes"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:179
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:277
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:537
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:56
 msgid "否"
 msgstr "No"
 
@@ -1073,7 +1075,7 @@ msgstr "Select set please"
 
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:26
 msgid "执行命令"
-msgstr ""
+msgstr "Run conmand"
 
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:78
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:80
@@ -1093,7 +1095,7 @@ msgstr "Process Alias"
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:106
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:108
 msgid "process_id"
-msgstr ""
+msgstr "process_id"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:24
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:222
@@ -1287,8 +1289,6 @@ msgstr "Can be empty, and the parameters passed in when the script is executed a
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:544
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:659
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:620
-#, fuzzy
-#| msgid "单位为秒，为空时使用 JOB 默认值"
 msgid "单位为秒(1 - 86400)，为空时使用 JOB 默认值"
 msgstr "The unit is second, empty is valid, defaulted as same with JOB"
 
@@ -1485,6 +1485,33 @@ msgstr "Mode"
 msgid "滚动执行开启时滚动机制为必填项"
 msgstr "The rolling mode is required  when the rolling execution is enabled"
 
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:661
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:559
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:843
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:546
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:521
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:328
+msgid "默认（执行失败则暂停）"
+msgstr "Default(Paused when fail)"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:662
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:560
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:844
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:547
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:522
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:329
+msgid "忽略失败，自动滚动下一批"
+msgstr "Ignore fail, scrolling automatically"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:663
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:561
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:845
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:548
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:523
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:330
+msgid "不自动，每批次都人工确认"
+msgstr "Pause after each batch"
+
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:31
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:158
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:68
@@ -1633,8 +1660,6 @@ msgstr "Please enter the absolute path ([FILESRCIP] can be used instead of the s
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:153
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:269
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:376
-#, fuzzy
-#| msgid "单位为秒，为空时使用JOB默认值"
 msgid "单位为秒(1 - 86400)，为空时使用JOB默认值"
 msgstr "The unit is second, empty is valid, defaulted as same with JOB"
 
@@ -2629,7 +2654,7 @@ msgstr "Inner IP"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:337
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:420
 msgid "可为空，如纯ipv6主机，内网ipv和外网IP(IPV6)两个必须填一个"
-msgstr ""
+msgstr "Can be empty. The innerip and outerip must be filled in one of IPv6-only host"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:409
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:346
@@ -2637,13 +2662,13 @@ msgstr ""
 #, fuzzy
 #| msgid "外网IP"
 msgid "外网IP(IPV6)"
-msgstr "Outer IP(IPV6)"
+msgstr "Outer IP(IPv6)"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:410
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:347
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:430
 msgid "可为空，如纯ipv6主机，外网ipv和外网IP(IPV6)两个必须填一个"
-msgstr ""
+msgstr "Can be empty. The innerip and outerip must be filled in one of IPv6-only host"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:471
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:408
@@ -2828,14 +2853,20 @@ msgid "原始IP"
 msgstr "Original IP address"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:26
-#, fuzzy
-#| msgid "请输入主机内网IP，多个用换行分隔"
 msgid "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"
 msgstr "Please enter host inner IP, multiple are separated by new line"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:39
 msgid "GSE AGENT状态"
 msgstr "GSE AGENT status"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:41
+msgid "在线"
+msgstr "Online"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:42
+msgid "不在线"
+msgstr "Offline"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:53
 msgid "输出带云区域"
@@ -2844,6 +2875,22 @@ msgstr "Output IP with cloud area id"
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:67
 msgid "输出分隔符"
 msgstr "Output Delimiter"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:69
+msgid "逗号"
+msgstr "Commas"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:70
+msgid "分号"
+msgstr " Minute"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:71
+msgid "竖线"
+msgstr "Vertical Line"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:72
+msgid "换行符"
+msgstr "Newline"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_selector.js:18
 msgid "选择服务器"
@@ -3597,18 +3644,6 @@ msgstr "Textarea"
 
 #~ msgid "分隔符："
 #~ msgstr "Delimiter: "
-
-#~ msgid "逗号"
-#~ msgstr "Commas"
-
-#~ msgid "分号"
-#~ msgstr " Minute"
-
-#~ msgid "竖线"
-#~ msgstr "Vertical Line"
-
-#~ msgid "换行符"
-#~ msgstr "Newline"
 
 #~ msgid "搜索IP，多个以逗号隔开"
 #~ msgstr "Search IP, multiple are separated by commas"
