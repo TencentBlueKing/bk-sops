@@ -325,9 +325,9 @@
                                 }
                             ],
                             items: [
-                                {text: '默认（执行失败则暂停）', value: 1},
-                                {text: '忽略失败，自动滚动下一批', value: 2},
-                                {text: '不自动，每批次都人工确认', value: 3},
+                                {text: gettext('默认（执行失败则暂停）'), value: 1},
+                                {text: gettext('忽略失败，自动滚动下一批'), value: 2},
+                                {text: gettext('不自动，每批次都人工确认'), value: 3},
                             ]
                         },
                         events: [

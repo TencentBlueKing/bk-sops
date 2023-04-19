@@ -41,7 +41,7 @@ class MakoTemplateOperation:
         self.name = name
         self.operators = operators
         self.params = params
-        self.template = template
+        self.template = [str(t) for t in template]
         self.mako_template = mako_template
 
         self._validate()

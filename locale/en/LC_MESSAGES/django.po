@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-01-03 20:00+0800\n"
+"POT-Creation-Date: 2023-04-18 16:25+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -22,15 +22,15 @@ msgstr ""
 msgid "请求失败: 返回不是合法的Json格式, 请重试 | api http"
 msgstr "Request failed: the return is not in legal Json format, please try again | api http"
 
-#: config/default.py:44
+#: config/default.py:45
 msgid "标准运维"
 msgstr "Standard OPS"
 
-#: config/default.py:263
+#: config/default.py:265
 msgid "English"
 msgstr "English"
 
-#: config/default.py:264
+#: config/default.py:266
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -90,11 +90,11 @@ msgstr "Functional Task Flow"
 #: gcloud/constants.py:54 gcloud/taskflow3/models.py:115
 #: gcloud/tasktmpl3/models.py:50
 msgid "未执行"
-msgstr "Created"
+msgstr "Ready"
 
 #: gcloud/constants.py:55 gcloud/contrib/function/models.py:29
 msgid "已执行"
-msgstr "Executed"
+msgstr "Started"
 
 #: gcloud/constants.py:56
 #, fuzzy
@@ -107,11 +107,11 @@ msgstr "Step Selection"
 
 #: gcloud/constants.py:64
 msgid "参数填写"
-msgstr "Parameter Enter"
+msgstr "Input Parameter"
 
 #: gcloud/constants.py:65 gcloud/constants.py:72
 msgid "任务执行"
-msgstr "Task Execution"
+msgstr "Execute Task "
 
 #: gcloud/constants.py:66 gcloud/constants.py:73
 msgid "完成"
@@ -123,7 +123,7 @@ msgstr "Submit Request"
 
 #: gcloud/constants.py:71
 msgid "职能化认领"
-msgstr "Task Claim"
+msgstr "Task"
 
 #: gcloud/constants.py:79
 msgid "手动"
@@ -141,11 +141,11 @@ msgstr "Mini-APP"
 #: gcloud/constants.py:82 gcloud/contrib/collection/models.py:60
 #: gcloud/iam_auth/conf.py:33 gcloud/periodictask/models.py:325
 msgid "周期任务"
-msgstr "Periodic Task"
+msgstr "Scheduled Task"
 
 #: gcloud/constants.py:83 gcloud/iam_auth/conf.py:34
 msgid "计划任务"
-msgstr "Clocked Task"
+msgstr "One-Time Scheduled Task"
 
 #: gcloud/constants.py:84
 msgid "移动端"
@@ -163,7 +163,7 @@ msgstr "Common Flow"
 
 #: gcloud/constants.py:91 gcloud/contrib/operate_record/constants.py:53
 msgid "一次性任务"
-msgstr "Onetime Task"
+msgstr "One-Time Task"
 
 #: gcloud/constants.py:109
 msgid "任务准备"
@@ -237,8 +237,8 @@ msgstr "Please contact the API system maintenance person to handle"
 
 #: gcloud/analysis_statistics/models.py:21
 #: gcloud/analysis_statistics/models.py:45
-#: gcloud/analysis_statistics/models.py:77
-#: gcloud/analysis_statistics/models.py:100
+#: gcloud/analysis_statistics/models.py:78
+#: gcloud/analysis_statistics/models.py:101
 #, fuzzy
 msgid "id"
 msgstr "Project"
@@ -250,32 +250,32 @@ msgstr "Component Code"
 
 #: gcloud/analysis_statistics/models.py:23
 #: gcloud/analysis_statistics/models.py:60
-#: gcloud/analysis_statistics/models.py:78
-#: gcloud/analysis_statistics/models.py:108
+#: gcloud/analysis_statistics/models.py:79
+#: gcloud/analysis_statistics/models.py:109
 #, fuzzy
 msgid "Pipeline模板ID"
 msgstr "Pipeline Template"
 
 #: gcloud/analysis_statistics/models.py:24
 #: gcloud/analysis_statistics/models.py:61
-#: gcloud/analysis_statistics/models.py:79
-#: gcloud/analysis_statistics/models.py:109
+#: gcloud/analysis_statistics/models.py:80
+#: gcloud/analysis_statistics/models.py:110
 msgid "Task模板ID"
 msgstr "TaskTemplate Id"
 
 #: gcloud/analysis_statistics/models.py:25
-#: gcloud/analysis_statistics/models.py:62
-#: gcloud/analysis_statistics/models.py:83
-#: gcloud/analysis_statistics/models.py:106 gcloud/core/models.py:145
+#: gcloud/analysis_statistics/models.py:63
+#: gcloud/analysis_statistics/models.py:84
+#: gcloud/analysis_statistics/models.py:107 gcloud/core/models.py:145
 #: gcloud/core/models.py:352 gcloud/core/models.py:377
-#: gcloud/label/models.py:34 gcloud/project_constants/models.py:22
-#: gcloud/taskflow3/models.py:1239
+#: gcloud/label/models.py:37 gcloud/project_constants/models.py:22
+#: gcloud/taskflow3/models.py:1238
 msgid "项目 ID"
-msgstr "Node ID"
+msgstr "Project ID"
 
 #: gcloud/analysis_statistics/models.py:26
-#: gcloud/analysis_statistics/models.py:84
-#: gcloud/analysis_statistics/models.py:107
+#: gcloud/analysis_statistics/models.py:85
+#: gcloud/analysis_statistics/models.py:108
 #: gcloud/contrib/appmaker/models.py:270 gcloud/template_base/models.py:232
 #: gcloud/user_custom_config/constants.py:20
 msgid "模板类型"
@@ -309,9 +309,9 @@ msgid "插件版本"
 msgstr "Plugin version"
 
 #: gcloud/analysis_statistics/models.py:31
-#: gcloud/analysis_statistics/models.py:85
-#: gcloud/analysis_statistics/models.py:110 gcloud/core/models.py:148
-#: gcloud/core/models.py:216 gcloud/label/models.py:33
+#: gcloud/analysis_statistics/models.py:86
+#: gcloud/analysis_statistics/models.py:111 gcloud/core/models.py:148
+#: gcloud/core/models.py:216 gcloud/label/models.py:36
 #: gcloud/periodictask/models.py:178
 msgid "创建者"
 msgstr "Creator"
@@ -327,9 +327,9 @@ msgid "模板最近编辑时间"
 msgstr "Date modified"
 
 #: gcloud/analysis_statistics/models.py:34
-#: gcloud/analysis_statistics/models.py:66
+#: gcloud/analysis_statistics/models.py:67
 msgid "是否第三方插件"
-msgstr "whether ThirdParty PlugIns"
+msgstr "ThirdParty PlugIns"
 
 #: gcloud/analysis_statistics/models.py:37
 #: gcloud/analysis_statistics/models.py:38
@@ -337,13 +337,13 @@ msgid "Pipeline标准插件被引用数据"
 msgstr "Pipeline standard plugins reference"
 
 #: gcloud/analysis_statistics/models.py:47
-#: gcloud/analysis_statistics/models.py:101
+#: gcloud/analysis_statistics/models.py:102
 #, fuzzy
 msgid "Pipeline实例ID"
 msgstr "Pipeline Instance"
 
 #: gcloud/analysis_statistics/models.py:48
-#: gcloud/analysis_statistics/models.py:102
+#: gcloud/analysis_statistics/models.py:103
 msgid "Task实例ID"
 msgstr "TaskInstance ID"
 
@@ -376,117 +376,121 @@ msgstr "Skip OR Not"
 msgid "是否重试记录"
 msgstr "Retried Record OR Not"
 
-#: gcloud/analysis_statistics/models.py:63
+#: gcloud/analysis_statistics/models.py:62
+msgid "触发模版ID，独立子流程根流程 ID"
+msgstr ""
+
+#: gcloud/analysis_statistics/models.py:64
 #, fuzzy
 msgid "Pipeline实例创建时间"
 msgstr "Pipeline Instance"
 
-#: gcloud/analysis_statistics/models.py:64
+#: gcloud/analysis_statistics/models.py:65
 #, fuzzy
 msgid "Pipeline实例启动时间"
 msgstr "Pipeline Instance"
 
-#: gcloud/analysis_statistics/models.py:65
+#: gcloud/analysis_statistics/models.py:66
 #, fuzzy
 msgid "Pipeline实例结束时间"
 msgstr "Pipeline Instance"
 
-#: gcloud/analysis_statistics/models.py:69
 #: gcloud/analysis_statistics/models.py:70
+#: gcloud/analysis_statistics/models.py:71
 msgid "Pipeline标准插件执行数据"
 msgstr "Standard Plugins execution data"
 
-#: gcloud/analysis_statistics/models.py:80
-#: gcloud/analysis_statistics/models.py:103
+#: gcloud/analysis_statistics/models.py:81
+#: gcloud/analysis_statistics/models.py:104
 msgid "标准插件总数"
 msgstr "Total number of Standard Plugins"
 
-#: gcloud/analysis_statistics/models.py:81
-#: gcloud/analysis_statistics/models.py:104
+#: gcloud/analysis_statistics/models.py:82
+#: gcloud/analysis_statistics/models.py:105
 msgid "子流程总数"
 msgstr "Subprocess Count"
 
-#: gcloud/analysis_statistics/models.py:82
-#: gcloud/analysis_statistics/models.py:105
+#: gcloud/analysis_statistics/models.py:83
+#: gcloud/analysis_statistics/models.py:106
 msgid "网关总数"
 msgstr "Gateways Count"
 
-#: gcloud/analysis_statistics/models.py:86
-#: gcloud/analysis_statistics/models.py:111
+#: gcloud/analysis_statistics/models.py:87
+#: gcloud/analysis_statistics/models.py:112
 #: gcloud/contrib/appmaker/models.py:266 gcloud/core/models.py:218
-#: gcloud/project_constants/models.py:28 gcloud/taskflow3/models.py:1322
-#: gcloud/taskflow3/models.py:1337 gcloud/user_custom_config/constants.py:18
+#: gcloud/project_constants/models.py:28 gcloud/taskflow3/models.py:1321
+#: gcloud/taskflow3/models.py:1336 gcloud/user_custom_config/constants.py:18
 #: pipeline_web/core/abstract.py:21
 msgid "创建时间"
 msgstr "Creation time"
 
-#: gcloud/analysis_statistics/models.py:87 gcloud/core/models.py:150
+#: gcloud/analysis_statistics/models.py:88 gcloud/core/models.py:150
 msgid "最近编辑时间"
 msgstr "Date modified"
 
-#: gcloud/analysis_statistics/models.py:88
+#: gcloud/analysis_statistics/models.py:89
 #, fuzzy
 msgid "输出变量数"
 msgstr "Output Data"
 
-#: gcloud/analysis_statistics/models.py:89
+#: gcloud/analysis_statistics/models.py:90
 #, fuzzy
 msgid "输入变量数"
 msgstr "Input variable"
 
-#: gcloud/analysis_statistics/models.py:92
 #: gcloud/analysis_statistics/models.py:93
+#: gcloud/analysis_statistics/models.py:94
 msgid "Pipeline模板引用数据"
 msgstr "Pipeline Template Reference Data"
 
-#: gcloud/analysis_statistics/models.py:112
+#: gcloud/analysis_statistics/models.py:113
 #: gcloud/external_plugins/models/sync.py:39
 msgid "启动时间"
 msgstr "Date Started"
 
-#: gcloud/analysis_statistics/models.py:113
+#: gcloud/analysis_statistics/models.py:114
 #: gcloud/external_plugins/models/sync.py:40
 msgid "结束时间"
 msgstr "Date Finished"
 
-#: gcloud/analysis_statistics/models.py:114
+#: gcloud/analysis_statistics/models.py:115
 #, fuzzy
 msgid "实例执行耗时(s)"
 msgstr "Standard Plugins execution Elapsed(s)"
 
-#: gcloud/analysis_statistics/models.py:115
+#: gcloud/analysis_statistics/models.py:116
 #, fuzzy
 msgid "实例创建方式"
 msgstr "Creation method"
 
-#: gcloud/analysis_statistics/models.py:118
 #: gcloud/analysis_statistics/models.py:119
+#: gcloud/analysis_statistics/models.py:120
 msgid "Pipeline实例引用数据"
 msgstr "Pipeline Instance Reference Data"
 
-#: gcloud/analysis_statistics/models.py:130
 #: gcloud/analysis_statistics/models.py:131
+#: gcloud/analysis_statistics/models.py:132
 msgid "业务统计数据维度"
 msgstr "Business Statistics Dimensions"
 
-#: gcloud/analysis_statistics/models.py:138
 #: gcloud/analysis_statistics/models.py:139
+#: gcloud/analysis_statistics/models.py:140
 msgid "流程执行次数topn统计面板配置"
-msgstr "Process execution times topn statistics panel configuratio"
+msgstr "Flow execution times topn statistics panel configuratio"
 
-#: gcloud/analysis_statistics/models.py:152
 #: gcloud/analysis_statistics/models.py:153
+#: gcloud/analysis_statistics/models.py:154
 msgid "流程模板变量统计数据"
-msgstr "Process Template Variable Statistics"
+msgstr "Flow Template Variable Statistics"
 
-#: gcloud/analysis_statistics/models.py:162
 #: gcloud/analysis_statistics/models.py:163
+#: gcloud/analysis_statistics/models.py:164
 msgid "流程模板变量统计数据总览"
-msgstr "Process Template Variable Statistics Overview"
+msgstr "Flow Template Variable Statistics Overview"
 
 #: gcloud/common_template/models.py:41
 msgid "流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试 | import_templates"
-msgstr "Process import failed, cannot override public process with project process, please check and try again | import_templates"
+msgstr "Flow import failed, cannot override common flow with project flow, please check and try again | import_templates"
 
 #: gcloud/common_template/models.py:77 gcloud/common_template/models.py:78
 msgid "公共流程模板 CommonTemplate"
@@ -511,7 +515,7 @@ msgstr "Failed to save the light app: Please use a JPG PNG image of no more than
 
 #: gcloud/contrib/appmaker/models.py:70
 msgid "轻应用编辑失败: 轻应用关联的流程已不存在, 请检查配置 | save_app_maker"
-msgstr "Light app editing failed: The process associated with the light app no longer exists, please check the configuration | save_app_maker"
+msgstr "Light app editing failed: The flow associated with the light app no longer exists, please check the configuration | save_app_maker"
 
 #: gcloud/contrib/appmaker/models.py:140
 msgid "轻应用保存失败: 当前编辑的轻应用已不存在, 请检查配置 | save_app_maker"
@@ -603,18 +607,19 @@ msgstr "Collection type"
 
 #: gcloud/contrib/collection/models.py:66
 #: gcloud/core/apis/drf/serilaziers/collection.py:25
+#: gcloud/taskflow3/models.py:730
 msgid "额外信息"
 msgstr "Extra info"
 
 #: gcloud/contrib/collection/models.py:71
 #: gcloud/contrib/collection/models.py:72
 msgid "用户收藏 Collection"
-msgstr "User collection"
+msgstr "User Favorites"
 
 #: gcloud/contrib/function/api.py:28
 #, fuzzy
 msgid "没有查看职能化任务权限"
-msgstr "Functional Task Flow"
+msgstr "No permission"
 
 #: gcloud/contrib/function/api.py:40
 msgid "任务转交失败: 当前转交的任务已不存在, 请检查任务是否存在"
@@ -626,11 +631,11 @@ msgstr "Task transfer failed: No task owner found, please check the task and try
 
 #: gcloud/contrib/function/models.py:26
 msgid "未认领"
-msgstr "To be claim"
+msgstr "Un-Taked"
 
 #: gcloud/contrib/function/models.py:27
 msgid "已认领"
-msgstr "Claimed"
+msgstr "Taked"
 
 #: gcloud/contrib/function/models.py:28
 msgid "已驳回"
@@ -643,23 +648,23 @@ msgstr "Finished"
 
 #: gcloud/contrib/function/models.py:40
 msgid "职能化单"
-msgstr "Functional bill"
+msgstr "Helper Team bill"
 
 #: gcloud/contrib/function/models.py:42
 msgid "提单人"
-msgstr "Submitter"
+msgstr "Creator"
 
 #: gcloud/contrib/function/models.py:43
 msgid "提单时间"
-msgstr "Date submitted"
+msgstr "Created On"
 
 #: gcloud/contrib/function/models.py:44
 msgid "认领人"
-msgstr "Claimer"
+msgstr "Taker"
 
 #: gcloud/contrib/function/models.py:45
 msgid "认领时间"
-msgstr "Date claimed"
+msgstr "Taked On"
 
 #: gcloud/contrib/function/models.py:46
 msgid "驳回人"
@@ -667,15 +672,15 @@ msgstr "Rejecter"
 
 #: gcloud/contrib/function/models.py:47
 msgid "驳回时间"
-msgstr "Date rejected"
+msgstr "Rejected On"
 
 #: gcloud/contrib/function/models.py:48
 msgid "转单人"
-msgstr "Predecessor"
+msgstr "Forwarder"
 
 #: gcloud/contrib/function/models.py:49
 msgid "转单时间"
-msgstr "Date transferred"
+msgstr "Forword On"
 
 #: gcloud/contrib/function/models.py:50
 msgid "单据状态"
@@ -683,12 +688,12 @@ msgstr "Bill Status"
 
 #: gcloud/contrib/function/models.py:56 gcloud/contrib/function/models.py:57
 msgid "职能化认领单 FunctionTask"
-msgstr "Functional Bill"
+msgstr "Helper Team Bill"
 
 #: gcloud/contrib/operate_record/constants.py:20
 #, fuzzy
 msgid "创建"
-msgstr "Creator"
+msgstr "Create"
 
 #: gcloud/contrib/operate_record/constants.py:21
 msgid "克隆(创建)"
@@ -697,14 +702,13 @@ msgstr "Clone(Create)"
 #: gcloud/contrib/operate_record/constants.py:22
 #, fuzzy
 msgid "执行"
-msgstr "Created"
+msgstr "Execute"
 
 #: gcloud/contrib/operate_record/constants.py:23
-#: gcloud/taskflow3/models.py:1242
-#: pipeline_plugins/components/collections/controller.py:70
+#: gcloud/taskflow3/models.py:1241
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:111
 msgid "暂停"
-msgstr "Suspend"
+msgstr "Pause"
 
 #: gcloud/contrib/operate_record/constants.py:24
 msgid "继续"
@@ -712,17 +716,17 @@ msgstr "Continue"
 
 #: gcloud/contrib/operate_record/constants.py:25
 msgid "撤消"
-msgstr "Revoke"
+msgstr "Terminate"
 
 #: gcloud/contrib/operate_record/constants.py:26
 #, fuzzy
 msgid "删除"
-msgstr "Deleted"
+msgstr "Delet"
 
 #: gcloud/contrib/operate_record/constants.py:27
 #, fuzzy
 msgid "修改"
-msgstr "Editor"
+msgstr "Modify"
 
 #: gcloud/contrib/operate_record/constants.py:30
 #, fuzzy
@@ -732,12 +736,12 @@ msgstr "Callback Data"
 #: gcloud/contrib/operate_record/constants.py:31
 #, fuzzy
 msgid "重试"
-msgstr "Retry Times"
+msgstr "Retry"
 
 #: gcloud/contrib/operate_record/constants.py:32
 #, fuzzy
 msgid "跳过"
-msgstr "Skip OR Not"
+msgstr "Skip"
 
 #: gcloud/contrib/operate_record/constants.py:33
 msgid "跳过失败网关"
@@ -750,14 +754,14 @@ msgstr "Skip parallel conditional gateway"
 #: gcloud/contrib/operate_record/constants.py:35
 #, fuzzy
 msgid "暂停节点"
-msgstr "Suspend"
+msgstr "Pause Node"
 
 #: gcloud/contrib/operate_record/constants.py:36
 msgid "继续节点"
-msgstr "Continue"
+msgstr "Continue Node"
 
 #: gcloud/contrib/operate_record/constants.py:37
-#: gcloud/taskflow3/models.py:1294
+#: gcloud/taskflow3/models.py:1293
 #, fuzzy
 msgid "强制失败"
 msgstr "Failed"
@@ -765,10 +769,10 @@ msgstr "Failed"
 #: gcloud/contrib/operate_record/constants.py:38
 #, fuzzy
 msgid "调整时间"
-msgstr "Date rejected"
+msgstr "Change Time Setting"
 
 #: gcloud/contrib/operate_record/constants.py:40
-#: gcloud/taskflow3/models.py:1241
+#: gcloud/taskflow3/models.py:1240
 msgid "任务操作"
 msgstr "task operation"
 
@@ -928,7 +932,7 @@ msgstr "Name"
 msgid "每个项目下的配置名称要保证唯一"
 msgstr "Configuration name should be unique for each business"
 
-#: gcloud/core/models.py:147 gcloud/taskflow3/models.py:1399
+#: gcloud/core/models.py:147 gcloud/taskflow3/models.py:1398
 msgid "配置类型"
 msgstr "Configuration type"
 
@@ -1023,7 +1027,7 @@ msgstr "Staff Group Set"
 #: gcloud/core/models.py:378 gcloud/taskflow3/models.py:728
 #: gcloud/tasktmpl3/models.py:508
 msgid "任务执行人代理"
-msgstr "Task Execution"
+msgstr "Task Executor"
 
 #: gcloud/core/models.py:379
 msgid "不使用执行人代理的用户列表"
@@ -1031,17 +1035,17 @@ msgstr "User list to execute with executor proxy"
 
 #: gcloud/core/models.py:380
 msgid "项目下最大周期任务数"
-msgstr "The maximum number of periodic tasks under the project"
+msgstr "The maximum number of scheduled tasks in this project"
 
 #: gcloud/core/models.py:385 gcloud/core/models.py:386
 msgid "项目配置 ProjectConfig"
 msgstr "Project"
 
-#: gcloud/core/models.py:413 gcloud/taskflow3/models.py:1397
+#: gcloud/core/models.py:413 gcloud/taskflow3/models.py:1396
 msgid "范围对象ID"
 msgstr "Scope object id"
 
-#: gcloud/core/models.py:414 gcloud/taskflow3/models.py:1398
+#: gcloud/core/models.py:414 gcloud/taskflow3/models.py:1397
 msgid "配置范围"
 msgstr "Configuration scope"
 
@@ -1118,9 +1122,9 @@ msgstr "Project"
 msgid "停运"
 msgstr "Closed"
 
-#: gcloud/core/apis/drf/viewsets/task_template.py:143
+#: gcloud/core/apis/drf/viewsets/task_template.py:144
 msgid "流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables"
-msgstr "Process saving failed: The label set by the process does not exist, please check the configuration and try again | _sync_template_lable"
+msgstr "Flow saving failed: The tag of the flow does not exist, please check the configuration and try again | _sync_template_lable"
 
 #: gcloud/core/apis/drf/viewsets/taskflow.py:318
 msgid "任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态"
@@ -1222,7 +1226,7 @@ msgstr "FileSystemOriginalSource"
 #: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:120
 #: gcloud/tasktmpl3/models.py:55
 #: gcloud/tests/external_plugins/models/test_sync_task.py:38
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:48
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:47
 msgid "执行中"
 msgstr "Executing"
 
@@ -1310,12 +1314,12 @@ msgstr "New Mini-APP"
 
 #: gcloud/iam_auth/conf.py:110
 msgid "新建周期任务"
-msgstr "New Periodic Task"
+msgstr "New Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:117
 #, fuzzy
 msgid "新建计划任务"
-msgstr "Clocked Task"
+msgstr "New One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:124
 msgid "查看任务"
@@ -1331,7 +1335,7 @@ msgstr "Operate"
 
 #: gcloud/iam_auth/conf.py:145
 msgid "认领任务"
-msgstr "Claim"
+msgstr "Take"
 
 #: gcloud/iam_auth/conf.py:152
 msgid "删除任务"
@@ -1363,7 +1367,7 @@ msgstr "Use common flow"
 
 #: gcloud/iam_auth/conf.py:201
 msgid "使用公共流程新建周期任务"
-msgstr "New Periodic Task"
+msgstr "New Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:208
 msgid "查看轻应用"
@@ -1383,30 +1387,30 @@ msgstr "Create task with Mini-APP"
 
 #: gcloud/iam_auth/conf.py:236
 msgid "查看周期任务"
-msgstr "Periodic Task"
+msgstr "Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:243
 msgid "编辑周期任务"
-msgstr "Periodic Task"
+msgstr "Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:250
 msgid "删除周期任务"
-msgstr "Periodic Task"
+msgstr "Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:257
 #, fuzzy
 msgid "查看计划任务"
-msgstr "Clocked Task"
+msgstr "One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:264
 #, fuzzy
 msgid "编辑计划任务"
-msgstr "Clocked Task"
+msgstr "One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:271
 #, fuzzy
 msgid "删除计划任务"
-msgstr "Clocked Task"
+msgstr "One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:276
 msgid "后台管理查看"
@@ -1444,43 +1448,159 @@ msgstr "Common task"
 msgid "职能化任务"
 msgstr "Functional Task Flow"
 
-#: gcloud/label/models.py:32 pipeline_web/label/models.py:39
+#: gcloud/label/models.py:35 pipeline_web/label/models.py:39
 msgid "标签名称"
 msgstr "Label name"
 
-#: gcloud/label/models.py:35
+#: gcloud/label/models.py:38
 msgid "默认标签"
 msgstr "Default tag"
 
-#: gcloud/label/models.py:36
+#: gcloud/label/models.py:39
 msgid "标签颜色"
 msgstr "Tag Color"
 
-#: gcloud/label/models.py:37
+#: gcloud/label/models.py:40
 #, fuzzy
 msgid "标签描述"
 msgstr "Description"
 
-#: gcloud/label/models.py:42 gcloud/label/models.py:43
+#: gcloud/label/models.py:45 gcloud/label/models.py:46
 #, fuzzy
 msgid "用户标签 Label"
 msgstr "Label Label"
 
-#: gcloud/label/models.py:119
+#: gcloud/label/models.py:134
 msgid "模版ID"
 msgstr "Template id"
 
-#: gcloud/label/models.py:120
+#: gcloud/label/models.py:135
 msgid "标签ID"
 msgstr "Tag id"
 
-#: gcloud/label/models.py:125 gcloud/label/models.py:126
+#: gcloud/label/models.py:140 gcloud/label/models.py:141
 msgid "模版标签关系 TemplateLabelRelation"
 msgstr "TemplateLabelRelation"
 
+#: gcloud/mako_template_helper/hub.py:21
+msgid "字符串分割后拼接"
+msgstr "split and join"
+
+#: gcloud/mako_template_helper/hub.py:24 gcloud/mako_template_helper/hub.py:31
+msgid "将 {caller}"
+msgstr "of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:24
+msgid "以 {split_string} 分割后"
+msgstr "split with {split_string}"
+
+#: gcloud/mako_template_helper/hub.py:24
+msgid "以 {join_string} 拼接"
+msgstr "join with {join_string}"
+
+#: gcloud/mako_template_helper/hub.py:28
+msgid "替换字符串中的字符"
+msgstr "replace char"
+
+#: gcloud/mako_template_helper/hub.py:31
+msgid "中的 {old} 字符串"
+msgstr "with {old}"
+
+#: gcloud/mako_template_helper/hub.py:31
+msgid "替换为 {new} 字符串"
+msgstr "replace {new}"
+
+#: gcloud/mako_template_helper/hub.py:35
+msgid "将首字母变成大写"
+msgstr "uppercase the first letter"
+
+#: gcloud/mako_template_helper/hub.py:38
+msgid "将 {caller} 的首字母变成大写"
+msgstr "uppercase the first letter of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:42
+msgid "将字符串变成大写"
+msgstr "uppercase string"
+
+#: gcloud/mako_template_helper/hub.py:45
+msgid "将 {caller} 变成大写"
+msgstr "uppercase first letter of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:49
+msgid "将字符串变成小写"
+msgstr "lowercase string"
+
+#: gcloud/mako_template_helper/hub.py:52
+msgid "将 {caller} 变成小写"
+msgstr "lowercase first letter of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:56
+msgid "获取子字符串出现的次数"
+msgstr "count number of sub-string"
+
+#: gcloud/mako_template_helper/hub.py:59
+msgid "获取 {caller} 中 {sub} 出现的次数"
+msgstr "count number of {sub} in {caller}"
+
+#: gcloud/mako_template_helper/hub.py:63
+msgid "获取字符串的长度"
+msgstr "Get length of string"
+
+#: gcloud/mako_template_helper/hub.py:66
+msgid "获取 {caller} 的长度"
+msgstr "Get length of {caller}"
+
+#: gcloud/mako_template_helper/hub.py:70
+msgid "去除字符串头尾空格"
+msgstr "remove leading and trailing spaces"
+
+#: gcloud/mako_template_helper/hub.py:73
+msgid "去除 {caller} 头尾空格"
+msgstr "remove leading and trailing spaces from {caller}"
+
+#: gcloud/mako_template_helper/hub.py:77
+msgid "去除字符串头部空格"
+msgstr "remove leading spaces"
+
+#: gcloud/mako_template_helper/hub.py:80
+msgid "去除 {caller} 头部空格"
+msgstr "remove leading spaces from {caller}"
+
+#: gcloud/mako_template_helper/hub.py:84
+msgid "去除字符串尾部空格"
+msgstr "remove trailing spaces"
+
+#: gcloud/mako_template_helper/hub.py:87
+msgid "去除 {caller} 尾部空格"
+msgstr "remove trailing spaces from {caller}"
+
+#: gcloud/mako_template_helper/hub.py:91
+msgid "将字符串中单词首字母改为大写"
+msgstr "uppercase first letter of word"
+
+#: gcloud/mako_template_helper/hub.py:94
+msgid "将 {caller} 中单词首字母改为大写"
+msgstr "uppercase first letter of word "
+
+#: gcloud/mako_template_helper/hub.py:98
+msgid "返回路径的基本名称"
+msgstr "return basename"
+
+#: gcloud/mako_template_helper/hub.py:101
+msgid "返回 {path} 的基本名称"
+msgstr "return basename of {path}"
+
+#: gcloud/mako_template_helper/hub.py:105
+msgid "返回路径的目录名"
+msgstr "return dirname"
+
+#: gcloud/mako_template_helper/hub.py:108
+msgid "返回 {path} 的目录名"
+msgstr "return dirname of {path}"
+
 #: gcloud/periodictask/models.py:173
 msgid "pipeline 层周期任务"
-msgstr "Periodic task in pipeline"
+msgstr "Scheduled task in pipeline"
 
 #: gcloud/periodictask/models.py:174 gcloud/taskflow3/models.py:720
 msgid "创建任务所用的模板ID"
@@ -1510,7 +1630,7 @@ msgstr "Date Started"
 
 #: gcloud/periodictask/models.py:186 gcloud/periodictask/models.py:187
 msgid "周期任务 PeriodicTask"
-msgstr "Periodic Task"
+msgstr "Scheduled Task"
 
 #: gcloud/periodictask/models.py:229
 msgid "流程模板[project={project}, id={template_id}]不存在"
@@ -1523,7 +1643,7 @@ msgstr "Common template[id={template_id}] not exists"
 #: gcloud/periodictask/models.py:309
 #, python-format
 msgid "获取周期任务历史相关任务实例失败：%s"
-msgstr "Get task history of periodic task failed: %s"
+msgstr "Get task history of scheduled task failed: %s"
 
 #: gcloud/periodictask/models.py:323
 msgid "pipeline 层周期任务历史"
@@ -1562,9 +1682,8 @@ msgstr "Updater"
 
 #: gcloud/project_constants/models.py:30
 #: gcloud/user_custom_config/constants.py:19
-#, fuzzy
 msgid "更新时间"
-msgstr "Date rejected"
+msgstr "Update Time"
 
 #: gcloud/shortcuts/message/common.py:20
 msgid "【标准运维APP通知】执行失败"
@@ -1586,21 +1705,21 @@ msgstr "Your task[{task_name}] in business[{cc_name}] executed successfully, exe
 
 #: gcloud/shortcuts/message/common.py:46
 msgid "【标准运维APP通知】周期任务启动失败"
-msgstr "[BK_SOPS Notification]Periodic task start failed"
+msgstr "[BK_SOPS Notification]Scheduled task start failed"
 
 #: gcloud/shortcuts/message/common.py:47
 msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
-msgstr "Periodic task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
+msgstr "Scheduled task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
 
 #: gcloud/shortcuts/message/common.py:62
 #, fuzzy
 msgid "【标准运维APP通知】计划任务创建失败"
-msgstr "[BK_SOPS Notification]Periodic task start failed"
+msgstr "[BK_SOPS Notification]One-Time Scheduled task start failed"
 
 #: gcloud/shortcuts/message/common.py:63
 #, fuzzy
 msgid "您在【{cc_name}】业务中的计划任务【{task_name}】于{plan_start_time}创建失败，错误信息：【{ex_data}】"
-msgstr "Periodic task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
+msgstr "One-Time Scheduled task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
 
 #: gcloud/taskflow3/models.py:256 gcloud/taskflow3/models.py:294
 msgid "第三方插件"
@@ -1626,119 +1745,119 @@ msgstr "Current task flow phase"
 msgid "是否为子任务"
 msgstr "Is it a subtask"
 
-#: gcloud/taskflow3/models.py:737 gcloud/taskflow3/models.py:738
+#: gcloud/taskflow3/models.py:738 gcloud/taskflow3/models.py:739
 msgid "流程实例 TaskFlowInstance"
 msgstr "TaskFlowInstance"
 
-#: gcloud/taskflow3/models.py:981
+#: gcloud/taskflow3/models.py:980
 msgid "任务认领失败: 仅职能化任务才能认领, 请检查任务类型 | task_claim"
 msgstr "Task claim failed: only functional tasks can be claimed, please check the task type | task_claim"
 
-#: gcloud/taskflow3/models.py:1242
+#: gcloud/taskflow3/models.py:1241
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:124
 msgid "启动"
 msgstr "Started"
 
-#: gcloud/taskflow3/models.py:1242
+#: gcloud/taskflow3/models.py:1241
 msgid "恢复"
 msgstr "Recover"
 
-#: gcloud/taskflow3/models.py:1242
+#: gcloud/taskflow3/models.py:1241
 msgid "撤销"
 msgstr "Revoke"
 
-#: gcloud/taskflow3/models.py:1245
+#: gcloud/taskflow3/models.py:1244
 msgid "限制操作次数"
 msgstr "Limit operations"
 
-#: gcloud/taskflow3/models.py:1246
+#: gcloud/taskflow3/models.py:1245
 msgid "限制时间单位"
 msgstr "Limit time unit"
 
-#: gcloud/taskflow3/models.py:1249 gcloud/taskflow3/models.py:1250
+#: gcloud/taskflow3/models.py:1248 gcloud/taskflow3/models.py:1249
 msgid "任务操作次数限制配置 TaskOperationTimesConfig"
 msgstr "Task Operation Times Config"
 
-#: gcloud/taskflow3/models.py:1263 gcloud/taskflow3/models.py:1264
+#: gcloud/taskflow3/models.py:1262 gcloud/taskflow3/models.py:1263
 msgid "节点自动重试策略 AutoRetryNodeStrategy"
 msgstr "Auto Retry Node Strategy"
 
-#: gcloud/taskflow3/models.py:1294
+#: gcloud/taskflow3/models.py:1293
 msgid "强制失败并跳过"
 msgstr "Force fail and skip"
 
-#: gcloud/taskflow3/models.py:1304 gcloud/taskflow3/models.py:1305
+#: gcloud/taskflow3/models.py:1303 gcloud/taskflow3/models.py:1304
 msgid "节点超时配置 TimeoutNodeConfig"
 msgstr "Timeout Node Config"
 
-#: gcloud/taskflow3/models.py:1314 gcloud/taskflow3/models.py:1315
+#: gcloud/taskflow3/models.py:1313 gcloud/taskflow3/models.py:1314
 msgid "超时节点数据记录 TimeoutNodesRecord"
 msgstr "Timeout Nodes Record"
 
-#: gcloud/taskflow3/domains/context.py:130 gcloud/taskflow3/models.py:1320
-#: gcloud/taskflow3/models.py:1334
+#: gcloud/taskflow3/domains/context.py:130 gcloud/taskflow3/models.py:1319
+#: gcloud/taskflow3/models.py:1333
 #: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py:37
 #: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py:40
 msgid "任务ID"
 msgstr "Task ID"
 
-#: gcloud/taskflow3/models.py:1321
+#: gcloud/taskflow3/models.py:1320
 msgid "回调地址"
 msgstr "Callback Url"
 
-#: gcloud/taskflow3/models.py:1323
+#: gcloud/taskflow3/models.py:1322
 msgid "状态"
 msgstr "Status"
 
-#: gcloud/taskflow3/models.py:1324
+#: gcloud/taskflow3/models.py:1323
 #, fuzzy
 msgid "附加信息"
 msgstr "Message"
 
-#: gcloud/taskflow3/models.py:1325
+#: gcloud/taskflow3/models.py:1324
 #, fuzzy
 msgid "回调时间"
 msgstr "Date rejected"
 
-#: gcloud/taskflow3/models.py:1328
+#: gcloud/taskflow3/models.py:1327
 msgid "任务回调记录"
 msgstr "Task callback record"
 
-#: gcloud/taskflow3/models.py:1335
+#: gcloud/taskflow3/models.py:1334
 #, fuzzy
 msgid "父任务ID"
 msgstr "Task id"
 
-#: gcloud/taskflow3/models.py:1336
+#: gcloud/taskflow3/models.py:1335
 #, fuzzy
 msgid "根任务ID"
 msgstr "Task id"
 
-#: gcloud/taskflow3/models.py:1340
+#: gcloud/taskflow3/models.py:1339
 msgid "任务关系"
 msgstr "Task relationship"
 
-#: gcloud/taskflow3/models.py:1391
+#: gcloud/taskflow3/models.py:1390
 msgid "启用独立子流程"
 msgstr "Enable independent subprocesses"
 
-#: gcloud/taskflow3/models.py:1392
+#: gcloud/taskflow3/models.py:1391
 msgid "禁用独立子流程"
 msgstr "Disable independent subprocesses"
 
-#: gcloud/taskflow3/models.py:1393
+#: gcloud/taskflow3/models.py:1392
 msgid "启用节点重试填参"
 msgstr "Enable node retry to fill parameters"
 
-#: gcloud/taskflow3/models.py:1394
+#: gcloud/taskflow3/models.py:1393
 msgid "禁用节点重试填参"
 msgstr "Disable node retry filling parameters"
 
-#: gcloud/taskflow3/models.py:1400
+#: gcloud/taskflow3/models.py:1399
 msgid "配置值"
 msgstr "Configuration value"
 
-#: gcloud/taskflow3/models.py:1405
+#: gcloud/taskflow3/models.py:1404
 msgid "任务配置 TaskConfig"
 msgstr "Task config"
 
@@ -1767,14 +1886,12 @@ msgid "任务所属的CMDB业务名称"
 msgstr "Business Name"
 
 #: gcloud/taskflow3/domains/context.py:120
-#, fuzzy
 msgid "任务的执行人（点击开始执行的人员）"
 msgstr "Task Operator"
 
 #: gcloud/taskflow3/domains/context.py:126
-#, fuzzy
 msgid "任务的执行代理人"
-msgstr "Task Execution"
+msgstr "Task Executor"
 
 #: gcloud/taskflow3/domains/context.py:133
 msgid "任务名称"
@@ -1782,27 +1899,31 @@ msgstr "Task Name"
 
 #: gcloud/taskflow3/domains/task_constants.py:35
 msgid "非法操作: 仅支持 V2 版本的任务 | get_rendered_constant_keys"
-msgstr ""
+msgstr "Illegal operation: only support V2 engine | get_rendered_constant_keys"
 
 #: gcloud/taskflow3/domains/dispatchers/node.py:194
 msgid "非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1"
 msgstr "Illegal request: The current engine does not support subprocess retry, please contact the administrator to upgrade | retry_subprocess_v"
 
-#: gcloud/taskflow3/domains/dispatchers/task.py:171
+#: gcloud/taskflow3/domains/dispatchers/task.py:169
 msgid "任务操作失败: 已启动的任务不可再次启动 | start_v2"
 msgstr "Task operation failed: Started task cannot be started again | start_v2"
 
-#: gcloud/taskflow3/domains/dispatchers/task.py:351
+#: gcloud/taskflow3/domains/dispatchers/task.py:350
 msgid "任务参数设置失败: 非法的任务参数, 请修改后重试 | set_task_constants"
-msgstr "Task parameter setting failed: invalid task parameter, please modify and try again | set_task_constants"
+msgstr "Task parameter set failed: invalid task parameter, please modify and try again | set_task_constants"
 
-#: gcloud/taskflow3/domains/dispatchers/task.py:458
+#: gcloud/taskflow3/domains/dispatchers/task.py:402
+msgid "任务参数设置失败: 任务状态校验失败，"
+msgstr "Task parameters set failed: task validate failed"
+
+#: gcloud/taskflow3/domains/dispatchers/task.py:476
 msgid "任务数据请求失败: 请重试, 如持续失败可联系管理员处理 | get_task_status_v1"
 msgstr "Task data request failed: please try again, if the failure continues, please contact the administrator | get_task_status_v1"
 
 #: gcloud/tasktmpl3/models.py:451
 msgid "流程导入失败: 跨业务导入流程不支持覆盖相同ID, 请检查配置 | import_templates"
-msgstr "Process import failed: cross-business import process does not support overwriting the same ID, please check the configuration | import_templates"
+msgstr "Flow import failed: cross-business import flow does not support overwriting the same ID, please check the configuration | import_templates"
 
 #: gcloud/tasktmpl3/models.py:509
 #, fuzzy
@@ -1843,27 +1964,27 @@ msgstr "Template parsing failed: file parsing exception, template parameter is i
 
 #: gcloud/template_base/apis/django/api.py:177
 msgid "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理 | base_import_templates"
-msgstr "Process import failed: file parsing exception, the content may be illegal. Please try again or contact the administrator | base_import_templates"
+msgstr "Flow import failed: file parsing exception, the content may be illegal. Please try again or contact the administrator | base_import_templates"
 
 #: gcloud/template_base/domains/template_manager.py:80
 msgid "保存流程失败: 创建Pipeline流程失败, 请检查流程. "
-msgstr "Failed to save the process: Failed to create the Pipeline process, please check the process."
+msgstr "Failed to save the flow: Failed to create the Pipeline flow, please check the flow."
 
 #: gcloud/template_base/domains/template_manager.py:253
 msgid "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete"
-msgstr "Failed to delete the process: the process has been referenced by other processes [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
+msgstr "Failed to delete the flow: the flow has been referenced by other flow [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
 
 #: gcloud/template_base/domains/template_manager.py:266
 msgid "流程删除失败: 流程已被其他轻应用引用[{}], 暂不可删除, 请处理后重试 | can_delete"
-msgstr "Failed to delete the process: the process has been referenced by other light applications [{}], it cannot be deleted at the moment, please try again after processing | can_delet"
+msgstr "Failed to delete the flow: the flow has been referenced by other light applications [{}], it cannot be deleted at the moment, please try again after processing | can_delet"
 
 #: gcloud/template_base/domains/template_manager.py:279
 msgid "流程删除失败: 流程已被其他计划任务引用[{}], 暂不可删除, 请处理后重试 | can_delete"
-msgstr "Failed to delete the process: The process has been referenced by other scheduled tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
+msgstr "Failed to delete the flow: The flow has been referenced by other one-Time scheduled tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
 
 #: gcloud/template_base/domains/template_manager.py:292
 msgid "流程删除失败: 流程已被其他周期任务引用[{}], 暂不可删除, 请处理后重试 | can_delete"
-msgstr "Failed to delete the process: the process has been referenced by other periodic tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
+msgstr "Failed to delete the flow: the flow has been referenced by other Scheduled tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
 
 #: gcloud/user_custom_config/constants.py:17
 msgid "模板ID"
@@ -1901,14 +2022,16 @@ msgid "调用{system}接口{api_name}无权限：<a href='{url}' target='_blank'
 msgstr "No permission to call {api_name} of {system}: <a href='{url}' target='_blank'>Apply permission</a>."
 
 #: gcloud/utils/handlers.py:62
+#, fuzzy
 msgid ""
 "调用{system}接口{api_name}无权限，获取申请权限接口失败\n"
+"error={error}\n"
 "details: {result}\n"
-" error={error}"
 msgstr "{system} API {api_name} returned false, params={params}, error={error}"
 
 #: gcloud/utils/handlers.py:68
-msgid "调用{system}接口{api_name}返回失败, params={params}, error={error}"
+#, fuzzy
+msgid "调用{system}接口{api_name}返回失败, error={error}, params={params}"
 msgstr "{system} API {api_name} returned false, params={params}, error={error}"
 
 #: pipeline_plugins/cmdb_ip_picker/query.py:94
@@ -2048,67 +2171,81 @@ msgid "提示: 1.请求URL需要在当前网络下可以访问，否则会超时
 msgstr "Notes: 1.Request URL needs to be accessible under the current network, otherwise it will timeout failure 2.The response status code is between 200-300 (excluding 300), and the corresponding content is JSON format will be executed successfully"
 
 #: pipeline_plugins/components/collections/controller.py:48
-#: pipeline_plugins/components/collections/controller.py:51
 msgid "描述"
 msgstr "Description"
 
-#: pipeline_plugins/components/collections/controller.py:58
+#: pipeline_plugins/components/collections/controller.py:55
 msgid "API回调数据"
 msgstr "API Callback Data"
 
-#: pipeline_plugins/components/collections/controller.py:62
+#: pipeline_plugins/components/collections/controller.py:58
 msgid "通过node_callback API接口回调并传入数据,支持dict数据"
 msgstr "Call back through the node_callback API interface and pass in data, support dict data"
 
-#: pipeline_plugins/components/collections/controller.py:74
+#: pipeline_plugins/components/collections/controller.py:64
+msgid "人工确认(暂停)"
+msgstr "Manually Confirm(Pause)"
+
+#: pipeline_plugins/components/collections/controller.py:68
 msgid "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
 msgstr "The node can call back through the node_callback API interface and pass in data. The callback_data parameter is of type dict, and the callback data will be used as the output data of the node."
 
-#: pipeline_plugins/components/collections/controller.py:98
+#: pipeline_plugins/components/collections/controller.py:92
 msgid "定时时间"
 msgstr "Timing"
 
-#: pipeline_plugins/components/collections/controller.py:101
+#: pipeline_plugins/components/collections/controller.py:95
 #, python-format
 msgid "定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)"
 msgstr "Timing, seconds(s) or datetime(%%Y-%%m-%%d %%H:%%M:%%S)"
 
-#: pipeline_plugins/components/collections/controller.py:104
+#: pipeline_plugins/components/collections/controller.py:98
 msgid "是否强制晚于当前时间"
 msgstr "Force to be later than current time"
 
-#: pipeline_plugins/components/collections/controller.py:107
+#: pipeline_plugins/components/collections/controller.py:101
 msgid "用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效"
 msgstr "Whether to force the input time by user later than current time, only task effect on datetime format"
 
-#: pipeline_plugins/components/collections/controller.py:130
+#: pipeline_plugins/components/collections/controller.py:124
 msgid "[定时]节点执行失败: 定时时间需晚于当前时间, 请检查节点配置"
 msgstr "[Timing] Node execution failed: the timing time must be later than the current time, please check the node configuration"
 
-#: pipeline_plugins/components/collections/controller.py:138
+#: pipeline_plugins/components/collections/controller.py:132
 #, python-format
 msgid "[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置"
 msgstr "[Timing] Node execution failed: The timing time only supports seconds (s) or %%Y-%%m-%%d %%H:%%M:%%S) format, please check the node configuration"
 
-#: pipeline_plugins/components/collections/controller.py:174
+#: pipeline_plugins/components/collections/controller.py:168
 msgid "定时"
 msgstr "Timing"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:31
-msgid "gsekit(gsekit)"
+#: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:28
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:32
+#, fuzzy
+msgid "GSEKIT(gsekit)"
 msgstr "gsekit(gsekit)"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:47
+#: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:58
+#, fuzzy
+msgid "刷新进程实例"
+msgstr "Flow Instance"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:46
 msgid "等待中"
 msgstr "Waiting"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:49
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:48
 msgid "执行成功"
 msgstr "Success"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:50
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:49
 msgid "执行失败"
 msgstr "Failed"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:85
+msgid "Gsekit任务执行异常, 任务状态为 {}"
+msgstr "The Gsekit task encountered an execution, task status is {}"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:91
 msgid "环境类型"
@@ -2156,17 +2293,37 @@ msgstr "Flow Instance"
 msgid "进程实例ID"
 msgstr "Flow Instance"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:171
-msgid "gsekit_job_task_ID"
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:127
+msgid "配置文件模版"
+msgstr "Configure template"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:130
+msgid "配置文件模版名"
+msgstr "Configure template name"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:190
+#, fuzzy
+msgid "gsekit_task_ID"
 msgstr "gsekit_job_task_ID"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:174
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:193
 msgid "gsekit的任务ID"
 msgstr "Task ID of geskit"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:184
-msgid "gsekit执行命令"
-msgstr "gsekit execution command"
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:196
+#, fuzzy
+msgid "任务详情"
+msgstr "operate detail"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:199
+#, fuzzy
+msgid "gsekit的任务详情页链接"
+msgstr "Task ID of geskit"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:209
+#, fuzzy
+msgid "执行命令"
+msgstr "Created"
 
 #: pipeline_plugins/components/collections/http/v1_0.py:53
 msgid "HTTP 请求 header"
@@ -2253,7 +2410,7 @@ msgstr "Review Result"
 
 #: pipeline_plugins/components/collections/sites/open/bk/approve/v1_0.py:105
 msgid "审批"
-msgstr ""
+msgstr "Approval"
 
 #: pipeline_plugins/components/collections/sites/open/bk/display/v1_0.py:30
 msgid "展示内容"
@@ -2273,7 +2430,7 @@ msgstr "This plugin is an empty node only for message display"
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:41
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:47
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:50
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:43
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:85
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:91
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:43
@@ -2428,7 +2585,7 @@ msgstr "Text topo[{}] not fit in topo in business config"
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:44
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:50
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:53
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:46
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:88
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:94
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:46
@@ -2602,8 +2759,8 @@ msgstr "Batch Update Module Attribute"
 #: pipeline_plugins/components/collections/sites/open/cc/batch_module_update/v1_0.py:210
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:179
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_set/v1_0.py:204
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:202
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:235
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:198
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:231
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py:249
 msgid ""
 "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
@@ -2783,70 +2940,70 @@ msgstr "Module type is invalid,  please enter the correct"
 msgid "创建模块"
 msgstr "Create Module"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:49
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:91
 msgid "父实例"
 msgstr "Parent Instance"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:52
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:94
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:106
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:58
 msgid "父实例 ID 列表"
 msgstr "ID list of parent instance"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:52
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:94
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:106
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:58
 msgid "实例 ID"
 msgstr "Instance ID"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:51
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:55
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:97
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:115
 msgid "集群信息"
 msgstr "Information of set"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:54
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:59
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:101
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:119
 msgid "新集群信息对象列表"
 msgstr "New set information object list"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:55
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:60
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:102
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:120
 msgid "集群信息描述对象"
 msgstr "Set information description object"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:100
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:151
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:185
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:101
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:149
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:183
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:103
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:141
 msgid "环境类型校验失败，请重试并修改为正确的环境类型"
 msgstr "Environment is invalid,  please enter the correct"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:106
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:157
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:191
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:105
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:153
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:187
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:88
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:128
 msgid "服务状态校验失败，请重试并修改为正确的服务状态"
 msgstr "Service status is invalid,  please enter the correct"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:114
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:165
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:199
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:113
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:161
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:195
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:111
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:149
 msgid "集群容量必须为整数"
 msgstr "Set capacity must be integer"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:141
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:195
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:228
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:138
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:191
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:224
 msgid "创建集群"
 msgstr "Create Set"
 
@@ -3496,7 +3653,7 @@ msgstr "Business Set Execute Job"
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:43
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_2.py:165
 msgid "按照执行结果将 IP 进行分组：1. 使用 job_tagged_ip_dict[\"value\"][\"SUCCESS\"][\"TAGS\"][\"ALL\"]  获取「执行成功」的 IP， ALL 代表所有 IP，可指定分组名获取特定分组的 IP ；2. 使用 job_tagged_ip_dict[\"value\"][\"SCRIPT_NOT_ZERO_EXIT_CODE\"][\"TAGS\"][\"ALL\"] 获取「脚本返回值非零」的 IP"
-msgstr ""
+msgstr "Use job_tagged_ip_dict[\"value\"][\"SUCCESS\"][\"TAGS\"][\"ALL\"] to get the IP of success, ALL means all IP, you can specify the group name to get the IP of a specific group; 2. Use job_tagged_ip_dict[\"value\"][\"SCRIPT_NOT_ZERO_EXIT_CODE\"][\"TAGS\"][\"ALL\"] to get the IP with non-zero return value"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/v1_1.py:70
 msgid "3. 业务集修改为下拉框获取，默认开启新版IP tag分组, 默认开启失败时提取变量"
@@ -3505,7 +3662,7 @@ msgstr "3. The business set is modified to obtain from the drop-down box, and th
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:35
 #, fuzzy
 msgid "业务集 ID"
-msgstr "Task id"
+msgstr "Business set id"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:38
 msgid "当前操作业务集 ID"
@@ -3662,7 +3819,7 @@ msgstr "Rolling strategy, only takes effect when rolling execution is enabled"
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_1.py:42
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_1.py:44
 msgid "滚动机制"
-msgstr "rolling mechanism"
+msgstr "Mode"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/v1_1.py:77
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_1.py:51
@@ -3671,7 +3828,7 @@ msgstr "rolling mechanism"
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_1.py:45
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_1.py:47
 msgid "滚动机制，仅在滚动执行开启时生效"
-msgstr "Rolling mechanism, only takes effect when rolling execution is enabled"
+msgstr "Rolling mode, only takes effect when rolling execution is enabled"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/v1_1.py:170
 msgid "业务集快速执行脚本，新增滚动执行功能,需要作业平台版本>=V3.6.0.0"
@@ -3903,7 +4060,7 @@ msgstr "Variable type, Cloud Param(1),Context Param(2),IP(3)"
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:42
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_0.py:43
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_1.py:70
-#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:90
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:96
 msgid "执行作业"
 msgstr "Execution JOB"
 
@@ -3929,7 +4086,7 @@ msgstr ""
 "2. After receiving the global variable edited by the user, v1.0 and above will wrap the default variable value in English double quotation marks by default, and then pass the obtained string as a whole when calling the API.\n"
 "If you don't need double quotation marks, you can use the legacy version plugin, or you can manually remove it from the table."
 
-#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:96
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:102
 #, fuzzy
 msgid ""
 "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
@@ -4282,23 +4439,27 @@ msgstr "The files uploaded locally are not guaranteed to be stored for a long ti
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_0.py:25
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_1.py:27
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:27
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:13
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:14
 msgid "监控平台(Monitor)"
 msgstr "Monitor Platform"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:73
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:52
+msgid "主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参"
+msgstr "The innerip of host[{}] is null,it is required by BK-Monitor"
+
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:91
 msgid "屏蔽Id"
 msgstr "Shield ID"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:73
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:91
 msgid "创建的告警屏蔽 ID"
 msgstr "Alarm Shield ID"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:76
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:94
 msgid "详情"
 msgstr "operate detail"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:76
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:94
 msgid "创建的告警屏蔽详情"
 msgstr "Alarm Shield Strategy Detail"
 
@@ -4982,7 +5143,7 @@ msgid ""
 "该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
 msgstr ""
 "In single-selection mode, output the selected value, and in multi-selection mode, output the selected value as a string spliced with ','\n"
-"By default, this variable does not support the input of arbitrary values. It only supports input of arbitrary values when the sub-process node is configured to fill in the parameters."
+"By default, this variable does not support the input of arbitrary values. It only supports input of arbitrary values when the sub-flow node is configured to fill in the parameters."
 
 #: pipeline_plugins/variables/collections/common.py:136
 msgid "文本值下拉框"
@@ -5185,11 +5346,11 @@ msgstr "IP filter"
 msgid "引用${KEY}，返回符合过滤条件的IP, IP格式为下面表单指定的格式"
 msgstr "Quote {KEY} to return the IP that meets the filtering conditions, and the IP format is the format specified in the form "
 
-#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:45
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:44
 msgid "集群模块IP选择器"
 msgstr "Set Module IP Selector"
 
-#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:49
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:48
 msgid "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"
 msgstr "The set module IP selector can only pull modules created using service templates, and is not applicable to custom topology scenarios. For custom topology, please use the IP selector. The output is a string separated by ',' for the selected IP."
 
@@ -5738,16 +5899,16 @@ msgstr "Wechat User"
 #~ msgstr "djcelery periodic tasks"
 
 #~ msgid "周期任务名称"
-#~ msgstr "Periodic task name"
+#~ msgstr "Scheduled task name"
 
 #~ msgid "周期任务对应的模板"
-#~ msgstr "Periodic task template"
+#~ msgstr "Used flow of Scheduled task "
 
 #~ msgid "调度策略"
 #~ msgstr "Crontab"
 
 #~ msgid "celery 周期任务实例"
-#~ msgstr "Celery periodic task"
+#~ msgstr "Celery Scheduled task"
 
 #~ msgid "用于创建流程实例的结构数据"
 #~ msgstr "Flow data"
@@ -5903,7 +6064,7 @@ msgstr "Wechat User"
 #~ msgstr "Dispatch"
 
 #~ msgid "子流程 ID"
-#~ msgstr "Subprocess ID"
+#~ msgstr "Subflow ID"
 
 #~ msgid "对应的进程 ID"
 #~ msgstr "Process ID"
@@ -6069,4 +6230,7 @@ msgstr "Wechat User"
 
 #~ msgid "IP 校验失败，请确认输入的 IP {} 是否合法"
 #~ msgstr "IP Validate Failed, Please Check the Input IP"
+
+#~ msgid "gsekit执行命令"
+#~ msgstr "gsekit execution command"
 
