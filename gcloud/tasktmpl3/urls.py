@@ -34,6 +34,7 @@ urlpatterns = [
     url(r"^api/preview_task_referenced_constants/$", api.preview_task_referenced_constants),
     url(r"^api/analysis_constants_ref/$", api.analysis_constants_ref),
     url(r"^api/parents/(?P<project_id>\d+)/$", api.parents),
+    url(r"^api/get_gateway_include_nodes/$", api.get_gateway_include_nodes),
     url(r"^api/variable_field_explain/$", VariableFieldExplainView.as_view()),
     url(r"^api/form_with_schemes/", TemplateFormWithSchemesView.as_view()),
     url(r"^api/batch_form_with_schemes/", BatchTemplateFormWithSchemesView.as_view()),

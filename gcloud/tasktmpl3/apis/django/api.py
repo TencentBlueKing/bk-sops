@@ -315,7 +315,7 @@ def get_gateway_include_nodes(request):
     return JsonResponse(
         {
             "result": True,
-            "data": {"node_ids": gateway_preview_info.circle_nodes | gateway_preview_info.nodes},
+            "data": {"node_ids": list(gateway_preview_info.circle_nodes | gateway_preview_info.nodes)},
             "code": err_code.SUCCESS.code,
             "message": "",
         }
