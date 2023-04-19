@@ -1321,32 +1321,32 @@
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
-                if (node && ordered.findIndex(item => item.id === node.id) === -1) {
+                if (node && !this.nodeIds.includes(node.id)) {
                     let outgoing
                     if (Array.isArray(node.outgoing)) {
                         outgoing = node.outgoing
                     } else {
                         outgoing = node.outgoing ? [node.outgoing] : []
                     }
-                    // 当前tree是否已存在
-                    const isAt = !this.nodeIds.includes(node.id)
                     if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
                         gateway.children = []
-                        if (isAt && (gateway.conditions || gateway.default_condition)) {
+                        if (gateway.conditions || gateway.default_condition) {
+                            this.nodeIds.push(gateway.id)
                             const loopList = [] // 需要打回的node的incoming
                             outgoing.forEach(item => {
                                 const curNode = activities[flows[item].target] || gateways[flows[item].target]
-                                if (curNode && (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id)))) {
+                                if (curNode && this.nodeIds.find(ite => ite === curNode.id)) {
                                     loopList.push(...curNode.incoming)
                                 }
                             })
                             const conditions = Object.keys(gateway.conditions).map((item, index) => {
                                 // 给需要打回的条件添加节点id
-                                const callback = loopList.includes(item) ? activities[flows[item].target] : ''
+                                const nodeList = Object.assign({}, activities, gateways)
+                                const callback = loopList.includes(item) ? nodeList[flows[item].target] : ''
                                 const { evaluate, tag } = gateway.conditions[item]
                                 const callbackData = {
                                     id: callback.id,
@@ -1387,6 +1387,7 @@
                                 ]
                                 conditions.unshift(...defaultCondition)
                             }
+                            
                             conditions.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children, item.isLoop)
                                 if (item.children.length === 0) this.conditionOutgoing.push(item.outgoing)
@@ -1401,7 +1402,7 @@
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
-                        } else if (isAt && gateway.type === 'ParallelGateway') {
+                        } else if (gateway.type === 'ParallelGateway') {
                             // 添加并行默认条件
                             const defaultCondition = gateway.outgoing.map((item, index) => {
                                 return {
@@ -1424,6 +1425,7 @@
                                 })
                             })
                             ordered.push(gateway)
+                            this.nodeIds.push(gateway.id)
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
@@ -1447,7 +1449,6 @@
                                     outgoingList.push(item.outgoing)
                                 }
                             })
-
                             if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
                                 // 汇聚网关push在最近的条件网关下
                                 const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
@@ -1457,9 +1458,6 @@
                                     gateway.gatewayType = 'converge'
                                     prev.children.push(gateway)
                                 }
-                                if (!this.nodeIds.includes(gateway.id)) {
-                                    this.nodeIds.push(gateway.id)
-                                }
                                 outgoing.forEach(line => {
                                     this.retrieveLines(data, line, ordered)
                                 })
@@ -1467,19 +1465,20 @@
                         }
                     } else if (activity) { // 任务节点
                         if (isLoop) return
-                        if (isAt) {
-                            if (activity.type === 'SubProcess') {
-                                if (activity.pipeline) {
-                                    activity.subChildren = this.getOrderedTree(activity.pipeline)
-                                } else {
-                                    if (activity.component.data && activity.component.data.subprocess) {
-                                        activity.subChildren = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
-                                    }
+                        if (activity.type === 'SubProcess') {
+                            if (activity.pipeline) {
+                                activity.subChildren = this.getOrderedTree(activity.pipeline)
+                            } else {
+                                if (activity.component.data && activity.component.data.subprocess) {
+                                    activity.subChildren = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
                                 }
                             }
-                            activity.title = activity.name
-                            activity.expanded = activity.pipeline
-                            ordered.push(activity)
+                        }
+                        activity.title = activity.name
+                        activity.expanded = activity.pipeline
+                        ordered.push(activity)
+                        if (!this.nodeIds.includes(activity.id)) {
+                            this.nodeIds.push(activity.id)
                         }
                         outgoing.forEach(line => {
                             this.retrieveLines(data, line, ordered)
