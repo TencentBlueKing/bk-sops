@@ -4445,7 +4445,7 @@ msgstr "Monitor Platform"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/base.py:52
 msgid "主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参"
-msgstr "The innerip of host is null,it is required by BK-Monitor"
+msgstr "The innerip of host[{}] is null,it is required by BK-Monitor"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/base.py:91
 msgid "屏蔽Id"
