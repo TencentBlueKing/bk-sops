@@ -26,7 +26,6 @@
             </NodeTree>
             <div
                 v-if="location"
-                :key="randomKey"
                 :class="['execute-info', { 'loading': loading }]"
                 v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
                 <div class="execute-head">
@@ -37,16 +36,17 @@
                     </div>
                 </div>
                 <bk-tab
+                    :key="nodeDetailConfig.node_id"
                     :active.sync="curActiveTab"
                     type="unborder-card"
                     ext-cls="execute-info-tab"
                     @tab-change="onTabChange">
                     <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" v-if="isCondition || (!loading && ['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
+                    <bk-tab-panel name="config" v-if="isCondition || (['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
                     <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
                     <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
                 </bk-tab>
-                <div class="scroll-area">
+                <div class="scroll-area" :key="randomKey">
                     <task-condition
                         v-if="isCondition"
                         ref="conditionEdit"
@@ -360,6 +360,9 @@
             'nodeDetailConfig.node_id': {
                 handler (val) {
                     if (val !== undefined) {
+                        this.loop = 1
+                        this.theExecuteTime = undefined
+                        this.curActiveTab = 'record'
                         this.loadNodeInfo()
                     }
                 },
@@ -781,7 +784,6 @@
                 }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
-                this.curActiveTab = 'record'
                 this.loading = true
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
