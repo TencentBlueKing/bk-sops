@@ -11,43 +11,45 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-
-import ujson as json
-import hashlib
 import base64
+import hashlib
+import logging
 import traceback
 from functools import wraps
 
+import ujson as json
 import yaml
 from django.db.models import Model
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.utils.translation import ugettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
+from pipeline.models import TemplateRelationship
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
-from pipeline.models import TemplateRelationship
 
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.core.models import Project
+from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.base_template import YamlExportInterceptor, YamlImportInterceptor
+from gcloud.iam_auth.view_interceptors.base_template import (
+    YamlExportInterceptor,
+    YamlImportInterceptor,
+)
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.template_base.domains import TEMPLATE_TYPE_MODEL
 from gcloud.template_base.apis.django.validators import (
     FileValidator,
-    YamlTemplateImportValidator,
     YamlTemplateExportValidator,
+    YamlTemplateImportValidator,
 )
+from gcloud.template_base.domains import TEMPLATE_TYPE_MODEL
 from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
 from gcloud.template_base.domains.importer import TemplateImporter
+from gcloud.template_base.utils import read_template_data_file
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import string_to_boolean
-from gcloud.exceptions import FlowExportError
-from gcloud.template_base.utils import read_template_data_file
 from gcloud.utils.yaml import NoAliasSafeDumper
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -134,14 +136,19 @@ def is_full_param_process(template_model_cls: object, project_related: bool):
     return decorator
 
 
-def base_export_templates(request: Request, template_model_cls: object, file_prefix: str, export_args: list):
+def base_export_templates(request: Request, template_model_cls: object, file_prefix: str, **kwargs):
     data = request.data
     template_id_list = data["template_id_list"]
 
     # wash
     try:
         templates_data = json.loads(
-            json.dumps(template_model_cls.objects.export_templates(template_id_list, *export_args), sort_keys=True)
+            json.dumps(
+                template_model_cls.objects.export_templates(
+                    template_id_list, is_full=request.data.get("is_full") or False, **kwargs
+                ),
+                sort_keys=True,
+            )
         )
     except FlowExportError as e:
         return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code, "data": None})
@@ -376,7 +383,6 @@ def export_yaml_templates(request: Request):
     template_ids = request.data["template_id_list"]
     template_type = request.data["template_type"]
     project_id = request.data["project_id"] if template_type == "project" else None
-    export_args = [project_id] if project_id else []
     is_full = request.data["is_full"]
     if is_full:
         template_filters = {"is_deleted": False}
@@ -388,7 +394,9 @@ def export_yaml_templates(request: Request):
 
     converter_handler = YamlSchemaConverterHandler("v1")
     try:
-        templates_data = TEMPLATE_TYPE_MODEL[template_type].objects.export_templates(template_ids, *export_args)
+        templates_data = TEMPLATE_TYPE_MODEL[template_type].objects.export_templates(
+            template_ids, project_id=project_id
+        )
         convert_result = converter_handler.convert(templates_data)
     except FlowExportError as e:
         logger.exception("[export_yaml_templates] convert yaml file error: {}".format(e))

@@ -11,28 +11,31 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
 import logging
+import re
 from collections import Counter
 
 from cryptography.fernet import Fernet
-
-import env
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.variables.utils import find_module_with_relation
-
-from gcloud.utils import cmdb
-from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str, get_ipv6_and_cloud_id_from_ipv6_cloud_str
+import env
 from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
+from gcloud.utils import cmdb
+from gcloud.utils.ip import (
+    extract_ip_from_ip_str,
+    get_ip_by_regex,
+    get_ipv6_and_cloud_id_from_ipv6_cloud_str,
+)
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.variables.utils import find_module_with_relation
 
 __all__ = [
     "cc_get_ips_info_by_str",
     "get_job_instance_url",
     "get_node_callback_url",
     "plat_ip_reg",
+    "ip_pattern",
     "get_nodeman_job_url",
     "get_difference_ip_list",
     "get_biz_ip_from_frontend",
@@ -323,6 +326,7 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
 
 
 def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
+    # TODO
     """
     @summary: 从ip_str中匹配出IP信息
     @param username

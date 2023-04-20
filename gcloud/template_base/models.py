@@ -10,28 +10,39 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
+from collections import defaultdict
+
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
-from gcloud.clocked_task.models import ClockedTask
-from gcloud.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
+from pipeline.models import (
+    PipelineTemplate,
+    TemplateCurrentVersion,
+    TemplateRelationship,
+)
+
+from gcloud import err_code
+from gcloud.clocked_task.models import ClockedTask
+from gcloud.conf import settings
+from gcloud.constants import (
+    CLOCKED_TASK_NOT_STARTED,
+    COMMON,
+    PROJECT,
+    TASK_CATEGORY,
+    TEMPLATE_EXPORTER_VERSION,
+)
+from gcloud.core.utils import convert_readable_username
+from gcloud.exceptions import FlowExportError
+from gcloud.iam_auth.resource_creator_action.signals import batch_create
+from gcloud.template_base.utils import fetch_templates_info, replace_template_id
+from gcloud.utils import managermixins
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
-from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurrentVersion
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
-
-from gcloud import err_code
-from gcloud.constants import TEMPLATE_EXPORTER_VERSION, COMMON, PROJECT, CLOCKED_TASK_NOT_STARTED
-from gcloud.exceptions import FlowExportError
-from gcloud.conf import settings
-from gcloud.constants import TASK_CATEGORY
-from gcloud.core.utils import convert_readable_username
-from gcloud.template_base.utils import replace_template_id, fetch_templates_info
-from gcloud.iam_auth.resource_creator_action.signals import batch_create
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -69,7 +80,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         NodeInTemplate.objects.create_nodes_in_template(pipeline_template, pipeline_web_tree.origin_data)
         return pipeline_template
 
-    def export_templates(self, template_id_list):
+    def export_templates(self, template_id_list, **kwargs):
         template_source_type = PROJECT if self.model.__name__ == "TaskTemplate" else COMMON
         templates = list(self.filter(id__in=template_id_list).select_related("pipeline_template").values())
         pipeline_template_id_list = []
@@ -104,8 +115,36 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             sub_temp["pipeline_template_str_id"] = sub_temp["pipeline_template_id"]
             template[sub_temp["id"]] = sub_temp
 
+        # 导出计划任务
+        clocked_task_cls = apps.get_model("clocked_task", "ClockedTask")
+        clocked_tasks = []
+        for clocked_task_obj in clocked_task_cls.objects.filter(
+            template_source=template_source_type, template_id__in=template_id_list
+        ):
+            clocked_tasks.append(
+                {
+                    "id": clocked_task_obj.id,
+                    "project_id": clocked_task_obj.project_id,
+                    "template_id": clocked_task_obj.template_id,
+                    "template_name": clocked_task_obj.template_name,
+                    "template_source": clocked_task_obj.template_source,
+                    "task_name": clocked_task_obj.task_name,
+                    "task_params": json.loads(clocked_task_obj.task_params),
+                    "plan_start_time": clocked_task_obj.plan_start_time.strftime(
+                        PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT
+                    ),
+                    "edit_time": clocked_task_obj.edit_time.strftime(PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT),
+                    "create_time": clocked_task_obj.create_time.strftime(
+                        PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT
+                    ),
+                    "editor": clocked_task_obj.editor,
+                    "creator": clocked_task_obj.creator,
+                }
+            )
+
         result = {
             "template": template,
+            "clocked_task": clocked_tasks,
             "pipeline_template_data": pipeline_temp_data,
             "exporter_version": TEMPLATE_EXPORTER_VERSION,
             "template_source": template_source_type,
@@ -135,7 +174,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         result = {"can_override": True, "new_template": new_template, "override_template": override_template}
         return result
 
-    def _perform_import(self, template_data, check_info, override, defaults_getter, operator):
+    def _perform_import(self, template_data, check_info, override, defaults_getter, operator, return_http_data=True):
         template = template_data["template"]
         tid_to_reuse = {}
 
@@ -143,6 +182,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         # import_id -> reuse_id
         for template_to_be_replaced in check_info["override_template"]:
             task_template_id = template_to_be_replaced["id"]
+            # pipeline_template_id
             template_id = template_data["template"][str(task_template_id)]["pipeline_template_str_id"]
             tid_to_reuse[template_id] = template_to_be_replaced["template_id"]
 
@@ -163,8 +203,11 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
                 )
             )
 
+        new_pipeline_template_id__old_tid_map = {}
         for tid, template_dict in list(template.items()):
-            template_dict["pipeline_template_id"] = old_id_to_new_id[template_dict["pipeline_template_str_id"]]
+            new_pipeline_template_id = old_id_to_new_id[template_dict["pipeline_template_str_id"]]
+            new_pipeline_template_id__old_tid_map[new_pipeline_template_id] = tid
+            template_dict["pipeline_template_id"] = new_pipeline_template_id
             defaults = defaults_getter(template_dict)
             # use update or create to avoid id conflict
             if override:
@@ -193,12 +236,34 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             if create_templates:
                 batch_create.send(self.model, instance=create_templates, creator=operator)
 
-        return {
-            "result": True,
-            "data": {"count": len(template), "flows": flows},
-            "message": "Successfully imported %s flows" % len(template),
-            "code": err_code.SUCCESS.code,
-        }
+        if return_http_data:
+            return {
+                "result": True,
+                "data": {"count": len(template), "flows": flows},
+                "message": "Successfully imported %s flows" % len(template),
+                "code": err_code.SUCCESS.code,
+            }
+        else:
+            template_recreated_info = defaultdict(dict)
+            template_source_type = PROJECT if self.model.__name__ == "TaskTemplate" else COMMON
+            created_template_infos = self.model.objects.filter(
+                pipeline_template_id__in=new_pipeline_template_id__old_tid_map.keys()
+            ).values()
+
+            # 建立新老流程模板的映射关系
+            # 保留 template_source_type 的原因：后续导入项目流程所依赖的「公共流程」，可能不再以项目流程的方式导入，预留区分
+            for created_template_info in created_template_infos:
+                new_tid = created_template_info["id"]
+                old_tid = new_pipeline_template_id__old_tid_map[created_template_info["pipeline_template_id"]]
+                template_recreated_info[template_source_type][old_tid] = {
+                    "id": new_tid,
+                    "export_data": template[old_tid],
+                    "import_data": created_template_info,
+                }
+
+            id_map["template_recreated_info"] = template_recreated_info
+
+            return {"result": True, "flows": flows, "id_map": id_map}
 
     def check_templates_subprocess_expired(self, tmpl_and_pipeline_id):
         # fetch all template relationship in template_ids
