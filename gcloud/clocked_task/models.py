@@ -15,15 +15,18 @@ import logging
 
 from django.apps import apps
 from django.db import models, transaction
-from django_celery_beat.models import (
-    PeriodicTask as DjangoCeleryBeatPeriodicTask,
-    ClockedSchedule as DjangoCeleryBeatClockedSchedule,
-)
+from django_celery_beat.models import ClockedSchedule as DjangoCeleryBeatClockedSchedule
+from django_celery_beat.models import PeriodicTask as DjangoCeleryBeatPeriodicTask
 
-from gcloud.constants import TEMPLATE_SOURCE, PROJECT, CLOCKED_TASK_STATE, CLOCKED_TASK_NOT_STARTED
-from gcloud.utils.unique import uniqid
-from gcloud.core.models import StaffGroupSet, Project
+from gcloud.constants import (
+    CLOCKED_TASK_NOT_STARTED,
+    CLOCKED_TASK_STATE,
+    PROJECT,
+    TEMPLATE_SOURCE,
+)
+from gcloud.core.models import Project, StaffGroupSet
 from gcloud.shortcuts.cmdb import get_business_group_members
+from gcloud.utils.unique import uniqid
 
 logger = logging.getLogger("root")
 
@@ -39,6 +42,14 @@ class ClockedTaskManager(models.Manager):
         template_name = kwargs["template_name"]
         notify_type = kwargs.get("notify_type", "[]")
         notify_receivers = kwargs.get("notify_receivers", "{}")
+
+        extra_data = {
+            "editor": kwargs.get("editor"),
+            "edit_time": kwargs.get("edit_time"),
+            "create_time": kwargs.get("create_time"),
+        }
+        extra_data = dict(filter(lambda x: x[1], extra_data.items()))
+
         with transaction.atomic():
             clocked, _ = DjangoCeleryBeatClockedSchedule.objects.get_or_create(clocked_time=plan_start_time)
             task = ClockedTask.objects.create(
@@ -51,6 +62,7 @@ class ClockedTaskManager(models.Manager):
                 task_params=task_params,
                 notify_type=notify_type,
                 notify_receivers=notify_receivers,
+                **extra_data,
             )
             clocked_task_kwargs = {"clocked_task_id": task.id}
             clocked_task = DjangoCeleryBeatPeriodicTask.objects.create(

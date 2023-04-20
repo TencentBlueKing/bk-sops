@@ -17,38 +17,40 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.common_template import (
+    ExportInterceptor,
+    FormInterceptor,
+    ImportInterceptor,
+    ParentsInterceptor,
+)
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.template_base.apis.django.api import (
     base_batch_form,
-    base_form,
     base_check_before_import,
     base_export_templates,
+    base_form,
     base_import_templates,
     base_template_parents,
     is_full_param_process,
 )
 from gcloud.template_base.apis.django.validators import (
     BatchFormValidator,
+    ExportTemplateApiViewValidator,
     FormValidator,
     TemplateParentsValidator,
-    ExportTemplateApiViewValidator,
 )
 from gcloud.utils.decorators import request_validate
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.common_template import (
-    FormInterceptor,
-    ExportInterceptor,
-    ImportInterceptor,
-    ParentsInterceptor,
-)
-from .validators import ImportValidator, CheckBeforeImportValidator
+
+from .validators import CheckBeforeImportValidator, ImportValidator
 
 logger = logging.getLogger("root")
 
 
 @swagger_auto_schema(
-    methods=["get"], auto_schema=AnnotationAutoSchema,
+    methods=["get"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["GET"])
 @request_validate(FormValidator)
@@ -73,7 +75,8 @@ def form(request):
 
 
 @swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(BatchFormValidator)
@@ -108,7 +111,8 @@ def batch_form(request):
 
 
 @swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(ExportTemplateApiViewValidator)
@@ -129,11 +133,12 @@ def export_templates(request):
     return: DAT 文件
     {}
     """
-    return base_export_templates(request, CommonTemplate, "common", [])
+    return base_export_templates(request, CommonTemplate, "common")
 
 
 @swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(ImportValidator)
@@ -159,7 +164,8 @@ def import_templates(request):
 
 
 @swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
@@ -194,7 +200,8 @@ def check_before_import(request):
 
 
 @swagger_auto_schema(
-    methods=["get"], auto_schema=AnnotationAutoSchema,
+    methods=["get"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["GET"])
 @request_validate(TemplateParentsValidator)
