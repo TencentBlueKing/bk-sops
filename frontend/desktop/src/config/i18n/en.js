@@ -1621,7 +1621,8 @@ const en = {
     '任务已继续执行': 'Task has resumed',
     '操作记录': 'Operate record',
     '参数未修改，任务已继续执行': 'The parameter was not modified and the task continued',
-    '离开': 'Leave'
+    '离开': 'Leave',
+    '全不选': 'Unselect all'
 }
 
 export default en

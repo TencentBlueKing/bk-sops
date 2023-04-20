@@ -633,4 +633,32 @@
             }
         }
     }
+    .gateway-select-pop {
+        .tippy-tooltip {
+            color: #63656e;
+            padding: 5px 10px 7px;
+            border: 1px solid #dcdee5;
+            box-shadow: 0 3px 6px 0 rgba(0,0,0,0.10);
+            .select-all, .unselect-all {
+                line-height: 15px;
+                cursor: pointer;
+                &:hover {
+                    color: #3a84ff;
+                }
+            }
+            .select-all {
+                margin-right: 17px;
+                &::after {
+                    content: '';
+                    display: inline-block;
+                    position: relative;
+                    top: 4px;
+                    right: -10px;
+                    width: 1px;
+                    height: 15px;
+                    background: #f0f1f5;
+                }
+            }
+        }
+    }
 </style>
