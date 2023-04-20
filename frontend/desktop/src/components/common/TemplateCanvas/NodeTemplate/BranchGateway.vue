@@ -18,7 +18,14 @@
             { 'ready': node.ready },
             node.status ? node.status.toLowerCase() : ''
         ]">
-        <div class="node-type-icon common-icon-node-branchgateway"></div>
+        <!-- 网关节点全选/全不选 -->
+        <bk-popover placement="top" theme="light" ext-cls="gateway-select-pop" :disabled="!node.optional || node.mode !== 'select'">
+            <div class="node-type-icon common-icon-node-branchgateway"></div>
+            <template slot="content">
+                <span class="select-all" @click="onNodeCheckClick(true)">{{ $t('全选') }}</span>
+                <span class="unselect-all" @click="onNodeCheckClick(false)">{{ $t('全不选') }}</span>
+            </template>
+        </bk-popover>
         <div class="state-icon" v-if="isOpenTooltip">
             <span @click.stop="onGatewaySelectionClick">
                 <i class="common-icon-skip"></i>
@@ -49,6 +56,9 @@
         methods: {
             onGatewaySelectionClick () {
                 this.$emit('onGatewaySelectionClick', this.node.id)
+            },
+            onNodeCheckClick (value) {
+                this.$emit('onNodeCheckClick', this.node.id, value)
             }
         }
     }

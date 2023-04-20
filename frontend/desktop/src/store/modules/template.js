@@ -292,6 +292,12 @@ const template = {
                                     }
                                 })
                                 return loc
+                            } else if (item.type.indexOf('gateway') > -1) {
+                                const loc = Object.assign({}, item, {
+                                    optional: true,
+                                    checked: true
+                                })
+                                return loc
                             }
                             return item
                         })
@@ -1056,6 +1062,10 @@ const template = {
         getCommonTemplatePublicData ({ commit }, data) {
             const { templateId } = data
             return axios.get(`/api/v3/common_template/${templateId}/common_info/`).then(response => response.data)
+        },
+        // 获取网关包含的节点
+        getGateWayIncludeNodes ({ commit }, data) {
+            return axios.post('/template/api/get_gateway_include_nodes/', data).then(response => response.data)
         }
     },
     getters: {

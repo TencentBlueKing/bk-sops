@@ -108,7 +108,7 @@
     </div>
 </template>
 <script>
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import XLSX from 'xlsx'
     import TaskScheme from './TaskScheme.vue'
     import EditTaskScheme from './EditTaskScheme.vue'
@@ -219,7 +219,8 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData'
+                'loadTemplateData',
+                'getGateWayIncludeNodes'
             ]),
             ...mapActions('task/', [
                 'getSchemeDetail',
@@ -230,6 +231,9 @@
             ]),
             ...mapMutations('template/', [
                 'setTemplateData'
+            ]),
+            ...mapGetters('template/', [
+                'getPipelineTree'
             ]),
             /**
              * 获取模板数据，并设置至store中
@@ -440,23 +444,41 @@
             /**
              * 选中节点
              */
-            onNodeCheckClick (id, val) {
-                this.canvasData.locations.some(item => {
-                    if (item.id === id) {
-                        this.$set(item, 'checked', val)
-                        return true
+            async onNodeCheckClick (id, val) {
+                try {
+                    this.canvasData.locations.some(item => {
+                        if (item.id === id) {
+                            this.$set(item, 'checked', val)
+                            return true
+                        }
+                    })
+                    let includeNodes = [id]
+                    if (id in this.gateways) {
+                        const pipelineTree = this.getPipelineTree() || {}
+                        const resp = await this.getGateWayIncludeNodes({
+                            gateway_id: id,
+                            pipeline_tree: JSON.stringify(pipelineTree)
+                        })
+                        if (resp.result) {
+                            includeNodes.push(...resp.data.node_ids)
+                        }
                     }
-                })
-                if (!val) {
-                    this.isAllSelected = false
-                    this.selectedNodes = this.selectedNodes.filter(item => item !== id)
-                } else {
-                    if (this.selectedNodes.length === this.allSelectableNodes.length - 1) {
-                        this.isAllSelected = true
+                    includeNodes = includeNodes.filter(item => !this.gateways[item])
+
+                    if (!val) {
+                        this.isAllSelected = false
+                        this.selectedNodes = this.selectedNodes.filter(item => !includeNodes.includes(item))
+                    } else {
+                        if (this.selectedNodes.length === this.allSelectableNodes.length - 1) {
+                            this.isAllSelected = true
+                        }
+                        this.selectedNodes.push(...includeNodes)
                     }
-                    this.selectedNodes.push(id)
+                    this.selectedNodes = [...new Set(this.selectedNodes)]
+                    this.updateDataAndCanvas()
+                } catch (error) {
+                    console.warn(error)
                 }
-                this.updateExcludeNodes()
             },
             /**
              * 点击预览模式下的面包屑
@@ -532,7 +554,8 @@
                     return acc
                 }, [])
                 const selectedNodes = Array.from(new Set(selectNodeAll))
-                this.selectedNodes = selectedNodes.length ? selectedNodes : Object.keys(this.activities) // 默认全选
+                const defaultSelectedAll = [...Object.keys(this.activities), ...Object.keys(this.gateways)]
+                this.selectedNodes = selectedNodes.length ? selectedNodes : defaultSelectedAll // 默认全选
                 this.updateDataAndCanvas()
             },
             /**

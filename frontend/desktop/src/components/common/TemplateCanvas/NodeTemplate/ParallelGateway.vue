@@ -11,7 +11,14 @@
 */
 <template>
     <div :class="['gateway-node', 'parallel-gateway', node.status ? node.status.toLowerCase() : '', { 'ready': node.ready }]">
-        <div class="node-type-icon common-icon-node-parallelgateway"></div>
+        <!-- 网关节点全选/全不选 -->
+        <bk-popover placement="top" theme="light" ext-cls="gateway-select-pop" :disabled="!node.optional || node.mode !== 'select'">
+            <div class="node-type-icon common-icon-node-parallelgateway"></div>
+            <template slot="content">
+                <span class="select-all" @click="onNodeCheckClick(true)">{{ $t('全选') }}</span>
+                <span class="unselect-all" @click="onNodeCheckClick(false)">{{ $t('全不选') }}</span>
+            </template>
+        </bk-popover>
     </div>
 </template>
 <script>
@@ -24,6 +31,11 @@
                 default () {
                     return {}
                 }
+            }
+        },
+        methods: {
+            onNodeCheckClick (value) {
+                this.$emit('onNodeCheckClick', this.node.id, value)
             }
         }
     }
