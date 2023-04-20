@@ -18,25 +18,30 @@ from typing import List
 from django.conf import settings
 from django.contrib.admin.utils import flatten
 from django.utils.translation import ugettext_lazy as _
+from pipeline.core.data.var import LazyVariable
 
+from gcloud.conf import settings as gcloud_settings
 from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
-
-from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex, extract_ip_from_ip_str
-from gcloud.conf import settings as gcloud_settings
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
+from gcloud.utils.ip import (
+    extract_ip_from_ip_str,
+    get_ip_by_regex,
+    get_plat_ip_by_regex,
+)
+from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
+from pipeline_plugins.base.utils.inject import supplier_account_for_project
+from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
+from pipeline_plugins.components.collections.sites.open.cc.base import (
+    cc_get_host_by_innerip_with_ipv6,
+)
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str
+from pipeline_plugins.components.utils.common import ip_re
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 from pipeline_plugins.variables.collections.sites.open.ip_filter_base import (
     GseAgentStatusIpFilter,
     GseAgentStatusIpV6Filter,
 )
-from pipeline.core.data.var import LazyVariable
-from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
-from pipeline_plugins.base.utils.inject import supplier_account_for_project
-from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str
-from pipeline_plugins.components.utils.common import ip_re
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
 get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER

@@ -12,30 +12,37 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-
 from collections import Counter
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth import get_user_model
-from django.db.models import Count
 
-from pipeline.parser.utils import replace_all_id
+from django.apps import apps
+from django.contrib.auth import get_user_model
+from django.db import models
+from django.db.models import Count
+from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.periodic_task.models import PeriodicTask
-from pipeline.models import PipelineInstance, TemplateRelationship, PipelineTemplate
+from pipeline.models import PipelineInstance, PipelineTemplate, TemplateRelationship
+from pipeline.parser.utils import replace_all_id
 
 from gcloud import err_code
-from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
-from gcloud.constants import AE
-from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
+from gcloud.analysis_statistics.models import (
+    ProjectStatisticsDimension,
+    TaskflowStatistics,
+    TaskTmplExecuteTopN,
+    TemplateNodeStatistics,
+    TemplateStatistics,
+)
+from gcloud.constants import AE, TASK_CATEGORY, TASK_FLOW_TYPE
 from gcloud.core.models import Project
-from gcloud.template_base.utils import replace_biz_id_value
-from gcloud.utils.managermixins import ClassificationCountMixin
-from gcloud.utils.dates import format_datetime
-from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
-from gcloud.utils.components import format_component_name_with_remote
-from gcloud.analysis_statistics.models import ProjectStatisticsDimension, TaskTmplExecuteTopN
 from gcloud.shortcuts.cmdb import get_business_attrinfo
+from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
+from gcloud.template_base.utils import (
+    fill_default_version_to_service_activities,
+    replace_biz_id_value,
+)
+from gcloud.utils.components import format_component_name_with_remote
+from gcloud.utils.dates import format_datetime
+from gcloud.utils.managermixins import ClassificationCountMixin
 
 logger = logging.getLogger("root")
 
@@ -403,10 +410,33 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             message = "query_task_list params conditions[%s] have invalid key or value: %s" % (prefix_filters, e)
             return False, message, None, None
 
-    def export_templates(self, template_id_list, project_id):
-        if self.filter(id__in=template_id_list, project_id=project_id).count() != len(template_id_list):
-            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, template_id_list))
-        return super(TaskTemplateManager, self).export_templates(template_id_list)
+    def export_templates(self, template_id_list, **kwargs):
+        query_params = {"project_id": kwargs["project_id"]}
+        if kwargs.get("is_full"):
+            template_id_list = list(self.filter(**query_params).values_list("id", flat=True))
+        else:
+            query_params["id__in"] = template_id_list
+            if self.filter(**kwargs).count() != len(template_id_list):
+                raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, template_id_list))
+
+        export_data = super(TaskTemplateManager, self).export_templates(template_id_list, **kwargs)
+
+        # 导出任务流程关联的轻应用
+        from gcloud.contrib.appmaker.models import AppMaker
+
+        app_maker_cls: AppMaker = apps.get_model("appmaker", "AppMaker")
+        app_makers = list(
+            app_maker_cls.objects.filter(task_template_id__in=template_id_list).values(
+                "id", "name", "desc", "creator", "task_template_id", "template_scheme_id", "project_id"
+            )
+        )
+        # formatter
+        for app_maker in app_makers:
+            app_maker["username"] = app_maker.pop("creator")
+            app_maker["template_id"] = app_maker.pop("task_template_id")
+
+        export_data["app_makers"] = app_makers
+        return export_data
 
     def import_operation_check(self, template_data, project_id):
         data = super(TaskTemplateManager, self).import_operation_check(template_data)
@@ -440,22 +470,34 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         for template in templates_data["pipeline_template_data"]["template"].values():
             replace_biz_id_value(template["tree"], bk_biz_id)
 
-    def import_templates(self, template_data, override, project_id, operator=None):
+    def _reset_project_id(self, templates_data, project_id):
+        for app_maker in templates_data.get("app_makers") or []:
+            app_maker["project_id"] = project_id
+
+        for clocked_task in templates_data.get("clocked_tasks") or []:
+            clocked_task["project_id"] = project_id
+
+    def import_templates(self, template_data, override, project_id, operator=None, return_http_data=True):
         project = Project.objects.get(id=project_id)
         check_info = self.import_operation_check(template_data, project_id)
         # reset biz_cc_id select in templates
         self._reset_biz_selector_value(template_data, project.bk_biz_id)
+        # 替换导出数据中的 project_id
+        self._reset_project_id(template_data, project_id)
+        for template in template_data["pipeline_template_data"]["template"].values():
+            fill_default_version_to_service_activities(template["tree"])
 
         # operation validation check
         if override and (not check_info["can_override"]):
-            message = _("流程导入失败: 跨业务导入流程不支持覆盖相同ID, 请检查配置 | import_templates")
-            logger.error(message)
-            return {
+            base_return_data = {
                 "result": False,
-                "message": message,
-                "data": 0,
-                "code": err_code.INVALID_OPERATION.code,
+                "message": _("流程导入失败: 跨业务导入流程不支持覆盖相同ID, 请检查配置 | import_templates"),
             }
+            logger.error(base_return_data["message"])
+            if return_http_data:
+                return {**base_return_data, "data": 0, "code": err_code.INVALID_OPERATION.code}
+            else:
+                return base_return_data
 
         def defaults_getter(template_dict):
             return {
@@ -474,6 +516,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             override=override,
             defaults_getter=defaults_getter,
             operator=operator,
+            return_http_data=return_http_data,
         )
 
     def replace_all_template_tree_node_id(self):
