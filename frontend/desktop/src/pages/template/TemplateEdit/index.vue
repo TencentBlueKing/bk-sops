@@ -1421,11 +1421,10 @@
             },
             // 检查并行网关是否和汇聚网关对应
             checkParallelGateway (id, branchNodes) {
-                // 记录当前节点
-                branchNodes.add(id)
-
                 const matchNodes = this.nodeTargetMaps[id]
                 if (matchNodes && matchNodes.length > 1) { // 对应多个节点
+                    // 记录当前节点
+                    branchNodes.add(id)
                     // 删除一条旧分支，如果当前没有分支则不删，并且添加新分支
                     this.branchLength = this.branchLength - (this.branchLength ? 1 : 0) + matchNodes.length
                     matchNodes.forEach(nodeId => {
@@ -1434,15 +1433,17 @@
                 } else if (matchNodes) { // 对应一个节点
                     this.branchLength = this.branchLength || 1
                     // 出现重复节点退出递归，当前分支无效-1
-                    const nodeId = matchNodes[0]
-                    if (branchNodes.has(nodeId) && nodeId !== this.end_event.id) {
+                    if (branchNodes.has(id) && id !== this.end_event.id) {
                         this.branchLength = this.branchLength - 1
                         return
                     }
-                    if (this.branchLength === 1 && this.convergeGwNodes.includes(nodeId)) {
-                        branchNodes.add(nodeId)
+                    if (this.branchLength === 1 && this.convergeGwNodes.includes(id)) {
+                        branchNodes.add(id)
                         return
                     }
+                    // 记录当前节点
+                    branchNodes.add(id)
+                    const nodeId = matchNodes[0]
                     this.checkParallelGateway(nodeId, branchNodes)
                 }
             },
