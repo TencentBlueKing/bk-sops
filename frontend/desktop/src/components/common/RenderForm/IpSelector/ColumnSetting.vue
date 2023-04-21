@@ -3,7 +3,7 @@
         <div
             class="host-table-column-setting">
             <div class="setting-header">
-                表格设置
+                {{ $t('表格设置') }}
             </div>
             <bk-checkbox-group v-model="selectedList" class="column-list">
                 <div
@@ -13,7 +13,7 @@
                     <span
                         v-if="item.id === 'bk_host_innerip'"
                         v-bk-tooltips="{
-                            content: 'IP 与 IPv6 至少需保留一个',
+                            content: $t('IP 与 IPv6 至少需保留一个'),
                             disabled: selectedList.includes('bk_host_innerip_v6'),
                             zIndex: 2223
                         }">
@@ -26,7 +26,7 @@
                     <span
                         v-else-if="item.id === 'bk_host_innerip_v6'"
                         v-bk-tooltips="{
-                            content: 'IP 与 IPv6 至少需保留一个',
+                            content: $t('IP 与 IPv6 至少需保留一个'),
                             disabled: selectedList.includes('bk_host_innerip'),
                             zIndex: 2223
                         }">
@@ -49,10 +49,10 @@
                     theme="primary"
                     :disabled="!editable"
                     @click="handleSubmitSetting">
-                    确定
+                    {{ $t('确定') }}
                 </bk-button>
                 <bk-button @click="handleHideSetting">
-                    取消
+                    {{ $t('取消') }}
                 </bk-button>
             </div>
         </div>
