@@ -340,6 +340,12 @@ const validatePipeline = {
     },
     // 检查并行网关是否和汇聚网关对应
     checkParallelGateway (id) {
+        branchLength = branchLength || 1
+        // 出现重复节点退出递归，当前分支无效-1
+        if (branchNodes.has(id) && id !== pipelineData.end_event.id) {
+            branchLength = branchLength - 1
+            return
+        }
         const matchNodes = nodeTargetMaps[id]
         if (matchNodes && matchNodes.length > 1) { // 对应多个节点
             // 记录当前节点
@@ -350,12 +356,6 @@ const validatePipeline = {
                 this.checkParallelGateway(nodeId)
             })
         } else if (matchNodes) { // 对应一个节点
-            branchLength = branchLength || 1
-            // 出现重复节点退出递归，当前分支无效-1
-            if (branchNodes.has(id) && id !== pipelineData.end_event.id) {
-                branchLength = branchLength - 1
-                return
-            }
             if (branchLength === 1 && convergeGwNodes.includes(id)) {
                 branchNodes.add(id)
                 return
