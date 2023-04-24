@@ -12,9 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
+from gcloud.template_base.models import BaseTemplateManager
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.template_base.models import BaseTemplateManager
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 
@@ -26,21 +27,20 @@ class MockArgs(object):
     def __init__(self):
         self.template_data = {
             "exporter_version": 1,
-            "pipeline_template_data": {
-            },
+            "pipeline_template_data": {},
             "template": {
                 "3": {
-                    'category': 'Default',
-                    'executor_proxy': '',
-                    'id': 3,
-                    'notify_type': '{"success":[],"fail":[]}',
-                    'pipeline_template_id': 'nb35afe8b9f335cb9f36f6c55906fcd9',
-                    'pipeline_template_str_id': 'nb35afe8b9f335cb9f36f6c55906fcd9',
-                    'project_id': 1,
-                    'time_out': 20
+                    "category": "Default",
+                    "executor_proxy": "",
+                    "id": 3,
+                    "notify_type": '{"success":[],"fail":[]}',
+                    "pipeline_template_id": "nb35afe8b9f335cb9f36f6c55906fcd9",
+                    "pipeline_template_str_id": "nb35afe8b9f335cb9f36f6c55906fcd9",
+                    "project_id": 1,
+                    "time_out": 20,
                 }
             },
-            "template_source": "project"
+            "template_source": "project",
         }
 
         self.check_info = {
@@ -50,7 +50,7 @@ class MockArgs(object):
             ],
             "override_template": [
                 {"id": 3, "name": "定时器1", "template_id": "b7ccd053a6dc39959a9e585dfac9811b"},
-            ]
+            ],
         }
         self.operator = "admin"
 
@@ -79,6 +79,7 @@ class MockBaseTemplateManagerModel(object):
             template = MagicMock()
             template.id = 4
             template.name = "定时器1"
+            template.pipeline_template_id = list(pipeline_template_id__in)[0]
             return [template]
         return self
 
@@ -94,21 +95,18 @@ class MockBaseTemplateManagerModel(object):
     def bulk_create(self, new_objects):
         return True
 
+    def __name__(self):
+        return "TaskTemplate"
+
 
 mock_id_map = {
-    PipelineTemplateWebWrapper.ID_MAP_KEY: {
-        'nb35afe8b9f335cb9f36f6c55906fcd9': 'nb35afe8b9f335cb9f36f6c55906fcd9'
-    }
+    PipelineTemplateWebWrapper.ID_MAP_KEY: {"nb35afe8b9f335cb9f36f6c55906fcd9": "nb35afe8b9f335cb9f36f6c55906fcd9"}
 }
 
 
 class PerformImportTest(TestCase):
-    @mock.patch(
-        'pipeline_web.wrapper.PipelineTemplateWebWrapper.import_templates',
-        mock.Mock(return_value=mock_id_map)
-    )
-    @mock.patch('gcloud.iam_auth.resource_creator_action.signals.batch_create.send',
-                mock.Mock(return_value=True))
+    @mock.patch("pipeline_web.wrapper.PipelineTemplateWebWrapper.import_templates", mock.Mock(return_value=mock_id_map))
+    @mock.patch("gcloud.iam_auth.resource_creator_action.signals.batch_create.send", mock.Mock(return_value=True))
     def mock_perform_import(self, override):
         """
         @param override: 是否覆盖
@@ -122,7 +120,7 @@ class PerformImportTest(TestCase):
             check_info=mock_args.check_info,
             override=override,
             defaults_getter=mock_args.defaults_getter,
-            operator=mock_args.operator
+            operator=mock_args.operator,
         )
 
     def test_override(self):

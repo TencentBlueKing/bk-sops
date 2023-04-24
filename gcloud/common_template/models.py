@@ -40,7 +40,7 @@ class CommonTemplateManager(BaseTemplateManager):
             template_id_list = list(self.all().values_list("id", flat=True))
         super().export_templates(template_id_list, **kwargs)
 
-    def import_templates(self, template_data, override, operator=None, return_http_data=True):
+    def import_templates(self, template_data, override, operator=None):
         check_info = self.import_operation_check(template_data)
 
         for template in template_data["pipeline_template_data"]["template"].values():
@@ -48,16 +48,9 @@ class CommonTemplateManager(BaseTemplateManager):
 
         # operation validation check
         if override and (not check_info["can_override"]):
-            base_return_data = {
-                "result": False,
-                "message": _("流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试 | import_templates"),
-            }
-            logger.error(base_return_data["message"])
-
-            if return_http_data:
-                return {**base_return_data, "data": 0, "code": err_code.INVALID_OPERATION.code}
-            else:
-                return base_return_data
+            message = _("流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试 | import_templates")
+            logger.error(message)
+            return {"result": False, "message": message, "data": 0, "code": err_code.INVALID_OPERATION.code}
 
         def defaults_getter(template_dict):
             return {
@@ -75,7 +68,6 @@ class CommonTemplateManager(BaseTemplateManager):
             override=override,
             defaults_getter=defaults_getter,
             operator=operator,
-            return_http_data=return_http_data,
         )
 
 
