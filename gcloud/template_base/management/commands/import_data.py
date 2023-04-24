@@ -92,13 +92,13 @@ def do_import(
 
     logger.info("[import] start to import templates")
     import_result: typing.Dict[str, typing.Any] = template_model_cls.objects.import_templates(
-        template_data=template_data, override=False, operator="admin", return_http_data=False, **extra_params
+        template_data=template_data, override=False, operator="admin", **extra_params
     )
 
     if not import_result["result"]:
-        raise Exception("[import] import templates failed")
+        raise Exception(f"[import] import templates failed, message: {import_result['message']}")
     else:
-        logging.info("[import] import templates success")
+        logging.info(f"[import] import templates success, message: {import_result['message']}")
 
     if import_app_maker:
         app_makers: typing.List[typing.Dict[str, typing.Any]] = template_data.get("app_makers") or []

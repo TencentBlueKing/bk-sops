@@ -14,13 +14,12 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
+from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
-
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
@@ -82,7 +81,10 @@ class ImportCommonTemplateAPITest(APITest):
         MagicMock(return_value={"result": True, "data": {"template_data": "token"}}),
     )
     @mock.patch(
-        COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={"result": False, "message": "token"}),
+        COMMONTEMPLATE_IMPORT_TEMPLATES,
+        MagicMock(
+            return_value={"result": False, "message": "token", "code": err_code.INVALID_OPERATION.code, "data": 0}
+        ),
     )
     def test_import_common_template__import_templates_fail(self):
         response = self.client.post(
@@ -102,7 +104,8 @@ class ImportCommonTemplateAPITest(APITest):
         MagicMock(return_value={"result": True, "data": {"template_data": "token"}}),
     )
     @mock.patch(
-        COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={"result": True, "message": "token"}),
+        COMMONTEMPLATE_IMPORT_TEMPLATES,
+        MagicMock(return_value={"result": True, "message": "token", "code": 0, "data": {}}),
     )
     def test_import_common_template__success(self):
         response = self.client.post(

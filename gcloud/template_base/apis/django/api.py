@@ -45,7 +45,10 @@ from gcloud.template_base.apis.django.validators import (
 from gcloud.template_base.domains import TEMPLATE_TYPE_MODEL
 from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
 from gcloud.template_base.domains.importer import TemplateImporter
-from gcloud.template_base.utils import read_template_data_file
+from gcloud.template_base.utils import (
+    format_import_result_to_response_data,
+    read_template_data_file,
+)
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import string_to_boolean
@@ -176,7 +179,7 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
     templates_data = r["data"]["template_data"]
 
     try:
-        result = template_model_cls.objects.import_templates(
+        import_result = template_model_cls.objects.import_templates(
             template_data=templates_data, override=override, operator=request.user.username, **import_kwargs
         )
     except Exception:
@@ -192,7 +195,7 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
             }
         )
 
-    return JsonResponse(result)
+    return JsonResponse(format_import_result_to_response_data(import_result))
 
 
 @swagger_auto_schema(methods=["post"], auto_schema=AnnotationAutoSchema)
