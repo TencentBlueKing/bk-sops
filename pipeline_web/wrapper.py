@@ -175,7 +175,7 @@ class PipelineTemplateWebWrapper(object):
     def _export_template(cls, template_obj, subprocess, refs, template_versions, root=True):
         """
         导出模板 wrapper 函数
-        @param template_id: 需要导出的模板 id
+        @param template_obj: 需要导出的模板
         @param subprocess: 子流程记录字典
         @param refs: 引用关系记录字典: 被引用模板 -> 引用模板 -> 引用节点
         @param root: 是否是根模板
@@ -195,7 +195,6 @@ class PipelineTemplateWebWrapper(object):
             "editor": template_obj.editor,
             "is_deleted": template_obj.is_deleted,
             "name": template_obj.name,
-            # TODO 对于 snapshot，这里可以直接新建
             "template_id": template_obj.template_id,
             # 执行方案
             "schemes": list(
@@ -212,7 +211,6 @@ class PipelineTemplateWebWrapper(object):
                 # referenced template -> referencer -> reference act
                 refs.setdefault(act["template_id"], {}).setdefault(template["template_id"], set()).add(act_id)
                 # 因为只会导入同一业务下，所以导出时抹去原环境子流程的类型信息
-                # TODO 是否复用公共流程
                 if "template_source" in act:
                     act.pop("template_source")
                 subprocess_obj = PipelineTemplate.objects.get(template_id=act["template_id"])

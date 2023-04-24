@@ -416,26 +416,28 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             template_id_list = list(self.filter(**query_params).values_list("id", flat=True))
         else:
             query_params["id__in"] = template_id_list
-            if self.filter(**kwargs).count() != len(template_id_list):
+            if self.filter(**query_params).count() != len(template_id_list):
                 raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, template_id_list))
 
         export_data = super(TaskTemplateManager, self).export_templates(template_id_list, **kwargs)
 
-        # 导出任务流程关联的轻应用
-        from gcloud.contrib.appmaker.models import AppMaker
+        if kwargs.get("export_app_maker"):
 
-        app_maker_cls: AppMaker = apps.get_model("appmaker", "AppMaker")
-        app_makers = list(
-            app_maker_cls.objects.filter(task_template_id__in=template_id_list).values(
-                "id", "name", "desc", "creator", "task_template_id", "template_scheme_id", "project_id"
+            # 导出任务流程关联的轻应用
+            from gcloud.contrib.appmaker.models import AppMaker
+
+            app_maker_cls: AppMaker = apps.get_model("appmaker", "AppMaker")
+            app_makers = list(
+                app_maker_cls.objects.filter(task_template_id__in=template_id_list).values(
+                    "id", "name", "desc", "creator", "task_template_id", "template_scheme_id", "project_id"
+                )
             )
-        )
-        # formatter
-        for app_maker in app_makers:
-            app_maker["username"] = app_maker.pop("creator")
-            app_maker["template_id"] = app_maker.pop("task_template_id")
+            # formatter
+            for app_maker in app_makers:
+                app_maker["username"] = app_maker.pop("creator")
+                app_maker["template_id"] = app_maker.pop("task_template_id")
+            export_data["app_makers"] = app_makers
 
-        export_data["app_makers"] = app_makers
         return export_data
 
     def import_operation_check(self, template_data, project_id):
@@ -477,7 +479,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         for clocked_task in templates_data.get("clocked_tasks") or []:
             clocked_task["project_id"] = project_id
 
-    def import_templates(self, template_data, override, project_id, operator=None, return_http_data=True):
+    def import_templates(self, template_data, override, project_id, operator=None):
         project = Project.objects.get(id=project_id)
         check_info = self.import_operation_check(template_data, project_id)
         # reset biz_cc_id select in templates
@@ -489,15 +491,9 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 
         # operation validation check
         if override and (not check_info["can_override"]):
-            base_return_data = {
-                "result": False,
-                "message": _("流程导入失败: 跨业务导入流程不支持覆盖相同ID, 请检查配置 | import_templates"),
-            }
-            logger.error(base_return_data["message"])
-            if return_http_data:
-                return {**base_return_data, "data": 0, "code": err_code.INVALID_OPERATION.code}
-            else:
-                return base_return_data
+            message = _("流程导入失败: 跨业务导入流程不支持覆盖相同ID, 请检查配置 | import_templates")
+            logger.error(message)
+            return {"result": False, "message": message, "data": 0, "code": err_code.INVALID_OPERATION.code}
 
         def defaults_getter(template_dict):
             return {
@@ -516,7 +512,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             override=override,
             defaults_getter=defaults_getter,
             operator=operator,
-            return_http_data=return_http_data,
         )
 
     def replace_all_template_tree_node_id(self):

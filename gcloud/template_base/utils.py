@@ -15,7 +15,7 @@ import base64
 import hashlib
 import logging
 from functools import partial
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import ujson as json
 from django.apps import apps
@@ -150,3 +150,17 @@ def fetch_templates_info(
         )
         templates = task_templates + common_templates
     return templates
+
+
+def format_import_result_to_response_data(import_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    将模板导出结果解析为接口返回数据
+    :param import_result:
+    :return:
+    """
+    return {
+        "result": import_result["result"],
+        "message": import_result["message"],
+        "code": import_result["code"],
+        "data": import_result["data"],
+    }

@@ -59,6 +59,11 @@ class DBHelper:
             resource_id_map[source_data_type(job_resource_mapping_info["source_data"])] = source_data_type(
                 job_resource_mapping_info["target_data"]
             )
+
+        data_not_in_mapping: typing.Set[typing.Union[int, str]] = set(source_data) - set(resource_id_map.keys())
+        if data_not_in_mapping:
+            logger.warning(f"[fetch_resource_id_map] data_not_in_mapping -> {data_not_in_mapping}")
+        logger.info(f"[fetch_resource_id_map] resource_id_map -> {resource_id_map}")
         return resource_id_map
 
     def insert_resource_mapping(
@@ -171,28 +176,44 @@ class CmdbSuite(Suite, abc.ABC):
         try:
             ip_or_bk_inst_id = old_topo_select.split("_")[-1]
         except Exception:
+            logger.warning(
+                f"[to_new_topo_select] {old_topo_select} not matching /bk_obj_id/_/bk_inst_id/ pattern, skip"
+            )
             return old_topo_select
 
         if ip_pattern.match(ip_or_bk_inst_id):
             bk_inst_id, ip = old_topo_select.rsplit("_", 1)
             bk_inst_id = int(bk_inst_id)
-            return f"{bk_inst_id + self.suite_meta.offset}_{ip}"
+            new_topo_select: str = f"{bk_inst_id + self.suite_meta.offset}_{ip}"
+            logger.info(f"[to_new_topo_select] {old_topo_select} -> {new_topo_select}")
+            return new_topo_select
 
         try:
             # handle {bk_obj_id}_{bk_inst_id}
             bk_obj_id, bk_inst_id = old_topo_select.rsplit("_", 1)
             bk_inst_id = int(bk_inst_id)
         except Exception:
+            logger.warning(
+                f"[to_new_topo_select] {old_topo_select} not matching /bk_obj_id/_/bk_inst_id/ pattern, skip"
+            )
             return old_topo_select
 
         if bk_obj_id == "biz":
             # 业务和其他实例的偏移不同，需要单独处理
-            bk_new_inst_id: int = self.suite_meta.old_biz_id__new_biz_info_map.get(
-                bk_inst_id, {"bk_new_biz_id": bk_inst_id}
-            )["bk_new_biz_id"]
-            return f"{bk_obj_id}_{bk_new_inst_id}"
+            try:
+                bk_new_inst_id: int = self.suite_meta.old_biz_id__new_biz_info_map[bk_inst_id]["bk_new_biz_id"]
+                new_topo_select: str = f"{bk_obj_id}_{bk_new_inst_id}"
+            except KeyError:
+                logger.warning(
+                    f"[to_new_topo_select] cannot find new business to old biz[{bk_inst_id}] by {old_topo_select}"
+                )
+                return old_topo_select
         else:
-            return f"{bk_obj_id}_{bk_inst_id + self.suite_meta.offset}"
+            new_topo_select: str = f"{bk_obj_id}_{bk_inst_id + self.suite_meta.offset}"
+
+        logger.info(f"[to_new_topo_select] {old_topo_select} -> {new_topo_select}")
+
+        return new_topo_select
 
     def to_new_cloud_id(self, old_cloud_id: int) -> int:
         """
@@ -203,8 +224,12 @@ class CmdbSuite(Suite, abc.ABC):
         """
 
         if old_cloud_id == 0:
+            logger.info("[to_new_cloud_id] skip default area")
             return old_cloud_id
-        return old_cloud_id + self.suite_meta.offset
+
+        new_cloud_id: int = old_cloud_id + self.suite_meta.offset
+        logger.info(f"[to_new_cloud_id] {old_cloud_id} -> {new_cloud_id}")
+        return new_cloud_id
 
     def to_new_ip_list_str_or_raise(self, old_ip_list_str: str) -> str:
         # 匹配出所有格式为 云区域:IP 的输入
@@ -225,14 +250,18 @@ class CmdbSuite(Suite, abc.ABC):
 
         # 最小处理原则，如果填写的 IP 不包含云区域，则不做处理，尽可能不修改用户数据
         if not plat_ip_list:
+            logger.info(f"[to_new_ip_list_str_or_raise] {old_ip_list_str} not hit plat_ip, skip")
             return old_ip_list_str
 
         # 没有匹配到任何 IP，跳过
         if not (plat_ip_list or without_plat_ip_list):
+            logger.info(f"[to_new_ip_list_str_or_raise] {old_ip_list_str} not hit any ip patterns, skip")
             return old_ip_list_str
 
         # 使用换行符重新整合处理后的数据
-        return "\n".join(without_plat_ip_list + plat_ip_list)
+        new_ip_list_str: str = "\n".join(without_plat_ip_list + plat_ip_list)
+        logger.info(f"[to_new_ip_list_str_or_raise] {old_ip_list_str} -> {new_ip_list_str}")
+        return new_ip_list_str
 
     def get_attr_data_or_raise(self, schema_attr_data: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:
         """

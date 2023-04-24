@@ -43,12 +43,9 @@ class ClockedTaskManager(models.Manager):
         notify_type = kwargs.get("notify_type", "[]")
         notify_receivers = kwargs.get("notify_receivers", "{}")
 
-        extra_data = {
-            "editor": kwargs.get("editor"),
-            "edit_time": kwargs.get("edit_time"),
-            "create_time": kwargs.get("create_time"),
-        }
-        extra_data = dict(filter(lambda x: x[1], extra_data.items()))
+        optional_keys = ["editor", "edit_time", "create_time"]
+        # 过滤 optional_keys 中不存在于 kwargs 的属性
+        extra_data = {key: kwargs[key] for key in filter(lambda x: x in kwargs, optional_keys)}
 
         with transaction.atomic():
             clocked, _ = DjangoCeleryBeatClockedSchedule.objects.get_or_create(clocked_time=plan_start_time)

@@ -115,40 +115,49 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             sub_temp["pipeline_template_str_id"] = sub_temp["pipeline_template_id"]
             template[sub_temp["id"]] = sub_temp
 
-        # 导出计划任务
-        clocked_task_cls = apps.get_model("clocked_task", "ClockedTask")
-        clocked_tasks = []
-        for clocked_task_obj in clocked_task_cls.objects.filter(
-            template_source=template_source_type, template_id__in=template_id_list
-        ):
-            clocked_tasks.append(
-                {
-                    "id": clocked_task_obj.id,
-                    "project_id": clocked_task_obj.project_id,
-                    "template_id": clocked_task_obj.template_id,
-                    "template_name": clocked_task_obj.template_name,
-                    "template_source": clocked_task_obj.template_source,
-                    "task_name": clocked_task_obj.task_name,
-                    "task_params": json.loads(clocked_task_obj.task_params),
-                    "plan_start_time": clocked_task_obj.plan_start_time.strftime(
-                        PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT
-                    ),
-                    "edit_time": clocked_task_obj.edit_time.strftime(PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT),
-                    "create_time": clocked_task_obj.create_time.strftime(
-                        PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT
-                    ),
-                    "editor": clocked_task_obj.editor,
-                    "creator": clocked_task_obj.creator,
-                }
-            )
-
         result = {
             "template": template,
-            "clocked_task": clocked_tasks,
             "pipeline_template_data": pipeline_temp_data,
             "exporter_version": TEMPLATE_EXPORTER_VERSION,
             "template_source": template_source_type,
         }
+
+        if kwargs.get("export_clocked_task"):
+            # 导出计划任务
+            clocked_task_cls = apps.get_model("clocked_task", "ClockedTask")
+            clocked_tasks = []
+            for clocked_task_obj in clocked_task_cls.objects.filter(
+                template_source=template_source_type, template_id__in=template_id_list
+            ):
+                clocked_tasks.append(
+                    {
+                        "id": clocked_task_obj.id,
+                        "project_id": clocked_task_obj.project_id,
+                        "template_id": clocked_task_obj.template_id,
+                        "template_name": clocked_task_obj.template_name,
+                        "template_source": clocked_task_obj.template_source,
+                        "task_name": clocked_task_obj.task_name,
+                        "task_params": json.loads(clocked_task_obj.task_params),
+                        "plan_start_time": clocked_task_obj.plan_start_time.strftime(
+                            PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT
+                        ),
+                        "edit_time": clocked_task_obj.edit_time.strftime(
+                            PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT
+                        ),
+                        "create_time": clocked_task_obj.create_time.strftime(
+                            PipelineTemplateWebWrapper.SERIALIZE_DATE_FORMAT
+                        ),
+                        "editor": clocked_task_obj.editor,
+                        "creator": clocked_task_obj.creator,
+                    }
+                )
+            result["clocked_task"] = clocked_tasks
+
+        if not kwargs.get("export_template_scheme"):
+            # 将不需要导出的执行方案移除
+            for pipeline_template_info in pipeline_temp_data["template"].values():
+                pipeline_template_info.pop("schemes", None)
+
         return result
 
     def import_operation_check(self, template_data):
@@ -174,7 +183,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         result = {"can_override": True, "new_template": new_template, "override_template": override_template}
         return result
 
-    def _perform_import(self, template_data, check_info, override, defaults_getter, operator, return_http_data=True):
+    def _perform_import(self, template_data, check_info, override, defaults_getter, operator):
         template = template_data["template"]
         tid_to_reuse = {}
 
@@ -236,34 +245,36 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             if create_templates:
                 batch_create.send(self.model, instance=create_templates, creator=operator)
 
-        if return_http_data:
-            return {
-                "result": True,
-                "data": {"count": len(template), "flows": flows},
-                "message": "Successfully imported %s flows" % len(template),
-                "code": err_code.SUCCESS.code,
-            }
-        else:
-            template_recreated_info = defaultdict(dict)
-            template_source_type = PROJECT if self.model.__name__ == "TaskTemplate" else COMMON
-            created_template_infos = self.model.objects.filter(
-                pipeline_template_id__in=new_pipeline_template_id__old_tid_map.keys()
-            ).values()
+        template_recreated_info = defaultdict(dict)
+        template_source_type = PROJECT if self.model.__name__ == "TaskTemplate" else COMMON
+        created_template_objs = self.model.objects.filter(
+            pipeline_template_id__in=new_pipeline_template_id__old_tid_map.keys()
+        )
 
-            # 建立新老流程模板的映射关系
-            # 保留 template_source_type 的原因：后续导入项目流程所依赖的「公共流程」，可能不再以项目流程的方式导入，预留区分
-            for created_template_info in created_template_infos:
-                new_tid = created_template_info["id"]
-                old_tid = new_pipeline_template_id__old_tid_map[created_template_info["pipeline_template_id"]]
-                template_recreated_info[template_source_type][old_tid] = {
+        # 建立新老流程模板的映射关系
+        # 保留 template_source_type 的原因：后续导入项目流程所依赖的「公共流程」，可能不再以项目流程的方式导入，预留区分
+        for created_template_obj in created_template_objs:
+            new_tid = created_template_obj.id
+            old_tid = new_pipeline_template_id__old_tid_map[created_template_obj.pipeline_template_id]
+            template_recreated_info[template_source_type][old_tid] = {
+                "id": new_tid,
+                "export_data": template[old_tid],
+                "import_data": {
                     "id": new_tid,
-                    "export_data": template[old_tid],
-                    "import_data": created_template_info,
-                }
+                    "name": created_template_obj.name,
+                    "pipeline_template_id": created_template_obj.pipeline_template_id,
+                },
+            }
 
-            id_map["template_recreated_info"] = template_recreated_info
+        id_map["template_recreated_info"] = template_recreated_info
 
-            return {"result": True, "flows": flows, "id_map": id_map}
+        return {
+            "result": True,
+            "data": {"count": len(template), "flows": flows},
+            "id_map": id_map,
+            "message": "Successfully imported %s flows" % len(template),
+            "code": err_code.SUCCESS.code,
+        }
 
     def check_templates_subprocess_expired(self, tmpl_and_pipeline_id):
         # fetch all template relationship in template_ids
