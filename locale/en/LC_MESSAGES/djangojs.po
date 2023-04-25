@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-18 16:25+0800\n"
+"POT-Creation-Date: 2023-04-23 11:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -63,7 +63,7 @@ msgstr "Length of name cannot be larger than 50 "
 
 #: frontend/mobile/src/main.js:116
 msgid "输入值不满足校验规则"
-msgstr "Input does not match validation"
+msgstr "Does not match validation"
 
 #: frontend/mobile/src/utils/errorHandler.js:25
 msgid "当前访问的页面不存在"
@@ -126,7 +126,7 @@ msgstr "Method"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http/legacy.js:55
 msgid "请输入正确的 URL"
-msgstr "Input a valid url please"
+msgstr "Enter a valid url"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:55
 msgid "请求头，一行填写一个头部的信息"
@@ -237,7 +237,7 @@ msgstr "SMS"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:67
 msgid "请至少选择一种通知方式"
-msgstr "Please select one notify method at lease"
+msgstr "Select one notify method at lease"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:79
 #: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:86
@@ -298,17 +298,16 @@ msgstr "Project Member Group"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:128
 msgid "请选择项目人员分组"
-msgstr "please select project member group"
+msgstr "Select project member group"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:161
-#, fuzzy
 #| msgid "通知分组与附加人员不可同时为空"
 msgid "固定分组、项目人员分组和附加人员不可同时为空"
 msgstr "Notification Group and More Receivers cannot be empty at the same time"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:176
 msgid "通知执行人"
-msgstr "Notification Executor"
+msgstr "To Executor"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:178
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:35
@@ -492,7 +491,7 @@ msgstr "Set"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:119
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:111
 msgid "请选择集群"
-msgstr "Select set please"
+msgstr "Select Set"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:163
 #: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:163
@@ -500,7 +499,7 @@ msgstr "Select set please"
 #: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:164
 #: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:164
 msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
-msgstr "Input full path start with business, mutiple set split by new line. e.g. business_a > network_b > set_c"
+msgstr "Enter full path start with business, mutiple set split by new-line. e.g. business_a > network_b > set_c"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:178
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:182
@@ -704,7 +703,7 @@ msgstr "Host Detail"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:51
 msgid "请至少添加一条数据"
-msgstr "Please add one at least"
+msgstr "Add one item"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:59
 msgid "故障机IP"
@@ -716,7 +715,7 @@ msgstr "New Host IP"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:94
 msgid "复制故障机属性"
-msgstr "Copy attribute of failed host "
+msgstr "Clone Atribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:49
@@ -752,7 +751,7 @@ msgstr "Host Inner IP"
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:50
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_to_recovery/v1_0.js:50
 msgid "请输入主机内网IP，多个用换行分隔"
-msgstr "Please enter host inner IP, multiple are separated by new line"
+msgstr "Enter host inner IP, multiple are separated by new-line"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:117
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:224
@@ -766,7 +765,7 @@ msgstr "Host Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:64
 msgid "请选择需要更新的主机属性"
-msgstr "Please select a host attribute to update"
+msgstr "Select a host attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:116
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:155
@@ -775,7 +774,7 @@ msgstr "Please select a host attribute to update"
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:262
 #: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:262
 msgid "属性值"
-msgstr "Attribute Value"
+msgstr "Value"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:117
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:156
@@ -783,18 +782,18 @@ msgstr "Attribute Value"
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:263
 #: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:263
 msgid "请输入更新后的属性值"
-msgstr "Please enter a new attribute value"
+msgstr "Enter a new attribute value"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:102
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:61
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:209
 msgid "模块属性"
-msgstr "Module Attribute"
+msgstr "Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:103
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:210
 msgid "请选择需要更新的模块属性"
-msgstr "Please select a module attribute to update"
+msgstr "Select a module attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:102
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:248
@@ -805,7 +804,7 @@ msgstr "Set Attribute"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:103
 #: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:210
 msgid "请选择需要更新的集群属性"
-msgstr "Please select a set attribute to update"
+msgstr "Select a set attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:101
 #: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:209
@@ -831,7 +830,7 @@ msgstr "Closed"
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:611
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_attribute_query.js:19
 msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
-msgstr "Enter Ip, multiple are separated by `,` or new line"
+msgstr "Enter Ip, multiple are separated by `,` or new-line"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:76
 #: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:161
@@ -874,7 +873,7 @@ msgstr "Service Template"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:390
 msgid "无可用模板，请选择直接创建或前往配置平台(CMDB)创建服务模板"
-msgstr "No Template, please go to cmdb and create service template"
+msgstr "No Template, please go to CMDB and create service template"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:49
@@ -893,19 +892,19 @@ msgstr "Set Instance"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:104
 msgid "请选择包含子实例的父实例"
-msgstr "Please select the parent instance that contains the child instance"
+msgstr "Select the parent instance that contains the child instance"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:107
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:111
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:104
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:108
 msgid "请选择父实例"
-msgstr "Select parent instance please"
+msgstr "Select parent instance"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:166
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:163
 msgid "父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B`，多个父实例用换行分隔"
-msgstr "Input full parent instance path started with business, multiple parent instance split by new line. e.g. business_a > network_b"
+msgstr "Enter full parent instance path started with business, multiple parent instance split by new-line. e.g. business_a > network_b"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:208
 msgid "集群名称"
@@ -913,11 +912,11 @@ msgstr "Set Name"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:209
 msgid "请输入集群名称，多个以,分隔"
-msgstr "Input Set Name, separated by `,`"
+msgstr "Enter Set Name, separate with  \",\" "
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:222
 msgid "请选择集群模板"
-msgstr "Select set please"
+msgstr "Select Set"
 
 #: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:223
 msgid "集群模板"
@@ -933,7 +932,7 @@ msgstr "Custom Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:23
 msgid "请选择主机自定义属性"
-msgstr "Please select host custom property"
+msgstr "Select host custom property"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:43
 msgid "规则定义(主机属性)"
@@ -951,7 +950,7 @@ msgstr "Field Component"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:52
 msgid "请选择字段组件"
-msgstr "Please select a field component"
+msgstr "Select a field component"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:60
 msgid "set属性"
@@ -959,7 +958,7 @@ msgstr "Set Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:69
 msgid "请选择具体内容"
-msgstr "Please select detail content"
+msgstr "Select detail content"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:83
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:180
@@ -968,15 +967,14 @@ msgstr "Detail Content"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:117
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:187
-#, fuzzy
 #| msgid "必须为大于等于1的整数"
 msgid "请填写大于等于1的整数"
-msgstr "Should be Integer greater than or equal to 1"
+msgstr "Enter an integer >= 1"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:130
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:200
 msgid "必须为大于等于1的整数"
-msgstr "Should be Integer greater than or equal to 1"
+msgstr "Enter an integer >= 1"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:136
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:209
@@ -1001,19 +999,19 @@ msgstr "Custom Char(String)"
 
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:173
 msgid "请填写具体内容"
-msgstr "Please enter detail content"
+msgstr "Enter detail content"
 
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:105
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:109
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:104
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:108
 msgid "请选择模块"
-msgstr "Select module please"
+msgstr "Select Module"
 
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:165
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:164
 msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
-msgstr "Input full path started with business, multiple parent instance split by new line. e.g. business_a > network_b > set_c > module_d"
+msgstr "Enter full path started with business, multiple parent instance split by new-line. e.g. business_a > network_b > set_c > module_d"
 
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:180
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:184
@@ -1061,27 +1059,26 @@ msgstr "Multiple Sets Separated by `,`"
 
 #: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:107
 msgid "请选择"
-msgstr "Please select"
+msgstr "Select"
 
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:7
 msgid "环境类型"
-msgstr "Environment Type"
+msgstr "Set Env."
 
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:8
-#, fuzzy
 #| msgid "请选择集群环境类型"
 msgid "请选择环境类型"
-msgstr "Select set please"
+msgstr "Select set environment "
 
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:26
 msgid "执行命令"
-msgstr "Run conmand"
+msgstr "Run Command"
 
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:78
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:80
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:81
 msgid "服务实例"
-msgstr "Service Instance Category"
+msgstr "Service Instance"
 
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:92
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:90
@@ -1234,8 +1231,6 @@ msgstr "Logs of JOB"
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/v1_1/all_biz_execute_job_plan_v1_1.js:24
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:338
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:134
-#, fuzzy
-#| msgid "业务集ID"
 msgid "业务集"
 msgstr "Business Set ID"
 
@@ -1246,7 +1241,7 @@ msgstr "Business Set ID"
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:397
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:281
 msgid "脚本类型"
-msgstr "Script Type"
+msgstr "Type"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:256
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:383
@@ -1255,7 +1250,7 @@ msgstr "Script Type"
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:451
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:335
 msgid "脚本内容"
-msgstr "Script Content"
+msgstr "Content"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:258
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:385
@@ -1264,7 +1259,7 @@ msgstr "Script Content"
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:453
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:337
 msgid "填写执行脚本内容"
-msgstr "Please enter script content"
+msgstr "Enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:284
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:411
@@ -1273,7 +1268,7 @@ msgstr "Please enter script content"
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:649
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:610
 msgid "脚本参数"
-msgstr "Script Parameter"
+msgstr "Parameter"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:285
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:412
@@ -1290,7 +1285,7 @@ msgstr "Can be empty, and the parameters passed in when the script is executed a
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:659
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:620
 msgid "单位为秒(1 - 86400)，为空时使用 JOB 默认值"
-msgstr "The unit is second, empty is valid, defaulted as same with JOB"
+msgstr "Enter integer((1 - 86400),Or follow JOB setting when use empty"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:310
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:437
@@ -1306,7 +1301,6 @@ msgstr "The unit is second, empty is valid, defaulted as same with JOB"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:169
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:285
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:392
-#, fuzzy
 #| msgid "超时时间"
 msgid "超时时间必须为整数"
 msgstr "Timeout(s) "
@@ -1360,7 +1354,7 @@ msgstr "Account"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:60
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:177
 msgid "请输入在蓝鲸作业平台上注册的账户名"
-msgstr "Please enter the account name"
+msgstr "Enter the account name"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:357
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:620
@@ -1392,12 +1386,12 @@ msgstr "Server"
 msgid ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
 " 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "Multiple IP addresses can be separated by Spaces or new line. For the IP addresses of other business, enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
+msgstr "Multiple IP addresses can be separated by Spaces or new-line. For the IP addresses of other business, enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:361
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:488
 msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "Multiple IP addresses can be separated by Spaces or new line. For the IP addresses of other business, enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
+msgstr "Multiple IP addresses can be separated by Spaces or new-line. For the IP addresses of other business, enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:365
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:492
@@ -1423,14 +1417,13 @@ msgstr "Cloud Area ID"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:400
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:527
-#, fuzzy
 #| msgid "多个IP以;分隔"
 msgid "多个IP以,分隔"
-msgstr "Multiple IPs are separated by semicolon"
+msgstr "Multiple IP are separated by \",\""
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:441
 msgid "超时时间必须在 60 - 86400 范围内"
-msgstr "The timeout period must range from 60 to 86400"
+msgstr "The timeout duration must be within the range of 60 - 86400"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:484
 msgid "执行目标"
@@ -1438,7 +1431,17 @@ msgstr "Target"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:486
 msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "Enter an IP address. Multiple IP addresses can be separated by Spaces or new line. enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
+msgstr "Enter an IP address. Multiple IP addresses can be separated by Spaces or new-line. enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:548
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:446
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:730
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:433
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:408
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:215
+#| msgid "滚动执行"
+msgid "滚动执行配置"
+msgstr "Rolling Execution"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:555
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:453
@@ -1448,6 +1451,15 @@ msgstr "Enter an IP address. Multiple IP addresses can be separated by Spaces or
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:222
 msgid "滚动执行"
 msgstr "Rolling Execution"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:557
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:455
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:739
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:442
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:417
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:224
+msgid "<p>启动滚动执行后，目标服务器将按策略规则分批次串行执行（而非全量并行）</p>"
+msgstr "<p>The target server will execute in batches according to rolling trategy(rather than full execute)</p>"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:568
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:466
@@ -1558,7 +1570,7 @@ msgstr "Path"
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:189
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:73
 msgid "多个用换行分隔"
-msgstr "Multiple are separated by new line"
+msgstr "Multiple are separated by new-line"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:102
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:255
@@ -1595,10 +1607,9 @@ msgstr "MB/s If there is no speed limit, leave it blank"
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:269
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:143
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:241
-#, fuzzy
 #| msgid "上传限速"
 msgid "上传限速必须为整数"
-msgstr "Upload Speed Limit"
+msgstr "Integer is required"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:154
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:281
@@ -1611,10 +1622,9 @@ msgstr "Download speed limit"
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:298
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:172
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:270
-#, fuzzy
 #| msgid "下载限速"
 msgid "下载限速必须为整数"
-msgstr "Download speed limit"
+msgstr "Integer is required"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:183
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:310
@@ -1649,7 +1659,7 @@ msgstr "Path"
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:234
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:332
 msgid "请输入绝对路径（可用[FILESRCIP]代替源IP）"
-msgstr "Please enter the absolute path ([FILESRCIP] can be used instead of the source IP)"
+msgstr "Enter the absolute path ([FILESRCIP] can be used instead of the source IP)"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:287
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:414
@@ -1661,7 +1671,7 @@ msgstr "Please enter the absolute path ([FILESRCIP] can be used instead of the s
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:269
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:376
 msgid "单位为秒(1 - 86400)，为空时使用JOB默认值"
-msgstr "The unit is second, empty is valid, defaulted as same with JOB"
+msgstr "Enter integer((1 - 86400),Or follow JOB setting when use empty"
 
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:262
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:273
@@ -1677,7 +1687,7 @@ msgstr "IP Existence Validation"
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:290
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:278
 msgid "IP 允许跨业务"
-msgstr "Use Other Business IP"
+msgstr "Use IP From Diff-Busi."
 
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:324
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_2.js:273
@@ -1734,7 +1744,7 @@ msgstr "Choose script Type"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:356
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:360
 msgid "请输入脚本内容"
-msgstr "Please enter script content"
+msgstr "Enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:394
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:450
@@ -1764,7 +1774,7 @@ msgstr "Script List"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:500
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:504
 msgid "请选择脚本"
-msgstr "Choose script please"
+msgstr "Choose script"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:575
 msgid "自定义任务名"
@@ -1776,7 +1786,7 @@ msgstr "User-defined task name. If not filled, the job platform will automatical
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:589
 msgid "请输入非空格之外的任务名"
-msgstr "Please enter a task name other than a space"
+msgstr "Enter a task name other than a space"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:602
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:576
@@ -1786,19 +1796,18 @@ msgstr "Please enter a task name other than a space"
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:222
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:87
 msgid "是否允许跨业务"
-msgstr "Use Other Business IP"
+msgstr "Use IP From Diff-Busi."
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:635
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:609
-#, fuzzy
 #| msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
 msgid "输入 CLOUD_ID:IP, 多个用英文逗号 `,` 或换行分隔"
-msgstr "Enter Ip, multiple are separated by `,` or new line"
+msgstr "Enter Ip, Multiple IP separate with \",\" or new-line"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:76
 msgid "跨业务用【云区域ID:IP】"
-msgstr "Cross Business should Use [Cloud Area ID:IP]"
+msgstr "Use [Cloud Area ID:IP] when Use IP From diff business"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:156
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:139
@@ -1806,12 +1815,12 @@ msgstr "Cross Business should Use [Cloud Area ID:IP]"
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:100
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:216
 msgid "请输入绝对路径"
-msgstr "Please enter absolute path"
+msgstr "Enter absolute path"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:220
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:318
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一"
-msgstr "IP must be  [Cloud Area ID: IP] or [IP] format"
+msgstr "IP must be  [Cloud Area ID: IP] or [IP]"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:174
 msgid "【IP】"
@@ -1839,7 +1848,7 @@ msgstr "Cron Name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:102
 msgid "请填写定时作业名称"
-msgstr "Please enter cron name"
+msgstr "Enter cron name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:141
 msgid "定时规则"
@@ -1847,7 +1856,7 @@ msgstr "Crontab"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:143
 msgid "Crontab定时规则，请参考JOB平台定时任务Crontab规则"
-msgstr "Crontab rules, please refer to JOB System"
+msgstr "Crontab rules, refer to JOB"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:155
 msgid "定时作业状态"
@@ -1884,10 +1893,8 @@ msgstr "Can not upload file at common flow edit state, please upload at param fi
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:42
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:50
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:166
-#, fuzzy
-#| msgid "文件名不能包含中文和特殊字符且大小不能超过2G"
 msgid "文件不能包含空格,支持中文文件名,本地上传文件大小不能超过 5GB"
-msgstr "File name can not contain chinese characters and size can not over 2G"
+msgstr "File name can not contain chinese characters and size can not over 5GB"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:39
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:155
@@ -1897,11 +1904,10 @@ msgstr "upload files"
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:133
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:249
 msgid "请上传文件"
-msgstr "Please upload files"
+msgstr "Upload files"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:137
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:253
-#, fuzzy
 #| msgid "目标路径"
 msgid "请填写目标路径"
 msgstr "Path"
@@ -1970,7 +1976,7 @@ msgstr "Get from CMDB"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:177
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:177
 msgid "请输入集群名，多个目标集群用英文逗号`,`分隔"
-msgstr "Enter username, multiple are separated by `,`"
+msgstr "Enter username, Multiple username separate with ,"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:198
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:198
@@ -1986,7 +1992,7 @@ msgstr "Service Template"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:282
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:282
 msgid "请输入模块名，多个目标模块用英文逗号`,`分隔"
-msgstr "Enter username, multiple are separated by `,`"
+msgstr "Enter username, Multiple username separate with ,"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:334
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:334
@@ -1994,12 +2000,12 @@ msgstr "Enter username, multiple are separated by `,`"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:39
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:39
 msgid "请输入主机IP，多个用逗号分隔"
-msgstr "Please enter host inner IP, multiple are separated by new line"
+msgstr "Enter IP, Multiple IP are separate with ,"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:349
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:349
 msgid "IP不可为空"
-msgstr "IP should not be empty"
+msgstr "IP is required"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:392
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:392
@@ -2013,7 +2019,6 @@ msgstr "All"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:397
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:397
-#, fuzzy
 #| msgid "5分钟平均负载"
 msgid "1分钟平均负载"
 msgstr "Average load of 5 minutes"
@@ -2025,7 +2030,6 @@ msgstr "Average load of 5 minutes"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:399
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:399
-#, fuzzy
 #| msgid "5分钟平均负载"
 msgid "15分钟平均负载"
 msgstr "Average load of 5 minutes"
@@ -2255,7 +2259,6 @@ msgstr "Enter the start time and duration"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:493
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:92
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:166
-#, fuzzy
 #| msgid "开始时间"
 msgid "开始时间不可为空"
 msgstr "Start time is required"
@@ -2263,7 +2266,6 @@ msgstr "Start time is required"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:550
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:149
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:223
-#, fuzzy
 #| msgid "结束时间"
 msgid "结束时间不可为空"
 msgstr "End time is required"
@@ -2283,10 +2285,9 @@ msgstr "Enter the number of minutes to block"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:607
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:206
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:280
-#, fuzzy
 #| msgid "IP不可为空"
 msgid "持续时间不可为空"
-msgstr "IP is required"
+msgstr "Duration is required"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_disable/v1_0.js:19
 msgid "屏蔽id"
@@ -2294,7 +2295,7 @@ msgstr "Shield ID"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_disable/v1_0.js:20
 msgid "请输入屏蔽id"
-msgstr "Please Input Shield ID"
+msgstr "Enter Shield ID"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:19
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:19
@@ -2319,8 +2320,6 @@ msgid "多个使用,分割"
 msgstr "Multiple use, to split"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:101
-#, fuzzy
-#| msgid "筛选方式"
 msgid "维度筛选方式"
 msgstr "Filter Method"
 
@@ -2619,7 +2618,7 @@ msgstr "Access Point"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:379
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:159
 msgid "多个用英文逗号 `,` 或换行分隔"
-msgstr "Enter Ip, multiple are separated by `,` or new line"
+msgstr "Enter IP, Multiple IP are separate with , or new-line"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:367
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:304
@@ -2645,10 +2644,9 @@ msgstr "Use in complex network adaption"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:399
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:336
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:419
-#, fuzzy
 #| msgid "内网IP"
 msgid "内网IP(IPV6)"
-msgstr "Inner IP"
+msgstr "Inner IP(IPv6)"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:400
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:337
@@ -2659,7 +2657,6 @@ msgstr "Can be empty. The innerip and outerip must be filled in one of IPv6-only
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:409
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:346
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:429
-#, fuzzy
 #| msgid "外网IP"
 msgid "外网IP(IPV6)"
 msgstr "Outer IP(IPv6)"
@@ -2679,7 +2676,6 @@ msgstr "TJJ"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:500
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:437
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:520
-#, fuzzy
 #| msgid "认证密钥"
 msgid "请输入认证密钥"
 msgstr "Auth key"
@@ -2690,7 +2686,7 @@ msgstr "Auth key"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:623
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:727
 msgid "请完善主机信息"
-msgstr "complete host info please"
+msgstr "Finish host info"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:557
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:536
@@ -2702,7 +2698,7 @@ msgstr "mutiple items seperated by `,`"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:572
 msgid "请填写IP"
-msgstr "Input IP please"
+msgstr "Enter IP"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:124
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:107
@@ -2716,7 +2712,7 @@ msgstr "A row can correspond to only one cloud area ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:274
 msgid "是否安装最新版本插件"
-msgstr "Whether to install the latest plug-in version"
+msgstr "Install latest version"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:534
 msgid "BT节点探测"
@@ -2728,11 +2724,11 @@ msgstr "The transmission limit is M/s"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:571
 msgid "请输入"
-msgstr "Please enter"
+msgstr "Enter"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:582
 msgid "请输入数字"
-msgstr "Please enter a number"
+msgstr "Enter a number"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:50
 msgid "主机系统类型"
@@ -2744,7 +2740,7 @@ msgstr "Enter Host"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:75
 msgid "填写方式"
-msgstr "Enter Type"
+msgstr "Filling Type"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:78
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:158
@@ -2758,7 +2754,7 @@ msgstr "Host ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:119
 msgid "请选云区域"
-msgstr "Please choose cloud area"
+msgstr "Select cloud area"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:234
 msgid "插件操作"
@@ -2786,11 +2782,11 @@ msgstr "Script Plugin"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:281
 msgid "选择插件"
-msgstr "Select Plugin"
+msgstr "Plugin"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:320
 msgid "选择插件版本"
-msgstr "Select Plugin Version"
+msgstr "Plugin Version"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:360
 msgid "操作类型为`安装`时插件版本为必填项"
@@ -2814,7 +2810,7 @@ msgstr "Session ID"
 
 #: pipeline_plugins/components/static/components/atoms/wechat_work/wechat_work_send_message/v1_0.js:12
 msgid "通过在群里@企业微信机器人获取，多个用换行分隔"
-msgstr "Get by @WechatWorkRobot in Group, separated by newline"
+msgstr "Get by @WechatWorkRobot in Group, Multiple separate with new-line"
 
 #: pipeline_plugins/components/static/components/atoms/wechat_work/wechat_work_send_message/v1_0.js:20
 msgid "消息格式"
@@ -2838,7 +2834,7 @@ msgstr "Reminder"
 
 #: pipeline_plugins/components/static/components/atoms/wechat_work/wechat_work_send_message/v1_0.js:52
 msgid "提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人"
-msgstr "Remind the designated member of the group (@member), multiple members are separated by `,`, @all means remind everyone"
+msgstr "Remind the designated member of the group (@member), Multiple members separate with \",\" @all means remind everyone"
 
 #: pipeline_plugins/variables/static/variables/bk_manage_user_selector.js:18
 msgid "选择人员"
@@ -2854,7 +2850,7 @@ msgstr "Original IP address"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:26
 msgid "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"
-msgstr "Please enter host inner IP, multiple are separated by new line"
+msgstr "Enter [cloud area ID:IP] or [IP], Multiple IP are separate with ,"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:39
 msgid "GSE AGENT状态"
@@ -2916,7 +2912,7 @@ msgstr "Select from CMDB topology"
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:77
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:62
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by new line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
+msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by new-line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:110
 msgid "拓扑树"
@@ -2938,7 +2934,7 @@ msgstr "Filter Attributes"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:26
 msgid "请选择要进行过滤的集群属性"
-msgstr "Please select a set attribute to update"
+msgstr "Select a set attribute"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:54
 msgid "属性值范围"
@@ -2946,7 +2942,7 @@ msgstr "Attribute Value Range"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:55
 msgid "请输入要过滤的属性值，多个以`,`分隔开"
-msgstr "Input Set Name, separated by `,`"
+msgstr "Enter Set Name, Multiple Set separate with ,"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_group_selector.js:18
 msgid "集群分组"
@@ -2973,7 +2969,7 @@ msgstr "Set"
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:30
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:200
 msgid "手动输入集群模块"
-msgstr "Manual Input"
+msgstr "Manual"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:107
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_selector.js:25
@@ -2992,15 +2988,15 @@ msgstr "Module Attribute"
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:156
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:235
 msgid "请输入需要使用的模块属性，多个用英文逗号分隔，不填默认为ip属性"
-msgstr "Input needed module attributes, separated by `,`, default is IP attribute without filling"
+msgstr "Enter module attributes, multiple attributes separate with \",\", default is IP attribute"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:207
 msgid "请输入集群"
-msgstr "Input Set"
+msgstr "Enter Set"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:208
 msgid "请输入集群，多个使用英文逗号分隔，可输入all选择所有集群"
-msgstr "Input Set, separated by `,`, `all` means all sets"
+msgstr "Enter Set, multiple set separate with  \",\", \"all\" means all sets"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:220
 msgid "请输入服务模板"
@@ -3008,7 +3004,7 @@ msgstr "Service Template"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:221
 msgid "请输入服务模板，多个使用英文逗号分隔，可输入all选择所有服务模板"
-msgstr "Input Service Template, separated by `,`, `all` means all service templates"
+msgstr "Enter Service Template, separated by `,`, `all` means all service templates"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:280
 msgid "筛选集群"
@@ -3016,7 +3012,7 @@ msgstr "Set"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:281
 msgid "请输入需要筛选的集群名称，多个使用英文逗号分隔，为空则不做筛选"
-msgstr "Input Set to be filtered, separated by `,`, not be filtered when empty"
+msgstr "Enter Set to be filtered, separated by `,`, not be filtered when empty"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:289
 msgid "筛选服务模板"
@@ -3024,7 +3020,7 @@ msgstr "Service Template"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:290
 msgid "请输入需要筛选的服务模板名称，多个使用英文逗号分隔，为空则不做筛选"
-msgstr "Input Service Template to be filtered, separated by `,`, not be filtered when empty"
+msgstr "Enter Service Template to be filtered, separated by `,`, not be filtered when empty"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_selector.js:53
 msgid "选择模块"
@@ -3064,7 +3060,7 @@ msgstr " Second"
 
 #: pipeline_plugins/variables/static/variables/current_time.js:45
 msgid "请至少选择一种单位格式"
-msgstr "Please select one notify method at lease"
+msgstr "Select one notify method at lease"
 
 #: pipeline_plugins/variables/static/variables/current_time.js:57
 #: pipeline_plugins/variables/static/variables/format_support_current_time.js:40
@@ -3082,7 +3078,7 @@ msgstr "Column configuration"
 
 #: pipeline_plugins/variables/static/variables/datatable.js:27
 msgid "请输入列配置，格式为 [{\"tag_code\": \"name1\", \"type\": \"input\", \"attrs\": {\"name\": \"列1\"}}...], 更多配置请参考《Tag 使用和开发说明》文档中 datatable 说明"
-msgstr "Please enter the column configuration in the format [{\"tag_code\": \"name1\", \"type\": \"input\", \"attrs\": {\"name\": \"列1\"}}...], more configuration details is in documents"
+msgstr "Enter the column configuration in the format [{\"tag_code\": \"name1\", \"type\": \"input\", \"attrs\": {\"name\": \"列1\"}}...], more configuration details is in documents"
 
 #: pipeline_plugins/variables/static/variables/datatable.js:39
 #: pipeline_plugins/variables/static/variables/select.js:69
@@ -3091,7 +3087,7 @@ msgstr "Default"
 
 #: pipeline_plugins/variables/static/variables/datatable.js:41
 msgid "请输入默认值，可为空，格式为 [{\"name1\": \"value1\", \"name2\": \"value2\"}...]，每一项字典的 key 请和列配置 tag_code 对应"
-msgstr "Please enter the default value, can be empty, the format is [{\"name1\": \"value1\", \"name2\": \"value2\"}...], The key of each dictionary corresponds to the column configuration tag_code"
+msgstr "Enter the default value, can be empty, the format is [{\"name1\": \"value1\", \"name2\": \"value2\"}...], The key of each dictionary corresponds to the column configuration tag_code"
 
 #: pipeline_plugins/variables/static/variables/datatable.js:60
 msgid "表格列配置不是合法的 JSON 格式，请检查变量配置"
@@ -3111,7 +3107,7 @@ msgstr "Table default value is not a list format after parsing"
 
 #: pipeline_plugins/variables/static/variables/date.js:20
 msgid "请选择日期"
-msgstr "Please select a datetime"
+msgstr "Select a datetime"
 
 #: pipeline_plugins/variables/static/variables/date.js:21
 msgid "日期"
@@ -3158,23 +3154,23 @@ msgstr "Set Environment"
 
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:45
 msgid "请选择集群环境类型"
-msgstr "Select set please"
+msgstr "Select Set Environment"
 
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:64
 msgid "集群，默认值为 *"
-msgstr "Set, default is *"
+msgstr "Set, default is \"*\" "
 
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:73
 msgid "模块，默认值为 *"
-msgstr "Module, default is *"
+msgstr "Module, default is \"*\" "
 
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:82
 msgid "服务实例，默认值为 *"
-msgstr "Service Instance, default is *"
+msgstr "Service Instance, default is \"*\" "
 
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:91
 msgid "进程，默认值为 *"
-msgstr "Process, default is *"
+msgstr "Process, default is \"*\" "
 
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:99
 msgid "进程实例"
@@ -3182,7 +3178,7 @@ msgstr "Process Instance"
 
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:100
 msgid "进程实例，默认值为 *"
-msgstr "Process Instance, default is *"
+msgstr "Process Instance, default is \"*\" "
 
 #: pipeline_plugins/variables/static/variables/input.js:18
 msgid "输入框"
@@ -3215,7 +3211,7 @@ msgstr "Type"
 
 #: pipeline_plugins/variables/static/variables/select.js:42
 msgid "请输入数据源信息，自定义数据源格式为 [{\"text\": \"\", \"value\": \"\"}...]，若是远程数据源则填写返回该格式数据的 URL"
-msgstr "Please enter data source, custom data should be like [{\"text\": \"\", \"value\": \"\"}...], remote data requires a url that returns the format data."
+msgstr "Enter data source, custom data should be like [{\"text\": \"\", \"value\": \"\"}...], remote data requires a url that returns the format data."
 
 #: pipeline_plugins/variables/static/variables/select.js:54
 msgid "类型"
@@ -3231,7 +3227,7 @@ msgstr "multiple"
 
 #: pipeline_plugins/variables/static/variables/select.js:70
 msgid "请输入下拉框的默认值，单选为 value 的格式，多选为 value,value,... 的格式"
-msgstr "Please enter the default value, \"value\" format if single, \"value, value...\" format if multiple"
+msgstr "Enter the default value, \"value\" format if single, \"value, value...\" format if multiple"
 
 #: pipeline_plugins/variables/static/variables/select.js:94
 #: pipeline_plugins/variables/static/variables/select.js:98
@@ -3250,8 +3246,27 @@ msgstr "Select member"
 msgid "文本框"
 msgstr "Textarea"
 
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:570
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:468
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:752
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:455
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:430
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:237
+msgid ""
+"<p>.&nbsp;每个批次支持用整数、百分比(n%)和算式(+n,&nbsp;*n)，以空格分隔</p>\n"
+"\n"
+"</br><p>.&nbsp;使用算式&nbsp;(+n,&nbsp;*n)&nbsp;时，前一个批次必须是整数（如：2&nbsp;*2）</p>\n"
+"\n"
+"</br><p>.&nbsp;百分比取值遇小数点时会向上取整，100%代表取全量服务器（100%&nbsp;只允许出现在末位）</p>"
+msgstr ""
+"<p>.&nbsp;Each batch supports integer, percentage (n%), and formulas (+n, *n) separated by spaces</p>\n"
+"\n"
+"</br><p>.&nbsp;When using formulas (+n, *n), the previous batch must be an integer(such as:2&nbsp;*2)</p>\n"
+"\n"
+"</br><p>.&nbsp;When use a decimal percentage, it will be rounded up. 100% represents all servers (100% can only use at the end)</p>"
+
 #~ msgid "请输入校验规则，例如：[{type: required}, {type: custom, args: function(){ return {result: true, error_message: \"\"}}}]"
-#~ msgstr "Please enter check validation, e.g. [{type: required}, {type: custom, args: function(){ return {result: true, error_message: \"\"}}}]"
+#~ msgstr "Enter check validation, e.g. [{type: required}, {type: custom, args: function(){ return {result: true, error_message: \"\"}}}]"
 
 #~ msgid "集群ID"
 #~ msgstr "Set ID"
@@ -3515,7 +3530,7 @@ msgstr "Textarea"
 #~ msgstr "Delete"
 
 #~ msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
-#~ msgstr "Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv"
+#~ msgstr "Wrong format! Select xlsx,xls,xlc,xlm,xlt,xlw or csv"
 
 #~ msgid "请求表头数据失败，使用预置表头"
 #~ msgstr "Requesting table titles failed, please config columns"
@@ -3628,7 +3643,7 @@ msgstr "Textarea"
 #~ msgstr "Params error, please check modules forms"
 
 #~ msgid "请输入，多个用换行分隔"
-#~ msgstr "Please enter, multiple are separated by new line"
+#~ msgstr "Enter, multiple are separated by new-line"
 
 #~ msgid "筛选"
 #~ msgstr "Filter Condition"
@@ -3759,7 +3774,7 @@ msgstr "Textarea"
 #~ msgstr "Disable tag"
 
 #~ msgid "要修改密码请点击后重新输入密码"
-#~ msgstr "Please enter a new password when modifying"
+#~ msgstr "Enter a new password when modifying"
 
 #~ msgid "按钮文本"
 #~ msgstr "Button text"
@@ -3840,7 +3855,7 @@ msgstr "Textarea"
 #~ msgstr "Item3"
 
 #~ msgid "请选择日期时间"
-#~ msgstr "Please select a datetime"
+#~ msgstr "Select a datetime"
 
 #~ msgid "日期选择器显示类型"
 #~ msgstr "Date Selector Showing Type"
@@ -4076,10 +4091,10 @@ msgstr "Textarea"
 #, fuzzy
 #~| msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 #~ msgid "格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-#~ msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by new line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
+#~ msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by new-line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
 
 #~ msgid "请添加目标IP信息"
-#~ msgstr "Please add target IP information"
+#~ msgstr "Add target IP"
 
 #~ msgid "文件名不能包含特殊字符且大小不能超过2G"
 #~ msgstr "File name can not contain chinese and size can not over 2G"
@@ -4175,10 +4190,10 @@ msgstr "Textarea"
 #~ msgstr "This is the list of chosen %s. You may remove some by "
 
 #~ msgid "需要加锁的主机内网 IP，多个用换行符分隔"
-#~ msgstr "Please enter host inner IP, multiple are separated by new line"
+#~ msgstr "Enter host inner IP, multiple are separated by new-line"
 
 #~ msgid "需要解锁的主机内网 IP，多个用换行符分隔"
-#~ msgstr "Please enter host inner IP, multiple are separated by new line"
+#~ msgstr "Enter host inner IP, multiple are separated by new-line"
 
 #~ msgid "可选,如填写需与内网ip一一对应"
 #~ msgstr "Optional, should be one to one correspondence with inner_ip"

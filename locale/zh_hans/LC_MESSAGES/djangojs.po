@@ -1423,13 +1423,6 @@ msgid ""
 msgstr ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
 " 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-"请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:361
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:488

@@ -41,7 +41,7 @@ class MakoTemplateOperation:
         self.name = name
         self.operators = operators
         self.params = params
-        self.template = [str(t) for t in template]
+        self.template = template
         self.mako_template = mako_template
 
         self._validate()
@@ -55,14 +55,6 @@ class MakoTemplateOperation:
 
         if len(set(param_names)) != len(param_names):
             raise ValueError("MakoTemplateOperation %s found duplicate param" % self.name)
-
-        for names in [operator_names, param_names]:
-            for n in names:
-                if n not in " ".join(self.template):
-                    raise ValueError("MakoTemplateOperation %s's operator %s miss in template" % (self.name, n))
-
-                if n not in self.mako_template:
-                    raise ValueError("MakoTemplateOperation %s's operator %s miss in mako_template" % (self.name, n))
 
     def to_dict(self) -> dict:
         return {
