@@ -1459,7 +1459,7 @@
                                 if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
                                     gateway.gatewayType = 'converge'
-                                    prev.children.push(gateway)
+                                    // prev.children.push(gateway)
                                 } else {
                                     this.unrenderedCoverNode.push(gateway.id)
                                 }
@@ -1517,7 +1517,7 @@
                 list.forEach(item => {
                     if (item.id === id) {
                         // 不是任务节点直接添加
-                        if (item.type !== 'ServiceActivity') {
+                        if (item.type !== 'ServiceActivity' && item.state !== 'Gateway') {
                             if (!list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
                                 this.renderedCoverNode.push(cur)
                                 list.push(Object.assign({}, allNode[cur], { name: this.$t('汇聚网关') }))
@@ -1536,7 +1536,7 @@
             // 给网关节点添加汇聚节点
             getItemCoverTree (ordered, node, id, allNode) {
                 ordered.forEach(item => {
-                    if (item.id === node && item.type !== 'ServiceActivity') {
+                    if (item.id === node && item.type !== 'ServiceActivity' && item.state !== 'Gateway') {
                         if (item.children && !item.children.map(chd => chd.node).includes(allNode[node].id) && !this.renderedCoverNode.includes(id)) {
                             this.renderedCoverNode.push(id)
                             item.children.push(Object.assign({}, allNode[id], { name: this.$t('汇聚网关') }))
