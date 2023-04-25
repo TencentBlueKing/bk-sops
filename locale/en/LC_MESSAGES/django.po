@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-04-18 16:25+0800\n"
+"POT-Creation-Date: 2023-04-23 11:42+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -35,9 +35,8 @@ msgid "简体中文"
 msgstr "简体中文"
 
 #: files/bartenders/upload_module.py:39
-#, fuzzy
 msgid "文件上传失败: 文件名不能包含\\/:*?\"<>|等特殊字符 | process_request"
-msgstr "Upload file failed, which name should not contain chinese or \\/:*?\"<>|"
+msgstr "Upload file failed, which name can not contain chinese or \\/:*?\"<>|"
 
 #: files/bartenders/utils.py:39
 msgid "文件上传失败: 文件大小不可超过2G | common_process_request"
@@ -45,7 +44,7 @@ msgstr "File upload failed: file size cannot exceed 2G | common_process_request"
 
 #: files/bartenders/utils.py:44
 msgid "文件上传失败: 文件名不能包含\\/:*?\"<>|等特殊字符, 请修改后重试 | common_process_request"
-msgstr "File upload failed: The file name cannot contain special characters such as \\:?\"<>|, please modify and try again | common_process_request"
+msgstr "File upload failed: The file name can not contain special characters such as \\:?\"<>|, please modify and try again | common_process_request"
 
 #: gcloud/constants.py:33
 msgid "运维工具"
@@ -77,7 +76,7 @@ msgstr "Others"
 
 #: gcloud/constants.py:40
 msgid "默认分类"
-msgstr "defaultCategory"
+msgstr "default Category"
 
 #: gcloud/constants.py:45
 msgid "默认任务流程"
@@ -85,7 +84,7 @@ msgstr "Default Task Flow"
 
 #: gcloud/constants.py:46
 msgid "职能化任务流程"
-msgstr "Functional Task Flow"
+msgstr "Helper-Team Task"
 
 #: gcloud/constants.py:54 gcloud/taskflow3/models.py:115
 #: gcloud/tasktmpl3/models.py:50
@@ -97,9 +96,8 @@ msgid "已执行"
 msgstr "Started"
 
 #: gcloud/constants.py:56
-#, fuzzy
 msgid "启动失败"
-msgstr "Failed"
+msgstr "Start Failed"
 
 #: gcloud/constants.py:63 gcloud/constants.py:69
 msgid "步骤选择"
@@ -107,7 +105,7 @@ msgstr "Step Selection"
 
 #: gcloud/constants.py:64
 msgid "参数填写"
-msgstr "Input Parameter"
+msgstr "Enter Parameter"
 
 #: gcloud/constants.py:65 gcloud/constants.py:72
 msgid "任务执行"
@@ -210,12 +208,10 @@ msgid "未回调"
 msgstr "Not Callback"
 
 #: gcloud/constants.py:135
-#, fuzzy
 msgid "回调成功"
 msgstr "Succeed"
 
 #: gcloud/constants.py:136
-#, fuzzy
 msgid "回调失败"
 msgstr "Failed"
 
@@ -239,9 +235,8 @@ msgstr "Please contact the API system maintenance person to handle"
 #: gcloud/analysis_statistics/models.py:45
 #: gcloud/analysis_statistics/models.py:78
 #: gcloud/analysis_statistics/models.py:101
-#, fuzzy
 msgid "id"
-msgstr "Project"
+msgstr "ID"
 
 #: gcloud/analysis_statistics/models.py:22
 #: gcloud/analysis_statistics/models.py:46 gcloud/core/models.py:253
@@ -252,7 +247,6 @@ msgstr "Component Code"
 #: gcloud/analysis_statistics/models.py:60
 #: gcloud/analysis_statistics/models.py:79
 #: gcloud/analysis_statistics/models.py:109
-#, fuzzy
 msgid "Pipeline模板ID"
 msgstr "Pipeline Template"
 
@@ -317,14 +311,12 @@ msgid "创建者"
 msgstr "Creator"
 
 #: gcloud/analysis_statistics/models.py:32
-#, fuzzy
 msgid "模版创建时间"
-msgstr "Creation time"
+msgstr "Created time"
 
 #: gcloud/analysis_statistics/models.py:33
-#, fuzzy
 msgid "模板最近编辑时间"
-msgstr "Date modified"
+msgstr "Last Modified At"
 
 #: gcloud/analysis_statistics/models.py:34
 #: gcloud/analysis_statistics/models.py:67
@@ -338,9 +330,8 @@ msgstr "Pipeline standard plugins reference"
 
 #: gcloud/analysis_statistics/models.py:47
 #: gcloud/analysis_statistics/models.py:102
-#, fuzzy
 msgid "Pipeline实例ID"
-msgstr "Pipeline Instance"
+msgstr "Pipeline Instance ID"
 
 #: gcloud/analysis_statistics/models.py:48
 #: gcloud/analysis_statistics/models.py:103
@@ -348,7 +339,6 @@ msgid "Task实例ID"
 msgstr "TaskInstance ID"
 
 #: gcloud/analysis_statistics/models.py:49
-#, fuzzy
 msgid "流程节点ID"
 msgstr "Node ID"
 
@@ -381,19 +371,16 @@ msgid "触发模版ID，独立子流程根流程 ID"
 msgstr ""
 
 #: gcloud/analysis_statistics/models.py:64
-#, fuzzy
 msgid "Pipeline实例创建时间"
-msgstr "Pipeline Instance"
+msgstr "Created time of Pipeline Instance"
 
 #: gcloud/analysis_statistics/models.py:65
-#, fuzzy
 msgid "Pipeline实例启动时间"
-msgstr "Pipeline Instance"
+msgstr "Start time of Pipeline Instance"
 
 #: gcloud/analysis_statistics/models.py:66
-#, fuzzy
 msgid "Pipeline实例结束时间"
-msgstr "Pipeline Instance"
+msgstr "End time of Pipeline Instance"
 
 #: gcloud/analysis_statistics/models.py:70
 #: gcloud/analysis_statistics/models.py:71
@@ -422,21 +409,19 @@ msgstr "Gateways Count"
 #: gcloud/taskflow3/models.py:1336 gcloud/user_custom_config/constants.py:18
 #: pipeline_web/core/abstract.py:21
 msgid "创建时间"
-msgstr "Creation time"
+msgstr "Created time"
 
 #: gcloud/analysis_statistics/models.py:88 gcloud/core/models.py:150
 msgid "最近编辑时间"
-msgstr "Date modified"
+msgstr "Last Modified At"
 
 #: gcloud/analysis_statistics/models.py:89
-#, fuzzy
 msgid "输出变量数"
-msgstr "Output Data"
+msgstr "Output Variables"
 
 #: gcloud/analysis_statistics/models.py:90
-#, fuzzy
 msgid "输入变量数"
-msgstr "Input variable"
+msgstr "Input Variables"
 
 #: gcloud/analysis_statistics/models.py:93
 #: gcloud/analysis_statistics/models.py:94
@@ -454,14 +439,12 @@ msgid "结束时间"
 msgstr "Date Finished"
 
 #: gcloud/analysis_statistics/models.py:115
-#, fuzzy
 msgid "实例执行耗时(s)"
-msgstr "Standard Plugins execution Elapsed(s)"
+msgstr "Execution Elapsed(s)"
 
 #: gcloud/analysis_statistics/models.py:116
-#, fuzzy
 msgid "实例创建方式"
-msgstr "Creation method"
+msgstr "Create method"
 
 #: gcloud/analysis_statistics/models.py:119
 #: gcloud/analysis_statistics/models.py:120
@@ -617,7 +600,6 @@ msgid "用户收藏 Collection"
 msgstr "User Favorites"
 
 #: gcloud/contrib/function/api.py:28
-#, fuzzy
 msgid "没有查看职能化任务权限"
 msgstr "No permission"
 
@@ -691,7 +673,6 @@ msgid "职能化认领单 FunctionTask"
 msgstr "Helper Team Bill"
 
 #: gcloud/contrib/operate_record/constants.py:20
-#, fuzzy
 msgid "创建"
 msgstr "Create"
 
@@ -700,7 +681,6 @@ msgid "克隆(创建)"
 msgstr "Clone(Create)"
 
 #: gcloud/contrib/operate_record/constants.py:22
-#, fuzzy
 msgid "执行"
 msgstr "Execute"
 
@@ -719,27 +699,22 @@ msgid "撤消"
 msgstr "Terminate"
 
 #: gcloud/contrib/operate_record/constants.py:26
-#, fuzzy
 msgid "删除"
-msgstr "Delet"
+msgstr "Delete"
 
 #: gcloud/contrib/operate_record/constants.py:27
-#, fuzzy
 msgid "修改"
 msgstr "Modify"
 
 #: gcloud/contrib/operate_record/constants.py:30
-#, fuzzy
 msgid "回调"
-msgstr "Callback Data"
+msgstr "Callback"
 
 #: gcloud/contrib/operate_record/constants.py:31
-#, fuzzy
 msgid "重试"
 msgstr "Retry"
 
 #: gcloud/contrib/operate_record/constants.py:32
-#, fuzzy
 msgid "跳过"
 msgstr "Skip"
 
@@ -752,7 +727,6 @@ msgid "跳过并行条件网关"
 msgstr "Skip parallel conditional gateway"
 
 #: gcloud/contrib/operate_record/constants.py:35
-#, fuzzy
 msgid "暂停节点"
 msgstr "Pause Node"
 
@@ -762,14 +736,12 @@ msgstr "Continue Node"
 
 #: gcloud/contrib/operate_record/constants.py:37
 #: gcloud/taskflow3/models.py:1293
-#, fuzzy
 msgid "强制失败"
-msgstr "Failed"
+msgstr "Force Failed"
 
 #: gcloud/contrib/operate_record/constants.py:38
-#, fuzzy
 msgid "调整时间"
-msgstr "Change Time Setting"
+msgstr "Change Time"
 
 #: gcloud/contrib/operate_record/constants.py:40
 #: gcloud/taskflow3/models.py:1240
@@ -793,13 +765,12 @@ msgid "任务实例"
 msgstr "Task"
 
 #: gcloud/contrib/operate_record/constants.py:60
-#, fuzzy
 msgid "项目模版"
-msgstr "Project"
+msgstr "Project Template"
 
 #: gcloud/contrib/operate_record/constants.py:61
 msgid "公共模版"
-msgstr "common template"
+msgstr "Common Template"
 
 #: gcloud/contrib/operate_record/constants.py:62
 msgid "任务节点"
@@ -822,22 +793,19 @@ msgstr "Operation source"
 
 #: gcloud/contrib/operate_record/models.py:24
 msgid "记录对象实例ID"
-msgstr "Record object instance id"
+msgstr "Record object instance ID"
 
 #: gcloud/contrib/operate_record/models.py:25
-#, fuzzy
 msgid "所属项目id"
-msgstr "Project"
+msgstr "Project ID"
 
 #: gcloud/contrib/operate_record/models.py:26
-#, fuzzy
 msgid "操作时间"
-msgstr "Date rejected"
+msgstr "Time"
 
 #: gcloud/contrib/operate_record/models.py:35
-#, fuzzy
 msgid "任务实例节点ID"
-msgstr "Task"
+msgstr "Task ID"
 
 #: gcloud/contrib/operate_record/models.py:36
 msgid "任务实例节点拓展信息"
@@ -1043,16 +1011,15 @@ msgstr "Project"
 
 #: gcloud/core/models.py:413 gcloud/taskflow3/models.py:1396
 msgid "范围对象ID"
-msgstr "Scope object id"
+msgstr "Scope object ID"
 
 #: gcloud/core/models.py:414 gcloud/taskflow3/models.py:1397
 msgid "配置范围"
 msgstr "Configuration scope"
 
 #: gcloud/core/models.py:415 gcloud/taskflow3/models.py:727
-#, fuzzy
 msgid "引擎版本"
-msgstr "Version"
+msgstr "Engine Version"
 
 #: gcloud/core/models.py:416 gcloud/periodictask/models.py:175
 #: gcloud/taskflow3/models.py:721
@@ -1065,11 +1032,11 @@ msgstr "EngineConfig"
 
 #: gcloud/core/roles.py:28 gcloud/core/roles/sites/open/roles.py:28
 msgid "运维人员"
-msgstr "Maintainer"
+msgstr "Operator"
 
 #: gcloud/core/roles.py:29 gcloud/core/roles/sites/open/roles.py:29
 msgid "产品人员"
-msgstr "Productor"
+msgstr "Product Manager"
 
 #: gcloud/core/roles.py:30 gcloud/core/roles/sites/open/roles.py:30
 msgid "合作商"
@@ -1085,7 +1052,7 @@ msgstr "Administrator"
 
 #: gcloud/core/roles.py:33 gcloud/core/roles/sites/open/roles.py:33
 msgid "职能化人员"
-msgstr "Functional Personnel"
+msgstr "Helper Team"
 
 #: gcloud/core/roles.py:34 gcloud/core/roles/sites/open/roles.py:34
 msgid "测试人员"
@@ -1114,9 +1081,8 @@ msgstr "Remote service called failed, HTTP request error status error: %(code)s,
 
 #: gcloud/core/apis/drf/serilaziers/periodic_task.py:168
 #: gcloud/core/apis/drf/serilaziers/task_template.py:77
-#, fuzzy
 msgid "project不存在"
-msgstr "Project"
+msgstr "Project don't exist"
 
 #: gcloud/core/apis/drf/viewsets/business.py:38
 msgid "停运"
@@ -1253,7 +1219,7 @@ msgstr "Executor"
 #: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:722
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:74
 msgid "创建方式"
-msgstr "Creation method"
+msgstr "Create method"
 
 #: gcloud/external_plugins/models/sync.py:41
 msgid "同步状态"
@@ -1317,7 +1283,6 @@ msgid "新建周期任务"
 msgstr "New Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:117
-#, fuzzy
 msgid "新建计划任务"
 msgstr "New One-Time Scheduled"
 
@@ -1398,19 +1363,16 @@ msgid "删除周期任务"
 msgstr "Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:257
-#, fuzzy
 msgid "查看计划任务"
-msgstr "One-Time Scheduled"
+msgstr "View One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:264
-#, fuzzy
 msgid "编辑计划任务"
-msgstr "One-Time Scheduled"
+msgstr "Edit One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:271
-#, fuzzy
 msgid "删除计划任务"
-msgstr "One-Time Scheduled"
+msgstr "Delete One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:276
 msgid "后台管理查看"
@@ -1461,22 +1423,20 @@ msgid "标签颜色"
 msgstr "Tag Color"
 
 #: gcloud/label/models.py:40
-#, fuzzy
 msgid "标签描述"
 msgstr "Description"
 
 #: gcloud/label/models.py:45 gcloud/label/models.py:46
-#, fuzzy
 msgid "用户标签 Label"
-msgstr "Label Label"
+msgstr "Tag"
 
 #: gcloud/label/models.py:134
 msgid "模版ID"
-msgstr "Template id"
+msgstr "Template ID"
 
 #: gcloud/label/models.py:135
 msgid "标签ID"
-msgstr "Tag id"
+msgstr "Tag ID"
 
 #: gcloud/label/models.py:140 gcloud/label/models.py:141
 msgid "模版标签关系 TemplateLabelRelation"
@@ -1580,7 +1540,7 @@ msgstr "uppercase first letter of word"
 
 #: gcloud/mako_template_helper/hub.py:94
 msgid "将 {caller} 中单词首字母改为大写"
-msgstr "uppercase first letter of word "
+msgstr "uppercase first letter of word {caller}"
 
 #: gcloud/mako_template_helper/hub.py:98
 msgid "返回路径的基本名称"
@@ -1612,21 +1572,19 @@ msgstr "Template version when creating tasks"
 
 #: gcloud/periodictask/models.py:177
 msgid "创建任务时模版执行方案id"
-msgstr "Template execution scheme id when creating a task"
+msgstr "Template execution scheme ID when creating a task"
 
 #: gcloud/periodictask/models.py:179
-#, fuzzy
 msgid "创建任务时间"
-msgstr "Creation time"
+msgstr "Created time"
 
 #: gcloud/periodictask/models.py:180
 msgid "更新者"
 msgstr "Updater"
 
 #: gcloud/periodictask/models.py:181
-#, fuzzy
 msgid "更新任务时间"
-msgstr "Date Started"
+msgstr "Updated At"
 
 #: gcloud/periodictask/models.py:186 gcloud/periodictask/models.py:187
 msgid "周期任务 PeriodicTask"
@@ -1672,9 +1630,8 @@ msgid "变量名"
 msgstr "Variable Name"
 
 #: gcloud/project_constants/models.py:24
-#, fuzzy
 msgid "变量唯一键"
-msgstr "Object Key"
+msgstr "Key"
 
 #: gcloud/project_constants/models.py:29
 msgid "更新人"
@@ -1690,7 +1647,6 @@ msgid "【标准运维APP通知】执行失败"
 msgstr "[SOPS APP Notice] Task Field"
 
 #: gcloud/shortcuts/message/common.py:21
-#, fuzzy
 msgid "您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，操作员是【{executor}】，请前往标准运维APP{url}查看详情！"
 msgstr "Your task[{task_name}] in business[{cc_name}] executed failed, current failed node is [{node_name}], executor is [{executor}].Please go to SOPS[{url}] to view details."
 
@@ -1699,7 +1655,6 @@ msgid "【标准运维APP通知】执行完成"
 msgstr "[SOPS APP Notice] Task Finished"
 
 #: gcloud/shortcuts/message/common.py:33
-#, fuzzy
 msgid "您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，请前往标准运维APP{url}查看详情！"
 msgstr "Your task[{task_name}] in business[{cc_name}] executed successfully, executor is [{executor}].Please go to SOPS[{url}] to view details."
 
@@ -1712,18 +1667,16 @@ msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期�
 msgstr "Scheduled task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
 
 #: gcloud/shortcuts/message/common.py:62
-#, fuzzy
 msgid "【标准运维APP通知】计划任务创建失败"
 msgstr "[BK_SOPS Notification]One-Time Scheduled task start failed"
 
 #: gcloud/shortcuts/message/common.py:63
-#, fuzzy
 msgid "您在【{cc_name}】业务中的计划任务【{task_name}】于{plan_start_time}创建失败，错误信息：【{ex_data}】"
-msgstr "One-Time Scheduled task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
+msgstr "One-Time Scheduled task[{task_name}]in business [{cc_name}] which should be scheduled at [{start_time}] started failed, error message: [{ex_data}]"
 
 #: gcloud/taskflow3/models.py:256 gcloud/taskflow3/models.py:294
 msgid "第三方插件"
-msgstr "Third-party plug-ins"
+msgstr "Third-party Plug-ins"
 
 #: gcloud/taskflow3/models.py:719
 msgid "任务类型，继承自模板"
@@ -1810,28 +1763,24 @@ msgid "状态"
 msgstr "Status"
 
 #: gcloud/taskflow3/models.py:1323
-#, fuzzy
 msgid "附加信息"
 msgstr "Message"
 
 #: gcloud/taskflow3/models.py:1324
-#, fuzzy
 msgid "回调时间"
-msgstr "Date rejected"
+msgstr "Callback Time"
 
 #: gcloud/taskflow3/models.py:1327
 msgid "任务回调记录"
 msgstr "Task callback record"
 
 #: gcloud/taskflow3/models.py:1334
-#, fuzzy
 msgid "父任务ID"
-msgstr "Task id"
+msgstr "Parent Task ID"
 
 #: gcloud/taskflow3/models.py:1335
-#, fuzzy
 msgid "根任务ID"
-msgstr "Task id"
+msgstr "Root Task ID"
 
 #: gcloud/taskflow3/models.py:1339
 msgid "任务关系"
@@ -1926,13 +1875,12 @@ msgid "流程导入失败: 跨业务导入流程不支持覆盖相同ID, 请检�
 msgstr "Flow import failed: cross-business import flow does not support overwriting the same ID, please check the configuration | import_templates"
 
 #: gcloud/tasktmpl3/models.py:509
-#, fuzzy
 msgid "偏好任务流程类型"
-msgstr "Task flow type"
+msgstr "Prefer Task Type"
 
 #: gcloud/tasktmpl3/models.py:517 gcloud/tasktmpl3/models.py:518
 msgid "流程模板 TaskTemplate"
-msgstr "TaskTemplate"
+msgstr "Flow"
 
 #: gcloud/tasktmpl3/apis/django/validators.py:88 gcloud/utils/validate.py:38
 msgid "非法请求: 数据错误, 请求不是合法的Json格式 | validate"
@@ -1940,7 +1888,7 @@ msgstr "Illegal request: data error, the request is not in legal Json format | v
 
 #: gcloud/template_base/models.py:236
 msgid "收藏模板的人"
-msgstr "Template favorited by"
+msgstr "Flow favorited by"
 
 #: gcloud/template_base/models.py:237
 msgid "流程事件通知方式"
@@ -1991,9 +1939,8 @@ msgid "模板ID"
 msgstr "Template ID"
 
 #: gcloud/user_custom_config/models.py:45
-#, fuzzy
 msgid "所属项目ID"
-msgstr "Project"
+msgstr "Project ID"
 
 #: gcloud/user_custom_config/models.py:46
 msgid "模板列表默认排序字段"
@@ -2022,17 +1969,15 @@ msgid "调用{system}接口{api_name}无权限：<a href='{url}' target='_blank'
 msgstr "No permission to call {api_name} of {system}: <a href='{url}' target='_blank'>Apply permission</a>."
 
 #: gcloud/utils/handlers.py:62
-#, fuzzy
 msgid ""
 "调用{system}接口{api_name}无权限，获取申请权限接口失败\n"
 "error={error}\n"
 "details: {result}\n"
-msgstr "{system} API {api_name} returned false, params={params}, error={error}"
+msgstr "{system} API {api_name} return false, params={params}, error={error}\n"
 
 #: gcloud/utils/handlers.py:68
-#, fuzzy
 msgid "调用{system}接口{api_name}返回失败, error={error}, params={params}"
-msgstr "{system} API {api_name} returned false, params={params}, error={error}"
+msgstr "{system} API {api_name} return false, params={params}, error={error}"
 
 #: pipeline_plugins/cmdb_ip_picker/query.py:94
 #: pipeline_plugins/cmdb_ip_picker/query.py:190
@@ -2075,7 +2020,7 @@ msgstr "{system} API {api_name} returned false, params={params}, error={error}"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:38
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_1.py:30
 msgid "配置平台(CMDB)"
-msgstr "Conf System(CMDB)"
+msgstr "CMDB"
 
 #: pipeline_plugins/cmdb_ip_picker/query.py:173
 #: pipeline_plugins/variables/collections/sites/open/ip_filter_base.py:65
@@ -2222,14 +2167,12 @@ msgstr "Timing"
 
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:28
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:32
-#, fuzzy
 msgid "GSEKIT(gsekit)"
-msgstr "gsekit(gsekit)"
+msgstr "GSEKIT"
 
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:58
-#, fuzzy
 msgid "刷新进程实例"
-msgstr "Flow Instance"
+msgstr "Refresh Process Instance"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:46
 msgid "等待中"
@@ -2291,7 +2234,7 @@ msgstr "Flow Instance"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:124
 msgid "进程实例ID"
-msgstr "Flow Instance"
+msgstr "Flow Instance ID"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:127
 msgid "配置文件模版"
@@ -2302,28 +2245,24 @@ msgid "配置文件模版名"
 msgstr "Configure template name"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:190
-#, fuzzy
 msgid "gsekit_task_ID"
-msgstr "gsekit_job_task_ID"
+msgstr "gsekit_task_ID"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:193
 msgid "gsekit的任务ID"
 msgstr "Task ID of geskit"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:196
-#, fuzzy
 msgid "任务详情"
-msgstr "operate detail"
+msgstr "Task Detail"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:199
-#, fuzzy
 msgid "gsekit的任务详情页链接"
-msgstr "Task ID of geskit"
+msgstr "Task URL"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:209
-#, fuzzy
 msgid "执行命令"
-msgstr "Created"
+msgstr "Run Command"
 
 #: pipeline_plugins/components/collections/http/v1_0.py:53
 msgid "HTTP 请求 header"
@@ -2471,7 +2410,7 @@ msgstr "CMDB business ID which notification receivers belongs to "
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:48
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:52
 msgid "通知方式"
-msgstr "Notification Method"
+msgstr "Method"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:45
 msgid "需要使用的通知方式"
@@ -2543,35 +2482,31 @@ msgstr "Notify way, will collect from APIGW"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:56
 msgid "固定分组"
-msgstr "Fixed grouping"
+msgstr "Fixed Group"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:67
-#, fuzzy
 msgid "项目人员分组"
-msgstr "Member selector"
+msgstr "Project Member Group"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:72
-#, fuzzy
 msgid "需要进行通知的项目人员分组ID列表"
-msgstr "Group of business people who need to be notified"
+msgstr "ID list of Project Member Group"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:72
-#, fuzzy
 msgid "项目人员分组ID"
-msgstr "Project"
+msgstr "Project Member Group ID"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:79
 msgid "除了通知分组外需要额外通知的人员，多个用英文逗号 `,` 分隔"
 msgstr "Additional members to notify, mutiple split by `,`"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:88
-#, fuzzy
 msgid "通知执行人"
-msgstr "Additional Notification Receivers"
+msgstr "Notify To Executor"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:88
 msgid "通知执行人名字"
-msgstr "Notify the executor's name"
+msgstr "Name of executor"
 
 #: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:168
 msgid "通知方式从 API 网关自动获取已实现的通知渠道，API网关定义了这些消息通知组件的接口协议，但是并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
@@ -2697,7 +2632,7 @@ msgstr "Topo-Set list"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:69
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:68
 msgid "文本路径-集群"
-msgstr "Text path-Set"
+msgstr "Set path"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:70
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:71
@@ -2705,7 +2640,7 @@ msgstr "Text path-Set"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:72
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:71
 msgid "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
-msgstr "Set's text path, please input complete path begin with business, mutiple topo split by line breaker. e.g. business_a>network_b>set_c"
+msgstr "Enter full path of set start with business, mutiple set separate with new-line. such as business_a>network_b>set_c"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:100
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:116
@@ -2798,18 +2733,18 @@ msgstr "Update method"
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_1.py:65
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_1.py:68
 msgid "更新成功的主机"
-msgstr "Update Host Property"
+msgstr "Host of Updated"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py:80
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py:83
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_1.py:71
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_1.py:74
 msgid "更新失败的主机"
-msgstr "Update Host Property"
+msgstr "Host of Update failed"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py:134
 msgid "无法获取bk module id，主机属性={}, message={}"
-msgstr "Unable to get bk module id, host property={}, message={}"
+msgstr "Unable to get bk module ID, host property={}, message={}"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py:172
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_1.py:164
@@ -2836,21 +2771,22 @@ msgid ""
 "注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
 "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
 msgstr ""
-"\" \"Support cc interface ip -> module many-to-many transfer capability, you can enter multiple ip and multiple modules in a single line, use English symbols (,) to separate, after successful execution, these ip will be transferred to the corresponding module ,If the ip or module is filled incorrectly, the transfer operation will not be performed on the entire line\n"
+"\" \"Support cc interface IP -> module many-to-many transfer capability, you can enter multiple IP and multiple modules in a single line, use English symbols (,) to separate, after successful execution, these IP will be transferred to the corresponding module ,If the IP or module is filled incorrectly, the transfer operation will not be performed on the entire line\n"
 "\" \"Note: If you need to move the host to the idle machine to be recovered, please use the following plugin:\n"
 "\" \"Transfer the host to the module to be recovered , transferring the host to the faulty machine module, transferring the host to the idle machine module"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:48
 msgid "所属运营商【{}】校验失败，请重试并修改为正确的所属运营商"
-msgstr "Isp name in invalid, please enter the correct"
+msgstr "Enter the correct ISP name"
+
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:59
 msgid "所在国家【{}】校验失败，请重试并修改为正确的所在国家"
-msgstr "State name is invalid,  please enter the correct"
+msgstr "Enter the correct state name"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:68
 msgid "所在省份【{}】校验失败，请重试并修改为正确的所在省份"
-msgstr "Province name is invalid,  please enter the correct"
+msgstr "Enter the correct Province name"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:83
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:87
@@ -2868,7 +2804,7 @@ msgstr "Invalid IP"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:172
 msgid "批量修改主机属性"
-msgstr "Batch Modify Host Attribute"
+msgstr "Batch Update Host Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_set/v1_0.py:62
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_set/v1_0.py:65
@@ -2882,11 +2818,11 @@ msgstr "Set Updated Failed"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_set/v1_0.py:197
 msgid "批量更新集群属性"
-msgstr "Batch Modify Set Attribute"
+msgstr "Batch Update Set Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:65
 msgid "所属集群 ID 列表"
-msgstr "Parent set id list"
+msgstr "Parent set ID list"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:78
 msgid "按模板创建(template)，直接创建-按服务分类创建(category)"
@@ -2912,7 +2848,7 @@ msgstr "module info list - create by service template"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:119
 msgid "请选择创建方式"
-msgstr "select create way"
+msgstr "Select create method"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:139
 msgid "模块信息不能为空"
@@ -2920,11 +2856,11 @@ msgstr "module info can not be empty"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:148
 msgid "请选择正确的服务模板"
-msgstr "select correct service template please"
+msgstr "Select correct service template"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:155
 msgid "请选择正确的服务类型"
-msgstr "select correct service type please"
+msgstr "Select correct service type"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:168
 msgid "模块名称不能为空"
@@ -2934,7 +2870,7 @@ msgstr "module name can not be empty"
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:107
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:139
 msgid "模块类型校验失败，请重试并填写正确的模块类型"
-msgstr "Module type is invalid,  please enter the correct"
+msgstr "Enter the correct module type"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:208
 msgid "创建模块"
@@ -2983,7 +2919,7 @@ msgstr "Set information description object"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:103
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:141
 msgid "环境类型校验失败，请重试并修改为正确的环境类型"
-msgstr "Environment is invalid,  please enter the correct"
+msgstr "Enter the correct environment"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:105
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:153
@@ -2991,7 +2927,7 @@ msgstr "Environment is invalid,  please enter the correct"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:88
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:128
 msgid "服务状态校验失败，请重试并修改为正确的服务状态"
-msgstr "Service status is invalid,  please enter the correct"
+msgstr "Enter the correct service status"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:113
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:161
@@ -2999,7 +2935,7 @@ msgstr "Service status is invalid,  please enter the correct"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:111
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:149
 msgid "集群容量必须为整数"
-msgstr "Set capacity must be integer"
+msgstr "Integer is required"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:138
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:191
@@ -3032,7 +2968,7 @@ msgstr "Text path - Parent instance"
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:112
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:64
 msgid "父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B`，多个父实例用换行分隔"
-msgstr "Parent instance text path, please input complete path begin with business, multiple parent are split by line breaker. e.g. business_a>network_b"
+msgstr "Enter path of parent instance start with business, mutiple instance separate with new-line. such asbusiness_a>network_b"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:67
 msgid "集群名称"
@@ -3075,7 +3011,7 @@ msgstr "Select Host Custom Attribute"
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:60
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:66
 msgid "规则定义(主机属性)"
-msgstr "Rule Definition(Host Attribute)"
+msgstr "Rule Definition(Host Attr.)"
 
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:64
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:80
@@ -3100,17 +3036,16 @@ msgstr "Order"
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:76
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:82
 msgid "规则定义(自定义属性)"
-msgstr "Rule Definition(Custom Attribute)"
+msgstr "Rule Definition(Custom Attr.)"
 
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:109
 msgid "请选择至少一种规则"
-msgstr "Select a rule at least"
+msgstr "Select one rule"
 
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:116
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:119
-#, fuzzy
 msgid "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}"
-msgstr "Unable to query the corresponding IP from the Conf System(CMDB), please confirm whether the input IP is legal"
+msgstr "Unable to query IP from CMDB, check IP is valid"
 
 #: pipeline_plugins/components/collections/sites/open/cc/host_custom_property_change/v1_0.py:248
 msgid "按规则修改主机自定义属性"
@@ -3140,9 +3075,9 @@ msgstr ""
 "     Set Attribute   | Set Name    | 3 \n"
 "  Rule Definition(Custom Attribute): \n"
 "     Custom String | hello    | 2 \n"
-"     ip(`.` should be replaced) | *        | 4 \n"
+"     IP(`.` should be replaced) | *        | 4 \n"
 "  Expected value after successful modification: \n"
-"     Operator = Operator[admin] + Custom String[hello] + Set Name[set_name] + ip(`.` should be replaced)[192*168*0*1]\n"
+"     Operator = Operator[admin] + Custom String[hello] + Set Name[set_name] + IP(`.` should be replaced)[192*168*0*1]\n"
 "     That is: Operator = adminhelloset_name192*168*0*1 \n"
 "2.Order is used to sort the rules"
 
@@ -3151,9 +3086,8 @@ msgid "主机 IP，多个用换行符分隔"
 msgstr "Host IP, separated by newline"
 
 #: pipeline_plugins/components/collections/sites/open/cc/host_lock/base.py:67
-#, fuzzy
 msgid "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, message={}"
-msgstr "Unable to query the corresponding IP from the Conf System(CMDB), please confirm whether the input IP is legal"
+msgstr "Unable to query IP from the CMDB, check IP is valid"
 
 #: pipeline_plugins/components/collections/sites/open/cc/host_lock/add_host_lock/v1_0.py:37
 msgid "主机加锁"
@@ -3198,7 +3132,7 @@ msgstr "Machine replaced successfully: %s"
 
 #: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:186
 msgid "故障机替换"
-msgstr "Fault Host Replacement"
+msgstr "Host Replacement"
 
 #: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:190
 msgid "如果配置平台中模块启动了属性自动应用策略，则 复制故障机属性 选项无法复制对应属性"
@@ -3276,7 +3210,7 @@ msgstr "Text - Module"
 
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:77
 msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
-msgstr "Please input complete path begin with business, multiple module are split by line breaker. e.g. business_a > network_b > set_c > module_d"
+msgstr "Enter full path of module start with business, multiple module separate with new-line,such as business_a > network_b > set_c > module_d"
 
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:157
 msgid ""
@@ -3317,19 +3251,19 @@ msgstr "Attribute Value Updated"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:100
 msgid "所属运营商校验失败，请重试并修改为正确的所属运营商"
-msgstr "Isp name in invalid, please enter the correct"
+msgstr "Enter the correct ISP name"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:113
 msgid "所在国家校验失败，请重试并修改为正确的所在国家"
-msgstr "State name is invalid,  please enter the correct"
+msgstr "Enter the correct state name"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:124
 msgid "所在省份校验失败，请重试并修改为正确的所在省份"
-msgstr "Province name is invalid,  please enter the correct"
+msgstr "Enter the correct Province name"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:160
 msgid "更新主机属性"
-msgstr "Update Host Property"
+msgstr "Update Host Atribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:55
 msgid "模块 ID 列表"
@@ -3338,7 +3272,7 @@ msgstr "ID list of modules"
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:58
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:75
 msgid "模块属性"
-msgstr "Module Attribute"
+msgstr "Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:61
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:78
@@ -3364,11 +3298,11 @@ msgstr "Update Module Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:72
 msgid "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
-msgstr "Please input complete path begin with business, multiple module are split by line breaker. e.g. business_a > network_b > set_c > module_d"
+msgstr "Enter full path of module start with business, multiple module separate with new-line,such as business_a > network_b > set_c > module_d"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:125
 msgid "请选择模块填参方式"
-msgstr "Please choose module params fill way"
+msgstr "Select filling method of module params "
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:49
 msgid "集群 ID 列表"
@@ -3392,7 +3326,7 @@ msgstr "Set attribute value modified"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:136
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:176
 msgid "更新集群属性"
-msgstr "Modify Set Attribute"
+msgstr "UPdate Set Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:50
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:74
@@ -3473,7 +3407,7 @@ msgstr "Service Status"
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py:26
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_1.py:24
 msgid "作业平台(JOB)"
-msgstr "JOB System(JOB)"
+msgstr "BLUEKING JOB"
 
 #: pipeline_plugins/components/collections/sites/open/job/base.py:102
 msgid "[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]"
@@ -3534,9 +3468,8 @@ msgstr "JOB template ID"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/base_service.py:58
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/base_service.py:61
-#, fuzzy
 msgid "执行方案 ID"
-msgstr "Executing Plan"
+msgstr "Job Plan"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/base_service.py:64
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/base_service.py:70
@@ -3546,9 +3479,8 @@ msgid "全局变量"
 msgstr "Global variables"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/base_service.py:68
-#, fuzzy
 msgid "作业方案执行所需的全局变量列表"
-msgstr "Global variables to execute the JOB"
+msgstr "Global variables of JOB Plan"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/base_service.py:72
 msgid "变量类型，字符串(1) 命名空间(2) IP(3) 密码(4) 数组(5)"
@@ -3660,9 +3592,8 @@ msgid "3. 业务集修改为下拉框获取，默认开启新版IP tag分组, �
 msgstr "3. The business set is modified to obtain from the drop-down box, and the new version of IP tag grouping is enabled by default, and variables are extracted when the default activation fails"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:35
-#, fuzzy
 msgid "业务集 ID"
-msgstr "Business set id"
+msgstr "Business Set ID"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:38
 msgid "当前操作业务集 ID"
@@ -3724,7 +3655,7 @@ msgstr "Execution script params"
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_1.py:83
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/base_service.py:63
 msgid "目标账户"
-msgstr "Target Account"
+msgstr "Account"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:65
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/legacy.py:122
@@ -3738,14 +3669,13 @@ msgstr "Account of target hosts that executes script"
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:71
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:74
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:77
-#, fuzzy
 msgid "脚本超时时间"
-msgstr "Timing"
+msgstr "Timeout"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:80
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:84
 msgid "执行目标信息"
-msgstr "Execute target information"
+msgstr "Execute Target"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:86
 msgid "单条目标 IP 信息"
@@ -3759,7 +3689,7 @@ msgstr "Cloud region ID, default is 0"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:89
 msgid "待执行目标机器 IP，多IP请使用;分隔"
-msgstr "The IP of the target machine to be executed, please use multiple IPs; separated"
+msgstr "The IP of the target machine to be executed, multiple IP separate with \";\""
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:103
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/execute_task_base.py:86
@@ -3792,7 +3722,7 @@ msgstr "rolling execution"
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_1.py:33
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_1.py:35
 msgid "是否开启滚动执行"
-msgstr "Whether to enable rolling execution"
+msgstr "Enable rolling execution"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/v1_1.py:68
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_1.py:42
@@ -3912,16 +3842,15 @@ msgstr "To be distributed to the target information list"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/base_service.py:77
 msgid "待分发机器 IP，多IP请使用;分隔"
-msgstr "The IP of the machine to be distributed, please use multiple IPs; separated"
+msgstr "The IP of the machine to be distributed, multiple IP separate  with \";\" "
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/base_service.py:78
 msgid "分发目标绝对路径，(可用[FILESRCIP]代替源IP)"
 msgstr "The absolute path of the distribution target, ([FILESRCIP] can be used instead of the source IP)"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/base_service.py:79
-#, fuzzy
 msgid "执行账户，输入在蓝鲸作业平台上注册的账户名"
-msgstr "Please Input the Account on JOB Platform of BlueKing"
+msgstr "Enter the Account on JOB Platform of BlueKing"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/base_service.py:85
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/legacy.py:85
@@ -3970,7 +3899,7 @@ msgstr "Upload Success Count"
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:117
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:120
 msgid "任务id"
-msgstr "Task id"
+msgstr "Task ID"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/base_service.py:191
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py:238
@@ -3986,19 +3915,18 @@ msgstr "Business Set Fast Push File"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py:75
 msgid "跨业务分发文件时需要在作业平台添加白名单"
-msgstr "Need to add a whitelist to JOB when pushing files across businesses"
+msgstr "Add a whitelist to JOB first when transfer files to different businesses"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_1.py:111
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_1.py:114
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_1.py:261
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_1.py:264
-#, fuzzy
 msgid "执行失败的任务URL"
 msgstr "Task url"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_1.py:125
 msgid "跨业务分发文件时需要在作业平台添加白名单, V1.1版本支持job滚动执行，要求作业平台版本>=3.6.0.0"
-msgstr "When distributing files across businesses, it is necessary to add a whitelist to the job platform. Version V1.1 supports job rolling execution, requiring the job platform version to be >=3.6.0.0"
+msgstr "When transfer files to different businesses IP, it is necessary to add a whitelist in JOB. Version V1.1 supports job rolling execution, requiring the job platform version to be >=3.6.0.0"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:46
 msgid "定时作业名称"
@@ -4006,36 +3934,36 @@ msgstr "Timed JOB name"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:49
 msgid "待创建的定时作业名称"
-msgstr "Name of timed JOB to be created"
+msgstr "Crontab Name"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:52
 msgid "定时规则"
-msgstr "Timing rules"
+msgstr "Crontab Rule"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:55
 msgid "待创建的定时作业定时规则"
-msgstr "Timing rules of JOB to be creating"
+msgstr "Crontab rule of JOB"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:58
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:74
 msgid "定时作业状态"
-msgstr "JOB status"
+msgstr "Crontab State"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:61
 msgid "待创建的定时作业状态，暂停(1) 启动(2)"
-msgstr "Status of timing JOB to be creating, suspended(1) or run(2)"
+msgstr "State of JOB Crontab, Disable(1) or Enable(2)"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:68
 msgid "定时作业ID"
-msgstr "Timed JOB ID"
+msgstr "Crontab ID"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:71
 msgid "成功创建的定时作业 ID"
-msgstr "Timing JOB ID created successfully"
+msgstr "ID of created crontab"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:77
 msgid "成功创建的定时作业状态"
-msgstr "Timing JOB status created successfully"
+msgstr "State of created crontab"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:126
 msgid "定时任务启动失败: [作业平台]定时任务启动发生异常：{error}"
@@ -4043,7 +3971,7 @@ msgstr "Failed to start the scheduled task: [job platform] An exception occurred
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:141
 msgid "新建定时作业"
-msgstr "New Timed JOB"
+msgstr "New Crontab"
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/execute_task_base.py:59
 msgid "需要执行的 JOB 作业模板 ID"
@@ -4066,7 +3994,7 @@ msgstr "Execution JOB"
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:47
 msgid "跨业务选项打开时IP参数需要按照(云区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息"
-msgstr "When the cross-business option is turned on, the IP parameters need to be filled in in the format of (cloud area ID: IP), otherwise it will try to obtain IP information from this business"
+msgstr "IP should be [Cloud ID:IP] when use different business, otherwise it will try to obtain IP information from this business"
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_0.py:49
 msgid ""
@@ -4087,7 +4015,6 @@ msgstr ""
 "If you don't need double quotation marks, you can use the legacy version plugin, or you can manually remove it from the table."
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:102
-#, fuzzy
 msgid ""
 "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
 "2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
@@ -4172,16 +4099,14 @@ msgstr "Quick Script Execution"
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py:46
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/base_service.py:75
 msgid "是否允许跨业务"
-msgstr "Allow Cross Business Or Not"
+msgstr "Use IP From Diff-Busi."
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_0.py:117
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_1.py:119
-#, fuzzy
 msgid "是否允许跨业务(跨业务需在作业平台添加白名单)，允许时，源文件IP格式需为【云区域ID:IP】"
-msgstr "Allow cross business or not, if yes, the format of source file IP should be [Cloud ID:IP]"
+msgstr "The format should be [Cloud ID:IP] when use IP from different business"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_0.py:135
-#, fuzzy
 msgid "自定义任务名"
 msgstr "Task Name"
 
@@ -4197,7 +4122,7 @@ msgid ""
 msgstr ""
 "The plugin version legacy will execute the script according to the script id, and the original script will still be executed when the version of the script on the JOB platform changes. \n"
 "The plugin version v1.0 will execute the script according to the script name, and automatically synchronize the current online version of the JOB platform for execution. \n"
-"Note: In the plug-in version v1.0, it is necessary to add a whitelist to the operating platform when executing scripts across businesses"
+"Note: In the plug-in version v1.0, it is necessary to add a whitelist to the operating platform when executing scripts from different businesses"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_1.py:289
 msgid ""
@@ -4207,10 +4132,9 @@ msgid ""
 msgstr ""
 "The plugin version legacy will execute the script according to the script id, and the original script will still be executed when the version of the script on the JOB platform changes. \n"
 "The plugin version v1.1 will execute the script according to the script name, and automatically synchronize the current online version of the JOB platform for execution. \n"
-"Note: In the plug-in version v1.1, it is necessary to add a whitelist to the operating platform when executing scripts across businesses"
+"Note: In the plug-in version v1.1, it is necessary to add a whitelist in JOB when executing scripts from different businesses"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_2.py:321
-#, fuzzy
 msgid ""
 "插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
 "插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
@@ -4220,7 +4144,7 @@ msgid ""
 msgstr ""
 "The plugin version legacy will execute the script according to the script id, and the original script will still be executed when the version of the script on the JOB platform changes. \n"
 "The plugin version v1.1 will execute the script according to the script name, and automatically synchronize the current online version of the JOB platform for execution. \n"
-"Note: In the plug-in version v1.1, it is necessary to add a whitelist to the operating platform when executing scripts across businesses"
+"Note: In the plug-in version v1.1, it is necessary to add a whitelist to the operating platform when executing scripts from different  businesses. \n"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/legacy.py:60
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v1_0.py:61
@@ -4270,14 +4194,13 @@ msgstr "Quick File Distribution"
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py:49
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/base_service.py:78
 msgid "是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】"
-msgstr "Allow cross business or not, if yes, the format of source file IP should be [Cloud ID:IP]"
+msgstr "the format should be [Cloud ID:IP] when use different business IP"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v1_0.py:177
 msgid "该版本不支持目标 IP 跨业务，需要目标 IP 跨业务分发请使用 2.0 及以上版本插件"
-msgstr "This version does not support cross-Business target IP, please use plugin version 2.0 and above if target IP cross-business distribution is required"
+msgstr "This version can't use different business IP as a target, please use plugin version >= 2.0"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_1.py:275
-#, fuzzy
 msgid ""
 "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
 "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
@@ -4328,7 +4251,7 @@ msgstr "IP should be filled with format [Cloud ID:IP] or [IP], separated by newl
 
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/base_service.py:66
 msgid "请输入在蓝鲸作业平台上注册的账户名"
-msgstr "Please Input the Account on JOB Platform of BlueKing"
+msgstr "Enter the Account on JOB Platform of BlueKing"
 
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_0.py:30
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_1.py:76
@@ -4344,44 +4267,37 @@ msgstr ""
 "\" \"Note: Cross-service is enabled by default in plug-in version v1.1"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:48
-#, fuzzy
 msgid "执行账号"
-msgstr "Execution Account"
+msgstr "Account"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:51
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:55
-#, fuzzy
 msgid "本地文件信息"
-msgstr "Push Local File"
+msgstr "Local File"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:58
-#, fuzzy
 msgid "文件信息表"
-msgstr "Information of file list to be distributed"
+msgstr "File List"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:60
-#, fuzzy
 msgid "文件信息与目标路径"
-msgstr "Target host path which files are distributed to"
+msgstr "File And Path"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:63
-#, fuzzy
 msgid "本地文件"
 msgstr "Push Local File"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:65
-#, fuzzy
 msgid "需要操作的文件"
-msgstr "operate type"
+msgstr "File"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:68
 msgid "tag"
 msgstr "tag"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:71
-#, fuzzy
 msgid "文件类型"
-msgstr "Component Type"
+msgstr "File Type"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:74
 msgid "tags，文件类型为upload_module， tag_id必填。文件类型为host_nfs， uid shims name必填"
@@ -4389,7 +4305,7 @@ msgstr "tags, the file type is upload_module, and tag_id is required. The file t
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:79
 msgid "tag_id"
-msgstr "tag id"
+msgstr "tag ID"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:80
 msgid "uid"
@@ -4414,7 +4330,7 @@ msgstr "Upload Request Success Count"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:196
 msgid "执行参数为空，请确认"
-msgstr "The execution parameter is empty, please confirm"
+msgstr "The execution parameter is empty"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py:105
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py:38
@@ -4425,12 +4341,11 @@ msgstr "Push Local File"
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py:110
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py:43
 msgid "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
-msgstr "The files uploaded locally are not guaranteed to be stored for a long time and can be used for multiple distributions. It is recommended to select the upload variable and perform the upload operation when creating a task. If you want to distribute the same file multiple times, use the Quick Distribute Files plugin."
+msgstr "The local files  are not be stored permanentand . It is recommended to use variable to upload when creating a task. If you want to transfer the same file multiple times, use the Quick Distribute Files plugin."
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_1.py:97
-#, fuzzy
 msgid "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。注：插件版本v2.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
-msgstr "The files uploaded locally are not guaranteed to be stored for a long time and can be used for multiple distributions. It is recommended to select the upload variable and perform the upload operation when creating a task. If you want to distribute the same file multiple times, use the Quick Distribute Files plugin."
+msgstr "The local files  are not be stored permanentand . It is recommended to use variable to upload when creating a task. If you want to transfer the same file multiple times, use the Quick Distribute Files plugin.Note:Rolling execution in plug-in version v2.1 need JOB version >= V3.6.0.0.\n"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/__init__.py:16
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield/v1_0.py:35
@@ -4441,7 +4356,7 @@ msgstr "The files uploaded locally are not guaranteed to be stored for a long ti
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:27
 #: pipeline_plugins/components/collections/sites/open/monitor/base.py:14
 msgid "监控平台(Monitor)"
-msgstr "Monitor Platform"
+msgstr "BKMonitor"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/base.py:52
 msgid "主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参"
@@ -4531,27 +4446,24 @@ msgstr "Attention: 1.Shield Range of CC Set should be `all` when the Shield Stra
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield/v1_1.py:55
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_1.py:48
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:48
-#, fuzzy
 msgid "时间选择"
-msgstr "Date rejected"
+msgstr "Time"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield/v1_1.py:73
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_1.py:66
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:66
-#, fuzzy
 msgid "屏蔽持续时间"
-msgstr "Date Finished"
+msgstr "Duration"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield/v1_1.py:76
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_1.py:69
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:69
-#, fuzzy
 msgid "屏蔽持续的时间"
-msgstr "Date Finished"
+msgstr "Duration"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_disable/v1_0.py:35
 msgid "屏蔽 ID"
-msgstr "Node ID"
+msgstr "Shield ID"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_disable/v1_0.py:38
 msgid "当前操作的屏蔽 ID"
@@ -4571,7 +4483,7 @@ msgstr "Cancel Alarm Shield"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_disable/v1_0.py:79
 msgid "提示: 屏蔽id请从告警屏蔽或蓝鲸监控获取"
-msgstr "Hint: Please Get Shield Strategy ID through Alarm Shield or BlueKing Monitor"
+msgstr "Hint: Get Shield Strategy ID from Alarm Shield or BlueKing Monitor"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_0.py:35
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_1.py:42
@@ -4588,7 +4500,7 @@ msgstr "BlueKing Monitor Alarm Shield (Based on Strategy)"
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:72
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:75
 msgid "维度筛选方式"
-msgstr "Dimension filter method"
+msgstr "Dimension Filter"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:78
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:82
@@ -4602,7 +4514,7 @@ msgstr "Dimension"
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:33
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:30
 msgid "节点管理(Nodeman)"
-msgstr "Nodeman(Nodeman)"
+msgstr "NodeMan"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/base.py:115
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:198
@@ -4612,7 +4524,7 @@ msgstr "Task ID"
 #: pipeline_plugins/components/collections/sites/open/nodeman/base.py:118
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:198
 msgid "提交的任务的 job_id"
-msgstr "Nodeman job_id"
+msgstr "NodeMan job_id"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/base.py:121
 #: pipeline_plugins/components/collections/sites/open/nodeman/base.py:124
@@ -4641,7 +4553,7 @@ msgstr "isntall fail number in task"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/base.py:164
 msgid "获取任务job_id失败，result:{}"
-msgstr "Failed to get task job id, result: {}"
+msgstr "Failed to get task job ID, result: {}"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/base.py:215
 msgid "操作失败主机日志信息："
@@ -4653,9 +4565,8 @@ msgid "主机："
 msgstr "host: "
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/base.py:237
-#, fuzzy
 msgid "错误日志："
-msgstr "log: "
+msgstr "Error Log: "
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:70
 msgid "conn_ips 为空或输入格式错误"
@@ -4664,7 +4575,7 @@ msgstr "conn_ips is empty or format error"
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:128
 #, python-format
 msgid "[节点管理]任务创建失败: 创建[节点管理]任务发生异常: %smessage"
-msgstr "[Node Management] task creation failed: Exception occurred while creating [Node Management] task: %smessage"
+msgstr "[Node Management] task create failed: Exception occurred while creating [Node Management] task: %smessage"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:153
 msgid "查询失败，未能获得任务执行结果"
@@ -4795,7 +4706,7 @@ msgstr "New Task"
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:127
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:107
 msgid "请确认内网Ip是否合法host_info:{host}"
-msgstr "please confirm inner ip is valid: {host}"
+msgstr "please confirm inner IP is valid: {host}"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:135
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:139
@@ -4872,9 +4783,8 @@ msgstr "Outter IP, can be empty"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:222
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:217
-#, fuzzy
 msgid "AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）"
-msgstr "node type, AGENT or PROXY"
+msgstr "AGENT or PROXY"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:242
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:261
@@ -4885,15 +4795,13 @@ msgstr "Cloud Region ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:243
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:238
-#, fuzzy
 msgid "接入点"
-msgstr "Access Point ID"
+msgstr "Access Point"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:257
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:252
-#, fuzzy
 msgid "需要被操作的主机信息(升级，卸载，移除时需要)"
-msgstr "operate host info(need it when install and reinstall)"
+msgstr "Host Info(For Upgrade,Install,Reinstall)"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:278
 msgid ""
@@ -4914,60 +4822,52 @@ msgstr ""
 "Remove operation offline"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:47
-#, fuzzy
 msgid "插件操作信息"
-msgstr "Plugin Operation"
+msgstr "Plugin Info"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:51
-#, fuzzy
 msgid "插件操作内容"
 msgstr "Plugin Operation"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:53
-#, fuzzy
 msgid "插件操作类型"
-msgstr "Operation"
+msgstr "Operation Type"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:54
-#, fuzzy
 msgid "插件名称"
-msgstr "Component Name"
+msgstr "Plugin Name"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:57
 msgid "安装操作参数"
-msgstr "Installation operating parameters"
+msgstr "Install Parameters"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:59
 msgid "安装选项，nodeman_op_type值为MAIN_INSTALL_PLUGIN时可填"
 msgstr "Installation options, nodeman op type can be filled in when the value is MAIN INSTALL PLUGIN"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:67
-#, fuzzy
 msgid "主机信息"
-msgstr "Host info"
+msgstr "Host Info"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:71
-#, fuzzy
 msgid "主机信息内容"
-msgstr "Host info"
+msgstr "Host Info"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:74
-#, fuzzy
 msgid "主机填写方式"
-msgstr "Param fill way"
+msgstr "Param filling method"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:78
 msgid "主机ip,多个以英文','分隔，nodeman_host_input_type值为host_ip时必填"
-msgstr "Host ip, multiple separated by ',' in English, required when nodeman host input type value is host ip"
+msgstr "Host IP, multiple IP separate with  \",\" , required when nodeman host input type value is host IP"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:81
 msgid "主机id,多个以英文','分隔，nodeman_host_input_type值为host_id时必填"
-msgstr "Host id, multiple separated by ',' in English, required when nodeman host input type value is host id"
+msgstr "Host ID, multiple ID separate with  \",\", required when nodeman host input type value is host ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:107
-#, fuzzy
 msgid "请选择填写方式"
-msgstr "Param fill way"
+msgstr "Filling Method"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:154
 msgid "插件操作"
@@ -5055,18 +4955,16 @@ msgstr "File"
 #: pipeline_plugins/components/query/sites/open/nodeman.py:70
 #: pipeline_plugins/components/query/sites/open/nodeman.py:91
 msgid "节点管理(NODEMAN)"
-msgstr "Nodeman(NODEMAN)"
+msgstr "NodeMan"
 
 #: pipeline_plugins/components/utils/sites/open/utils.py:511
-#, fuzzy
 msgid "允许跨业务时IP格式需满足：【云区域ID:IP】。失败 IP： {}"
-msgstr "IP Format should be [Cloud ID:IP] when allow cross business"
+msgstr "Format should be [Cloud ID:IP] when use different business IP"
 
 #: pipeline_plugins/components/utils/sites/open/utils.py:515
 #: pipeline_plugins/components/utils/sites/open/utils.py:574
-#, fuzzy
 msgid "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}"
-msgstr "Unable to query the corresponding IP from the Conf System(CMDB), please confirm whether the input IP is legal"
+msgstr "Unable to query the IP from theCMDB, please check IP is legal"
 
 #: pipeline_plugins/components/utils/sites/open/utils.py:529
 #: pipeline_plugins/components/utils/sites/open/utils.py:584
@@ -5075,7 +4973,7 @@ msgstr "The IP is empty, please confirm whether to enter the IP, please check wh
 
 #: pipeline_plugins/variables/collections/bk_manage_user_selector.py:30
 msgid "人员选择器"
-msgstr "Member selector"
+msgstr "Member Selector"
 
 #: pipeline_plugins/variables/collections/common.py:43
 msgid "输入框"
@@ -5150,7 +5048,6 @@ msgid "文本值下拉框"
 msgstr "Text Value Select"
 
 #: pipeline_plugins/variables/collections/common.py:141
-#, fuzzy
 msgid "文本值下拉框变量"
 msgstr "Text Value Select"
 
@@ -5171,23 +5068,23 @@ msgstr ""
 
 #: pipeline_plugins/variables/collections/common.py:189
 msgid "系统当前时间(支持格式自定义)"
-msgstr "System Current Time(Support Custom Format)"
+msgstr "Current Time(Custom Format)"
 
 #: pipeline_plugins/variables/collections/common.py:193
 msgid "系统当前时间变量(支持格式自定义)"
-msgstr "System Current Time Variable(Support Custom Format)"
+msgstr "System Current Time Variable(Custom Format)"
 
 #: pipeline_plugins/variables/collections/common.py:209
 msgid "系统当前时间"
-msgstr "System Current Time"
+msgstr "Current Time"
 
 #: pipeline_plugins/variables/collections/common.py:213
 msgid "系统当前时间变量"
-msgstr "System Current Time Variable"
+msgstr "Current Time Variable"
 
 #: pipeline_plugins/variables/collections/common.py:254
 msgid "日期"
-msgstr "Datetime added"
+msgstr "Date"
 
 #: pipeline_plugins/variables/collections/common.py:258
 msgid "日期变量"
@@ -5198,17 +5095,16 @@ msgid "输出格式: 2000-04-19"
 msgstr "Output Format: 2000-04-19"
 
 #: pipeline_plugins/variables/collections/common.py:263
-#, fuzzy
 msgid "用户选择的日期，格式为2000-04-19"
 msgstr "Output Format: 2000-04-19"
 
 #: pipeline_plugins/variables/collections/common.py:268
 msgid "时间"
-msgstr "Date rejected"
+msgstr "Time"
 
 #: pipeline_plugins/variables/collections/common.py:272
 msgid "时间变量"
-msgstr "Datetime variable"
+msgstr "Time variable"
 
 #: pipeline_plugins/variables/collections/common.py:273
 msgid "输出格式: 14:45"
@@ -5216,7 +5112,7 @@ msgstr "Output Format: 14:45"
 
 #: pipeline_plugins/variables/collections/common.py:288
 msgid "日期时间（支持格式自定义）"
-msgstr "Datetime (support format customization)"
+msgstr "Datetime (Custom Format)"
 
 #: pipeline_plugins/variables/collections/common.py:292
 msgid "默认输出格式: 2020-10-10 14:45:00, 可自行配置显示格式"
@@ -5228,14 +5124,14 @@ msgstr "User-selected datetime in a custom format"
 
 #: pipeline_plugins/variables/collections/common.py:306
 msgid "人员分组选择器"
-msgstr "Member selector"
+msgstr "Member Selector"
 
 #: pipeline_plugins/variables/collections/common.py:310
 msgid ""
 "可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
 "输出格式为选中人员用户名以 ',' 拼接的字符串"
 msgstr ""
-"\" \"Optional cc business fixed four personnel groups (operation and maintenance personnel, product personnel, developers, testers) and the personnel grouping configured in the standard operation and maintenance [Project Management]\n"
+"\" \" CMDB business fixed four groups (Operator，Developer，Product Manager，Tester） and the project  member group in the SOPS [Project Management]\n"
 "The output format is the selected personnel user The name is a string concatenated with ','"
 
 #: pipeline_plugins/variables/collections/datatable.py:44
@@ -5258,15 +5154,15 @@ msgstr ""
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:47
 msgid "IP选择器(已废弃)"
-msgstr "IP selector(Obsolete)"
+msgstr "IP selector(Offline)"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:51
 msgid "该变量已废弃，请替换为新版 IP 选择器"
-msgstr "This variable is obsolete, please replace it with the new version of the IP selector"
+msgstr "This variable is Offline, please replace it with the new version of the IP selector"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:106
 msgid "IP选择器"
-msgstr "IP selector"
+msgstr "IP Selector"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:110
 msgid ""
@@ -5283,12 +5179,12 @@ msgstr ""
 "- Filter: Filter out eligible IPs from the IP list\n"
 "- Exclude: Remove eligible IPs from IP list\n"
 "Whether the variable value has cloud area\n"
-"- True,The return format is {cloud_id}:{ip},{cloud_id}:{ip}\n"
-"- False,The return format is {ip},{ip}"
+"- True,The return format is {cloud_id}:{IP},{cloud_id}:{IP}\n"
+"- False,The return format is {IP},{IP}"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:199
 msgid "集群资源筛选"
-msgstr "Set resource filter"
+msgstr "Set Resource Filter"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:203
 msgid ""
@@ -5324,10 +5220,9 @@ msgstr ""
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:286
 msgid "主机属性查询器"
-msgstr "Hosts property query"
+msgstr "Hosts Attribute Query"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:290
-#, fuzzy
 msgid ""
 "输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）\n"
 "例如，通过 ${hosts[\"1.1.1.1\"][\"bk_host_id\"]} 获取主机在 CMDB 中的唯一 ID\n"
@@ -5340,7 +5235,7 @@ msgstr ""
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:397
 msgid "IP过滤器"
-msgstr "IP filter"
+msgstr "IP Filter"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:401
 msgid "引用${KEY}，返回符合过滤条件的IP, IP格式为下面表单指定的格式"
@@ -5928,23 +5823,23 @@ msgstr "Wechat User"
 #~ msgid "Pipeline 实例"
 #~ msgstr "Pipeline instance"
 
-#~ msgid "执行结果"
-#~ msgstr "Execution Result"
+msgid "执行结果"
+msgstr "Execution Result"
 
-#~ msgid "执行结果的布尔值，True or False"
-#~ msgstr "Boolean of execution result, True or False"
+msgid "执行结果的布尔值，True or False"
+msgstr "Boolean of execution result, True or False"
 
-#~ msgid "循环次数"
-#~ msgstr "Loop Times"
+msgid "循环次数"
+msgstr "Loop Times"
 
-#~ msgid "当前流程循环次数"
-#~ msgstr "Current Flow Loop Times"
+msgid "当前流程循环次数"
+msgstr "Current Flow Loop Times"
 
-#~ msgid "在当前流程节点循环执行次数，由父流程重新进入时会重置（仅支持新版引擎）"
-#~ msgstr "The times of loop executions of the current flow, which will be reset when the parent flow re-enters (only supports the new version of the engine)"
+msgid "在当前流程节点循环执行次数，由父流程重新进入时会重置（仅支持新版引擎）"
+msgstr "The times of loop executions of the current flow, which will be reset when the parent flow re-enters (only supports the new version of the engine)"
 
-#~ msgid "循环执行次数"
-#~ msgstr "Loop execution times"
+msgid "循环执行次数"
+msgstr "Loop execution times"
 
 #~ msgid "信号模块名"
 #~ msgstr "Signal module name"
