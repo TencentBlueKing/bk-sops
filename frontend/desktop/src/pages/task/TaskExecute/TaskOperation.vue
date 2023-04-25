@@ -1494,21 +1494,23 @@
             renderConverGateway (ids, ordered, data) {
                 const allNode = Object.assign({}, data.activities, data.gateways)
                 ids.forEach(id => {
-                    data.gateways[id].incoming.forEach(incoming => {
-                        const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
-                        ordered.forEach(item => {
-                            if (item.id === node && allNode[node].type !== 'ServiceActivity') {
-                                if (!item.children.map(chd => chd.id).includes(data.gateways[id].id) && !this.renderedCoverNode.includes(id)) {
-                                    this.renderedCoverNode.push(id)
-                                    item.children.push(Object.assign(data.gateways[id], { name: this.$t('汇聚网关') }))
+                    if (data.gateways[id] && data.gateways[id].incoming) {
+                        data.gateways[id].incoming.forEach(incoming => {
+                            const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
+                            ordered.forEach(item => {
+                                if (item.id === node && allNode[node].type !== 'ServiceActivity') {
+                                    if (!item.children.map(chd => chd.id).includes(data.gateways[id].id) && !this.renderedCoverNode.includes(id)) {
+                                        this.renderedCoverNode.push(id)
+                                        item.children.push(Object.assign(data.gateways[id], { name: this.$t('汇聚网关') }))
+                                    }
+                                } else {
+                                    if (item.children) {
+                                        this.findCoverPosition(item.children, node, id, allNode, ordered)
+                                    }
                                 }
-                            } else {
-                                if (item.children) {
-                                    this.findCoverPosition(item.children, node, id, allNode, ordered)
-                                }
-                            }
+                            })
                         })
-                    })
+                    }
                 })
             },
             findCoverPosition (list, id, cur, allNode, ordered) {
@@ -1535,7 +1537,7 @@
             getItemCoverTree (ordered, node, id, allNode) {
                 ordered.forEach(item => {
                     if (item.id === node && item.type !== 'ServiceActivity') {
-                        if (!item.children.map(chd => chd.node).includes(allNode[node].id) && !this.renderedCoverNode.includes(id)) {
+                        if (item.children && !item.children.map(chd => chd.node).includes(allNode[node].id) && !this.renderedCoverNode.includes(id)) {
                             this.renderedCoverNode.push(id)
                             item.children.push(Object.assign({}, allNode[id], { name: this.$t('汇聚网关') }))
                         }
