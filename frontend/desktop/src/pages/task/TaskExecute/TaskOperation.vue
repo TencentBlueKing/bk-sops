@@ -387,7 +387,9 @@
                 showNodeList: [0, 1, 2],
                 converNodeList: [],
                 isCondition: false,
-                conditionOutgoing: []
+                conditionOutgoing: [],
+                unrenderedCoverNode: [],
+                renderedCoverNode: []
             }
         },
         computed: {
@@ -1303,6 +1305,7 @@
                 })
                 this.retrieveLines(data, fstLine, orderedData)
                 orderedData.push(endEvent)
+                this.renderConverGateway(this.unrenderedCoverNode, orderedData, data)
                 // 过滤root最上层汇聚网关
                 return orderedData
             },
@@ -1451,12 +1454,14 @@
                             })
                             if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
                                 // 汇聚网关push在最近的条件网关下
-                                const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
+                                const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' && order.type !== 'ConvergeGateway')]
                                 // 独立子流程的children为 subChildren
                                 if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
                                     gateway.gatewayType = 'converge'
-                                    prev.children.push(gateway)
+                                    // prev.children.push(gateway)
+                                } else {
+                                    this.unrenderedCoverNode.push(gateway.id)
                                 }
                                 outgoing.forEach(line => {
                                     this.retrieveLines(data, line, ordered)
@@ -1485,6 +1490,61 @@
                         })
                     }
                 }
+            },
+            renderConverGateway (ids, ordered, data) {
+                const allNode = Object.assign({}, data.activities, data.gateways)
+                ids.forEach(id => {
+                    if (data.gateways[id] && data.gateways[id].incoming) {
+                        data.gateways[id].incoming.forEach(incoming => {
+                            const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
+                            ordered.forEach(item => {
+                                if (item.id === node && allNode[node].type !== 'ServiceActivity') {
+                                    if (!item.children.map(chd => chd.id).includes(data.gateways[id].id) && !this.renderedCoverNode.includes(id)) {
+                                        this.renderedCoverNode.push(id)
+                                        item.children.push(Object.assign(data.gateways[id], { name: this.$t('汇聚网关') }))
+                                    }
+                                } else {
+                                    if (item.children) {
+                                        this.findCoverPosition(item.children, node, id, allNode, ordered)
+                                    }
+                                }
+                            })
+                        })
+                    }
+                })
+            },
+            findCoverPosition (list, id, cur, allNode, ordered) {
+                list.forEach(item => {
+                    if (item.id === id) {
+                        // 不是任务节点直接添加
+                        if (item.type !== 'ServiceActivity' && item.state !== 'Gateway') {
+                            if (!list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
+                                this.renderedCoverNode.push(cur)
+                                list.push(Object.assign({}, allNode[cur], { name: this.$t('汇聚网关') }))
+                            }
+                        } else {
+                            item.incoming.forEach(incoming => {
+                                const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
+                                this.getItemCoverTree(ordered, node, cur, allNode)
+                            })
+                        }
+                    } else {
+                        if (item.children) this.findCoverPosition(item.children, id, cur, allNode, ordered)
+                    }
+                })
+            },
+            // 给网关节点添加汇聚节点
+            getItemCoverTree (ordered, node, id, allNode) {
+                ordered.forEach(item => {
+                    if (item.id === node && item.type !== 'ServiceActivity' && item.state !== 'Gateway') {
+                        if (item.children && !item.children.map(chd => chd.node).includes(allNode[node].id) && !this.renderedCoverNode.includes(id)) {
+                            this.renderedCoverNode.push(id)
+                            item.children.push(Object.assign({}, allNode[id], { name: this.$t('汇聚网关') }))
+                        }
+                    } else {
+                        if (item.children) this.getItemCoverTree(item.children, node, id, allNode)
+                    }
+                })
             },
             updateNodeActived (id, isActived) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
