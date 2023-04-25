@@ -190,6 +190,7 @@ def add_template_schemes(template_data: typing.Dict[str, typing.Any], pipeline_t
     id__pipeline_template_info_map: typing.Dict[int, typing.Dict[str, typing.Any]] = {
         pipeline_template_info["id"]: pipeline_template_info
         for pipeline_template_info in template_data["pipeline_template_data"]["template"].values()
+        if pipeline_template_info.get("id")
     }
     pipeline_template_db_ids: typing.Set[int] = set(id__pipeline_template_info_map.keys())
 

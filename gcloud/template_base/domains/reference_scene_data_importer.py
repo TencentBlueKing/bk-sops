@@ -104,7 +104,9 @@ def import_app_makers(
         app_maker["template_scheme_id"] = id_map["scheme_id_old_to_new"].get(old_scheme_id)
 
         app_maker["logo_content"] = None
-        old_id = app_maker.pop("id", None)
+        old_id = app_maker["id"]
+        # 重置 id，在 save_app_maker 进行重建
+        app_maker["id"] = None
 
         if settings.IS_LOCAL:
             app_maker["link_prefix"] = "http://localhost/appmaker/"
