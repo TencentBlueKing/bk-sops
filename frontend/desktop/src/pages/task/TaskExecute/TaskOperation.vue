@@ -1518,7 +1518,7 @@
                     if (item.id === id) {
                         // 不是任务节点直接添加
                         if (item.type !== 'ServiceActivity' && item.state !== 'Gateway') {
-                            if (!list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
+                            if (list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
                                 this.renderedCoverNode.push(cur)
                                 list.push(Object.assign({}, allNode[cur], { name: this.$t('汇聚网关') }))
                             }
