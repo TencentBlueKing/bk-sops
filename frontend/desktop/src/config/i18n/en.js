@@ -1735,7 +1735,8 @@ const en = {
     '从每{0}开始每隔{1}天': 'Every {1} days starting from every {0}',
     '从每{0}开始到{1}的每隔{2}天': 'Every {2} days from every {0} to {1}',
     '{0}和{1}': '{0} and {1}',
-    'IP 与 IPv6 至少需保留一个': 'At least one of IP and IPv6 must be reserved'
+    'IP 与 IPv6 至少需保留一个': 'At least one of IP and IPv6 must be reserved',
+    '个静态IP，': 'static IP,'
 }
 
 export default en
