@@ -101,7 +101,7 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
-                    :is-not-exist-atom-or-verion="isNotExistAtomOrVersion"
+                    :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
