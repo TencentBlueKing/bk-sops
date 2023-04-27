@@ -511,7 +511,8 @@
                     })
                     const list = periodicListData.results
                     this.periodicList = list.map(item => {
-                        item.parseValue = Translate(item.cron)
+                        const splitCron = this.splitPeriodicCron(item.cron)
+                        item.parseValue = Translate(splitCron)
                         return item
                     })
                     this.pagination.count = periodicListData.count

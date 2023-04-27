@@ -56,11 +56,11 @@ const weekDesDayMap = {
 
 const getWeekDayValue = (value) => {
     if (weekDayMap[value]) {
-        return weekDayMap[value]
+        return i18n.t(`周${weekDayMap[value]}`)
     }
     const text = value.toString().toLowerCase()
     if (weekDesDayMap[text]) {
-        return weekDesDayMap[text]
+        return i18n.t(`周${weekDesDayMap[text]}`)
     }
     return i18n.t(`周${value}`)
 }
@@ -240,11 +240,11 @@ const translateMap = {
 }
 
 const textI18n = (str, fields) => {
-    const xxx = fields.reduce((acc, cur, index) => {
+    const fieldMap = fields.reduce((acc, cur, index) => {
         acc[index] = cur
         return acc
     }, {})
-    return i18n.t(str, xxx)
+    return i18n.t(str, fieldMap)
 }
 
 const translateText = (ast) => {
