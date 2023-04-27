@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from pipeline_plugins.components.query.sites.open.cc import cc_urlpatterns
 from pipeline_plugins.components.query.sites.open.file_upload import file_upload_urlpatterns
+from pipeline_plugins.components.query.sites.open.gsekit import gsekit_urlpatterns
 from pipeline_plugins.components.query.sites.open.itsm import itsm_urlpatterns
 from pipeline_plugins.components.query.sites.open.job import job_urlpatterns
 from pipeline_plugins.components.query.sites.open.nodeman import nodeman_urlpatterns
@@ -20,6 +21,7 @@ from pipeline_plugins.components.query.sites.open.monitor import monitor_urlpatt
 
 urlpatterns = cc_urlpatterns
 urlpatterns += file_upload_urlpatterns
+urlpatterns += gsekit_urlpatterns
 urlpatterns += job_urlpatterns
 urlpatterns += nodeman_urlpatterns
 urlpatterns += monitor_urlpatterns
