@@ -185,8 +185,6 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
         except Exception:
             logger.exception("pipeline_end send error")
 
-        _finish_taskflow_and_send_signal(root_id, taskflow_finished, True)
-
     try:
         _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)
     except Exception:
