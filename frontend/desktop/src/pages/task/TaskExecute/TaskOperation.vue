@@ -1333,6 +1333,10 @@
                     }
                     if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
+                        const allNodeList = Object.assign({}, activities, gateways)
+                        let renderNodelist = [] // 渲染的节点列表
+                        let renderNodeOutgoing = [] // 渲染的节点outgoing
+
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
@@ -1406,15 +1410,14 @@
                                 this.retrieveLines(data, line, ordered)
                             })
                             if (ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity')]) {
-                                const list = []
-                                const renderNodeOutgoing = []
-                                const converList = Object.assign({}, activities, gateways)
+                                renderNodelist = []
+                                renderNodeOutgoing = []
                                 this.nodeIds.forEach(item => {
-                                    if (converList[item]) {
-                                        list.push(converList[item])
+                                    if (allNodeList[item]) {
+                                        renderNodelist.push(allNodeList[item])
                                     }
                                 })
-                                list.forEach(item => {
+                                renderNodelist.forEach(item => {
                                     if (Array.isArray(item.outgoing)) {
                                         item.outgoing.forEach(ite => {
                                             renderNodeOutgoing.push(ite)
@@ -1461,15 +1464,14 @@
                                 this.retrieveLines(data, line, ordered)
                             })
                             if (ordered[ordered.findLastIndex(order => order.type === 'ParallelGateway')]) {
-                                const list = []
-                                const renderNodeOutgoing = []
-                                const converList = Object.assign({}, activities, gateways)
+                                renderNodelist = []
+                                renderNodeOutgoing = []
                                 this.nodeIds.forEach(item => {
-                                    if (converList[item]) {
-                                        list.push(converList[item])
+                                    if (allNodeList[item]) {
+                                        renderNodelist.push(allNodeList[item])
                                     }
                                 })
-                                list.forEach(item => {
+                                renderNodelist.forEach(item => {
                                     if (Array.isArray(item.outgoing)) {
                                         item.outgoing.forEach(ite => {
                                             renderNodeOutgoing.push(ite)
