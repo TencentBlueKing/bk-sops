@@ -1405,6 +1405,34 @@
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
+                            if (ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity')]) {
+                                const list = []
+                                const renderNodeOutgoing = []
+                                const converList = Object.assign({}, activities, gateways)
+                                this.nodeIds.forEach(item => {
+                                    if (converList[item]) {
+                                        list.push(converList[item])
+                                    }
+                                })
+                                list.forEach(item => {
+                                    if (Array.isArray(item.outgoing)) {
+                                        item.outgoing.forEach(ite => {
+                                            renderNodeOutgoing.push(ite)
+                                        })
+                                    } else {
+                                        renderNodeOutgoing.push(item.outgoing)
+                                    }
+                                })
+                                const convers = Object.keys(gateways).filter(conver => gateways[conver].type === 'ConvergeGateway')
+                                convers.forEach(item => {
+                                    if (gateways[item].incoming.every(item => renderNodeOutgoing.includes(item))) {
+                                        const curOutgoing = Array.isArray(gateways[item].outgoing) ? gateways[item].outgoing : [gateways[item].outgoing]
+                                        curOutgoing.forEach(line => {
+                                            this.retrieveLines(data, line, ordered)
+                                        })
+                                    }
+                                })
+                            }
                         } else if (gateway.type === 'ParallelGateway') {
                             // 添加并行默认条件
                             const defaultCondition = gateway.outgoing.map((item, index) => {
@@ -1432,6 +1460,34 @@
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
+                            if (ordered[ordered.findLastIndex(order => order.type === 'ParallelGateway')]) {
+                                const list = []
+                                const renderNodeOutgoing = []
+                                const converList = Object.assign({}, activities, gateways)
+                                this.nodeIds.forEach(item => {
+                                    if (converList[item]) {
+                                        list.push(converList[item])
+                                    }
+                                })
+                                list.forEach(item => {
+                                    if (Array.isArray(item.outgoing)) {
+                                        item.outgoing.forEach(ite => {
+                                            renderNodeOutgoing.push(ite)
+                                        })
+                                    } else {
+                                        renderNodeOutgoing.push(item.outgoing)
+                                    }
+                                })
+                                const convers = Object.keys(gateways).filter(conver => gateways[conver].type === 'ConvergeGateway')
+                                convers.forEach(item => {
+                                    if (gateways[item].incoming.every(item => renderNodeOutgoing.includes(item))) {
+                                        const curOutgoing = Array.isArray(gateways[item].outgoing) ? gateways[item].outgoing : [gateways[item].outgoing]
+                                        curOutgoing.forEach(line => {
+                                            this.retrieveLines(data, line, ordered)
+                                        })
+                                    }
+                                })
+                            }
                         }
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
@@ -1456,16 +1512,17 @@
                                 // 汇聚网关push在最近的条件网关下
                                 const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' && order.type !== 'ConvergeGateway')]
                                 // 独立子流程的children为 subChildren
+                                this.nodeIds.push(gateway.id)
                                 if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
                                     gateway.gatewayType = 'converge'
                                     // prev.children.push(gateway)
+                                    outgoing.forEach(line => {
+                                        this.retrieveLines(data, line, ordered)
+                                    })
                                 } else {
                                     this.unrenderedCoverNode.push(gateway.id)
                                 }
-                                outgoing.forEach(line => {
-                                    this.retrieveLines(data, line, ordered)
-                                })
                             }
                         }
                     } else if (activity) { // 任务节点
