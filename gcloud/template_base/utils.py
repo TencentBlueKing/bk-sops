@@ -15,16 +15,16 @@ import base64
 import hashlib
 import logging
 from functools import partial
-from typing import Tuple, List, Optional, Dict
+from typing import Any, Dict, List, Optional, Tuple
 
 import ujson as json
 from django.apps import apps
-
-from gcloud.constants import COMMON, PROJECT
+from django.utils.translation import ugettext_lazy as _
 from pipeline.core.constants import PE
+
 from gcloud import err_code
 from gcloud.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from gcloud.constants import COMMON, PROJECT
 
 logger = logging.getLogger("root")
 
@@ -105,6 +105,20 @@ def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
                 constant["value"] = bk_biz_id
 
 
+def fill_default_version_to_service_activities(pipeline_tree):
+    """
+    填充默认版本到 ServiceActivity 类型的节点，避免因导出数据版本丢失导致流程导入后无法正常执行
+    :param pipeline_tree:
+    :return:
+    """
+    service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
+    for act in service_acts:
+        if not act.get("version"):
+            act["version"] = "legacy"
+        if not act["component"].get("version"):
+            act["component"]["version"] = "legacy"
+
+
 def fetch_templates_info(
     pipeline_template_ids: List,
     fetch_fields: Tuple,
@@ -136,3 +150,17 @@ def fetch_templates_info(
         )
         templates = task_templates + common_templates
     return templates
+
+
+def format_import_result_to_response_data(import_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    将模板导出结果解析为接口返回数据
+    :param import_result:
+    :return:
+    """
+    return {
+        "result": import_result["result"],
+        "message": import_result["message"],
+        "code": import_result["code"],
+        "data": import_result["data"],
+    }

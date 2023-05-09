@@ -12,60 +12,28 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import logging
 import traceback
 
 from blueapps.account.decorators import login_exempt
-from gcloud.conf import settings
 from django.http.response import JsonResponse
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
-from gcloud import err_code
-from gcloud.core.models import Project
-from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.models import TemplateScheme
 
+from gcloud import err_code
+from gcloud.conf import settings
+from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.core.models import Project
+from gcloud.tasktmpl3.models import TaskTemplate
+
 from .decorators import require_migrate_token
-from django.utils.translation import ugettext_lazy as _
-import logging
 
 logger = logging.getLogger("root")
 
 
-@login_exempt
-@csrf_exempt
-@require_migrate_token
-@require_POST
-def migrate_app_maker(request):
-
-    try:
-        params = json.loads(request.body)
-    except Exception as e:
-        message = _(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_app_maker")
-        logger.error(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
-
-    bk_biz_id = params.get("bk_biz_id")
-
-    try:
-        project = Project.objects.get(bk_biz_id=bk_biz_id)
-    except Project.DoesNotExist:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "can not find project for bk_biz_id: {}".format(bk_biz_id),
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
-
-    app_makers = params.get("app_makers", [])
+def do_migrate_app_maker(project: Project, app_makers):
     migrate_result = []
     for app_maker in app_makers:
         # 尝试获取存在的轻应用
@@ -134,5 +102,42 @@ def migrate_app_maker(request):
             )
         else:
             migrate_result.append({"name": app_maker["name"], "success": True, "error": None})
+
+    return migrate_result
+
+
+@login_exempt
+@csrf_exempt
+@require_migrate_token
+@require_POST
+def migrate_app_maker(request):
+
+    try:
+        params = json.loads(request.body)
+    except Exception as e:
+        message = _(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_app_maker")
+        logger.error(message)
+        return JsonResponse(
+            {
+                "result": False,
+                "message": message,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
+
+    bk_biz_id = params.get("bk_biz_id")
+
+    try:
+        project = Project.objects.get(bk_biz_id=bk_biz_id)
+    except Project.DoesNotExist:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "can not find project for bk_biz_id: {}".format(bk_biz_id),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
+
+    migrate_result = do_migrate_app_maker(project, params.get("app_makers", []))
 
     return JsonResponse({"result": True, "data": migrate_result})

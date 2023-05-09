@@ -11,30 +11,28 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
 import datetime
 import hashlib
-import copy
 import logging
 
 import ujson as json
 from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
-
-from pipeline.utils.uniqid import uniqid
-from pipeline.parser.utils import replace_all_id
+from pipeline.exceptions import PipelineException, SubprocessExpiredError
 from pipeline.models import PipelineTemplate, Snapshot, TemplateScheme
-from pipeline.exceptions import SubprocessExpiredError, PipelineException
+from pipeline.parser.utils import replace_all_id
+from pipeline.utils.uniqid import uniqid
 
+from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.algorithms import topology_sort
 from pipeline_web.constants import PWE
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
-from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.drawing_new.drawing import draw_pipeline
+from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.preview_base import PipelineTemplateWebPreviewer
-
-from gcloud.template_base.utils import replace_template_id
 
 WEB_TREE_FIELDS = {"location", "line"}
 
@@ -177,7 +175,7 @@ class PipelineTemplateWebWrapper(object):
     def _export_template(cls, template_obj, subprocess, refs, template_versions, root=True):
         """
         导出模板 wrapper 函数
-        @param template_id: 需要导出的模板 id
+        @param template_obj: 需要导出的模板
         @param subprocess: 子流程记录字典
         @param refs: 引用关系记录字典: 被引用模板 -> 引用模板 -> 引用节点
         @param root: 是否是根模板
@@ -189,6 +187,7 @@ class PipelineTemplateWebWrapper(object):
                 "template %s has expired subprocess, please update it before exporting." % template_obj.name
             )
         template = {
+            "id": template_obj.id,
             "create_time": template_obj.create_time.strftime(cls.SERIALIZE_DATE_FORMAT),
             "edit_time": template_obj.edit_time.strftime(cls.SERIALIZE_DATE_FORMAT),
             "creator": template_obj.creator,
@@ -197,6 +196,12 @@ class PipelineTemplateWebWrapper(object):
             "is_deleted": template_obj.is_deleted,
             "name": template_obj.name,
             "template_id": template_obj.template_id,
+            # 执行方案
+            "schemes": list(
+                TemplateScheme.objects.filter(template_id=template_obj.id).values(
+                    "id", "unique_id", "name", "data", "template_id"
+                )
+            ),
         }
         tree = template_obj.data
 
@@ -295,21 +300,25 @@ class PipelineTemplateWebWrapper(object):
         return topology_sort(forward_refs)
 
     @classmethod
-    def _update_or_create_version(cls, template, order):
+    def _update_or_create_version(cls, tid__template_map, order):
         """
         根据传入的顺序更新子流程引用模板的版本
-        @param template: 模板数据字典
+        @param tid__template_map: 模板数据字典
         @param order: 更新顺序
         @return:
         """
         for tid in order:
-            for act_id, act in list(template[tid]["tree"][PWE.activities].items()):
-                if act[PWE.type] == PWE.SubProcess:
-                    subprocess_data = template[act["template_id"]]["tree"]
-                    h = hashlib.md5()
-                    h.update(json.dumps(subprocess_data).encode("utf-8"))
-                    md5sum = h.hexdigest()
-                    act["version"] = md5sum
+            cls._update_or_create_version_single(tid, tid__template_map)
+
+    @classmethod
+    def _update_or_create_version_single(cls, tid, tid__template_map):
+        for act_id, act in list(tid__template_map[tid]["tree"][PWE.activities].items()):
+            if act[PWE.type] == PWE.SubProcess:
+                subprocess_data = tid__template_map[act["template_id"]]["tree"]
+                h = hashlib.md5()
+                h.update(json.dumps(subprocess_data).encode("utf-8"))
+                md5sum = h.hexdigest()
+                act["version"] = md5sum
 
     @classmethod
     def complete_canvas_data(cls, template_data):
@@ -394,10 +403,26 @@ class PipelineTemplateWebWrapper(object):
                 pipeline_web_tree.clean()
                 origin_data[tid] = pipeline_web_tree.origin_data
 
-            cls._update_or_create_version(template, cls._update_order_from_refs(refs, temp_id_old_to_new))
+            scheme_id_old_to_new = {}
+            tid_order = cls._update_order_from_refs(refs, temp_id_old_to_new)
+            tid_order_set = set(tid_order)
+            # 计算出没有（被）引用的流程 ID 集合
+            single_temp_ids = set(temp_id_old_to_new.values()) - tid_order_set
+            # 按照关系拓扑顺序创建 Pipeline，从而保证执行方案的再创建引用以及子流程版本更新
+            for tid in list(single_temp_ids) + tid_order:
+                template_dict = template[tid]
 
-            # import template
-            for tid, template_dict in list(template.items()):
+                # 替换执行方案 ID
+                for act_id, act in list(template_dict["tree"][PWE.activities].items()):
+                    if act[PWE.type] == PWE.SubProcess and act.get("scheme_id_list"):
+                        act["scheme_id_list"] = [
+                            scheme_id_old_to_new.get(old_scheme_id, old_scheme_id)
+                            for old_scheme_id in act["scheme_id_list"]
+                        ]
+
+                # 替换引用子流程版本，仅涉及引用/被引关系的流程需要处理
+                if tid in tid_order_set:
+                    cls._update_or_create_version_single(tid, template)
 
                 defaults = cls._kwargs_for_template_dict(template_dict, include_str_id=True)
                 pipeline_template = PipelineTemplate.objects.create(**defaults)
@@ -406,12 +431,14 @@ class PipelineTemplateWebWrapper(object):
                 NodeInTemplate.objects.create_nodes_in_template(pipeline_template, origin_data[tid])
 
                 # import template scheme
-                schemes = []
+                scheme_objs_to_be_created = []
+                unique_id__old_scheme_id_map = {}
                 for scheme_data in template_dict.get("schemes", []):
                     scheme_node_data = scheme_data["data"]
                     try:
                         new_scheme_node_ids = []
                         scheme_node_ids = json.loads(scheme_data["data"])
+                        # 非覆盖场景需要将执行方案中的 node_id 替换为新生成的 node_id
                         for node_id in scheme_node_ids:
                             new_scheme_node_ids.append(
                                 template_node_id_old_to_new[pipeline_template.template_id]["activities"].get(
@@ -422,24 +449,35 @@ class PipelineTemplateWebWrapper(object):
                     except Exception:
                         logger.exception("scheme node id replace error for template(%s)" % pipeline_template.name)
 
-                    schemes.append(
+                    unique_id = uniqid()
+                    unique_id__old_scheme_id_map[unique_id] = scheme_data["id"]
+                    scheme_objs_to_be_created.append(
                         TemplateScheme(
                             template_id=pipeline_template.id,
-                            unique_id=uniqid(),
+                            unique_id=unique_id,
                             name=scheme_data["name"],
                             data=scheme_node_data,
                         )
                     )
 
-                if schemes:
-                    TemplateScheme.objects.bulk_create(schemes, batch_size=5000)
+                if scheme_objs_to_be_created:
+                    TemplateScheme.objects.bulk_create(scheme_objs_to_be_created, batch_size=5000)
+                    # 反查出新创建的执行方案，并建立新老 ID 的映射关系
+                    for scheme_data in TemplateScheme.objects.filter(
+                        unique_id__in=unique_id__old_scheme_id_map.keys()
+                    ).values("unique_id", "id"):
+                        old_scheme_id = unique_id__old_scheme_id_map[scheme_data["unique_id"]]
+                        scheme_id_old_to_new[old_scheme_id] = scheme_data["id"]
         else:
 
             # 1. replace subprocess template id
             tid_to_reuse = tid_to_reuse or {}
+            scheme_id_old_to_new = {}
+            # pipeline_template_id, template_id
             for import_id, reuse_id in list(tid_to_reuse.items()):
                 # referenced template -> referencer -> reference act
                 referencer_info_dict = refs.get(import_id, {})
+                # 引用到公共流程的 Pipeline 模板 ID，节点
                 for referencer, nodes in list(referencer_info_dict.items()):
                     for node_id in nodes:
                         template[referencer]["tree"][PWE.activities][node_id]["template_id"] = reuse_id
@@ -475,9 +513,7 @@ class PipelineTemplateWebWrapper(object):
                 # create node in template
                 NodeInTemplate.objects.update_nodes_in_template(pipeline_template, origin_data[tid])
 
-        return {
-            cls.ID_MAP_KEY: temp_id_old_to_new,
-        }
+        return {cls.ID_MAP_KEY: temp_id_old_to_new, "scheme_id_old_to_new": scheme_id_old_to_new}
 
 
 class PipelineInstanceWebWrapper(object):

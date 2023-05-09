@@ -11,11 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
-from gcloud.template_base.models import BaseTemplateManager, BaseTemplate
-import logging
+from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
+from gcloud.template_base.utils import fill_default_version_to_service_activities
 
 logger = logging.getLogger("root")
 
@@ -33,19 +35,22 @@ class CommonTemplateManager(BaseTemplateManager):
             data["override_template"] = []
         return data
 
+    def export_templates(self, template_id_list, **kwargs):
+        if kwargs.get("is_full"):
+            template_id_list = list(self.all().values_list("id", flat=True))
+        super().export_templates(template_id_list, **kwargs)
+
     def import_templates(self, template_data, override, operator=None):
         check_info = self.import_operation_check(template_data)
+
+        for template in template_data["pipeline_template_data"]["template"].values():
+            fill_default_version_to_service_activities(template["tree"])
 
         # operation validation check
         if override and (not check_info["can_override"]):
             message = _("流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试 | import_templates")
             logger.error(message)
-            return {
-                "result": False,
-                "message": message,
-                "data": 0,
-                "code": err_code.INVALID_OPERATION.code,
-            }
+            return {"result": False, "message": message, "data": 0, "code": err_code.INVALID_OPERATION.code}
 
         def defaults_getter(template_dict):
             return {
