@@ -38,7 +38,7 @@ class CommonTemplateManager(BaseTemplateManager):
     def export_templates(self, template_id_list, **kwargs):
         if kwargs.get("is_full"):
             template_id_list = list(self.all().values_list("id", flat=True))
-        super().export_templates(template_id_list, **kwargs)
+        return super().export_templates(template_id_list, **kwargs)
 
     def import_templates(self, template_data, override, operator=None):
         check_info = self.import_operation_check(template_data)
