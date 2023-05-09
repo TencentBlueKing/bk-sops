@@ -1557,7 +1557,7 @@
                         data.gateways[id].incoming.forEach(incoming => {
                             const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
                             ordered.forEach(item => {
-                                if (item.id === node && allNode[node].type !== 'ServiceActivity') {
+                                if (item.id === node && allNode[node].type !== 'ServiceActivity' && allNode[node].type !== 'ConvergeGateway') {
                                     if (!item.children.map(chd => chd.id).includes(data.gateways[id].id) && !this.renderedCoverNode.includes(id)) {
                                         this.renderedCoverNode.push(id)
                                         item.children.push(Object.assign(data.gateways[id], { name: this.$t('汇聚网关') }))
@@ -1576,7 +1576,7 @@
                 list.forEach(item => {
                     if (item.id === id) {
                         // 不是任务节点直接添加
-                        if (item.type !== 'ServiceActivity' && item.state !== 'Gateway') {
+                        if (item.type !== 'ServiceActivity' && item.type !== 'ConvergeGateway' && item.state !== 'Gateway') {
                             if (list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
                                 this.renderedCoverNode.push(cur)
                                 list.push(Object.assign({}, allNode[cur], { name: this.$t('汇聚网关') }))
