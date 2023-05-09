@@ -380,8 +380,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         if "constants" in template:
             for constant_key, constant_attrs in template["constants"].items():
                 reconverted_constant, is_create = self._reconvert_constant(
-                    constant={**constant_attrs, "key": constant_key},
-                    cur_constants=reconverted_tree["constants"],
+                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
@@ -520,7 +519,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             nodes[flow["target"]].setdefault("last", []).append(flow["source"])
             if nodes[flow["source"]]["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                 default_condition = nodes[flow["source"]].get("default_condition")
-                if default_condition and default_condition["flow_id"] == flow["id"]:
+                if default_condition and default_condition.get("flow_id") == flow["id"]:
                     nodes[flow["source"]]["default_condition"] = {flow["target"]: default_condition}
                 else:
                     condition = nodes[flow["source"]]["conditions"].pop(flow["id"])
