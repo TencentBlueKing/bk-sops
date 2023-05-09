@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from enum import Enum
+
 from django.utils.translation import ugettext_lazy as _
 
 PROJECT = "project"
@@ -74,14 +75,24 @@ TASK_FLOW = {
     ],
 }
 
+
+class TaskCreateMethod(Enum):
+    APP = "app"
+    API = "api"
+    APP_MAKER = "app_maker"
+    PERIODIC = "periodic"
+    CLOCKED = "clocked"
+    MOBILE = "mobile"
+
+
 # 任务流程创建方式
 TASK_CREATE_METHOD = [
-    ("app", _("手动")),
-    ("api", _("API网关")),
-    ("app_maker", _("轻应用")),
-    ("periodic", _("周期任务")),
-    ("clocked", _("计划任务")),
-    ("mobile", _("移动端")),
+    (TaskCreateMethod.APP.value, _("手动")),
+    (TaskCreateMethod.API.value, _("API网关")),
+    (TaskCreateMethod.APP_MAKER.value, _("轻应用")),
+    (TaskCreateMethod.PERIODIC.value, _("周期任务")),
+    (TaskCreateMethod.CLOCKED.value, _("计划任务")),
+    (TaskCreateMethod.MOBILE.value, _("移动端")),
 ]
 
 # 任务引用的流程模板来源

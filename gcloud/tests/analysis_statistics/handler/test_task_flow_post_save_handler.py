@@ -13,10 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from gcloud.constants import TaskCreateMethod
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tests.analysis_statistics.mock_settings import *  # noqa
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.tests.analysis_statistics.mock_settings import *  # noqa
-from gcloud.taskflow3.models import TaskFlowInstance
 
 TEST_DATA = "data"
 TEST_APP_CODE = "app_code"
@@ -32,7 +33,7 @@ class TestTaskFlowPostSaveHandler(TestCase):
                 category=tmpl.category,
                 template_id=TEST_TEMPLATE_ID,
                 template_source="project",
-                create_method="api",
+                create_method=TaskCreateMethod.API.value,
                 create_info=TEST_APP_CODE,
                 flow_type="common",
                 current_flow="execute_task",

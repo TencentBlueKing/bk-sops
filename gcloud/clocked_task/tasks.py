@@ -18,12 +18,16 @@ from django.db import transaction
 from pipeline.models import MAX_LEN_OF_NAME
 
 from gcloud.clocked_task.models import ClockedTask
-from gcloud.constants import CLOCKED_TASK_STARTED, CLOCKED_TASK_START_FAILED
-from gcloud.core.models import Project, EngineConfig
+from gcloud.constants import (
+    CLOCKED_TASK_START_FAILED,
+    CLOCKED_TASK_STARTED,
+    TaskCreateMethod,
+)
+from gcloud.core.models import EngineConfig, Project
+from gcloud.shortcuts.message import send_clocked_task_message
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.shortcuts.message import send_clocked_task_message
 from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 logger = logging.getLogger("celery")
@@ -82,7 +86,7 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                 category=template.category,
                 template_id=clocked_task.template_id,
                 template_source=clocked_task.template_source,
-                create_method="clocked",
+                create_method=TaskCreateMethod.CLOCKED.value,
                 create_info=clocked_task.id,
                 flow_type="common",
                 current_flow="execute_task",

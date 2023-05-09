@@ -15,9 +15,10 @@ specific language governing permissions and limitations under the License.
 import jsonschema
 import ujson as json
 
+from gcloud.constants import TaskCreateMethod
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.taskflow3.models import TaskFlowInstance
 
 from .utils import APITest
 
@@ -87,7 +88,7 @@ class CreateAndStartTaskAPITest(APITest):
                         pipeline_instance=TEST_DATA,
                         template_id=TEST_TEMPLATE_ID,
                         template_source="common",
-                        create_method="api",
+                        create_method=TaskCreateMethod.API.value,
                         flow_type="common",
                         create_info=TEST_APP_CODE,
                         current_flow="execute_task",

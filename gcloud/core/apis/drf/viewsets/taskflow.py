@@ -10,60 +10,72 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 import re
 
 from django.conf import settings
 from django.db.models import Q
-from drf_yasg.utils import swagger_auto_schema
-from pipeline.models import Snapshot
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.exceptions import ErrorDetail
-from rest_framework import generics, permissions, status
+from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
+from drf_yasg.utils import swagger_auto_schema
+from pipeline.exceptions import PipelineException
+from pipeline.models import Snapshot
+from rest_framework import generics, permissions, status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ErrorDetail
+from rest_framework.response import Response
 
-from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
-from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud import err_code
+from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod
+from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.operate_record.constants import (
+    OperateSource,
+    OperateType,
+    RecordType,
+)
+from gcloud.contrib.operate_record.signal import operate_record_signal
+from gcloud.contrib.operate_record.utils import extract_extra_info
 from gcloud.core.apis.drf.exceptions import ValidationException
-from gcloud.core.apis.drf.viewsets import IAMMixin
-from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
-from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
+from gcloud.core.apis.drf.permission import (
+    HAS_OBJECT_PERMISSION,
+    IamPermission,
+    IamPermissionInfo,
+    IamUserTypeBasedValidator,
+)
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers import (
-    TaskFlowInstanceSerializer,
     CreateTaskFlowInstanceSerializer,
-    RetrieveTaskFlowInstanceSerializer,
     ListChildrenTaskFlowQuerySerializer,
     ListChildrenTaskFlowResponseSerializer,
-    RootTaskflowQuerySerializer,
-    RootTaskflowResponseSerializer,
     NodeExecutionRecordQuerySerializer,
     NodeExecutionRecordResponseSerializer,
     NodeSnapshotQuerySerializer,
     NodeSnapshotResponseSerializer,
+    RetrieveTaskFlowInstanceSerializer,
+    RootTaskflowQuerySerializer,
+    RootTaskflowResponseSerializer,
+    TaskFlowInstanceSerializer,
 )
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation, TaskConfig
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.common_template.models import CommonTemplate
-from gcloud.iam_auth.conf import TASK_ACTIONS
-from pipeline.exceptions import PipelineException
+from gcloud.core.apis.drf.viewsets import IAMMixin
+from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.models import EngineConfig
-from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.core.apis.drf.permission import (
-    IamPermission,
-    IamPermissionInfo,
-    HAS_OBJECT_PERMISSION,
-    IamUserTypeBasedValidator,
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.conf import TASK_ACTIONS
+from gcloud.iam_auth.utils import (
+    get_common_flow_allowed_actions_for_user,
+    get_flow_allowed_actions_for_user,
 )
-from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
-from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.contrib.operate_record.signal import operate_record_signal
-from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
-from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
-from gcloud.contrib.operate_record.utils import extract_extra_info
-from django.utils.translation import ugettext_lazy as _
-import logging
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
+from gcloud.taskflow3.models import (
+    TaskConfig,
+    TaskFlowInstance,
+    TaskFlowRelation,
+    TimeoutNodeConfig,
+)
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 
 logger = logging.getLogger("root")
 
@@ -116,7 +128,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         if view.action == "create":
             create_method = request.data.get("create_method")
             # mini app create task perm
-            if create_method == "app_maker":
+            if create_method == TaskCreateMethod.APP_MAKER.value:
                 app_maker_id = request.data["create_info"]
                 try:
                     app_maker = AppMaker.objects.get(id=app_maker_id)
