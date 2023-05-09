@@ -11,37 +11,42 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
 import jsonschema
-
+import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
-
 import env
 from gcloud import err_code
-from gcloud.core.models import EngineConfig
-from gcloud.conf import settings
-from gcloud.constants import BUSINESS, COMMON
-from gcloud.apigw.views.utils import logger
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
-from gcloud.common_template.models import CommonTemplate
-from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.celery.tasks import prepare_and_start_task
-from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
-from gcloud.utils.decorators import request_validate
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.utils.throttle import check_task_operation_throttle
-from gcloud.apigw.decorators import project_inject
-from apigw_manager.apigw.decorators import apigw_require
-from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.apigw.validators import CreateTaskValidator
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from gcloud.apigw.views.utils import logger
+from gcloud.common_template.models import CommonTemplate
+from gcloud.conf import settings
+from gcloud.constants import BUSINESS, COMMON, TaskCreateMethod
+from gcloud.contrib.operate_record.constants import (
+    OperateSource,
+    OperateType,
+    RecordType,
+)
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.core.models import EngineConfig
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
+from gcloud.taskflow3.celery.tasks import prepare_and_start_task
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.decorators import request_validate
+from gcloud.utils.throttle import check_task_operation_throttle
 
 
 @login_exempt
@@ -136,7 +141,7 @@ def create_and_start_task(request, template_id, project_id):
             category=tmpl.category,
             template_id=template_id,
             template_source=params["template_source"],
-            create_method="api",
+            create_method=TaskCreateMethod.API.value,
             create_info=app_code,
             flow_type=params["flow_type"],
             current_flow="execute_task" if params["flow_type"] == COMMON else "func_claim",
