@@ -390,6 +390,11 @@
                 // 取缓存id
                 node.id = node.cacheId ? node.cacheId : node.id
                 node.selected = node.id === this.curSelectId
+                // 选中后,非tree列表切换到已展开tree时默认展开
+                if (node.selected) {
+                    this.$set(node, 'expanded', true)
+                    e.stopPropagation()
+                }
             }
         }
     }
