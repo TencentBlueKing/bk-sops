@@ -113,8 +113,8 @@ def fill_default_version_to_service_activities(pipeline_tree):
     """
     service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
     for act in service_acts:
-        if not act.get("version"):
-            act["version"] = "legacy"
+        if not act.get("component"):
+            continue
         if not act["component"].get("version"):
             act["component"]["version"] = "legacy"
 
