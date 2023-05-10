@@ -225,7 +225,7 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            width: 100
+            width: 120
         },
         {
             id: 'name',
