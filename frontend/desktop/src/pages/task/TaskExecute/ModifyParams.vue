@@ -14,6 +14,8 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
+        <bk-alert v-if="isChildTaskFlow" type="warning" :title="$t('子任务中任务入参不允许修改')"></bk-alert>
+        <bk-alert v-if="retryNodeId" type="warning" :title="$t('若当前节点引用了任务入参，可修改参数来更新节点配置')"></bk-alert>
         <div :class="['edit-wrapper']">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
@@ -154,10 +156,13 @@
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
                     const pipelineData = JSON.parse(instanceData.pipeline_tree)
                     const constants = {}
+                    const { has_key = false, keys_in_constants_parameter = [] } = instanceData.constants_info || {}
                     Object.keys(pipelineData.constants).forEach(key => {
                         const cnt = pipelineData.constants[key]
                         if (cnt.show_type === 'show') {
-                            constants[key] = cnt
+                            if (!has_key || keys_in_constants_parameter.includes(key)) {
+                                constants[key] = cnt
+                            }
                         }
                     })
                     this.isChildTaskFlow = instanceData.is_child_taskflow
@@ -399,6 +404,9 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        .bk-alert {
+            margin: 10px 20px 0;
+        }
         .edit-wrapper {
             flex: 1;
             padding: 20px;

@@ -87,6 +87,9 @@
                             <span class="node-ellipsis" v-else-if="index === 1">...</span>
                         </span>
                     </div>
+                    <div class="sub-title" v-if="nodeInfoType === 'modifyParams' && retryNodeId">
+                        {{ retryNodeId }}
+                    </div>
                 </div>
             </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
@@ -300,6 +303,7 @@
             primitiveTplId: [Number, String],
             primitiveTplSource: String,
             templateSource: String,
+            isChildTaskFlow: Boolean,
             instanceActions: Array,
             routerType: String
         },
@@ -481,7 +485,7 @@
                 return operationBtns
             },
             paramsCanBeModify () {
-                return this.isTopTask && !['FINISHED', 'REVOKED'].includes(this.state)
+                return !['FINISHED', 'REVOKED'].includes(this.state)
             },
             // 审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
@@ -1002,15 +1006,42 @@
             },
             async onRetryClick (id) {
                 try {
+                    if (this.isChildTaskFlow) {
+                        const h = this.$createElement
+                        this.$bkInfo({
+                            subHeader: h('div', { class: 'custom-header' }, [
+                                h('div', {
+                                    class: 'custom-header-title',
+                                    directives: [{
+                                        name: 'bk-overflow-tips'
+                                    }]
+                                }, [i18n.t('确定重试当前节点？')]),
+                                h('div', {
+                                    class: 'custom-header-sub-title bk-dialog-header-inner',
+                                    directives: [{
+                                        name: 'bk-overflow-tips'
+                                    }]
+                                }, [i18n.t('重试节点将从当前节点开始重新执行')])
+                            ]),
+                            extCls: 'dialog-custom-header-title',
+                            maskClose: false,
+                            confirmLoading: true,
+                            confirmFn: async () => {
+                                this.retryNodeId = id
+                                await this.nodeTaskRetry()
+                            }
+                        })
+                        return
+                    }
                     const resp = await this.getInstanceRetryParams({ id: this.instance_id })
                     if (resp.data.enable) {
-                        this.openNodeInfoPanel('retryNode', i18n.t('重试'))
+                        this.openNodeInfoPanel('retryNode', i18n.t('重试节点'))
                         this.setNodeDetailConfig(id)
                         if (this.nodeDetailConfig.component_code) {
                             await this.loadNodeInfo(id)
                         }
                     } else {
-                        this.openNodeInfoPanel('modifyParams', i18n.t('重试'))
+                        this.openNodeInfoPanel('modifyParams', i18n.t('重试节点'))
                         this.retryNodeId = id
                     }
                 } catch (error) {
@@ -2214,6 +2245,10 @@
                 }
             }
         }
+    }
+    .sub-title {
+        font-size: 14px;
+        margin-left: 10px;
     }
 }
 .node-info-panel {
