@@ -34,6 +34,7 @@
                 :primitive-tpl-id="primitiveTplId"
                 :primitive-tpl-source="primitiveTplSource"
                 :template-source="templateSource"
+                :is-child-task-flow="isChildTaskFlow"
                 :instance-actions="instanceActions">
             </TaskOperation>
         </template>
@@ -70,7 +71,8 @@
                 instanceActions: [],
                 templateId: '',
                 primitiveTplId: '', // 任务原始模板id
-                primitiveTplSource: '' // 任务原始模板来源
+                primitiveTplSource: '', // 任务原始模板来源
+                isChildTaskFlow: false // 是否为独立子流程任务
             }
         },
         created () {
@@ -87,7 +89,10 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver, primitive_template_id, primitive_template_source } = instanceData
+                    const {
+                        flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions,
+                        engine_ver, primitive_template_id, primitive_template_source, is_child_taskflow
+                    } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
                     } else {
@@ -102,6 +107,7 @@
                     this.primitiveTplSource = primitive_template_source
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
+                    this.isChildTaskFlow = is_child_taskflow
                     // 将节点树存起来
                     const pipelineData = JSON.parse(pipeline_tree)
                     this.setPipelineTree(pipelineData)

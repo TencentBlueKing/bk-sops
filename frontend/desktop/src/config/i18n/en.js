@@ -1738,7 +1738,7 @@ const en = {
     'IP 与 IPv6 至少需保留一个': 'At least one of IP and IPv6 must be reserved',
     '个静态IP，': 'static IP,',
     '若当前节点引用了任务入参，可修改参数来更新节点配置': 'If this node use task input parameters, you can change the value to update the node settings',
-    '确定重试当前节点': 'Retry this node?',
+    '确定重试当前节点？': 'Retry this node?',
     '重试节点将从当前节点开始重新执行': 'Retrying the node will re-execute from current node',
     '子任务中任务入参不允许修改': 'The input parameters of sub-task don\'t allow to change',
     '默认升序': 'Ascend',
