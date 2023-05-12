@@ -15,7 +15,6 @@ from django.test import TestCase
 
 from gcloud.core import project
 from gcloud.core.models import Business, Project
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -64,6 +63,30 @@ class ProjectModelTestCase(TestCase):
         Business.objects.all().delete()
         Project.objects.all().delete()
 
+    @classmethod
+    def generate_business_update_or_create_params_list(cls, biz_list):
+        return [
+            dict(
+                cc_id=biz["bk_biz_id"],
+                defaults={
+                    "cc_name": biz["bk_biz_name"],
+                    "cc_owner": biz["bk_supplier_account"],
+                    "cc_company": biz["bk_supplier_id"],
+                    "time_zone": biz["time_zone"],
+                    "life_cycle": biz["life_cycle"],
+                    "status": biz["bk_data_status"],
+                },
+            )
+            for biz in biz_list
+        ]
+
+    @classmethod
+    def generate_business_update_or_create_calls(cls, biz_list):
+        return [
+            mock.call(**update_or_create_params)
+            for update_or_create_params in cls.generate_business_update_or_create_params_list(biz_list)
+        ]
+
     @patch(CORE_PROJECT_GET_USER_BUSINESS_LIST, MagicMock(return_value=[]))
     @patch(CORE_MODEL_PROJECT_SYNC_PROJECT, MagicMock(return_value=[]))
     @patch(CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT, MagicMock())
@@ -102,41 +125,7 @@ class ProjectModelTestCase(TestCase):
         project.sync_projects_from_cmdb("user")
 
         Business.objects.update_or_create.assert_has_calls(
-            [
-                mock.call(
-                    cc_id=1,
-                    defaults={
-                        "cc_name": "name_1",
-                        "cc_owner": "supplier_account",
-                        "cc_company": 0,
-                        "time_zone": "time_zone",
-                        "life_cycle": "life_cycle",
-                        "status": "enable",
-                    },
-                ),
-                mock.call(
-                    cc_id=4,
-                    defaults={
-                        "cc_name": "name_4",
-                        "cc_owner": "supplier_account",
-                        "cc_company": 0,
-                        "time_zone": "time_zone",
-                        "life_cycle": "life_cycle",
-                        "status": "enable",
-                    },
-                ),
-                mock.call(
-                    cc_id=5,
-                    defaults={
-                        "cc_name": "name_5",
-                        "cc_owner": "supplier_account",
-                        "cc_company": 0,
-                        "time_zone": "time_zone",
-                        "life_cycle": "life_cycle",
-                        "status": "enable",
-                    },
-                ),
-            ]
+            self.generate_business_update_or_create_calls(CaseData.sync_projects_from_cmdb_business_data()["biz_list"])
         )
 
         Project.objects.sync_project_from_cmdb_business.assert_called_once_with(
@@ -145,4 +134,38 @@ class ProjectModelTestCase(TestCase):
                 4: {"cc_name": "name_4", "time_zone": "time_zone", "creator": "user"},
                 5: {"cc_name": "name_5", "time_zone": "time_zone", "creator": "user"},
             }
+        )
+
+    @patch(
+        CORE_PROJECT_GET_USER_BUSINESS_LIST,
+        MagicMock(return_value=CaseData.sync_projects_from_cmdb_business_data()["biz_list"][:-1]),
+    )
+    @patch(CORE_MODEL_BUSINESS_UPDATE_OR_CREATE, MagicMock())
+    @patch(CORE_MODEL_PROJECT_SYNC_PROJECT, MagicMock(return_value=["token_0", "token_1"]))
+    @patch(CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT, MagicMock())
+    @patch(CORE_MODEL_PROJECT_UPDATE_BUSINESS_PROJECT_STATUS, MagicMock())
+    def test_sync_projects_from_cmdb__business_deleted(self):
+
+        project_values_list_qs = MagicMock()
+        project_values_list_qs.values_list = MagicMock(return_value=[1, 4, 5])
+        biz_list = CaseData.sync_projects_from_cmdb_business_data()["biz_list"]
+        with patch(CORE_PROJECT_GET_USER_BUSINESS_LIST, MagicMock(return_value=biz_list)):
+            with patch(PROJECT_FILTER, MagicMock(return_value=project_values_list_qs)):
+                project.sync_projects_from_cmdb("user")
+
+        # 模拟从 CC 删除最后一个业务
+        with patch(CORE_PROJECT_GET_USER_BUSINESS_LIST, MagicMock(return_value=biz_list[:-1])):
+            with patch(PROJECT_FILTER, MagicMock(return_value=project_values_list_qs)):
+                project.sync_projects_from_cmdb("user")
+
+        Business.objects.update_or_create.assert_has_calls(
+            self.generate_business_update_or_create_calls(biz_list + biz_list[:-1])
+        )
+
+        Project.objects.update_business_project_status.assert_has_calls(
+            [
+                mock.call(archived_cc_ids=set(), active_cc_ids={1, 4, 5}),
+                # cc_id=5 的业务被删除，需要归档
+                mock.call(archived_cc_ids={5}, active_cc_ids={1, 4}),
+            ]
         )
