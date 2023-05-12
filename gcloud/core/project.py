@@ -16,8 +16,8 @@ import logging
 from django.db import IntegrityError
 
 from gcloud.conf import settings
-from gcloud.core.utils import get_user_business_list
 from gcloud.core.models import Business, Project, UserDefaultProject
+from gcloud.core.utils import get_user_business_list
 from gcloud.iam_auth.utils import get_user_projects
 
 logger = logging.getLogger("root")
@@ -31,6 +31,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 def sync_projects_from_cmdb(username, use_cache=True):
     biz_list = get_user_business_list(username=username, use_cache=use_cache)
     business_dict = {}
+    all_biz_cc_ids = set()
     archived_biz_cc_ids = set()
     active_biz_cc_ids = set()
 
@@ -40,6 +41,8 @@ def sync_projects_from_cmdb(username, use_cache=True):
 
         biz_cc_id = biz["bk_biz_id"]
         biz_status = biz.get("bk_data_status", "enable")
+
+        all_biz_cc_ids.add(biz_cc_id)
 
         if biz_status == "disabled":
             archived_biz_cc_ids.add(biz_cc_id)
@@ -76,8 +79,14 @@ def sync_projects_from_cmdb(username, use_cache=True):
     except IntegrityError as e:
         logger.warning("[sync_project_from_cmdb_business] create projects failed due to: {}".format(e))
 
+    # 计算出 CC 已删除并且存在于项目中的业务 ID 集合，对这部分项目也需要进行归档
+    exist_sync_biz_cc_ids = set(Project.objects.filter(from_cmdb=True).values_list("bk_biz_id", flat=True))
+    deleted_biz_cc_ids = exist_sync_biz_cc_ids - all_biz_cc_ids
+
     # update project's status which sync from cmdb
-    Project.objects.update_business_project_status(archived_cc_ids=archived_biz_cc_ids, active_cc_ids=active_biz_cc_ids)
+    Project.objects.update_business_project_status(
+        archived_cc_ids=archived_biz_cc_ids | deleted_biz_cc_ids, active_cc_ids=active_biz_cc_ids
+    )
 
 
 def get_default_project_for_user(username):
