@@ -89,7 +89,6 @@ export default class ErrorNotify {
         let content = ''
         if (errorSource !== 'result') {
             if (!errorSource) { // 插件报错信息
-                console.log(pluginContent, 'pluginContent')
                 content = isTitle ? info : pluginContent
             } else {
                 const infoArr = info.split(': ')
@@ -130,7 +129,7 @@ export default class ErrorNotify {
                 this.notify && this.notify.close()
                 this.notify = null
             }
-        }, 10000)
+        }, 100)
     }
     stopTimeCountDown () {
         this.timer && clearTimeout(this.timer)
