@@ -11,19 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import datetime
-import sys
 import importlib
+import sys
 from urllib.parse import urlparse
 
-from django.utils.translation import ugettext_lazy as _
-
-from blueapps.conf.log import get_logging_config_dict
-from blueapps.conf.default_settings import *  # noqa
-from blueapps.opentelemetry.utils import inject_logging_trace_info
-from gcloud.exceptions import ApiRequestError
-from pipeline.celery.queues import ScalableQueues
 from bamboo_engine.config import Settings as BambooSettings
+from blueapps.conf.default_settings import *  # noqa
+from blueapps.conf.log import get_logging_config_dict
+from blueapps.opentelemetry.utils import inject_logging_trace_info
+from django.utils.translation import ugettext_lazy as _
+from pipeline.celery.queues import ScalableQueues
+
 import env
+from gcloud.exceptions import ApiRequestError
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
@@ -203,7 +203,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.28.7"
+STATIC_VERSION = "3.28.8"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -480,9 +480,10 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
-from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
-from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
+
 from gcloud.contrib.cleaner import settings as cleaner_settings  # noqa
+from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
