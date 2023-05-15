@@ -19,7 +19,8 @@
                 :format="format"
                 :value-format="format"
                 :disabled="!editable || disabled"
-                :placeholder="placeholder">
+                :placeholder="placeholder"
+                @blur="$emit('blur')">
             </el-date-picker>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>

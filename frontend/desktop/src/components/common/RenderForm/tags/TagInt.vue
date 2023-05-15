@@ -18,7 +18,8 @@
                 :controls="false"
                 :disabled="!editable || disabled"
                 :placeholder="placeholder"
-                v-model="intValue">
+                v-model="intValue"
+                @blur="$emit('blur')">
             </el-input-number>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>

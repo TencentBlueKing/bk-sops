@@ -1066,6 +1066,10 @@ const template = {
         // 获取网关包含的节点
         getGateWayIncludeNodes ({ commit }, data) {
             return axios.post('/template/api/get_gateway_include_nodes/', data).then(response => response.data)
+        },
+        // 基于当前变量填值，获取任务中被引用的变量列表
+        getTaskReferencedConstants ({ commit }, params) {
+            return axios.post('template/api/preview_task_referenced_constants/', params).then(response => response.data)
         }
     },
     getters: {
