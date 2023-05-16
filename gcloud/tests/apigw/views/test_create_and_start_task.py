@@ -93,6 +93,7 @@ class CreateAndStartTaskAPITest(APITest):
                         create_info=TEST_APP_CODE,
                         current_flow="execute_task",
                         engine_ver=2,
+                        extra_info='{"keys_in_constants_parameter":[]}'
                     )
 
                     data = json.loads(response.content)
