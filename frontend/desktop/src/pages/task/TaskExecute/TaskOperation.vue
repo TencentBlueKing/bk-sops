@@ -88,7 +88,7 @@
                         </span>
                     </div>
                     <div class="sub-title" v-if="nodeInfoType === 'modifyParams' && retryNodeId">
-                        {{ retryNodeId }}
+                        {{ previewData.activities[retryNodeId]?.name }}
                     </div>
                 </div>
             </div>
@@ -102,6 +102,7 @@
                     :instance-name="instanceName"
                     :instance_id="instance_id"
                     :retry-node-id="retryNodeId"
+                    :is-sub-canvas="nodeNav.length > 1"
                     @nodeTaskRetry="nodeTaskRetry"
                     @packUp="packUp">
                 </ModifyParams>
@@ -1011,17 +1012,11 @@
                         this.$bkInfo({
                             subHeader: h('div', { class: 'custom-header' }, [
                                 h('div', {
-                                    class: 'custom-header-title',
+                                    class: 'custom-header-title mb20',
                                     directives: [{
                                         name: 'bk-overflow-tips'
                                     }]
-                                }, [i18n.t('确定重试当前节点？')]),
-                                h('div', {
-                                    class: 'custom-header-sub-title bk-dialog-header-inner',
-                                    directives: [{
-                                        name: 'bk-overflow-tips'
-                                    }]
-                                }, [i18n.t('重试节点将从当前节点开始重新执行')])
+                                }, [i18n.t('确定重试当前节点？')])
                             ]),
                             extCls: 'dialog-custom-header-title',
                             maskClose: false,
@@ -2210,11 +2205,9 @@
 .header {
     display: flex;
     .bread-crumbs-wrapper {
-        margin-left: 10px;
-        font-size: 0;
+        margin-left: 20px;
         .path-item {
             display: inline-block;
-            font-size: 14px;
             overflow: hidden;
             &.name-ellipsis {
                 max-width: 190px;
@@ -2224,7 +2217,6 @@
             }
             .node-name {
                 margin: 0 4px;
-                font-size: 14px;
                 color: #3a84ff;
                 cursor: pointer;
             }
@@ -2247,8 +2239,16 @@
         }
     }
     .sub-title {
-        font-size: 14px;
-        margin-left: 10px;
+        margin-left: 20px;
+    }
+    .bread-crumbs-wrapper,
+    .sub-title {
+        position: relative;
+        &::before {
+            content: '-';
+            position: absolute;
+            left: -14px;
+        }
     }
 }
 .node-info-panel {

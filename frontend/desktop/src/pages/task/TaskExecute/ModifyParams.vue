@@ -14,14 +14,13 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
-        <bk-alert v-if="isChildTaskFlow" type="warning" :title="$t('子任务中任务入参不允许修改')"></bk-alert>
         <bk-alert v-if="retryNodeId" type="warning" :title="$t('若当前节点引用了任务入参，可修改参数来更新节点配置')"></bk-alert>
         <div :class="['edit-wrapper']">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
-                :is-used-tip-show="(state !== 'CREATED' && !paramsCanBeModify) ? false : true"
-                :pre-mako-disabled="(paramsCanBeModify && state === 'CREATED') ? false : true"
+                :is-used-tip-show="(rootTaskState !== 'CREATED' && !paramsCanBeModify) ? false : true"
+                :pre-mako-disabled="(paramsCanBeModify && rootTaskState === 'CREATED') ? false : true"
                 :constants="constants"
                 :un-used-constants="unUsedConstants"
                 :editable="paramsCanBeModify && !isChildTaskFlow && editable"
@@ -30,7 +29,7 @@
             <NoData v-else :message="$t('暂无参数')"></NoData>
         </div>
         <div class="action-wrapper">
-            <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify && !isChildTaskFlow)">
+            <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify)">
                 <bk-button
                     theme="primary"
                     :class="{
@@ -39,6 +38,11 @@
                     :loading="pending"
                     v-cursor="{ active: !hasSavePermission }"
                     data-test-id="taskExecute_form_saveModifyParamsBtn"
+                    :disabled="isChildTaskFlow"
+                    v-bk-tooltips="{
+                        content: $t('子任务中任务入参不允许修改'),
+                        disabled: !isChildTaskFlow
+                    }"
                     @click="onConfirmClick">
                     {{ confirmBtnText }}
                 </bk-button>
@@ -65,7 +69,15 @@
             NoData
         },
         mixins: [permission],
-        props: ['state', 'instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'retryNodeId'],
+        props: [
+            'state',
+            'instanceName',
+            'instance_id',
+            'paramsCanBeModify',
+            'instanceActions',
+            'retryNodeId',
+            'isSubCanvas'
+        ],
         data () {
             return {
                 bkMessageInstance: null,
@@ -77,7 +89,8 @@
                 isChildTaskFlow: false, // 是否为子流程任务
                 constantLoading: false, // 变量是否被使用加载
                 unUsedConstants: [], // 还未执行的变量
-                editable: false
+                editable: false,
+                rootState: '' // 根任务状态
             }
         },
         computed: {
@@ -98,12 +111,15 @@
                 return this.retryNodeId
                     ? i18n.t('重试')
                     : this.editable
-                        ? ['SUSPENDED', 'RUNNING'].includes(this.state)
+                        ? ['SUSPENDED', 'RUNNING'].includes(this.rootTaskState)
                             ? i18n.t('保存并继续')
                             : i18n.t('保存')
-                        : ['CREATED', 'SUSPENDED', 'FAILED'].includes(this.state)
+                        : ['CREATED', 'SUSPENDED', 'FAILED'].includes(this.rootTaskState)
                             ? i18n.t('去修改')
                             : i18n.t('暂停去修改')
+            },
+            rootTaskState () {
+                return this.isSubCanvas ? this.rootState : this.state
             }
         },
         async created () {
@@ -114,6 +130,10 @@
             bus.$on('tagRemoteLoaded', (code, data) => {
                 this.remoteData[code] = data
             })
+
+            if (this.isSubCanvas) {
+                this.loadRootTaskState()
+            }
             
             /* 暂不进行变量是否被使用判断 */
             // 先获取被使用过的变量
@@ -144,12 +164,26 @@
         },
         methods: {
             ...mapActions('task/', [
+                'getInstanceStatus',
                 'getTaskInstanceData',
                 'instanceModifyParams',
                 'getTaskUsedConstants',
                 'instancePause',
                 'instanceResume'
             ]),
+            async loadRootTaskState () {
+                try {
+                    const resp = await this.getInstanceStatus({
+                        project_id: this.projectId,
+                        instance_id: this.instance_id
+                    })
+                    if (resp.result) {
+                        this.rootState = resp.data.state
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
             async getTaskData () {
                 this.cntLoading = true
                 try {
@@ -161,6 +195,8 @@
                         const cnt = pipelineData.constants[key]
                         if (cnt.show_type === 'show') {
                             if (!has_key || keys_in_constants_parameter.includes(key)) {
+                                // api调用时不做校验
+                                cnt.validation = ''
                                 constants[key] = cnt
                             }
                         }
@@ -197,7 +233,7 @@
                 } else {
                     try {
                         // 如果任务正在执行中需要先暂停任务再修改参数
-                        if (this.state === 'RUNNING') {
+                        if (this.rootTaskState === 'RUNNING') {
                             this.pending = true
                             await this.instancePause(this.instance_id)
                             this.$bkMessage({
@@ -252,7 +288,7 @@
                     for (const key in variables) {
                         const { value, pre_render_mako } = variables[key]
                         // 执行状态下过滤掉预渲染类型的变量
-                        if ((this.paramsCanBeModify && this.state === 'CREATED') || pre_render_mako !== true) {
+                        if ((this.paramsCanBeModify && this.rootTaskState === 'CREATED') || pre_render_mako !== true) {
                             formData[key] = value
                         }
                     }
@@ -277,7 +313,7 @@
                     let message = i18n.t('参数未修改')
                     let theme = 'warning'
                     // 节点暂停时提交修改，如果未修改则不继续报错直接继续执行任务
-                    if (this.state === 'SUSPENDED') {
+                    if (this.rootTaskState === 'SUSPENDED') {
                         const resp = await this.instanceResume(this.instance_id)
                         message = i18n.t('参数未修改，任务已继续执行')
                         theme = 'success'
@@ -355,7 +391,7 @@
                         }
                         let message = i18n.t('参数修改成功')
                         // 暂停的任务继续执行
-                        if (this.state === 'SUSPENDED') {
+                        if (this.rootTaskState === 'SUSPENDED') {
                             const resp = await this.instanceResume(this.instance_id)
                             message = i18n.t('参数修改成功，任务已继续执行')
                             if (resp.result) {

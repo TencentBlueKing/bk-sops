@@ -182,7 +182,15 @@ const atomForm = {
          * 加载第三方插件列表
          */
         loadPluginServiceList ({ commit }, params) {
-            return axios.get('/plugin_service/detail_list/', { params }).then(response => response.data)
+            const config = {}
+            if (params.cancelToken) {
+                config.cancelToken = params.cancelToken
+                delete params.cancelToken
+            }
+            return axios.get('/plugin_service/detail_list/', {
+                params,
+                ...config
+            }).then(response => response.data)
         },
         /**
          * 加载第三方插件详情
