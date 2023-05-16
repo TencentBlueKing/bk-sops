@@ -30,22 +30,20 @@
         </div>
         <div class="action-wrapper">
             <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify)">
-                <bk-button
-                    theme="primary"
-                    :class="{
-                        'btn-permission-disable': !hasSavePermission
-                    }"
-                    :loading="pending"
-                    v-cursor="{ active: !hasSavePermission }"
-                    data-test-id="taskExecute_form_saveModifyParamsBtn"
-                    :disabled="isChildTaskFlow"
-                    v-bk-tooltips="{
-                        content: $t('子任务中任务入参不允许修改'),
-                        disabled: !isChildTaskFlow
-                    }"
-                    @click="onConfirmClick">
-                    {{ confirmBtnText }}
-                </bk-button>
+                <span v-bk-tooltips="{ content: $t('子任务中任务入参不允许修改'), disabled: !isChildTaskFlow }">
+                    <bk-button
+                        theme="primary"
+                        :class="{
+                            'btn-permission-disable': !hasSavePermission
+                        }"
+                        :loading="pending"
+                        v-cursor="{ active: !hasSavePermission }"
+                        data-test-id="taskExecute_form_saveModifyParamsBtn"
+                        :disabled="isChildTaskFlow"
+                        @click="onConfirmClick">
+                        {{ confirmBtnText }}
+                    </bk-button>
+                </span>
                 <bk-button theme="default" data-test-id="taskExecute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
             </div>
 
