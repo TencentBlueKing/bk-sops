@@ -234,6 +234,7 @@
                         if (this.rootTaskState === 'RUNNING') {
                             this.pending = true
                             await this.instancePause(this.instance_id)
+                            this.rootState = 'SUSPENDED'
                             this.$bkMessage({
                                 message: i18n.t('任务已暂停执行'),
                                 theme: 'success'
