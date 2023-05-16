@@ -126,7 +126,7 @@
                     </template>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
+                    <template v-if="realTimeState === 'RUNNING' && !isSubProcessNode">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
@@ -292,19 +292,24 @@
             ...mapState('project', {
                 project_id: state => state.project_id
             }),
+            // 节点实时状态
+            realTimeState () {
+                const nodeStateMap = this.nodeDisplayStatus.children || {}
+                return nodeStateMap[this.nodeActivity.id] || 'READY'
+            },
             displayStatus () {
                 let state = ''
-                if (this.executeInfo.state === 'RUNNING') {
+                if (this.realTimeState.state === 'RUNNING') {
                     state = 'common-icon-dark-circle-ellipsis'
-                } else if (this.executeInfo.state === 'SUSPENDED') {
+                } else if (this.realTimeState.state === 'SUSPENDED') {
                     state = 'common-icon-dark-circle-pause'
-                } else if (this.executeInfo.state === 'FINISHED') {
-                    state = this.executeInfo.skip ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
-                } else if (this.executeInfo.state === 'FAILED') {
+                } else if (this.realTimeState.state === 'FINISHED') {
+                    state = this.realTimeState.skip ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
+                } else if (this.realTimeState.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
-                } else if (this.executeInfo.state === 'CREATED') {
+                } else if (this.realTimeState.state === 'CREATED') {
                     state = 'common-icon-waitting'
-                } else if (this.executeInfo.state === 'READY') {
+                } else if (this.realTimeState.state === 'READY') {
                     state = 'common-icon-waitting'
                 }
                 return state
@@ -313,8 +318,8 @@
                 // 如果整体任务未执行的话不展示描述
                 if (this.state === 'CREATED') return i18n.t('未执行')
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
-                if (['FAILED', 'FINISHED'].includes(this.state) && this.executeInfo.state === 'READY') return i18n.t('未执行')
-                const { state, skip } = this.executeInfo
+                if (['FAILED', 'FINISHED'].includes(this.state) && this.realTimeState.state === 'READY') return i18n.t('未执行')
+                const { state, skip } = this.realTimeState
                 return skip ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
@@ -353,7 +358,7 @@
             },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                return this.state !== 'REVOKED' && ((this.executeInfo.state === 'RUNNING' && !this.isSubProcessNode) || this.isShowRetryBtn || this.isShowSkipBtn)
+                return this.state !== 'REVOKED' && ((this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode) || this.isShowRetryBtn || this.isShowSkipBtn)
             }
         },
         watch: {
@@ -424,7 +429,7 @@
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
                     }
                     // 获取执行失败节点是否允许跳过，重试状态
-                    if (this.executeInfo.state === 'FAILED') {
+                    if (this.realTimeState.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
                         this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : false
