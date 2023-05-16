@@ -148,6 +148,7 @@ def create_and_start_task(request, template_id, project_id):
             engine_ver=EngineConfig.objects.get_engine_ver(
                 project_id=project.id, template_id=template_id, template_source=template_source
             ),
+            extra_info=json.dumps({"keys_in_constants_parameter": list(params["constants"].keys())}),
         )
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
