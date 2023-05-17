@@ -425,7 +425,7 @@
                     data: this.transformLocalModuleData(this.localValue),
                     separator: this.localSeparator
                 }
-                this.$temit('update', propsData)
+                this.$emit('update', propsData)
             },
             /**
              * excel 数据导入到表格
@@ -522,7 +522,7 @@
                 this.updateValue(val)
             },
             validate () {
-                return this.$trefs.resourceList.validate()
+                return this.$refs.resourceList.validate()
             }
         }
     }
