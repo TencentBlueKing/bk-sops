@@ -126,7 +126,7 @@
                     </template>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="realTimeState === 'RUNNING' && !isSubProcessNode">
+                    <template v-if="realTimeState.state === 'RUNNING' && !isSubProcessNode">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
