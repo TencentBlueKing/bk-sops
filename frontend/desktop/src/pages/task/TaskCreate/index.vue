@@ -89,10 +89,15 @@
         },
         watch: {
             '$route.params.step' (val) {
-                if (val === 'selectnode') {
+                if (val === 'selectnode' && this.$route.name !== 'functionTemplateStep') {
                     this.stepList = this.addStepIcon(STEP_DICT)
                 }
                 this.currentStep = val
+            }
+        },
+        created () {
+            if (this.$route.name === 'functionTemplateStep') {
+                this.toggleFunctionalStep(true)
             }
         },
         methods: {

@@ -1421,7 +1421,7 @@ const en = {
     'ID/流程名称/标签/更新人/创建人/子流程更新': 'ID/FlowName/Label/Editor/Creator/SubprocessUpdated',
     'ID/流程名/创建人/更新人': 'ID/FlowName/Creator/Editor',
     '任务名': 'TaskName',
-    'ID/任务名/创建人/执行人/状态/创建方式/执行代理人': 'ID/TaskName/Creator/Executor/Status/CreateMethod/ExecutiveAgent',
+    'ID/任务名/创建人/执行人/状态/执行方式/执行代理人': 'ID/TaskName/Creator/Executor/Status/ExecuteMethod/ExecutiveAgent',
     'ID/任务名/创建人/更新人/状态': 'ID/TaskName/Creator/Editor/Status',
     '应用名': 'AppName',
     '应用名/创建人': 'AppName/Creator',
@@ -1638,9 +1638,10 @@ const en = {
     '提交成功，请通知职能化人员认领': 'The submission is successful, please notify the functional personnel to claim',
     '未认领的职能化任务不允许执行': 'Unclaimed functional tasks are not allowed to execute',
     '确认执行后将任务类型更新为 常规，并从职能化列表删除?': 'After confirming the execution update the task type to General and delete it from the functionalized list?',
-    '确定执行?': 'OK to execute?',
-    '该任务为职能化任务，建议通知职能化人员认领、执行。': 'This task is a functional task, and it is recommended to notify the functional personnel to claim and execute it.',
-    '确认执行后任务转为常规任务，职能化人员无法操作任务': 'After the execution is confirmed, the task is converted into a routine task, and functional personnel cannot operate the task'
+    '确定开始执行?': 'OK to execute?',
+    '任务还未认领，请通知职能化人员': 'The task has not been claimed, please notify the functional personnel',
+    '若坚持执行，职能化人员将无法操作该任务': 'If insisted on, functional personnel will not be able to operate the task',
+    '执行方式': 'Execute method'
 }
 
 export default en
