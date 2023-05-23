@@ -27,7 +27,7 @@
                         <search-select
                             ref="searchSelect"
                             id="taskList"
-                            :placeholder="$t('ID/任务名/创建人/执行人/状态/创建方式/执行代理人')"
+                            :placeholder="$t('ID/任务名/创建人/执行人/状态/执行方式/执行代理人')"
                             v-model="searchSelectValue"
                             :search-list="searchList"
                             @change="handleSearchValueChange">
@@ -87,7 +87,7 @@
                                             {{props.row.name}}
                                         </router-link>
                                     </div>
-                                    <!--创建方式-->
+                                    <!--执行方式-->
                                     <div v-else-if="item.id === 'create_method'">
                                         {{ transformCreateMethod(props.row.create_method) }}
                                     </div>
@@ -217,7 +217,7 @@
         },
         {
             id: 'create_method',
-            name: i18n.t('创建方式'),
+            name: i18n.t('执行方式'),
             children: []
         },
         {
@@ -276,7 +276,7 @@
         },
         {
             id: 'create_method',
-            label: i18n.t('创建方式'),
+            label: i18n.t('执行方式'),
             width: 100
         },
         {

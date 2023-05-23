@@ -218,11 +218,9 @@
                 return this.$route.query.task_id
             },
             nextStepText () {
-                return (this.viewMode === 'appmaker' && this.isCustomizeType)
-                    ? this.$t('执行')
-                    : (this.isSelectFunctionalType || this.entrance === 'function')
-                        ? this.$t('提交职能化')
-                        : this.$t('下一步')
+                return (this.isSelectFunctionalType || this.entrance === 'function')
+                    ? this.$t('提交职能化')
+                    : this.$t('去执行')
             }
         },
         created () {
@@ -528,14 +526,14 @@
                                 params: { project_id: this.project_id },
                                 query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
                             }
-                            if (this.isSelectFunctionalType) {
-                                this.$bkMessage({
-                                    message: i18n.t('提交成功，请通知职能化人员认领'),
-                                    theme: 'success'
-                                })
-                            }
                         }
                         this.$router.push(url)
+                        if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
+                            this.$bkMessage({
+                                message: i18n.t('提交成功，请通知职能化人员认领'),
+                                theme: 'success'
+                            })
+                        }
                     } catch (e) {
                         console.log(e)
                     } finally {

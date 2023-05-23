@@ -1735,7 +1735,7 @@
                 ) {
                     const h = this.$createElement
                     this.$bkInfo({
-                        title: this.$t('确定执行?'),
+                        title: this.$t('确定开始执行?'),
                         subHeader: h('div', {
                             style: {
                                 'font-size': '14px',
@@ -1745,8 +1745,8 @@
                                 'word-break': 'break-all'
                             }
                         }, [
-                            h('p', this.$t('该任务为职能化任务，建议通知职能化人员认领、执行。')),
-                            h('p', this.$t('确认执行后任务转为常规任务，职能化人员无法操作任务'))
+                            h('p', this.$t('任务还未认领，请通知职能化人员')),
+                            h('p', this.$t('若坚持执行，职能化人员将无法操作该任务'))
                         ]),
                         width: 500,
                         maskClose: false,
