@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific lan
 """
 
-import csv
 import json
 import logging
 import typing
@@ -29,13 +28,17 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 logger = logging.getLogger("root")
 
 
-def blob_data_to_string(blob_string: str) -> str:
+def blob_data_to_string(blob_string: typing.Union[str, bytes], process_hex: bool = False) -> str:
     """
     将数据库中 16 进制格式字符串转为原始数据
     :param blob_string: 0x78....
+    :param process_hex: 是否先经过 hex 处理，来源于 csv 的数据可选
     :return: 解压后的数据
     """
-    data = bytes.fromhex(blob_string[2:])
+    if process_hex:
+        data = bytes.fromhex(blob_string[2:])
+    else:
+        data = blob_string
     return zlib.decompress(data).decode("utf-8")
 
 
@@ -131,59 +134,47 @@ def reuse_imported_common_template(
                 act["version"] = new_temp_id__pipeline_obj_map[temp_id_old_to_new[removed_pipeline_tid]].version
 
 
-def add_app_makers(original_project_id: int, template_data: typing.Dict[str, typing.Any], app_maker_csv_filepath: str):
+def add_app_makers(original_project_id: int, template_data: typing.Dict[str, typing.Any], db_helper: base.DBHelper):
     """
     向已导出的数据中，注入轻应用数据
     :param original_project_id: 原项目 ID
     :param template_data: 导出数据
-    :param app_maker_csv_filepath: 轻应用导出数据文件
+    :param db_helper:
     :return:
     """
     template_data["app_makers"] = []
     task_template_ids: typing.Set[str] = set(template_data["template"].keys())
 
-    with open(app_maker_csv_filepath) as csvfile:
-        # 创建 CSV 文件的读取器
-        app_maker_infos_reader = csv.DictReader(csvfile)
+    for app_maker_info in db_helper.fetch_old_app_makers(task_template_ids):
+        # 已删除数据 / 不在本项目下的不导入
+        if any(
+            [
+                int(app_maker_info["is_deleted"]) == 1,
+                int(app_maker_info["project_id"]) != original_project_id,
+            ]
+        ):
+            continue
 
-        # 遍历每一行数据
-        for app_maker_info in app_maker_infos_reader:
-            app_maker_info: typing.Dict[str, typing.Any] = app_maker_info
-            # 已删除数据 / 不在本项目下的不导入
-            if any(
-                [
-                    not app_maker_info["id"],
-                    # csv 读到的文件都是字符串，需要转为实际类型
-                    int(app_maker_info["is_deleted"]) == 1,
-                    int(app_maker_info["project_id"]) != original_project_id,
-                ]
-            ):
-                continue
-
-            # 不属于导入流程模板的不导入
-            if app_maker_info["task_template_id"] not in task_template_ids:
-                continue
-
-            template_data["app_makers"].append(
-                {
-                    "id": int(app_maker_info["id"]),
-                    "name": app_maker_info["name"],
-                    "desc": app_maker_info["desc"],
-                    "username": app_maker_info["creator"],
-                    "project_id": original_project_id,
-                    "template_id": int(app_maker_info["task_template_id"]),
-                    "template_scheme_id": int(app_maker_info["template_scheme_id"])
-                    if app_maker_info["template_scheme_id"]
-                    else None,
-                }
-            )
+        template_data["app_makers"].append(
+            {
+                "id": int(app_maker_info["id"]),
+                "name": app_maker_info["name"],
+                "desc": app_maker_info["desc"],
+                "username": app_maker_info["creator"],
+                "project_id": original_project_id,
+                "template_id": int(app_maker_info["task_template_id"]),
+                "template_scheme_id": int(app_maker_info["template_scheme_id"])
+                if app_maker_info["template_scheme_id"]
+                else None,
+            }
+        )
 
 
-def add_template_schemes(template_data: typing.Dict[str, typing.Any], pipeline_template_scheme_csv_filepath: str):
+def add_template_schemes(template_data: typing.Dict[str, typing.Any], db_helper: base.DBHelper):
     """
     向已导出的数据中添加执行方案
     :param template_data: 导出数据
-    :param pipeline_template_scheme_csv_filepath: 执行方案导出的数据文件
+    :param db_helper:
     :return:
     """
     recorded_ids: typing.Set[int] = set()
@@ -194,82 +185,59 @@ def add_template_schemes(template_data: typing.Dict[str, typing.Any], pipeline_t
     }
     pipeline_template_db_ids: typing.Set[int] = set(id__pipeline_template_info_map.keys())
 
-    with open(pipeline_template_scheme_csv_filepath) as csvfile:
-        # 创建 CSV 文件的读取器
-        template_scheme_info_reader = csv.DictReader(csvfile)
+    # 遍历每一行数据
+    for template_scheme_info in db_helper.fetch_old_template_schemes(pipeline_template_db_ids):
 
-        # 遍历每一行数据
-        for template_scheme_info in template_scheme_info_reader:
-            template_scheme_info: typing.Dict[str, typing.Any] = template_scheme_info
-            # 没有 ID 或没有绑定模板的情况下直接跳过
-            if not template_scheme_info["id"] or not template_scheme_info["template_id"]:
-                continue
+        pipeline_template_db_id = int(template_scheme_info["template_id"])
+        recorded_ids.add(pipeline_template_db_id)
 
-            # 过滤掉不属于导出流程的执行方案
-            pipeline_template_db_id = int(template_scheme_info["template_id"])
-            if pipeline_template_db_id not in pipeline_template_db_ids:
-                continue
+        pipeline_template_info: typing.Dict[str, typing.Any] = id__pipeline_template_info_map[pipeline_template_db_id]
 
-            recorded_ids.add(pipeline_template_db_id)
+        # 在导出流程中，初始化执行方案列表
+        if "schemes" not in pipeline_template_info:
+            pipeline_template_info["schemes"] = []
 
-            pipeline_template_info: typing.Dict[str, typing.Any] = id__pipeline_template_info_map[
-                pipeline_template_db_id
-            ]
-            # 在导出流程中，初始化执行方案列表
-            if "schemes" not in pipeline_template_info:
-                pipeline_template_info["schemes"] = []
+        pipeline_template_info["schemes"].append(
+            {
+                "id": int(template_scheme_info["id"]),
+                "name": template_scheme_info["name"],
+                "unique_id": template_scheme_info["unique_id"],
+                "template_id": pipeline_template_db_id,
+                # 解压 DB 二进制数据
+                "data": json.loads(blob_data_to_string(template_scheme_info["data"])),
+            }
+        )
 
-            pipeline_template_info["schemes"].append(
-                {
-                    "id": int(template_scheme_info["id"]),
-                    "name": template_scheme_info["name"],
-                    "unique_id": template_scheme_info["unique_id"],
-                    "template_id": pipeline_template_db_id,
-                    # 解压 DB 二进制数据
-                    "data": json.loads(blob_data_to_string(template_scheme_info["data"])),
-                }
-            )
+    logging.info(f"[add_template_schemes] pipeline template with schemes count -> {len(recorded_ids)}")
 
-        logging.info(f"[add_template_schemes] pipeline template with schemes count -> {len(recorded_ids)}")
-
-        # 按执行方案自增 ID 对数据进行去重
-        for pipeline_template_db_id in recorded_ids:
-            pipeline_template_info = id__pipeline_template_info_map[pipeline_template_db_id]
-            schemes = list({scheme["id"]: scheme for scheme in pipeline_template_info["schemes"]}.values())
-            logging.info(
-                f"[add_template_schemes] schemes count -> {len(schemes)} to "
-                f"pipeline_template({pipeline_template_db_id})"
-            )
-            pipeline_template_info["schemes"] = schemes
+    # 按执行方案自增 ID 对数据进行去重
+    for pipeline_template_db_id in recorded_ids:
+        pipeline_template_info = id__pipeline_template_info_map[pipeline_template_db_id]
+        schemes = list({scheme["id"]: scheme for scheme in pipeline_template_info["schemes"]}.values())
+        logging.info(
+            f"[add_template_schemes] schemes count -> {len(schemes)} to "
+            f"pipeline_template({pipeline_template_db_id})"
+        )
+        pipeline_template_info["schemes"] = schemes
 
 
-def inject_pipeline_db_id(template_data: typing.Dict[str, typing.Any], pipeline_template_csv_filepath: str):
+def inject_pipeline_db_id(template_data: typing.Dict[str, typing.Any], db_helper: base.DBHelper):
     """
     注入 PipelineTemplate 自增 ID 到导出数据
     :param template_data: 导出数据
-    :param pipeline_template_csv_filepath: 流程模板的数据文件
+    :param db_helper:
     :return:
     """
-    pipeline_template_ids = set(template_data["pipeline_template_data"]["template"].keys())
 
-    with open(pipeline_template_csv_filepath) as csvfile:
-        # 创建 CSV 文件的读取器
-        pipeline_template_infos_reader = csv.DictReader(csvfile)
+    pipeline_template_ids: typing.Set[str] = set(template_data["pipeline_template_data"]["template"].keys())
 
-        # 遍历每一行数据
-        for pipeline_template_info in pipeline_template_infos_reader:
-            pipeline_template_info: typing.Dict[str, typing.Any] = pipeline_template_info
-            if not pipeline_template_info["id"]:
-                continue
+    # 遍历每一行数据
+    for pipeline_template_info in db_helper.fetch_old_pipeline_templates(pipeline_template_ids):
 
-            # 过滤掉不属于导出流程的数据
-            if pipeline_template_info["template_id"] not in pipeline_template_ids:
-                continue
-
-            # 根据 template_id 索引到导出数据中的流程数据，并将自增 ID 信息注入
-            template_data["pipeline_template_data"]["template"][pipeline_template_info["template_id"]]["id"] = int(
-                pipeline_template_info["id"]
-            )
+        # 根据 template_id 索引到导出数据中的流程数据，并将自增 ID 信息注入
+        template_data["pipeline_template_data"]["template"][pipeline_template_info["template_id"]]["id"] = int(
+            pipeline_template_info["id"]
+        )
 
 
 def pipeline_resource_replacement(

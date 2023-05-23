@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
-import os
 import typing
 
 from django.core.management.base import BaseCommand
@@ -27,10 +26,10 @@ logger = logging.getLogger("root")
 def do_import(
     template_source_type: str,
     data_file_path: str,
-    export_data_dir: str,
     cc_offset: int,
     old_biz_id__new_biz_info_map: typing.Dict[int, typing.Dict[str, typing.Any]],
     db_helper: DBHelper,
+    self_db_helper: DBHelper,
     target_project: Project = None,
     original_project_id: int = None,
     import_app_maker: bool = False,
@@ -39,9 +38,9 @@ def do_import(
 ) -> typing.Dict[str, typing.Any]:
     """
     执行导入操作
+    :param self_db_helper:
     :param template_source_type:
     :param data_file_path:
-    :param export_data_dir:
     :param cc_offset:
     :param old_biz_id__new_biz_info_map:
     :param db_helper:
@@ -65,18 +64,14 @@ def do_import(
 
     # 注入执行方案｜依赖 PipelineTemplate 的自增 ID，先行注入
     logger.info("[import] inject pipeline template db id to export pipeline template info")
-    dat_import_helper.inject_pipeline_db_id(
-        template_data, os.path.join(export_data_dir, "pipeline_pipelinetemplate.csv")
-    )
+    dat_import_helper.inject_pipeline_db_id(template_data, self_db_helper)
     # 注入执行方案
     logger.info("[import] add template schemes to export pipeline template info")
-    dat_import_helper.add_template_schemes(template_data, os.path.join(export_data_dir, "pipeline_templatescheme.csv"))
+    dat_import_helper.add_template_schemes(template_data, self_db_helper)
 
     if import_app_maker:
         logger.info("[import] add app markers to export data")
-        dat_import_helper.add_app_makers(
-            original_project_id, template_data, os.path.join(export_data_dir, "appmaker_appmaker.csv")
-        )
+        dat_import_helper.add_app_makers(original_project_id, template_data, self_db_helper)
 
     extra_params: typing.Dict[str, typing.Any] = {}
     if template_source_type == PROJECT:
@@ -121,8 +116,6 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("-t", "--template-source-type", help="Template source type", type=str)
         parser.add_argument("-f", "--data-file-path", help=".dat file path", type=str)
-        # 对于老版本的标准运维，app-maker / clocked-task 可以采用 .csv 的方式注入到 .dat 文件，此处预留 .csv / json 目录
-        parser.add_argument("-d", "--export-data-dir", help="Export data dir", type=str)
         parser.add_argument("-a", "--app-maker", action="store_true", help="Import app makers")
         parser.add_argument("-c", "--clocked-task", action="store_true", help="Import clocked task")
         # 期望达到的效果：公共流程先导入，获取 ID 映射数据，存在
@@ -142,6 +135,12 @@ class Command(BaseCommand):
         parser.add_argument("-p", "--password", help="Migration DB password", type=str)
         parser.add_argument("-D", "--common-migration-database", help="Migration DB database name", type=str)
         parser.add_argument(
+            "-d",
+            "--self-migration-database",
+            help="Migration DB database name of sops",
+            type=str, default="bk_sops_from_old_env"
+        )
+        parser.add_argument(
             "-n",
             "--self-migration-table-name",
             help="Migration table name of sops",
@@ -155,7 +154,6 @@ class Command(BaseCommand):
 
         template_source_type: str = options["template_source_type"]
         data_file_path: str = options["data_file_path"]
-        export_data_dir: str = options["export_data_dir"]
 
         # source_env & target_env
         source_env: str = options["source_env"]
@@ -168,7 +166,9 @@ class Command(BaseCommand):
         reuse_common_template: bool = options.get("reuse_common_template", False)
 
         common_migration_database: str = options["common_migration_database"]
+        self_migration_database: str = options["self_migration_database"]
         self_migration_table_name: str = options["self_migration_table_name"]
+
         db_config: typing.Dict[str, typing.Any] = {
             "host": options["host"],
             "port": options["port"],
@@ -195,6 +195,11 @@ class Command(BaseCommand):
             source_env=source_env,
             target_env=target_env,
         )
+        self_db_helper: DBHelper = DBHelper(
+            conn=Connection(**{**db_config, "db": self_migration_database}),
+            source_env=source_env,
+            target_env=target_env,
+        )
 
         target_project: typing.Optional[Project] = None
         if template_source_type == PROJECT:
@@ -208,10 +213,10 @@ class Command(BaseCommand):
         import_result: typing.Dict[str, typing.Any] = do_import(
             template_source_type,
             data_file_path,
-            export_data_dir,
             cc_offset,
             old_biz_id__new_biz_info_map,
             db_helper,
+            self_db_helper,
             target_project=target_project,
             original_project_id=original_project_id,
             import_app_maker=import_app_maker,
@@ -227,3 +232,4 @@ class Command(BaseCommand):
         )
 
         db_helper.conn.close()
+        self_db_helper.conn.close()
