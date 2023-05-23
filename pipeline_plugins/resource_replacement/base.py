@@ -32,6 +32,23 @@ class DBHelper:
         self.source_env = source_env
         self.target_env = target_env
 
+    def base_fetch_data_list(
+        self, table_name: str, id_field_name: str, ids: typing.Iterable[typing.Union[str, int]]
+    ) -> typing.List[typing.Dict]:
+        """
+        基础列表查询
+        :param table_name: 表名
+        :param id_field_name: id 字段名称
+        :param ids: id 列表
+        :return:
+        """
+        str_ids: typing.List[str] = [str(db_id) for db_id in ids]
+        with self.conn.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table_name} " f'where {id_field_name} in ({",".join(str_ids)})')
+            columns = [desc[0] for desc in cursor.description]
+            template_scheme_infos: typing.List[typing.Dict] = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return template_scheme_infos
+
     def fetch_resource_id_map(
         self, resource_type: str, source_data: typing.List[typing.Union[int, str]], source_data_type: type
     ) -> typing.Dict[typing.Union[int, str], typing.Union[int, str]]:
@@ -119,6 +136,32 @@ class DBHelper:
             )
             cursor.executemany(insert_sql, data)
             self.conn.commit()
+
+    def fetch_old_template_schemes(
+        self, pipeline_template_db_ids: typing.Iterable[typing.Union[str, int]]
+    ) -> typing.List[typing.Dict]:
+        """
+        拉取标准运维旧环境的执行方案
+        :param pipeline_template_db_ids:
+        :return:
+        """
+        return self.base_fetch_data_list(
+            table_name="pipeline_templatescheme", id_field_name="template_id", ids=pipeline_template_db_ids
+        )
+
+    def fetch_old_pipeline_templates(self, pipeline_template_ids: typing.Iterable[str]) -> typing.List[typing.Dict]:
+
+        pipeline_template_ids = [f'"{template_id}"' for template_id in pipeline_template_ids]
+
+        return self.base_fetch_data_list(
+            table_name="pipeline_pipelinetemplate", id_field_name="template_id", ids=pipeline_template_ids
+        )
+
+    def fetch_old_app_makers(self, task_template_ids: typing.Iterable[str]) -> typing.List[typing.Dict]:
+
+        return self.base_fetch_data_list(
+            table_name="appmaker_appmaker", id_field_name="task_template_id", ids=task_template_ids
+        )
 
 
 class SuiteMeta:
