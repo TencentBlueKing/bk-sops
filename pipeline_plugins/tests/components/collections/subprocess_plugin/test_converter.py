@@ -15,7 +15,10 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
-from pipeline_plugins.components.collections.subprocess_plugin.converter import PipelineTreeSubprocessConverter
+from gcloud.template_base.utils import inject_original_template_info
+from pipeline_plugins.components.collections.subprocess_plugin.converter import (
+    PipelineTreeSubprocessConverter,
+)
 
 
 class SubprocessPluginConverterTest(TestCase):
@@ -520,9 +523,12 @@ class SubprocessPluginConverterTest(TestCase):
         qs_mocker.first = MagicMock(return_value=tmpl_mocker)
         cls_mocker.objects.filter = MagicMock(return_value=qs_mocker)
 
+        get_model = MagicMock(return_value=cls_mocker)
+
         subprocess_data = self.SUBPROCESS_DATA
-        with patch("pipeline_plugins.components.collections.subprocess_plugin.converter.CommonTemplate", cls_mocker):
-            with patch("pipeline_plugins.components.collections.subprocess_plugin.converter.TaskTemplate", cls_mocker):
+        with patch("gcloud.template_base.utils.apps.get_model", get_model):
+            with patch("gcloud.template_base.utils.isinstance", MagicMock(return_value=False)):
                 converter = PipelineTreeSubprocessConverter(subprocess_data)
+                inject_original_template_info(subprocess_data)
                 converter.convert()
                 self.assertEqual(self.CONVERTED_DATA, subprocess_data)

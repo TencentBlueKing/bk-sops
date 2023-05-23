@@ -90,6 +90,34 @@ def inject_template_node_id(pipeline_tree: dict):
                 inject_template_node_id(act["pipeline"])
 
 
+def inject_original_template_info(pipeline_tree: dict):
+    """填充模版信息到子流程"""
+
+    task_template_model = apps.get_model("tasktmpl3", "TaskTemplate")
+    common_template_model = apps.get_model("template", "CommonTemplate")
+
+    for act_id, act in pipeline_tree["activities"].items():
+        if act["type"] == "SubProcess":
+            inject_original_template_info(act["pipeline"])
+            pipeline_template_id = act["template_id"]
+            # 旧模版数据可能没有template_source字段
+            tmpl_model_cls, candidate_tmpl_model_cls = (
+                (common_template_model, task_template_model)
+                if act.get("template_source") == COMMON
+                else (task_template_model, common_template_model)
+            )
+            template = (
+                tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
+                or candidate_tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
+            )
+            if not template:
+                raise ValueError(f"Template with pipeline_template_id: {pipeline_template_id} not found")
+
+            act["template_source"] = COMMON if isinstance(template, common_template_model) else PROJECT
+            act["original_template_id"] = str(template.id)
+            act["original_template_version"] = template.version
+
+
 def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
     service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
     for act in service_acts:
