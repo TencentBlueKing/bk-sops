@@ -1580,9 +1580,18 @@
                             this.basicInfo[item] = this.basicInfo[item].trim()
                         })
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
-                                desc, nodeName, autoRetry, timeoutConfig, executor_proxy
+                                desc, nodeName, autoRetry, timeoutConfig, executor_proxy, ignorable
                         } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, isActived: false }
+                        const nodeData = {
+                            status: '',
+                            skippable,
+                            retryable,
+                            optional,
+                            auto_retry: autoRetry,
+                            timeout_config: timeoutConfig,
+                            isActived: false,
+                            error_ignorable: ignorable
+                        }
                         if (this.common) {
                             nodeData['executor_proxy'] = executor_proxy.join(',')
                         }
