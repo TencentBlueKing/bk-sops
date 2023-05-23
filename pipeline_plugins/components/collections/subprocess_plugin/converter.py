@@ -12,14 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 import copy
 
-from django.apps import apps
-
-from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, PROJECT
-from gcloud.tasktmpl3.models import TaskTemplate
-
 
 class PipelineTreeSubprocessConverter:
+
     CONVERT_FIELDS = {
         "always_use_latest",
         "scheme_id_list",
@@ -80,27 +75,6 @@ class PipelineTreeSubprocessConverter:
                     for key, constant in self.pipeline_tree["constants"]:
                         if key in self.constants:
                             constant["value"] = self.constants[key]
-
-                # 添加原始模版id信息
-                pipeline_template_id = act["template_id"]
-                # 旧模版数据可能没有template_source字段
-                tmpl_model_cls, candidate_tmpl_model_cls = (
-                    (CommonTemplate, TaskTemplate)
-                    if act.get("template_source") == COMMON
-                    else (TaskTemplate, CommonTemplate)
-                )
-                template = (
-                    tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
-                    or candidate_tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
-                )
-                if not template:
-                    raise ValueError(f"Template with pipeline_template_id: {pipeline_template_id} not found")
-                subprocess_data = self.pipeline_tree["activities"][act_id]["component"]["data"]["subprocess"]["value"]
-                subprocess_data["template_source"] = (
-                    COMMON if isinstance(template, apps.get_model("template", "CommonTemplate")) else PROJECT
-                )
-                self.pipeline_tree["activities"][act_id]["original_template_id"] = str(template.id)
-                self.pipeline_tree["activities"][act_id]["original_template_version"] = template.version
 
         for location in self.pipeline_tree["location"]:
             if location["type"] == "subflow":
