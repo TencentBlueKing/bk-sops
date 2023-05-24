@@ -495,6 +495,12 @@
                     }
                     try {
                         const taskData = await this.createTask(data)
+                        if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
+                            this.$bkMessage({
+                                message: i18n.t('提交成功，请通知职能化人员认领'),
+                                theme: 'success'
+                            })
+                        }
                         let url = {}
                         if (this.viewMode === 'appmaker') {
                             const { template_id } = this.$route.query
@@ -528,12 +534,6 @@
                             }
                         }
                         this.$router.push(url)
-                        if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
-                            this.$bkMessage({
-                                message: i18n.t('提交成功，请通知职能化人员认领'),
-                                theme: 'success'
-                            })
-                        }
                     } catch (e) {
                         console.log(e)
                     } finally {
