@@ -27,7 +27,7 @@
                         <search-select
                             ref="searchSelect"
                             id="taskList"
-                            :placeholder="$t('ID/任务名/创建人/执行人/状态/创建方式/执行代理人')"
+                            :placeholder="$t('ID/任务名/创建人/执行人/状态/执行方式/执行代理人')"
                             v-model="searchSelectValue"
                             :search-list="searchList"
                             @change="handleSearchValueChange">
@@ -87,7 +87,7 @@
                                             {{props.row.name}}
                                         </router-link>
                                     </div>
-                                    <!--创建方式-->
+                                    <!--执行方式-->
                                     <div v-else-if="item.id === 'create_method'">
                                         {{ transformCreateMethod(props.row.create_method) }}
                                     </div>
@@ -95,6 +95,10 @@
                                     <div v-else-if="item.id === 'task_status'" class="task-status">
                                         <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                         <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                                    </div>
+                                    <!--任务类型-->
+                                    <div v-else-if="item.id === 'task_type'">
+                                        {{ props.row.flow_type === 'common_func' ? $t('职能化') : $t('常规') }}
                                     </div>
                                     <!-- 其他 -->
                                     <template v-else>
@@ -213,7 +217,7 @@
         },
         {
             id: 'create_method',
-            name: i18n.t('创建方式'),
+            name: i18n.t('执行方式'),
             children: []
         },
         {
@@ -272,7 +276,12 @@
         },
         {
             id: 'create_method',
-            label: i18n.t('创建方式'),
+            label: i18n.t('执行方式'),
+            width: 100
+        },
+        {
+            id: 'task_type',
+            label: i18n.t('任务类型'),
             width: 100
         },
         {

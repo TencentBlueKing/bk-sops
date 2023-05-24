@@ -757,7 +757,9 @@
                 const left = pageX - wrapGap.x + 10
                 const top = pageY - wrapGap.y - 50
                 this.shortcutPanelPosition = { left, top }
-                this.showShortcutPanel = true
+                if (!dom.parentClsContains('branch-condition', e.target)) {
+                    this.showShortcutPanel = true
+                }
                 // const [sEdp, tEdp] = conn.endpoints
                 // const { sourceId, targetId } = conn
                 // this.replaceEndpoint(sEdp, sourceId, true)

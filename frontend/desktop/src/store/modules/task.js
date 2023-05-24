@@ -529,6 +529,10 @@ const task = {
                     subprocess_stack
                 }
             }).then(response => response.data)
+        },
+        // 职能化任务转常规任务
+        taskFlowConvertCommonTask ({ commit }, data) {
+            return axios.post(`api/v3/taskflow/${data.taskId}/convert_to_common_task/`).then(response => response.data)
         }
     }
 }

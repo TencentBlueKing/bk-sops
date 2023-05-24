@@ -113,12 +113,12 @@
         {
             step: 'selectnode',
             icon: 1,
-            title: i18n.t('节点选择')
+            title: i18n.t('选择节点')
         },
         {
             step: 'paramfill',
             icon: 2,
-            title: i18n.t('参数填写')
+            title: i18n.t('填写参数')
         },
         {
             step: 'taskexecute',
@@ -128,7 +128,7 @@
         {
             step: 'taskexecute',
             icon: 4,
-            title: i18n.t('任务执行')
+            title: i18n.t('去执行')
         }
     ]
 
