@@ -117,10 +117,17 @@
             toggleFunctionalStep (isFunctionalTask) {
                 const steps = STEP_DICT.slice()
                 if (isFunctionalTask) {
-                    steps.splice(2, 0, {
-                        step: 'functionalization',
-                        title: i18n.t('职能化认领')
-                    })
+                    if (this.$route.name === 'functionTemplateStep') {
+                        steps.splice(2, 0, {
+                            step: 'functionalization',
+                            title: i18n.t('职能化认领')
+                        })
+                    } else {
+                        steps.splice(2, 1, {
+                            step: 'functionalSubmit',
+                            title: i18n.t('提交职能化')
+                        })
+                    }
                 }
                 this.stepList = this.addStepIcon(steps)
             },
