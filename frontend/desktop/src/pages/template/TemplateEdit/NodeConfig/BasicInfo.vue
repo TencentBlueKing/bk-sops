@@ -810,7 +810,7 @@
                 } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version, executor_proxy, retryable, autoRetry, timeoutConfig, skippable }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version, executor_proxy, retryable, autoRetry, timeoutConfig, skippable, ignorable }
                 } else {
                     data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig, executor_proxy }
                 }
@@ -835,7 +835,7 @@
                 try {
                     const res = await this.getProcessOpenRetryAndTimeout({
                         project_id: this.projectId,
-                        id: this.basicInfo.tpl
+                        id: this.$route.query.template_id
                     })
                     this.isShowFailTimeoutHandle = res.data.enable
                 } catch (error) {
