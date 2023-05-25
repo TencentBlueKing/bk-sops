@@ -121,6 +121,7 @@
                     :node-detail-config="nodeDetailConfig"
                     :is-readonly="true"
                     :is-show.sync="isShowConditionEdit"
+                    :constants="pipelineData.constants"
                     :gateways="pipelineData.gateways"
                     :condition-data="conditionData"
                     @onOpenGatewayInfo="onOpenConditionEdit"

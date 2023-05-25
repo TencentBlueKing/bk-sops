@@ -106,7 +106,7 @@
                             :node-activity="nodeActivity"
                             :execute-info="executeInfo"
                             :node-detail-config="nodeDetailConfig"
-                            :constants="pipelineData.constants"
+                            :constants="constants"
                             :is-third-party-node="isThirdPartyNode"
                             :third-party-node-code="thirdPartyNodeCode"
                             :is-sub-process-node="isSubProcessNode">
@@ -246,6 +246,7 @@
                 required: true
             },
             isShow: Boolean,
+            constants: Object,
             gateways: Object,
             conditionData: Object,
             backToVariablePanel: Boolean,
