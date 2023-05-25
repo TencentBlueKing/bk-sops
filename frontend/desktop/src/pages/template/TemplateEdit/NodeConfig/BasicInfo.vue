@@ -835,7 +835,7 @@
                 try {
                     const res = await this.getProcessOpenRetryAndTimeout({
                         project_id: this.projectId,
-                        id: this.basicInfo.tpl
+                        id: this.$route.query.template_id
                     })
                     this.isShowFailTimeoutHandle = res.data.enable
                 } catch (error) {
