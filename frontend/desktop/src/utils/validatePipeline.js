@@ -81,10 +81,10 @@ const NODE_RULE = {
 }
 
 let nodeTargetMaps = {}
-let convergeGwNodes = []
-let checkedNodes = []
-let pipelineData = {}
-let branchNodes = [] // 表示分支的节点
+let convergeGwNodes = [] // 流程中所有的汇聚网关
+let checkedConvergeNodes = [] // 遍历过程中找到的汇聚网关
+let checkedNodes = [] // 遍历过程中找到的所有节点
+let nodeBranches = [] // 表示分支的节点
 
 const validatePipeline = {
     /**
@@ -285,7 +285,6 @@ const validatePipeline = {
             }
             return acc
         }, [])
-        pipelineData = { ...data }
         let valid = validator(data)
         let message = ''
         let errorId = ''
@@ -321,10 +320,10 @@ const validatePipeline = {
             // 检查并行网关/条件并行网关是否和汇聚网关相连
             if (['ParallelGateway', 'ConditionalParallelGateway'].includes(node.type)) {
                 checkedNodes = []
-                branchNodes = new Set()
-                this.getBranchNodes(node.id)
-                branchNodes = [...branchNodes]
-                if (branchNodes.length === 1 && convergeGwNodes.includes(branchNodes[0])) {
+                checkedConvergeNodes = []
+                nodeBranches = new Set([node.id])
+                this.getNodeBranches(node.id, node.id)
+                if (nodeBranches.size === 1) {
                     return false
                 } else {
                     message = node.type === 'ParallelGateway'
@@ -339,38 +338,45 @@ const validatePipeline = {
 
         return this.getMessage(valid, message, errorId)
     },
-    getBranchNodes (id, firstId) {
-        if (checkedNodes.includes(id) && firstId) {
-            branchNodes.delete(firstId)
+    getNodeBranches (id, branchId) {
+        // 重复节点
+        if (checkedNodes.includes(id)) {
+            nodeBranches.delete(branchId)
             return
         }
         checkedNodes.push(id)
-        const targetIds = nodeTargetMaps[id]
+        // 当前节点所有输出节点
+        const targetIds = nodeTargetMaps[id] || []
+        // 多个输出节点
         if (targetIds.length > 1) {
-            branchNodes.delete(firstId)
+            // 删除旧的分支branchId，添加新的分支
+            nodeBranches.delete(branchId)
             targetIds.forEach(targetId => {
-                branchNodes.add(targetId)
-                this.getBranchNodes(targetId, targetId)
+                nodeBranches.add(targetId)
+                this.getNodeBranches(targetId, targetId)
             })
         } else if (targetIds.length === 1) {
-            const targetId = targetIds[0]
-            const curId = firstId ? id : targetId
-            // 如找到了汇聚网关则退出递归
-            if (convergeGwNodes.includes(curId)) {
-                branchNodes.delete(firstId)
-                branchNodes.add(curId)
-                if (branchNodes.size > 1) {
-                    branchNodes.forEach(nodeId => {
-                        this.getBranchNodes(nodeId, '')
-                    })
+            // 汇聚网关
+            if (convergeGwNodes.includes(id)) {
+                // 如果这个汇聚网关之前被找到过，则表示当前分支和其他分支在该汇聚网关会合了，此时需要删掉当前分支branchId
+                if (checkedConvergeNodes.includes(id)) {
+                    nodeBranches.delete(branchId)
+                } else {
+                    // 将未找到过的汇聚网关记录下来
+                    checkedConvergeNodes.push(id)
+                    // 如果存在多个分支，则说明当前的汇聚节点不是分支的回合节点，所以需要用找到过的汇聚网关往下继续找
+                    if (nodeBranches.size > 1) {
+                        checkedConvergeNodes.forEach(nodeId => {
+                            // 汇聚网关只有一个输出节点所以用[0]取输出id
+                            const targetId = nodeTargetMaps[nodeId][0]
+                            this.getNodeBranches(targetId, branchId)
+                        })
+                    }
                 }
             } else {
+                const targetId = targetIds[0]
                 // 找到结束节点则退出递归
-                if (pipelineData.end_event.id === targetId) {
-                    branchNodes.delete(firstId)
-                } else {
-                    this.getBranchNodes(targetId, firstId)
-                }
+                this.getNodeBranches(targetId, branchId)
             }
         }
     },
