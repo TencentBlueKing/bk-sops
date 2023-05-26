@@ -82,9 +82,9 @@ const NODE_RULE = {
 
 let nodeTargetMaps = {}
 let convergeGwNodes = []
+let checkedNodes = []
 let pipelineData = {}
-let branchLength = 0 // 分支数
-let branchNodes = [] // 分支上包含的节点
+let branchNodes = [] // 表示分支的节点
 
 const validatePipeline = {
     /**
@@ -320,10 +320,10 @@ const validatePipeline = {
             }
             // 检查并行网关/条件并行网关是否和汇聚网关相连
             if (['ParallelGateway', 'ConditionalParallelGateway'].includes(node.type)) {
-                branchLength = 0
+                checkedNodes = []
                 branchNodes = new Set()
-                this.checkParallelGateway(node.id)
-                if (branchLength === 1) {
+                this.getBranchNodes(node.id)
+                if (branchNodes.size === 1) {
                     return false
                 } else {
                     message = node.type === 'ParallelGateway'
@@ -338,32 +338,43 @@ const validatePipeline = {
 
         return this.getMessage(valid, message, errorId)
     },
-    // 检查并行网关是否和汇聚网关对应
-    checkParallelGateway (id) {
-        branchLength = branchLength || 1
-        // 出现重复节点退出递归，当前分支无效-1
-        if (branchNodes.has(id) && id !== pipelineData.end_event.id) {
-            branchLength = branchLength - 1
+    getBranchNodes (id, firstId) {
+        if (checkedNodes.includes(id)) {
+            branchNodes.delete(firstId)
             return
         }
-        const matchNodes = nodeTargetMaps[id]
-        if (matchNodes && matchNodes.length > 1) { // 对应多个节点
-            // 记录当前节点
-            branchNodes.add(id)
-            // 删除一条旧分支，如果当前没有分支则不删，并且添加新分支
-            branchLength = branchLength - (branchLength ? 1 : 0) + matchNodes.length
-            matchNodes.forEach(nodeId => {
-                this.checkParallelGateway(nodeId)
+        checkedNodes.push(id)
+        const targetIds = nodeTargetMaps[id]
+        if (targetIds.length > 1) {
+            branchNodes.delete(firstId)
+            targetIds.forEach(targetId => {
+                branchNodes.add(targetId)
+                this.getBranchNodes(targetId, targetId)
             })
-        } else if (matchNodes) { // 对应一个节点
-            if (branchLength === 1 && convergeGwNodes.includes(id)) {
-                branchNodes.add(id)
-                return
+        } else if (targetIds.length === 1) {
+            const targetId = targetIds[0]
+            const curId = firstId ? id : targetId
+            // 如果当前节点为网关节点时，需要在branchNodes里删除掉
+            if (convergeGwNodes.includes(id)) {
+                branchNodes.delete(id)
             }
-            // 记录当前节点
-            branchNodes.add(id)
-            const nodeId = matchNodes[0]
-            this.checkParallelGateway(nodeId)
+            // 如找到了汇聚网关则退出递归
+            if (convergeGwNodes.includes(curId)) {
+                branchNodes.delete(firstId)
+                branchNodes.add(curId)
+                if (branchNodes.size > 1) {
+                    branchNodes.forEach(nodeId => {
+                        this.getBranchNodes(nodeId, '')
+                    })
+                }
+            } else {
+                // 找到结束节点则退出递归
+                if (pipelineData.end_event.id === targetId) {
+                    branchNodes.delete(firstId)
+                } else {
+                    this.getBranchNodes(targetId, firstId)
+                }
+            }
         }
     },
     getMessage (result = true, message = '', errorId) {
