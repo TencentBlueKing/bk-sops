@@ -98,7 +98,7 @@
                                     </div>
                                     <!--任务类型-->
                                     <div v-else-if="item.id === 'task_type'">
-                                        {{ props.row.flow_type === 'common_func' ? $t('职能化') : $t('常规') }}
+                                        {{ props.row.flow_type === 'common_func' ? $t('task_职能化') : $t('常规') }}
                                     </div>
                                     <!-- 其他 -->
                                     <template v-else>
@@ -233,7 +233,7 @@
         },
         {
             id: 'name',
-            label: i18n.t('任务名称'),
+            label: i18n.t('task_任务名称'),
             disabled: true,
             min_width: 240
         },
@@ -281,7 +281,7 @@
         },
         {
             id: 'task_type',
-            label: i18n.t('任务类型'),
+            label: i18n.t('task_任务类型'),
             width: 100
         },
         {
@@ -376,7 +376,7 @@
                 createMethodTabs: [
                     { id: 'all', name: i18n.t('全部') },
                     { id: 'app', name: i18n.t('手动任务') },
-                    { id: 'api', name: 'API ' + i18n.t('任务') },
+                    { id: 'api', name: i18n.t('API 任务') },
                     { id: 'periodic', name: i18n.t('周期任务') },
                     { id: 'clocked', name: i18n.t('计划任务') }
                 ],
