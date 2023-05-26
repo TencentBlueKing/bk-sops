@@ -296,7 +296,7 @@
             // 节点实时状态
             realTimeState () {
                 const nodeStateMap = this.nodeDisplayStatus.children || {}
-                return nodeStateMap[this.nodeDetailConfig.node_id] || 'READY'
+                return nodeStateMap[this.nodeDetailConfig.node_id] || { state: 'READY' }
             },
             displayStatus () {
                 let state = ''
