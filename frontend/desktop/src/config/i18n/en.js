@@ -9,6 +9,7 @@ const en = {
     '计划任务': 'One-Time Scheduled Tasks',
     '轻应用': 'Mini-APPs',
     '职能化': 'Helper Team',
+    'task_职能化': 'To Helper-Team',
     '项目管理': 'Projects Management',
     '审计中心': 'Audit',
     '公共流程管理': 'Common Flows Management',
@@ -162,6 +163,7 @@ const en = {
     '执行人': 'Executed By',
     '创建方式': 'Source',
     '任务名称': 'Task Name',
+    'task_任务名称': 'Name',
     '执行开始': 'Started',
     '执行结束': 'Finished',
     '状态': 'Status',
@@ -665,6 +667,7 @@ const en = {
     '请选择状态': 'Select Status ',
     '未完成': 'Unfinished',
     '任务类型': 'Task types',
+    'task_任务类型': 'Type',
     '请输入更新人': 'Enter Editor',
     '请输入轻应用名称': 'Enter Name',
     '轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。': 'The permissions of Mini-APP is same with the flow.Change the permissions of the corresponding flow,  which will automatically take effect on the Mini-APP.',
@@ -1358,7 +1361,7 @@ const en = {
     '输出参数中不包含trace_id，无法查看第三方节点日志': 'The trace_id is not included in the output parameters, and the third-party node logs cannot be viewed',
     '等待': 'wait',
     '全部流程': 'All Flows',
-    '手动任务': 'Manual Task',
+    '手动任务': 'Manual',
     '变量配置': 'variable setting',
     '变量复用': 'varibale reuse',
     '手动创建': 'manual create',
@@ -1747,7 +1750,7 @@ const en = {
     '选择节点': 'Select node',
     '填写参数': 'Fill parameters',
     '去执行': 'To execute',
-    '常规': 'Conventional',
+    '常规': 'General',
     '提交职能化': 'Submit functional',
     '提交成功，请通知职能化人员认领': 'The submission is successful, please notify the functional personnel to claim',
     '未认领的职能化任务不允许执行': 'Unclaimed functional tasks are not allowed to execute',
@@ -1755,7 +1758,8 @@ const en = {
     '确定开始执行?': 'OK to execute?',
     '任务还未认领，请通知职能化人员': 'The task has not been claimed, please notify the functional personnel',
     '若坚持执行，职能化人员将无法操作该任务': 'If insisted on, functional personnel will not be able to operate the task',
-    '执行方式': 'Execute method'
+    '执行方式': 'Source',
+    'API 任务': 'API'
 }
 
 export default en
