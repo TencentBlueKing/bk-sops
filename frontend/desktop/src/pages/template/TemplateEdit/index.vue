@@ -314,7 +314,7 @@
                 isMultipleTabCount: 0,
                 isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
                 isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
-                branchLength: 0 // 分支数
+                checkedNodes: []
             }
         },
         computed: {
@@ -1410,8 +1410,9 @@
                     const gateway = this.gateways[val]
                     if (gateway && ['ParallelGateway', 'ConditionalParallelGateway'].includes(gateway.type)) {
                         const branchNodes = new Set() // 分支上包含的节点
-                        this.checkParallelGateway(gateway.id, branchNodes)
-                        return this.branchLength === 1
+                        this.checkedNodes = []
+                        this.getBranchNodes(gateway.id, '', branchNodes)
+                        return branchNodes.size === 1
                     }
                 })
                 if (index > -1) {
@@ -1419,32 +1420,43 @@
                     this.isParallelGwErrorMsg = ''
                 }
             },
-            // 检查并行网关是否和汇聚网关对应
-            checkParallelGateway (id, branchNodes) {
-                this.branchLength = this.branchLength || 1
-                // 出现重复节点退出递归，当前分支无效-1
-                if (branchNodes.has(id) && id !== this.end_event.id) {
-                    this.branchLength = this.branchLength - 1
+            getBranchNodes (id, firstId, branchNodes) {
+                if (this.checkedNodes.includes(id)) {
+                    branchNodes.delete(firstId)
                     return
                 }
-                const matchNodes = this.nodeTargetMaps[id]
-                if (matchNodes && matchNodes.length > 1) { // 对应多个节点
-                    // 记录当前节点
-                    branchNodes.add(id)
-                    // 删除一条旧分支，如果当前没有分支则不删，并且添加新分支
-                    this.branchLength = this.branchLength - (this.branchLength ? 1 : 0) + matchNodes.length
-                    matchNodes.forEach(nodeId => {
-                        this.checkParallelGateway(nodeId, branchNodes)
+                this.checkedNodes.push(id)
+                const targetIds = this.nodeTargetMaps[id]
+                if (targetIds.length > 1) {
+                    branchNodes.delete(firstId)
+                    targetIds.forEach(targetId => {
+                        branchNodes.add(targetId)
+                        this.getBranchNodes(targetId, targetId, branchNodes)
                     })
-                } else if (matchNodes) { // 对应一个节点
-                    if (this.branchLength === 1 && this.convergeGwNodes.includes(id)) {
-                        branchNodes.add(id)
-                        return
+                } else if (targetIds.length === 1) {
+                    const targetId = targetIds[0]
+                    const curId = firstId ? id : targetId
+                    // 如果当前节点为网关节点时，需要在branchNodes里删除掉
+                    if (this.convergeGwNodes.includes(id)) {
+                        branchNodes.delete(id)
                     }
-                    // 记录当前节点
-                    branchNodes.add(id)
-                    const nodeId = matchNodes[0]
-                    this.checkParallelGateway(nodeId, branchNodes)
+                    // 如找到了汇聚网关则退出递归
+                    if (this.convergeGwNodes.includes(curId)) {
+                        branchNodes.delete(firstId)
+                        branchNodes.add(curId)
+                        if (branchNodes.size > 1) {
+                            branchNodes.forEach(nodeId => {
+                                this.getBranchNodes(nodeId, '', branchNodes)
+                            })
+                        }
+                    } else {
+                        // 找到结束节点则退出递归
+                        if (this.end_event.id === targetId) {
+                            branchNodes.delete(firstId)
+                        } else {
+                            this.getBranchNodes(targetId, firstId, branchNodes)
+                        }
+                    }
                 }
             },
             /**
