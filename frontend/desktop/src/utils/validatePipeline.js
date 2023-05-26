@@ -323,7 +323,8 @@ const validatePipeline = {
                 checkedNodes = []
                 branchNodes = new Set()
                 this.getBranchNodes(node.id)
-                if (branchNodes.size === 1) {
+                branchNodes = [...branchNodes]
+                if (branchNodes.length === 1 && convergeGwNodes.includes(branchNodes[0])) {
                     return false
                 } else {
                     message = node.type === 'ParallelGateway'
@@ -339,7 +340,7 @@ const validatePipeline = {
         return this.getMessage(valid, message, errorId)
     },
     getBranchNodes (id, firstId) {
-        if (checkedNodes.includes(id)) {
+        if (checkedNodes.includes(id) && firstId) {
             branchNodes.delete(firstId)
             return
         }
@@ -354,10 +355,6 @@ const validatePipeline = {
         } else if (targetIds.length === 1) {
             const targetId = targetIds[0]
             const curId = firstId ? id : targetId
-            // 如果当前节点为网关节点时，需要在branchNodes里删除掉
-            if (convergeGwNodes.includes(id)) {
-                branchNodes.delete(id)
-            }
             // 如找到了汇聚网关则退出递归
             if (convergeGwNodes.includes(curId)) {
                 branchNodes.delete(firstId)

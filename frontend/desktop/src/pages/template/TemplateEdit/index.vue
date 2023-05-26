@@ -1409,10 +1409,11 @@
                 const index = this.validateConnectFailList.findIndex(val => {
                     const gateway = this.gateways[val]
                     if (gateway && ['ParallelGateway', 'ConditionalParallelGateway'].includes(gateway.type)) {
-                        const branchNodes = new Set() // 分支上包含的节点
+                        let branchNodes = new Set() // 分支上包含的节点
                         this.checkedNodes = []
                         this.getBranchNodes(gateway.id, '', branchNodes)
-                        return branchNodes.size === 1
+                        branchNodes = [...branchNodes]
+                        return branchNodes.length === 1 && this.convergeGwNodes.includes(branchNodes[0])
                     }
                 })
                 if (index > -1) {
@@ -1421,7 +1422,7 @@
                 }
             },
             getBranchNodes (id, firstId, branchNodes) {
-                if (this.checkedNodes.includes(id)) {
+                if (this.checkedNodes.includes(id) && firstId) {
                     branchNodes.delete(firstId)
                     return
                 }
@@ -1436,10 +1437,6 @@
                 } else if (targetIds.length === 1) {
                     const targetId = targetIds[0]
                     const curId = firstId ? id : targetId
-                    // 如果当前节点为网关节点时，需要在branchNodes里删除掉
-                    if (this.convergeGwNodes.includes(id)) {
-                        branchNodes.delete(id)
-                    }
                     // 如找到了汇聚网关则退出递归
                     if (this.convergeGwNodes.includes(curId)) {
                         branchNodes.delete(firstId)
