@@ -314,7 +314,8 @@
                 isMultipleTabCount: 0,
                 isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
                 isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
-                checkedNodes: []
+                checkedNodes: [],
+                checkedConvergeNodes: []
             }
         },
         computed: {
@@ -1409,11 +1410,11 @@
                 const index = this.validateConnectFailList.findIndex(val => {
                     const gateway = this.gateways[val]
                     if (gateway && ['ParallelGateway', 'ConditionalParallelGateway'].includes(gateway.type)) {
-                        let branchNodes = new Set() // 分支上包含的节点
+                        const nodeBranches = new Set([gateway.id]) // 分支上包含的节点
                         this.checkedNodes = []
-                        this.getBranchNodes(gateway.id, '', branchNodes)
-                        branchNodes = [...branchNodes]
-                        return branchNodes.length === 1 && this.convergeGwNodes.includes(branchNodes[0])
+                        this.checkedConvergeNodes = []
+                        this.getNodeBranches(gateway.id, gateway.id, nodeBranches)
+                        return nodeBranches.size === 1
                     }
                 })
                 if (index > -1) {
@@ -1421,38 +1422,45 @@
                     this.isParallelGwErrorMsg = ''
                 }
             },
-            getBranchNodes (id, firstId, branchNodes) {
-                if (this.checkedNodes.includes(id) && firstId) {
-                    branchNodes.delete(firstId)
+            getNodeBranches (id, branchId, nodeBranches) {
+                // 重复节点
+                if (this.checkedNodes.includes(id)) {
+                    nodeBranches.delete(branchId)
                     return
                 }
                 this.checkedNodes.push(id)
-                const targetIds = this.nodeTargetMaps[id]
+                // 当前节点所有输出节点
+                const targetIds = this.nodeTargetMaps[id] || []
+                // 多个输出节点
                 if (targetIds.length > 1) {
-                    branchNodes.delete(firstId)
+                    // 删除旧的分支branchId，添加新的分支
+                    nodeBranches.delete(branchId)
                     targetIds.forEach(targetId => {
-                        branchNodes.add(targetId)
-                        this.getBranchNodes(targetId, targetId, branchNodes)
+                        nodeBranches.add(targetId)
+                        this.getNodeBranches(targetId, targetId, nodeBranches)
                     })
                 } else if (targetIds.length === 1) {
-                    const targetId = targetIds[0]
-                    const curId = firstId ? id : targetId
-                    // 如找到了汇聚网关则退出递归
-                    if (this.convergeGwNodes.includes(curId)) {
-                        branchNodes.delete(firstId)
-                        branchNodes.add(curId)
-                        if (branchNodes.size > 1) {
-                            branchNodes.forEach(nodeId => {
-                                this.getBranchNodes(nodeId, '', branchNodes)
-                            })
+                    // 汇聚网关
+                    if (this.convergeGwNodes.includes(id)) {
+                        // 如果这个汇聚网关之前被找到过，则表示当前分支和其他分支在该汇聚网关会合了，此时需要删掉当前分支branchId
+                        if (this.checkedConvergeNodes.includes(id)) {
+                            nodeBranches.delete(branchId)
+                        } else {
+                            // 将未找到过的汇聚网关记录下来
+                            this.checkedConvergeNodes.push(id)
+                            // 如果存在多个分支，则说明当前的汇聚节点不是分支的回合节点，所以需要用找到过的汇聚网关往下继续找
+                            if (nodeBranches.size > 1) {
+                                this.checkedConvergeNodes.forEach(nodeId => {
+                                    // 汇聚网关只有一个输出节点所以用[0]取输出id
+                                    const targetId = this.nodeTargetMaps[nodeId][0]
+                                    this.getNodeBranches(targetId, branchId, nodeBranches)
+                                })
+                            }
                         }
                     } else {
+                        const targetId = targetIds[0]
                         // 找到结束节点则退出递归
-                        if (this.end_event.id === targetId) {
-                            branchNodes.delete(firstId)
-                        } else {
-                            this.getBranchNodes(targetId, firstId, branchNodes)
-                        }
+                        this.getNodeBranches(targetId, branchId, nodeBranches)
                     }
                 }
             },
