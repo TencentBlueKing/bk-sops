@@ -532,6 +532,7 @@
                     console.warn(e)
                 } finally {
                     this.templateDataLoading = false
+                    this.initFormData = tools.deepClone(this.formData)
                 }
             },
             onSelectTemplate (id) {
