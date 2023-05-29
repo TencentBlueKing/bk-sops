@@ -1,7 +1,7 @@
 const en = {
 
     // 导航
-    '标准运维': 'Standard Operator',
+    '标准运维': 'Standard OPS',
     '首页': 'Home',
     '流程': 'Flows',
     '任务记录': 'Tasks',
