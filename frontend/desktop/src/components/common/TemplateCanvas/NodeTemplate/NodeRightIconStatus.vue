@@ -4,13 +4,16 @@
         <div v-if="node.status === 'RUNNING'" class="task-status-icon">
             <i class="common-icon-loading"></i>
         </div>
-        <div v-else-if="node.status === 'FINISHED' && (node.retry > 0 || node.skip)" class="task-status-icon">
-            <i v-if="node.skip" class="bk-icon icon-arrows-right-shape"></i>
+        <div v-else-if="node.status === 'FINISHED' && !(node.retry > 0 || node.skip)" class="task-status-icon">
+            <!-- 后续用icon替换 -->
+            <i v-if="!node.skip" style="position: absolute; top: -3px; left: -1px; transform: scale(0.6);">M</i>
+            <i v-if="!node.skip" style="position: absolute;top: 6px; left: 5px;" class="bk-icon icon-arrows-right-shape"></i>
             <span v-else-if="node.retry > 0" class="retry-times">{{ node.retry > 99 ? '100+' : node.retry }}</span>
         </div>
         <!-- 节点失败后自动忽略icon -->
         <div v-else-if="node.status === 'FINISHED' && node.error_ignored" class="task-status-icon node-subscript">
-            <i class="bk-icon icon-arrows-right-shape"></i>
+            <i style="position: absolute; top: -3px; left: 1px; transform: scale(0.6);">A</i>
+            <i style="position: absolute;top: 6px; left: 5px;" class="bk-icon icon-arrows-right-shape"></i>
         </div>
         <!-- 节点循环次数 -->
         <div v-if="node.loop > 1" :class="['task-status-icon task-node-loop', { 'loop-plural': node.loop > 9 }]">

@@ -41,10 +41,10 @@
                     @change="onNodeCheckClick">
                 </bk-checkbox>
             </template>
-            <span v-if="node.error_ignorable" class="error-handle-icon"><span class="text">AS</span></span>
-            <span v-if="node.isSkipped || node.skippable" class="error-handle-icon"><span class="text">MS</span></span>
-            <span v-if="node.can_retry || node.retryable" class="error-handle-icon"><span class="text">MR</span></span>
-            <span v-if="node.auto_retry && node.auto_retry.enable" class="error-handle-icon"><span class="text">AR</span></span>
+            <span v-if="node.error_ignorable && node.mode === 'edit'" class="error-handle-icon"><span class="text">AS</span><span class="count">{{ node.running_count.error_ignorable }}</span></span>
+            <span v-if="node.isSkipped || node.skippable" class="error-handle-icon"><span class="text">MS</span><span class="count">{{ node.running_count.skippable }}</span></span>
+            <span v-if="node.can_retry || node.retryable" class="error-handle-icon"><span class="text">MR</span><span class="count">{{ node.running_count.retryable }}</span></span>
+            <span v-if="node.auto_retry && node.auto_retry.enable" class="error-handle-icon"><span class="text">AR</span><span class="count">{{ node.running_count.auto_retry }}</span></span>
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
         <node-right-icon-status :node="node"></node-right-icon-status>
@@ -126,6 +126,16 @@
                     return true
                 }
                 return false
+            }
+        },
+        watch: {
+            node (val) {
+                val.running_count = {
+                    error_ignorable: '1',
+                    skippable: '2',
+                    retryable: '3',
+                    auto_retry: '4'
+                }
             }
         },
         methods: {

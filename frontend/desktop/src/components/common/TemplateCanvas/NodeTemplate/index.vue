@@ -454,19 +454,28 @@
                     margin-right: 2px;
                     font-size: 14px;
                     color: #979ba5;
+                    transform: scale(0.8);
                 }
                 .error-handle-icon {
                     float: left;
-                    margin-right: 2px;
-                    padding: 0 3px;
                     line-height: 12px;
                     color: #ffffff;
-                    background: #979ba5;
                     border-radius: 2px;
+                    display: flex;
+                    overflow: hidden;
                     .text {
+                        padding: 2px 3px;
+                        background: #979ba5;
                         display: inline-block;
                         font-size: 12px;
-                        transform: scale(0.8);
+                    }
+                    .count {
+                        display: inline-block;
+                        font-size: 12px;
+                        padding: 0 4px;
+                        background-color: #dcdee5;
+                        line-height: 16px;
+                        color: #63656E;
                     }
                 }
             }
@@ -522,6 +531,7 @@
             height: 18px;
         }
         .task-status-icon {
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -586,6 +596,7 @@
         .node-subscript {
             font-size: 12px;
             background: #ea3636 !important;
+            position: relative;
         }
         .node-phase-icon {
             i {
