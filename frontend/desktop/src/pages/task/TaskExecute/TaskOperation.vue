@@ -88,7 +88,7 @@
                         </span>
                     </div>
                     <div class="sub-title" v-if="nodeInfoType === 'modifyParams' && retryNodeId">
-                        {{ previewData.activities[retryNodeId]?.name }}
+                        <!-- {{ previewData.activities[retryNodeId]?.name }} -->
                     </div>
                 </div>
             </div>
@@ -1359,12 +1359,11 @@
              *
              */
             retrieveLines (data, lineId, ordered, isLoop = false) {
-                const { end_event, activities, gateways, flows } = data
+                const { activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
-                const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
-                const node = endEvent || activity || gateway
+                const node = activity || gateway
                 if (node && !this.nodeIds.includes(node.id)) {
                     let outgoing
                     if (Array.isArray(node.outgoing)) {
@@ -1375,8 +1374,6 @@
                     if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         const allNodeList = Object.assign({}, activities, gateways)
-                        let renderNodelist = [] // 渲染的节点列表
-                        let renderNodeOutgoing = [] // 渲染的节点outgoing
 
                         gateway.title = name
                         gateway.name = name
@@ -1433,6 +1430,7 @@
                                         children: []
                                     }
                                 ]
+                                // 默认条件置顶
                                 conditions.unshift(...defaultCondition)
                             }
                             
@@ -1451,31 +1449,7 @@
                                 this.retrieveLines(data, line, ordered)
                             })
                             if (ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity')]) {
-                                renderNodelist = []
-                                renderNodeOutgoing = []
-                                this.nodeIds.forEach(item => {
-                                    if (allNodeList[item]) {
-                                        renderNodelist.push(allNodeList[item])
-                                    }
-                                })
-                                renderNodelist.forEach(item => {
-                                    if (Array.isArray(item.outgoing)) {
-                                        item.outgoing.forEach(ite => {
-                                            renderNodeOutgoing.push(ite)
-                                        })
-                                    } else {
-                                        renderNodeOutgoing.push(item.outgoing)
-                                    }
-                                })
-                                const convers = Object.keys(gateways).filter(conver => gateways[conver].type === 'ConvergeGateway')
-                                convers.forEach(item => {
-                                    if (gateways[item].incoming.every(item => renderNodeOutgoing.includes(item))) {
-                                        const curOutgoing = Array.isArray(gateways[item].outgoing) ? gateways[item].outgoing : [gateways[item].outgoing]
-                                        curOutgoing.forEach(line => {
-                                            this.retrieveLines(data, line, ordered)
-                                        })
-                                    }
-                                })
+                                this.orderedLastisGateway(data, allNodeList, ordered, gateways, 'ConvergeGateway')
                             }
                         } else if (gateway.type === 'ParallelGateway') {
                             // 添加并行默认条件
@@ -1505,31 +1479,7 @@
                                 this.retrieveLines(data, line, ordered)
                             })
                             if (ordered[ordered.findLastIndex(order => order.type === 'ParallelGateway')]) {
-                                renderNodelist = []
-                                renderNodeOutgoing = []
-                                this.nodeIds.forEach(item => {
-                                    if (allNodeList[item]) {
-                                        renderNodelist.push(allNodeList[item])
-                                    }
-                                })
-                                renderNodelist.forEach(item => {
-                                    if (Array.isArray(item.outgoing)) {
-                                        item.outgoing.forEach(ite => {
-                                            renderNodeOutgoing.push(ite)
-                                        })
-                                    } else {
-                                        renderNodeOutgoing.push(item.outgoing)
-                                    }
-                                })
-                                const convers = Object.keys(gateways).filter(conver => gateways[conver].type === 'ConvergeGateway')
-                                convers.forEach(item => {
-                                    if (gateways[item].incoming.every(item => renderNodeOutgoing.includes(item))) {
-                                        const curOutgoing = Array.isArray(gateways[item].outgoing) ? gateways[item].outgoing : [gateways[item].outgoing]
-                                        curOutgoing.forEach(line => {
-                                            this.retrieveLines(data, line, ordered)
-                                        })
-                                    }
-                                })
+                                this.orderedLastisGateway(data, allNodeList, ordered, gateways, 'ConvergeGateway')
                             }
                         }
                         if (gateway.type === 'ConvergeGateway') {
@@ -1552,14 +1502,12 @@
                                 }
                             })
                             if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
-                                // 汇聚网关push在最近的条件网关下
                                 const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' && order.type !== 'ConvergeGateway')]
                                 // 独立子流程的children为 subChildren
                                 this.nodeIds.push(gateway.id)
                                 if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
                                     gateway.gatewayType = 'converge'
-                                    // prev.children.push(gateway)
                                     outgoing.forEach(line => {
                                         this.retrieveLines(data, line, ordered)
                                     })
@@ -1571,6 +1519,7 @@
                     } else if (activity) { // 任务节点
                         if (isLoop) return
                         if (activity.type === 'SubProcess') {
+                            // 兼容旧数据
                             if (activity.pipeline) {
                                 activity.subChildren = this.getOrderedTree(activity.pipeline)
                             } else {
@@ -1591,6 +1540,35 @@
                     }
                 }
             },
+            // 判断当前tree最后一个节点是否是网关
+            orderedLastisGateway (data, allNodeList, ordered, gateways, filterGataway) {
+                const renderNodelist = [] // 渲染的节点列表
+                const renderNodeOutgoing = [] // 渲染的节点outgoing
+                this.nodeIds.forEach(item => {
+                    if (allNodeList[item]) {
+                        renderNodelist.push(allNodeList[item])
+                    }
+                })
+                renderNodelist.forEach(item => {
+                    if (Array.isArray(item.outgoing)) {
+                        item.outgoing.forEach(ite => {
+                            renderNodeOutgoing.push(ite)
+                        })
+                    } else {
+                        renderNodeOutgoing.push(item.outgoing)
+                    }
+                })
+                const convers = Object.keys(gateways).filter(conver => gateways[conver].type === filterGataway)
+                convers.forEach(item => {
+                    if (gateways[item].incoming.every(item => renderNodeOutgoing.includes(item))) {
+                        const curOutgoing = Array.isArray(gateways[item].outgoing) ? gateways[item].outgoing : [gateways[item].outgoing]
+                        curOutgoing.forEach(line => {
+                            this.retrieveLines(data, line, ordered)
+                        })
+                    }
+                })
+            },
+            // 渲染汇聚网关
             renderConverGateway (ids, ordered, data) {
                 const allNode = Object.assign({}, data.activities, data.gateways)
                 ids.forEach(id => {
@@ -1613,6 +1591,7 @@
                     }
                 })
             },
+            // 寻找汇聚网关的渲染位置
             findCoverPosition (list, id, cur, allNode, ordered) {
                 list.forEach(item => {
                     if (item.id === id) {
