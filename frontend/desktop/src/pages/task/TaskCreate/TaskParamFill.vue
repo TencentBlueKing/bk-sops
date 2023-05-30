@@ -46,7 +46,7 @@
                                     v-if="viewMode !== 'appmaker' || !isCustomizeType"
                                     :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                     @click="onSwitchTaskType(true)">
-                                    {{ $t('职能化') }}
+                                    {{ $t('task_职能化') }}
                                 </bk-button>
                             </div>
                         </div>
