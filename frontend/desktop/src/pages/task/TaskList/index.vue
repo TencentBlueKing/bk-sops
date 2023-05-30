@@ -97,7 +97,7 @@
                                         <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                                     </div>
                                     <!--任务类型-->
-                                    <div v-else-if="item.id === 'task_type'">
+                                    <div v-else-if="item.id === 'flow_type'">
                                         {{ props.row.flow_type === 'common_func' ? $t('task_职能化') : $t('常规') }}
                                     </div>
                                     <!-- 其他 -->
@@ -194,7 +194,7 @@
         },
         {
             id: 'taskName',
-            name: i18n.t('任务名'),
+            name: i18n.t('task_任务名'),
             isDefaultOption: true
         },
         {
@@ -280,7 +280,7 @@
             width: 100
         },
         {
-            id: 'task_type',
+            id: 'flow_type',
             label: i18n.t('task_任务类型'),
             width: 100
         },
