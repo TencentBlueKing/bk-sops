@@ -305,7 +305,8 @@
                 } else if (this.realTimeState.state === 'SUSPENDED') {
                     state = 'common-icon-dark-circle-pause'
                 } else if (this.realTimeState.state === 'FINISHED') {
-                    state = this.realTimeState.skip ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
+                    const { skip, error_ignored } = this.realTimeState
+                    state = skip || error_ignored ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
                 } else if (this.realTimeState.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
                 } else if (this.realTimeState.state === 'CREATED') {
@@ -320,8 +321,8 @@
                 if (this.state === 'CREATED') return i18n.t('未执行')
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
                 if (['FAILED', 'FINISHED'].includes(this.state) && this.realTimeState.state === 'READY') return i18n.t('未执行')
-                const { state, skip } = this.realTimeState
-                return skip ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
+                const { state, skip, error_ignored } = this.realTimeState
+                return skip || error_ignored ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
                 const { node_id, subprocess_stack = [] } = this.nodeDetailConfig

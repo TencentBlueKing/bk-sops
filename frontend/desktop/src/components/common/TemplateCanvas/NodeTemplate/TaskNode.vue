@@ -16,7 +16,7 @@
             'task-node',
             'process-node',
             node.status ? node.status.toLowerCase() : '',
-            { 'fail-skip': node.status === 'FINISHED' && node.skip },
+            { 'fail-skip': node.status === 'FINISHED' && (node.skip || node.error_ignored) },
             { 'ready': node.ready },
             { 'actived': node.isActived }
         ]">
