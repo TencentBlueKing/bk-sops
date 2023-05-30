@@ -911,6 +911,7 @@
             }
         }
         .error-handle-text {
+            min-width: 48px;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;

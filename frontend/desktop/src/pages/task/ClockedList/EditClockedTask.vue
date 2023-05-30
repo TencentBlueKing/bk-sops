@@ -526,7 +526,6 @@
                             message = i18n.t('对应流程模板已被删除，请重新选择模板创建计划任务')
                             this.formData.template_id = ''
                             this.formData.schemeId = []
-                            this.initFormData = tools.deepClone(this.formData)
                             this.templateLoading = true
                             this.getTemplateList()
                         }
@@ -538,6 +537,7 @@
                     console.warn(e)
                 } finally {
                     this.templateDataLoading = false
+                    this.initFormData = tools.deepClone(this.formData)
                 }
             },
             onSelectTemplate (id) {
