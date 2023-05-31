@@ -32,7 +32,7 @@
                 v-if="isShowViewProcess"
                 class="common-icon-jump-link"
                 v-bk-tooltips="{
-                    content: $t('查看流程'),
+                    content: $t('task_查看流程'),
                     placements: ['top']
                 }"
                 target="_blank"
