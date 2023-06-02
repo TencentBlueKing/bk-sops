@@ -349,7 +349,10 @@
                     }
                     if (item.default_condition) {
                         const nodeId = item.default_condition.flow_id
-                        branchConditions[item.id][nodeId] = item.default_condition
+                        branchConditions[item.id][nodeId] = {
+                            ...item.default_condition,
+                            default_condition: true
+                        }
                     }
                 }
                 return {
