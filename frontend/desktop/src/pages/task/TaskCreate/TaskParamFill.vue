@@ -574,7 +574,7 @@
         font-weight: 600;
         color: #313238;
         border-bottom: 1px solid #cacedb;
-        margin-bottom: 30px;
+        margin-bottom: 16px;
         .reuse-tip {
             color: #3a84ff;
             font-size: 12px;

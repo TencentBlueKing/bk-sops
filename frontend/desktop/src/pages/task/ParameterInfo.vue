@@ -379,7 +379,7 @@
 .variable-wrap {
     background: #f0f1f5;
     .unreferenced {
-       padding-bottom: 20px;
+       padding-bottom: 1px;
     }
     .title-background {
         position: relative;
