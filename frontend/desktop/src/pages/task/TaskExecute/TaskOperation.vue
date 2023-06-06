@@ -1464,6 +1464,7 @@
                                     children: []
                                 }
                             })
+                            this.nodeIds.push(gateway.id)
                             gateway.children.push(...defaultCondition)
                             defaultCondition.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children)
@@ -1474,7 +1475,6 @@
                                 })
                             })
                             ordered.push(gateway)
-                            this.nodeIds.push(gateway.id)
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
@@ -1597,9 +1597,9 @@
                     if (item.id === id) {
                         // 不是任务节点直接添加
                         if (item.type !== 'ServiceActivity' && item.type !== 'ConvergeGateway' && item.state !== 'Gateway') {
-                            if (list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
+                            if (item.children && list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
                                 this.renderedCoverNode.push(cur)
-                                list.push(Object.assign({}, allNode[cur], { name: this.$t('汇聚网关') }))
+                                item.children.push(Object.assign({}, allNode[cur], { name: this.$t('汇聚网关') }))
                             }
                         } else {
                             item.incoming.forEach(incoming => {
