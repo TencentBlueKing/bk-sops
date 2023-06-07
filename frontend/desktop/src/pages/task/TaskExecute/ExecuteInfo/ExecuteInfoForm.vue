@@ -521,12 +521,13 @@
              * 加载标准插件节点输入参数表单配置项，获取输出参数列表
              */
             async getPluginDetail () {
-                const { component_code: plugin, version } = this.nodeDetailConfig
+                const { component_code, version } = this.nodeDetailConfig
+                const plugin = this.isThirdPartyNode ? this.thirdPartyNodeCode : component_code
                 this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
-                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty }) || []
-                    if (!this.isThirdParty) {
+                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdPartyNode }) || []
+                    if (!this.isThirdPartyNode) {
                         this.outputs = this.pluginOutput[plugin][version]
                     }
                 } catch (e) {
