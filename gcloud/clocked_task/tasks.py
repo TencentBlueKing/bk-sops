@@ -50,6 +50,7 @@ def parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params):
 
 @task
 def clocked_task_start(clocked_task_id, *args, **kwargs):
+    logger.info(f"[clocked_task_start] starting clocked task {clocked_task_id}")
     try:
         clocked_task = ClockedTask.objects.get(id=clocked_task_id)
     except ClockedTask.DoesNotExist:
@@ -96,6 +97,7 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                     template_source=clocked_task.template_source,
                 ),
             )
+            logger.info(f"[clocked_task_start] clocked task {clocked_task_id} create taskflow {taskflow_instance.id}")
             ClockedTask.objects.filter(id=clocked_task_id).update(
                 task_id=taskflow_instance.id, state=CLOCKED_TASK_STARTED
             )
@@ -113,8 +115,15 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                 pipeline_tree=taskflow_instance.pipeline_instance.execution_data,
             )
 
-        taskflow_instance.task_action("start", clocked_task.creator)
+        logger.info(
+            f"[clocked_task_start] starting taskflow {taskflow_instance.id} with operator {clocked_task.creator}"
+        )
+        action_result = taskflow_instance.task_action("start", clocked_task.creator)
+        if not action_result.get("result"):
+            raise Exception(action_result.get("message", f"task {taskflow_instance.id} start fail: unknown error"))
     except Exception as ex:
         logger.exception("[clocked_task_start] task create error")
         ClockedTask.objects.filter(id=clocked_task_id).update(state=CLOCKED_TASK_START_FAILED)
         send_clocked_task_message(clocked_task, str(ex))
+    else:
+        logger.info(f"[clocked_task_start] clocked task {clocked_task_id} start success")
