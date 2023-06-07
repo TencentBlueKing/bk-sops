@@ -15,7 +15,6 @@ import importlib
 import sys
 from urllib.parse import urlparse
 
-from bamboo_engine.config import Settings as BambooSettings
 from blueapps.conf.default_settings import *  # noqa
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.opentelemetry.utils import inject_logging_trace_info
@@ -23,6 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.celery.queues import ScalableQueues
 
 import env
+from bamboo_engine.config import Settings as BambooSettings
 from gcloud.exceptions import ApiRequestError
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
@@ -153,11 +153,15 @@ MIDDLEWARE += (
 
 AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
 
+ENABLE_IPV6 = env.ENABLE_IPV6
+# paasv3 和 开启了ipv6 才会尝试加载 BK_API_URL_TMPL 这个变量
+if env.IS_PAAS_V3 or ENABLE_IPV6:
+    BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
+
 if env.IS_PAAS_V3:
     BK_APIGW_NAME = "bk-sops"
     BK_APP_CODE = os.getenv("BKPAAS_APP_ID")
     BK_APP_SECRET = os.getenv("BKPAAS_APP_SECRET")
-    BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
     BK_APIGW_MANAGER_MAINTAINERS = env.BK_APIGW_MANAGER_MAINTAINERS
 
     api_host = urlparse(env.BKAPP_APIGW_API_HOST)
@@ -665,6 +669,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
@@ -754,7 +759,7 @@ EXPIRED_TASK_CLEAN_NUM_LIMIT = env.EXPIRED_TASK_CLEAN_NUM_LIMIT
 TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
 MAX_EXPIRED_SESSION_CLEAN_NUM = env.MAX_EXPIRED_SESSION_CLEAN_NUM
 EXPIRED_SESSION_CLEAN_CRON = env.EXPIRED_SESSION_CLEAN_CRON
-ENABLE_IPV6 = env.ENABLE_IPV6
+
 
 # V2引擎任务清理配置
 ENABLE_CLEAN_EXPIRED_V2_TASK = env.ENABLE_CLEAN_EXPIRED_V2_TASK
