@@ -68,6 +68,7 @@ INSTALLED_APPS += (
     "gcloud.common_template",
     "gcloud.label",
     "gcloud.contrib.cleaner",
+    "gcloud.contrib.callback_retry",
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
@@ -761,6 +762,12 @@ CLEAN_EXPIRED_V2_TASK_CRON = env.CLEAN_EXPIRED_V2_TASK_CRON
 V2_TASK_VALIDITY_DAY = env.V2_TASK_VALIDITY_DAY
 CLEAN_EXPIRED_V2_TASK_BATCH_NUM = env.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
 CLEAN_EXPIRED_V2_TASK_INSTANCE = env.CLEAN_EXPIRED_V2_TASK_INSTANCE
+
+
+# 回调重试相关
+ENABLE_CALLBACK_RETRY_TASK = env.ENABLE_CALLBACK_RETRY_TASK
+CALLBACK_RETRY_CRON = env.CALLBACK_RETRY_CRON
+MAX_CALLBACK_RETRY_TIMES = env.MAX_CALLBACK_RETRY_TIMES
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
