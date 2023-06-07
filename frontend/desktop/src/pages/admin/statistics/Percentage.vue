@@ -21,7 +21,7 @@
                 </div>
             </div>
             <NoData v-else></NoData>
-            <div class="percent-table">
+            <div class="percent-table" v-if="hasAmountBizTotal">
                 <bk-table
                     :data="statsList"
                     :outer-border="false"
@@ -272,8 +272,9 @@
         border: 1px solid #dcdee5;
         border-radius: 3px;
         box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.15);
-        overflow: hidden;
+        overflow: auto hidden;
         margin-bottom: 20px;
+        @include scrollbar;
         .percentage-title {
             margin-bottom: 40px;
             .panel {
