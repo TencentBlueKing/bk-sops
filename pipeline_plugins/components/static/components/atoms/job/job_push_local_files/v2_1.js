@@ -352,7 +352,7 @@
                 allowCreate: true,
                 hookable: true,
                 remote_url: function () {
-                    let url = $.context.get('site_url') + 'pipeline/get_job_account_list/' +  $.context.getBkBizId() + '/'
+                    let url = $.context.get('site_url') + 'pipeline/get_job_account_list/' + $.context.getBkBizId() + '/'
                     return url
                 },
                 remote_data_init: function (resp) {
@@ -366,7 +366,17 @@
                         type: "required"
                     }
                 ]
-            }
+            },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        this.remote_url = $.context.get('site_url') + 'pipeline/get_job_account_list/' + value + '/'
+                        this.remoteMethod()
+                    }
+                },
+            ]
         },
         {
             tag_code: "job_timeout",
