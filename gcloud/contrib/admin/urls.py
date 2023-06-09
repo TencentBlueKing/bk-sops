@@ -14,14 +14,17 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
-from gcloud.contrib.admin import views, migration_api
-from gcloud.contrib.admin.viewsets import (
-    PeriodicTaskHistoryViewSet,
-    AdminTaskFlowInstanceViewSet,
-    AdminPeriodicTaskViewSet,
-    AdminTaskTemplateViewSet,
+from gcloud.contrib.admin import migration_api, views
+from gcloud.contrib.admin.views import (
+    batch_delete_project_based_component,
+    batch_insert_project_based_component,
 )
-from gcloud.contrib.admin.views import batch_insert_project_based_component
+from gcloud.contrib.admin.viewsets import (
+    AdminPeriodicTaskViewSet,
+    AdminTaskFlowInstanceViewSet,
+    AdminTaskTemplateViewSet,
+    PeriodicTaskHistoryViewSet,
+)
 
 v3_drf_api = DefaultRouter()
 v3_drf_api.register(r"periodic_task_history", PeriodicTaskHistoryViewSet)
@@ -51,4 +54,5 @@ urlpatterns = [
     url(r"^migration/migrate_template_category/$", migration_api.migrate_template_category),
     url(r"^migration/fix_engine_version_zero_task/$", migration_api.fix_engine_version_zero_task),
     url(r"^batch_insert_project_based_component/$", batch_insert_project_based_component),
+    url(r"^batch_delete_project_based_component/$", batch_delete_project_based_component),
 ]

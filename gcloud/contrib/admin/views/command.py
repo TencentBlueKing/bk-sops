@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 superuser command
 """
 
+from itertools import product
+
 from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
@@ -84,12 +86,59 @@ def batch_insert_project_based_component(request):
 
     body: data
     {
-        "project_id(required)": "项目 ID",
+        "project_id(optional)": "项目 ID",
+        "project_ids(optional)": "项目 ID 列表(list)"
         "component_codes(required)": "插件code列表(list)"
     }
     """
-    project_id = str(request.data.get("project_id"))
+    project_ids = []
+    if "project_id" in request.data:
+        project_ids.append(request.data["project_id"])
+    if "project_ids" in request.data:
+        project_ids.extend(request.data["project_ids"])
+
     component_codes = request.data.get("component_codes")
-    components = [ProjectBasedComponent(project_id=project_id, component_code=code) for code in component_codes]
+
+    existing_unique_keys = {
+        f"{component.project_id}-{component.component_code}"
+        for component in ProjectBasedComponent.objects.filter(
+            project_id__in=project_ids, component_code__in=component_codes
+        )
+    }
+
+    components = [
+        ProjectBasedComponent(project_id=str(project_id), component_code=component_code)
+        for project_id, component_code in product(set(project_ids), set(component_codes))
+        if f"{project_id}-{component_code}" not in existing_unique_keys
+    ]
     create_results = ProjectBasedComponent.objects.bulk_create(components)
     return JsonResponse({"result": True, "data": create_results, "message": ""})
+
+
+@swagger_auto_schema(method="post", auto_schema=AnnotationAutoSchema)
+@api_view(["POST"])
+@check_is_superuser()
+def batch_delete_project_based_component(request):
+    """
+    删除某个业务的一批基于业务的插件
+
+    body: data
+    {
+        "project_id(optional)": "项目 ID",
+        "project_ids(optional)": "项目 ID 列表(list)"
+        "component_codes(required)": "插件code列表(list)"
+    }
+    """
+    project_ids = []
+    if "project_id" in request.data:
+        project_ids.append(request.data["project_id"])
+    if "project_ids" in request.data:
+        project_ids.extend(request.data["project_ids"])
+
+    # to string
+    project_ids = [str(project_id) for project_id in project_ids]
+    component_codes = request.data.get("component_codes")
+    deleted, rows_count = ProjectBasedComponent.objects.filter(
+        project_id__in=set(project_ids), component_code__in=set(component_codes)
+    ).delete()
+    return JsonResponse({"result": True, "data": [], "message": f"deleted -> {deleted}, rows_count -> {rows_count}"})

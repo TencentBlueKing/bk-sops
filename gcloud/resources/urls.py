@@ -15,38 +15,46 @@ from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
 from gcloud.clocked_task.viewset import ClockedTaskViewSet
+from gcloud.contrib.operate_record.apis.drf.viewsets import (
+    TaskOperateRecordSetViewSet,
+    TemplateOperateRecordSetViewSet,
+)
 from gcloud.core.apis.drf.viewsets import (
-    ProjectConfigViewSet,
-    ResourceConfigViewSet,
-    StaffGroupSetViewSet,
+    AppmakerListViewSet,
     BusinessSetViewSet,
-    ComponentModelSetViewSet,
-    ProjectSetViewSet,
-    UserProjectSetViewSet,
+    CollectionViewSet,
     CommonProjectViewSet,
+)
+from gcloud.core.apis.drf.viewsets import (
+    CommonTemplateViewSet as V3CommonTemplateViewSet,
+)
+from gcloud.core.apis.drf.viewsets import (
+    ComponentModelSetViewSet,
+    FunctionTaskViewSet,
     LabelViewSet,
     PackageSourceViewSet,
-    SyncTaskViewSet,
-    CollectionViewSet,
-    FunctionTaskViewSet,
-    VariableViewSet,
-    TaskTemplateViewSet,
-    AppmakerListViewSet,
     PeriodicTaskViewSet,
-    CommonTemplateViewSet as V3CommonTemplateViewSet,
+    ProjectConfigViewSet,
+    ProjectSetViewSet,
+    ResourceConfigViewSet,
+    StaffGroupSetViewSet,
+    SyncTaskViewSet,
     TaskFlowInstanceViewSet,
+    TaskTemplateViewSet,
+    UserProjectSetViewSet,
+    VariableViewSet,
 )
-
-from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
-from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.label.viewsets import NewLabelViewSet
 from gcloud.project_constants.apis.drf.viewsets import ProjectConstantsViewSet
-
-
-from gcloud.template_base.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
+from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
+from gcloud.template_base.apis.drf.viewsets.template import (
+    CommonTemplateViewSet,
+    ProjectTemplateViewSet,
+)
 from gcloud.user_custom_config.viewsets.user_custom_config import UserCustomConfViewset
-from gcloud.user_custom_config.viewsets.user_custom_config_options import UserCustomConfigOptions
-
+from gcloud.user_custom_config.viewsets.user_custom_config_options import (
+    UserCustomConfigOptions,
+)
 
 drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
@@ -58,7 +66,7 @@ drf_router.register(r"new_label", NewLabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
 drf_router.register(r"project_constants", ProjectConstantsViewSet)
 drf_router.register(r"business", BusinessSetViewSet)
-drf_router.register(r"component", ComponentModelSetViewSet)
+drf_router.register(r"component", ComponentModelSetViewSet, basename="component")
 drf_router.register(r"project", ProjectSetViewSet)
 drf_router.register(r"user_project", UserProjectSetViewSet)
 drf_router.register(r"common_project", CommonProjectViewSet)

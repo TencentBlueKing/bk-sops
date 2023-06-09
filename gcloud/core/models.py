@@ -11,13 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import datetime
+import typing
 from os import environ
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models, transaction
+from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import TEMPLATE_SOURCE
 
@@ -258,6 +260,50 @@ class ProjectBasedComponent(models.Model):
     class Meta:
         verbose_name = _("基于项目的组件 ProjectBasedComponent")
         verbose_name_plural = _("基于项目的组件 ProjectBasedComponent")
+
+
+class DisabledComponentManager(models.Manager):
+    def get_disabled_components(self, scope: str, action: str) -> typing.List[str]:
+        disabled_components: typing.List[str] = self.filter(
+            Q(scope=DisabledComponent.SCOPE_TYPE_ALL, action=DisabledComponent.ACTION_TYPE_ALL)
+            | Q(scope=DisabledComponent.SCOPE_TYPE_ALL, action=action)
+            | Q(action=DisabledComponent.ACTION_TYPE_ALL, scope=scope)
+            | Q(scope=scope, action=action)
+        ).values_list("component_code", flat=True)
+
+        return list(disabled_components)
+
+
+class DisabledComponent(models.Model):
+    """
+    禁用的插件
+    """
+
+    ACTION_TYPE_LIST = "list"
+    ACTION_TYPE_RETRIEVE = "retrieve"
+    ACTION_TYPE_ALL = "all"
+    SCOPE_TYPE_TASK = "task"
+    SCOPE_TYPE_FLOW = "flow"
+    SCOPE_TYPE_ALL = "all"
+
+    ACTION_CHOICES = [
+        (ACTION_TYPE_LIST, ACTION_TYPE_LIST),
+        (ACTION_TYPE_RETRIEVE, ACTION_TYPE_RETRIEVE),
+        (ACTION_TYPE_ALL, ACTION_TYPE_ALL),
+    ]
+
+    SCOPE_CHOICES = [(SCOPE_TYPE_TASK, _("任务")), (SCOPE_TYPE_FLOW, _("流程")), (SCOPE_TYPE_ALL, _("全部"))]
+
+    component_code = models.CharField(_("组件编码"), max_length=255)
+    action = models.CharField(_("禁用动作"), max_length=32, choices=ACTION_CHOICES)
+    scope = models.CharField(_("禁用范围"), max_length=32, choices=SCOPE_CHOICES)
+
+    objects = DisabledComponentManager()
+
+    class Meta:
+        verbose_name = _("全局禁用的组件 DisabledComponent")
+        verbose_name_plural = _("全局禁用的组件 DisabledComponent")
+        index_together = ["scope", "action"]
 
 
 class UserDefaultProjectManager(models.Manager):
