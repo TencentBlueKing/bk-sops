@@ -20,7 +20,7 @@ def run_callback_retry():
     if not settings.ENABLE_CALLBACK_RETRY_TASK:
         logger.info("Skip callback retry task")
 
-    # 需要定义这一次批量处理的节点数量
+    # 拿到现在所有需要扫描的任务
     tasks = CallbackRetryTask.objects.filter(status=CallbackStatus.READY.value)
     logger.info("[run_callback_retry] found {} tasks need to callback retry".format(tasks.count()))
     for task in tasks:
@@ -50,4 +50,5 @@ def run_callback_retry():
             task.status = CallbackStatus.SUCCESS.value
             task.finish_time = datetime.datetime.now()
 
+    logger.info("[run_callback_retry] found {} tasks need to callback retry".format(tasks.count()))
     CallbackRetryTask.objects.bulk_update(tasks, ["count", "error", "status", "finish_time"])

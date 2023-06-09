@@ -35,7 +35,7 @@ class CallbackRetryTask(models.Model):
         _("回调状态"), max_length=32, choices=CALLBACK_STATUS_CHOICES, default=CallbackStatus.READY.value
     )
     count = models.IntegerField(_("回调次数"), default=0)
-    error = models.CharField(_("异常信息"), max_length=512, blank=True, null=True, default=None)
+    error = models.TextField(_("异常信息"), blank=True, null=True)
     create_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
     finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
 
@@ -45,5 +45,5 @@ class CallbackRetryTask(models.Model):
         index_together = ["task_id", "node_id", "version", "status"]
 
     @classmethod
-    def exists(cls, task_id, node_id, version, status=CallbackStatus.READY):
+    def exists(cls, task_id, node_id, version, status=CallbackStatus.READY.value):
         return cls.objects.filter(task_id=task_id, node_id=node_id, version=version, status=status).exists()
