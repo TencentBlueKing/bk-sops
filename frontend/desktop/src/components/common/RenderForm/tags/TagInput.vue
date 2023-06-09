@@ -157,7 +157,9 @@
         },
         mounted () {
             const divInputDom = this.$el.querySelector('.div-input')
-            divInputDom.innerHTML = this.value
+            if (divInputDom) {
+                divInputDom.innerHTML = this.value
+            }
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
