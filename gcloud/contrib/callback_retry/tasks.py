@@ -18,7 +18,8 @@ logger = logging.getLogger("root")
 @time_record(logger)
 def run_callback_retry():
     if not settings.ENABLE_CALLBACK_RETRY_TASK:
-        logger.info("Skip callback retry task")
+        logger.info("[run_callback_retry] Skip callback retry task")
+        return
 
     # 拿到现在所有需要扫描的任务
     tasks = CallbackRetryTask.objects.filter(status=CallbackStatus.READY.value)
