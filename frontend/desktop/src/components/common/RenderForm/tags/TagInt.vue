@@ -71,7 +71,9 @@
                 },
                 set (val) {
                     val = val || 0
-                    this.updateForm(val)
+                    if (val !== this.value) {
+                        this.updateForm(val)
+                    }
                 }
             }
         }
