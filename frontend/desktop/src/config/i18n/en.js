@@ -1761,7 +1761,8 @@ const en = {
     '任务还未认领，请通知职能化人员': 'The task has not been taked, please inform the team members.',
     '若坚持执行，职能化人员将无法操作该任务': 'If you still want to execute,  the team members will not be able to operate the task.',
     '执行方式': 'Source',
-    'API 任务': 'API'
+    'API 任务': 'API',
+    '清空筛选': 'Clear'
 }
 
 export default en
