@@ -1396,6 +1396,25 @@
                         onSortChange={ data => this.handleSortChange(data) }
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
+                } else if (column.property === 'label') {
+                    const list = this.templateLabels.map(label => {
+                        label.textColor = this.darkColorList.includes(label.color) ? '#fff' : '#262e4f'
+                        return label
+                    })
+                    const data = this.searchSelectValue.find(item => item.id === 'label_ids')
+                    const filterConfig = {
+                        show: true,
+                        list,
+                        values: data ? data.values : []
+                    }
+                    return <TableRenderHeader
+                        name={ column.label }
+                        property={ column.property }
+                        orderShow={ false }
+                        dateFilterShow={ false }
+                        filterConfig = { filterConfig }
+                        onFilterChange={ data => this.handleLabelFilter(data) }>
+                    </TableRenderHeader>
                 } else {
                     return h('p', {
                         class: 'label-text',
@@ -1423,6 +1442,20 @@
                         // 添加搜索记录
                         const searchDom = this.$refs.searchSelect
                         searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
+            handleLabelFilter (data = []) {
+                const index = this.searchSelectValue.findIndex(item => item.id === 'label_ids')
+                if (data.length) {
+                    if (index > -1) {
+                        const values = this.searchSelectValue[index].values
+                        this.searchSelectValue[index].values = [...new Set(values, data)]
+                    } else {
+                        const form = this.searchList.find(item => item.id === 'label_ids')
+                        this.searchSelectValue.push({ ...form, values: data })
                     }
                 } else if (index > -1) {
                     this.searchSelectValue.splice(index, 1)
