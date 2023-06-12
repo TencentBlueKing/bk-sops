@@ -10,11 +10,9 @@
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
             <div class="scheme-active-wrapper" v-if="!isPreviewMode">
-                <div>
-                    <bk-button data-test-id="createTask_form_createScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button data-test-id="createTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
-                </div>
-                <bk-button data-test-id="createTask_form_togglePreview" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
+                <bk-button data-test-id="createTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                <bk-button data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
+                
             </div>
             <div class="scheme-content" data-test-id="createTask_form_schemeList">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
@@ -27,22 +25,6 @@
                     <span class="scheme-name">{{ $t('方案名称') }}</span>
                 </p>
                 <ul class="scheme-list" v-if="schemeList.length || nameEditing">
-                    <li class="add-scheme" :class="{ 'vee-errors': veeErrors.has('schemeName'), 'is-mepty': !schemeList.length }" v-if="nameEditing">
-                        <bk-input
-                            ref="nameInput"
-                            v-model="schemeName"
-                            v-validate.persist="schemeNameRule"
-                            name="schemeName"
-                            class="bk-input-inline"
-                            :clearable="true"
-                            @blur="handlerBlur"
-                            @keyup.enter.native="onAddScheme"
-                            :placeholder="$t('方案名称')">
-                        </bk-input>
-                        <p class="common-error-tip error-msg">
-                            {{ veeErrors.first('schemeName') }}
-                        </p>
-                    </li>
                     <li
                         v-for="item in schemeList"
                         class="scheme-item"
@@ -54,11 +36,6 @@
                         </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
-                        <i
-                            v-if="isSchemeEditable"
-                            class="bk-icon icon-close-circle-shape"
-                            @click.stop="onDeleteScheme(item)">
-                        </i>
                     </li>
                 </ul>
                 <!-- 无数据提示 -->
@@ -68,11 +45,10 @@
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import XLSX from 'xlsx'
 
     export default {
         name: 'TaskScheme',
@@ -89,10 +65,6 @@
                 type: [String, Number],
                 default: ''
             },
-            templateName: {
-                type: String,
-                default: ''
-            },
             isCommonProcess: {
                 type: Boolean,
                 default: false
@@ -101,25 +73,11 @@
                 type: Boolean,
                 default: false
             },
-            isSchemeEditable: {
-                type: Boolean,
-                default: false
-            },
             isPreviewMode: {
                 type: Boolean,
                 default: false
             },
-            isEditProcessPage: {
-                type: Boolean,
-                default: true
-            },
             selectedNodes: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            tplActions: {
                 type: Array,
                 default () {
                     return []
@@ -128,34 +86,32 @@
             planDataObj: {
                 type: Object,
                 default: () => {}
+            },
+            excludeNode: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            orderedNodeData: {
+                type: Array,
+                default () {
+                    return []
+                }
             }
         },
         data () {
             return {
-                showPanel: true,
-                nameEditing: false,
-                schemeName: '',
-                schemeNameRule: {
-                    required: true,
-                    max: STRING_LENGTH.SCHEME_NAME_MAX_LENGTH,
-                    regex: NAME_REG
-                },
+                showPanel: false,
                 schemeList: [],
                 defaultIdList: [],
-                defaultSchemeId: null,
-                deleting: false,
-                isPreview: false
+                defaultSchemeId: null
             }
         },
         computed: {
             ...mapState('project', {
-                'projectId': state => state.project_id,
                 'projectName': state => state.projectName
             }),
-            haveCreateSchemeTpl () {
-                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                return this.hasPermission([tplAction], this.tplActions)
-            },
             isAllChecked () {
                 const selectPlanLength = Object.keys(this.planDataObj).length
                 return selectPlanLength && selectPlanLength === this.schemeList.length
@@ -165,21 +121,13 @@
                 return Boolean(selectPlanLength) && selectPlanLength !== this.schemeList.length
             }
         },
-        watch: {
-            isPreviewMode (val) {
-                this.isPreview = val
-            }
-        },
         created () {
             this.initLoad()
         },
         methods: {
             ...mapActions('task/', [
                 'loadTaskScheme',
-                'createTaskScheme',
-                'deleteTaskScheme',
-                'getDefaultTaskScheme',
-                'updateDefaultScheme'
+                'getDefaultTaskScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
             onCheckChange (e, scheme) {
@@ -235,29 +183,6 @@
                 }
             },
             /**
-             * 更新默认方案
-            */
-            async onSaveDefaultExecuteScheme () {
-                try {
-                    const ids = this.schemeList.reduce((acc, cur) => {
-                        if (cur.isDefault) {
-                            acc.push(cur.uuid)
-                        }
-                        return acc
-                    }, [])
-                    const params = {
-                        project_id: this.isCommonProcess ? undefined : this.project_id,
-                        template_type: this.isCommonProcess ? 'common' : undefined,
-                        template_id: Number(this.template_id),
-                        scheme_ids: ids,
-                        id: this.defaultSchemeId
-                    }
-                    await this.updateDefaultScheme(params)
-                } catch (error) {
-                    console.warn(error)
-                }
-            },
-            /**
              * 执行方案全选/半选
              */
             onAllCheckChange (val) {
@@ -275,145 +200,19 @@
             onImportTemporaryPlan () {
                 this.$emit('onImportTemporaryPlan')
             },
-            /**
-             * 创建任务方案弹窗
-             */
-            onCreateScheme () {
-                let hasCreatePermission = true
-                if (!this.haveCreateSchemeTpl) {
-                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
-                }
-                if (hasCreatePermission && !this.isPreviewMode) {
-                    this.veeErrors.clear()
-                    this.nameEditing = true
-                    this.$nextTick(() => {
-                        this.$refs.nameInput.focus()
-                    })
-                }
-            },
-            /**
-             * 添加方案输入框失焦事件
-             */
-            handlerBlur () {
-                this.nameEditing = this.schemeName.trim() !== ''
-                if (!this.nameEditing) {
-                    this.veeErrors.clear()
-                }
-            },
-            /**
-             * 添加方案
-             */
-            onAddScheme () {
-                if (this.schemeName === '') {
-                    this.nameEditing = false
-                    return
-                }
-
-                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
-                if (isschemeNameExist) {
-                    this.$bkMessage({
-                        message: i18n.t('方案名称已存在'),
-                        theme: 'error',
-                        delay: 10000
-                    })
-                    return
-                }
-                this.$validator.validateAll().then(async (result) => {
-                    if (!result) {
-                        this.schemeName = ''
-                        this.nameEditing = false
-                        return
-                    }
-                    this.schemeName = this.schemeName.trim()
-                    const selectedNodes = this.selectedNodes.slice()
-                    const scheme = {
-                        project_id: this.project_id,
-                        template_id: this.template_id,
-                        name: this.schemeName,
-                        data: JSON.stringify(selectedNodes),
-                        isCommon: this.isCommonProcess
-                    }
-                    try {
-                        const resp = await this.createTaskScheme(scheme)
-                        resp.data.uuid = resp.data.id
-                        this.schemeList.push(resp.data)
-                        this.$bkMessage({
-                            message: i18n.t('新增方案成功'),
-                            theme: 'success'
-                        })
-                        this.$emit('updateTaskSchemeList', this.schemeList, true)
-                    } catch (e) {
-                        console.log(e)
-                    } finally {
-                        this.schemeName = ''
-                        this.nameEditing = false
-                    }
+            // 导出当前方案
+            onExportScheme () {
+                const text = []
+                this.orderedNodeData.forEach(item => {
+                    const { stage_name, name, optional } = item
+                    const status = optional ? (this.excludeNode.includes(item.id) ? 0 : 1) : 2
+                    text.push([`${stage_name === '' ? '' : stage_name + '：'}${name} ${status}`])
                 })
-            },
-            /**
-             * 删除方案
-             */
-            async onDeleteScheme (scheme) {
-                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                const hasPermission = this.checkSchemeRelativePermission([tplAction])
-
-                if (this.deleting || !hasPermission) return
-                this.deleting = true
-                try {
-                    await this.deleteTaskScheme({ id: scheme.uuid, isCommon: this.isCommonProcess })
-                    if (scheme.isDefault) {
-                        scheme.isDefault = false
-                        await this.onSaveDefaultExecuteScheme()
-                    }
-                    const index = this.schemeList.findIndex(item => item.uuid === scheme.uuid)
-                    this.schemeList.splice(index, 1)
-                    this.onCheckChange(false, scheme)
-                    this.$bkMessage({
-                        message: i18n.t('方案删除成功'),
-                        theme: 'success'
-                    })
-                    this.$emit('updateTaskSchemeList', this.schemeList, true)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.deleting = false
-                }
-            },
-            /**
-             * 校验权限，若无权限弹出权限申请弹窗
-             * @params {Array} required 被校验的权限
-             */
-            checkSchemeRelativePermission (required) {
-                if (!this.hasPermission(required, this.tplActions)) {
-                    const flowType = this.isCommonProcess ? 'common_flow' : 'flow'
-                    const resourceData = {
-                        [`${flowType}`]: [{
-                            id: this.template_id,
-                            name: this.templateName
-                        }],
-                        project: [{
-                            id: this.projectId,
-                            name: this.projectName
-                        }]
-                    }
-                    this.applyForPermission(required, this.tplActions, resourceData)
-                    return false
-                }
-                return true
-            },
-            // 取消添加执行方案
-            onCancel () {
-                this.schemeName = ''
-                this.nameEditing = false
-            },
-            /**
-             * 预览模式的点击事件
-             * @params {Boolean} isPreview  是否是预览模式
-             */
-            onChangePreviewNode () {
-                this.isPreview = !this.isPreview
-                this.$emit('togglePreviewMode', this.isPreview)
+                const wsName = 'task_scheme'
+                const wb = XLSX.utils.book_new()
+                const ws = XLSX.utils.aoa_to_sheet(text)
+                XLSX.utils.book_append_sheet(wb, ws, wsName)
+                XLSX.writeFile(wb, `bk_sops_tpl_task_scheme_${+new Date()}.xlsx`)
             }
         }
     }
@@ -463,14 +262,12 @@
         .scheme-active-wrapper {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 16px 0px 15px;
             border-top: 1px solid #dcdee5;
             /deep/.bk-button {
                 width: auto;
                 margin-left: 10px;
                 &:first-child {
-                    width: 80px;
                     margin-left: 0;
                 }
                 .icon-plus-line {
@@ -478,20 +275,6 @@
                     margin-right: 3px;
                     color: #979ba5;
                 }
-            }
-        }
-        .add-scheme {
-            position: relative;
-            padding: 4px 0 5px 16px;
-            border-bottom: 1px solid #f0f1f5;
-            .bk-input-inline {
-                width: 320px;
-            }
-            .common-error-tip {
-                display: none;
-            }
-            &.is-mepty {
-                border-bottom: none;
             }
         }
         .scheme-content {
@@ -530,30 +313,12 @@
                 color: #14a568;
                 background: #e4faf0;
             }
-            .icon-close-circle-shape {
-                position: absolute;
-                top: 15px;
-                right: 10px;
-                font-size: 14px;
-                color: #cecece;
-                opacity: 0;
-                cursor: pointer;
-                &:hover {
-                    color: #979ba5;
-                }
-            }
             .scheme-item {
                 &:hover {
                     background: #f0f1f5;
-                    .icon-close-circle-shape {
-                        opacity: 1;
-                    }
                 }
                 &.is-checked {
                     background: #eaf3ff;
-                    .icon-close-circle-shape {
-                        opacity: 1;
-                    }
                 }
                 &:last-child {
                     border-bottom: none;
@@ -620,21 +385,6 @@
         }
         .scheme-name-input {
             margin: 0 35px 0 120px;
-        }
-    }
-    .bk-input-inline {
-        display: inline-block;
-        width: 200px;
-    }
-</style>
-<style lang="scss">
-    .vee-errors {
-        .bk-form-input {
-            border-color: #ff5757;
-        }
-        .common-error-tip {
-            margin-top: 5px;
-            display: block !important;
         }
     }
 </style>

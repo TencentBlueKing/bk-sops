@@ -57,6 +57,7 @@
                 :execute-scheme-saving="executeSchemeSaving"
                 :is-edit-process-page="isEditProcessPage"
                 :scheme-info="schemeInfo"
+                :exclude-node="excludeNode"
                 @onEditScheme="onEditScheme"
                 @onImportTemporaryPlan="onImportTemporaryPlan"
                 @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
@@ -79,13 +80,11 @@
                 {{ $t('下一步') }}
             </bk-button>
             <bk-button
-                v-if="isPreviewMode"
                 class="preview-button"
-                data-test-id="templateEdit_form_closePreview"
-                @click="togglePreviewMode(false)">
-                {{ $t('关闭预览') }}
+                data-test-id="createTask_form_togglePreview"
+                @click="togglePreviewMode(!isPreviewMode)">
+                {{ isPreviewMode ? $t('关闭预览') : $t('节点预览')}}
             </bk-button>
-            <bk-button v-if="isSchemeShow && !isPreviewMode" data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
         <bk-sideslider
             :is-show="isEditSchemeShow"
