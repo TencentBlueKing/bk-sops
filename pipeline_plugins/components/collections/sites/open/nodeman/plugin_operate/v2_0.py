@@ -66,20 +66,17 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
                 schema=ObjectItemSchema(
                     description=_("主机信息内容"),
                     property_schemas={
-                        "nodeman_host_input_type": StringItemSchema(
-                            description=_("主机填写方式"), enum=["host_ip", "host_id"]
-                        ),
                         "nodeman_bk_cloud_id": IntItemSchema(description=_("主机所在云区域 ID")),
                         "nodeman_host_ip": StringItemSchema(
                             description=_("主机ip,多个以英文','分隔，nodeman_host_input_type值为host_ip时必填")
-                        ),
-                        "nodeman_host_id": StringItemSchema(
-                            description=_("主机id,多个以英文','分隔，nodeman_host_input_type值为host_id时必填")
                         ),
                     },
                 ),
             ),
         ]
+
+    def get_input_type(self, data):
+        return "host_ip"
 
     def outputs_format(self):
         outputs_format = super(NodemanPluginOperateService, self).outputs_format()
@@ -87,24 +84,15 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
-
         bk_biz_id = data.inputs.biz_cc_id
-        host_info = data.inputs.nodeman_host_info
-        input_type = host_info.get("nodeman_host_input_type", None)
 
-        if not input_type:
-            data.set_outputs("ex_data", _("请选择填写方式"))
+        bk_cloud_id = data.inputs.nodeman_bk_cloud_id
+        ip_str = data.inputs.nodeman_host_ip
+        host_result = self.get_host_list(executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
+        if not host_result["result"]:
+            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(host_result["message"])))
             return False
-        if input_type == "host_ip":
-            bk_cloud_id = host_info.get("nodeman_bk_cloud_id", None)
-            ip_str = host_info.get("nodeman_host_ip", "")
-            host_result = self.get_host_list(executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
-            if not host_result["result"]:
-                data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(host_result["message"])))
-                return False
-            host = [int(host_id) for host_id in host_result["data"]]
-        else:
-            host = host_info.get("nodeman_host_id", "").strip().split(",")
+        host = [int(host_id) for host_id in host_result["data"]]
 
         return self.execute_operate(data, host, executor, bk_biz_id)
 
@@ -113,5 +101,5 @@ class NodemanPluginOperateComponent(Component):
     name = _("插件操作")
     code = "nodeman_plugin_operate"
     bound_service = NodemanPluginOperateService
-    form = "%scomponents/atoms/nodeman/plugin_operate/v1_0.js" % settings.STATIC_URL
-    version = "v1.0"
+    form = "%scomponents/atoms/nodeman/plugin_operate/v2_0.js" % settings.STATIC_URL
+    version = "v2.0"
