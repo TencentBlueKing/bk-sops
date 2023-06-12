@@ -19,22 +19,22 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from plugin_service import env
-from plugin_service.conf import PLUGIN_LOGGER, PLUGIN_DISTRIBUTOR_NAME
 from plugin_service.api_decorators import inject_plugin_client, validate_params
+from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME, PLUGIN_LOGGER
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
 from plugin_service.serializers import (
-    PluginListResponseSerializer,
     DetailResponseSerializer,
-    MetaResponseSerializer,
-    LogResponseSerializer,
     LogQuerySerializer,
-    PluginDetailQuerySerializer,
-    PluginCodeQuerySerializer,
-    PluginListQuerySerializer,
+    LogResponseSerializer,
+    MetaResponseSerializer,
     PluginAppDetailResponseSerializer,
+    PluginCodeQuerySerializer,
     PluginDetailListQuerySerializer,
     PluginDetailListResponseSerializer,
+    PluginDetailQuerySerializer,
+    PluginListQuerySerializer,
+    PluginListResponseSerializer,
     PluginTagListResponseSerializer,
     PluginTagsListQuerySerializer,
 )
@@ -220,12 +220,12 @@ def get_meta(request: Request):
 
 
 @swagger_auto_schema(
-    method="GET",
+    method="POST",
     operation_summary="获取插件服务执行日志",
-    query_serializer=LogQuerySerializer,
+    request_body=LogQuerySerializer,
     responses={200: LogResponseSerializer},
 )
-@api_view(["GET"])
+@api_view(["POST"])
 @validate_params(LogQuerySerializer)
 def get_logs(request: Request):
     """获取插件服务执行日志"""
