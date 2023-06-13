@@ -102,6 +102,7 @@
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
                     :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
+                    :isolation-atom-config="isolationAtomConfig"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -315,7 +316,8 @@
                 isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
                 isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
                 checkedNodes: [],
-                checkedConvergeNodes: []
+                checkedConvergeNodes: [],
+                isolationAtomConfig: {} // 被隔离插件的基础配置
             }
         },
         computed: {
@@ -1211,14 +1213,30 @@
              * 打开节点配置面板
              */
             async onShowNodeConfig (id) {
+                this.isolationAtomConfig = { list: [] }
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
                 if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name && nodeConfig.component.code !== 'remote_plugin') {
                     let atom = true
                     atom = this.atomList.find(item => item.code === nodeConfig.component.code)
-                    this.isNotExistAtomOrVersion = false
+                    // 插件列表中未匹配到，1.该插件被移除 2.该插件被隔离
                     if (!atom) {
-                        this.isNotExistAtomOrVersion = true
+                        const resp = await this.loadAtomConfig({
+                            atom: nodeConfig.component.code,
+                            version: nodeConfig.component.version,
+                            project_id: this.common ? undefined : this.project_id
+                        })
+                        // 隔离插件允许拉取详情数据
+                        if (resp) {
+                            this.isNotExistAtomOrVersion = false
+                            // 被隔离插件的基础配置
+                            this.isolationAtomConfig = {
+                                ...resp.data,
+                                list: [resp.data]
+                            }
+                        } else {
+                            this.isNotExistAtomOrVersion = true
+                        }
                     } else {
                         const matchResult = atom.list.find(item => item.version === nodeConfig.component.version)
                         this.isNotExistAtomOrVersion = !matchResult

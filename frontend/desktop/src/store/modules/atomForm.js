@@ -133,11 +133,14 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { name, atom, classify = 'component', version = 'legacy', project_id } = payload
+            const { name, atom, classify = 'component', version = 'legacy', project_id, scope = undefined } = payload
             const atomClassify = classify
             const atomFile = name || atom
             const atomVersion = atomClassify === 'component' ? version : 'legacy'
-            const params = { project_id } // 业务下需要带 project_id，公共流程、插件开发等不需要传
+            const params = {
+                project_id, // 业务下需要带 project_id，公共流程、插件开发等不需要传
+                scope
+            }
             const url = atomClassify === 'component' ? `api/v3/component/${atomFile}/` : `api/v3/variable/${atomFile}/`
 
             // 变量暂时没有版本系统
@@ -156,7 +159,8 @@ const atomForm = {
                 const result = {
                     input: [],
                     output: [],
-                    isRenderOutputForm: !!outputForm
+                    isRenderOutputForm: !!outputForm,
+                    data: response.data.data
                 }
 
                 commit('setAtomForm', { atomType: atom, data: response.data.data, version: atomVersion })
