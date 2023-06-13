@@ -1219,12 +1219,14 @@
                 if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name && nodeConfig.component.code !== 'remote_plugin') {
                     let atom = true
                     atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    // 插件列表中未匹配到，1.该插件被移除 2.该插件被隔离
                     if (!atom) {
                         const resp = await this.loadAtomConfig({
                             atom: nodeConfig.component.code,
                             version: nodeConfig.component.version,
                             project_id: this.common ? undefined : this.project_id
                         })
+                        // 隔离插件允许拉取详情数据
                         if (resp) {
                             this.isNotExistAtomOrVersion = false
                             // 被隔离插件的基础配置

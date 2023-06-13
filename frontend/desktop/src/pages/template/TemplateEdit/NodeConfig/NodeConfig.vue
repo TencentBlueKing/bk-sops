@@ -1473,7 +1473,7 @@
                 let phase = ''
                 let atom = this.atomList.find(group => group.code === this.basicInfo.plugin)
                 atom = atom || this.isolationAtomConfig
-                atom && atom.list.some(item => {
+                atom.list.some(item => {
                     if (item.version === (this.basicInfo.version || 'legacy')) {
                         phase = item.phase
                     }
