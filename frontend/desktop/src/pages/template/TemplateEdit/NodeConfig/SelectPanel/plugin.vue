@@ -10,7 +10,7 @@
             :placeholder="$t('请输入插件名称')"
             :clearable="true"
             data-test-id="templateEdit_form_searchPlugin"
-            @change="handleSearchEmpty"
+            @input="handleSearchEmpty"
             @clear="handleSearch"
             @enter="handleSearch">
         </bk-input>
@@ -241,7 +241,7 @@
                     }
                     this.thirdPluginOffset = return_plugin_count ? next_offset : 0
                     this.thirdPartyPlugin.push(...pluginList)
-                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPage.limit) {
+                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPagelimit) {
                         this.isThirdPluginCompleteLoading = true
                     }
                 } catch (error) {
