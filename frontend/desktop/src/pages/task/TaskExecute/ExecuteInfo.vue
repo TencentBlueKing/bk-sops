@@ -627,7 +627,7 @@
                     this.isRenderOutputForm = true
                 } else {
                     try {
-                        const res = await this.loadAtomConfig({ atom: type, version })
+                        const res = await this.loadAtomConfig({ atom: type, version, scope: 'task' })
                         // 第三方插件节点拼接输出参数
                         if (this.isThirdPartyNode) {
                             const resp = await this.loadPluginServiceDetail({
