@@ -1224,7 +1224,10 @@
                         const resp = await this.loadAtomConfig({
                             atom: nodeConfig.component.code,
                             version: nodeConfig.component.version,
-                            project_id: this.common ? undefined : this.project_id
+                            project_id: this.common ? undefined : this.project_id,
+                            scope: 'flow'
+                        }).catch(() => {
+                            this.isNotExistAtomOrVersion = true
                         })
                         // 隔离插件允许拉取详情数据
                         if (resp) {
@@ -1234,8 +1237,6 @@
                                 ...resp.data,
                                 list: [resp.data]
                             }
-                        } else {
-                            this.isNotExistAtomOrVersion = true
                         }
                     } else {
                         const matchResult = atom.list.find(item => item.version === nodeConfig.component.version)
