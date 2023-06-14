@@ -24,7 +24,7 @@
                     <div
                         v-if="columnInfo.id === 'agent'"
                         v-bk-overflow-tips
-                        :class="!editable ? 'agent-disabled' : row.agent ? 'agent-normal' : 'agent-failed'">
+                        :class="!editable ? 'agent-disabled' : row.agent === 1 ? 'agent-normal' : 'agent-failed'">
                         {{ row.agent === 1 ? $t('正常') : $t('异常') }}
                     </div>
                     <div v-else-if="columnInfo.id === 'cloud'">
