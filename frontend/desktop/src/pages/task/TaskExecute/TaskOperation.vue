@@ -658,7 +658,7 @@
              */
             async getSingleAtomList () {
                 try {
-                    const params = {}
+                    const params = { scope: 'task' }
                     if (!this.common) {
                         params.project_id = this.project_id
                     }

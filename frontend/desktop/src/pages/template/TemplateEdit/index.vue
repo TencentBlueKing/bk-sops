@@ -581,7 +581,7 @@
             async getSingleAtomList (val) {
                 this.singleAtomListLoading = true
                 try {
-                    const params = {}
+                    const params = { scope: 'flow' }
                     if (!this.common) {
                         params.project_id = this.project_id
                     }
