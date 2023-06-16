@@ -1646,8 +1646,6 @@ const en = {
     '已运行': 'Running',
     '显示（入参）': 'Show (input para.)',
     '隐藏（非入参）': 'Hide (non-input para.)',
-    '节点输入': 'Node input',
-    '节点输出': 'Node output',
     'x 项删除成功,': '{num} item deleted',
     '项删除失败': 'items delete failed',
     '表达式更多细节请参考': 'See more',
