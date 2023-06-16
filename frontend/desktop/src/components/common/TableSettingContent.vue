@@ -68,7 +68,7 @@
                                     <i :class="['triangle-icon', 'descending-icon', { active: /^-/.test(localOrder) }]"></i>
                                     <i :class="['triangle-icon', 'ascending-icon', { active: !/^-/.test(localOrder) }]"></i>
                                 </span>
-                                <span style="margin-right: 4px;">{{ $t('（') }}{{ $t('默认') }}{{ localOrder === item.value ? $t('升序') : $t('降序') }}</span>
+                                <span style="margin-right: 4px;">{{ $t('（') }}{{ localOrder === item.value ? $t('默认升序') : $t('默认降序') }}</span>
                                 <span style="color: #3a84ff;" @click.stop="toggleOrderType(item.value)">{{ $t('切换') }}</span>
                                 <span>{{ $t('）') }}</span>
                             </template>

@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 from rest_framework import serializers
 
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 class TaskSerializer(serializers.ModelSerializer):

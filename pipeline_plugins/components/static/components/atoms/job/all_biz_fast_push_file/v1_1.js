@@ -443,7 +443,7 @@
             tag_code: "job_rolling_config",
             type: "combine",
             attrs: {
-                name: "滚动执行配置",
+                name: gettext("滚动执行配置"),
                 hookable: true,
                 children: [
                     {
@@ -452,7 +452,7 @@
                         attrs: {
                             name: gettext("滚动执行"),
                             hookable: false,
-                            tips: "<p>启动滚动执行后，目标服务器将按策略规则分批次串行执行（而非全量并行）</p>",
+                            tips: gettext("<p>启动滚动执行后，目标服务器将按策略规则分批次串行执行（而非全量并行）</p>"),
                             items: [
                                 {name: gettext(""), value: "open"},
                             ],
@@ -465,11 +465,11 @@
                         attrs: {
                             name: gettext("滚动策略"),
                             hookable: false,
-                            tips:"<p>.&nbsp;每个批次支持用整数、百分比(n%)和算式(+n,&nbsp;*n)，以空格分隔</p>\n" +
+                            tips:gettext("<p>.&nbsp;每个批次支持用整数、百分比(n%)和算式(+n,&nbsp;*n)，以空格分隔</p>\n" +
                                 "\n</br>" +
                                 "<p>.&nbsp;使用算式&nbsp;(+n,&nbsp;*n)&nbsp;时，前一个批次必须是整数（如：2&nbsp;*2）</p>\n" +
                                 "\n</br>" +
-                                "<p>.&nbsp;百分比取值遇小数点时会向上取整，100%代表取全量服务器（100%&nbsp;只允许出现在末位）</p>",
+                                "<p>.&nbsp;百分比取值遇小数点时会向上取整，100%代表取全量服务器（100%&nbsp;只允许出现在末位）</p>"),
                             validation: [
                                 {
                                     type: "custom",
@@ -556,9 +556,9 @@
                                 }
                             ],
                             items: [
-                                {text: '默认（执行失败则暂停）', value: 1},
-                                {text: '忽略失败，自动滚动下一批', value: 2},
-                                {text: '不自动，每批次都人工确认', value: 3},
+                                {text: gettext('默认（执行失败则暂停）'), value: 1},
+                                {text: gettext('忽略失败，自动滚动下一批'), value: 2},
+                                {text: gettext('不自动，每批次都人工确认'), value: 3},
                             ]
                         },
                         events: [

@@ -24,8 +24,8 @@
                     <div
                         v-if="columnInfo.id === 'agent'"
                         v-bk-overflow-tips
-                        :class="!editable ? 'agent-disabled' : row.agent ? 'agent-normal' : 'agent-failed'">
-                        {{ row.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error }}
+                        :class="!editable ? 'agent-disabled' : row.agent === 1 ? 'agent-normal' : 'agent-failed'">
+                        {{ row.agent === 1 ? $t('正常') : $t('异常') }}
                     </div>
                     <div v-else-if="columnInfo.id === 'cloud'">
                         {{ row.cloud[0] && row.cloud[0].bk_inst_name }}
@@ -36,12 +36,12 @@
                 </template>
             </bk-table-column>
         </template>
-        <bk-table-column v-if="operate" label="操作" width="80" fixed="right">
+        <bk-table-column v-if="operate" :label="$t('操作')" width="80" fixed="right">
             <template slot-scope="{ row }">
                 <a
                     :class="['remove-ip-btn', { 'disabled': !editable }]"
                     @click.stop="onRemoveIpClick(row.bk_host_id)">
-                    {{ i18n.remove }}
+                    {{ $t('移除') }}
                 </a>
             </template>
         </bk-table-column>
@@ -54,10 +54,10 @@
         </bk-table-column>
         <div class="static-ip-empty" slot="empty">
             <span v-if="!isSearchMode && editable">
-                {{ i18n.noDataCan }}
-                <span class="add-ip-btn" @click="onAddPanelShow('select')">{{ i18n.selectAdd }}</span>
-                {{ i18n.or }}
-                <span class="add-ip-btn" @click="onAddPanelShow('manual')">{{ i18n.manualAdd }}</span>
+                {{ $t('无数据，可') }}
+                <span class="add-ip-btn" @click="onAddPanelShow('select')">{{ $t('选择添加') }}</span>
+                {{ $t('或者') }}
+                <span class="add-ip-btn" @click="onAddPanelShow('manual')">{{ $t('手动添加') }}</span>
             </span>
             <span v-else><NoData></NoData></span>
         </div>
@@ -65,25 +65,10 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
     import ColumnSetting from './ColumnSetting.vue'
     import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
 
-    const i18n = {
-        selectAdd: gettext('选择添加'),
-        manualAdd: gettext('手动添加'),
-        cloudArea: gettext('云区域'),
-        status: gettext('状态'),
-        error: gettext('异常'),
-        operation: gettext('操作'),
-        remove: gettext('移除'),
-        normal: gettext('正常'),
-        noData: gettext('无数据'),
-        noDataCan: gettext('无数据，可'),
-        or: gettext('或者'),
-        hostName: gettext('主机名')
-    }
     export default {
         components: {
             ColumnSetting,
@@ -142,19 +127,19 @@
                         checked: true
                     },
                     {
-                        name: '云区域',
+                        name: this.$t('云区域'),
                         id: 'cloud',
                         minWidth: 120,
                         checked: true
                     },
                     {
-                        name: 'Agent 状态',
+                        name: this.$t('Agent 状态'),
                         id: 'agent',
                         minWidth: 160,
                         checked: true
                     },
                     {
-                        name: '主机名称',
+                        name: this.$t('主机名称'),
                         id: 'bk_host_name',
                         minWidth: 120,
                         sortable: true,
@@ -167,7 +152,6 @@
                         checked: false
                     }
                 ],
-                i18n,
                 ipSortActive: '', // ip 排序方式
                 hostNameSortActive: '', // hostname 排序方式
                 selectedIp: this.defaultSelected.slice(0),

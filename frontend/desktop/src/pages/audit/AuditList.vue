@@ -72,6 +72,10 @@
                                     <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                     <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
                                 </div>
+                                <!--任务类型-->
+                                <div v-else-if="item.id === 'category_name'">
+                                    {{ props.row.flow_type === 'common_func' ? $t('task_职能化') : $t('常规') }}
+                                </div>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>

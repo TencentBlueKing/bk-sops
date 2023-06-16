@@ -123,7 +123,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                 )
 
             if not result:
-                return []
+                return {}
         else:
             result, server = self.get_target_server(
                 ip_str=val,
@@ -135,7 +135,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                 ip_is_exist=ip_is_exist,
             )
             if not result:
-                return []
+                return {}
 
         return server
 

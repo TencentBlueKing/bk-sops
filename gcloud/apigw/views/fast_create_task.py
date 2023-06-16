@@ -12,29 +12,39 @@ specific language governing permissions and limitations under the License.
 """
 
 
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
-from blueapps.account.decorators import login_exempt
 from pipeline.exceptions import PipelineException
+
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.constants import ONETIME
-from gcloud.constants import TASK_CATEGORY
-from gcloud.constants import TASK_NAME_MAX_LENGTH
-from gcloud.utils.strings import standardize_name
-from gcloud.common_template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.apigw.views.utils import logger
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.validators import FastCreateTaskValidator
-from gcloud.utils.decorators import request_validate
+from gcloud.apigw.views.utils import logger
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import (
+    ONETIME,
+    TASK_CATEGORY,
+    TASK_NAME_MAX_LENGTH,
+    TaskCreateMethod,
+)
+from gcloud.contrib.operate_record.constants import (
+    OperateSource,
+    OperateType,
+    RecordType,
+)
+from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FastCreateTaskInterceptor
-from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.decorators import request_validate
+from gcloud.utils.strings import standardize_name
 
 
 @login_exempt
@@ -85,7 +95,7 @@ def fast_create_task(request, project_id):
         "project": project,
         "pipeline_instance": pipeline_instance,
         "template_source": ONETIME,
-        "create_method": "api",
+        "create_method": TaskCreateMethod.API.value,
     }
     if params.get("category") in [cate[0] for cate in TASK_CATEGORY]:
         taskflow_kwargs["category"] = params["category"]

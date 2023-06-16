@@ -17,14 +17,14 @@
                 size="small"
                 :disabled="!editable"
                 @click="$emit('update:showFilter', true)">
-                {{ i18n.resourceFilter }}
+                {{ $t('资源筛选') }}
             </bk-button>
             <bk-button
                 theme="default"
                 size="small"
                 :disabled="!editable"
                 @click="exportData">
-                {{ i18n.export }}
+                {{ $t('导出') }}
             </bk-button>
             <el-upload
                 ref="upload"
@@ -39,7 +39,7 @@
                     size="small"
                     :disabled="!editable"
                     theme="default">
-                    {{ i18n.import }}
+                    {{ $t('导入') }}
                 </bk-button>
             </el-upload>
         </div>
@@ -77,12 +77,12 @@
                         </template>
                         <template v-else>
                             <template v-if="editRow !== (pagination.current - 1) * pagination.limit + props.$index">
-                                <bk-button :text="true" :disabled="!editable" @click="rowEditClick(props)">{{ i18n.edit }}</bk-button>
-                                <bk-button :text="true" :disabled="!editable" @click="rowDelClick(props)">{{ i18n.delete }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowEditClick(props)">{{ $t('编辑') }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowDelClick(props)">{{ $t('删除') }}</bk-button>
                             </template>
                             <template v-else>
-                                <bk-button :text="true" :disabled="!editable" @click="rowSaveClick(props, item.config.tag_code)">{{ i18n.save }}</bk-button>
-                                <bk-button :text="true" :disabled="!editable" @click="rowCancelClick">{{ i18n.cancel }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowSaveClick(props, item.config.tag_code)">{{ $t('保存') }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowCancelClick">{{ $t('取消') }}</bk-button>
                             </template>
                         </template>
                     </template>
@@ -153,15 +153,6 @@
                     count: this.value.length,
                     limit: 10,
                     'show-limit': false
-                },
-                i18n: {
-                    resourceFilter: gettext('资源筛选'),
-                    export: gettext('导出'),
-                    import: gettext('导入'),
-                    edit: gettext('编辑'),
-                    delete: gettext('删除'),
-                    save: gettext('保存'),
-                    cancel: gettext('取消')
                 }
             }
         },
@@ -226,7 +217,7 @@
                 if (!fileTypeValid) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'),
+                        message: this.$t('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'),
                         delay: 10000
                     })
                     return

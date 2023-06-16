@@ -15,52 +15,55 @@ import logging
 
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
-from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
-from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
-
 from gcloud import err_code
-from gcloud.utils.strings import check_and_rename_params
-from gcloud.utils.decorators import request_validate
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref, get_task_referenced_constants
 from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
-    FormInterceptor,
-    ExportInterceptor,
-    ImportInterceptor,
     BatchFormInterceptor,
+    ExportInterceptor,
+    FormInterceptor,
+    ImportInterceptor,
     ParentsInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.tasktmpl3.domains.constants import get_constant_values
-from .validators import (
-    ImportValidator,
-    GetTemplateCountValidator,
-    DrawPipelineValidator,
-    AnalysisConstantsRefValidator,
-    CheckBeforeImportValidator,
+from gcloud.tasktmpl3.domains.constants import (
+    analysis_pipeline_constants_ref,
+    get_constant_values,
+    get_task_referenced_constants,
 )
+from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.apis.django.api import (
     base_batch_form,
-    base_form,
     base_check_before_import,
     base_export_templates,
+    base_form,
     base_import_templates,
     base_template_parents,
     is_full_param_process,
 )
 from gcloud.template_base.apis.django.validators import (
     BatchFormValidator,
-    FormValidator,
     ExportTemplateApiViewValidator,
+    FormValidator,
     TemplateParentsValidator,
 )
-from django.utils.translation import ugettext_lazy as _
+from gcloud.utils.decorators import request_validate
+from gcloud.utils.strings import check_and_rename_params
+from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
+from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
+
+from .validators import (
+    AnalysisConstantsRefValidator,
+    CheckBeforeImportValidator,
+    DrawPipelineValidator,
+    GetTemplateCountValidator,
+    ImportValidator,
+)
 
 logger = logging.getLogger("root")
 
@@ -148,7 +151,7 @@ def export_templates(request, project_id):
     return: DAT 文件
     {}
     """
-    return base_export_templates(request, TaskTemplate, project_id, [project_id])
+    return base_export_templates(request, TaskTemplate, project_id, project_id=int(project_id))
 
 
 @swagger_auto_schema(
@@ -176,7 +179,7 @@ def import_templates(request, project_id):
         }
     }
     """
-    return base_import_templates(request, TaskTemplate, {"project_id": project_id})
+    return base_import_templates(request, TaskTemplate, {"project_id": int(project_id)})
 
 
 @swagger_auto_schema(

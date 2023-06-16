@@ -653,8 +653,17 @@
                     this.onClockedPermissonCheck(['clocked_task_delete'], row)
                     return
                 }
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('计划任务') + '"' + row.task_name + '"?',
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('计划任务') + '"' + row.task_name + '"?'])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,

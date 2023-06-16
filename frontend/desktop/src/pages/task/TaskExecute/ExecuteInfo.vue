@@ -26,7 +26,6 @@
             </NodeTree>
             <div
                 v-if="location"
-                :key="randomKey"
                 :class="['execute-info', { 'loading': loading }]"
                 v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
                 <div class="execute-head">
@@ -37,16 +36,17 @@
                     </div>
                 </div>
                 <bk-tab
+                    :key="nodeDetailConfig.node_id"
                     :active.sync="curActiveTab"
                     type="unborder-card"
                     ext-cls="execute-info-tab"
                     @tab-change="onTabChange">
                     <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" v-if="isCondition || (!loading && ['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
+                    <bk-tab-panel name="config" v-if="isCondition || (['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
                     <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
                     <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
                 </bk-tab>
-                <div class="scroll-area">
+                <div class="scroll-area" :key="randomKey">
                     <task-condition
                         v-if="isCondition"
                         ref="conditionEdit"
@@ -106,7 +106,7 @@
                             :node-activity="nodeActivity"
                             :execute-info="executeInfo"
                             :node-detail-config="nodeDetailConfig"
-                            :constants="pipelineData.constants"
+                            :constants="constants"
                             :is-third-party-node="isThirdPartyNode"
                             :third-party-node-code="thirdPartyNodeCode"
                             :is-sub-process-node="isSubProcessNode">
@@ -126,7 +126,7 @@
                     </template>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
+                    <template v-if="realTimeState.state === 'RUNNING' && !isSubProcessNode">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
@@ -246,6 +246,7 @@
                 required: true
             },
             isShow: Boolean,
+            constants: Object,
             gateways: Object,
             conditionData: Object,
             backToVariablePanel: Boolean,
@@ -292,19 +293,25 @@
             ...mapState('project', {
                 project_id: state => state.project_id
             }),
+            // 节点实时状态
+            realTimeState () {
+                const nodeStateMap = this.nodeDisplayStatus.children || {}
+                return nodeStateMap[this.nodeDetailConfig.node_id] || { state: 'READY' }
+            },
             displayStatus () {
                 let state = ''
-                if (this.executeInfo.state === 'RUNNING') {
+                if (this.realTimeState.state === 'RUNNING') {
                     state = 'common-icon-dark-circle-ellipsis'
-                } else if (this.executeInfo.state === 'SUSPENDED') {
+                } else if (this.realTimeState.state === 'SUSPENDED') {
                     state = 'common-icon-dark-circle-pause'
-                } else if (this.executeInfo.state === 'FINISHED') {
-                    state = this.executeInfo.skip ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
-                } else if (this.executeInfo.state === 'FAILED') {
+                } else if (this.realTimeState.state === 'FINISHED') {
+                    const { skip, error_ignored } = this.realTimeState
+                    state = skip || error_ignored ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
+                } else if (this.realTimeState.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
-                } else if (this.executeInfo.state === 'CREATED') {
+                } else if (this.realTimeState.state === 'CREATED') {
                     state = 'common-icon-waitting'
-                } else if (this.executeInfo.state === 'READY') {
+                } else if (this.realTimeState.state === 'READY') {
                     state = 'common-icon-waitting'
                 }
                 return state
@@ -313,9 +320,9 @@
                 // 如果整体任务未执行的话不展示描述
                 if (this.state === 'CREATED') return i18n.t('未执行')
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
-                if (['FAILED', 'FINISHED'].includes(this.state) && this.executeInfo.state === 'READY') return i18n.t('未执行')
-                const { state, skip } = this.executeInfo
-                return skip ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
+                if (['FAILED', 'FINISHED'].includes(this.state) && this.realTimeState.state === 'READY') return i18n.t('未执行')
+                const { state, skip, error_ignored } = this.realTimeState
+                return skip || error_ignored ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
                 const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
@@ -353,13 +360,16 @@
             },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                return this.state !== 'REVOKED' && ((this.executeInfo.state === 'RUNNING' && !this.isSubProcessNode) || this.isShowRetryBtn || this.isShowSkipBtn)
+                return this.state !== 'REVOKED' && ((this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode) || this.isShowRetryBtn || this.isShowSkipBtn)
             }
         },
         watch: {
             'nodeDetailConfig.node_id': {
                 handler (val) {
                     if (val !== undefined) {
+                        this.loop = 1
+                        this.theExecuteTime = undefined
+                        this.curActiveTab = 'record'
                         this.loadNodeInfo()
                     }
                 },
@@ -421,7 +431,7 @@
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
                     }
                     // 获取执行失败节点是否允许跳过，重试状态
-                    if (this.executeInfo.state === 'FAILED') {
+                    if (this.realTimeState.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
                         this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : false
@@ -781,7 +791,6 @@
                 }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
-                this.curActiveTab = 'record'
                 this.loading = true
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },

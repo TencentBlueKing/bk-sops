@@ -1,3 +1,4 @@
+import i18n from '@/config/i18n/index.js'
 class Node {
     static TYPE_ENUM = 1
     static TYPE_RANG = 2
@@ -55,30 +56,30 @@ const weekDesDayMap = {
 
 const getWeekDayValue = (value) => {
     if (weekDayMap[value]) {
-        return weekDayMap[value]
+        return i18n.t(`周${weekDayMap[value]}`)
     }
     const text = value.toString().toLowerCase()
     if (weekDesDayMap[text]) {
-        return weekDesDayMap[text]
+        return i18n.t(`周${weekDesDayMap[text]}`)
     }
-    return value
+    return i18n.t(`周${value}`)
 }
 
 const getHourValue = (value) => {
     const num = ~~value
     if (num < 5) {
-        return `凌晨${num}点`
+        return i18n.t('凌晨{num}点', { num })
     }
     if (num < 12) {
-        return `上午${num}点`
+        return i18n.t('上午{num}点', { num })
     }
     if (num === 12) {
-        return `中午${num}点`
+        return i18n.t('中午{num}点', { num })
     }
     if (num < 18) {
-        return `下午${num}点`
+        return i18n.t('下午{num}点', { num })
     }
-    return `晚上${num}点`
+    return i18n.t('晚上{num}点', { num })
 }
 
 const getMinuteValue = (value) => {
@@ -172,70 +173,78 @@ const optimze = (fieldMap) => {
 
 const translateMap = {
     minute: {
-        genAll: () => '每分钟',
-        [Node.TYPE_ENUM]: node => `${getMinuteValue(node.value)}分`,
-        [Node.TYPE_RANG]: node => `${getMinuteValue(node.min)}分到${getMinuteValue(node.max)}分`,
+        genAll: () => i18n.t('每分钟'),
+        [Node.TYPE_ENUM]: node => textI18n('{0}分', [getMinuteValue(node.value)]),
+        [Node.TYPE_RANG]: node => textI18n('{0}分到{1}分', [getMinuteValue(node.min), getMinuteValue(node.max)]),
         [Node.TYPE_REPEAT]: (node) => {
             if (node.value === '*') {
-                return `每隔${node.repeatInterval}分钟`
+                return textI18n('每隔{0}分钟', [node.repeatInterval])
             }
-            return `从${getMinuteValue(node.value)}分开始每隔${node.repeatInterval}分钟`
+            return textI18n('从{0}分开始每隔{1}分钟', [node.value, node.repeatInterval])
         },
         // eslint-disable-next-line max-len
-        [Node.TYPE_RANG_REPEAT]: node => `从${getMinuteValue(node.min)}分开始到${getMinuteValue(node.max)}分的每${node.repeatInterval}分钟`
+        [Node.TYPE_RANG_REPEAT]: node => textI18n('从{0}分开始到{1}分的每{2}分钟', [node.min, getMinuteValue(node.max), node.repeatInterval])
     },
     hour: {
-        genAll: () => '每小时',
+        genAll: () => i18n.t('每小时'),
         [Node.TYPE_ENUM]: node => `${getHourValue(node.value)}`,
-        [Node.TYPE_RANG]: node => `${getHourValue(node.min)}到${getHourValue(node.max)}`,
+        [Node.TYPE_RANG]: node => textI18n('{0}到{1}', [getHourValue(node.min), getHourValue(node.max)]),
         [Node.TYPE_REPEAT]: (node) => {
             if (node.value === '*') {
-                return `每隔${node.repeatInterval}个小时`
+                return textI18n('每隔{0}个小时', [node.repeatInterval])
             }
-            return `从${getHourValue(node.value)}开始每隔${node.repeatInterval}个小时`
+            return textI18n('从{0}开始每隔{1}个小时', [getHourValue(node.value), node.repeatInterval])
         },
         // eslint-disable-next-line max-len
-        [Node.TYPE_RANG_REPEAT]: node => `从${getHourValue(node.min)}开始到${getHourValue(node.max)}的每${node.repeatInterval}个小时`
+        [Node.TYPE_RANG_REPEAT]: node => textI18n('从{0}开始到{1}的每{2}个小时', [getHourValue(node.min), getHourValue(node.max), node.repeatInterval])
     },
     dayOfMonth: {
-        genAll: () => '每天',
-        [Node.TYPE_ENUM]: node => `${node.value}号`,
-        [Node.TYPE_RANG]: node => `${node.min}号到${node.max}号`,
+        genAll: () => i18n.t('每天'),
+        [Node.TYPE_ENUM]: node => textI18n('{0}号', [node.value]),
+        [Node.TYPE_RANG]: node => textI18n('{0}号到{2}号', [node.min, node.max]),
         [Node.TYPE_REPEAT]: (node) => {
             if (node.value === '*') {
-                return `每隔${node.repeatInterval}天`
+                return textI18n('每隔{0}天', [node.repeatInterval])
             }
-            return `从${node.value}号开始每隔${node.repeatInterval}天`
+            return textI18n('从{0}号开始每隔{1}天', [node.value, node.repeatInterval])
         },
         // eslint-disable-next-line max-len
-        [Node.TYPE_RANG_REPEAT]: node => `从${node.min}号开始到${node.max}号的每${node.repeatInterval}天`
+        [Node.TYPE_RANG_REPEAT]: node => textI18n('从{0}号开始到{1}号的每{2}天', [node.min, node.max, node.repeatInterval])
     },
     month: {
-        genAll: () => '每月',
-        [Node.TYPE_ENUM]: node => `${node.value}月`,
-        [Node.TYPE_RANG]: node => `${node.min}月到${node.max}月`,
+        genAll: () => i18n.t('每月'),
+        [Node.TYPE_ENUM]: node => textI18n('{0}月', [node.value]),
+        [Node.TYPE_RANG]: node => textI18n('{0}月到{1}月', [node.min, node.max]),
         [Node.TYPE_REPEAT]: (node) => {
             if (node.value === '*') {
-                return `每隔${node.repeatInterval}个月`
+                return textI18n('每隔{0}个月', [node.repeatInterval])
             }
-            return `从${node.value}月开始每隔${node.repeatInterval}个月`
+            return textI18n('从{0}月开始每隔{1}个月', [node.value, node.repeatInterval])
         },
         // eslint-disable-next-line max-len
-        [Node.TYPE_RANG_REPEAT]: node => `从${node.min}月开始到${node.max}月的每${node.repeatInterval}个月`
+        [Node.TYPE_RANG_REPEAT]: node => textI18n('从{0}月开始到{1}月的每{2}个月', [node.min, node.max, node.repeatInterval])
     },
     dayOfWeek: {
-        genAll: () => '每天',
-        [Node.TYPE_ENUM]: node => `每周${getWeekDayValue(node.value)}`,
-        [Node.TYPE_RANG]: node => `每周${getWeekDayValue(node.min)}到周${getWeekDayValue(node.max)}`,
+        genAll: () => i18n.t('每天'),
+        [Node.TYPE_ENUM]: node => textI18n('每{0}', [getWeekDayValue(node.value)]),
+        [Node.TYPE_RANG]: node => textI18n('每{0}到{1}', [getWeekDayValue(node.min), getWeekDayValue(node.max)]),
         [Node.TYPE_REPEAT]: (node) => {
             if (node.value === '*') {
-                return `每个星期内的每隔${node.repeatInterval}天`
+                return textI18n('每个星期内的每隔{0}天', [node.repeatInterval])
             }
-            return `从每周${getWeekDayValue(node.value)}开始每隔${node.repeatInterval}天`
+            return textI18n('从每{0}开始每隔{1}天', [getWeekDayValue(node.value), node.repeatInterval])
         },
         // eslint-disable-next-line max-len
-        [Node.TYPE_RANG_REPEAT]: node => `从每周${getWeekDayValue(node.min)}开始到周${getWeekDayValue(node.max)}的每隔${node.repeatInterval}天`
+        [Node.TYPE_RANG_REPEAT]: node => textI18n('从每{0}开始到{1}的每隔{2}天', [getWeekDayValue(node.min), getWeekDayValue(node.max), node.repeatInterval])
     }
+}
+
+const textI18n = (str, fields) => {
+    const fieldMap = fields.reduce((acc, cur, index) => {
+        acc[index] = cur
+        return acc
+    }, {})
+    return i18n.t(str, fieldMap)
 }
 
 const translateText = (ast) => {
@@ -254,7 +263,7 @@ const translateText = (ast) => {
         }
         const pre = stack.slice(0, -1)
         const last = stack.slice(-1)
-        return `${pre.join('，')}和${last[0]}`
+        return textI18n('{0}和{1}', [pre.join('，'), last[0]])
     }
     return [
         concatTextNew(ast, 'month'),

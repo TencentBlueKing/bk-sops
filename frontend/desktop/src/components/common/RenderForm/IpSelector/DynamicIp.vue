@@ -15,7 +15,7 @@
             <div class="topo-tree">
                 <ip-search-input
                     class="ip-search-wrap"
-                    :placeholder="i18n.searchNode"
+                    :placeholder="$t('搜索节点')"
                     :editable="editable"
                     @search="onTopoSearch">
                 </ip-search-input>
@@ -32,13 +32,13 @@
                         :filter-method="filterNode"
                         @check-change="onNodeCheckClick">
                     </bk-big-tree>
-                    <div v-else class="dynamic-ip-empty">{{i18n.noData}}</div>
+                    <div v-else class="dynamic-ip-empty">{{$t('无数据')}}</div>
                 </div>
             </div>
             <div class="selected-ips">
-                <div class="ip-num">{{i18n.selected}}
+                <div class="ip-num">{{$t('已选择')}}
                     <span>{{dynamicIps.length}}</span>
-                    {{i18n.dynamicNum}}
+                    {{$t('个节点')}}
                 </div>
                 <div class="ip-list">
                     <div
@@ -52,21 +52,13 @@
                 </div>
             </div>
         </div>
-        <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
+        <span v-show="dataError" class="common-error-tip error-info">{{$t('必填项')}}</span>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import IpSearchInput from './IpSearchInput.vue'
-
-    const i18n = {
-        selected: gettext('已选择'),
-        dynamicNum: gettext('个节点'),
-        searchNode: gettext('搜索节点'),
-        noData: gettext('无数据'),
-        notEmpty: gettext('必填项')
-    }
 
     export default {
         name: 'DynamicIp',
@@ -85,7 +77,6 @@
                 selectedIps: this.dynamicIps.map(item => `${item.bk_inst_id}_${item.bk_obj_id}`),
                 selectedIpsPath: [],
                 dataError: false,
-                i18n,
                 matchedList: []
             }
         },

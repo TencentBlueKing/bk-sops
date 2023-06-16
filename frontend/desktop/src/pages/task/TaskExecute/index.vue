@@ -34,6 +34,7 @@
                 :primitive-tpl-id="primitiveTplId"
                 :primitive-tpl-source="primitiveTplSource"
                 :template-source="templateSource"
+                :is-child-task-flow="isChildTaskFlow"
                 :instance-actions="instanceActions"
                 :creator-name="creatorName"
                 :unclaim-func-task="unclaimFuncTask">
@@ -73,6 +74,7 @@
                 templateId: '',
                 primitiveTplId: '', // 任务原始模板id
                 primitiveTplSource: '', // 任务原始模板来源
+                isChildTaskFlow: false, // 是否为独立子流程任务
                 creatorName: '',
                 unclaimFuncTask: false // 是否为未执行的职能化任务
             }
@@ -91,7 +93,10 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver, primitive_template_id, primitive_template_source, creator_name } = instanceData
+                    const {
+                        flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions,
+                        engine_ver, primitive_template_id, primitive_template_source, is_child_taskflow, creator_name
+                    } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
                     } else {
@@ -106,6 +111,7 @@
                     this.primitiveTplSource = primitive_template_source
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
+                    this.isChildTaskFlow = is_child_taskflow
                     this.creatorName = creator_name
                     this.unclaimFuncTask = flow_type === 'common_func' && current_flow === 'func_claim'
 

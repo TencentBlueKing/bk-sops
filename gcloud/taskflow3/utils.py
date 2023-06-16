@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from bamboo_engine import states as bamboo_engine_states
 from django.apps import apps
+from django.utils.translation import ugettext_lazy as _
+from pipeline.core import constants as pipeline_constants
 from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
-from pipeline.core import constants as pipeline_constants
-from bamboo_engine import states as bamboo_engine_states
-from django.utils.translation import ugettext_lazy as _
 
 from gcloud.utils.dates import format_datetime
 
@@ -87,7 +87,7 @@ def add_node_name_to_status_tree(pipeline_tree, status_tree_children):
     for node_id, status in status_tree_children.items():
         status["name"] = pipeline_tree.get("activities", {}).get(node_id, {}).get("name", "")
         children = status.get("children", {})
-        add_node_name_to_status_tree(pipeline_tree["activities"].get(node_id, {}).get("pipeline", {}), children)
+        add_node_name_to_status_tree(pipeline_tree.get("activities", {}).get(node_id, {}).get("pipeline", {}), children)
 
 
 def extract_failed_nodes(status_tree):

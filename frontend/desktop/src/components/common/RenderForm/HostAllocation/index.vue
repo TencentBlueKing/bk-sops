@@ -204,7 +204,7 @@
                                                 const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
                                                 if (!hosts.length) {
                                                     result = false
-                                                    message = gettext('资源不足')
+                                                    message = this.$t('资源不足')
                                                 }
                                                 return {
                                                     result,
@@ -230,7 +230,7 @@
                         config: {
                             tag_code: 'tb_btns',
                             attrs: {
-                                name: gettext('操作')
+                                name: this.$t('操作')
                             }
                         }
                     })

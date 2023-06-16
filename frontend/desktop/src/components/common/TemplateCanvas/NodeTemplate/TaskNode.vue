@@ -16,7 +16,7 @@
             'task-node',
             'process-node',
             node.status ? node.status.toLowerCase() : '',
-            { 'fail-skip': node.status === 'FINISHED' && node.skip },
+            { 'fail-skip': node.status === 'FINISHED' && (node.skip || node.error_ignored) },
             { 'ready': node.ready },
             { 'actived': node.isActived }
         ]">
@@ -41,7 +41,7 @@
                     @change="onNodeCheckClick">
                 </bk-checkbox>
             </template>
-            <span v-if="node.error_ignorable && node.mode === 'edit'" class="error-handle-icon"><span class="text">AS</span></span>
+            <span v-if="node.error_ignorable" class="error-handle-icon"><span class="text">AS</span></span>
             <span v-if="node.isSkipped || node.skippable" class="error-handle-icon"><span class="text">MS</span></span>
             <span v-if="node.can_retry || node.retryable" class="error-handle-icon"><span class="text">MR</span></span>
             <span v-if="node.auto_retry && node.auto_retry.enable" class="error-handle-icon"><span class="text">AR</span></span>

@@ -14,27 +14,25 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
+from django.conf import settings
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
-
-from gcloud.template_base.utils import inject_template_node_id
-from gcloud.utils.strings import django_celery_beat_cron_time_format_fit
 from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline.models import PipelineTemplate, Snapshot
+
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES, PROJECT, TEMPLATE_SOURCE
+from gcloud.core.models import EngineConfig, Project, StaffGroupSet
+from gcloud.periodictask.exceptions import InvalidOperationException
+from gcloud.shortcuts.cmdb import get_business_group_members
+from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.template_base.utils import inject_original_template_info, inject_template_node_id
+from gcloud.utils.strings import django_celery_beat_cron_time_format_fit
 from pipeline_plugins.components.collections.subprocess_plugin.converter import PipelineTreeSubprocessConverter
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
-
-from gcloud.core.models import Project, EngineConfig, StaffGroupSet
-from gcloud.periodictask.exceptions import InvalidOperationException
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-from gcloud.taskflow3.models import TaskFlowInstance, TaskConfig
-from gcloud.shortcuts.cmdb import get_business_group_members
-from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import TEMPLATE_SOURCE, PROJECT, COMMON
 
 logger = logging.getLogger("root")
 
@@ -124,7 +122,7 @@ class PeriodicTaskManager(models.Manager):
         inject_template_node_id(pipeline_tree)
 
         PipelineTemplate.objects.replace_id(pipeline_tree)
-
+        inject_original_template_info(pipeline_tree)
         if independent_subprocess:
             converter = PipelineTreeSubprocessConverter(pipeline_tree)
             converter.convert()

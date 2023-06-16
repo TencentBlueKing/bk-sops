@@ -15,35 +15,44 @@ import re
 
 import jsonschema
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
-from pipeline.exceptions import PipelineException
 from pipeline.core.constants import PE
-from pipeline_web.parser.validator import validate_web_pipeline_tree
+from pipeline.exceptions import PipelineException
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-from gcloud.core.models import EngineConfig
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
+from gcloud.apigw.validators import CreateTaskValidator
+from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
-from gcloud.constants import PROJECT
-from gcloud.utils.strings import standardize_pipeline_node_name
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskCallBackRecord
-from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.apigw.views.utils import logger
-from gcloud.apigw.validators import CreateTaskValidator
-from gcloud.utils.decorators import request_validate
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT, TaskCreateMethod
+from gcloud.contrib.operate_record.constants import (
+    OperateSource,
+    OperateType,
+    RecordType,
+)
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.core.models import EngineConfig
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
-from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
+from gcloud.taskflow3.models import (
+    TaskCallBackRecord,
+    TaskFlowInstance,
+    TimeoutNodeConfig,
+)
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.decorators import request_validate
+from gcloud.utils.strings import standardize_pipeline_node_name
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 
 def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
@@ -176,7 +185,11 @@ def create_task(request, template_id, project_id):
             exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], tmpl)
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id, params["simplify_vars"],
+                tmpl,
+                pipeline_instance_kwargs,
+                params["constants"],
+                exclude_task_nodes_id,
+                params["simplify_vars"],
             )
         except Exception as e:
             message = f"[API] create_task create pipeline without tree error: {e}"
@@ -189,13 +202,14 @@ def create_task(request, template_id, project_id):
         category=tmpl.category,
         template_id=template_id,
         template_source=template_source,
-        create_method="api",
+        create_method=TaskCreateMethod.API.value,
         create_info=app_code,
         flow_type=params.get("flow_type", "common"),
         current_flow="execute_task" if params.get("flow_type", "common") == "common" else "func_claim",
         engine_ver=EngineConfig.objects.get_engine_ver(
             project_id=project.id, template_id=template_id, template_source=template_source
         ),
+        extra_info=json.dumps({"keys_in_constants_parameter": list(params["constants"].keys())}),
     )
 
     # create callback url record

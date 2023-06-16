@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-01-03 20:00+0800\n"
+"POT-Creation-Date: 2023-04-18 16:25+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -22,15 +22,15 @@ msgstr ""
 msgid "请求失败: 返回不是合法的Json格式, 请重试 | api http"
 msgstr "请求失败: 返回不是合法的Json格式, 请重试 | api http"
 
-#: config/default.py:44
+#: config/default.py:45
 msgid "标准运维"
 msgstr "标准运维"
 
-#: config/default.py:263
+#: config/default.py:265
 msgid "English"
 msgstr "English"
 
-#: config/default.py:264
+#: config/default.py:266
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -237,8 +237,8 @@ msgstr "请联系第三方系统负责人处理"
 
 #: gcloud/analysis_statistics/models.py:21
 #: gcloud/analysis_statistics/models.py:45
-#: gcloud/analysis_statistics/models.py:77
-#: gcloud/analysis_statistics/models.py:100
+#: gcloud/analysis_statistics/models.py:78
+#: gcloud/analysis_statistics/models.py:101
 #, fuzzy
 msgid "id"
 msgstr "项目"
@@ -250,33 +250,33 @@ msgstr "组件编码"
 
 #: gcloud/analysis_statistics/models.py:23
 #: gcloud/analysis_statistics/models.py:60
-#: gcloud/analysis_statistics/models.py:78
-#: gcloud/analysis_statistics/models.py:108
+#: gcloud/analysis_statistics/models.py:79
+#: gcloud/analysis_statistics/models.py:109
 #, fuzzy
 msgid "Pipeline模板ID"
 msgstr "Pipeline模板"
 
 #: gcloud/analysis_statistics/models.py:24
 #: gcloud/analysis_statistics/models.py:61
-#: gcloud/analysis_statistics/models.py:79
-#: gcloud/analysis_statistics/models.py:109
+#: gcloud/analysis_statistics/models.py:80
+#: gcloud/analysis_statistics/models.py:110
 msgid "Task模板ID"
 msgstr "Task模板ID"
 
 #: gcloud/analysis_statistics/models.py:25
-#: gcloud/analysis_statistics/models.py:62
-#: gcloud/analysis_statistics/models.py:83
-#: gcloud/analysis_statistics/models.py:106 gcloud/core/models.py:145
+#: gcloud/analysis_statistics/models.py:63
+#: gcloud/analysis_statistics/models.py:84
+#: gcloud/analysis_statistics/models.py:107 gcloud/core/models.py:145
 #: gcloud/core/models.py:352 gcloud/core/models.py:377
-#: gcloud/label/models.py:34 gcloud/project_constants/models.py:22
-#: gcloud/taskflow3/models.py:1239
+#: gcloud/label/models.py:37 gcloud/project_constants/models.py:22
+#: gcloud/taskflow3/models.py:1238
 #, fuzzy
 msgid "项目 ID"
 msgstr "节点 id"
 
 #: gcloud/analysis_statistics/models.py:26
-#: gcloud/analysis_statistics/models.py:84
-#: gcloud/analysis_statistics/models.py:107
+#: gcloud/analysis_statistics/models.py:85
+#: gcloud/analysis_statistics/models.py:108
 #: gcloud/contrib/appmaker/models.py:270 gcloud/template_base/models.py:232
 #: gcloud/user_custom_config/constants.py:20
 msgid "模板类型"
@@ -310,9 +310,9 @@ msgid "插件版本"
 msgstr "插件版本"
 
 #: gcloud/analysis_statistics/models.py:31
-#: gcloud/analysis_statistics/models.py:85
-#: gcloud/analysis_statistics/models.py:110 gcloud/core/models.py:148
-#: gcloud/core/models.py:216 gcloud/label/models.py:33
+#: gcloud/analysis_statistics/models.py:86
+#: gcloud/analysis_statistics/models.py:111 gcloud/core/models.py:148
+#: gcloud/core/models.py:216 gcloud/label/models.py:36
 #: gcloud/periodictask/models.py:178
 msgid "创建者"
 msgstr "创建者"
@@ -328,7 +328,7 @@ msgid "模板最近编辑时间"
 msgstr "编辑时间"
 
 #: gcloud/analysis_statistics/models.py:34
-#: gcloud/analysis_statistics/models.py:66
+#: gcloud/analysis_statistics/models.py:67
 msgid "是否第三方插件"
 msgstr "是否第三方插件"
 
@@ -338,13 +338,13 @@ msgid "Pipeline标准插件被引用数据"
 msgstr "Pipeline标准插件被引用数据"
 
 #: gcloud/analysis_statistics/models.py:47
-#: gcloud/analysis_statistics/models.py:101
+#: gcloud/analysis_statistics/models.py:102
 #, fuzzy
 msgid "Pipeline实例ID"
 msgstr "Pipeline实例"
 
 #: gcloud/analysis_statistics/models.py:48
-#: gcloud/analysis_statistics/models.py:102
+#: gcloud/analysis_statistics/models.py:103
 msgid "Task实例ID"
 msgstr "Task实例ID"
 
@@ -377,112 +377,116 @@ msgstr "是否跳过"
 msgid "是否重试记录"
 msgstr "是否重试记录"
 
-#: gcloud/analysis_statistics/models.py:63
+#: gcloud/analysis_statistics/models.py:62
+msgid "触发模版ID，独立子流程根流程 ID"
+msgstr "触发模版ID，独立子流程根流程 ID"
+
+#: gcloud/analysis_statistics/models.py:64
 #, fuzzy
 msgid "Pipeline实例创建时间"
 msgstr "Pipeline实例"
 
-#: gcloud/analysis_statistics/models.py:64
+#: gcloud/analysis_statistics/models.py:65
 #, fuzzy
 msgid "Pipeline实例启动时间"
 msgstr "Pipeline实例"
 
-#: gcloud/analysis_statistics/models.py:65
+#: gcloud/analysis_statistics/models.py:66
 #, fuzzy
 msgid "Pipeline实例结束时间"
 msgstr "Pipeline实例"
 
-#: gcloud/analysis_statistics/models.py:69
 #: gcloud/analysis_statistics/models.py:70
+#: gcloud/analysis_statistics/models.py:71
 msgid "Pipeline标准插件执行数据"
 msgstr "Pipeline标准插件执行数据"
 
-#: gcloud/analysis_statistics/models.py:80
-#: gcloud/analysis_statistics/models.py:103
+#: gcloud/analysis_statistics/models.py:81
+#: gcloud/analysis_statistics/models.py:104
 msgid "标准插件总数"
 msgstr "标准插件总数"
 
-#: gcloud/analysis_statistics/models.py:81
-#: gcloud/analysis_statistics/models.py:104
+#: gcloud/analysis_statistics/models.py:82
+#: gcloud/analysis_statistics/models.py:105
 msgid "子流程总数"
 msgstr "子流程总数"
 
-#: gcloud/analysis_statistics/models.py:82
-#: gcloud/analysis_statistics/models.py:105
+#: gcloud/analysis_statistics/models.py:83
+#: gcloud/analysis_statistics/models.py:106
 msgid "网关总数"
 msgstr "网关总数"
 
-#: gcloud/analysis_statistics/models.py:86
-#: gcloud/analysis_statistics/models.py:111
+#: gcloud/analysis_statistics/models.py:87
+#: gcloud/analysis_statistics/models.py:112
 #: gcloud/contrib/appmaker/models.py:266 gcloud/core/models.py:218
-#: gcloud/project_constants/models.py:28 gcloud/taskflow3/models.py:1322
-#: gcloud/taskflow3/models.py:1337 gcloud/user_custom_config/constants.py:18
+#: gcloud/project_constants/models.py:28 gcloud/taskflow3/models.py:1321
+#: gcloud/taskflow3/models.py:1336 gcloud/user_custom_config/constants.py:18
 #: pipeline_web/core/abstract.py:21
 msgid "创建时间"
 msgstr "创建时间"
 
-#: gcloud/analysis_statistics/models.py:87 gcloud/core/models.py:150
+#: gcloud/analysis_statistics/models.py:88 gcloud/core/models.py:150
 #, fuzzy
 msgid "最近编辑时间"
 msgstr "编辑时间"
 
-#: gcloud/analysis_statistics/models.py:88
+#: gcloud/analysis_statistics/models.py:89
 #, fuzzy
 msgid "输出变量数"
 msgstr "输出数据"
 
-#: gcloud/analysis_statistics/models.py:89
+#: gcloud/analysis_statistics/models.py:90
 #, fuzzy
 msgid "输入变量数"
 msgstr "输入框变量"
 
-#: gcloud/analysis_statistics/models.py:92
 #: gcloud/analysis_statistics/models.py:93
+#: gcloud/analysis_statistics/models.py:94
 msgid "Pipeline模板引用数据"
 msgstr "Pipeline模板引用数据"
 
-#: gcloud/analysis_statistics/models.py:112
+#: gcloud/analysis_statistics/models.py:113
 #: gcloud/external_plugins/models/sync.py:39
 msgid "启动时间"
 msgstr "启动时间"
 
-#: gcloud/analysis_statistics/models.py:113
+#: gcloud/analysis_statistics/models.py:114
 #: gcloud/external_plugins/models/sync.py:40
 msgid "结束时间"
 msgstr "结束时间"
 
-#: gcloud/analysis_statistics/models.py:114
+#: gcloud/analysis_statistics/models.py:115
 #, fuzzy
 msgid "实例执行耗时(s)"
 msgstr "标准插件执行耗时(s)"
 
-#: gcloud/analysis_statistics/models.py:115
+#: gcloud/analysis_statistics/models.py:116
 #, fuzzy
 msgid "实例创建方式"
 msgstr "创建方式"
 
-#: gcloud/analysis_statistics/models.py:118
 #: gcloud/analysis_statistics/models.py:119
+#: gcloud/analysis_statistics/models.py:120
 msgid "Pipeline实例引用数据"
 msgstr "Pipeline实例引用数据"
 
-#: gcloud/analysis_statistics/models.py:130
 #: gcloud/analysis_statistics/models.py:131
+#: gcloud/analysis_statistics/models.py:132
 msgid "业务统计数据维度"
 msgstr "业务统计数据维度"
 
-#: gcloud/analysis_statistics/models.py:138
 #: gcloud/analysis_statistics/models.py:139
+#: gcloud/analysis_statistics/models.py:140
 msgid "流程执行次数topn统计面板配置"
 msgstr "流程执行次数topn统计面板配置"
 
-#: gcloud/analysis_statistics/models.py:152
 #: gcloud/analysis_statistics/models.py:153
+#: gcloud/analysis_statistics/models.py:154
 msgid "流程模板变量统计数据"
 msgstr "流程模板变量统计数据"
 
-#: gcloud/analysis_statistics/models.py:162
 #: gcloud/analysis_statistics/models.py:163
+#: gcloud/analysis_statistics/models.py:164
 msgid "流程模板变量统计数据总览"
 msgstr "流程模板变量统计数据总览"
 
@@ -606,6 +610,7 @@ msgstr "收藏对象类型"
 
 #: gcloud/contrib/collection/models.py:66
 #: gcloud/core/apis/drf/serilaziers/collection.py:25
+#: gcloud/taskflow3/models.py:730
 msgid "额外信息"
 msgstr "额外信息"
 
@@ -703,8 +708,7 @@ msgid "执行"
 msgstr "未执行"
 
 #: gcloud/contrib/operate_record/constants.py:23
-#: gcloud/taskflow3/models.py:1242
-#: pipeline_plugins/components/collections/controller.py:70
+#: gcloud/taskflow3/models.py:1241
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:111
 msgid "暂停"
 msgstr "暂停"
@@ -760,7 +764,7 @@ msgid "继续节点"
 msgstr "继续节点"
 
 #: gcloud/contrib/operate_record/constants.py:37
-#: gcloud/taskflow3/models.py:1294
+#: gcloud/taskflow3/models.py:1293
 #, fuzzy
 msgid "强制失败"
 msgstr "失败"
@@ -771,7 +775,7 @@ msgid "调整时间"
 msgstr "驳回时间"
 
 #: gcloud/contrib/operate_record/constants.py:40
-#: gcloud/taskflow3/models.py:1241
+#: gcloud/taskflow3/models.py:1240
 msgid "任务操作"
 msgstr "任务操作"
 
@@ -933,7 +937,7 @@ msgstr "名称"
 msgid "每个项目下的配置名称要保证唯一"
 msgstr "每个项目下的配置名称要保证唯一"
 
-#: gcloud/core/models.py:147 gcloud/taskflow3/models.py:1399
+#: gcloud/core/models.py:147 gcloud/taskflow3/models.py:1398
 msgid "配置类型"
 msgstr "配置类型"
 
@@ -1048,11 +1052,11 @@ msgstr "项目下最大周期任务数"
 msgid "项目配置 ProjectConfig"
 msgstr "项目 Project"
 
-#: gcloud/core/models.py:413 gcloud/taskflow3/models.py:1397
+#: gcloud/core/models.py:413 gcloud/taskflow3/models.py:1396
 msgid "范围对象ID"
 msgstr "范围对象ID"
 
-#: gcloud/core/models.py:414 gcloud/taskflow3/models.py:1398
+#: gcloud/core/models.py:414 gcloud/taskflow3/models.py:1397
 msgid "配置范围"
 msgstr "配置范围"
 
@@ -1129,7 +1133,7 @@ msgstr "项目 Project"
 msgid "停运"
 msgstr "停运"
 
-#: gcloud/core/apis/drf/viewsets/task_template.py:143
+#: gcloud/core/apis/drf/viewsets/task_template.py:144
 msgid "流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables"
 msgstr "流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables"
 
@@ -1233,7 +1237,7 @@ msgstr "FS远程包源 FileSystemOriginalSource"
 #: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:120
 #: gcloud/tasktmpl3/models.py:55
 #: gcloud/tests/external_plugins/models/test_sync_task.py:38
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:48
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:47
 msgid "执行中"
 msgstr "执行中"
 
@@ -1487,39 +1491,155 @@ msgstr "普通任务"
 msgid "职能化任务"
 msgstr "职能化任务流程"
 
-#: gcloud/label/models.py:32 pipeline_web/label/models.py:39
+#: gcloud/label/models.py:35 pipeline_web/label/models.py:39
 msgid "标签名称"
 msgstr "标签名称"
 
-#: gcloud/label/models.py:35
+#: gcloud/label/models.py:38
 msgid "默认标签"
 msgstr "默认标签"
 
-#: gcloud/label/models.py:36
+#: gcloud/label/models.py:39
 msgid "标签颜色"
 msgstr "标签颜色"
 
-#: gcloud/label/models.py:37
+#: gcloud/label/models.py:40
 #, fuzzy
 msgid "标签描述"
 msgstr "描述"
 
-#: gcloud/label/models.py:42 gcloud/label/models.py:43
+#: gcloud/label/models.py:45 gcloud/label/models.py:46
 #, fuzzy
 msgid "用户标签 Label"
 msgstr "标签 Label"
 
-#: gcloud/label/models.py:119
+#: gcloud/label/models.py:134
 msgid "模版ID"
 msgstr "模版ID"
 
-#: gcloud/label/models.py:120
+#: gcloud/label/models.py:135
 msgid "标签ID"
 msgstr "标签ID"
 
-#: gcloud/label/models.py:125 gcloud/label/models.py:126
+#: gcloud/label/models.py:140 gcloud/label/models.py:141
 msgid "模版标签关系 TemplateLabelRelation"
 msgstr "模版标签关系 TemplateLabelRelation"
+
+#: gcloud/mako_template_helper/hub.py:21
+msgid "字符串分割后拼接"
+msgstr "字符串分割后拼接"
+
+#: gcloud/mako_template_helper/hub.py:24 gcloud/mako_template_helper/hub.py:31
+msgid "将 {caller}"
+msgstr "将 {caller}"
+
+#: gcloud/mako_template_helper/hub.py:24
+msgid "以 {split_string} 分割后"
+msgstr "以 {split_string} 分割后"
+
+#: gcloud/mako_template_helper/hub.py:24
+msgid "以 {join_string} 拼接"
+msgstr "以 {join_string} 拼接"
+
+#: gcloud/mako_template_helper/hub.py:28
+msgid "替换字符串中的字符"
+msgstr "替换字符串中的字符"
+
+#: gcloud/mako_template_helper/hub.py:31
+msgid "中的 {old} 字符串"
+msgstr "中的 {old} 字符串"
+
+#: gcloud/mako_template_helper/hub.py:31
+msgid "替换为 {new} 字符串"
+msgstr "替换为 {new} 字符串"
+
+#: gcloud/mako_template_helper/hub.py:35
+msgid "将首字母变成大写"
+msgstr "将首字母变成大写"
+
+#: gcloud/mako_template_helper/hub.py:38
+msgid "将 {caller} 的首字母变成大写"
+msgstr "将 {caller} 的首字母变成大写"
+
+#: gcloud/mako_template_helper/hub.py:42
+msgid "将字符串变成大写"
+msgstr "将字符串变成大写"
+
+#: gcloud/mako_template_helper/hub.py:45
+msgid "将 {caller} 变成大写"
+msgstr "将 {caller} 变成大写"
+
+#: gcloud/mako_template_helper/hub.py:49
+msgid "将字符串变成小写"
+msgstr "将字符串变成小写"
+
+#: gcloud/mako_template_helper/hub.py:52
+msgid "将 {caller} 变成小写"
+msgstr "将 {caller} 变成小写"
+
+#: gcloud/mako_template_helper/hub.py:56
+msgid "获取子字符串出现的次数"
+msgstr "获取子字符串出现的次数"
+
+#: gcloud/mako_template_helper/hub.py:59
+msgid "获取 {caller} 中 {sub} 出现的次数"
+msgstr "获取 {caller} 中 {sub} 出现的次数"
+
+#: gcloud/mako_template_helper/hub.py:63
+msgid "获取字符串的长度"
+msgstr "获取字符串的长度"
+
+#: gcloud/mako_template_helper/hub.py:66
+msgid "获取 {caller} 的长度"
+msgstr "获取 {caller} 的长度"
+
+#: gcloud/mako_template_helper/hub.py:70
+msgid "去除字符串头尾空格"
+msgstr "去除字符串头尾空格"
+
+#: gcloud/mako_template_helper/hub.py:73
+msgid "去除 {caller} 头尾空格"
+msgstr "去除 {caller} 头尾空格"
+
+#: gcloud/mako_template_helper/hub.py:77
+msgid "去除字符串头部空格"
+msgstr "去除字符串头部空格"
+
+#: gcloud/mako_template_helper/hub.py:80
+msgid "去除 {caller} 头部空格"
+msgstr "去除 {caller} 头部空格"
+
+#: gcloud/mako_template_helper/hub.py:84
+msgid "去除字符串尾部空格"
+msgstr "去除字符串尾部空格"
+
+#: gcloud/mako_template_helper/hub.py:87
+msgid "去除 {caller} 尾部空格"
+msgstr "去除 {caller} 尾部空格"
+
+#: gcloud/mako_template_helper/hub.py:91
+msgid "将字符串中单词首字母改为大写"
+msgstr "将字符串中单词首字母改为大写"
+
+#: gcloud/mako_template_helper/hub.py:94
+msgid "将 {caller} 中单词首字母改为大写"
+msgstr "将 {caller} 中单词首字母改为大写"
+
+#: gcloud/mako_template_helper/hub.py:98
+msgid "返回路径的基本名称"
+msgstr "返回路径的基本名称"
+
+#: gcloud/mako_template_helper/hub.py:101
+msgid "返回 {path} 的基本名称"
+msgstr "返回 {path} 的基本名称"
+
+#: gcloud/mako_template_helper/hub.py:105
+msgid "返回路径的目录名"
+msgstr "返回路径的目录名"
+
+#: gcloud/mako_template_helper/hub.py:108
+msgid "返回 {path} 的目录名"
+msgstr "返回 {path} 的目录名"
 
 #: gcloud/periodictask/models.py:173
 msgid "pipeline 层周期任务"
@@ -1605,9 +1725,8 @@ msgstr "更新人"
 
 #: gcloud/project_constants/models.py:30
 #: gcloud/user_custom_config/constants.py:19
-#, fuzzy
 msgid "更新时间"
-msgstr "驳回时间"
+msgstr "更新时间"
 
 #: gcloud/shortcuts/message/common.py:20
 msgid "【标准运维APP通知】执行失败"
@@ -1670,117 +1789,117 @@ msgstr "当前任务流程阶段"
 msgid "是否为子任务"
 msgstr "是否为子任务"
 
-#: gcloud/taskflow3/models.py:737 gcloud/taskflow3/models.py:738
+#: gcloud/taskflow3/models.py:738 gcloud/taskflow3/models.py:739
 msgid "流程实例 TaskFlowInstance"
 msgstr "流程实例 TaskFlowInstance"
 
-#: gcloud/taskflow3/models.py:981
+#: gcloud/taskflow3/models.py:980
 msgid "任务认领失败: 仅职能化任务才能认领, 请检查任务类型 | task_claim"
 msgstr "任务认领失败: 仅职能化任务才能认领, 请检查任务类型 | task_claim"
 
-#: gcloud/taskflow3/models.py:1242
+#: gcloud/taskflow3/models.py:1241
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:124
 msgid "启动"
 msgstr "启动"
 
-#: gcloud/taskflow3/models.py:1242
+#: gcloud/taskflow3/models.py:1241
 msgid "恢复"
 msgstr "恢复"
 
-#: gcloud/taskflow3/models.py:1242
+#: gcloud/taskflow3/models.py:1241
 msgid "撤销"
 msgstr "撤销"
 
-#: gcloud/taskflow3/models.py:1245
+#: gcloud/taskflow3/models.py:1244
 msgid "限制操作次数"
 msgstr "限制操作次数"
 
-#: gcloud/taskflow3/models.py:1246
+#: gcloud/taskflow3/models.py:1245
 msgid "限制时间单位"
 msgstr "限制时间单位"
 
-#: gcloud/taskflow3/models.py:1249 gcloud/taskflow3/models.py:1250
+#: gcloud/taskflow3/models.py:1248 gcloud/taskflow3/models.py:1249
 msgid "任务操作次数限制配置 TaskOperationTimesConfig"
 msgstr "任务操作次数限制配置 TaskOperationTimesConfig"
 
-#: gcloud/taskflow3/models.py:1263 gcloud/taskflow3/models.py:1264
+#: gcloud/taskflow3/models.py:1262 gcloud/taskflow3/models.py:1263
 msgid "节点自动重试策略 AutoRetryNodeStrategy"
 msgstr "节点自动重试策略 AutoRetryNodeStrategy"
 
-#: gcloud/taskflow3/models.py:1294
+#: gcloud/taskflow3/models.py:1293
 msgid "强制失败并跳过"
 msgstr "强制失败并跳过"
 
-#: gcloud/taskflow3/models.py:1304 gcloud/taskflow3/models.py:1305
+#: gcloud/taskflow3/models.py:1303 gcloud/taskflow3/models.py:1304
 msgid "节点超时配置 TimeoutNodeConfig"
 msgstr "节点超时配置 TimeoutNodeConfig"
 
-#: gcloud/taskflow3/models.py:1314 gcloud/taskflow3/models.py:1315
+#: gcloud/taskflow3/models.py:1313 gcloud/taskflow3/models.py:1314
 msgid "超时节点数据记录 TimeoutNodesRecord"
 msgstr "超时节点数据记录 TimeoutNodesRecord"
 
-#: gcloud/taskflow3/domains/context.py:130 gcloud/taskflow3/models.py:1320
-#: gcloud/taskflow3/models.py:1334
+#: gcloud/taskflow3/domains/context.py:130 gcloud/taskflow3/models.py:1319
+#: gcloud/taskflow3/models.py:1333
 #: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py:37
 #: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py:40
 msgid "任务ID"
 msgstr "任务ID"
 
-#: gcloud/taskflow3/models.py:1321
+#: gcloud/taskflow3/models.py:1320
 msgid "回调地址"
 msgstr "回调地址"
 
-#: gcloud/taskflow3/models.py:1323
+#: gcloud/taskflow3/models.py:1322
 msgid "状态"
 msgstr "状态"
 
-#: gcloud/taskflow3/models.py:1324
+#: gcloud/taskflow3/models.py:1323
 #, fuzzy
 msgid "附加信息"
 msgstr "信息"
 
-#: gcloud/taskflow3/models.py:1325
+#: gcloud/taskflow3/models.py:1324
 #, fuzzy
 msgid "回调时间"
 msgstr "驳回时间"
 
-#: gcloud/taskflow3/models.py:1328
+#: gcloud/taskflow3/models.py:1327
 msgid "任务回调记录"
 msgstr "任务回调记录"
 
-#: gcloud/taskflow3/models.py:1335
+#: gcloud/taskflow3/models.py:1334
 msgid "父任务ID"
 msgstr "父任务ID"
 
-#: gcloud/taskflow3/models.py:1336
+#: gcloud/taskflow3/models.py:1335
 msgid "根任务ID"
 msgstr "根任务ID"
 
-#: gcloud/taskflow3/models.py:1340
+#: gcloud/taskflow3/models.py:1339
 msgid "任务关系"
 msgstr "任务关系"
 
-#: gcloud/taskflow3/models.py:1391
+#: gcloud/taskflow3/models.py:1390
 msgid "启用独立子流程"
 msgstr "启用独立子流程"
 
-#: gcloud/taskflow3/models.py:1392
+#: gcloud/taskflow3/models.py:1391
 msgid "禁用独立子流程"
 msgstr "禁用独立子流程"
 
-#: gcloud/taskflow3/models.py:1393
+#: gcloud/taskflow3/models.py:1392
 msgid "启用节点重试填参"
 msgstr "启用节点重试填参"
 
-#: gcloud/taskflow3/models.py:1394
+#: gcloud/taskflow3/models.py:1393
 msgid "禁用节点重试填参"
 msgstr "禁用节点重试填参"
 
-#: gcloud/taskflow3/models.py:1400
+#: gcloud/taskflow3/models.py:1399
 msgid "配置值"
 msgstr "配置值"
 
-#: gcloud/taskflow3/models.py:1405
+#: gcloud/taskflow3/models.py:1404
 msgid "任务配置 TaskConfig"
 msgstr "任务配置 TaskConfig"
 
@@ -1810,14 +1929,12 @@ msgid "任务所属的CMDB业务名称"
 msgstr "任务所属的CMDB业务名称"
 
 #: gcloud/taskflow3/domains/context.py:120
-#, fuzzy
 msgid "任务的执行人（点击开始执行的人员）"
-msgstr "任务的操作员（点击开始执行的人员）"
+msgstr "任务的执行人（点击开始执行的人员）"
 
 #: gcloud/taskflow3/domains/context.py:126
-#, fuzzy
 msgid "任务的执行代理人"
-msgstr "任务执行"
+msgstr "任务的执行代理人"
 
 #: gcloud/taskflow3/domains/context.py:133
 msgid "任务名称"
@@ -1831,15 +1948,19 @@ msgstr "非法操作: 仅支持 V2 版本的任务 | get_rendered_constant_keys"
 msgid "非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1"
 msgstr "非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1"
 
-#: gcloud/taskflow3/domains/dispatchers/task.py:171
+#: gcloud/taskflow3/domains/dispatchers/task.py:169
 msgid "任务操作失败: 已启动的任务不可再次启动 | start_v2"
 msgstr "任务操作失败: 已启动的任务不可再次启动 | start_v2"
 
-#: gcloud/taskflow3/domains/dispatchers/task.py:351
+#: gcloud/taskflow3/domains/dispatchers/task.py:350
 msgid "任务参数设置失败: 非法的任务参数, 请修改后重试 | set_task_constants"
 msgstr "任务参数设置失败: 非法的任务参数, 请修改后重试 | set_task_constants"
 
-#: gcloud/taskflow3/domains/dispatchers/task.py:458
+#: gcloud/taskflow3/domains/dispatchers/task.py:402
+msgid "任务参数设置失败: 任务状态校验失败，"
+msgstr "任务参数设置失败: 任务状态校验失败，"
+
+#: gcloud/taskflow3/domains/dispatchers/task.py:476
 msgid "任务数据请求失败: 请重试, 如持续失败可联系管理员处理 | get_task_status_v1"
 msgstr "任务数据请求失败: 请重试, 如持续失败可联系管理员处理 | get_task_status_v1"
 
@@ -1940,11 +2061,6 @@ msgid ""
 msgstr ""
 "调用{system}接口{api_name}无权限，返回数据中 permission 为空，请联系第三方平台开发者\n"
 "details: {result}"
-"调用{system}接口{api_name}无权限，返回数据中 permission 为空，请联系第三方平台开发者\n"
-"details: {result}调用{system}接口{api_name}无权限，返回数据中 permission 为空，请联系第三方平台开发者\n"
-"details: {result}调用{system}接口{api_name}无权限，返回数据中 permission 为空，请联系第三方平台开发者\n"
-"details: {result}调用{system}接口{api_name}无权限，返回数据中 permission 为空，请联系第三方平台开发者\n"
-"details: {result}"
 
 #: gcloud/utils/handlers.py:52
 msgid "调用{system}接口{api_name}无权限：<a href='{url}' target='_blank'>申请权限</a>。"
@@ -1954,12 +2070,13 @@ msgstr "调用{system}接口{api_name}无权限：<a href='{url}' target='_blank
 #, fuzzy
 msgid ""
 "调用{system}接口{api_name}无权限，获取申请权限接口失败\n"
+"error={error}\n"
 "details: {result}\n"
-" error={error}"
 msgstr "调用{system}接口{api_name}返回失败, params={params}, error={error}"
 
 #: gcloud/utils/handlers.py:68
-msgid "调用{system}接口{api_name}返回失败, params={params}, error={error}"
+#, fuzzy
+msgid "调用{system}接口{api_name}返回失败, error={error}, params={params}"
 msgstr "调用{system}接口{api_name}返回失败, params={params}, error={error}"
 
 #: pipeline_plugins/cmdb_ip_picker/query.py:94
@@ -2099,70 +2216,84 @@ msgid "提示: 1.请求URL需要在当前网络下可以访问，否则会超时
 msgstr "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功"
 
 #: pipeline_plugins/components/collections/controller.py:48
-#: pipeline_plugins/components/collections/controller.py:51
 msgid "描述"
 msgstr "描述"
 
-#: pipeline_plugins/components/collections/controller.py:58
+#: pipeline_plugins/components/collections/controller.py:55
 #, fuzzy
 msgid "API回调数据"
 msgstr "回调数据"
 
-#: pipeline_plugins/components/collections/controller.py:62
+#: pipeline_plugins/components/collections/controller.py:58
 msgid "通过node_callback API接口回调并传入数据,支持dict数据"
 msgstr "通过node_callback API接口回调并传入数据,支持dict数据"
 
-#: pipeline_plugins/components/collections/controller.py:74
+#: pipeline_plugins/components/collections/controller.py:64
+msgid "人工确认(暂停)"
+msgstr "人工确认(暂停)"
+
+#: pipeline_plugins/components/collections/controller.py:68
 msgid "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
 msgstr "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
 
-#: pipeline_plugins/components/collections/controller.py:98
+#: pipeline_plugins/components/collections/controller.py:92
 msgid "定时时间"
 msgstr "定时时间"
 
-#: pipeline_plugins/components/collections/controller.py:101
+#: pipeline_plugins/components/collections/controller.py:95
 #, python-format
 msgid "定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)"
 msgstr "定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)"
 
-#: pipeline_plugins/components/collections/controller.py:104
+#: pipeline_plugins/components/collections/controller.py:98
 msgid "是否强制晚于当前时间"
 msgstr "是否强制晚于当前时间"
 
-#: pipeline_plugins/components/collections/controller.py:107
+#: pipeline_plugins/components/collections/controller.py:101
 msgid "用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效"
 msgstr "用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效"
 
-#: pipeline_plugins/components/collections/controller.py:130
+#: pipeline_plugins/components/collections/controller.py:124
 msgid "[定时]节点执行失败: 定时时间需晚于当前时间, 请检查节点配置"
 msgstr "[定时]节点执行失败: 定时时间需晚于当前时间, 请检查节点配置"
 
-#: pipeline_plugins/components/collections/controller.py:138
+#: pipeline_plugins/components/collections/controller.py:132
 #, python-format
 msgid "[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置"
 msgstr "[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置"
 
-#: pipeline_plugins/components/collections/controller.py:174
+#: pipeline_plugins/components/collections/controller.py:168
 msgid "定时"
 msgstr "定时"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:31
-msgid "gsekit(gsekit)"
+#: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:28
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:32
+#, fuzzy
+msgid "GSEKIT(gsekit)"
 msgstr "gsekit(gsekit)"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:47
+#: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:58
+#, fuzzy
+msgid "刷新进程实例"
+msgstr "流程实例"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:46
 msgid "等待中"
 msgstr "等待中"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:49
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:48
 #, fuzzy
 msgid "执行成功"
 msgstr "是否执行成功"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:50
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:49
 #, fuzzy
 msgid "执行失败"
 msgstr "失败"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:85
+msgid "Gsekit任务执行异常, 任务状态为 {}"
+msgstr "Gsekit任务执行异常, 任务状态为 {}"
 
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:91
 msgid "环境类型"
@@ -2216,17 +2347,37 @@ msgstr "流程实例"
 msgid "进程实例ID"
 msgstr "流程实例"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:171
-msgid "gsekit_job_task_ID"
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:127
+msgid "配置文件模版"
+msgstr "配置文件模版"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:130
+msgid "配置文件模版名"
+msgstr "配置文件模版名"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:190
+#, fuzzy
+msgid "gsekit_task_ID"
 msgstr "gsekit_job_task_ID"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:174
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:193
 msgid "gsekit的任务ID"
 msgstr "gsekit的任务ID"
 
-#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:184
-msgid "gsekit执行命令"
-msgstr "gsekit执行命令"
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:196
+#, fuzzy
+msgid "任务详情"
+msgstr "操作详情"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:199
+#, fuzzy
+msgid "gsekit的任务详情页链接"
+msgstr "gsekit的任务ID"
+
+#: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:209
+#, fuzzy
+msgid "执行命令"
+msgstr "未执行"
 
 #: pipeline_plugins/components/collections/http/v1_0.py:53
 msgid "HTTP 请求 header"
@@ -2333,7 +2484,7 @@ msgstr "本插件为仅用于消息展示的空节点"
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:41
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:47
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:50
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:43
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:85
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:91
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:43
@@ -2488,7 +2639,7 @@ msgstr "输入文本路径[{}]与业务拓扑层级不匹配"
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:44
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:50
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:53
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:46
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:88
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:94
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:46
@@ -2665,8 +2816,8 @@ msgstr "更新模块属性"
 #: pipeline_plugins/components/collections/sites/open/cc/batch_module_update/v1_0.py:210
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:179
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_set/v1_0.py:204
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:202
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:235
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:198
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:231
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py:249
 msgid ""
 "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
@@ -2674,15 +2825,6 @@ msgid ""
 "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
 msgstr ""
 "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
-"1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
 "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
 "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
 
@@ -2747,19 +2889,6 @@ msgstr ""
 "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据 \n"
 "注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
 "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
-"1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4 \n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据 \n"
-"注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4 \n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据 \n"
-"注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_1.py:171
 msgid ""
@@ -2768,11 +2897,6 @@ msgid ""
 "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
 msgstr ""
 "支持cc接口ip->模块多对多转移能力，可以在单行输入多个ip和多个模块,使用英文符号(,)分割,执行成功后,这些ip会被转移到对应的模块中,如果ip或模块填写有误,整行将不会执行转移操作\n"
-"注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
-"支持cc接口ip->模块多对多转移能力，可以在单行输入多个ip和多个模块,使用英文符号(,)分割,执行成功后,这些ip会被转移到对应的模块中,如果ip或模块填写有误,整行将不会执行转移操作\n"
-"注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块支持cc接口ip->模块多对多转移能力，可以在单行输入多个ip和多个模块,使用英文符号(,)分割,执行成功后,这些ip会被转移到对应的模块中,如果ip或模块填写有误,整行将不会执行转移操作\n"
 "注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
 "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
 
@@ -2882,70 +3006,70 @@ msgstr "模块类型校验失败，请重试并填写正确的模块类型"
 msgid "创建模块"
 msgstr "创建模块"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:49
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:91
 msgid "父实例"
 msgstr "父实例"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:52
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:94
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:106
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:58
 msgid "父实例 ID 列表"
 msgstr "父实例 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:52
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:94
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:106
 #: pipeline_plugins/components/collections/sites/open/cc/create_set_by_template/v1_0.py:58
 msgid "实例 ID"
 msgstr "实例 ID"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:51
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:55
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:97
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:115
 msgid "集群信息"
 msgstr "集群信息"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:54
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:59
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:101
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:119
 msgid "新集群信息对象列表"
 msgstr "新集群信息对象列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:55
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:60
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:102
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:120
 msgid "集群信息描述对象"
 msgstr "集群信息描述对象"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:100
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:151
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:185
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:101
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:149
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:183
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:103
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:141
 msgid "环境类型校验失败，请重试并修改为正确的环境类型"
 msgstr "环境类型校验失败，请重试并修改为正确的环境类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:106
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:157
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:191
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:105
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:153
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:187
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:88
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:128
 msgid "服务状态校验失败，请重试并修改为正确的服务状态"
 msgstr "服务状态校验失败，请重试并修改为正确的服务状态"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:114
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:165
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:199
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:113
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:161
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:195
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:111
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:149
 msgid "集群容量必须为整数"
 msgstr "集群容量必须为整数"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:141
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:195
-#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:228
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:138
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:191
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:224
 msgid "创建集群"
 msgstr "创建集群"
 
@@ -3091,55 +3215,6 @@ msgstr ""
 "     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
 "     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
 "2.次序是用来给规则排序的"
-"1.规则示例：\n"
-"  IP: 192.168.0.1\n"
-"  自定义属性：主要维护人\n"
-"  规则定义(主机属性)：\n"
-"     主机属性      | 主要维护人 | 1 \n"
-"     set属性      | 集群名    | 3 \n"
-"  规则定义(自定义属性)：\n"
-"     自定义字符(串) | hello    | 2 \n"
-"     ip(.需替换成) | *        | 4 \n"
-"  修改成功后的期望值为：\n"
-"     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
-"     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
-"2.次序是用来给规则排序的1.规则示例：\n"
-"  IP: 192.168.0.1\n"
-"  自定义属性：主要维护人\n"
-"  规则定义(主机属性)：\n"
-"     主机属性      | 主要维护人 | 1 \n"
-"     set属性      | 集群名    | 3 \n"
-"  规则定义(自定义属性)：\n"
-"     自定义字符(串) | hello    | 2 \n"
-"     ip(.需替换成) | *        | 4 \n"
-"  修改成功后的期望值为：\n"
-"     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
-"     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
-"2.次序是用来给规则排序的1.规则示例：\n"
-"  IP: 192.168.0.1\n"
-"  自定义属性：主要维护人\n"
-"  规则定义(主机属性)：\n"
-"     主机属性      | 主要维护人 | 1 \n"
-"     set属性      | 集群名    | 3 \n"
-"  规则定义(自定义属性)：\n"
-"     自定义字符(串) | hello    | 2 \n"
-"     ip(.需替换成) | *        | 4 \n"
-"  修改成功后的期望值为：\n"
-"     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
-"     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
-"2.次序是用来给规则排序的1.规则示例：\n"
-"  IP: 192.168.0.1\n"
-"  自定义属性：主要维护人\n"
-"  规则定义(主机属性)：\n"
-"     主机属性      | 主要维护人 | 1 \n"
-"     set属性      | 集群名    | 3 \n"
-"  规则定义(自定义属性)：\n"
-"     自定义字符(串) | hello    | 2 \n"
-"     ip(.需替换成) | *        | 4 \n"
-"  修改成功后的期望值为：\n"
-"     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
-"     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
-"2.次序是用来给规则排序的"
 
 #: pipeline_plugins/components/collections/sites/open/cc/host_lock/base.py:48
 msgid "主机 IP，多个用换行符分隔"
@@ -3253,9 +3328,6 @@ msgid ""
 msgstr ""
 "注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
 "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
-"注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
 
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:57
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:58
@@ -3285,11 +3357,6 @@ msgid ""
 "转移方式为【追加】且主机源模块为A（非空闲模块）目标模块为B（非空闲模块）时，主机最终会属于A+B，其它情况下主机均仅属于B"
 msgstr ""
 "注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块\n"
-"转移方式为【追加】且主机源模块为A（非空闲模块）目标模块为B（非空闲模块）时，主机最终会属于A+B，其它情况下主机均仅属于B"
-"注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
-"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块\n"
-"转移方式为【追加】且主机源模块为A（非空闲模块）目标模块为B（非空闲模块）时，主机最终会属于A+B，其它情况下主机均仅属于B注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
 "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块\n"
 "转移方式为【追加】且主机源模块为A（非空闲模块）目标模块为B（非空闲模块）时，主机最终会属于A+B，其它情况下主机均仅属于B"
 
@@ -4072,7 +4139,7 @@ msgstr "变量类型，云参(1) 上下文参数(2) IP(3)"
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:42
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_0.py:43
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_1.py:70
-#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:90
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:96
 msgid "执行作业"
 msgstr "执行作业"
 
@@ -4087,9 +4154,6 @@ msgid ""
 msgstr ""
 "在接收到用户编辑的全局变量后，v1.0版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
 "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
-"在接收到用户编辑的全局变量后，v1.0版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。在接收到用户编辑的全局变量后，v1.0版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_1.py:76
 msgid ""
@@ -4100,13 +4164,8 @@ msgstr ""
 "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
 "2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
 "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
-"1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
-"2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
-"2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
 
-#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:96
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:102
 msgid ""
 "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
 "2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
@@ -4114,13 +4173,6 @@ msgid ""
 "3. 去除IP存在性校验，默认开启新版IP tag分组, 默认开启失败时提取变量，job成功历史调整为只在重试时显示"
 msgstr ""
 "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
-"2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。\n"
-"3. 去除IP存在性校验，默认开启新版IP tag分组, 默认开启失败时提取变量，job成功历史调整为只在重试时显示"
-"1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
-"2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。\n"
-"3. 去除IP存在性校验，默认开启新版IP tag分组, 默认开启失败时提取变量，job成功历史调整为只在重试时显示1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
 "2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
 "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。\n"
 "3. 去除IP存在性校验，默认开启新版IP tag分组, 默认开启失败时提取变量，job成功历史调整为只在重试时显示"
@@ -4225,11 +4277,6 @@ msgstr ""
 "插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
 "插件版本v1.0会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
 "注：插件版本v1.0中跨业务执行脚本时需要在作业平台添加白名单"
-"插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
-"插件版本v1.0会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
-"注：插件版本v1.0中跨业务执行脚本时需要在作业平台添加白名单插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
-"插件版本v1.0会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
-"注：插件版本v1.0中跨业务执行脚本时需要在作业平台添加白名单"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_1.py:289
 msgid ""
@@ -4238,11 +4285,6 @@ msgid ""
 "注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单"
 msgstr ""
 "插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
-"插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
-"注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单"
-"插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
-"插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
-"注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
 "插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
 "注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单"
 
@@ -4254,16 +4296,6 @@ msgid ""
 "注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单。\n"
 "注：插件版本v1.2中滚动执行要求作业平台版本>=V3.6.0.0。\n"
 msgstr ""
-"插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
-"插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
-"插件版本V1.2新增滚动执行，ip tag分组默认为开。\n"
-"注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单。\n"
-"注：插件版本v1.2中滚动执行要求作业平台版本>=V3.6.0.0。\n"
-"插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
-"插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
-"插件版本V1.2新增滚动执行，ip tag分组默认为开。\n"
-"注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单。\n"
-"注：插件版本v1.2中滚动执行要求作业平台版本>=V3.6.0.0。\n"
 "插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
 "插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
 "插件版本V1.2新增滚动执行，ip tag分组默认为开。\n"
@@ -4336,17 +4368,6 @@ msgstr ""
 "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
 "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据\n"
 "4. V2.1版本支持job滚动执行，要求作业平台版本>=3.6.0.0"
-"1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据\n"
-"4. V2.1版本支持job滚动执行，要求作业平台版本>=3.6.0.01. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据\n"
-"4. V2.1版本支持job滚动执行，要求作业平台版本>=3.6.0.01. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
 
 #: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py:46
 msgid "日志查询目标IP，仅支持一个IP"
@@ -4402,9 +4423,6 @@ msgid ""
 "注：插件版本v1.1版本默认开启跨业务"
 msgstr ""
 "注：插件版本v1.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
-"注：插件版本v1.1版本默认开启跨业务"
-"注：插件版本v1.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
-"注：插件版本v1.1版本默认开启跨业务注：插件版本v1.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
 "注：插件版本v1.1版本默认开启跨业务"
 
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/base_service.py:48
@@ -4502,24 +4520,28 @@ msgstr "本地上传的文件不保证长期保存并可用于多次分发，推
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_0.py:25
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_1.py:27
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_2.py:27
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:13
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:14
 msgid "监控平台(Monitor)"
 msgstr "监控平台(Monitor)"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:73
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:52
+msgid "主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参"
+msgstr "主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参"
+
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:91
 msgid "屏蔽Id"
 msgstr "屏蔽Id"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:73
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:91
 msgid "创建的告警屏蔽 ID"
 msgstr "创建的告警屏蔽 ID"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:76
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:94
 #, fuzzy
 msgid "详情"
 msgstr "操作详情"
 
-#: pipeline_plugins/components/collections/sites/open/monitor/base.py:76
+#: pipeline_plugins/components/collections/sites/open/monitor/base.py:94
 msgid "创建的告警屏蔽详情"
 msgstr "创建的告警屏蔽详情"
 
@@ -4969,9 +4991,6 @@ msgid ""
 msgstr ""
 "v3.0版本支持多云区域主机新建任务 \n"
 "注意：节点类型PROXY仅支持非直连区域"
-"v3.0版本支持多云区域主机新建任务 \n"
-"注意：节点类型PROXY仅支持非直连区域v3.0版本支持多云区域主机新建任务 \n"
-"注意：节点类型PROXY仅支持非直连区域"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:273
 msgid ""
@@ -4980,11 +4999,6 @@ msgid ""
 "移除操作下线"
 msgstr ""
 "v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n"
-"卸载AGENT操作参数和重装AGENT保持一致 \n"
-"移除操作下线"
-"v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n"
-"卸载AGENT操作参数和重装AGENT保持一致 \n"
-"移除操作下线v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n"
 "卸载AGENT操作参数和重装AGENT保持一致 \n"
 "移除操作下线"
 
@@ -5222,9 +5236,6 @@ msgid ""
 msgstr ""
 "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n"
 "该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
-"单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n"
-"该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n"
-"该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
 
 #: pipeline_plugins/variables/collections/common.py:136
 #, fuzzy
@@ -5246,17 +5257,6 @@ msgid ""
 "注意：请确保不同选项的value值不相同。"
 msgstr ""
 "单选模式下 ${KEY[\"value\"]} 输出选中的 value，\n"
-"${KEY[\"text\"]} 输出选中的 text。\n"
-"多选模式下 ${KEY[\"value\"]} 输出选中的 value 以 \",\"拼接的字符串，\n"
-"${KEY[\"text\"]} 输出选中的 text 以 \",\" 拼接的字符串。\n"
-"对于未选择的 text 和 value，通过 ${KEY[\"text_not_selected\"]} 和 ${KEY[\"value_not_selected\"]} 输出对应拼接字符串。\n"
-"注意：请确保不同选项的value值不相同。"
-"单选模式下 ${KEY[\"value\"]} 输出选中的 value，\n"
-"${KEY[\"text\"]} 输出选中的 text。\n"
-"多选模式下 ${KEY[\"value\"]} 输出选中的 value 以 \",\"拼接的字符串，\n"
-"${KEY[\"text\"]} 输出选中的 text 以 \",\" 拼接的字符串。\n"
-"对于未选择的 text 和 value，通过 ${KEY[\"text_not_selected\"]} 和 ${KEY[\"value_not_selected\"]} 输出对应拼接字符串。\n"
-"注意：请确保不同选项的value值不相同。单选模式下 ${KEY[\"value\"]} 输出选中的 value，\n"
 "${KEY[\"text\"]} 输出选中的 text。\n"
 "多选模式下 ${KEY[\"value\"]} 输出选中的 value 以 \",\"拼接的字符串，\n"
 "${KEY[\"text\"]} 输出选中的 text 以 \",\" 拼接的字符串。\n"
@@ -5336,9 +5336,6 @@ msgid ""
 msgstr ""
 "可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
 "输出格式为选中人员用户名以 ',' 拼接的字符串"
-"可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
-"输出格式为选中人员用户名以 ',' 拼接的字符串可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
-"输出格式为选中人员用户名以 ',' 拼接的字符串"
 
 #: pipeline_plugins/variables/collections/datatable.py:44
 msgid "表格"
@@ -5355,11 +5352,6 @@ msgid ""
 "test2\""
 msgstr ""
 "引用表格变量某一列某一行的属性，如 ${KEY.columnA[0]} -> \"test1\"\n"
-"引用表格变量某一列的全部属性，多行用换行符 `\\n` 分隔，如 ${KEY.flat__columnA} -> \"test1\n"
-"test2\""
-"引用表格变量某一列某一行的属性，如 ${KEY.columnA[0]} -> \"test1\"\n"
-"引用表格变量某一列的全部属性，多行用换行符 `\\n` 分隔，如 ${KEY.flat__columnA} -> \"test1\n"
-"test2\"引用表格变量某一列某一行的属性，如 ${KEY.columnA[0]} -> \"test1\"\n"
 "引用表格变量某一列的全部属性，多行用换行符 `\\n` 分隔，如 ${KEY.flat__columnA} -> \"test1\n"
 "test2\""
 
@@ -5386,19 +5378,6 @@ msgid ""
 "- 否，返回格式为{ip},{ip}"
 msgstr ""
 "输出格式为选中 IP 以 ',' 分隔的字符串\n"
-"筛选条件和排除条件为 AND 关系\n"
-"- 筛选：会从IP列表中筛选出符合条件的IP\n"
-"- 排除：会从IP列表中去除符合条件的IP\n"
-"变量值是否带云区域\n"
-"- 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}\n"
-"- 否，返回格式为{ip},{ip}"
-"输出格式为选中 IP 以 ',' 分隔的字符串\n"
-"筛选条件和排除条件为 AND 关系\n"
-"- 筛选：会从IP列表中筛选出符合条件的IP\n"
-"- 排除：会从IP列表中去除符合条件的IP\n"
-"变量值是否带云区域\n"
-"- 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}\n"
-"- 否，返回格式为{ip},{ip}输出格式为选中 IP 以 ',' 分隔的字符串\n"
 "筛选条件和排除条件为 AND 关系\n"
 "- 筛选：会从IP列表中筛选出符合条件的IP\n"
 "- 排除：会从IP列表中去除符合条件的IP\n"
@@ -5441,33 +5420,6 @@ msgstr ""
 "引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接\n"
 "引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接\n"
 "引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接"
-"此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）\n"
-"引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}\n"
-"引用${KEY._module}，返回的是集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列\n"
-"引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表\n"
-"如：\n"
-"获取集群的名称列表: ${KEY.bk_set_name}\n"
-"获取集群环境类型: ${KEY.bk_set_env}\n"
-"引用${KEY.flat__{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值，用 ',' 连接\n"
-"如：\n"
-"获取集群的名称值: ${KEY.flat__bk_set_name}\n"
-"获取集群环境类型值: ${KEY.flat__bk_set_env}\n"
-"引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接\n"
-"引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接\n"
-"引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）\n"
-"引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}\n"
-"引用${KEY._module}，返回的是集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列\n"
-"引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表\n"
-"如：\n"
-"获取集群的名称列表: ${KEY.bk_set_name}\n"
-"获取集群环境类型: ${KEY.bk_set_env}\n"
-"引用${KEY.flat__{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值，用 ',' 连接\n"
-"如：\n"
-"获取集群的名称值: ${KEY.flat__bk_set_name}\n"
-"获取集群环境类型值: ${KEY.flat__bk_set_env}\n"
-"引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接\n"
-"引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接\n"
-"引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:286
 msgid "主机属性查询器"
@@ -5485,12 +5437,6 @@ msgstr ""
 "例如，通过 ${hosts[\"1.1.1.1\"][\"bk_host_id\"]} 获取主机在 CMDB 中的唯一 ID\n"
 "输入请保证每台主机都有唯一的 IP，否则可能会出现数据覆盖的情况\n"
 "更多可使用的主机属性请在 CMDB 主机模型页面查阅"
-"输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）\n"
-"例如，通过 ${hosts[\"1.1.1.1\"][\"bk_host_id\"]} 获取主机在 CMDB 中的唯一 ID\n"
-"输入请保证每台主机都有唯一的 IP，否则可能会出现数据覆盖的情况\n"
-"更多可使用的主机属性请在 CMDB 主机模型页面查阅输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）\n"
-"例如，通过 ${hosts[\"1.1.1.1\"][\"bk_host_id\"]} 获取主机在 CMDB 中的唯一 ID\n"
-"更多可使用的主机属性请在 CMDB 主机模型页面查阅"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:397
 msgid "IP过滤器"
@@ -5500,11 +5446,11 @@ msgstr "IP过滤器"
 msgid "引用${KEY}，返回符合过滤条件的IP, IP格式为下面表单指定的格式"
 msgstr "引用${KEY}，返回符合过滤条件的IP, IP格式为下面表单指定的格式"
 
-#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:45
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:44
 msgid "集群模块IP选择器"
 msgstr "集群模块IP选择器"
 
-#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:49
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py:48
 msgid "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"
 msgstr "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"
 
@@ -5545,21 +5491,6 @@ msgid ""
 "引用${KEY.flat__module_id}，返回类型为字符串，值为用英文逗号,连接的模块ID"
 msgstr ""
 "用于获取集群和模块的信息（名称或ID）\n"
-"引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}\n"
-"引用${KEY.set_name}，返回类型为字符串，值为集群名称\n"
-"引用${KEY.set_id}，返回类型为数字，值为集群ID\n"
-"引用${KEY.module_name}，返回类型为列表，列表值为模块名称\n"
-"引用${KEY.flat__module_name}，返回类型为字符串，值为用英文逗号,连接的模块名称\n"
-"引用${KEY.module_id}，返回类型为列表，列表值为模块ID\n"
-"引用${KEY.flat__module_id}，返回类型为字符串，值为用英文逗号,连接的模块ID"
-"用于获取集群和模块的信息（名称或ID）\n"
-"引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}\n"
-"引用${KEY.set_name}，返回类型为字符串，值为集群名称\n"
-"引用${KEY.set_id}，返回类型为数字，值为集群ID\n"
-"引用${KEY.module_name}，返回类型为列表，列表值为模块名称\n"
-"引用${KEY.flat__module_name}，返回类型为字符串，值为用英文逗号,连接的模块名称\n"
-"引用${KEY.module_id}，返回类型为列表，列表值为模块ID\n"
-"引用${KEY.flat__module_id}，返回类型为字符串，值为用英文逗号,连接的模块ID用于获取集群和模块的信息（名称或ID）\n"
 "引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}\n"
 "引用${KEY.set_name}，返回类型为字符串，值为集群名称\n"
 "引用${KEY.set_id}，返回类型为数字，值为集群ID\n"
@@ -6371,4 +6302,7 @@ msgstr "微信用户"
 
 #~ msgid "IP 校验失败，请确认输入的 IP {} 是否合法"
 #~ msgstr "IP 校验失败，请确认输入的 IP {} 是否合法"
+
+#~ msgid "gsekit执行命令"
+#~ msgstr "gsekit执行命令"
 
