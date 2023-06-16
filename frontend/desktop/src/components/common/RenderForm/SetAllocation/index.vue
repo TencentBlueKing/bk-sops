@@ -293,7 +293,7 @@
                             type: 'textarea',
                             module: true, // module 字段用来标识表格列是否为模块数据
                             attrs: {
-                                name: gettext('模块：') + item.name + ('host_count' in item ? `(${item.host_count})` : ''),
+                                name: this.$t('模块：') + item.name + ('host_count' in item ? `(${item.host_count})` : ''),
                                 editable: true,
                                 validation: [
                                     {
@@ -304,7 +304,7 @@
                                             const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
                                             if (hosts.length < count) {
                                                 result = false
-                                                message = gettext('资源不足')
+                                                message = this.$t('资源不足')
                                             }
                                             return {
                                                 result,
@@ -326,7 +326,7 @@
                                             })
                                             return {
                                                 result,
-                                                error_message: result ? '' : gettext('IP地址不合法')
+                                                error_message: result ? '' : this.$t('IP地址不合法')
                                             }
                                         }
                                     }
@@ -342,7 +342,7 @@
                         config: {
                             tag_code: 'tb_btns',
                             attrs: {
-                                name: gettext('操作')
+                                name: this.$t('操作')
                             }
                         }
                     })
@@ -471,7 +471,7 @@
                     })
                     data.push(value)
                 })
-                this.$nextTick(() => {
+                this.$tnextTick(() => {
                     this.joinCols(modules)
                     this.joinValue(rowCount, data)
                     this.localConfig = {

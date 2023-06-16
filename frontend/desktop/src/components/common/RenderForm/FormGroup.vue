@@ -93,7 +93,7 @@
             <i
                 :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
-                    content: hook ? i18n.hooked : i18n.cancelHook,
+                    content: hook ? $t('取消变量引用') : $t('设置为变量'),
                     placement: 'bottom',
                     zIndex: 3000
                 }"
@@ -180,11 +180,7 @@
                 eventActions: {}, // combine 类型配置项定义的事件回调函数
                 groupOption,
                 showForm, // combine 类型 Tag 组是否显示
-                showHook, // combine 类型 Tag 组是否可勾选
-                i18n: {
-                    hooked: gettext('取消变量引用'),
-                    cancelHook: gettext('设置为变量')
-                }
+                showHook // combine 类型 Tag 组是否可勾选
             }
         },
         computed: {

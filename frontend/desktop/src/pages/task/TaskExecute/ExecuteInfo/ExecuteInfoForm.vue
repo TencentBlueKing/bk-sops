@@ -2,7 +2,7 @@
     <section class="info-section" data-test-id="taskExecute_form_excuteInfo">
         <h4 class="common-section-title">{{ $t('基础信息') }}</h4>
         <ul class="operation-table">
-            <li v-if="isSubProcessNode">
+            <li v-if="isSubProcessNode || isLegacySubProcess">
                 <span class="th">{{ $t('流程模板') }}</span>
                 <span v-if="templateName" class="td">
                     {{ templateName }}
@@ -30,18 +30,14 @@
                 <span class="th">{{ $t('步骤名称') }}</span>
                 <span class="td">{{ templateConfig.stage_name || '--' }}</span>
             </li>
-            <li v-if="isSubProcessNode">
+            <li v-if="isSubProcessNode || isLegacySubProcess">
                 <span class="th">{{ $t('执行方案') }}</span>
                 <span class="td">{{ schemeTextValue || '--' }}</span>
             </li>
-            <li>
-                <span class="th">{{ $t('是否可选') }}</span>
-                <span class="td">{{ templateConfig.optional ? $t('是') : $t('否') }}</span>
-            </li>
-            <li>
+            <li v-if="!isLegacySubProcess">
                 <span class="th">{{ $t('失败处理') }}</span>
-                <span class="error-handle-td td" v-if="templateConfig.ignorable || templateConfig.skippable || templateConfig.retryable || (templateConfig.auto_retry && templateConfig.auto_retry.enable)">
-                    <template v-if="templateConfig.ignorable">
+                <span class="error-handle-td td" v-if="templateConfig.error_ignorable || templateConfig.skippable || templateConfig.retryable || (templateConfig.auto_retry && templateConfig.auto_retry.enable)">
+                    <template v-if="templateConfig.error_ignorable">
                         <span class="error-handle-icon"><span class="text">AS</span></span>
                         {{ $t('自动跳过') }};
                     </template>
@@ -60,11 +56,15 @@
                 </span>
                 <span v-else class="td">{{ '--' }}</span>
             </li>
-            <!-- <li>
+            <li v-if="!isSubProcessNode && !isLegacySubProcess">
                 <span class="th">{{ $t('超时控制') }}</span>
                 <span class="td">{{ timeoutTextValue }}</span>
-            </li> -->
-            <li v-if="isSubProcessNode">
+            </li>
+            <li>
+                <span class="th">{{ $t('是否可选') }}</span>
+                <span class="td">{{ templateConfig.optional ? $t('是') : $t('否') }}</span>
+            </li>
+            <li v-if="isSubProcessNode || isLegacySubProcess">
                 <span class="th">{{ $t('总是使用最新版本') }}</span>
                 <span class="td">{{ !('always_use_latest' in componentValue) ? '--' : componentValue.always_use_latest ? $t('是') : $t('否') }}</span>
             </li>
@@ -220,7 +220,7 @@
                 if (this.isSubProcessNode) {
                     return this.nodeActivity.component.data.subprocess.value
                 }
-                return {}
+                return this.nodeActivity
             },
             inputLoading () {
                 return this.taskNodeLoading || this.subflowLoading || this.constantsLoading
@@ -233,9 +233,12 @@
             },
             inputAndOutputWrapShow () {
                 const { original_template_id, type } = this.nodeActivity
-                // 普通任务节点展示/该功能上线后的独立子流程任务展示
+                // 普通任务节点展示/该功能上线后的子流程任务展示
                 return (!this.isSubProcessNode && type !== 'SubProcess')
                     || (original_template_id && !this.templateConfig.isOldData)
+            },
+            isLegacySubProcess () {
+                return !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
             }
         },
         mounted () {
@@ -265,13 +268,9 @@
             async initData () {
                 try {
                     // 获取对应模板配置
-                    let tplConfig = {}
-                    if (this.nodeActivity.type !== 'SubProcess') { // 旧版子流程任务节点不支持查看节点快照配置
-                        tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
-                    }
+                    const tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
                     this.templateConfig = tplConfig.data || { ...this.nodeActivity, isOldData: true } || {}
-                    if (this.nodeActivity.type === 'SubProcess') return
-                    if (this.isSubProcessNode) { // 子流程任务节点
+                    if (this.isSubProcessNode || this.nodeActivity.type === 'SubProcess') { // 子流程任务节点
                         // tplConfig.data为null为该功能之前的旧数据，没有original_template_id字段的，不调接口
                         if (!tplConfig.data || !this.nodeActivity.original_template_id) {
                             return
@@ -522,12 +521,13 @@
              * 加载标准插件节点输入参数表单配置项，获取输出参数列表
              */
             async getPluginDetail () {
-                const { component_code: plugin, version } = this.nodeDetailConfig
+                const { component_code, version } = this.nodeDetailConfig
+                const plugin = this.isThirdPartyNode ? this.thirdPartyNodeCode : component_code
                 this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
-                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty }) || []
-                    if (!this.isThirdParty) {
+                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdPartyNode }) || []
+                    if (!this.isThirdPartyNode) {
                         this.outputs = this.pluginOutput[plugin][version]
                     }
                 } catch (e) {

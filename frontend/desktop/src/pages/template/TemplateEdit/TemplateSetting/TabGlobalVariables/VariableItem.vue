@@ -277,9 +277,23 @@
                 }
             },
             onDeleteVariable () {
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('全局变量') + `"${this.variableData.key}"?`,
-                    subTitle: i18n.t('若该变量被节点引用，请及时检查并更新节点配置'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('全局变量') + `"${this.variableData.key}"?`]),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('若该变量被节点引用，请及时检查并更新节点配置')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
@@ -383,6 +397,7 @@ $localBorderColor: #d8e2e7;
         overflow: hidden;
         text-overflow:ellipsis;
         white-space: nowrap;
+        padding-right: 15px;
         &.active {
             color: #3a84ff;
         }

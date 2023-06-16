@@ -137,7 +137,7 @@
                         })
                     },
                     error: function () {
-                        self.empty_text = gettext('请求数据失败')
+                        self.empty_text = this.$t('请求数据失败')
                         self.loading = false
                     }
                 })

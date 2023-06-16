@@ -30,49 +30,51 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
         placeholder: {
             type: String,
             required: false,
-            default: gettext('请选择时间'),
+            default: i18n.t('请选择时间'),
             desc: 'placeholder'
         },
         startPlaceholder: {
             type: String,
             required: false,
-            default: gettext('请选择开始时间'),
-            desc: gettext('开始时间 placeholder')
+            default: i18n.t('请选择开始时间'),
+            desc: i18n.t('开始时间 placeholder')
         },
         endPlaceholder: {
             type: String,
             required: false,
-            default: gettext('请选择结束时间'),
-            desc: gettext('结束时间 placeholder')
+            default: i18n.t('请选择结束时间'),
+            desc: i18n.t('结束时间 placeholder')
         },
         disabled: {
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用选择器')
+            desc: i18n.t('禁用选择器')
         },
         isRange: {
             type: String,
             required: false,
             default: false,
-            desc: gettext('是否为选择时间范围')
+            desc: i18n.t('是否为选择时间范围')
         },
         format: {
             type: String,
             required: false,
             default: 'HH:mm:ss',
-            desc: gettext('选中的时间以及展示的值')
+            desc: i18n.t('选中的时间以及展示的值')
         },
         value: {
             type: [String, Array],
             required: false,
-            default: gettext('选中的时间')
+            default: i18n.t('选中的时间')
         }
     }
     export default {

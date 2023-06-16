@@ -13,17 +13,18 @@ specific language governing permissions and limitations under the License.
 
 
 import copy
-import jsonschema
 
+import jsonschema
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views import create_task
+from gcloud.constants import TaskCreateMethod
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-from .utils import APITest, TEST_USERNAME
+from .utils import TEST_USERNAME, APITest
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
@@ -97,11 +98,12 @@ class CreateTaskAPITest(APITest):
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
                     template_source="project",
-                    create_method="api",
+                    create_method=TaskCreateMethod.API.value,
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
                     engine_ver=2,
+                    extra_info='{"keys_in_constants_parameter":[]}',
                 )
 
                 data = json.loads(response.content)
@@ -155,11 +157,12 @@ class CreateTaskAPITest(APITest):
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
                     template_source="common",
-                    create_method="api",
+                    create_method=TaskCreateMethod.API.value,
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
                     engine_ver=2,
+                    extra_info='{"keys_in_constants_parameter":[]}',
                 )
 
                 data = json.loads(response.content)
@@ -226,11 +229,12 @@ class CreateTaskAPITest(APITest):
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
                     template_source="project",
-                    create_method="api",
+                    create_method=TaskCreateMethod.API.value,
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
                     engine_ver=2,
+                    extra_info='{"keys_in_constants_parameter":["key1","key2"]}',
                 )
 
                 data = json.loads(response.content)

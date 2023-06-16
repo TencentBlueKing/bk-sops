@@ -29,37 +29,38 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
         placeholder: {
             type: String,
             required: false,
-            default: gettext('请选择日期时间'),
+            default: i18n.t('请选择日期时间'),
             desc: 'placeholder'
         },
         disabled: {
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用选择器')
+            desc: i18n.t('禁用选择器')
         },
         type: {
             type: String,
             required: false,
             default: 'datetime',
-            desc: gettext('日期选择器显示类型')
+            desc: i18n.t('日期选择器显示类型')
         },
         format: {
             type: String,
             required: false,
             default: 'yyyy-MM-dd HH:mm:ss',
-            desc: gettext('选中的时间以及展示的值')
+            desc: i18n.t('选中的时间以及展示的值')
         },
         value: {
             type: String,
             required: false,
-            default: gettext('选中的时间')
+            default: i18n.t('选中的时间')
         }
     }
     export default {

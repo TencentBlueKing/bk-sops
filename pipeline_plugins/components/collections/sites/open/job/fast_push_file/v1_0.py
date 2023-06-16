@@ -126,7 +126,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             original_ip_list,
             logger_handle=self.logger,
             ip_is_exist=ip_is_exist,
-            is_across=False,
+            is_across=across_biz,
         )
         if not clean_result:
             return False

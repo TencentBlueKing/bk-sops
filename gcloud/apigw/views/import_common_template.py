@@ -13,17 +13,20 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.forms.fields import BooleanField
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.apigw.views.utils import logger
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import (
+    format_import_result_to_response_data,
+    read_encoded_template_data,
+)
 
 
 @login_exempt
@@ -70,4 +73,4 @@ def import_common_template(request):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
-    return import_result
+    return format_import_result_to_response_data(import_result)

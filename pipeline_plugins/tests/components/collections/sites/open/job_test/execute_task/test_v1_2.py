@@ -650,8 +650,8 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                                 "name": "key_3",
                                 "server": {
                                     "ip_list": [
-                                        {"ip": "4.4.4.4", "bk_cloud_id": "0"},
-                                        {"ip": "3.3.3.3", "bk_cloud_id": "0"},
+                                        {"ip": "4.4.4.4", "bk_cloud_id": 0},
+                                        {"ip": "3.3.3.3", "bk_cloud_id": 0},
                                     ],
                                 },
                             },

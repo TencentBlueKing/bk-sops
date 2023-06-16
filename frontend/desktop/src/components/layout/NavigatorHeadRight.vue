@@ -166,9 +166,10 @@
             toggleLanguage (language) {
                 this.curLanguage = language
                 const local = language === 'chinese' ? 'zh-cn' : 'en'
+                const domain = window.BK_DOMAIN || window.location.hostname.replace(/^[^.]+(.*)$/, '$1')
                 Cookies.set('blueking_language', local, {
                     expires: 1,
-                    domain: window.location.hostname.replace(/^[^.]+(.*)$/, '$1'),
+                    domain,
                     path: '/'
                 })
                 window.location.reload()

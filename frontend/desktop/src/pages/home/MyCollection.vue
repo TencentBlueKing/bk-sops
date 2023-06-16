@@ -191,7 +191,7 @@
                         this.$router.push({
                             name: 'processHome',
                             params: { project_id },
-                            query: { template_id: id }
+                            query: { template_id: String(id) }
                         })
                         break
                     case 'periodic_task':

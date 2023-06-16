@@ -80,6 +80,12 @@ const NODE_RULE = {
     }
 }
 
+let nodeTargetMaps = {}
+let convergeGwNodes = [] // 流程中所有的汇聚网关
+let checkedConvergeNodes = [] // 遍历过程中找到的汇聚网关
+let checkedNodes = [] // 遍历过程中找到的所有节点
+let nodeBranches = [] // 表示分支的节点
+
 const validatePipeline = {
     /**
      * 判断连线是否合法
@@ -263,7 +269,22 @@ const validatePipeline = {
      * 画布pipeline_tree数据校验
      */
     isPipelineDataValid (data) {
-        const { activities, start_event, end_event, gateways, flows } = data
+        const { activities, start_event, end_event, gateways, flows, line } = data
+        nodeTargetMaps = line.reduce((acc, cur) => {
+            const { source, target } = cur
+            if (acc[source.id]) {
+                acc[source.id].push(target.id)
+            } else {
+                acc[source.id] = [target.id]
+            }
+            return acc
+        }, {})
+        convergeGwNodes = Object.values(gateways).reduce((acc, cur) => {
+            if (cur.type === 'ConvergeGateway') {
+                acc.push(cur.id)
+            }
+            return acc
+        }, [])
         let valid = validator(data)
         let message = ''
         let errorId = ''
@@ -298,10 +319,11 @@ const validatePipeline = {
             }
             // 检查并行网关/条件并行网关是否和汇聚网关相连
             if (['ParallelGateway', 'ConditionalParallelGateway'].includes(node.type)) {
-                let branchSinkNodes = new Set()
-                this.getBranchNodes(data, node.id, '', branchSinkNodes)
-                branchSinkNodes = [...branchSinkNodes]
-                if (branchSinkNodes.length === 1 && gateways[branchSinkNodes[0]]?.type === 'ConvergeGateway') {
+                checkedNodes = []
+                checkedConvergeNodes = []
+                nodeBranches = new Set([node.id])
+                this.getNodeBranches(node.id, node.id)
+                if (nodeBranches.size === 1) {
                     return false
                 } else {
                     message = node.type === 'ParallelGateway'
@@ -316,49 +338,45 @@ const validatePipeline = {
 
         return this.getMessage(valid, message, errorId)
     },
-    /**
-     * id 起始节点
-     * firstId 分支上首个节点
-     * branchSinkNodes 存在分支
-     */
-    getBranchNodes (data, id, firstId, branchSinkNodes) {
-        const { flows, activities, gateways, end_event } = data
-        const targetIds = Object.values(flows).reduce((acc, cur) => {
-            if (cur.source === id) {
-                acc.push(cur.target)
-            }
-            return acc
-        }, [])
+    getNodeBranches (id, branchId) {
+        // 重复节点
+        if (checkedNodes.includes(id)) {
+            nodeBranches.delete(branchId)
+            return
+        }
+        checkedNodes.push(id)
+        // 当前节点所有输出节点
+        const targetIds = nodeTargetMaps[id] || []
+        // 多个输出节点
         if (targetIds.length > 1) {
-            if (branchSinkNodes.has(firstId)) {
-                branchSinkNodes.delete(firstId)
-            }
-            // 先获取到所有的分支再去递归查找!
+            // 删除旧的分支branchId，添加新的分支
+            nodeBranches.delete(branchId)
             targetIds.forEach(targetId => {
-                branchSinkNodes.add(targetId)
-            })
-            targetIds.forEach(targetId => {
-                this.getBranchNodes(data, targetId, targetId, branchSinkNodes)
+                nodeBranches.add(targetId)
+                this.getNodeBranches(targetId, targetId)
             })
         } else if (targetIds.length === 1) {
-            const targetId = targetIds[0]
-            const curId = firstId ? id : targetId
-            const { incoming = [], type } = activities[curId] || gateways[curId] || {}
-            // 如果只有一条分支并且找到了汇聚网关则退出递归
-            if (branchSinkNodes.size <= 1 && type === 'ConvergeGateway') {
-                branchSinkNodes.delete(firstId)
-                branchSinkNodes.add(curId)
-            } else if (incoming.length <= 1) { // 单条输出
-                // 找到结束节点则退出递归
-                if (end_event.id === targetId) {
-                    branchSinkNodes.clear(firstId)
+            // 汇聚网关
+            if (convergeGwNodes.includes(id)) {
+                // 如果这个汇聚网关之前被找到过，则表示当前分支和其他分支在该汇聚网关会合了，此时需要删掉当前分支branchId
+                if (checkedConvergeNodes.includes(id)) {
+                    nodeBranches.delete(branchId)
                 } else {
-                    this.getBranchNodes(data, targetId, firstId, branchSinkNodes)
+                    // 将未找到过的汇聚网关记录下来
+                    checkedConvergeNodes.push(id)
+                    // 如果存在多个分支，则说明当前的汇聚节点不是分支的回合节点，所以需要用找到过的汇聚网关往下继续找
+                    if (nodeBranches.size > 1) {
+                        checkedConvergeNodes.forEach(nodeId => {
+                            // 汇聚网关只有一个输出节点所以用[0]取输出id
+                            const targetId = nodeTargetMaps[nodeId][0]
+                            this.getNodeBranches(targetId, branchId)
+                        })
+                    }
                 }
             } else {
-                // 如果该节点有多个输入连线则不继续查找
-                branchSinkNodes.delete(firstId)
-                branchSinkNodes.add(curId)
+                const targetId = targetIds[0]
+                // 找到结束节点则退出递归
+                this.getNodeBranches(targetId, branchId)
             }
         }
     },

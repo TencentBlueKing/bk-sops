@@ -16,7 +16,7 @@
                 <ip-search-input
                     class="ip-search-wrap"
                     :editable="editable"
-                    :placeholder="i18n.searchGroup"
+                    :placeholder="$t('搜索分组')"
                     @search="onGroupSearch">
                 </ip-search-input>
                 <div class="group-list">
@@ -35,9 +35,9 @@
                 </div>
             </div>
             <div class="selected-group">
-                <div class="group-num">{{i18n.selected}}
+                <div class="group-num">{{$t('已选择')}}
                     <span>{{selectedGroups.length}}</span>
-                    {{i18n.dynamicGroup}}
+                    {{$t('个动态分组')}}
                 </div>
                 <div class="selected-list">
                     <div
@@ -50,7 +50,7 @@
                 </div>
             </div>
         </div>
-        <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
+        <span v-show="dataError" class="common-error-tip error-info">{{$t('必填项')}}</span>
     </div>
 </template>
 <script>
@@ -59,13 +59,6 @@
     import IpSearchInput from './IpSearchInput.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
-    const i18n = {
-        selected: gettext('已选择'),
-        dynamicGroup: gettext('个动态分组'),
-        searchGroup: gettext('搜索分组'),
-        noData: gettext('无数据'),
-        notEmpty: gettext('必填项')
-    }
     export default {
         name: 'DynamicGroup',
         components: {
@@ -79,7 +72,6 @@
         },
         data () {
             return {
-                i18n,
                 groupList: this.dynamicGroupList,
                 selectedGroups: this.dynamicGroups.slice(0),
                 dataError: false

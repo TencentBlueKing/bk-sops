@@ -18,24 +18,26 @@
         <div class="setting-header" slot="header">
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
             <span v-if="variableData"> > {{ variableData.source_type !== 'system' && variableData.source_type !== 'project' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
-            <div
-                v-if="!common"
-                class="manager-project-variable-btn mr5"
-                data-test-id="templateEdit_form_managerVariable"
-                @click="onManagerProjectVariable">
-                <span :class="['manager-item', { 'r30': isViewMode }]">{{ $t('管理项目变量') }}</span>
-            </div>
-            <div
-                v-if="!isViewMode"
-                class="process-project-variable-btn"
-                data-test-id="templateEdit_form_variableProcessing"
-                @click="quickOperateVariableVisable = true">
-                <div class="manager-item">{{ $t('变量快捷处理') }}
-                    <quick-operate-variable
-                        v-if="quickOperateVariableVisable"
-                        :variable-list="variableList"
-                        @closePanel="quickOperateVariableVisable = false">
-                    </quick-operate-variable>
+            <div class="operate-panel" v-if="!common || !isViewMode">
+                <div
+                    v-if="!common"
+                    class="manager-project-variable-btn"
+                    data-test-id="templateEdit_form_managerVariable"
+                    @click="onManagerProjectVariable">
+                    <span class="manager-variable-text">{{ $t('管理项目变量') }}</span>
+                </div>
+                <div
+                    v-if="!isViewMode"
+                    class="process-project-variable-btn ml30"
+                    data-test-id="templateEdit_form_variableProcessing"
+                    @click="quickOperateVariableVisable = true">
+                    <div class="quick-operate-text">{{ $t('变量快捷处理') }}
+                        <quick-operate-variable
+                            v-if="quickOperateVariableVisable"
+                            :variable-list="variableList"
+                            @closePanel="quickOperateVariableVisable = false">
+                        </quick-operate-variable>
+                    </div>
                 </div>
             </div>
             <div id="var-desc">
@@ -147,7 +149,7 @@
                             </thead-popover>
                         </span> -->
                         <span class="col-show t-head">
-                            {{ $t('显示（入参）') }}
+                            <span v-bk-overflow-tips>{{ $t('显示（入参）') }}</span>
                             <thead-popover
                                 :content-list="varShowList"
                                 type="show"
@@ -610,11 +612,25 @@
                 if (this.deleteVarListLen === 1) {
                     title = i18n.t('确认删除') + i18n.t('全局变量') + `"${this.deleteVarList[0].key}"?`
                 } else {
-                    title = i18n.t('确认删除所选的x个变量?', { num: this.deleteVarListLen })
+                    title = i18n.t('确认删除所选的x个变量？', { num: this.deleteVarListLen })
                 }
+                const h = this.$createElement
                 this.$bkInfo({
-                    title,
-                    subTitle: i18n.t('若该变量被节点引用，请及时检查并更新节点配置'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [title]),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('若该变量被节点引用，请及时检查并更新节点配置')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
@@ -675,35 +691,23 @@
 
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
-.process-project-variable-btn {
-    .manager-item {
-        position: absolute;
-        top: 14px;
-        right: 30px;
-        font-weight: normal;
-        line-height: 19px;
-        font-size: 14px;
+.setting-header .operate-panel {
+    position: absolute;
+    top: 14px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    line-height: 19px;
+    font-size: 14px;
+    cursor: pointer;
+    .manager-variable-text:hover {
+        color: #3a84ff;
+    }
+    .quick-operate-text {
         padding: 6px 13px;
         background: #f0f1f5;
         border-radius: 4px;
-        cursor: pointer;
-    }
-}
-.manager-project-variable-btn {
-    .manager-item {
-        position: absolute;
-        top: 20px;
-        right: 160px;
-        font-size: 14px;
-        line-height: 19px;
-        font-weight: normal;
-        cursor: pointer;
-        &:hover {
-            color: #3a84ff;
-        }
-    }
-    .r30 {
-        right: 30px;
     }
 }
 .setting-header {
@@ -829,7 +833,14 @@
             }
         }
         .col-show {
+            display: flex;
             width: 100px;
+            padding-right: 10px;
+            > span {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
         }
         .col-output {
             width: 50px;

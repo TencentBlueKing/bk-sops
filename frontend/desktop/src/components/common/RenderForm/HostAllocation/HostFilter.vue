@@ -12,21 +12,21 @@
 <template>
     <div class="resource-filter">
         <header class="host-form">
-            <span class="title">{{ i18n.title }}</span>
+            <span class="title">{{ $t('资源筛选') }}</span>
             <div class="btns">
-                <bk-button theme="primary" size="small" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
+                <bk-button theme="primary" size="small" :loading="pending.host" @click="onConfigConfirm">{{ $t('确认') }}</bk-button>
                 <bk-button
                     theme="default"
                     size="small"
                     @click="$emit('update:showFilter', false)">
-                    {{ i18n.cancel }}
+                    {{ $t('取消') }}
                 </bk-button>
             </div>
         </header>
         <section class="module-form">
             <bk-form ref="hostForm" :model="formData" :rules="hostRules">
                 <!--筛选方案-->
-                <bk-form-item :label="i18n.screenScheme" property="scheme">
+                <bk-form-item :label="$t('筛选方案')" property="scheme">
                     <div class="scheme-select">
                         <bk-select :value="formData.schemeValue" :loading="pending.scheme" @selected="onSchemeSelect">
                             <bk-option
@@ -36,15 +36,15 @@
                                 :name="scheme.name">
                             </bk-option>
                         </bk-select>
-                        <bk-button theme="success" size="small" class="scheme-save-btn" @click="isSchemeDialogShow = true">{{ i18n.saveScheme }}</bk-button>
+                        <bk-button theme="success" size="small" class="scheme-save-btn" @click="isSchemeDialogShow = true">{{ $t('保存筛选方案') }}</bk-button>
                     </div>
                 </bk-form-item>
                 <!--主机个数-->
-                <bk-form-item :label="i18n.resourceNum" :required="true" property="clusterCount">
+                <bk-form-item :label="$t('主机数量')" :required="true" property="clusterCount">
                     <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
                 </bk-form-item>
                 <!--主机资源所属-->
-                <bk-form-item :label="i18n.resource" :required="true" property="resource">
+                <bk-form-item :label="$t('主机资源所属')" :required="true" property="resource">
                     <bk-select
                         multiple
                         ext-popover-cls="common-bk-select-hide-option"
@@ -75,7 +75,7 @@
                 <div class="condition-wrapper">
                     <select-condition
                         ref="filterConditions"
-                        :label="i18n.filterExcludeTitle"
+                        :label="$t('筛选条件和排除条件')"
                         :condition-fields="conditions"
                         :conditions="formData.host_filter_list"
                         @change="updateCondition($event)">
@@ -90,15 +90,15 @@
             render-directive="if"
             :mask-close="false"
             :auto-close="false"
-            :title="i18n.screenScheme"
+            :title="$t('筛选方案')"
             :loading="pending.saveScheme"
             :value="isSchemeDialogShow"
             @confirm="onSchemeConfirm"
             @cancel="isSchemeDialogShow = false">
             <bk-form ref="schemeForm" class="scheme-dialog" :model="schemeData" :rules="schemeNameRules">
-                <bk-form-item property="name" :label="i18n.schemeName">
+                <bk-form-item property="name" :label="$t('方案名称')">
                     <bk-input v-model="schemeData.name" />
-                    <div class="scheme-tip">{{ i18n.schemeTips }}</div>
+                    <div class="scheme-tip">{{ $t('修改名称会新建方案记录') }}</div>
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
@@ -164,12 +164,12 @@
                     name: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: this.$t('必选项'),
                             trigger: 'blur'
                         },
                         {
                             max: 50,
-                            message: gettext('方法名称不能超过50个字符'),
+                            message: this.$t('方法名称不能超过50个字符'),
                             trigger: 'blur'
                         }
                     ]
@@ -178,14 +178,14 @@
                     clusterCount: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: this.$t('必选项'),
                             trigger: 'blur'
                         }
                     ],
                     resource: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: this.$t('必选项'),
                             trigger: 'blur'
                         }
                     ]
@@ -200,19 +200,6 @@
                     condition: false,
                     host: false,
                     saveScheme: false
-                },
-                i18n: {
-                    title: gettext('资源筛选'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消'),
-                    resource: gettext('主机资源所属'),
-                    resourceNum: gettext('主机数量'),
-                    filterExcludeTitle: gettext('筛选条件和排除条件'),
-                    save: gettext('保存'),
-                    screenScheme: gettext('筛选方案'),
-                    schemeName: gettext('方案名称'),
-                    schemeTips: gettext('修改名称会新建方案记录'),
-                    saveScheme: gettext('保存筛选方案')
                 },
                 schemeListArr: [],
                 isSchemeDialogShow: false

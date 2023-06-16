@@ -1297,9 +1297,23 @@
                     this.onTemplatePermissionCheck(['flow_delete'], template)
                     return
                 }
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('流程') + '"' + template.name + '"' + '?',
-                    subTitle: i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除'),
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('流程') + '"' + template.name + '"' + '?']),
+                        h('div', {
+                            class: 'custom-header-sub-title bk-dialog-header-inner',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('若流程已被其它流程、周期计划任务、轻应用使用，则无法删除')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
@@ -1382,6 +1396,25 @@
                         onSortChange={ data => this.handleSortChange(data) }
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
+                } else if (column.property === 'label') {
+                    const list = this.templateLabels.map(label => {
+                        label.textColor = this.darkColorList.includes(label.color) ? '#fff' : '#262e4f'
+                        return label
+                    })
+                    const data = this.searchSelectValue.find(item => item.id === 'label_ids')
+                    const filterConfig = {
+                        show: true,
+                        list,
+                        values: data ? data.values : []
+                    }
+                    return <TableRenderHeader
+                        name={ column.label }
+                        property={ column.property }
+                        orderShow={ false }
+                        dateFilterShow={ false }
+                        filterConfig = { filterConfig }
+                        onFilterChange={ data => this.handleLabelFilter(data) }>
+                    </TableRenderHeader>
                 } else {
                     return h('p', {
                         class: 'label-text',
@@ -1409,6 +1442,20 @@
                         // 添加搜索记录
                         const searchDom = this.$refs.searchSelect
                         searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
+            handleLabelFilter (data = []) {
+                const index = this.searchSelectValue.findIndex(item => item.id === 'label_ids')
+                if (data.length) {
+                    if (index > -1) {
+                        const values = this.searchSelectValue[index].values
+                        this.searchSelectValue[index].values = [...new Set(values, data)]
+                    } else {
+                        const form = this.searchList.find(item => item.id === 'label_ids')
+                        this.searchSelectValue.push({ ...form, values: data })
                     }
                 } else if (index > -1) {
                     this.searchSelectValue.splice(index, 1)

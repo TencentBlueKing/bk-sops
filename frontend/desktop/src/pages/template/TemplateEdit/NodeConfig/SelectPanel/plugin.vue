@@ -119,6 +119,7 @@
 <script>
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     export default {
         name: 'Plugin',
@@ -200,11 +201,9 @@
             },
             // 加载第三方插件列表
             async getThirdPartyPlugin () {
-                if (this.thirdPluginLoading) {
-                    return
-                }
                 try {
                     this.thirdPluginLoading = true
+                    const source = new CancelRequest()
                     // 搜索时拉取全量插件列表
                     const params = {
                         fetch_all: this.searchStr ? true : undefined,
@@ -212,7 +211,8 @@
                         offset: this.thirdPluginOffset,
                         search_term: this.searchStr || undefined,
                         exclude_not_deployed: true,
-                        tag_id: this.thirdActiveGroup || undefined
+                        tag_id: this.thirdActiveGroup || undefined,
+                        cancelToken: source.token
                     }
                     const resp = await this.$store.dispatch('atomForm/loadPluginServiceList', params)
                     const { next_offset, plugins, return_plugin_count } = resp.data
@@ -241,7 +241,7 @@
                     }
                     this.thirdPluginOffset = return_plugin_count ? next_offset : 0
                     this.thirdPartyPlugin.push(...pluginList)
-                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPagelimit) {
+                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPage.limit) {
                         this.isThirdPluginCompleteLoading = true
                     }
                 } catch (error) {
