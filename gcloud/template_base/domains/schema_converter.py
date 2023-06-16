@@ -11,16 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import copy
+import logging
 from abc import ABCMeta, abstractmethod
 
-import yaml
 import jsonschema
-
+import yaml
+from django.utils.translation import ugettext_lazy as _
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
+
 from pipeline_web.drawing_new.drawing import draw_pipeline
-from django.utils.translation import ugettext_lazy as _
-import logging
 
 logger = logging.getLogger("root")
 
@@ -569,9 +569,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 is_hooked = data.pop("hook")
                 if is_hooked:
                     input_constant = param_constants["component_inputs"][node["id"]][form_key]
-                    # 组件节点下可以通过component_code+type拼接source_tag，所以这里不需要保留
-                    if "source_tag" in input_constant:
-                        input_constant.pop("source_tag")
                     component_data[form_key] = input_constant
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
