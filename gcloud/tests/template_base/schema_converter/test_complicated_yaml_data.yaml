@@ -58,6 +58,7 @@ spec:
           name: 定时时间
           value: '1'
           key: ${bk_timing}
+          source_tag: "sleep_timer.bk_timing"
         force_check:
           value: true
       version: legacy
@@ -127,6 +128,7 @@ spec:
           name: 描述
           value: ''
           key: ${description}
+          source_tag: "pause_node.description"
       version: legacy
     next:
     - t3_node5
