@@ -534,6 +534,16 @@ def get_biz_ip_from_frontend(
     return True, ip_list
 
 
+def get_repeat_ip(ip_list):
+    repeat_ip_detail = {}
+    for ip_info in ip_list:
+        repeat_ip_detail.setdefault(ip_info["ip"], []).append(ip_info["bk_cloud_id"])
+
+    return ",".join(
+        ["ip: {} 云区域{}".format(repeat_ip, value) for repeat_ip, value in repeat_ip_detail.items() if len(value) > 0]
+    )
+
+
 def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex_data=False):
     """
     处理前端ip,云区域:ip 混合输入的情况，最终提取出来的格式为:
@@ -577,15 +587,23 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
     err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
 
     difference_ip_list = list(get_difference_ip_list(without_plat_ip_list, [ip_item["ip"] for ip_item in ip_list]))
-    if len(ip_list) != len(set(without_plat_ip_list)):
+
+    if difference_ip_list:
         difference_ip_list.sort()
         if not ignore_ex_data:
             data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
-        return False, ip_list
+        return False, []
+
+    if len(ip_list) != len(set(without_plat_ip_list)):
+        # 这种情况应该是存在一个ip下有多个云区域的情况
+        if not ignore_ex_data:
+            repeat_err_msg = get_repeat_ip(ip_list)
+            data.outputs.ex_data = "查询到的IP与输入的IP数量不一致，可能原因是某些IP可能在多个云区域下，详情: {}".format(repeat_err_msg)
+        return False, []
     if not ip_list:
         if not ignore_ex_data:
             data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
-        return False, ip_list
+        return False, []
 
     ip_list.extend(plat_ip_list)
     return True, ip_list
