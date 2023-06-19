@@ -598,7 +598,7 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
         # 这种情况应该是存在一个ip下有多个云区域的情况
         if not ignore_ex_data:
             repeat_err_msg = get_repeat_ip(ip_list)
-            data.outputs.ex_data = "查询到的IP与输入的IP数量不一致，可能原因是某些IP可能在多个云区域下，详情: {}".format(repeat_err_msg)
+            data.outputs.ex_data = "IP在多个云区域下重复，建议输入云区域:ip确定目标主机，详情: {}".format(repeat_err_msg)
         return False, []
     if not ip_list:
         if not ignore_ex_data:
