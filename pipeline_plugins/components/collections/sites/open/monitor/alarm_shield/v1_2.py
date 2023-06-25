@@ -38,4 +38,4 @@ class MonitorAlarmShieldComponent(Component):
     bound_service = MonitorAlarmShieldService
     form = "{static_url}components/atoms/monitor/alarm_shield/v1_2.js".format(static_url=settings.STATIC_URL)
     version = "1.2"
-    desc = _('注意： 1.屏蔽方案选择"自定义监控"时，屏蔽范围CC大区和集群必须选择"all"')
+    desc = _('注意： 1.屏蔽方案选择"自定义监控"时，屏蔽范围CC大区和集群必须选择"all", 2.当按业务屏蔽时，使用当前项目选择的业务值')
