@@ -158,7 +158,7 @@
         },
         computed: {
             failedAgentLength () {
-                return this.staticIps.filter(item => !item.agent).length
+                return this.staticIps.filter(item => item.agent !== 1).length
             },
             isShowQuantity () {
                 return this.staticIps.length
@@ -224,14 +224,14 @@
                 this.handleIpCopy(ipStr)
             },
             copyAgentIp () {
-                const ipStr = this.staticIps.filter(item => !item.agent).map(d => d.bk_host_innerip).join(',')
+                const ipStr = this.staticIps.filter(item => item.agent !== 1).map(d => d.bk_host_innerip).join(',')
                 this.handleIpCopy(ipStr)
             },
             clearIp () {
                 this.$emit('change', [])
             },
             clearFailedAgentIp () {
-                const staticIps = this.staticIps.filter(item => !!item.agent)
+                const staticIps = this.staticIps.filter(item => item.agent === 1)
                 this.$emit('change', staticIps)
             },
             onDropdownShow () {
