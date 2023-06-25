@@ -103,3 +103,4 @@ class NodemanPluginOperateComponent(Component):
     bound_service = NodemanPluginOperateService
     form = "%scomponents/atoms/nodeman/plugin_operate/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
+    desc = _("移除填写方式，只支持主机IP方式\n " "云区域ID、主机IP支持 “设置为变量 \n" "云区域ID 支持AllowCreate \n")
