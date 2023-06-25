@@ -92,6 +92,7 @@
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
     import Cookies from 'js-cookie'
+    import axios from 'axios'
 
     export default {
         name: 'NavigatorHeadRight',
@@ -163,7 +164,7 @@
             ...mapMutations('project', [
                 'setProjectId'
             ]),
-            toggleLanguage (language) {
+            async toggleLanguage (language) {
                 this.curLanguage = language
                 const local = language === 'chinese' ? 'zh-cn' : 'en'
                 const domain = window.BK_DOMAIN || window.location.hostname.replace(/^[^.]+(.*)$/, '$1')
@@ -172,7 +173,18 @@
                     domain,
                     path: '/'
                 })
-                window.location.reload()
+                if (window.BK_PAAS_ESB_HOST) {
+                    const url = `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/`
+                    try {
+                        await axios.jsonp(url, { language })
+                    } catch (error) {
+                        console.warn(error)
+                    } finally {
+                        window.location.reload()
+                    }
+                } else {
+                    window.location.reload()
+                }
             },
             goToHelpDoc () {
                 window.open(this.bkDocUrl, '_blank')
