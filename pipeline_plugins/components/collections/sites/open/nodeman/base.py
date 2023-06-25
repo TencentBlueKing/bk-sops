@@ -12,17 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 import ujson as json
 from django.utils.translation import ugettext_lazy as _
-
-from api.collections.nodeman import BKNodeManClient
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
+from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("节点管理(Nodeman)")
 
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
+from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
 
 def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
@@ -89,6 +89,47 @@ def get_nodeman_rsa_public_key(executor, logger):
 class NodeManBaseService(Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
+
+    def execute_operate(self, data, host, executor, bk_biz_id):
+
+        client = BKNodeManClient(username=executor)
+        nodeman_op_target = data.inputs.nodeman_plugin_operate
+        op_type = nodeman_op_target.get("nodeman_op_type", "")
+        plugin = nodeman_op_target.get("nodeman_plugin", "")
+        plugin_version = nodeman_op_target.get("nodeman_plugin_version", "")
+        install_config = nodeman_op_target.get("install_config", [])
+
+        # 拼装参数
+        params = {
+            "job_type": op_type,
+            "bk_biz_id": [bk_biz_id],
+            "bk_host_id": host,
+            "plugin_params": {"name": plugin},
+        }
+        if plugin_version:
+            params["plugin_params"]["version"] = plugin_version
+
+        # 如果插件操作类型为停止，则固定版本传`latest`,
+        if op_type == "MAIN_STOP_PLUGIN":
+            params["plugin_params"]["version"] = "latest"
+
+        if op_type == "MAIN_INSTALL_PLUGIN" and install_config:
+            if "keep_config" in install_config:
+                params["plugin_params"].update({"keep_config": 1})
+            elif "no_restart" in install_config:
+                params["plugin_params"].update({"no_restart": 1})
+
+        result = client.plugin_operate(params)
+
+        job_is_plugin = True
+        if result["result"]:
+            # 这里兼容节点管理新老接口
+            if plugin not in result["data"]:
+                job_is_plugin = False
+            job_id = result["data"].get(plugin, None) or result["data"].get("job_id", None)
+            data.outputs.job_url = [get_nodeman_job_url(job_id, host_id) for host_id in host]
+
+        return self.get_job_result(result, data, "plugin_operate", params, job_is_plugin=job_is_plugin)
 
     def get_ip_list(self, ip_str):
         if settings.ENABLE_IPV6:

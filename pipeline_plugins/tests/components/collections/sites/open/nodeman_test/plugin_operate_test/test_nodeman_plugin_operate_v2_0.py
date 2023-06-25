@@ -23,7 +23,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
-from pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v1_0 import (
+from pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v2_0 import (
     NodemanPluginOperateComponent,
 )
 
@@ -82,7 +82,6 @@ INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
     },
 )
 
-
 DETAILS_FAIL_CLIENT = MockClient(
     plugin_operate={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
     details_return={
@@ -118,9 +117,8 @@ DETAILS_FAIL_CLIENT = MockClient(
     },
 )
 
-
 OPERATE_SUCCESS_CASE = ComponentTestCase(
-    name="nodeman v1.0 operate plugin success case",
+    name="nodeman v2.0 operate plugin success case",
     inputs={
         "biz_cc_id": "1",
         "nodeman_plugin_operate": {
@@ -129,11 +127,8 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
             "nodeman_plugin_version": "plugin_version",
             "install_config": ["keep_config"],
         },
-        "nodeman_host_info": {
-            "nodeman_host_input_type": "host_ip",
-            "nodeman_bk_cloud_id": "0",
-            "nodeman_host_ip": "1.1.1.1",
-        },
+        "nodeman_bk_cloud_id": "0",
+        "nodeman_host_ip": "1.1.1.1",
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(
@@ -180,7 +175,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
 )
 
 OPERATE_FAIL_CASE = ComponentTestCase(
-    name="nodeman v1.0 operate plugin failed case",
+    name="nodeman v2.0 operate plugin failed case",
     inputs={
         "biz_cc_id": "1",
         "nodeman_plugin_operate": {
@@ -189,11 +184,8 @@ OPERATE_FAIL_CASE = ComponentTestCase(
             "nodeman_plugin_version": "plugin_version",
             "install_config": ["keep_config"],
         },
-        "nodeman_host_info": {
-            "nodeman_host_input_type": "host_ip",
-            "nodeman_bk_cloud_id": "0",
-            "nodeman_host_ip": "1.1.1.1",
-        },
+        "nodeman_bk_cloud_id": "0",
+        "nodeman_host_ip": "1.1.1.1",
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "failed"}),
