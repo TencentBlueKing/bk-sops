@@ -22,13 +22,20 @@ __group_name__ = _("监控平台(Monitor)")
 
 
 class MonitorAlarmShieldService(MonitorAlarmShieldServiceBase):
-    pass
+    def get_scope_value(self, bk_biz_id, scope_type, combine):
+        scope = {"IP": "bk_alarm_shield_IP", "node": "bk_alarm_shield_node"}
+        if scope_type == "business":
+            scope_value = bk_biz_id
+        else:
+            scope_value = combine.get(scope[scope_type])
+
+        return scope_value
 
 
 class MonitorAlarmShieldComponent(Component):
     name = _("蓝鲸监控告警屏蔽(按范围)")
     code = "monitor_alarm_shield"
     bound_service = MonitorAlarmShieldService
-    form = "{static_url}components/atoms/monitor/alarm_shield/v1_1.js".format(static_url=settings.STATIC_URL)
-    version = "1.1"
-    desc = _('注意： 1.屏蔽方案选择"自定义监控"时，屏蔽范围CC大区和集群必须选择"all"')
+    form = "{static_url}components/atoms/monitor/alarm_shield/v1_2.js".format(static_url=settings.STATIC_URL)
+    version = "1.2"
+    desc = _('注意： 1.屏蔽方案选择"自定义监控"时，屏蔽范围CC大区和集群必须选择"all", 2.当按业务屏蔽时，使用当前项目选择的业务值')

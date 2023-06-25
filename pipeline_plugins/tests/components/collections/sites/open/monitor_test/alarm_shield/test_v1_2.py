@@ -22,7 +22,7 @@ from pipeline.component_framework.test import (
     Patcher,
 )
 
-from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1 import (
+from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_2 import (
     MonitorAlarmShieldComponent,
 )
 
@@ -67,7 +67,6 @@ CREATE_SHIELD_SUCCESS_CLIENT = MockClient(add_shield_result={"result": True, "da
 INPUT_DATA = {
     "bk_alarm_shield_info": {
         "bk_alarm_shield_scope": "node",
-        "bk_alarm_shield_business": 2,
         "bk_alarm_shield_node": {
             "bk_set_method": "select",
             "bk_set_select": ["set_name1", "set_name2"],
