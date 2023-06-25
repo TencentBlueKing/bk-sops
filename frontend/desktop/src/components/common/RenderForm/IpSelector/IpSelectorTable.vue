@@ -127,7 +127,7 @@
                         checked: true
                     },
                     {
-                        name: this.$t('云区域'),
+                        name: this.$t('管控区域'),
                         id: 'cloud',
                         minWidth: 120,
                         checked: true

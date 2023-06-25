@@ -16,7 +16,6 @@
                 ref="atomConfig"
                 class="config-section"
                 form-type="vertical"
-                :label-width="100"
                 :model="{ name }">
                 <bk-form-item
                     property="name"

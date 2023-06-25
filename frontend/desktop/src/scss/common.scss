@@ -386,6 +386,7 @@
         }
     }
     .bk-table-header-label {
+        width: 100%;
         .label-text {
             overflow: hidden;
             white-space: nowrap;
@@ -412,9 +413,9 @@
         width: 100%;
         font-size: 20px;
         color: #313238;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        // overflow: hidden;
+        // text-overflow: ellipsis;
+        // white-space: nowrap;
     }
     .custom-header-sub-title {
         padding: 5px 50px 21px;

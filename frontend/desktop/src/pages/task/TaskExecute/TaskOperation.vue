@@ -1138,6 +1138,7 @@
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.nodeTaskSkip(id)
                     }
@@ -1211,6 +1212,7 @@
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.nodeForceFail(id)
                     }
@@ -1721,6 +1723,7 @@
                         extCls: 'dialog-custom-header-title',
                         maskClose: false,
                         confirmLoading: true,
+                        cancelText: this.$t('取消'),
                         confirmFn: async () => {
                             await this.taskRevoke()
                         }

@@ -297,6 +297,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: () => {
                         this.$emit('onDeleteVariable', this.variableData.key)
                     }

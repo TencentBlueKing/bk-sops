@@ -26,7 +26,7 @@
                 data-test-id="navHeader_list_chinese"
                 @click="toggleLanguage('chinese')">
                 <i class="bk-icon icon-chinese"></i>
-                {{ $t('中文') }}
+                {{ '中文' }}
             </div>
             <div
                 class="operate-item"

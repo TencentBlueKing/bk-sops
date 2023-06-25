@@ -634,6 +634,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.getVariableCitedData() // 删除变量后更新引用数据
                         this.deleteVarList.forEach(variableData => {

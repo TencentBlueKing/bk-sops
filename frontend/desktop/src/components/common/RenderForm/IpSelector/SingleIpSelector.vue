@@ -185,7 +185,7 @@
     display: inline-block;
     font-size: 14px;
     height: 42px;
-    min-width: 120px;
+    margin-right: 30px;
     cursor: pointer;
     .radio-box {
         display: flex;

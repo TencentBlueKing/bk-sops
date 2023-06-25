@@ -24,7 +24,7 @@
                     <search-select
                         ref="searchSelect"
                         id="appList"
-                        :placeholder="$t('应用名/创建人')"
+                        :placeholder="$t('应用名/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">

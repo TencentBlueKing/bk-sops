@@ -57,7 +57,6 @@
             <div class="order-setting">
                 <p class="setting-title">
                     {{ $t('默认排序表头设置') }}
-                    <span class="setting-subtitle">{{ $t('（请在下面可排序字段中选择）') }}</span>
                 </p>
                 <bk-radio-group :value="localOrder.replace(/^-/, '')" @change="onOrderKeyChange">
                     <bk-radio v-for="(item, index) in sortableCols" class="field-radio-item" :key="index" :value="item.value">
@@ -267,6 +266,7 @@
             color: #979BA5;
             font-size: 12px;
             text-indent: -8px;
+            margin-left: 10px;
             &.is-limit {
                 color: #FF5656;
             }

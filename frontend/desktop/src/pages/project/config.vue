@@ -93,7 +93,7 @@
                             <bk-table-column :label="$t('操作')" :width="300">
                                 <template slot-scope="props">
                                     <bk-button :text="true" @click="onEditStaffGroup('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                                    <bk-button :text="true" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
+                                    <bk-button :text="true" class="ml10" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
                             <div class="empty-data" slot="empty">
@@ -148,7 +148,7 @@
                                         </bk-button>
                                     </bk-popover>
                                     <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
-                                        <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">
+                                        <bk-button :text="true" class="ml10" :disabled="props.row.is_default" @click="onDelLabel(props.row)">
                                             {{ $t('删除') }}
                                         </bk-button>
                                     </bk-popover>
@@ -160,10 +160,10 @@
                         </bk-table>
                     </section>
                 </bk-tab-panel>
-                <bk-tab-panel :label="$t('项目变量')" name="variable">
+                <bk-tab-panel :label="$t('project_项目变量')" name="variable">
                     <section class="mandate-section">
                         <div class="variable-list">
-                            <p class="variable-list-tip">{{ $t('项目级别的变量建立后') }},{{ $t('可以在模板中通过') }}${_env_key}{{ $t('方式引用') }}</p>
+                            <p class="variable-list-tip">{{ $t('项目级别的变量建立后,可以在模板中通过${_env_key}方式引用') }}</p>
                             <bk-button :theme="'primary'" @click="onAddVariable('create')">{{ $t('新增项目变量') }}</bk-button>
                         </div>
                         <bk-table style="margin-top: 15px;" :data="variableData">
@@ -174,7 +174,7 @@
                             <bk-table-column :label="$t('操作')">
                                 <template slot-scope="props">
                                     <bk-button theme="primary" text @click="onAddVariable('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                                    <bk-button theme="primary" text @click="onRemove(props.row)">{{ $t('删除') }}</bk-button>
+                                    <bk-button theme="primary" class="ml10" text @click="onRemove(props.row)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
                             <div class="empty-data" slot="empty">
@@ -298,9 +298,10 @@
             :header-position="'left'"
             :loading="pending.variable"
             :value="isAddVariableDialogShow"
+            :cancel-text="$t('取消')"
             @confirm="variableConfirm"
             @cancel="isAddVariableDialogShow = false">
-            <bk-form class="create-variable-form" :label-width="80" ref="variableForm" :model="variableFormData" :rules="variableRules">
+            <bk-form class="create-variable-form" :label-width="100" ref="variableForm" :model="variableFormData" :rules="variableRules">
                 <bk-form-item class="form-item-name" :label="$t('变量名称')" :required="true" property="name">
                     <bk-input v-model="variableFormData.name" :placeholder="$t('请输入变量名称')"></bk-input>
                 </bk-form-item>
@@ -713,6 +714,7 @@
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.deleteStaffGroupConfirm(group)
                     }
@@ -823,6 +825,7 @@
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.deleteLabelGroupConfirm(label)
                     }
@@ -888,7 +891,7 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('确认删除') + i18n.t('项目变量') + `"${variable.key}"?`]),
+                        }, [i18n.t('确认删除') + i18n.t('project_项目变量') + `"${variable.key}"?`]),
                         h('div', {
                             class: 'custom-header-sub-title bk-dialog-header-inner',
                             directives: [{
@@ -899,6 +902,7 @@
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.onDeleteVariable(variable)
                     }
