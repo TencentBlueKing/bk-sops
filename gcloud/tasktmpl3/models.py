@@ -123,18 +123,11 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                 is_remote=is_remote,
             )
         else:
-            template_node_template_data = TemplateNodeStatistics.objects.filter(
-                task_template_id__in=tasktmpl_id_list,
-            )
+            template_node_template_data = TemplateNodeStatistics.objects.filter(task_template_id__in=tasktmpl_id_list,)
         # 查询数据去重处理
         distinct_template_data = (
             template_node_template_data.values(
-                "template_id",
-                "task_template_id",
-                "project_id",
-                "category",
-                "template_create_time",
-                "template_creator",
+                "template_id", "task_template_id", "project_id", "category", "template_create_time", "template_creator",
             )
             .distinct()
             .order_by(order_by)
@@ -174,11 +167,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         template_node_template_list = TemplateNodeStatistics.objects.filter(component_code=component_code)
         total = template_node_template_list.count()
         atom_template_data = template_node_template_list.values(
-            "template_id",
-            "project_id",
-            "category",
-            "template_edit_time",
-            "template_creator",
+            "template_id", "project_id", "category", "template_edit_time", "template_creator",
         )[(page - 1) * limit : page * limit]
         # 获取project_name、template_name数据
         project_id_list = template_node_template_list.values_list("project_id", flat=True)
@@ -377,7 +366,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         )
         proj_dimension_dict = dict(
             ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name")
-        ) or {"bk_biz_name": "业务"}
+        ) or {"bk_biz_name": _("业务")}
         proj_dimension_id_list = proj_dimension_dict.keys()
         # 获取全部业务对应维度信息
         total = len(proj_dimension_id_list)

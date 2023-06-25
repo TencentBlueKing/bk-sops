@@ -312,7 +312,7 @@ msgstr "Creator"
 
 #: gcloud/analysis_statistics/models.py:32
 msgid "模版创建时间"
-msgstr "Created time"
+msgstr "Created Time"
 
 #: gcloud/analysis_statistics/models.py:33
 msgid "模板最近编辑时间"
@@ -409,7 +409,7 @@ msgstr "Gateways Count"
 #: gcloud/taskflow3/models.py:1336 gcloud/user_custom_config/constants.py:18
 #: pipeline_web/core/abstract.py:21
 msgid "创建时间"
-msgstr "Created time"
+msgstr "Created Time"
 
 #: gcloud/analysis_statistics/models.py:88 gcloud/core/models.py:150
 msgid "最近编辑时间"
@@ -1576,7 +1576,7 @@ msgstr "Template execution scheme ID when creating a task"
 
 #: gcloud/periodictask/models.py:179
 msgid "创建任务时间"
-msgstr "Created time"
+msgstr "Created Time"
 
 #: gcloud/periodictask/models.py:180
 msgid "更新者"
@@ -2167,8 +2167,8 @@ msgstr "Timing"
 
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:28
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:32
-msgid "GSEKIT(gsekit)"
-msgstr "GSEKIT"
+msgid "GSEKit(GSEKit)"
+msgstr "GSEKit"
 
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:58
 msgid "刷新进程实例"
@@ -5840,6 +5840,9 @@ msgstr "The times of loop executions of the current flow, which will be reset wh
 
 msgid "循环执行次数"
 msgstr "Loop execution times"
+
+msgid "业务"
+msgstr "Business"
 
 #~ msgid "信号模块名"
 #~ msgstr "Signal module name"
