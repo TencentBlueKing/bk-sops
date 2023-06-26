@@ -151,10 +151,10 @@
                                             {{$t('新建任务')}}
                                         </a>
                                         <a
-                                            v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
+                                            v-if="!hasPermission(['common_flow_view', 'common_flow_edit'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
-                                            @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
+                                            @click="onTemplatePermissonCheck(['common_flow_view', 'common_flow_edit'], props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <a

@@ -245,11 +245,11 @@
                                             {{$t('新建任务')}}
                                         </router-link>
                                         <a
-                                            v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
+                                            v-if="!hasPermission(['flow_view', 'flow_edit'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
                                             data-test-id="process_table_cloneBtn"
-                                            @click="onTemplatePermissionCheck(['flow_view'], props.row)">
+                                            @click="onTemplatePermissionCheck(['flow_view', 'flow_edit'], props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <router-link
