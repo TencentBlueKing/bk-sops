@@ -166,6 +166,7 @@
             :title="$t('恢复模板')"
             :value="isRestoreDialogShow"
             :loading="restorePending"
+            :cancel-text="$t('取消')"
             @confirm="onRestoreConfirm"
             @cancel="isRestoreDialogShow = false">
             <div class="dialog-content">

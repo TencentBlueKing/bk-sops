@@ -18,6 +18,7 @@
         :title="$t('请选择执行分支')"
         :value="isGatewaySelectDialogShow"
         data-test-id="taskExcute_form_gatewaySelectDialog"
+        :cancel-text="$t('取消')"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="dialog-content" v-if="isGatewaySelectDialogShow">

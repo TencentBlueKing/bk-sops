@@ -69,6 +69,7 @@
             :width="400"
             :mask-close="false"
             :title="$t('导入文件')"
+            :cancel-text="$t('取消')"
             :loading="fileUploading">
             <div class="import-wrapper">
                 <upload-read-file class="import-code" @uploaded="handleFormFile($event, 'formCode')">

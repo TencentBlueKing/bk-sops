@@ -9,6 +9,7 @@
         :title="$t('注入全局变量')"
         :value="isInjectVarDialogShow"
         data-test-id="taskExcute_form_injectVariableDialog"
+        :cancel-text="$t('取消')"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="inject-variable-dialog-content">

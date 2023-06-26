@@ -362,6 +362,7 @@
             :title="$t('新建标签')"
             :loading="labelLoading"
             :value="labelDialogShow"
+            :cancel-text="$t('取消')"
             @confirm="editLabelConfirm"
             @cancel="labelDialogShow = false">
             <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
@@ -1210,6 +1211,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.batchDeleteConfirm()
                     }

@@ -250,6 +250,7 @@
             :title="$t('筛选方案')"
             :loading="pending.saveScheme"
             :value="isSchemeDialogShow"
+            :cancel-text="$t('取消')"
             @confirm="onSchemeConfirm"
             @cancel="isSchemeDialogShow = false">
             <bk-form ref="schemeForm" class="scheme-dialog" :model="schemeData" :rules="schemeNameRules">

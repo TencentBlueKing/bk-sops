@@ -185,7 +185,6 @@
     display: inline-block;
     font-size: 14px;
     height: 42px;
-    margin-right: 30px;
     cursor: pointer;
     .radio-box {
         display: flex;
@@ -223,6 +222,9 @@
                 background: #cccccc;
             }
         }
+    }
+    &:not(:last-of-type){
+        margin-right: 30px;
     }
 }
 .diff-alert {

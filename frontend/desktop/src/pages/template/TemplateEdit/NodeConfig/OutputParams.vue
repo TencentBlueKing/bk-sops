@@ -52,6 +52,7 @@
             :auto-close="false"
             :value="isShow"
             width="600"
+            :cancel-text="$t('取消')"
             @confirm="onConfirm"
             @cancel="onCancel">
             <div class="variable-dialog">

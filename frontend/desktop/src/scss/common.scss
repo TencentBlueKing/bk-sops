@@ -88,6 +88,9 @@
         padding: 0;
     }
 }
+.bk-dialog .bk-dialog-header-inner {
+    word-break: break-word !important;
+}
 .reuse-rule-tip,
 .citations-waivers-guide-tip {
     .tippy-tooltip {

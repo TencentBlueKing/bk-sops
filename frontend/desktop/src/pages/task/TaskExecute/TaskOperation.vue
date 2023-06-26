@@ -203,6 +203,7 @@
             :title="$t('审批')"
             :loading="approval.pending"
             :value="approval.dialogShow"
+            :cancel-text="$t('取消')"
             @confirm="onApprovalConfirm"
             @cancel="onApprovalCancel">
             <bk-form
@@ -1036,6 +1037,7 @@
                             extCls: 'dialog-custom-header-title',
                             maskClose: false,
                             confirmLoading: true,
+                            cancelText: this.$t('取消'),
                             confirmFn: async () => {
                                 this.retryNodeId = id
                                 await this.nodeTaskRetry()
@@ -1250,6 +1252,7 @@
                     title: i18n.t('确定继续往后执行?'),
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.nodeResume(id)
                     }
@@ -1755,6 +1758,7 @@
                         width: 500,
                         maskClose: false,
                         confirmLoading: true,
+                        cancelText: this.$t('取消'),
                         confirmFn: async () => {
                             this.pending.task = true
                             const resp = await this.taskFlowConvertCommonTask({ taskId: this.instance_id })

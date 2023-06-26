@@ -70,7 +70,7 @@
                     <bk-form-item :label="$t('执行代理人')">
                         <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
                     </bk-form-item>
-                    <bk-form-item :label="$t('免代理用户')">
+                    <bk-form-item :label="$t('白名单用户')">
                         <div class="user-list">{{ agent.executor_proxy_exempts || '--' }}</div>
                     </bk-form-item>
                 </bk-form>
