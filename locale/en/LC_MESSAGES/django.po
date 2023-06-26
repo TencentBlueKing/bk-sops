@@ -3407,7 +3407,7 @@ msgstr "Service Status"
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py:26
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_1.py:24
 msgid "作业平台(JOB)"
-msgstr "BLUEKING JOB"
+msgstr "JOB"
 
 #: pipeline_plugins/components/collections/sites/open/job/base.py:102
 msgid "[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]"
