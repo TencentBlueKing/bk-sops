@@ -386,7 +386,6 @@
         }
     }
     .bk-table-header-label {
-        width: 100%;
         .label-text {
             overflow: hidden;
             white-space: nowrap;
@@ -406,7 +405,7 @@
         padding: 0 !important;
     }
     .custom-header-title {
-        padding: 15px 30px 10px;
+        padding: 15px 30px 15px;
         line-height: 1.2;
         text-align: center;
         display: inline-block;
@@ -418,6 +417,9 @@
         // white-space: nowrap;
     }
     .custom-header-sub-title {
-        padding: 5px 50px 21px;
+        padding: 0 50px 15px;
+    }
+    .bk-dialog-footer {
+        padding-top: 6px !important;
     }
 }

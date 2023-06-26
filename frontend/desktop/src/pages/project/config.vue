@@ -168,7 +168,7 @@
                         </div>
                         <bk-table style="margin-top: 15px;" :data="variableData">
                             <bk-table-column show-overflow-tooltip :label="$t('变量名称')" prop="name" :render-header="renderTableHeader"></bk-table-column>
-                            <bk-table-column show-overflow-tooltip :label="$t('KEY')" prop="key"></bk-table-column>
+                            <bk-table-column show-overflow-tooltip :label="$t('Key')" prop="key"></bk-table-column>
                             <bk-table-column show-overflow-tooltip :label="$t('值')" prop="value"></bk-table-column>
                             <bk-table-column show-overflow-tooltip :label="$t('说明')" prop="desc"></bk-table-column>
                             <bk-table-column :label="$t('操作')">
@@ -196,6 +196,7 @@
             :loading="pending.agent"
             :value="isAgentDialogShow"
             data-test-id="projectConfig_form_executeAgentDialog"
+            :cancel-text="$t('取消')"
             @confirm="updateAgentData"
             @cancel="isAgentDialogShow = false">
             <bk-form class="agent-dialog" :model="editingAgent">
@@ -227,6 +228,7 @@
             :title="$t('人员分组设置')"
             :loading="pending.staff"
             :value="isStaffDialogShow"
+            :cancel-text="$t('取消')"
             @confirm="editStaffGroupConfirm"
             @cancel="isStaffDialogShow = false">
             <bk-form ref="schemeForm" class="scheme-dialog" :model="staffGroupDetail" :rules="schemeNameRules">
@@ -252,6 +254,7 @@
             :title="$t('标签设置')"
             :loading="pending.label"
             :value="isLabelDialogShow"
+            :cancel-text="$t('取消')"
             @confirm="editLabelConfirm"
             @cancel="isLabelDialogShow = false">
             <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
@@ -305,7 +308,7 @@
                 <bk-form-item class="form-item-name" :label="$t('变量名称')" :required="true" property="name">
                     <bk-input v-model="variableFormData.name" :placeholder="$t('请输入变量名称')"></bk-input>
                 </bk-form-item>
-                <bk-form-item class="form-item-key" label="KEY" :required="true" property="key">
+                <bk-form-item class="form-item-key" label="Key" :required="true" property="key">
                     <bk-input v-model="variableFormData.key" :placeholder="$t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头')"></bk-input>
                 </bk-form-item>
                 <bk-form-item class="form-item-value" :label="$t('值')" :required="true" property="value">

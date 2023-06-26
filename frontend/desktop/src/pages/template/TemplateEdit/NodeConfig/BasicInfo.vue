@@ -878,14 +878,14 @@
     .error-handle {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: space-between;
         flex-wrap: wrap;
-        height: 32px;
         /deep/ .bk-form-checkbox {
             display: flex;
             align-items: center;
             &:not(:last-of-type) {
                 margin-right: 8px;
+                margin-bottom: 10px;
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;

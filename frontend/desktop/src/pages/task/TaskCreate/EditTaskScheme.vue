@@ -859,6 +859,8 @@
         position: absolute;
         right: 0;
         top: 20px;
+        display: flex;
+        align-items: center;
         width: 72px;
         z-index: 5;
         background: #fafbfd;
@@ -875,6 +877,7 @@
             position: relative;
             left: 4px;
             top: 1px;
+            margin-right: 3px;
         }
     }
     .bk-input-inline {

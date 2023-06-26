@@ -65,7 +65,7 @@
                                         <bk-table-column :label="$t('名称')" prop="name" width="165">
                                             <div slot-scope="props" v-bk-overflow-tips>{{ props.row.name }}</div>
                                         </bk-table-column>
-                                        <bk-table-column label="KEY" width="209">
+                                        <bk-table-column label="Key" width="209">
                                             <template slot-scope="props" width="165">
                                                 <div v-bk-overflow-tips class="key">{{ props.row.key }}</div>
                                                 <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>

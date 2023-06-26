@@ -132,7 +132,7 @@
                         @change="onSelectAll">
                     </bk-checkbox>
                     <span class="t-head col-name">{{ $t('名称') }}</span>
-                    <span class="t-head col-key">KEY</span>
+                    <span class="t-head col-key">Key</span>
                     <span class="t-head col-type">{{ $t('类型') }}</span>
                 </div>
                 <ul class="variable-list" v-if="variableList.length">
