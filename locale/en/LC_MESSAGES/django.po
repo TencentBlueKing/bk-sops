@@ -121,7 +121,7 @@ msgstr "Submit Request"
 
 #: gcloud/constants.py:71
 msgid "职能化认领"
-msgstr "Task"
+msgstr "Task Take"
 
 #: gcloud/constants.py:79
 msgid "手动"
@@ -139,11 +139,11 @@ msgstr "Mini-APP"
 #: gcloud/constants.py:82 gcloud/contrib/collection/models.py:60
 #: gcloud/iam_auth/conf.py:33 gcloud/periodictask/models.py:325
 msgid "周期任务"
-msgstr "Scheduled Task"
+msgstr "Cron Task"
 
 #: gcloud/constants.py:83 gcloud/iam_auth/conf.py:34
 msgid "计划任务"
-msgstr "One-Time Scheduled Task"
+msgstr "Scheduled Task"
 
 #: gcloud/constants.py:84
 msgid "移动端"
@@ -248,14 +248,14 @@ msgstr "Component Code"
 #: gcloud/analysis_statistics/models.py:79
 #: gcloud/analysis_statistics/models.py:109
 msgid "Pipeline模板ID"
-msgstr "Pipeline Template"
+msgstr "Pipeline Template ID"
 
 #: gcloud/analysis_statistics/models.py:24
 #: gcloud/analysis_statistics/models.py:61
 #: gcloud/analysis_statistics/models.py:80
 #: gcloud/analysis_statistics/models.py:110
 msgid "Task模板ID"
-msgstr "TaskTemplate Id"
+msgstr "TaskTemplate ID"
 
 #: gcloud/analysis_statistics/models.py:25
 #: gcloud/analysis_statistics/models.py:63
@@ -312,7 +312,7 @@ msgstr "Creator"
 
 #: gcloud/analysis_statistics/models.py:32
 msgid "模版创建时间"
-msgstr "Created time"
+msgstr "Created Time"
 
 #: gcloud/analysis_statistics/models.py:33
 msgid "模板最近编辑时间"
@@ -409,7 +409,7 @@ msgstr "Gateways Count"
 #: gcloud/taskflow3/models.py:1336 gcloud/user_custom_config/constants.py:18
 #: pipeline_web/core/abstract.py:21
 msgid "创建时间"
-msgstr "Created time"
+msgstr "Created Time"
 
 #: gcloud/analysis_statistics/models.py:88 gcloud/core/models.py:150
 msgid "最近编辑时间"
@@ -1003,7 +1003,7 @@ msgstr "User list to execute with executor proxy"
 
 #: gcloud/core/models.py:380
 msgid "项目下最大周期任务数"
-msgstr "The maximum number of scheduled tasks in this project"
+msgstr "The maximum number of cron tasks in this project"
 
 #: gcloud/core/models.py:385 gcloud/core/models.py:386
 msgid "项目配置 ProjectConfig"
@@ -1240,15 +1240,15 @@ msgstr "Flow"
 
 #: gcloud/iam_auth/conf.py:40
 msgid "创建项目"
-msgstr "Project"
+msgstr "New Project"
 
 #: gcloud/iam_auth/conf.py:47
 msgid "查看项目"
-msgstr "Project"
+msgstr "View Project"
 
 #: gcloud/iam_auth/conf.py:54
 msgid "编辑项目"
-msgstr "Project"
+msgstr "Edit Project"
 
 #: gcloud/iam_auth/conf.py:61
 msgid "创建流程"
@@ -1260,15 +1260,15 @@ msgstr "Create onetime task quickly"
 
 #: gcloud/iam_auth/conf.py:75
 msgid "查看流程"
-msgstr "View"
+msgstr "View Flow"
 
 #: gcloud/iam_auth/conf.py:82
 msgid "编辑流程"
-msgstr "Edit"
+msgstr "Edit Flow"
 
 #: gcloud/iam_auth/conf.py:89
 msgid "删除流程"
-msgstr "Delete"
+msgstr "Delete Flow"
 
 #: gcloud/iam_auth/conf.py:96
 msgid "使用流程新建任务"
@@ -1280,7 +1280,7 @@ msgstr "New Mini-APP"
 
 #: gcloud/iam_auth/conf.py:110
 msgid "新建周期任务"
-msgstr "New Scheduled Task"
+msgstr "New Cron Task"
 
 #: gcloud/iam_auth/conf.py:117
 msgid "新建计划任务"
@@ -1288,91 +1288,91 @@ msgstr "New One-Time Scheduled"
 
 #: gcloud/iam_auth/conf.py:124
 msgid "查看任务"
-msgstr "View"
+msgstr "View Task"
 
 #: gcloud/iam_auth/conf.py:131
 msgid "编辑任务"
-msgstr "Edit"
+msgstr "Edit Task"
 
 #: gcloud/iam_auth/conf.py:138
 msgid "操作任务"
-msgstr "Operate"
+msgstr "Operate Task"
 
 #: gcloud/iam_auth/conf.py:145
 msgid "认领任务"
-msgstr "Take"
+msgstr "Take Task"
 
 #: gcloud/iam_auth/conf.py:152
 msgid "删除任务"
-msgstr "Delete"
+msgstr "Delete Task"
 
 #: gcloud/iam_auth/conf.py:159
 msgid "克隆任务"
-msgstr "Clone"
+msgstr "Clone Task"
 
 #: gcloud/iam_auth/conf.py:166
 msgid "新建公共流程"
-msgstr "New flow"
+msgstr "New Common Flow"
 
 #: gcloud/iam_auth/conf.py:173
 msgid "查看公共流程"
-msgstr "Common Flow"
+msgstr "View Common Flow"
 
 #: gcloud/iam_auth/conf.py:180
 msgid "编辑公共流程"
-msgstr "Common Flow"
+msgstr "Edit Common Flow"
 
 #: gcloud/iam_auth/conf.py:187
 msgid "删除公共流程"
-msgstr "Common Flow"
+msgstr "Delete Common Flow"
 
 #: gcloud/iam_auth/conf.py:194
 msgid "使用公共流程新建任务"
-msgstr "Use common flow"
+msgstr "New Task Using Common Flow"
 
 #: gcloud/iam_auth/conf.py:201
 msgid "使用公共流程新建周期任务"
-msgstr "New Scheduled Task"
+msgstr "New Cron Task Using Common Flow"
 
 #: gcloud/iam_auth/conf.py:208
 msgid "查看轻应用"
-msgstr "Mini-APP"
+msgstr "View Mini-APP"
 
 #: gcloud/iam_auth/conf.py:215
 msgid "编辑轻应用"
-msgstr "Mini-APP"
+msgstr "Edit Mini-APP"
 
 #: gcloud/iam_auth/conf.py:222
 msgid "删除轻应用"
-msgstr "Mini-APP"
+msgstr "Delete Mini-APP"
 
 #: gcloud/iam_auth/conf.py:229
 msgid "使用轻应用创建任务"
-msgstr "Create task with Mini-APP"
+msgstr "Create Task Using Mini-APP"
 
 #: gcloud/iam_auth/conf.py:236
 msgid "查看周期任务"
-msgstr "Scheduled Task"
+msgstr "View Cron Task"
 
 #: gcloud/iam_auth/conf.py:243
 msgid "编辑周期任务"
-msgstr "Scheduled Task"
+msgstr "Edit Cron Task"
 
 #: gcloud/iam_auth/conf.py:250
 msgid "删除周期任务"
-msgstr "Scheduled Task"
+msgstr "Delete Cron Task"
 
 #: gcloud/iam_auth/conf.py:257
 msgid "查看计划任务"
-msgstr "View One-Time Scheduled"
+msgstr "View Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:264
 msgid "编辑计划任务"
-msgstr "Edit One-Time Scheduled"
+msgstr "Edit Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:271
 msgid "删除计划任务"
-msgstr "Delete One-Time Scheduled"
+msgstr "Delete Scheduled Task"
 
 #: gcloud/iam_auth/conf.py:276
 msgid "后台管理查看"
@@ -1384,7 +1384,7 @@ msgstr "Admin manage"
 
 #: gcloud/iam_auth/conf.py:278
 msgid "查看审计中心"
-msgstr "Audit Center"
+msgstr "View Audit Center"
 
 #: gcloud/iam_auth/conf.py:279
 msgid "查看职能化中心"
@@ -1396,7 +1396,7 @@ msgstr "Statistics Data"
 
 #: gcloud/iam_auth/resource_api/task.py:27
 msgid "任务类型"
-msgstr "Task flow type"
+msgstr "Task Type"
 
 #: gcloud/iam_auth/resource_api/task.py:27
 msgid "资源创建者"
@@ -1404,11 +1404,11 @@ msgstr "Creator"
 
 #: gcloud/iam_auth/resource_api/task.py:32
 msgid "普通任务"
-msgstr "Common task"
+msgstr "General"
 
 #: gcloud/iam_auth/resource_api/task.py:32
 msgid "职能化任务"
-msgstr "Functional Task Flow"
+msgstr "To Helper-Team"
 
 #: gcloud/label/models.py:35 pipeline_web/label/models.py:39
 msgid "标签名称"
@@ -1416,7 +1416,7 @@ msgstr "Label name"
 
 #: gcloud/label/models.py:38
 msgid "默认标签"
-msgstr "Default tag"
+msgstr "Default"
 
 #: gcloud/label/models.py:39
 msgid "标签颜色"
@@ -1560,7 +1560,7 @@ msgstr "return dirname of {path}"
 
 #: gcloud/periodictask/models.py:173
 msgid "pipeline 层周期任务"
-msgstr "Scheduled task in pipeline"
+msgstr "Cron task in pipeline"
 
 #: gcloud/periodictask/models.py:174 gcloud/taskflow3/models.py:720
 msgid "创建任务所用的模板ID"
@@ -1576,7 +1576,7 @@ msgstr "Template execution scheme ID when creating a task"
 
 #: gcloud/periodictask/models.py:179
 msgid "创建任务时间"
-msgstr "Created time"
+msgstr "Created Time"
 
 #: gcloud/periodictask/models.py:180
 msgid "更新者"
@@ -1588,7 +1588,7 @@ msgstr "Updated At"
 
 #: gcloud/periodictask/models.py:186 gcloud/periodictask/models.py:187
 msgid "周期任务 PeriodicTask"
-msgstr "Scheduled Task"
+msgstr "Cron Task"
 
 #: gcloud/periodictask/models.py:229
 msgid "流程模板[project={project}, id={template_id}]不存在"
@@ -1601,7 +1601,7 @@ msgstr "Common template[id={template_id}] not exists"
 #: gcloud/periodictask/models.py:309
 #, python-format
 msgid "获取周期任务历史相关任务实例失败：%s"
-msgstr "Get task history of scheduled task failed: %s"
+msgstr "Get task history of cron task failed: %s"
 
 #: gcloud/periodictask/models.py:323
 msgid "pipeline 层周期任务历史"
@@ -1660,19 +1660,19 @@ msgstr "Your task[{task_name}] in business[{cc_name}] executed successfully, exe
 
 #: gcloud/shortcuts/message/common.py:46
 msgid "【标准运维APP通知】周期任务启动失败"
-msgstr "[BK_SOPS Notification]Scheduled task start failed"
+msgstr "[BK_SOPS Notification]cron Task start failed"
 
 #: gcloud/shortcuts/message/common.py:47
 msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
-msgstr "Scheduled task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
+msgstr "Cron Task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
 
 #: gcloud/shortcuts/message/common.py:62
 msgid "【标准运维APP通知】计划任务创建失败"
-msgstr "[BK_SOPS Notification]One-Time Scheduled task start failed"
+msgstr "[BK_SOPS Notification]Scheduled task start failed"
 
 #: gcloud/shortcuts/message/common.py:63
 msgid "您在【{cc_name}】业务中的计划任务【{task_name}】于{plan_start_time}创建失败，错误信息：【{ex_data}】"
-msgstr "One-Time Scheduled task[{task_name}]in business [{cc_name}] which should be scheduled at [{start_time}] started failed, error message: [{ex_data}]"
+msgstr "Scheduled task[{task_name}]in business [{cc_name}] which should be scheduled at [{start_time}] started failed, error message: [{ex_data}]"
 
 #: gcloud/taskflow3/models.py:256 gcloud/taskflow3/models.py:294
 msgid "第三方插件"
@@ -1928,11 +1928,11 @@ msgstr "Failed to delete the flow: the flow has been referenced by other light a
 
 #: gcloud/template_base/domains/template_manager.py:279
 msgid "流程删除失败: 流程已被其他计划任务引用[{}], 暂不可删除, 请处理后重试 | can_delete"
-msgstr "Failed to delete the flow: The flow has been referenced by other one-Time scheduled tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
+msgstr "Failed to delete the flow: The flow has been referenced by other scheduled tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
 
 #: gcloud/template_base/domains/template_manager.py:292
 msgid "流程删除失败: 流程已被其他周期任务引用[{}], 暂不可删除, 请处理后重试 | can_delete"
-msgstr "Failed to delete the flow: the flow has been referenced by other Scheduled tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
+msgstr "Failed to delete the flow: the flow has been referenced by other cron tasks [{}], it cannot be deleted at the moment, please try again after processing | can_delete"
 
 #: gcloud/user_custom_config/constants.py:17
 msgid "模板ID"
@@ -2167,8 +2167,8 @@ msgstr "Timing"
 
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:28
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:32
-msgid "GSEKIT(gsekit)"
-msgstr "GSEKIT"
+msgid "GSEKit(GSEKit)"
+msgstr "GSEKit"
 
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:58
 msgid "刷新进程实例"
@@ -3407,7 +3407,7 @@ msgstr "Service Status"
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py:26
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_1.py:24
 msgid "作业平台(JOB)"
-msgstr "BLUEKING JOB"
+msgstr "JOB"
 
 #: pipeline_plugins/components/collections/sites/open/job/base.py:102
 msgid "[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]"
@@ -3967,7 +3967,7 @@ msgstr "State of created crontab"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:126
 msgid "定时任务启动失败: [作业平台]定时任务启动发生异常：{error}"
-msgstr "Failed to start the scheduled task: [job platform] An exception occurred when the scheduled task was started: {error}"
+msgstr "Failed to start the cron Task: [job platform] An exception occurred when the cron Task was started: {error}"
 
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:141
 msgid "新建定时作业"
@@ -5794,16 +5794,16 @@ msgstr "Wechat User"
 #~ msgstr "djcelery periodic tasks"
 
 #~ msgid "周期任务名称"
-#~ msgstr "Scheduled task name"
+#~ msgstr "Cron task name"
 
 #~ msgid "周期任务对应的模板"
-#~ msgstr "Used flow of Scheduled task "
+#~ msgstr "Used flow of Cron Task "
 
 #~ msgid "调度策略"
 #~ msgstr "Crontab"
 
 #~ msgid "celery 周期任务实例"
-#~ msgstr "Celery Scheduled task"
+#~ msgstr "Celery Cron Task"
 
 #~ msgid "用于创建流程实例的结构数据"
 #~ msgstr "Flow data"
@@ -5840,6 +5840,9 @@ msgstr "The times of loop executions of the current flow, which will be reset wh
 
 msgid "循环执行次数"
 msgstr "Loop execution times"
+
+msgid "业务"
+msgstr "Business"
 
 #~ msgid "信号模块名"
 #~ msgstr "Signal module name"

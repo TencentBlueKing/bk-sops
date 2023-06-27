@@ -14,18 +14,16 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
 
 from api import BKGseKitClient
-
-from pipeline.core.flow.activity import Service
-from pipeline.component_framework.component import Component
-
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("celery")
 
-__group_name__ = _("GSEKIT(gsekit)")
+__group_name__ = _("GSEKit(GSEKit)")
 VERSION = "1.0"
 
 

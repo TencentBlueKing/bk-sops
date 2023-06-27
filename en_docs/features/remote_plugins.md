@@ -58,7 +58,7 @@ perform the "Quick deployment" of the official environment in the "Release Deplo
 ### GitHub hosted standard plugin example
 
 - GitHub repository plugin directory structure
-https://github.com/bk-sops/plugins_example
+https://github.com/TencentBlueKing/bk-sops/plugins_example
 
 - SOPS remote package source configuration
 ![](./img/git_example_config.png)
