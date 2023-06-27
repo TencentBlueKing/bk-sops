@@ -65,7 +65,7 @@
                                         <bk-table-column :label="$t('名称')" prop="name" width="165">
                                             <div slot-scope="props" v-bk-overflow-tips>{{ props.row.name }}</div>
                                         </bk-table-column>
-                                        <bk-table-column label="KEY" width="209">
+                                        <bk-table-column label="Key" width="209">
                                             <template slot-scope="props" width="165">
                                                 <div v-bk-overflow-tips class="key">{{ props.row.key }}</div>
                                                 <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
@@ -288,6 +288,7 @@
             header-position="left"
             :mask-close="false"
             v-model="isCancelGloVarDialogShow"
+            :cancel-text="$t('取消')"
             :title="$t('取消变量引用')">
             <p style="word-break: break-all;">{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">

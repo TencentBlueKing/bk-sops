@@ -377,8 +377,8 @@
                     { id: 'all', name: i18n.t('全部') },
                     { id: 'app', name: i18n.t('手动任务') },
                     { id: 'api', name: i18n.t('API 任务') },
-                    { id: 'periodic', name: i18n.t('周期任务') },
-                    { id: 'clocked', name: i18n.t('计划任务') }
+                    { id: 'periodic', name: i18n.t('task_周期任务') },
+                    { id: 'clocked', name: i18n.t('task_计划任务') }
                 ],
                 crtCreateMethodTab: 'all', // 当前选中创建方法tab
                 tableFields: TABLE_FIELDS,
@@ -731,6 +731,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.onDeleteConfirm(task.id)
                     }

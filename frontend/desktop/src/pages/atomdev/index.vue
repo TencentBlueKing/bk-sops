@@ -69,6 +69,7 @@
             :width="400"
             :mask-close="false"
             :title="$t('导入文件')"
+            :cancel-text="$t('取消')"
             :loading="fileUploading">
             <div class="import-wrapper">
                 <upload-read-file class="import-code" @uploaded="handleFormFile($event, 'formCode')">
@@ -103,6 +104,7 @@
             :header-position="'left'"
             :title="$t('离开页面')"
             :value="isLeaveDialogShow"
+            :cancel-text="$t('取消')"
             @confirm="onLeaveConfirm"
             @cancel="onLeaveCancel">
             <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>

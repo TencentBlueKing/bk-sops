@@ -94,39 +94,39 @@
                         :disabled="isViewMode || formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
+                        <span class="auto-retry-times">
+                            {{ $t('在') }}
+                            <div class="number-input" style="margin: 0 4px;">
+                                <bk-input
+                                    v-model.number="formData.autoRetry.interval"
+                                    type="number"
+                                    style="width: 68px;"
+                                    :placeholder="' '"
+                                    :disabled="isViewMode || !formData.autoRetry.enable"
+                                    :max="10"
+                                    :min="0"
+                                    :precision="0"
+                                    @change="updateData">
+                                </bk-input>
+                                <span class="unit">{{ $tc('秒', 0) }}</span>
+                            </div>
+                            <span class="error-handle-text" v-bk-overflow-tips>{{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}</span>
+                            <div class="number-input" style=" margin-left: 4px;">
+                                <bk-input
+                                    v-model.number="formData.autoRetry.times"
+                                    type="number"
+                                    style="width: 68px;"
+                                    :placeholder="' '"
+                                    :disabled="isViewMode || !formData.autoRetry.enable"
+                                    :max="10"
+                                    :min="1"
+                                    :precision="0"
+                                    @change="updateData">
+                                </bk-input>
+                                <span class="unit">{{ $t('次') }}</span>
+                            </div>
+                        </span>
                     </bk-checkbox>
-                    <span class="auto-retry-times">
-                        {{ $t('在') }}
-                        <div class="number-input" style="margin: 0 4px;">
-                            <bk-input
-                                v-model.number="formData.autoRetry.interval"
-                                type="number"
-                                style="width: 68px;"
-                                :placeholder="' '"
-                                :disabled="isViewMode || !formData.autoRetry.enable"
-                                :max="10"
-                                :min="0"
-                                :precision="0"
-                                @change="updateData">
-                            </bk-input>
-                            <span class="unit">{{ $tc('秒', 0) }}</span>
-                        </div>
-                        <span class="error-handle-text" v-bk-overflow-tips>{{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}</span>
-                        <div class="number-input" style=" margin-left: 4px;">
-                            <bk-input
-                                v-model.number="formData.autoRetry.times"
-                                type="number"
-                                style="width: 68px;"
-                                :placeholder="' '"
-                                :disabled="isViewMode || !formData.autoRetry.enable"
-                                :max="10"
-                                :min="1"
-                                :precision="0"
-                                @change="updateData">
-                            </bk-input>
-                            <span class="unit">{{ $t('次') }}</span>
-                        </div>
-                    </span>
                 </div>
                 <p
                     v-if="!formData.ignorable && !formData.skippable && !formData.retryable && !formData.autoRetry.enable"
@@ -878,13 +878,14 @@
     .error-handle {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
-        height: 32px;
+        justify-content: space-between;
+        flex-wrap: wrap;
         /deep/ .bk-form-checkbox {
             display: flex;
             align-items: center;
             &:not(:last-of-type) {
                 margin-right: 8px;
+                margin-bottom: 10px;
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;

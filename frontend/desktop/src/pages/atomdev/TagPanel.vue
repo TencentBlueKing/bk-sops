@@ -86,11 +86,11 @@
     const ORDER_GROUP_MAP = [
         'combine',
         {
-            group: 'input',
+            group: 'Input',
             items: ['TagInput', 'TagMemberSelector', 'TagPassword', 'TagInt', 'TagTextarea']
         },
         {
-            group: 'select',
+            group: 'Select',
             items: ['TagSelect', 'TagCascader', 'TagDatetime']
         },
         'TagRadio',
