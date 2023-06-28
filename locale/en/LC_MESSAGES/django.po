@@ -76,11 +76,11 @@ msgstr "Others"
 
 #: gcloud/constants.py:40
 msgid "默认分类"
-msgstr "default Category"
+msgstr "Default"
 
 #: gcloud/constants.py:45
 msgid "默认任务流程"
-msgstr "Default Task Flow"
+msgstr "General Task"
 
 #: gcloud/constants.py:46
 msgid "职能化任务流程"
@@ -273,7 +273,7 @@ msgstr "Project ID"
 #: gcloud/contrib/appmaker/models.py:270 gcloud/template_base/models.py:232
 #: gcloud/user_custom_config/constants.py:20
 msgid "模板类型"
-msgstr "Template Type"
+msgstr "Category"
 
 #: gcloud/analysis_statistics/models.py:27
 #: gcloud/analysis_statistics/models.py:50 pipeline_web/core/abstract.py:19
@@ -409,7 +409,7 @@ msgstr "Gateways Count"
 #: gcloud/taskflow3/models.py:1336 gcloud/user_custom_config/constants.py:18
 #: pipeline_web/core/abstract.py:21
 msgid "创建时间"
-msgstr "Created Time"
+msgstr "Created At"
 
 #: gcloud/analysis_statistics/models.py:88 gcloud/core/models.py:150
 msgid "最近编辑时间"
@@ -482,7 +482,7 @@ msgstr "Common Template"
 #: gcloud/conf/sites/community/ver_settings.py:20
 #: gcloud/conf/sites/enterprise/ver_settings.py:20
 msgid "腾讯蓝鲸智云"
-msgstr "Tencent Blueking"
+msgstr "Tencent BlueKing"
 
 #: gcloud/contrib/appmaker/api.py:56
 msgid "轻应用保存失败: 非法的图片格式, 请使用不超过100KB的JPG / PNG 图片作为应用LOGO | appmaker save"
@@ -1640,7 +1640,7 @@ msgstr "Updater"
 #: gcloud/project_constants/models.py:30
 #: gcloud/user_custom_config/constants.py:19
 msgid "更新时间"
-msgstr "Update Time"
+msgstr "Modified At"
 
 #: gcloud/shortcuts/message/common.py:20
 msgid "【标准运维APP通知】执行失败"
@@ -1936,7 +1936,7 @@ msgstr "Failed to delete the flow: the flow has been referenced by other cron ta
 
 #: gcloud/user_custom_config/constants.py:17
 msgid "模板ID"
-msgstr "Template ID"
+msgstr "ID"
 
 #: gcloud/user_custom_config/models.py:45
 msgid "所属项目ID"
