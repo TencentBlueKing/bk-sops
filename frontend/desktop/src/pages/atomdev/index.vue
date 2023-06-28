@@ -222,8 +222,8 @@
                             methods: {}
                         }
                     }
-                    tagConfigMap['combine'] = {
-                        tag: 'combine',
+                    tagConfigMap['Combine'] = {
+                        tag: 'Combine',
                         config: {
                             type: 'combine',
                             attrs: {
@@ -294,7 +294,7 @@
                 return formConfig.map((item, index) => {
                     let tag = ''
                     if (item.type === 'combine') {
-                        tag = 'combine'
+                        tag = 'Combine'
                     } else {
                         const tagName = item.type.split('_').map(tp => tp.replace(/^\S/, s => s.toUpperCase())).join('')
                         tag = `Tag${tagName}`

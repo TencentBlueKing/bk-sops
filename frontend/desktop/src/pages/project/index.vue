@@ -627,7 +627,7 @@
                     timeZone: project.time_zone,
                     desc: project.desc
                 }
-                const title = i18n.t('确认') + i18n.t(type === 'start' ? '启用' : '停用') + i18n.t('项目') + ': ' + project.name + '?'
+                const title = i18n.t('确认') + ' ' + i18n.t(type === 'start' ? '启用' : '停用') + ' ' + i18n.t('项目') + ': ' + project.name + '?'
                 const h = this.$createElement
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [

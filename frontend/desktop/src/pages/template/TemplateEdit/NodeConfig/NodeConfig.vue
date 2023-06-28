@@ -274,7 +274,7 @@
                                     theme="default"
                                     data-test-id="templateEdit_form_cancelNodeConfig"
                                     @click="onClosePanel()">
-                                    {{ $t('取消') }}
+                                    {{ isViewMode ? $t('关闭') : $t('取消') }}
                                 </bk-button>
                             </div>
                         </template>

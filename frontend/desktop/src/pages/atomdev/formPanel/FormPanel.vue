@@ -20,7 +20,7 @@
             @end="onSortHandler">
             <div class="form-item" v-for="(form, index) in formList" :key="index">
                 <component
-                    :is="form.tag === 'combine' ? 'Combine' : 'AtomFormItem'"
+                    :is="form.tag === 'Combine' ? 'Combine' : 'AtomFormItem'"
                     :tag-info="tagInfo"
                     :form="form"
                     :index="index"

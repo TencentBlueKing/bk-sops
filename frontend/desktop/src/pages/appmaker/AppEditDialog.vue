@@ -24,7 +24,7 @@
         @cancel="onCancel">
         <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
             <div class="common-form-item" data-test-id="appmaker_list_flows">
-                <label class="required">{{$t('流程模板')}}</label>
+                <label class="required">{{$t('app_流程模板')}}</label>
                 <div class="common-form-content">
                     <bk-select
                         ref="tplSelect"
