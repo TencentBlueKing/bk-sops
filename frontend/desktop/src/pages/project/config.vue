@@ -66,11 +66,11 @@
                         {{ $t('编辑') }}
                     </bk-button>
                 </div>
-                <bk-form class="agent-form" v-bkloading="{ isLoading: agentLoading, opacity: 1, zIndex: 100 }">
+                <bk-form class="agent-form" :label-width="180" v-bkloading="{ isLoading: agentLoading, opacity: 1, zIndex: 100 }">
                     <bk-form-item :label="$t('执行代理人')">
                         <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
                     </bk-form-item>
-                    <bk-form-item :label="$t('白名单用户')">
+                    <bk-form-item :label="$t('免代理用户')">
                         <div class="user-list">{{ agent.executor_proxy_exempts || '--' }}</div>
                     </bk-form-item>
                 </bk-form>
@@ -199,7 +199,7 @@
             :cancel-text="$t('取消')"
             @confirm="updateAgentData"
             @cancel="isAgentDialogShow = false">
-            <bk-form class="agent-dialog" :model="editingAgent">
+            <bk-form class="agent-dialog" :model="editingAgent" :label-width="180">
                 <bk-form-item :label="$t('执行代理人')">
                     <bk-user-selector
                         v-model="editingAgent.executor_proxy"
@@ -208,7 +208,7 @@
                         :multiple="false">
                     </bk-user-selector>
                 </bk-form-item>
-                <bk-form-item :label="$t('白名单用户')">
+                <bk-form-item :label="$t('免代理用户')">
                     <bk-user-selector
                         v-model="editingAgent.executor_proxy_exempts"
                         :placeholder="$t('请输入用户')"
