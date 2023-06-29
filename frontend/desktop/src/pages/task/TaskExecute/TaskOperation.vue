@@ -70,23 +70,10 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="960" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="1240" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">
                 <div class="header">
                     <span>{{sideSliderTitle}}</span>
-                    <div class="bread-crumbs-wrapper" v-if="['executeInfo', 'viewNodeDetails'].includes(nodeInfoType)">
-                        <span
-                            :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
-                            v-for="(path, index) in nodeNav"
-                            :key="path.id"
-                            :title="showNodeList.includes(index) ? path.name : ''">
-                            <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
-                            <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
-                                {{path.name}}
-                            </span>
-                            <span class="node-ellipsis" v-else-if="index === 1">...</span>
-                        </span>
-                    </div>
                 </div>
             </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
@@ -390,7 +377,9 @@
                 showNodeList: [0, 1, 2],
                 converNodeList: [],
                 isCondition: false,
-                conditionOutgoing: []
+                conditionOutgoing: [],
+                unrenderedCoverNode: [],
+                renderedCoverNode: []
             }
         },
         computed: {
@@ -1012,6 +1001,7 @@
                     subprocess_stack: JSON.stringify(subprocessStack),
                     componentData
                 }
+                console.log(this.nodeDetailConfig)
             },
             async onRetryClick (id) {
                 try {
@@ -1290,6 +1280,7 @@
                 })
                 this.retrieveLines(data, fstLine, orderedData)
                 orderedData.push(endEvent)
+                this.renderConverGateway(this.unrenderedCoverNode, orderedData, data)
                 // 过滤root最上层汇聚网关
                 return orderedData
             },
@@ -1302,38 +1293,39 @@
              *
              */
             retrieveLines (data, lineId, ordered, isLoop = false) {
-                const { end_event, activities, gateways, flows } = data
+                const { activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
-                const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
-                const node = endEvent || activity || gateway
-                if (node && ordered.findIndex(item => item.id === node.id) === -1) {
+                const node = activity || gateway
+                if (node && !this.nodeIds.includes(node.id)) {
                     let outgoing
                     if (Array.isArray(node.outgoing)) {
                         outgoing = node.outgoing
                     } else {
                         outgoing = node.outgoing ? [node.outgoing] : []
                     }
-                    // 当前tree是否已存在
-                    const isAt = !this.nodeIds.includes(node.id)
                     if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
+                        const allNodeList = Object.assign({}, activities, gateways)
+
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
                         gateway.children = []
-                        if (isAt && (gateway.conditions || gateway.default_condition)) {
+                        if (gateway.conditions || gateway.default_condition) {
+                            this.nodeIds.push(gateway.id)
                             const loopList = [] // 需要打回的node的incoming
                             outgoing.forEach(item => {
                                 const curNode = activities[flows[item].target] || gateways[flows[item].target]
-                                if (curNode && (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id)))) {
+                                if (curNode && this.nodeIds.find(ite => ite === curNode.id)) {
                                     loopList.push(...curNode.incoming)
                                 }
                             })
                             const conditions = Object.keys(gateway.conditions).map((item, index) => {
                                 // 给需要打回的条件添加节点id
-                                const callback = loopList.includes(item) ? activities[flows[item].target] : ''
+                                const nodeList = Object.assign({}, activities, gateways)
+                                const callback = loopList.includes(item) ? nodeList[flows[item].target] : ''
                                 const { evaluate, tag } = gateway.conditions[item]
                                 const callbackData = {
                                     id: callback.id,
@@ -1372,8 +1364,10 @@
                                         children: []
                                     }
                                 ]
+                                // 默认条件置顶
                                 conditions.unshift(...defaultCondition)
                             }
+                            
                             conditions.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children, item.isLoop)
                                 if (item.children.length === 0) this.conditionOutgoing.push(item.outgoing)
@@ -1388,7 +1382,10 @@
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
-                        } else if (isAt && gateway.type === 'ParallelGateway') {
+                            if (ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity')]) {
+                                this.orderedLastisGateway(data, allNodeList, ordered, gateways, 'ConvergeGateway')
+                            }
+                        } else if (gateway.type === 'ParallelGateway') {
                             // 添加并行默认条件
                             const defaultCondition = gateway.outgoing.map((item, index) => {
                                 return {
@@ -1401,6 +1398,7 @@
                                     children: []
                                 }
                             })
+                            this.nodeIds.push(gateway.id)
                             gateway.children.push(...defaultCondition)
                             defaultCondition.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children)
@@ -1414,6 +1412,9 @@
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
+                            if (ordered[ordered.findLastIndex(order => order.type === 'ParallelGateway')]) {
+                                this.orderedLastisGateway(data, allNodeList, ordered, gateways, 'ConvergeGateway')
+                            }
                         }
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
@@ -1434,39 +1435,40 @@
                                     outgoingList.push(item.outgoing)
                                 }
                             })
-
                             if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
-                                // 汇聚网关push在最近的条件网关下
-                                const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
+                                const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' && order.type !== 'ConvergeGateway')]
                                 // 独立子流程的children为 subChildren
+                                this.nodeIds.push(gateway.id)
                                 if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
                                     this.converNodeList.push(gateway.id)
                                     gateway.gatewayType = 'converge'
-                                    prev.children.push(gateway)
+                                    outgoing.forEach(line => {
+                                        this.retrieveLines(data, line, ordered)
+                                    })
+                                } else {
+                                    this.unrenderedCoverNode.push(gateway.id)
                                 }
-                                if (!this.nodeIds.includes(gateway.id)) {
-                                    this.nodeIds.push(gateway.id)
-                                }
-                                outgoing.forEach(line => {
-                                    this.retrieveLines(data, line, ordered)
-                                })
                             }
                         }
                     } else if (activity) { // 任务节点
                         if (isLoop) return
-                        if (isAt) {
-                            if (activity.type === 'SubProcess') {
-                                if (activity.pipeline) {
-                                    activity.subChildren = this.getOrderedTree(activity.pipeline)
-                                } else {
-                                    if (activity.component.data && activity.component.data.subprocess) {
-                                        activity.subChildren = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
-                                    }
+                        if (activity.type === 'SubProcess') {
+                            // 兼容旧数据
+                            if (activity.pipeline) {
+                                // activity.subChildren = this.getOrderedTree(activity.pipeline)
+                                activity.children = this.getOrderedTree(activity.pipeline)
+                            } else {
+                                if (activity.component.data && activity.component.data.subprocess) {
+                                    // activity.subChildren = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
+                                    activity.children = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
                                 }
                             }
-                            activity.title = activity.name
-                            activity.expanded = activity.pipeline
-                            ordered.push(activity)
+                        }
+                        activity.title = activity.name
+                        activity.expanded = activity.pipeline
+                        ordered.push(activity)
+                        if (!this.nodeIds.includes(activity.id)) {
+                            this.nodeIds.push(activity.id)
                         }
                         outgoing.forEach(line => {
                             this.retrieveLines(data, line, ordered)
@@ -1474,11 +1476,98 @@
                     }
                 }
             },
+            // 判断当前tree最后一个节点是否是网关
+            orderedLastisGateway (data, allNodeList, ordered, gateways, filterGataway) {
+                const renderNodelist = [] // 渲染的节点列表
+                const renderNodeOutgoing = [] // 渲染的节点outgoing
+                this.nodeIds.forEach(item => {
+                    if (allNodeList[item]) {
+                        renderNodelist.push(allNodeList[item])
+                    }
+                })
+                renderNodelist.forEach(item => {
+                    if (Array.isArray(item.outgoing)) {
+                        item.outgoing.forEach(ite => {
+                            renderNodeOutgoing.push(ite)
+                        })
+                    } else {
+                        renderNodeOutgoing.push(item.outgoing)
+                    }
+                })
+                const convers = Object.keys(gateways).filter(conver => gateways[conver].type === filterGataway)
+                convers.forEach(item => {
+                    if (gateways[item].incoming.every(item => renderNodeOutgoing.includes(item))) {
+                        const curOutgoing = Array.isArray(gateways[item].outgoing) ? gateways[item].outgoing : [gateways[item].outgoing]
+                        curOutgoing.forEach(line => {
+                            this.retrieveLines(data, line, ordered)
+                        })
+                    }
+                })
+            },
+            // 渲染汇聚网关
+            renderConverGateway (ids, ordered, data) {
+                const allNode = Object.assign({}, data.activities, data.gateways)
+                ids.forEach(id => {
+                    if (data.gateways[id] && data.gateways[id].incoming) {
+                        data.gateways[id].incoming.forEach(incoming => {
+                            const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
+                            ordered.forEach(item => {
+                                if (item.id === node && allNode[node].type !== 'ServiceActivity' && allNode[node].type !== 'ConvergeGateway') {
+                                    if (!item.children.map(chd => chd.id).includes(data.gateways[id].id) && !this.renderedCoverNode.includes(id)) {
+                                        this.renderedCoverNode.push(id)
+                                        item.children.push(Object.assign(data.gateways[id], { name: this.$t('汇聚网关') }))
+                                    }
+                                } else {
+                                    if (item.children) {
+                                        this.findCoverPosition(item.children, node, id, allNode, ordered)
+                                    }
+                                }
+                            })
+                        })
+                    }
+                })
+            },
+            // 寻找汇聚网关的渲染位置
+            findCoverPosition (list, id, cur, allNode, ordered) {
+                list.forEach(item => {
+                    if (item.id === id) {
+                        // 不是任务节点直接添加
+                        if (item.type !== 'ServiceActivity' && item.type !== 'ConvergeGateway' && item.state !== 'Gateway') {
+                            if (item.children && list.map(chd => chd.id).includes(allNode[id].id) && !this.renderedCoverNode.includes(cur)) {
+                                this.renderedCoverNode.push(cur)
+                                item.children.push(Object.assign({}, allNode[cur], { name: this.$t('汇聚网关') }))
+                            }
+                        } else {
+                            item.incoming.forEach(incoming => {
+                                const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
+                                this.getItemCoverTree(ordered, node, cur, allNode)
+                            })
+                        }
+                    } else {
+                        if (item.children) this.findCoverPosition(item.children, id, cur, allNode, ordered)
+                    }
+                })
+            },
+            // 给网关节点添加汇聚节点
+            getItemCoverTree (ordered, node, id, allNode) {
+                ordered.forEach(item => {
+                    if (item.id === node && item.type !== 'ServiceActivity' && item.state !== 'Gateway') {
+                        if (item.children && !item.children.map(chd => chd.node).includes(allNode[node].id) && !this.renderedCoverNode.includes(id)) {
+                            this.renderedCoverNode.push(id)
+                            item.children.push(Object.assign({}, allNode[id], { name: this.$t('汇聚网关') }))
+                        }
+                    } else {
+                        if (item.children) this.getItemCoverTree(item.children, node, id, allNode)
+                    }
+                })
+            },
             updateNodeActived (id, isActived) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, name) {
+                console.log(type, name)
+                debugger
                 if (type === 'viewNodeDetails') {
                     const { start_event, flows, location } = this.pipelineData
                     const nodeId = flows[start_event.outgoing].target
@@ -1588,10 +1677,6 @@
             },
             onNodeClick (id, type) {
                 this.defaultActiveId = id
-                if (type === 'subflow') {
-                    this.handleSubflowCanvasChange(id)
-                    return
-                }
                 this.setNodeDetailConfig(id)
                 if (this.nodeDetailConfig.node_id) {
                     this.updateNodeActived(this.nodeDetailConfig.node_id, false)
@@ -1755,43 +1840,45 @@
                             }
                         }
                     })
-                    this.selectedFlowPath = nodePath
-                    if (nodeActivities.type === 'SubProcess') {
-                        await this.switchCanvasView(nodeActivities)
-                        this.treeNodeConfig = {}
-                    } else {
-                        if (parentNodeActivities && parentNodeActivities.id !== this.taskId) { // 不在当前 taskId 的任务中
-                            await this.switchCanvasView(parentNodeActivities)
-                        } else if (!parentNodeActivities && this.taskId !== this.instance_id) { // 属于第二级任务
-                            await this.switchCanvasView(this.completePipelineData, true)
-                        }
-                        let subprocessStack = []
-                        if (this.selectedFlowPath.length > 1) {
-                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
-                        }
-                        this.treeNodeConfig = {
-                            component_code: nodeActivities.component.code,
-                            version: nodeActivities.component.version || 'legacy',
-                            node_id: nodeActivities.id,
-                            instance_id: this.instance_id,
-                            subprocess_stack: JSON.stringify(subprocessStack)
-                        }
-                        this.updataNodeParamsInfo(nodeActivities)
-                    }
-                } else {
-                    this.selectedFlowPath = nodePath
-                    await this.switchCanvasView(this.completePipelineData, true)
-                    this.treeNodeConfig = {}
                 }
+                this.selectedFlowPath = nodePath
+                //     if (nodeActivities.type === 'SubProcess') {
+                //         // await this.switchCanvasView(nodeActivities)
+                //         this.treeNodeConfig = {}
+                //     } else {
+                //         if (parentNodeActivities && parentNodeActivities.id !== this.taskId) { // 不在当前 taskId 的任务中
+                //             await this.switchCanvasView(parentNodeActivities)
+                //         } else if (!parentNodeActivities && this.taskId !== this.instance_id) { // 属于第二级任务
+                //             await this.switchCanvasView(this.completePipelineData, true)
+                //         }
+                //         let subprocessStack = []
+                //         if (this.selectedFlowPath.length > 1) {
+                //             subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                //         }
+                //         this.treeNodeConfig = {
+                //             component_code: nodeActivities.component.code,
+                //             version: nodeActivities.component.version || 'legacy',
+                //             node_id: nodeActivities.id,
+                //             instance_id: this.instance_id,
+                //             subprocess_stack: JSON.stringify(subprocessStack)
+                //         }
+                //         this.updataNodeParamsInfo(nodeActivities)
+                //     }
+                // } else {
+                //     this.selectedFlowPath = nodePath
+                //     await this.switchCanvasView(this.completePipelineData, true)
+                //     this.treeNodeConfig = {}
+                // }
+
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
-                this.nodePipelineData = { ...this.pipelineData }
-                // 兼容旧版本子流程节点输出数据
-                const selectLocation = this.canvasData.locations.find(item => item.id === selectNodeId)
-                if (selectLocation.type === 'subflow') {
-                    const { constants } = this.pipelineData.activities[selectNodeId].pipeline
-                    this.nodePipelineData['constants'] = constants
-                }
+                // this.nodePipelineData = { ...this.pipelineData }
+                // // 兼容旧版本子流程节点输出数据
+                // const selectLocation = this.canvasData.locations.find(item => item.id === selectNodeId)
+                // if (selectLocation.type === 'subflow') {
+                //     const { constants } = this.pipelineData.activities[selectNodeId].pipeline
+                //     this.nodePipelineData['constants'] = constants
+                // }
                 this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
