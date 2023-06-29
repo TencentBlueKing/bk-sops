@@ -12,7 +12,7 @@
 <template>
     <div class="node-tree-wrapper">
         <div class="tree-item" v-for="tree in treeData" :key="tree.id" data-test-id="taskExcute_tree_nodeTree">
-            <div v-if="!tree.children || tree.name === $t('汇聚网关') || tree.type === 'SubProcess'" :class="['tree-item-info', tree.isGateway ? 'gateway' : '']">
+            <div v-if="!tree.children || tree.name === '汇聚网关'" :class="['tree-item-info', tree.isGateway ? 'gateway' : '']">
                 <div class="tree-line"></div>
                 <div class="tree-item-status">
                     <span class="tree-item-expanded"></span>
@@ -31,17 +31,20 @@
                 </bk-tree>
             </div>
         </div>
+        <!-- <Tree :tree-data="treeData"></Tree> -->
     </div>
 </template>
 <script>
 
     import { bkTree } from 'bk-magic-vue'
     import tools from '@/utils/tools.js'
+    // import Tree from './Tree.vue'
 
     export default {
         name: 'NodeTree',
         components: {
             bkTree
+            // Tree
         },
         props: {
             data: {
@@ -83,6 +86,7 @@
         },
         data () {
             const gatewayType = {
+                'SubProcess': 'commonicon-icon ',
                 'EmptyStartEvent': 'commonicon-icon common-icon-node-startpoint-en',
                 'EmptyEndEvent': 'commonicon-icon common-icon-node-endpoint-en',
                 'ParallelGateway': 'commonicon-icon common-icon-node-parallelgateway-shortcut',
@@ -124,13 +128,7 @@
         watch: {
             data: {
                 handler (value) {
-                    const nodeNavLength = this.nodeNav.length
-                    if (nodeNavLength === 1) {
-                        this.treeData = tools.deepClone(value[0].children)
-                    } else {
-                        const cur = this.findSubChildren(value[0].children, this.nodeNav[nodeNavLength - 1].id)
-                        this.treeData = tools.deepClone(cur[0].subChildren)
-                    }
+                    this.treeData = tools.deepClone(value[0].children)
                     this.$nextTick(() => {
                         this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
                         this.setDefaultActiveId(this.treeData, this.treeData, this.defaultActiveId)
@@ -145,28 +143,6 @@
                 },
                 deep: true,
                 immediate: true
-            },
-            nodeNav: {
-                handler (val, old) {
-                    // 当为面包屑数量不为根节点时重新渲染结构
-                    const cur = this.findSubChildren(this.data[0].children, val[val.length - 1].id)
-                    this.curSelectTreeId = val[val.length - 1].nodeId
-                    if (val) {
-                        if (cur.length === 0) this.setDefaultGateway = true // 从画布点击自动网关、条件展开
-                        if (val.length === 1 && old && val.length !== old.length) {
-                            this.treeData = tools.deepClone(this.cacheSubflowSelectNode[this.curSelectTreeId] || this.data[0].children)
-                            this.curSelectId = '' // 返回时清除选中
-                        } else {
-                            this.$nextTick(() => {
-                                if (this.cacheSubflowSelectNode[cur[0]] && this.cacheSubflowSelectNode[cur[0]].id) this.$set(cur[0], 'subChildren', this.cacheSubflowSelectNode[cur[0].id])
-                                this.renderSubProcessData(cur[0])
-                            })
-                            this.nodeAddStatus(this.data[0].children, this.nodeDisplayStatus.children)
-                        }
-                    }
-                },
-                deep: true,
-                immediate: true
             }
         },
         mounted () {
@@ -175,38 +151,15 @@
             }
         },
         methods: {
-            findSubChildren (data, id, node = []) {
-                data.forEach(item => {
-                    if (item.type === 'SubProcess') {
-                        if (item.id === id) {
-                            node.push(item)
-                        } else {
-                            this.findSubChildren(item.subChildren, id, node)
-                        }
-                    } else {
-                        if (item.children) {
-                            this.findSubChildren(item.children, id, node)
-                        }
-                    }
-                })
-                return node
-            },
             onClickNode (node) {
+                console.log(node)
                 this.setDefaultGateway = false
                 if (node.children && node.children.length === 0) return
-                this.$emit('onOpenGatewayInfo', this.cachecallbackData, false)
+                // this.$emit('onOpenGatewayInfo', this.cachecallbackData, false)
                 node.expanded = !node.expanded
                 this.curSelectId = node.id
-                const nodeType = node.type === 'SubProcess'
-                if (nodeType) {
-                    this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
-                    this.$emit('onNodeClick', node.id, 'subflow')
-                    this.renderSubProcessData(node)
-                } else {
-                    const parentIds = this.nodeNav.slice(1).map(item => item.id).toString().split(',').join('.')
-                    const nodeHeirarchy = parentIds ? parentIds + '.' + node.id : node.id
-                    this.$emit('onSelectNode', nodeHeirarchy, node.id, 'tasknode')
-                }
+                const nodeHeirarchy = node.id
+                this.$emit('onSelectNode', nodeHeirarchy, node.id, 'tasknode')
             },
             renderSubProcessData (node) {
                 if (node) {
@@ -241,7 +194,8 @@
                 }
                 // 退回节点
                 const callbackTip = node.isLoop ? this.$t('退回节点：') + node.callbackName : ''
-                const iconClass = this.gatewayType[node.type]
+                const isSubIcon = node.parent && node.parent.type === 'SubProcess' && (node.type === 'EmptyStartEvent' || node.type === 'EmptyEndEvent')
+                const iconClass = isSubIcon ? `node ${this.nodeStateMap[node.state]} ` : this.gatewayType[node.type]
                 // 并行、条件分支样式
                 let conditionClass = node.title !== '默认' ? 'condition' : 'default-conditon'
                 if (node.isLoop) conditionClass = 'callback-condition'
@@ -304,73 +258,66 @@
             },
             onSelectNode (e, node, type) {
                 // 当父节点展开且未选中、 节点为并行、网关条件时阻止冒泡
-                this.setDefaultGateway = false
-                if (node.selected && node.type === 'SubProcess') {
-                    node.selected = false
-                    node.parent.expanded = true
-                }
-                if (node.expanded && !node.selected) e.stopPropagation()
-                if ((node.conditionType === 'parallel' || node.conditionType === 'default') && type === 'gateway') {
-                    node.expanded = !node.expanded
-                    e.stopPropagation()
-                    return
-                }
-                this.$emit('onOpenGatewayInfo', node.callbackData, false)
-                if (type === 'gateway') {
-                    // 分支条件没有id,使用name 代替
-                    if (node.state === 'Gateway') {
-                        this.curSelectId = node.id || node.name
-                        this.$emit('onOpenGatewayInfo', node.callbackData, true)
-                        return
-                    }
-                }
-                if (type === 'node' || type === 'callback') {
-                    const treeNodes = Array.from(document.querySelectorAll('.tree-node'))
-                    if (node.parent) {
-                        const curNodeIndex = node.parent.children.findIndex(item => item.id === node.id)
-                        node.parent.children.forEach((item, index) => {
-                            if (item.type === 'ConvergeGateway') {
-                                const converge = treeNodes.filter(dom => dom.dataset.gatewayType === 'converge')
-                                if (index > curNodeIndex) {
-                                    if (!node.expanded) {
-                                        converge.forEach(cdom => {
-                                            cdom.style.display = 'block'
-                                        })
-                                    } else {
-                                        converge.forEach(cdom => {
-                                            cdom.style.display = 'none'
-                                        })
-                                    }
-                                }
-                            }
-                        })
-                    }
-                    if (type === 'callback') {
-                        node.cacheId = node.id // 选择打回节点前缓存id
-                        node.id = node.callbackData ? node.callbackData.id : node.id
-                    }
-                }
-                if (this.curSelectId === node.id) {
-                    // 画布节点参数入口 子流程选中状态可点击
-                    if (node.type === 'SubProcess') {
-                        this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
-                        this.$emit('onNodeClick', node.id, 'subflow')
-                        this.renderSubProcessData(node)
-                        return
-                    }
-                    // 当打回节点选中时，还原该条件id
-                    node.id = node.cacheId ? node.cacheId : node.id
-                    return
-                }
-                this.curSelectId = node.id
+                // this.setDefaultGateway = false
+                // if (node.selected && node.type === 'SubProcess') {
+                //     node.selected = false
+                //     node.parent.expanded = true
+                // }
+                // if (node.expanded && !node.selected) e.stopPropagation()
+                // if ((node.conditionType === 'parallel' || node.conditionType === 'default') && type === 'gateway') {
+                //     node.expanded = !node.expanded
+                //     e.stopPropagation()
+                //     return
+                // }
+                // // this.$emit('onOpenGatewayInfo', node.callbackData, false)
+                // if (type === 'gateway') {
+                //     // 分支条件没有id,使用name 代替
+                //     if (node.state === 'Gateway') {
+                //         this.curSelectId = node.id || node.name
+                //         this.$emit('onOpenGatewayInfo', node.callbackData, true)
+                //         return
+                //     }
+                // }
+                // if (type === 'node' || type === 'callback') {
+                //     const treeNodes = Array.from(document.querySelectorAll('.tree-node'))
+                //     if (node.parent) {
+                //         const curNodeIndex = node.parent.children.findIndex(item => item.id === node.id)
+                //         node.parent.children.forEach((item, index) => {
+                //             if (item.type === 'ConvergeGateway') {
+                //                 const converge = treeNodes.filter(dom => dom.dataset.gatewayType === 'converge')
+                //                 if (index > curNodeIndex) {
+                //                     if (!node.expanded) {
+                //                         converge.forEach(cdom => {
+                //                             cdom.style.display = 'block'
+                //                         })
+                //                     } else {
+                //                         converge.forEach(cdom => {
+                //                             cdom.style.display = 'none'
+                //                         })
+                //                     }
+                //                 }
+                //             }
+                //         })
+                //     }
+                //     if (type === 'callback') {
+                //         node.cacheId = node.id // 选择打回节点前缓存id
+                //         node.id = node.callbackData ? node.callbackData.id : node.id
+                //     }
+                // }
+                // if (this.curSelectId === node.id) {
+                //     // 画布节点参数入口 子流程选中状态可点击
+                //     if (node.type === 'SubProcess') {
+                //         this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
+                //         // this.$emit('onNodeClick', node.id, 'subflow')
+                //         this.renderSubProcessData(node)
+                //         return
+                //     }
+                //     // 当打回节点选中时，还原该条件id
+                //     node.id = node.cacheId ? node.cacheId : node.id
+                //     return
+                // }
+                // this.curSelectId = node.id
                 const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
-                node.selected = nodeType !== 'subflow'
-                if (nodeType === 'subflow') {
-                    this.$emit('onNodeClick', node.id, 'subflow')
-                    this.cacheSubflowSelectNode[this.curSelectTreeId] = tools.deepClone(this.treeData)
-                    this.renderSubProcessData(node)
-                    return
-                }
                 let rootNode = node
                 let nodeHeirarchy = ''
                 if (!rootNode.id) return
@@ -382,19 +329,11 @@
                     }
                     rootNode = rootNode.parent
                 }
-                const parentIds = this.nodeNav.slice(1).map(item => item.id).toString().split(',').join('.')
+                // const parentIds = this.nodeNav.slice(1).map(item => item.id).toString().split(',').join('.')
                 // 最外层网关为null时传递id
-                nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
+                nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] + '.' + node.id : node.id
                 this.setDefaultActiveId(this.treeData, this.treeData, node.id)
-                this.$emit('onSelectNode', parentIds ? parentIds + '.' + nodeHeirarchy : nodeHeirarchy, node.id, nodeType)
-                // 取缓存id
-                node.id = node.cacheId ? node.cacheId : node.id
-                node.selected = node.id === this.curSelectId
-                // 选中后,非tree列表切换到已展开tree时默认展开
-                if (node.selected) {
-                    this.$set(node, 'expanded', true)
-                    e.stopPropagation()
-                }
+                this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
         }
     }
@@ -403,6 +342,9 @@
 .bk-tree .tree-drag-node .tree-expanded-icon {
     margin-right: 3px;
     z-index: 99;
+}
+.bk-tree .tree-drag-node {
+    line-height: 36px;
 }
 </style>
 <style lang="scss" scoped>
