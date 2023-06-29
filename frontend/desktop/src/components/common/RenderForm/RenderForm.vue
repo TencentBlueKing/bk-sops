@@ -479,6 +479,12 @@
         font-size: 12px;
         word-break: break-word;
         margin-top: 8px;
+        display: -webkit-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        -webkit-line-clamp: 10;
+        -webkit-box-orient: vertical;
     }
 
 }
