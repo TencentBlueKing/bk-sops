@@ -603,6 +603,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.onDeletePeriodicConfirm(periodic.id)
                     }

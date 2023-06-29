@@ -51,22 +51,14 @@ from gcloud.core.utils import convert_readable_username
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.shortcuts.cmdb import get_business_attrinfo, get_business_group_members
 from gcloud.taskflow3.domains.context import TaskContext
-from gcloud.taskflow3.domains.dispatchers import (
-    NodeCommandDispatcher,
-    TaskCommandDispatcher,
-)
+from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.taskflow3.utils import parse_node_timeout_configs
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import inject_original_template_info, inject_template_node_id, replace_template_id
-from gcloud.utils.components import (
-    format_component_name_with_remote,
-    get_remote_plugin_name,
-)
+from gcloud.utils.components import format_component_name_with_remote, get_remote_plugin_name
 from gcloud.utils.dates import format_datetime, timestamp_to_datetime
 from gcloud.utils.managermixins import ClassificationCountMixin
-from pipeline_plugins.components.collections.subprocess_plugin.converter import (
-    PipelineTreeSubprocessConverter,
-)
+from pipeline_plugins.components.collections.subprocess_plugin.converter import PipelineTreeSubprocessConverter
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInInstance
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
@@ -539,7 +531,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         )
         proj_dimension_dict = dict(
             ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name")
-        ) or {"bk_biz_name": "业务"}
+        ) or {"bk_biz_name": _("业务")}
         proj_dimension_id_list = proj_dimension_dict.keys()
         # 获取全部业务对应维度信息
         total = len(proj_dimension_id_list)

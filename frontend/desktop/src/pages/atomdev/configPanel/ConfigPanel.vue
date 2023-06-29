@@ -16,7 +16,6 @@
                 ref="atomConfig"
                 class="config-section"
                 form-type="vertical"
-                :label-width="100"
                 :model="{ name }">
                 <bk-form-item
                     property="name"
@@ -74,6 +73,7 @@
             :mask-close="false"
             :title="`context${$t('配置')}`"
             :auto-close="false"
+            :cancel-text="$t('取消')"
             @confirm="onContextConfirm"
             @cancel="onContextCancel">
             <context-edit style="max-width: 536px" ref="contextEdit" :value="contextValue"></context-edit>

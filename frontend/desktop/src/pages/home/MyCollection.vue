@@ -158,6 +158,7 @@
                     title: i18n.t('确认删除收藏?'),
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.onDeleteConfirm(data.id)
                     }

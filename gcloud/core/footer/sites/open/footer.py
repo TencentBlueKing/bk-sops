@@ -24,7 +24,7 @@ def i18n_footer(language):
                 <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">{}</a>
                 <a href="http://bk.tencent.com/index" class="link-item" target="_blank">{}</a>
             </ul>
-            <div class="desc">Copyright &copy; 2012-${{year}} Tencent BlueKing. \
+            <div class="desc">Copyright &copy; 2012 Tencent BlueKing. \
             All Rights Reserved. V${{sops_version}}</div>
         </div>
         """.format(

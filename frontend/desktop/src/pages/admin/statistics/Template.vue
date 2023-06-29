@@ -293,7 +293,7 @@
                 tableColumn: TABLE_COLUMN,
                 statsData: [],
                 statsDataLoading: true,
-                topnTitle: i18n.t('模板执行次数TOPx', { x: 5 }),
+                topnTitle: i18n.t('模板执行次数TOP n', { n: 5 }),
                 topnData: [],
                 topnDataLoading: true,
                 tempUsageData: [],
@@ -443,7 +443,7 @@
                         }
                     }
                     const resp = await this.loadAnalysisData(query)
-                    this.topnTitle = i18n.t('模板执行次数TOPx', { x: resp.length })
+                    this.topnTitle = i18n.t('模板执行次数TOP n', { n: resp.length })
                     this.topnData = resp.map(item => {
                         item.name = item.template_name
                         item.value = item.count

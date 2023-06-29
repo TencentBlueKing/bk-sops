@@ -2,7 +2,7 @@
     <div class="task-scheme" v-if="isSchemeShow">
         <div class="scheme-nav" @click="toggleSchemePanel">
             <i class="bk-icon icon-angle-left"></i>
-            {{ $t('执行方案') }}
+            <span>{{ $t('执行方案') }}</span>
         </div>
         <div class="scheme-list-panel" v-if="showPanel">
             <div class="scheme-sideslider-header">
@@ -585,8 +585,9 @@
         position: absolute;
         right: 0;
         top: 20px;
+        display: flex;
+        align-items: center;
         width: 72px;
-        height: 24px;
         z-index: 5;
         background: #fafbfd;
         border: 1px solid #3a84ff;
@@ -602,6 +603,7 @@
             position: relative;
             left: 4px;
             top: 1px;
+            margin-right: 3px;
         }
     }
     .disable-item {
