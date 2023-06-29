@@ -664,18 +664,8 @@
             onCreateNodeMoving (node) {
                 // 计算节点基于画布的坐标
                 const canvasDom = document.querySelector('.canvas-flow')
-                let nodeLeft = 0
-                let nodeTop = 0
-                let { style } = canvasDom.attributes
-                if (style) {
-                    style = style.value.split(';').filter(value => value)
-                    nodeLeft = style.find(item => item.indexOf('left') > -1)
-                    nodeLeft = nodeLeft ? /:.((\-)?[0-9.]+)px/.exec(nodeLeft)[1] : 0
-                    nodeLeft = Number(nodeLeft)
-                    nodeTop = style.find(item => item.indexOf('top') > -1)
-                    nodeTop = nodeTop ? /:.((\-)?[0-9.]+)px/.exec(nodeTop)[1] : 0
-                    nodeTop = Number(nodeTop)
-                }
+                const nodeLeft = canvasDom.offsetLeft
+                const nodeTop = canvasDom.offsetTop
                 const location = {
                     ...node,
                     x: node.x - 60 - nodeLeft, // 60为画布左边栏的宽度
@@ -1028,7 +1018,7 @@
                         this.$refs.jsFlow.createConnector(endLine)
                     })
                     // 删除节点两端插入连线的端点,isCreate为true时表示从左侧菜单栏直接拖拽创建，插入端点还存在在画布里面
-                    const nodeDom = document.querySelector(`#${!isCreate ? location.id : 'canvas-flow'}`)
+                    const nodeDom = document.querySelector(!isCreate ? `#${location.id}` : '.canvas-flow-wrap')
                     const pointDoms = nodeDom && nodeDom.querySelectorAll('.node-inset-line-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
@@ -1051,6 +1041,7 @@
                         return {}
                     }
                 }
+                const ratio = this.zoomRatio / 100
                 // 横向区间
                 let horizontalInterval = [loc.x + 40, loc.x + 154 - 40]
                 // 纵向区间
@@ -1059,6 +1050,8 @@
                     horizontalInterval = [loc.x + 7, loc.x + 34 - 7]
                     verticalInterval = [loc.y + 7, loc.y + 34 - 7 + 2]
                 }
+                horizontalInterval = horizontalInterval.map(item => item / ratio)
+                verticalInterval = verticalInterval.map(item => item / ratio)
                 // 符合匹配连线
                 const matchLines = {}
                 // 符合匹配的线段
@@ -1471,7 +1464,7 @@
             onNodeToLineDragging (location) {
                 if (!location) return
                 // 获取父级节点dom, id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
-                const parentDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
+                const parentDom = document.querySelector(location.id ? `#${location.id}` : '.canvas-flow-wrap')
                 // 拖拽节点到线上, 自动匹配连线
                 const matchLines = this.getNodeMatchLines(location)
                 if (Object.keys(matchLines).length === 1) {
@@ -1487,6 +1480,14 @@
                         nodeWidth = 34
                         nodeHeight = 34
                     }
+                    let { x: left, y: top } = location
+                    const canvasDom = document.querySelector('.canvas-flow')
+                    const nodeLeft = canvasDom.offsetLeft
+                    const nodeTop = canvasDom.offsetTop
+                    if (nodeLeft || nodeTop) {
+                        left = left + nodeLeft
+                        top = top + nodeTop
+                    }
                     const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
                     // 判断端点是否已经创建
                     const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
@@ -1498,20 +1499,18 @@
                         pointDom2.className = 'node-inset-line-point'
                         if (lineConfig.segmentPosition.width > 8) { // 平行
                             if (!location.id) { // 还未生成的节点
-                                const { x, y } = location
-                                const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
-                                pointDom1.style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
-                                pointDom2.style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                                const sameTop = `top: ${top + (nodeHeight - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
+                                pointDom2.style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
                             } else {
                                 pointDom1.style.cssText = defaultAttribute + `left: -7px; top: ${(nodeHeight - 14) / 2}px;`
                                 pointDom2.style.cssText = defaultAttribute + `right: -7px; top: ${(nodeHeight - 14) / 2}px;`
                             }
                         } else { // 垂直
                             if (!location.id) { // 还未生成的节点
-                                const { x, y } = location
-                                const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
-                                pointDom1.style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
-                                pointDom2.style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                                const sameLeft = `left: ${left + (nodeWidth - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
+                                pointDom2.style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
                             } else {
                                 pointDom1.style.cssText = defaultAttribute + `top: -7px; left: ${(nodeWidth - 14) / 2}px;`
                                 pointDom2.style.cssText = defaultAttribute + `bottom: -7px; left: ${(nodeWidth - 14) / 2}px;`
@@ -1522,15 +1521,13 @@
                     } else if (!location.id) { // 未创建的节点拖拽时需要实时计算端点的位置
                         const doms = Array.from(pointDoms)
                         if (lineConfig.segmentPosition.width > 8) { // 平行
-                            const { x, y } = location
-                            const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
-                            doms[0].style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
-                            doms[1].style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                            const sameTop = `top: ${top + (nodeHeight - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
+                            doms[1].style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
                         } else { // 垂直
-                            const { x, y } = location
-                            const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
-                            doms[0].style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
-                            doms[1].style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                            const sameLeft = `left: ${left + (nodeWidth - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
+                            doms[1].style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
                         }
                     }
                 } else if (this.connectionHoverList.length) {
