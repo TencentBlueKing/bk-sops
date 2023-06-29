@@ -329,6 +329,9 @@ DEFAULT_CACHE_TIME_FOR_AUTH = 5
 # 蓝鲸PASS平台URL
 BK_PAAS_HOST = env.BK_PAAS_HOST
 
+# 蓝鲸 ESB API 暴露给前端的
+BK_PAAS_ESB_API_HOST = env.BK_PAAS_ESB_API_HOST
+
 # 用于 用户认证、用户信息获取 的蓝鲸主机
 BK_PAAS_INNER_HOST = env.BK_PAAS_INNER_HOST
 
@@ -669,6 +672,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
