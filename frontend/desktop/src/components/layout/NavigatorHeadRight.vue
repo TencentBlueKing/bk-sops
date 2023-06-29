@@ -176,7 +176,7 @@
                 if (window.BK_PAAS_ESB_HOST) {
                     const url = `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/`
                     try {
-                        await axios.jsonp(url, { language })
+                        await axios.jsonp(url, { language: local })
                     } catch (error) {
                         console.warn(error)
                     } finally {
