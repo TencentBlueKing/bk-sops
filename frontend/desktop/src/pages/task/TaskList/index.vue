@@ -534,10 +534,10 @@
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', result)
                     this.setTaskListData(result)
-                } catch (e) {
-                    console.log(e)
-                } finally {
                     this.listLoading = false
+                } catch (e) {
+                    this.listLoading = e.message === 'cancelled'
+                    console.log(e)
                 }
             },
             // 设置每条记录是否有子流程
