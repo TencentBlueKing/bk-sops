@@ -336,7 +336,8 @@
                 isExecRecordPanelShow: false,
                 connectionHoverList: [],
                 execRecordLoading: false,
-                curMinDis: null // 拖拽的节点与发起连线节点间最短的距离
+                curMinDis: null, // 拖拽的节点与发起连线节点间最短的距离
+                matchLines: []
             }
         },
         watch: {
@@ -666,13 +667,35 @@
                 const canvasDom = document.querySelector('.canvas-flow')
                 const nodeLeft = canvasDom.offsetLeft
                 const nodeTop = canvasDom.offsetTop
+                const { x, y } = this.getNodeActualPosition(node)
                 const location = {
                     ...node,
-                    x: node.x - 60 - nodeLeft, // 60为画布左边栏的宽度
-                    y: node.y - nodeTop
+                    x: x - nodeLeft,
+                    y: y - nodeTop
                 }
                 // 节点拖拽到过连线过程
                 this.onNodeToLineDragging(location)
+            },
+            // 节点实际位置
+            getNodeActualPosition (node) {
+                const ratio = this.zoomRatio / 100
+                // 中点坐标, 放大/缩小后节点宽高
+                let halfWidth, halfHeight, nodeHeight, nodeWidth
+                if (node.type.indexOf('gateway') > -1) {
+                    halfWidth = 34 / 2
+                    halfHeight = 34 / 2
+                    nodeHeight = (34 * ratio) / 2
+                    nodeWidth = (34 * ratio) / 2
+                } else {
+                    halfWidth = 154 / 2
+                    halfHeight = 54 / 2
+                    nodeHeight = (54 * ratio) / 2
+                    nodeWidth = (154 * ratio) / 2
+                }
+                let { x, y } = node
+                x = x + halfWidth - nodeWidth
+                y = y + halfHeight - nodeHeight
+                return { x, y }
             },
             // 拖拽到节点上自动连接
             onConnectionDragOnNode (source, targetId, event) {
@@ -962,7 +985,7 @@
             // 拖拽节点到线上, 自动生成连线
             handleDraggerNodeToLine (location, isCreate = false) {
                 // 获取节点对应匹配连线
-                const matchLines = this.getNodeMatchLines(location)
+                const matchLines = this.matchLines
                 // 只对符合单条线的情况进行处理
                 if (Object.keys(matchLines).length === 1) {
                     const values = Object.values(matchLines)[0]
@@ -1042,16 +1065,30 @@
                     }
                 }
                 const ratio = this.zoomRatio / 100
-                // 横向区间
-                let horizontalInterval = [loc.x + 40, loc.x + 154 - 40]
-                // 纵向区间
-                let verticalInterval = [loc.y + 15, loc.y + 54 - 15 + 2]
-                if (loc.type.indexOf('gateway') > -1) { // 网关区间
-                    horizontalInterval = [loc.x + 7, loc.x + 34 - 7]
-                    verticalInterval = [loc.y + 7, loc.y + 34 - 7 + 2]
+                let nodeWidth, nodeHeight, offsetLeft, offsetTop
+                let paletteWidth = 0
+                if (loc.type.indexOf('gateway') > -1) {
+                    nodeHeight = 34
+                    nodeWidth = 34
+                    offsetLeft = 7
+                    offsetTop = 7
+                } else {
+                    nodeHeight = 54
+                    nodeWidth = 154
+                    offsetLeft = 40
+                    offsetTop = 15
                 }
-                horizontalInterval = horizontalInterval.map(item => item / ratio)
-                verticalInterval = verticalInterval.map(item => item / ratio)
+                if (!loc.id) {
+                    nodeHeight = nodeHeight * ratio
+                    nodeWidth = nodeWidth * ratio
+                    offsetLeft = offsetLeft * ratio
+                    offsetTop = offsetTop * ratio
+                    paletteWidth = 60 // 左侧导航栏宽度
+                }
+                // 横向区间
+                const horizontalInterval = [loc.x + offsetLeft - paletteWidth, loc.x + nodeWidth - offsetLeft - paletteWidth]
+                // 纵向区间
+                const verticalInterval = [loc.y + offsetTop, loc.y + nodeHeight - offsetTop]
                 // 符合匹配连线
                 const matchLines = {}
                 // 符合匹配的线段
@@ -1140,6 +1177,12 @@
                         if (loc.type.indexOf('gateway') > -1) { // 网关区间
                             nodeWidth = 34
                             nodeHeight = 34
+                        }
+                        if (!loc.id) {
+                            left = left * ratio
+                            top = top * ratio
+                            nodeWidth = nodeWidth * ratio
+                            nodeHeight = nodeHeight * ratio
                         }
                         
                         if (width > nodeWidth || height > nodeHeight) { // 线段长需大于节点宽度或高度
@@ -1467,18 +1510,20 @@
                 const parentDom = document.querySelector(location.id ? `#${location.id}` : '.canvas-flow-wrap')
                 // 拖拽节点到线上, 自动匹配连线
                 const matchLines = this.getNodeMatchLines(location)
+                this.matchLines = matchLines || []
                 if (Object.keys(matchLines).length === 1) {
                     const lineConfig = Object.values(matchLines)[0]
                     this.setPaintStyle(lineConfig.id, '#3a84ff')
                     this.connectionHoverList.push(lineConfig.id)
+                    const ratio = this.zoomRatio / 100
                     // 节点宽高
                     let nodeWidth, nodeHeight
                     if (['tasknode', 'subflow'].includes(location.type)) {
-                        nodeWidth = 154
-                        nodeHeight = 54
+                        nodeWidth = 154 * ratio
+                        nodeHeight = 54 * ratio
                     } else {
-                        nodeWidth = 34
-                        nodeHeight = 34
+                        nodeWidth = 34 * ratio
+                        nodeHeight = 34 * ratio
                     }
                     let { x: left, y: top } = location
                     const canvasDom = document.querySelector('.canvas-flow')
@@ -1488,6 +1533,7 @@
                         left = left + nodeLeft
                         top = top + nodeTop
                     }
+                    left = left - 60 // 60为画布左边栏的宽度
                     const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
                     // 判断端点是否已经创建
                     const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
@@ -1503,8 +1549,9 @@
                                 pointDom1.style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
                                 pointDom2.style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
                             } else {
-                                pointDom1.style.cssText = defaultAttribute + `left: -7px; top: ${(nodeHeight - 14) / 2}px;`
-                                pointDom2.style.cssText = defaultAttribute + `right: -7px; top: ${(nodeHeight - 14) / 2}px;`
+                                const sameAttribute = `top: ${((nodeHeight - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                pointDom1.style.cssText = defaultAttribute + 'left: -7px;' + sameAttribute
+                                pointDom2.style.cssText = defaultAttribute + 'right: -7px;' + sameAttribute
                             }
                         } else { // 垂直
                             if (!location.id) { // 还未生成的节点
@@ -1512,8 +1559,9 @@
                                 pointDom1.style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
                                 pointDom2.style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
                             } else {
-                                pointDom1.style.cssText = defaultAttribute + `top: -7px; left: ${(nodeWidth - 14) / 2}px;`
-                                pointDom2.style.cssText = defaultAttribute + `bottom: -7px; left: ${(nodeWidth - 14) / 2}px;`
+                                const sameAttribute = `left: ${((nodeWidth - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                pointDom1.style.cssText = defaultAttribute + 'top: -7px;' + sameAttribute
+                                pointDom2.style.cssText = defaultAttribute + 'bottom: -7px;' + sameAttribute
                             }
                         }
                         parentDom.appendChild(pointDom1)
