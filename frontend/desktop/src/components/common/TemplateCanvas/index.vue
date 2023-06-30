@@ -1549,8 +1549,9 @@
                                 pointDom1.style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
                                 pointDom2.style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
                             } else {
-                                pointDom1.style.cssText = defaultAttribute + `left: -7px; top: ${(nodeHeight - 14) / 2}px;`
-                                pointDom2.style.cssText = defaultAttribute + `right: -7px; top: ${(nodeHeight - 14) / 2}px;`
+                                const sameAttribute = `top: ${((nodeHeight - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                pointDom1.style.cssText = defaultAttribute + 'left: -7px;' + sameAttribute
+                                pointDom2.style.cssText = defaultAttribute + 'right: -7px;' + sameAttribute
                             }
                         } else { // 垂直
                             if (!location.id) { // 还未生成的节点
@@ -1558,8 +1559,9 @@
                                 pointDom1.style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
                                 pointDom2.style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
                             } else {
-                                pointDom1.style.cssText = defaultAttribute + `top: -7px; left: ${(nodeWidth - 14) / 2}px;`
-                                pointDom2.style.cssText = defaultAttribute + `bottom: -7px; left: ${(nodeWidth - 14) / 2}px;`
+                                const sameAttribute = `left: ${((nodeWidth - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                pointDom1.style.cssText = defaultAttribute + 'top: -7px;' + sameAttribute
+                                pointDom2.style.cssText = defaultAttribute + 'bottom: -7px;' + sameAttribute
                             }
                         }
                         parentDom.appendChild(pointDom1)
