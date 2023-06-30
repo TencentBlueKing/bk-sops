@@ -245,11 +245,11 @@
                                             {{$t('新建任务')}}
                                         </router-link>
                                         <a
-                                            v-if="!hasPermission(['flow_view', 'flow_edit'], props.row.auth_actions)"
+                                            v-if="!hasPermission(['flow_view', 'flow_create'], [...props.row.auth_actions, ...authActions])"
                                             v-cursor
                                             class="text-permission-disable"
                                             data-test-id="process_table_cloneBtn"
-                                            @click="onTemplatePermissionCheck(['flow_view', 'flow_edit'], props.row)">
+                                            @click="onFlowClone(props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <router-link
@@ -1645,6 +1645,16 @@
                     return visitedList.some(item => item === saveId)
                 }
                 return false
+            },
+            onFlowClone (row) {
+                const applyAuth = []
+                if (!this.hasPermission(['flow_view'], row.auth_actions)) {
+                    applyAuth.push('flow_view')
+                }
+                if (!this.hasPermission(['flow_create'], this.authActions)) {
+                    applyAuth.unshift('flow_create')
+                }
+                this.onTemplatePermissionCheck(applyAuth, row)
             }
         }
     }

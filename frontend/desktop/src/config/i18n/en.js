@@ -446,6 +446,7 @@ const en = {
     '关联的资源实例': 'Related resource instance',
     '该操作需要以下权限': 'Permission required for operation',
     '去申请': 'Apply',
+    '已申请': 'Applied',
     '项目': 'Project',
     '选择项目': 'Project',
     '请选择项目': 'Select Project ',
