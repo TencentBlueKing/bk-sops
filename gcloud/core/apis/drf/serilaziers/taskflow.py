@@ -17,7 +17,6 @@ from gcloud.taskflow3.models import TaskFlowInstance
 
 
 class TaskSerializer(serializers.ModelSerializer):
-
     create_time = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S %z", read_only=True, source="pipeline_instance.create_time"
     )
@@ -40,3 +39,21 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskFlowInstance
         fields = "__all__"
+
+
+class TaskSimpleSerializer(serializers.ModelSerializer):
+    """
+    任务实例的简单返回，默认只返回一部分职能化任务用到的字段
+    """
+
+    id = serializers.IntegerField()
+    is_expired = serializers.BooleanField(source="pipeline_instance.is_expired", read_only=True)
+    is_finished = serializers.BooleanField(source="pipeline_instance.is_finished", read_only=True)
+    is_revoked = serializers.BooleanField(source="pipeline_instance.is_revoked", read_only=True)
+    is_started = serializers.BooleanField(source="pipeline_instance.is_started", read_only=True)
+    name = serializers.CharField(source="pipeline_instance.name", read_only=True)
+    project = ProjectSerializer()
+
+    class Meta:
+        model = TaskFlowInstance
+        fields = ["id", "is_expired", "is_finished", "is_revoked", "is_started", "name", "project"]

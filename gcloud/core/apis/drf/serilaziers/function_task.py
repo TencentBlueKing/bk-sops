@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 from rest_framework import serializers
 
 from gcloud.contrib.function.models import FunctionTask
-from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
+from gcloud.core.apis.drf.serilaziers.taskflow import TaskSimpleSerializer
 
 
 class FunctionTaskSerializer(serializers.ModelSerializer):
-    task = TaskSerializer()
+    task = TaskSimpleSerializer()
     status_name = serializers.CharField(read_only=True)
     create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)
     claim_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)

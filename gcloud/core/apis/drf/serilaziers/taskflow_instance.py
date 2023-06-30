@@ -27,6 +27,7 @@ from gcloud.constants import (
     TaskCreateMethod,
 )
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
 from gcloud.core.models import Project
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -45,6 +46,33 @@ class TaskFlowInstanceSerializer(TaskSerializer):
     class Meta:
         model = TaskFlowInstance
         fields = "__all__"
+
+
+class TaskFlowInstanceListSerializer(serializers.ModelSerializer):
+    project = ProjectSerializer()
+
+    class Meta:
+        model = TaskFlowInstance
+        fields = [
+            "id",
+            "name",
+            "create_method",
+            "finish_time",
+            "creator_name",
+            "executor_name",
+            "is_deleted",
+            "is_expired",
+            "is_finished",
+            "is_revoked",
+            "is_started",
+            "template_id",
+            "template_source",
+            "create_time",
+            "start_time",
+            "project",
+            "current_flow",
+            "engine_ver",
+        ]
 
 
 class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
