@@ -10,23 +10,23 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
+
+import ujson as json
+from django.utils.translation import ugettext_lazy as _
+from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
+from django_celery_beat.models import PeriodicTask as CeleryTask
+from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
+from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
+from rest_framework.validators import ValidationError
 
 import env
-import ujson as json
-from rest_framework import serializers
-from rest_framework.validators import ValidationError
-from django_celery_beat.models import PeriodicTask as CeleryTask, CrontabSchedule as DjangoCeleryBeatCrontabSchedule
-from django.utils.translation import ugettext_lazy as _
-
-from gcloud.core.models import Project
 from gcloud.constants import PROJECT
-from gcloud.core.models import ProjectConfig
-from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
+from gcloud.core.models import Project, ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
-import logging
 
 logger = logging.getLogger("root")
 
@@ -61,7 +61,6 @@ class PipelinePeriodicTaskSerializer(serializers.ModelSerializer):
 
 
 class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
-
     task = PipelinePeriodicTaskSerializer()
     project = ProjectSerializer()
     last_run_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
@@ -101,6 +100,31 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
             "total_run_count",
             "form",
             "pipeline_tree",
+            "is_latest",
+            "template_scheme_ids",
+            "template_version",
+        ]
+
+
+class PeriodicTaskListReadOnlySerializer(PeriodicTaskReadOnlySerializer):
+    class Meta:
+        model = PeriodicTask
+        fields = [
+            "project",
+            "id",
+            "task",
+            "creator",
+            "editor",
+            "create_time",
+            "edit_time",
+            "cron",
+            "enabled",
+            "last_run_at",
+            "name",
+            "task_template_name",
+            "template_id",
+            "template_source",
+            "total_run_count",
             "is_latest",
             "template_scheme_ids",
             "template_version",
