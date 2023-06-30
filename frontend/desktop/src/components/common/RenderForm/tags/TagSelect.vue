@@ -283,7 +283,7 @@
         mounted () {
             this.remoteMethod()
             if (this.multiple) {
-                this.selectInputDom = document.querySelector('.el-select .el-select__input')
+                this.selectInputDom = this.$el.querySelector('.el-select .el-select__input')
                 if (!this.selectInputDom) return
                 this.selectInputDom.addEventListener('paste', this.handleSelectPaste)
             }
