@@ -143,7 +143,23 @@
                     @click="onRenderChange">
                 </i>
             </div>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
+            <template v-if="scheme.attrs.desc">
+                <p class="hide-html-text" v-html="scheme.attrs.desc"></p>
+                <div
+                    class="rf-group-desc"
+                    v-html="scheme.attrs.desc"
+                    v-bk-tooltips="{
+                        allowHtml: true,
+                        content: scheme.attrs.desc,
+                        placement: 'top-start',
+                        theme: 'light',
+                        extCls: 'rf-label-tips',
+                        boundary: 'window',
+                        zIndex: 2072,
+                        disabled: !isDescTipsShow
+                    }">
+                </div>
+            </template>
         </template>
     </div>
 </template>
@@ -249,7 +265,8 @@
                 tagComponent: `tag-${this.scheme.type.replace(/_/g, '-')}`,
                 showForm,
                 showHook,
-                formValue
+                formValue,
+                isDescTipsShow: false
             }
         },
         computed: {
@@ -283,6 +300,15 @@
             Object.keys(tagComponent).forEach(item => {
                 this.$options.components[item] = tagComponent[item]
             })
+        },
+        mounted () {
+            const showDom = this.$el.querySelector('.rf-group-desc')
+            const hideDom = this.$el.querySelector('.hide-html-text')
+            if (showDom && hideDom) {
+                const showDomHeight = showDom.getBoundingClientRect().height
+                const hideDomHeight = hideDom.getBoundingClientRect().height
+                this.isDescTipsShow = hideDomHeight > showDomHeight
+            }
         },
         methods: {
             getDefaultAttrs () {

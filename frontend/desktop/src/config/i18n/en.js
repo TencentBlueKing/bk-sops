@@ -1764,7 +1764,9 @@ const en = {
     '若坚持执行，职能化人员将无法操作该任务': 'If you still want to execute,  the team members will not be able to operate the task.',
     '执行方式': 'Source',
     'API 任务': 'API',
-    '清空筛选': 'Clear'
+    '清空筛选': 'Clear',
+    '提示文本': 'Help Text',
+    '请输入变量提示文本，不超过500个字符': 'Please enter variable help text, up to 500 characters.'
 }
 
 export default en

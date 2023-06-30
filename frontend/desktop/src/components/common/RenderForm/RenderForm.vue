@@ -474,6 +474,10 @@
             color: #ff9c01;
         }
     }
+    /deep/.hide-html-text {
+        position: absolute;
+        z-index: -1;
+    }
     /deep/ .rf-group-desc {
         color: #979ba5;
         font-size: 12px;
@@ -483,7 +487,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         word-break: break-all;
-        -webkit-line-clamp: 10;
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
     }
 
