@@ -234,7 +234,7 @@
                             if (!remote_url && pipelineTree && pipelineTree.constants[key]) { // 重用(远程数据源不进行重用)
                                 const { value, meta, custom_type } = pipelineTree.constants[key]
                                 const listType = custom_type === 'datatable' ? 'columns' : 'items'
-                                const match = meta && meta.value[`${listType}_text`].replace(/ /g, '') === JSON.stringify(currentFormConfig.attrs[listType])
+                                const match = meta && tools.isDataEqual(JSON.parse(meta.value[`${listType}_text`]), currentFormConfig.attrs[listType])
                                 if (match) {
                                     currentFormConfig.attrs.value = value
                                 }
