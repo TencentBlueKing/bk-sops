@@ -88,7 +88,7 @@
                         </span>
                     </div>
                     <div class="sub-title" v-if="nodeInfoType === 'modifyParams' && retryNodeId">
-                        {{ previewData.activities[retryNodeId]?.name }}
+                        {{ previewData.activities[retryNodeId] && previewData.activities[retryNodeId].name }}
                     </div>
                 </div>
             </div>
