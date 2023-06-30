@@ -178,12 +178,13 @@
                 </div>
                 <!-- 描述 -->
                 <div class="form-item clearfix">
-                    <label class="form-label">{{ $t('说明') }}</label>
+                    <label class="form-label">{{ $t('提示文本') }}</label>
                     <div class="form-content">
                         <bk-input
                             type="textarea"
                             v-model="theEditingData.desc"
-                            :placeholder="isInternalVal ? ' ' : $t('请输入')"
+                            :placeholder="isInternalVal ? ' ' : $t('请输入变量提示文本，不超过500个字符')"
+                            :maxlength="500"
                             :readonly="isViewMode || isInternalVal">
                         </bk-input>
                     </div>

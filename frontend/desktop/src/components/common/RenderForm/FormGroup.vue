@@ -110,7 +110,23 @@
             </i>
         </div>
         <!-- 分组描述 -->
-        <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
+        <template v-if="scheme.attrs.desc">
+            <p class="hide-html-text" v-html="scheme.attrs.desc"></p>
+            <div
+                class="rf-group-desc"
+                v-html="scheme.attrs.desc"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    content: scheme.attrs.desc,
+                    placement: 'top-start',
+                    theme: 'light',
+                    extCls: 'rf-label-tips',
+                    boundary: 'window',
+                    zIndex: 2072,
+                    disabled: !isDescTipsShow
+                }">
+            </div>
+        </template>
     </div>
 </template>
 <script>
@@ -180,7 +196,8 @@
                 eventActions: {}, // combine 类型配置项定义的事件回调函数
                 groupOption,
                 showForm, // combine 类型 Tag 组是否显示
-                showHook // combine 类型 Tag 组是否可勾选
+                showHook, // combine 类型 Tag 组是否可勾选
+                isDescTipsShow: false
             }
         },
         computed: {
@@ -239,6 +256,13 @@
             this.$nextTick(() => {
                 this.emit_event(this.tagCode, 'init', this.value)
             })
+            const showDom = this.$el.querySelector('.rf-group-desc')
+            const hideDom = this.$el.querySelector('.hide-html-text')
+            if (showDom && hideDom) {
+                const showDomHeight = showDom.getBoundingClientRect().height
+                const hideDomHeight = hideDom.getBoundingClientRect().height
+                this.isDescTipsShow = hideDomHeight > showDomHeight
+            }
         },
         methods: {
             updateForm (fieldArr, val) {
