@@ -669,6 +669,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
@@ -759,7 +760,6 @@ TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
 MAX_EXPIRED_SESSION_CLEAN_NUM = env.MAX_EXPIRED_SESSION_CLEAN_NUM
 EXPIRED_SESSION_CLEAN_CRON = env.EXPIRED_SESSION_CLEAN_CRON
 
-
 # V2引擎任务清理配置
 ENABLE_CLEAN_EXPIRED_V2_TASK = env.ENABLE_CLEAN_EXPIRED_V2_TASK
 CLEAN_EXPIRED_V2_TASK_CRON = env.CLEAN_EXPIRED_V2_TASK_CRON
@@ -783,3 +783,6 @@ def check_engine_admin_permission(request, *args, **kwargs):
 
 
 PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"
+
+# 任务列表过滤失败任务最大天数
+TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS
