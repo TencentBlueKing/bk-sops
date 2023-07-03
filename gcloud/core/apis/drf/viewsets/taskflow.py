@@ -12,15 +12,18 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 import re
+from datetime import datetime, timedelta
 
+from bamboo_engine import states
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
+from pipeline.eri.models import State
 from pipeline.exceptions import PipelineException
-from pipeline.models import Snapshot
+from pipeline.models import PipelineInstance, Snapshot
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ErrorDetail
@@ -82,6 +85,85 @@ from gcloud.utils.strings import standardize_name, standardize_pipeline_node_nam
 logger = logging.getLogger("root")
 
 iam = get_iam_client()
+
+
+class TaskFLowStatusFilterHandler:
+    FAILED = "failed"
+    PAUSE = "pause"
+
+    def __init__(self, status, queryset, start_time):
+        """
+        @param status: 状态
+        @param queryset: task_instance queryset
+        @param start_time: 查询开始时间
+        """
+        self.status = status
+        self.queryset = queryset
+        self.start_time = start_time
+
+    def get_queryset(self):
+        """
+        当前支持失败和暂停状态，获取目标queryset
+        @return:
+        """
+        if self.status == self.FAILED:
+            return self._filter_failed()
+        elif self.status == self.PAUSE:
+            return self._filter_pipeline_pause()
+        else:
+            return self.queryset
+
+    def _get_pipeline_id_list(self):
+        """
+        获取当前符合条件的 pipeline_id 列表
+        @return:
+        """
+        pipeline_instance_id_list = TaskFlowInstance.objects.filter(
+            pipeline_instance__start_time__gte=self.start_time
+        ).values_list("pipeline_instance_id", flat=True)
+
+        pipeline_id_list = PipelineInstance.objects.filter(id__in=pipeline_instance_id_list).values_list(
+            "instance_id", flat=True
+        )
+
+        return pipeline_id_list
+
+    def _filter_failed(self):
+        """
+        获取所有失败的任务，当任务失败时，任务的State的name会为Failed，去重可以获得当前存在失败节点的pipeline instance
+        @return:
+        """
+        pipeline_id_list = self._get_pipeline_id_list()
+        # 获取存在异常任务状态的pipline task
+        pipeline_failed_root_id_list = (
+            State.objects.filter(name=states.FAILED, root_id__in=pipeline_id_list).values("root_id").distinct()
+        )
+        failed_pipeline_instance_id_list = PipelineInstance.objects.filter(
+            instance_id__in=pipeline_failed_root_id_list
+        ).values_list("id", flat=True)
+        queryset = self.queryset.filter(pipeline_instance_id__in=failed_pipeline_instance_id_list)
+
+        return queryset
+
+    def _filter_pipeline_pause(self):
+        """
+        获取所有暂停的任务，当任务暂停时，pipeline 的状态会变成暂停，
+        return:
+        """
+        # 获取正在暂停的pipeline任务
+        pipeline_id_list = self._get_pipeline_id_list()
+        # 暂停是针对于流程的暂停
+        pipeline_pause_root_id_list = (
+            State.objects.filter(name=states.SUSPENDED, node_id__in=pipeline_id_list).values("root_id").distinct()
+        )
+        # 获取
+        pause_pipeline_instance_id_list = PipelineInstance.objects.filter(
+            instance_id__in=pipeline_pause_root_id_list
+        ).values_list("id", flat=True)
+
+        queryset = self.queryset.filter(pipeline_instance_id__in=pause_pipeline_instance_id_list)
+
+        return queryset
 
 
 class TaskFlowFilterSet(FilterSet):
@@ -181,6 +263,25 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        start_time = datetime.now() - timedelta(days=settings.TASK_LIST_STATUS_FILTER_DAYS)
+
+        task_instance_status = request.query_params.get("task_instance_status")
+        if task_instance_status:
+            if self.queryset.filter(
+                engine_ver=EngineConfig.ENGINE_VER_V1, pipeline_instance__start_time__gte=start_time
+            ).exists():
+                return Response(
+                    {
+                        "detail": ErrorDetail(
+                            "最近{}天有v1引擎的任务, 不支持筛选".format(settings.FAILED_TASK_LIST_FILTER_DAYS),
+                            err_code.REQUEST_PARAM_INVALID.code,
+                        )
+                    },
+                    exception=True,
+                )
+            queryset = TaskFLowStatusFilterHandler(
+                status=task_instance_status, queryset=queryset, start_time=start_time
+            ).get_queryset()
 
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
@@ -199,6 +300,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             page = list(queryset)
         else:
             page = self.paginate_queryset(queryset)
+
         serializer = self.get_serializer(page, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
