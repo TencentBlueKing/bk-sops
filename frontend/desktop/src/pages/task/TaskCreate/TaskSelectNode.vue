@@ -39,6 +39,7 @@
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <component
+                v-if="!isPreviewMode"
                 :is="schemeTemplate"
                 ref="taskScheme"
                 v-show="isEditProcessPage || !isPreviewMode"
