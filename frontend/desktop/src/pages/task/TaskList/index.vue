@@ -40,7 +40,8 @@
                             :pagination="pagination"
                             :size="setting.size"
                             :row-class-name="getRowClassName"
-                            v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
+                            :key="listLoading"
+                            v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: !firstLoading && taskList.length ? 0.6 : 1, zIndex: 100 }"
                             @row-click="selectedTaskId = ''"
                             @page-change="onPageChange"
                             @page-limit-change="onPageLimitChange">
