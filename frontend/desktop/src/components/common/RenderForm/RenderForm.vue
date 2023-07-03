@@ -474,22 +474,35 @@
             color: #ff9c01;
         }
     }
-    /deep/.hide-html-text {
-        position: absolute;
-        z-index: -1;
-    }
-    /deep/ .rf-group-desc {
+    /deep/ .scheme-desc-wrap {
+        position: relative;
         color: #979ba5;
-        font-size: 12px;
-        word-break: break-word;
-        margin-top: 8px;
-        display: -webkit-box;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-all;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        .hide-html-text {
+            position: absolute;
+            z-index: -1;
+            left: -99999px;
+            top: -99999px;
+            width: 100%;
+        }
+        .hide-html-text,
+        .rf-group-desc {
+            width: 100%;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 8px;
+            padding: 0;
+            white-space: pre-wrap;
+        }
+        .is-fold {
+            max-height: 36px;
+            overflow: hidden;
+        }
+        .expand-btn {
+            color: #3a84ff;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+        }
     }
-
 }
 </style>

@@ -143,23 +143,14 @@
                     @click="onRenderChange">
                 </i>
             </div>
-            <template v-if="scheme.attrs.desc">
-                <p class="hide-html-text" v-html="scheme.attrs.desc"></p>
-                <div
-                    class="rf-group-desc"
-                    v-html="scheme.attrs.desc"
-                    v-bk-tooltips="{
-                        allowHtml: true,
-                        content: scheme.attrs.desc,
-                        placement: 'top-start',
-                        theme: 'light',
-                        extCls: 'rf-label-tips',
-                        boundary: 'window',
-                        zIndex: 2072,
-                        disabled: !isDescTipsShow
-                    }">
+            <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
+                <div class="hide-html-text">{{ scheme.attrs.desc }}</div>
+                <div :class="['rf-group-desc', { 'is-fold': !isExpand }]">{{ scheme.attrs.desc }}</div>
+                <div :class="{ 'mt10': isExpand }" v-if="isDescTipsShow">
+                    <span v-if="!isExpand">...</span>
+                    <span class="expand-btn" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('展开全部') }}</span>
                 </div>
-            </template>
+            </div>
         </template>
     </div>
 </template>
@@ -266,7 +257,8 @@
                 showForm,
                 showHook,
                 formValue,
-                isDescTipsShow: false
+                isDescTipsShow: false,
+                isExpand: false
             }
         },
         computed: {
