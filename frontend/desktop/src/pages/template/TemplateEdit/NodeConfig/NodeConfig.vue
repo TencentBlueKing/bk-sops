@@ -917,11 +917,15 @@
                         let canReuse = false
                         const oldVariable = oldForms[cur]
                         const isHooked = this.isInputParamsInConstants(variable)
-                        if (oldVariable && !isHooked) { // 旧版本中存在相同key的表单项，且不是勾选状态
-                            if (variable.custom_type || oldVariable.custom_type) {
-                                canReuse = variable.custom_type === oldVariable.custom_type
-                            } else {
-                                canReuse = variable.source_tag === oldVariable.source_tag
+                        if (oldVariable) {
+                            if (isHooked) {
+                                canReuse = true
+                            } else { // 旧版本中存在相同key的表单项，且不是勾选状态
+                                if (variable.custom_type || oldVariable.custom_type) {
+                                    canReuse = variable.custom_type === oldVariable.custom_type
+                                } else {
+                                    canReuse = variable.source_tag === oldVariable.source_tag
+                                }
                             }
                         }
                         const val = canReuse ? this.inputsParamValue[cur] : variable.value
@@ -936,7 +940,7 @@
                 return Object.keys(this.localConstants).some(key => {
                     const varItem = this.localConstants[key]
                     const sourceInfo = varItem.source_info[this.nodeId]
-                    return sourceInfo && sourceInfo.includes(form.tag_code)
+                    return sourceInfo && sourceInfo.includes(form.key)
                 })
             },
             /**
