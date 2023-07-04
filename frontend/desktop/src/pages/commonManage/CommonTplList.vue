@@ -32,8 +32,8 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="import-option-list" slot="dropdown-content">
-                                <li data-test-id="commonProcess_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
-                                <li data-test-id="commonProcess_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="commonProcess_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }} YAML {{ $t('文件') }}</li>
+                                <li data-test-id="commonProcess_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }} DAT {{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <bk-dropdown-menu
@@ -45,8 +45,8 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="export-option-list" slot="dropdown-content">
-                                <li data-test-id="commonProcess_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出为') }}YAML{{ $t('文件') }}</li>
-                                <li data-test-id="commonProcess_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出为') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="commonProcess_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出为') }} YAML {{ $t('文件') }}</li>
+                                <li data-test-id="commonProcess_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出为') }} DAT {{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <bk-button
@@ -871,6 +871,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.batchDeleteConfirm()
                     }
@@ -982,6 +983,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.onDeleteConfirm(template.id)
                     }

@@ -26,7 +26,7 @@
                 data-test-id="navHeader_list_chinese"
                 @click="toggleLanguage('chinese')">
                 <i class="bk-icon icon-chinese"></i>
-                {{ $t('中文') }}
+                {{ '中文' }}
             </div>
             <div
                 class="operate-item"
@@ -176,7 +176,7 @@
                 if (window.BK_PAAS_ESB_HOST) {
                     const url = `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/`
                     try {
-                        await axios.jsonp(url, { language })
+                        await axios.jsonp(url, { language: local })
                     } catch (error) {
                         console.warn(error)
                     } finally {

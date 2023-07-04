@@ -22,7 +22,7 @@
                     <span v-else>--</span>
                 </template>
             </bk-table-column>
-            <bk-table-column label="KEY" class-name="param-key" :width="260">
+            <bk-table-column label="Key" class-name="param-key" :width="260">
                 <template slot-scope="props">
                     <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
                     <span class="hook-icon-wrap">
@@ -52,6 +52,7 @@
             :auto-close="false"
             :value="isShow"
             width="600"
+            :cancel-text="$t('取消')"
             @confirm="onConfirm"
             @cancel="onCancel">
             <div class="variable-dialog">

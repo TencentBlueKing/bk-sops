@@ -249,15 +249,12 @@
         height: 42px;
         width: 100%;
         .caret-wrapper {
-            display: inline-flex;
             flex-shrink: 0;
-            flex-direction: column;
-            align-items: center;
             height: 20px;
-            flex: 20px 0 0;
             vertical-align: middle;
             cursor: pointer;
             position: relative;
+            margin: 0 10px;
             .bk-table-sort-caret {
                 width: 0;
                 height: 0;

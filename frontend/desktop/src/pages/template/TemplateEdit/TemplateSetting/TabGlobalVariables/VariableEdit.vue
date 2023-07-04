@@ -18,7 +18,7 @@
                 </div>
                 <!-- key -->
                 <div class="form-item clearfix">
-                    <label class="required">KEY</label>
+                    <label class="required">Key</label>
                     <div class="form-content">
                         <bk-input
                             name="variableKey"
@@ -212,9 +212,9 @@
         <div class="btn-wrap">
             <template v-if="!isInternalVal">
                 <bk-button v-if="!isViewMode" theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('确定') }}</bk-button>
-                <bk-button @click="$emit('closeEditingPanel')">{{ $t('取消') }}</bk-button>
+                <bk-button @click="$emit('closeEditingPanel')">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
             </template>
-            <bk-button v-else theme="primary" @click="$emit('closeEditingPanel')">{{ $t('返回') }}</bk-button>
+            <bk-button v-else @click="$emit('closeEditingPanel')">{{ $t('关闭') }}</bk-button>
         </div>
     </div>
 </template>

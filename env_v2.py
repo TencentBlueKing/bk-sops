@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 # 开发框架加载顺序：environ.py -> default_settings -> env.py -> default.py -> settings_open_saas.py -> prod.py
 import json
+
 from blueapps.conf.default_settings import *  # noqa
 
 OPEN_VER = os.getenv("OPEN_VER", "community")
@@ -163,3 +164,5 @@ CELERY_BROKER_POOL_LIMIT = int(os.getenv("BKAPP_CELERY_BROKER_POOL_LIMIT", 10))
 BKAPP_APIGW_CALLBACK_HOST = os.getenv("BKAPP_APIGW_CALLBACK_HOST", "")
 # APIGW API SERVER服务地址
 BKAPP_APIGW_API_HOST = os.getenv("BKAPP_APIGW_API_HOST", "")
+
+BK_PAAS_ESB_API_HOST = BK_PAAS_HOST

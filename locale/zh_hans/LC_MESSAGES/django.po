@@ -2269,8 +2269,8 @@ msgstr "定时"
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:28
 #: pipeline_plugins/components/collections/gse_kit/job_exec/v1_0.py:32
 #, fuzzy
-msgid "GSEKIT(gsekit)"
-msgstr "gsekit(gsekit)"
+msgid "GSEKit(GSEKit)"
+msgstr "GSEKit(GSEKit)"
 
 #: pipeline_plugins/components/collections/gse_kit/flush_process/v1_0.py:58
 #, fuzzy

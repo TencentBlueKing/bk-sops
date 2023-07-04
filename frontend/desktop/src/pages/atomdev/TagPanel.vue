@@ -84,13 +84,13 @@
     import tools from '@/utils/tools.js'
 
     const ORDER_GROUP_MAP = [
-        'combine',
+        'Combine',
         {
-            group: 'input',
+            group: 'Input',
             items: ['TagInput', 'TagMemberSelector', 'TagPassword', 'TagInt', 'TagTextarea']
         },
         {
-            group: 'select',
+            group: 'Select',
             items: ['TagSelect', 'TagCascader', 'TagDatetime']
         },
         'TagRadio',

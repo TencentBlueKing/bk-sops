@@ -627,12 +627,12 @@
                     timeZone: project.time_zone,
                     desc: project.desc
                 }
-                const title = i18n.t('确认') + i18n.t(type === 'start' ? '启用' : '停用') + i18n.t('项目') + ': ' + project.name + '?'
+                const title = i18n.t('确认') + ' ' + i18n.t(type === 'start' ? '启用' : '停用') + ' ' + i18n.t('项目') + ': ' + project.name + '?'
                 const h = this.$createElement
                 this.$bkInfo({
-                    subHeader: h('div', [
+                    subHeader: h('div', { class: 'custom-header' }, [
                         h('div', {
-                            class: 'bk-dialog-header-title',
+                            class: 'custom-header-title',
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
@@ -641,6 +641,7 @@
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.changeProject(type === 'stop')
                     }

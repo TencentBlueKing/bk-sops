@@ -117,7 +117,7 @@
                         <bk-checkbox v-if="!isViewMode && editVarList.length" :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
                         </bk-checkbox>
                         <span class="col-name t-head">{{ $t('名称') }}</span>
-                        <span class="col-key t-head">KEY</span>
+                        <span class="col-key t-head">Key</span>
                         <span class="col-cited t-head">
                             {{ $t('引用') }}
                             <i
@@ -634,6 +634,7 @@
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.getVariableCitedData() // 删除变量后更新引用数据
                         this.deleteVarList.forEach(variableData => {
