@@ -15,21 +15,19 @@ import logging
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import StringItemSchema
 
 from api import BKGseKitClient
 from env import BK_GSE_KIT_PAGE_URL_TEMPLATE
-
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema
-from pipeline.component_framework.component import Component
-
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
-__group_name__ = _("GSEKIT(gsekit)")
+__group_name__ = _("GSEKit(GSEKit)")
 VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)

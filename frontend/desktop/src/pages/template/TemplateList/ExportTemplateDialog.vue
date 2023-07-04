@@ -13,7 +13,7 @@
     <bk-dialog
         width="850"
         ext-cls="common-dialog export-tpl-dialog"
-        :title="$t('导出为') + (type === 'exportDatFile' ? 'DAT' : 'YAML')"
+        :title="$t('导出为') + ' ' + (type === 'exportDatFile' ? 'DAT' : 'YAML')"
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
@@ -69,6 +69,7 @@
                 <span class="export-tips">{{ exportTips }}</span>
                 <bk-button
                     theme="primary"
+                    class="mr10"
                     :disabled="!isHasSelected"
                     :loading="exportPending || tplLoading"
                     @click="onConfirm">
@@ -462,6 +463,8 @@
             .footer-left {
                 display: flex;
                 align-items: center;
+                flex-shrink: 0;
+                margin-right: 20px;
                 p {
                     font-size: 12px;
                     margin-left: 10px;
@@ -472,9 +475,15 @@
                 }
             }
         }
+        .operate-area {
+            display: flex;
+            align-items: center;
+        }
         .export-tips {
             font-size: 12px;
             color: #63656e;
+            text-align: center;
+            margin-right: 20px;
         }
         .bk-table-body-wrapper {
             height: 352px;

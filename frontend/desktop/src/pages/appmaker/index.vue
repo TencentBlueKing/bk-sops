@@ -24,7 +24,7 @@
                     <search-select
                         ref="searchSelect"
                         id="appList"
-                        :placeholder="$t('应用名/创建人')"
+                        :placeholder="$t('应用名/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -231,11 +231,21 @@
                 this.currentAppData = app
             },
             onCardDelete (app) {
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('轻应用') + `"${app.name}"?`,
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('轻应用') + `"${app.name}"?`])
+                    ]),
                     width: 450,
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
+                    cancelText: this.$t('取消'),
                     confirmFn: async () => {
                         await this.onDeleteConfirm(app.id)
                     }

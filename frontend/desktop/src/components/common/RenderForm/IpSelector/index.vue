@@ -55,7 +55,7 @@
                 @change="updateValue('conditions', $event)">
             </select-condition>
             <div class="cloud-area-form">
-                <label :class="[editable ? '' : 'disabled']">{{ $t('变量值是否带云区域：') }}</label>
+                <label :class="[editable ? '' : 'disabled']">{{ $t('变量值是否带管控区域：') }}</label>
                 <bk-switcher
                     size="small"
                     theme="primary"

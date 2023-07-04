@@ -27,7 +27,7 @@
                 </li>
                 <!-- key -->
                 <li class="form-item clearfix">
-                    <label class="required">KEY</label>
+                    <label class="required">Key</label>
                     <div class="form-content">
                         <bk-input
                             name="variableKey"

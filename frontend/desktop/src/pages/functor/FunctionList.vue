@@ -272,6 +272,7 @@
             :title="$t('转交')"
             :loading="transferPending"
             :value="isShowTransferDialog"
+            :cancel-text="$t('取消')"
             @confirm="onTransferConfirm"
             @cancel="onTransferCancel">
             <bk-form ref="transferForm" style="padding: 30px 30px 30px 10px" :model="{ claimant }" :rules="transferRules">
