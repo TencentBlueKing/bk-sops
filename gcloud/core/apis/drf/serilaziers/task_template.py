@@ -35,6 +35,7 @@ class TaskTemplateListSerializer(BaseTaskTemplateSerializer):
     edit_time = serializers.DateTimeField(help_text="编辑时间", format=DATETIME_FORMAT)
     template_id = serializers.CharField(read_only=True, help_text="模板id")
     version = serializers.CharField(read_only=True, help_text="版本")
+    subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     subprocess_has_update = serializers.BooleanField(read_only=True, help_text="子流程是否更新")
     has_subprocess = serializers.BooleanField(read_only=True, help_text="是否有子流程")
     description = serializers.CharField(read_only=True, help_text="流程描述", source="pipeline_template.description")
