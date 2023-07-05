@@ -255,6 +255,7 @@
             attrs: {
                 name: gettext("脚本内容"),
                 hookable: true,
+                variable_render: false,
                 placeholder: gettext("填写执行脚本内容"),
                 default: getScriptContent("1"),
                 language: "shell",
