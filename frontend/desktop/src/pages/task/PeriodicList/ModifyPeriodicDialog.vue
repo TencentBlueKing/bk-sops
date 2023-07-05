@@ -568,6 +568,8 @@
                             idDefault: false,
                             name: '<' + i18n.t('不使用执行方案') + '>'
                         })
+                        const { schemeId } = this.formData
+                        this.formData.schemeId = schemeId.length ? schemeId : [0]
                     }
                 } catch (e) {
                     console.log(e)
