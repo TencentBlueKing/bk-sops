@@ -2146,7 +2146,7 @@ msgstr "Timing, seconds(s) or datetime(%%Y-%%m-%%d %%H:%%M:%%S)"
 
 #: pipeline_plugins/components/collections/controller.py:98
 msgid "是否强制晚于当前时间"
-msgstr "Force to be later than current time"
+msgstr "Ensure time later than current time"
 
 #: pipeline_plugins/components/collections/controller.py:101
 msgid "用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效"

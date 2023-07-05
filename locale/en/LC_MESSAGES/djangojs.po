@@ -402,7 +402,7 @@ msgstr "Seconds(s) or Datetime(%Y-%m-%d %H:%M:%S)"
 
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:32
 msgid "强制晚于当前时间"
-msgstr "Force to be later than current time"
+msgstr "Ensure time later than current time"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:18
