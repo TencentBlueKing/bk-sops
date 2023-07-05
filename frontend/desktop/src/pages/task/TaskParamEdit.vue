@@ -404,25 +404,25 @@
                     right: 16px;
                     top: 39px;
                 }
+            }
+            .form-item-group {
+                padding: 16px;
+                background: #f5f7fa;
+                .rf-form-item {
+                    .rf-tag-label {
+                        display: block;
+                        float: initial;
+                        margin: 0 0 6px;
+                        text-align: left;
+                        color: #63656e;
+                        line-height: 20px;
+                    }
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
                 .form-item-group {
-                    padding: 16px;
-                    background: #f5f7fa;
-                    .rf-form-item {
-                        .rf-tag-label {
-                            display: block;
-                            float: initial;
-                            margin: 0 0 6px;
-                            text-align: left;
-                            color: #63656e;
-                            line-height: 20px;
-                        }
-                        &:last-child {
-                            margin-bottom: 0;
-                        }
-                    }
-                    .form-item-group {
-                        padding: 0;
-                    }
+                    padding: 0;
                 }
             }
             .scheme-select-name {

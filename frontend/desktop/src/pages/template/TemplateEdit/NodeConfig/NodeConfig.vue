@@ -708,13 +708,12 @@
              */
             async getSubflowInputsConfig () {
                 this.constantsLoading = true
-                const inputs = []
                 const variables = Object.keys(this.subflowForms)
                     .map(key => this.subflowForms[key])
                     .filter(item => item.show_type === 'show')
                     .sort((a, b) => a.index - b.index)
 
-                await Promise.all(variables.map(async (variable) => {
+                const inputs = await Promise.all(variables.map(async (variable) => {
                     const { key } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
@@ -750,7 +749,7 @@
                             }
                         })
                     }
-                    inputs.push(formItemConfig)
+                    return formItemConfig
                 }))
                 this.constantsLoading = false
                 return inputs

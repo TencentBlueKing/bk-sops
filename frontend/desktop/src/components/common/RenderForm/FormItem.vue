@@ -105,6 +105,7 @@
                 v-show="!hook"
                 :class="[
                     scheme.attrs.name ? 'rf-tag-form' : '',
+                    groupComponent ? 'form-item-group' : '',
                     showTagUsedStyle
                 ]"
                 ref="tagComponent"
@@ -277,6 +278,16 @@
                     return 'rf-tag-used'
                 }
                 return ''
+            },
+            groupComponent () {
+                const groupComponent = [
+                    'tag-set-allocation',
+                    'tag-upload',
+                    'tag-ip-selector',
+                    'tag-host-allocation',
+                    'tag-datatable'
+                ]
+                return groupComponent.includes(this.tagComponent)
             }
         },
         watch: {
@@ -556,6 +567,9 @@
         word-wrap: break-word;
         word-break: break-all;
         .required {
+            position: absolute;
+            top: 2px;
+            right: -12px;
             color: #F00;
             margin-left: 3px;
             font-family: "SimSun";

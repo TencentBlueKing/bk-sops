@@ -94,7 +94,7 @@
                         :disabled="isViewMode || formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        <span class="auto-retry-times">
+                        <span class="auto-retry-times" @click.stop>
                             {{ $t('在') }}
                             <div class="number-input" style="margin: 0 4px;">
                                 <bk-input
