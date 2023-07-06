@@ -20,7 +20,7 @@
             :before-close="beforeClose">
             <div class="config-header" slot="header">
                 <template v-if="isVariablePanelShow">
-                    <i class="bk-icon icon-arrows-left variable-back-icon" @click="isVariablePanelShow = false"></i>
+                    <i class="bk-icon icon-arrows-left variable-back-icon" @click="closeEditingPanel"></i>
                     <span>
                         {{ variableData.key ? $t('编辑') : $t('新建') }}{{ $t('全局变量') }}
                     </span>

@@ -1981,11 +1981,11 @@
                 this.$bkInfo({
                     ...this.infoBasicConfig,
                     confirmFn: () => {
-                        bus.$emit('cancelRoute')
-                    },
-                    cancelFn: () => {
                         this.allowLeave = true
                         this.$router.push({ path: this.leaveToPath })
+                    },
+                    cancelFn: () => {
+                        bus.$emit('cancelRoute')
                     }
                 })
             }

@@ -127,7 +127,7 @@
             <!-- 变量勾选checkbox -->
             <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
                 <i
-                    :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                    :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
                         content: hook ? $t('取消变量引用') : $t('设置为变量'),
                         placement: 'bottom',
@@ -145,6 +145,7 @@
                     }"
                     @click="onRenderChange">
                 </i>
+                <i v-else class="bk-icon icon-angle-up-fill"></i>
             </div>
             <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
         </template>
@@ -252,7 +253,8 @@
                 tagComponent: `tag-${this.scheme.type.replace(/_/g, '-')}`,
                 showForm,
                 showHook,
-                formValue
+                formValue,
+                isShowRenderIcon: true // 是否展示免渲染icon
             }
         },
         computed: {
@@ -620,6 +622,11 @@
         }
         .hook-icon {
             font-size: 19px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin: 3px 0 0 6px;
         }
         &.hide-render-icon {
             justify-content: center;
