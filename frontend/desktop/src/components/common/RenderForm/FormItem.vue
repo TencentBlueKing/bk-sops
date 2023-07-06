@@ -71,10 +71,11 @@
                         zIndex: 2072,
                         disabled: !!!scheme.attrs.tips
                     }"
+                    class="label"
                     :class="{ 'tag-label-tips': scheme.attrs.tips }">
                     {{scheme.attrs.name}}
-                    <span class="required" v-if="isRequired()">*</span>
                 </span>
+                <span class="required" v-if="isRequired()">*</span>
             </label>
             <!-- 参数被使用占位popover -->
             <bk-popover
@@ -567,11 +568,8 @@
         word-wrap: break-word;
         word-break: break-all;
         .required {
-            position: absolute;
-            top: 2px;
-            right: -12px;
             color: #F00;
-            margin-left: 3px;
+            margin-left: 5px;
             font-family: "SimSun";
         }
         .tag-label-tips {

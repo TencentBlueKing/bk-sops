@@ -84,6 +84,7 @@
                 isShowInputOrigin: false,
                 inputsInfo: null,
                 renderOption: {
+                    showRequired: false,
                     showGroup: false,
                     showLabel: true,
                     showHook: false,
@@ -194,7 +195,7 @@
         }
         /deep/.render-form {
             >.rf-form-item,
-            .rf-form-group >.rf-form-item {
+            .form-item-group >.rf-form-item {
                 margin: 0;
                 padding: 5px 0;
                 width: 100% !important;

@@ -320,7 +320,7 @@
                 if (formvalid) {
                     return tools.isDataEqual(this.initalRenderData, this.renderData)
                 } else {
-                    return false
+                    return !this.$refs.renderForm
                 }
             },
             getChangeParams () {

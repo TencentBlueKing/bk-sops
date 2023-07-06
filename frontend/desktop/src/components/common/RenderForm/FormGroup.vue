@@ -64,6 +64,7 @@
                         zIndex: 2072,
                         disabled: !option.formEdit || !!!scheme.attrs.tips
                     }"
+                    class="label"
                     :class="{ 'tag-label-tips': option.formEdit && scheme.attrs.tips }">
                     {{scheme.attrs.name}}
                 </span>
