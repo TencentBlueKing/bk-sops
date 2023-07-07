@@ -372,15 +372,4 @@
         }
     }
 }
-/deep/ .render-form {
-    .rf-tag-label {
-        display: flex;
-        .label {
-            flex: 1;
-        }
-        .required {
-            flex-shrink: 0;
-        }
-    }
-}
 </style>

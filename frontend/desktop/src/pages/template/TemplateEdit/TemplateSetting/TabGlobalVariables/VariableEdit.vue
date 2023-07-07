@@ -898,7 +898,7 @@
             &.required:before {
                 content: '*';
                 position: absolute;
-                top: 0px;
+                top: 2px;
                 right: -10px;
                 color: #ff2602;
                 font-family: "SimSun";

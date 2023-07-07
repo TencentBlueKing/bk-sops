@@ -568,6 +568,9 @@
         word-wrap: break-word;
         word-break: break-all;
         .required {
+            position: absolute;
+            top: 2px;
+            right: -10px;
             color: #F00;
             margin-left: 5px;
             font-family: "SimSun";
