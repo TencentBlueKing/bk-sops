@@ -12,12 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.io import (
-    ArrayItemSchema,
-    IntItemSchema,
-    ObjectItemSchema,
-    StringItemSchema,
-)
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 
@@ -103,4 +98,4 @@ class NodemanPluginOperateComponent(Component):
     bound_service = NodemanPluginOperateService
     form = "%scomponents/atoms/nodeman/plugin_operate/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
-    desc = _("移除填写方式，只支持主机IP方式\n " "云区域ID、主机IP支持 “设置为变量 \n" "云区域ID 支持AllowCreate \n")
+    desc = _("移除填写方式，只支持主机IP方式\n 云区域ID、主机IP支持 设置为变量 \n 云区域ID 支持AllowCreate \n")
