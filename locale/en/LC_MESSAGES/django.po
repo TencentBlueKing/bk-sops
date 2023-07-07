@@ -5844,6 +5844,13 @@ msgstr "Loop execution times"
 msgid "业务"
 msgstr "Business"
 
+msgid "注意： 1.屏蔽方案选择自定义监控时，屏蔽范围CC大区和集群必须选择all, 2.当按业务屏蔽时，使用当前项目选择的业务值"
+msgstr "Note: 1. When the shielding scheme is selected to customize monitoring, the shielding range CC region and cluster must choose ALL. 2. When the business is shielded, use the business value of the current project selection"
+
+msgid "移除填写方式，只支持主机IP方式\n 云区域ID、主机IP支持 设置为变量 \n 云区域ID 支持AllowCreate \n"
+msgstr "Remove the filling method, only support the host IP method \n cloud area ID, host IP support setting to variable \n cloud area ID supports supportingCreate \n"
+
+
 #~ msgid "信号模块名"
 #~ msgstr "Signal module name"
 

@@ -14,9 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
-from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base import (
-    MonitorAlarmShieldServiceBase,
-)
+from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base import MonitorAlarmShieldServiceBase
 
 __group_name__ = _("监控平台(Monitor)")
 
@@ -38,4 +36,4 @@ class MonitorAlarmShieldComponent(Component):
     bound_service = MonitorAlarmShieldService
     form = "{static_url}components/atoms/monitor/alarm_shield/v1_2.js".format(static_url=settings.STATIC_URL)
     version = "1.2"
-    desc = _('注意： 1.屏蔽方案选择"自定义监控"时，屏蔽范围CC大区和集群必须选择"all", 2.当按业务屏蔽时，使用当前项目选择的业务值')
+    desc = _("注意： 1.屏蔽方案选择自定义监控时，屏蔽范围CC大区和集群必须选择all, 2.当按业务屏蔽时，使用当前项目选择的业务值")
