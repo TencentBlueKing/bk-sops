@@ -49,8 +49,8 @@
                 <template slot-scope="props">
                     <template v-if="item.prop === 'status'">
                         <div class="ui-task-status">
-                            <span :class="executeStatus[props.$index].cls"></span>
-                            <span>{{ executeStatus[props.$index].text }}</span>
+                            <span :class="executeStatus[props.row.id].cls"></span>
+                            <span>{{ executeStatus[props.row.id].text }}</span>
                         </div>
                     </template>
                     <template v-else-if="item.prop === 'name'">
@@ -149,7 +149,7 @@
                     value: 'all'
                 }],
                 dynamicData: [],
-                executeStatus: [],
+                executeStatus: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -181,6 +181,7 @@
             ]),
             async getTaskList () {
                 this.isTableLoading = true
+                this.executeStatus = {}
                 try {
                     const data = {
                         limit: this.pagination.limit,

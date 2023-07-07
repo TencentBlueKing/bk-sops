@@ -69,8 +69,8 @@
                                 </div>
                                 <!--状态-->
                                 <div v-else-if="item.id === 'audit_status'" class="audit-status">
-                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                    <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                    <span :class="executeStatus[props.row.id] && executeStatus[props.row.id].cls"></span>
+                                    <span class="task-status-text" v-if="executeStatus[props.row.id]">{{executeStatus[props.row.id].text}}</span>
                                 </div>
                                 <!--任务类型-->
                                 <div v-else-if="item.id === 'category_name'">
@@ -266,7 +266,7 @@
                     empty: false
                 },
                 auditList: [],
-                executeStatus: [], // 任务执行态
+                executeStatus: {}, // 任务执行态
                 requestData: {
                     selectedProject,
                     category,
@@ -314,6 +314,7 @@
             ]),
             async loadAuditTask () {
                 this.listLoading = true
+                this.executeStatus = {}
                 try {
                     const { selectedProject, start_time, finish_time, category, creator, executor, statusSync, taskName, task_id } = this.requestData
                     let pipeline_instance__is_started
