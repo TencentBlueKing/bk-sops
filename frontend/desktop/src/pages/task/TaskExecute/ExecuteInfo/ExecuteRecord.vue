@@ -129,7 +129,6 @@
     /deep/.fail-text {
         position: relative;
         font-size: 12px;
-        padding: 8px 16px;
         color: #313238;
         background: #fff3e1;
         border: 1px solid #ffb848;
@@ -138,6 +137,10 @@
         .hide-html-text {
             position: absolute;
             z-index: -1;
+        }
+        .hide-html-text,
+        .show-html-text {
+            margin: 8px 16px;
         }
         .is-fold {
             overflow: hidden;
@@ -151,7 +154,7 @@
             position: absolute;
             right: 16px;
             bottom: 8px;
-            padding: 5px 0 0 5px;
+            padding-left: 5px;
             color: #3a84ff;
             background: #fff3e1;
             cursor: pointer;

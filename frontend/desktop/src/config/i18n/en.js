@@ -1768,7 +1768,9 @@ const en = {
     '清空筛选': 'Clear',
     '提示文本': 'Help Text',
     '请输入变量提示文本，不超过500个字符': 'Please enter variable help text, up to 500 characters.',
-    '确认删除收藏?': 'Confirm to delete favorite?'
+    '确认删除收藏?': 'Confirm to delete favorite?',
+    'singleUseTips': 'You can select an existing node-group or use {0}',
+    '一次性方案': 'a single-use node-group'
 }
 
 export default en

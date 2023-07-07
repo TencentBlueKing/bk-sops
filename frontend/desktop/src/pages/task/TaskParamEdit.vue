@@ -416,6 +416,11 @@
                         text-align: left;
                         color: #63656e;
                         line-height: 20px;
+                        .required {
+                            position: relative;
+                            top: 0;
+                            right: 0;
+                        }
                     }
                     &:last-child {
                         margin-bottom: 0;

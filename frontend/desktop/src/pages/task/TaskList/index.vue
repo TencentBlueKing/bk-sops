@@ -94,8 +94,8 @@
                                     </div>
                                     <!--状态-->
                                     <div v-else-if="item.id === 'task_status'" class="task-status">
-                                        <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                        <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                                        <span :class="executeStatus[props.row.id] && executeStatus[props.row.id].cls"></span>
+                                        <span v-if="executeStatus[props.row.id]" class="task-status-text">{{executeStatus[props.row.id].text}}</span>
                                     </div>
                                     <!--任务类型-->
                                     <div v-else-if="item.id === 'flow_type'">
@@ -133,7 +133,7 @@
                                             {{$t('重新执行')}}
                                         </a>
                                         <a
-                                            v-if="executeStatus[props.$index] && executeStatus[props.$index].text === $t('未执行')"
+                                            v-if="executeStatus[props.row.id] && executeStatus[props.row.id].text === $t('未执行')"
                                             v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
                                             :class="['task-operation-btn', {
                                                 'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
@@ -348,7 +348,7 @@
                 listLoading: false,
                 templateId: this.$route.query.template_id,
                 searchStr: '',
-                executeStatus: [], // 任务执行状态
+                executeStatus: {}, // 任务执行状态
                 totalPage: 1,
                 shapeShow: false,
                 businessInfoLoading: true, // 模板分类信息 loading
@@ -436,7 +436,7 @@
             async getTaskList () {
                 // 空字符串需要转换为undefined，undefined数据在axios请求发送过程中会被删除
                 this.listLoading = true
-                this.executeStatus = []
+                this.executeStatus = {}
                 try {
                     const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
@@ -619,7 +619,7 @@
                         curField.width = 20 * curParent.maxLevel + 100
                     }
                     curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, ...result)
-                    this.getExecuteStatus('executeStatus', curTaskList)
+                    this.getExecuteStatus('executeStatus', [...result, row])
                     this.setTaskListData(curTaskList)
                     // 当存在默认打开的子流程时，需手动打开
                     if (this.initOpenTask.length) {
@@ -639,7 +639,7 @@
                         }
                     }))
                     const filterArr = this.filterTaskList(curTaskList, curParent.id)
-                    this.getExecuteStatus('executeStatus', filterArr)
+                    this.getExecuteStatus('executeStatus', [row])
                     this.setTaskListData(filterArr)
                     curField.width = 20 * MaxLevel + 100
                 }

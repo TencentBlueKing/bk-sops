@@ -19,13 +19,19 @@
                     <i class="bk-icon icon-close-line" @click="toggleSchemePanel"></i>
                 </template>
             </div>
+            <bk-alert type="info" class="single-use-alert" v-if="!isDefaultSchemeIng">
+                <template slot="title">
+                    <i18n tag="div" path="singleUseTips">
+                        <span class="single-use" @click="onImportTemporaryPlan">{{ $t('一次性方案') }}</span>
+                    </i18n>
+                </template>
+            </bk-alert>
             <p v-if="isDefaultSchemeIng" class="default-scheme-tip">
                 {{$t('流程直接新建任务执行时，默认执行当前方案的组合。')}}
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
                     <bk-button data-test-id="templateEdit_form_addScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
                     <bk-button data-test-id="templateEdit_form_setDeafultScheme" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
                 </div>
                 <bk-button
@@ -692,6 +698,13 @@
                 &:hover {
                     color: #3a84ff;
                 }
+            }
+        }
+        .single-use-alert {
+            margin: 20px 0 -5px 0;
+            .single-use {
+                color: #3a84ff;
+                cursor: pointer;
             }
         }
         .default-scheme-tip {

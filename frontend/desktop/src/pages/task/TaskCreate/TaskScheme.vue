@@ -9,11 +9,13 @@
                 <span>{{$t('执行方案')}}</span>
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
-            <div class="scheme-active-wrapper" v-if="!isPreviewMode">
-                <bk-button data-test-id="createTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
-                <bk-button data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
-                
-            </div>
+            <bk-alert type="info" class="single-use-alert">
+                <template slot="title">
+                    <i18n tag="div" path="singleUseTips">
+                        <span class="single-use" @click="onImportTemporaryPlan">{{ $t('一次性方案') }}</span>
+                    </i18n>
+                </template>
+            </bk-alert>
             <div class="scheme-content" data-test-id="createTask_form_schemeList">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
                     <bk-checkbox
@@ -48,7 +50,6 @@
     import { mapState, mapActions } from 'vuex'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
-    import XLSX from 'xlsx'
 
     export default {
         name: 'TaskScheme',
@@ -199,20 +200,6 @@
             */
             onImportTemporaryPlan () {
                 this.$emit('onImportTemporaryPlan')
-            },
-            // 导出当前方案
-            onExportScheme () {
-                const text = []
-                this.orderedNodeData.forEach(item => {
-                    const { stage_name, name, optional } = item
-                    const status = optional ? (this.excludeNode.includes(item.id) ? 0 : 1) : 2
-                    text.push([`${stage_name === '' ? '' : stage_name + '：'}${name} ${status}`])
-                })
-                const wsName = 'task_scheme'
-                const wb = XLSX.utils.book_new()
-                const ws = XLSX.utils.aoa_to_sheet(text)
-                XLSX.utils.book_append_sheet(wb, ws, wsName)
-                XLSX.writeFile(wb, `bk_sops_tpl_task_scheme_${+new Date()}.xlsx`)
             }
         }
     }
@@ -259,22 +246,11 @@
                 }
             }
         }
-        .scheme-active-wrapper {
-            display: flex;
-            align-items: center;
-            padding: 16px 0px 15px;
-            border-top: 1px solid #dcdee5;
-            /deep/.bk-button {
-                width: auto;
-                margin-left: 10px;
-                &:first-child {
-                    margin-left: 0;
-                }
-                .icon-plus-line {
-                    font-size: 16px;
-                    margin-right: 3px;
-                    color: #979ba5;
-                }
+        .single-use-alert {
+            margin: 10px 0 15px 0;
+            .single-use {
+                color: #3a84ff;
+                cursor: pointer;
             }
         }
         .scheme-content {
