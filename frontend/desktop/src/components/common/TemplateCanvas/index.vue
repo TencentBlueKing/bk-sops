@@ -863,7 +863,7 @@
                         arrow: targetType
                     }
                 }
-                
+
                 const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', data)
@@ -1185,7 +1185,7 @@
                             nodeWidth = nodeWidth * ratio
                             nodeHeight = nodeHeight * ratio
                         }
-                        
+
                         if (width > nodeWidth || height > nodeHeight) { // 线段长需大于节点宽度或高度
                             if (height > 8) { // 垂直线
                                 return (left > horizontalInterval[0] && horizontalInterval[1] > left)
@@ -1270,7 +1270,7 @@
                     nodeConfig = gateways[node.id]
                 }
                 this.showShortcutPanel = false
-                
+
                 if (remove) { // 删除节点
                     this.$refs.jsFlow.removeNode(node)
                     this.$emit('templateDataChanged')
@@ -2400,7 +2400,7 @@
             box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
         }
         .jtk-endpoint {
-            z-index: 5;
+            z-index: 4;
         }
         .jsflow-node {
             z-index: 4;
