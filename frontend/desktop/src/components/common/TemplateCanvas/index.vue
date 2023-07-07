@@ -70,6 +70,7 @@
                     @onToggleAllNode="onToggleAllNode"
                     @onToggleHotKeyInfo="onToggleHotKeyInfo"
                     @onTogglePerspective="onTogglePerspective"
+                    @onExportScheme="onExportScheme"
                     @onDownloadCanvas="onDownloadCanvas">
                 </tool-panel>
             </template>
@@ -1641,6 +1642,9 @@
                 this.isShowHotKey = false
                 this.isPerspective = !this.isPerspective
                 this.$emit('onTogglePerspective', this.isPerspective)
+            },
+            onExportScheme () {
+                this.$emit('onExportScheme')
             },
             onCloseHotkeyInfo () {
                 this.isShowHotKey = false

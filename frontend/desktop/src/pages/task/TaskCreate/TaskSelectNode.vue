@@ -24,6 +24,7 @@
                 :canvas-data="canvasData"
                 :node-variable-info="nodeVariableInfo"
                 @onTogglePerspective="onTogglePerspective"
+                @onExportScheme="onExportScheme"
                 @onNodeCheckClick="onNodeCheckClick"
                 @onToggleAllNode="onToggleAllNode">
             </TemplateCanvas>
