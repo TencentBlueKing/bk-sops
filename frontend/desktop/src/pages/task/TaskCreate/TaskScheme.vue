@@ -196,7 +196,7 @@
                 this.showPanel = !this.showPanel
             },
             /**
-             * 导入临时方案
+             * 导入一次性方案
             */
             onImportTemporaryPlan () {
                 this.$emit('onImportTemporaryPlan')
