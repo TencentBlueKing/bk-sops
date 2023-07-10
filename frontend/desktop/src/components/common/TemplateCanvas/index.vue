@@ -1182,12 +1182,14 @@
                         if (!loc.id) {
                             left = left * ratio
                             top = top * ratio
+                            width = width * ratio
+                            height = height * ratio
                             nodeWidth = nodeWidth * ratio
                             nodeHeight = nodeHeight * ratio
                         }
 
                         if (width > nodeWidth || height > nodeHeight) { // 线段长需大于节点宽度或高度
-                            if (height > 8) { // 垂直线
+                            if (height > (8 * ratio)) { // 垂直线
                                 return (left > horizontalInterval[0] && horizontalInterval[1] > left)
                                     && (top < verticalInterval[0] && top + height > verticalInterval[1])
                             } else {
