@@ -128,7 +128,7 @@
                     placements: ['bottom']
                 }"
                 @click="onExportScheme">
-                <i class="common-icon-box-top-right-corner"></i>
+                <i class="common-icon-export-scheme"></i>
             </div>
         </div>
     </transition>
@@ -257,9 +257,6 @@
         .tool-disable {
             cursor: not-allowed;
             opacity: 0.3;
-        }
-        .common-icon-box-top-right-corner {
-            font-size: 14px;
         }
     }
     .zoom-wrapper, .square-wrapper {

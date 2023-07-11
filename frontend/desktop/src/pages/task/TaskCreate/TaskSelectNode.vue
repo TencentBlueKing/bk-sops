@@ -622,6 +622,11 @@
             },
             // 导出当前方案
             onExportScheme () {
+                window.reportInfo({
+                    page: 'taskSelectNode',
+                    zone: 'exportCanvas',
+                    event: 'click'
+                })
                 const text = []
                 this.orderedNodeData.forEach(item => {
                     const { stage_name, name, optional } = item
