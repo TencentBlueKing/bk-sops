@@ -1213,7 +1213,7 @@ const en = {
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
     '保存已修改的配置信息吗？': 'Save the modified setting',
     '全部项目': 'All',
-    '导入一次性方案': 'Import a single-use node-group',
+    'sidebarTitle_一次性方案': 'A single-use node-group',
     '设置默认方案': 'Default',
     '流程直接新建任务执行时，默认执行当前方案的组合。': 'When a flow directly creates a task, the current solution combination is executed by default.',
     '方案内容': 'Scheme Text',

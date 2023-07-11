@@ -665,14 +665,15 @@
             },
             onCreateNodeMoving (node) {
                 // 计算节点基于画布的坐标
-                const canvasDom = document.querySelector('.canvas-flow')
-                const nodeLeft = canvasDom.offsetLeft
-                const nodeTop = canvasDom.offsetTop
+                const { x: canvasWrapLeft, y: canvasWrapTop } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const { x: canvasLeft, y: canvasTop } = document.querySelector('.canvas-flow').getBoundingClientRect()
+                const offsetLeft = canvasLeft - canvasWrapLeft
+                const offsetTop = canvasTop - canvasWrapTop
                 const { x, y } = this.getNodeActualPosition(node)
                 const location = {
                     ...node,
-                    x: x - nodeLeft,
-                    y: y - nodeTop
+                    x: x - offsetLeft,
+                    y: y - offsetTop
                 }
                 // 节点拖拽到过连线过程
                 this.onNodeToLineDragging(location)
@@ -1529,12 +1530,13 @@
                         nodeHeight = 34 * ratio
                     }
                     let { x: left, y: top } = location
-                    const canvasDom = document.querySelector('.canvas-flow')
-                    const nodeLeft = canvasDom.offsetLeft
-                    const nodeTop = canvasDom.offsetTop
-                    if (nodeLeft || nodeTop) {
-                        left = left + nodeLeft
-                        top = top + nodeTop
+                    const { x: canvasWrapLeft, y: canvasWrapTop } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                    const { x: canvasLeft, y: canvasTop } = document.querySelector('.canvas-flow').getBoundingClientRect()
+                    const offsetLeft = canvasLeft - canvasWrapLeft
+                    const offsetTop = canvasTop - canvasWrapTop
+                    if (offsetLeft || offsetTop) {
+                        left = left + offsetLeft
+                        top = top + offsetTop
                     }
                     left = left - 60 // 60为画布左边栏的宽度
                     const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
