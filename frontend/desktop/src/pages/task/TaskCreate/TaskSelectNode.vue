@@ -95,7 +95,7 @@
             <div slot="header">
                 <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
                 >
-                <span>{{ $t('导入一次性方案') }}</span>
+                <span>{{ $t('sidebarTitle_一次性方案') }}</span>
             </div>
             <edit-scheme
                 ref="editScheme"
@@ -578,7 +578,7 @@
                     this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
-            // 导入一次性方案
+            // 一次性方案
             importTextScheme (selectedNodes) {
                 this.selectedNodes = selectedNodes.slice(0)
                 this.updateExcludeNodes()
@@ -601,7 +601,7 @@
                 this.selectedNodes = Array.isArray(scheme.data) ? scheme.data : JSON.parse(scheme.data)
                 this.updateDataAndCanvas()
             },
-            // 导入一次性方案
+            // 一次性方案
             onImportTemporaryPlan () {
                 this.isEditSchemeShow = true
             },
