@@ -223,7 +223,8 @@
             ]),
             ...mapActions('task/', [
                 'getSchemeDetail',
-                'loadPreviewNodeData'
+                'loadPreviewNodeData',
+                'getTaskInstanceData'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -523,7 +524,7 @@
             /**
              * 设置默认勾选值
              */
-            setDefaultSelected (val) {
+            async setDefaultSelected (val) {
                 if (this.isPreviewMode) return
                 this.isDefaultSchemeIng = val
                 const dataObj = val ? this.defaultPlanDataObj : Object.assign(this.planDataObj, this.defaultPlanDataObj)
@@ -532,8 +533,31 @@
                     return acc
                 }, [])
                 const selectedNodes = Array.from(new Set(selectNodeAll))
-                this.selectedNodes = selectedNodes.length ? selectedNodes : Object.keys(this.activities) // 默认全选
+                const defaultSelected = await this.getDefaultSelected()
+                this.selectedNodes = selectedNodes.length ? selectedNodes : defaultSelected
                 this.updateDataAndCanvas()
+            },
+            async getDefaultSelected () {
+                try {
+                    let selectedNodes = []
+                    const { task_id: reuseTaskId } = this.$route.query
+                    if (this.excludeNode.length) { // 优先使用勾选记录
+                        Object.keys(this.activities).forEach(key => {
+                            if (!this.excludeNode.includes(key)) {
+                                selectedNodes.push(key)
+                            }
+                        })
+                    } else if (reuseTaskId) { // 其次复用变量的勾选
+                        const instanceData = await this.getTaskInstanceData(reuseTaskId)
+                        const pipelineTree = JSON.parse(instanceData.pipeline_tree)
+                        selectedNodes = Object.values(pipelineTree.activities).map(item => item.template_node_id)
+                    } else {
+                        selectedNodes = Object.keys(this.activities) // 默认全选
+                    }
+                    return selectedNodes
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             /**
              * 设置任务方案二次确认弹框
