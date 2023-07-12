@@ -87,7 +87,7 @@ class TestTaskInstanceView(
 
         resp = self.client.get(path=self.task_url, data=query_params)
         self.assertFalse(resp.data["result"])
-        self.assertEqual(resp.data["message"], "最近30天有v1引擎的任务, 不支持筛选")
+        self.assertEqual(resp.data["message"], "最近180天有v1引擎的任务, 不支持筛选")
 
         self.taskflow_instance.engine_ver = 2
         self.taskflow_instance.save()
