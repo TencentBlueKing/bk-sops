@@ -46,7 +46,7 @@
                                     v-if="viewMode !== 'appmaker' || !isCustomizeType"
                                     :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                     @click="onSwitchTaskType(true)">
-                                    {{ $t('职能化') }}
+                                    {{ $t('task_职能化') }}
                                 </bk-button>
                             </div>
                         </div>
@@ -497,6 +497,12 @@
                     }
                     try {
                         const taskData = await this.createTask(data)
+                        if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
+                            this.$bkMessage({
+                                message: i18n.t('提交成功，请通知职能化人员认领'),
+                                theme: 'success'
+                            })
+                        }
                         let url = {}
                         if (this.viewMode === 'appmaker') {
                             const { template_id } = this.$route.query
@@ -530,12 +536,6 @@
                             }
                         }
                         this.$router.push(url)
-                        if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
-                            this.$bkMessage({
-                                message: i18n.t('提交成功，请通知职能化人员认领'),
-                                theme: 'success'
-                            })
-                        }
                     } catch (e) {
                         console.log(e)
                     } finally {
@@ -574,7 +574,7 @@
         font-weight: 600;
         color: #313238;
         border-bottom: 1px solid #cacedb;
-        margin-bottom: 30px;
+        margin-bottom: 16px;
         .reuse-tip {
             color: #3a84ff;
             font-size: 12px;

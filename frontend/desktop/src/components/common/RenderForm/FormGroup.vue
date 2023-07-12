@@ -13,23 +13,24 @@
     <div class="rf-form-group" :key="randomKey" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
         <!-- 分组名称和提示 -->
         <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
-            <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
-            <span v-if="showNotReuseTitle" class="not-reuse-tip">
-                <i class="common-icon-dark-circle-warning"></i>
-                {{ $t('未能重用') }}
-            </span>
-            <!-- 编辑模式下才显示常量禁止修改tip -->
-            <span class="pre-mako-tip" v-if="option.formEdit && scheme.attrs.pre_mako_tip">
-                <i class="common-icon-dark-circle-warning"></i>
-                {{ scheme.attrs.pre_mako_tip }}
-            </span>
-            <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
+            <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
+            <span class="scheme-code">{{ scheme.tag_code }}</span>
+            <i
+                v-if="showNotReuseTitle || showPreMakoTip"
+                v-bk-tooltips="{
+                    content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
+                    placement: 'top-end',
+                    boundary: 'window',
+                    zIndex: 2072
+                }"
+                class="common-icon-dark-circle-warning">
+            </i>
+            <!-- <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ scheme.attrs.used_tip }}
-            </span>
+            </span> -->
         </div>
-        <!-- 分组描述 -->
-        <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
+        
         <!-- 参数被使用占位popover -->
         <bk-popover
             v-if="scheme.attrs.html_used_tip"
@@ -72,32 +73,34 @@
             </div>
         </div>
         <!-- 分组表单元素 -->
-        <component
-            v-else
-            v-for="(form, index) in scheme.attrs.children"
-            :key="`${form.tag_code}_${index}`"
-            :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
-            :constants="constants"
-            :scheme="form"
-            :option="groupOption"
-            :value="value[form.tag_code]"
-            :parent-value="value"
-            @blur="$emit('blur')"
-            @init="$emit('init', $event)"
-            @change="updateForm">
-        </component>
+        <div class="form-item-group" v-else>
+            <component
+                v-for="(form, index) in scheme.attrs.children"
+                :key="`${form.tag_code}_${index}`"
+                :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
+                :constants="constants"
+                :scheme="form"
+                :option="groupOption"
+                :value="value[form.tag_code]"
+                :parent-value="value"
+                @blur="$emit('blur')"
+                @init="$emit('init', $event)"
+                @change="updateForm">
+            </component>
+        </div>
         <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="showHook">
+        <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
             <i
-                :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
-                    content: hook ? i18n.hooked : i18n.cancelHook,
+                    content: hook ? $t('取消变量引用') : $t('设置为变量'),
                     placement: 'bottom',
                     zIndex: 3000
                 }"
                 @click="onHookForm(!hook)">
             </i>
             <i
+                v-if="isShowRenderIcon"
                 :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                 v-bk-tooltips="{
                     content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
@@ -106,7 +109,10 @@
                 }"
                 @click="onRenderChange">
             </i>
+            <i v-else class="bk-icon icon-angle-up-fill"></i>
         </div>
+        <!-- 分组描述 -->
+        <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
     </div>
 </template>
 <script>
@@ -177,10 +183,7 @@
                 groupOption,
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
-                i18n: {
-                    hooked: gettext('取消变量引用'),
-                    cancelHook: gettext('设置为变量')
-                }
+                isShowRenderIcon: true // 是否展示免渲染icon
             }
         },
         computed: {
@@ -189,6 +192,9 @@
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
+            },
+            showPreMakoTip () {
+                return this.option.formEdit && this.scheme.attrs.pre_mako_tip
             }
         },
         watch: {
@@ -221,6 +227,27 @@
                         this[item] = scheme.methods[item]
                     }
                 })
+            }
+            // 针对job的代码编辑框，移除「变量免渲染」的功能开关
+            const { type, attrs } = this.scheme
+            if (type === 'code_editor' && !attrs.variable_render) { // variable_render 是否开启变量渲染
+                /**
+                 * need_render:
+                    1. false
+                        之前已勾选，现在去掉免渲染icon
+                    2.true，判断value
+                        a. 不包含${}，需要把need_render置为false，去掉免渲染icon
+                        b. 包含${}，保留免渲染icon
+                 */
+                if (this.render) {
+                    const regex = /\${[a-zA-Z_]\w*}/
+                    if (!regex.test(this.value)) {
+                        this.isShowRenderIcon = false
+                        this.onRenderChange()
+                    }
+                } else {
+                    this.isShowRenderIcon = false
+                }
             }
         },
         beforeDestroy () {
@@ -385,7 +412,7 @@
         z-index: 1;
         .hook-icon,
         .render-skip-icon {
-            font-size: 16px;
+            font-size: 14px;
             color: #979ba5;
             cursor: pointer;
             &.disabled {

@@ -399,3 +399,24 @@
     height: 280px;
     justify-content: center;
 }
+
+.dialog-custom-header-title {
+    .bk-dialog-sub-header {
+        padding: 0 !important;
+    }
+    .custom-header-title {
+        padding: 15px 30px 10px;
+        line-height: 1.2;
+        text-align: center;
+        display: inline-block;
+        width: 100%;
+        font-size: 20px;
+        color: #313238;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .custom-header-sub-title {
+        padding: 5px 50px 21px;
+    }
+}

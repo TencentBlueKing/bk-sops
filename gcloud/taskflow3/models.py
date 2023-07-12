@@ -11,59 +11,67 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
 import datetime
+import logging
 import traceback
 from copy import deepcopy
 
 import ujson as json
-from django.db import connection
+from django.db import connection, models, transaction
 from django.db.models import Count, Q
-from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.constants import PE
-from pipeline.models import PipelineInstance
-from pipeline.engine import states
-
-from gcloud.taskflow3.utils import parse_node_timeout_configs
-from pipeline_plugins.components.collections.subprocess_plugin.converter import PipelineTreeSubprocessConverter
-from pipeline_web.core.abstract import NodeAttr
 from pipeline.component_framework.models import ComponentModel
-from pipeline_web.core.models import NodeInInstance
-from pipeline_web.parser.clean import PipelineWebTreeCleaner
-from pipeline_web.wrapper import PipelineTemplateWebWrapper
-from pipeline_web.preview_base import PipelineTemplateWebPreviewer
+from pipeline.core.constants import PE
+from pipeline.engine import states
+from pipeline.models import PipelineInstance
 
 from gcloud import err_code
+from gcloud.analysis_statistics.models import (
+    ProjectStatisticsDimension,
+    TaskflowExecutedNodeStatistics,
+    TaskflowStatistics,
+)
+from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import (
-    TASK_FLOW_TYPE,
-    TASK_CATEGORY,
-    TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT,
     CALLBACK_STATUSES,
+    NON_COMMON_TEMPLATE_TYPES,
+    ONETIME,
+    PROJECT,
+    TASK_CATEGORY,
+    TASK_CREATE_METHOD,
+    TASK_FLOW_TYPE,
+    TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT,
+    TEMPLATE_SOURCE,
+    TaskCreateMethod,
 )
-from gcloud.core.models import Project, EngineConfig, StaffGroupSet
-from gcloud.core.utils import convert_readable_username
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.utils.dates import timestamp_to_datetime, format_datetime
-from gcloud.utils.managermixins import ClassificationCountMixin
-from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import replace_template_id, inject_template_node_id
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-from gcloud.taskflow3.domains.context import TaskContext
-from gcloud.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
-from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher, NodeCommandDispatcher
-from gcloud.shortcuts.cmdb import get_business_group_members
+from gcloud.core.models import EngineConfig, Project, StaffGroupSet
+from gcloud.core.utils import convert_readable_username
 from gcloud.project_constants.domains.context import get_project_constants_context
-from gcloud.analysis_statistics.models import (
-    TaskflowStatistics,
-    TaskflowExecutedNodeStatistics,
-    ProjectStatisticsDimension,
+from gcloud.shortcuts.cmdb import get_business_attrinfo, get_business_group_members
+from gcloud.taskflow3.domains.context import TaskContext
+from gcloud.taskflow3.domains.dispatchers import (
+    NodeCommandDispatcher,
+    TaskCommandDispatcher,
 )
-from gcloud.utils.components import format_component_name_with_remote, get_remote_plugin_name
-from gcloud.shortcuts.cmdb import get_business_attrinfo
+from gcloud.taskflow3.utils import parse_node_timeout_configs
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.template_base.utils import inject_original_template_info, inject_template_node_id, replace_template_id
+from gcloud.utils.components import (
+    format_component_name_with_remote,
+    get_remote_plugin_name,
+)
+from gcloud.utils.dates import format_datetime, timestamp_to_datetime
+from gcloud.utils.managermixins import ClassificationCountMixin
+from pipeline_plugins.components.collections.subprocess_plugin.converter import (
+    PipelineTreeSubprocessConverter,
+)
+from pipeline_web.core.abstract import NodeAttr
+from pipeline_web.core.models import NodeInInstance
+from pipeline_web.parser.clean import PipelineWebTreeCleaner
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
+from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 logger = logging.getLogger("root")
 
@@ -590,6 +598,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         pipeline_web_cleaner = PipelineWebTreeCleaner(pipeline_tree)
         nodes_attr = pipeline_web_cleaner.clean(with_subprocess=(not independent_subprocess))
 
+        inject_original_template_info(pipeline_tree)
         if independent_subprocess:
             converter = PipelineTreeSubprocessConverter(pipeline_tree)
             converter.convert()
@@ -1009,9 +1018,9 @@ class TaskFlowInstance(models.Model):
 
     def _get_task_celery_queue(self, engine_ver):
         queue = ""
-        if engine_ver == EngineConfig.ENGINE_VER_V1 and self.create_method == "api":
+        if engine_ver == EngineConfig.ENGINE_VER_V1 and self.create_method == TaskCreateMethod.API.value:
             queue = settings.API_TASK_QUEUE_NAME
-        elif engine_ver == EngineConfig.ENGINE_VER_V2 and self.create_method == "api":
+        elif engine_ver == EngineConfig.ENGINE_VER_V2 and self.create_method == TaskCreateMethod.API.value:
             queue = settings.API_TASK_QUEUE_NAME_V2
         return queue
 

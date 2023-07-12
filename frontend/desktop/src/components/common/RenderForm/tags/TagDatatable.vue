@@ -18,7 +18,7 @@
                 size="small"
                 :disabled="!formEdit || disabled"
                 @click="add_row">
-                {{ i18n.add_text }}
+                {{ $t('添加') }}
             </bk-button>
             <template v-for="btn in table_buttons">
                 <bk-button
@@ -90,15 +90,15 @@
                     fixed="right"
                     align="center"
                     width="100"
-                    :label="i18n.operate_text">
+                    :label="$t('操作')">
                     <template slot-scope="scope">
                         <div v-if="(pagination ? (currentPage - 1) * page_size + scope.$index : scope.$index) === editRowNumber">
-                            <bk-button :text="true" :disabled="disabled" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</bk-button>
-                            <bk-button :text="true" :disabled="disabled" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</bk-button>
+                            <bk-button :text="true" :disabled="disabled" @click="onSave(scope.$index, scope.row)">{{ $t('保存') }}</bk-button>
+                            <bk-button :text="true" :disabled="disabled" @click="onCancel(scope.$index, scope.row)">{{ $t('取消') }}</bk-button>
                         </div>
                         <div v-else>
-                            <bk-button :text="true" v-if="rowEditable" :disabled="disabled" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</bk-button>
-                            <bk-button :text="true" v-if="deleteable" :disabled="disabled" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</bk-button>
+                            <bk-button :text="true" v-if="rowEditable" :disabled="disabled" @click="onEdit(scope.$index, scope.row)">{{ $t('编辑') }}</bk-button>
+                            <bk-button :text="true" v-if="deleteable" :disabled="disabled" @click="onDelete(scope.$index, scope.row)">{{ $t('删除') }}</bk-button>
                         </div>
                     </template>
                 </el-table-column>
@@ -116,6 +116,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
     import FormItem from '../FormItem.vue'
@@ -135,14 +136,14 @@
                         tag_code: 'name',
                         type: 'text',
                         attrs: {
-                            name: gettext('参数名称')
+                            name: i18n.t('参数名称')
                         }
                     },
                     {
                         tag_code: 'type',
                         type: 'text',
                         attrs: {
-                            name: gettext('参数类型'),
+                            name: i18n.t('参数类型'),
                             hidden: true
                         }
                     },
@@ -150,7 +151,7 @@
                         tag_code: 'value',
                         type: 'textarea',
                         attrs: {
-                            name: gettext('参数值'),
+                            name: i18n.t('参数值'),
                             editable: true
                         }
                     }
@@ -198,7 +199,7 @@
         empty_text: {
             type: String,
             required: false,
-            default: gettext('无数据'),
+            default: i18n.t('无数据'),
             desc: 'tips when data is empty'
         },
         remote_url: {
@@ -272,15 +273,7 @@
                 editRowNumber: undefined,
                 tableValue: tools.deepClone(this.value),
                 loading: false,
-                currentPage: 1,
-                i18n: {
-                    save_text: gettext('保存'),
-                    cancel_text: gettext('取消'),
-                    edit_text: gettext('编辑'),
-                    operate_text: gettext('操作'),
-                    delete_text: gettext('删除'),
-                    add_text: gettext('添加')
-                }
+                currentPage: 1
             }
         },
         computed: {
@@ -408,7 +401,7 @@
                 if (!fileTypeValid) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'),
+                        message: this.$t('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'),
                         delay: 10000
                     })
                     return
@@ -646,7 +639,7 @@
                             $this.loading = false
                         },
                         error: () => {
-                            $this.empty_text = gettext('请求表头数据失败，使用预置表头')
+                            $this.empty_text = this.$t('请求表头数据失败，使用预置表头')
                             $this.loading = false
                         }
                     })

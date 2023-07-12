@@ -17,6 +17,3 @@ from django.apps import AppConfig
 class CallbackRetryConfig(AppConfig):
     name = "gcloud.contrib.callback_retry"
     verbose_name = "GcloudContribCallbackRetry"
-
-    def ready(self):
-        pass

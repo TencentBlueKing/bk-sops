@@ -11,7 +11,7 @@
 */
 <template>
     <div class="ip-select-conditon">
-        <h3 :class="['condition-label', { 'disabled': !editable }]">{{label}}{{i18n.allSatisfy}}:</h3>
+        <h3 :class="['condition-label', { 'disabled': !editable }]">{{label}}{{$t('（同时满足）')}}:</h3>
         <template v-if="conditions.length" class="condition-list">
             <div
                 v-for="(condition, index) in conditions"
@@ -29,18 +29,13 @@
                 </condition-item>
             </div>
         </template>
-        <div v-else :class="['condition-empty', { 'disabled': !editable }]" @click.stop="addCondition">{{i18n.addItem}}</div>
+        <div v-else :class="['condition-empty', { 'disabled': !editable }]" @click.stop="addCondition">{{$t('点击增加条件')}}</div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import ConditionItem from './ConditionItem.vue'
-
-    const i18n = {
-        allSatisfy: gettext('（同时满足）'),
-        addItem: gettext('点击增加条件')
-    }
 
     export default {
         name: 'SelectCondition',
@@ -71,7 +66,7 @@
         },
         data () {
             return {
-                i18n
+                
             }
         },
         methods: {

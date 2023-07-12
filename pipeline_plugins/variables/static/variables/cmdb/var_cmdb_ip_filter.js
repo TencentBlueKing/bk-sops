@@ -38,8 +38,8 @@
                         attrs: {
                             name: gettext("GSE AGENT状态"),
                             items: [
-                                {text: "在线", value: 1},
-                                {text: "不在线", value: 0}
+                                {text: gettext("在线"), value: 1},
+                                {text: gettext("不在线"), value: 0}
                             ],
                             default: 1,
                             hookable: true,
@@ -52,8 +52,8 @@
                         attrs: {
                             name: gettext("输出带云区域"),
                             items: [
-                                {name: "是", value: true},
-                                {name: "否", value: false},
+                                {name: gettext("是"), value: true},
+                                {name: gettext("否"), value: false},
                             ],
                             default: true,
                             hookable: true,
@@ -66,10 +66,10 @@
                         attrs: {
                             name: gettext("输出分隔符"),
                             items: [
-                                {name: "逗号", value: ","},
-                                {name: "分号", value: ";"},
-                                {name: "竖线", value: "|"},
-                                {name: "换行符", value: "\n"}
+                                {name: gettext("逗号"), value: ","},
+                                {name: gettext("分号"), value: ";"},
+                                {name: gettext("竖线"), value: "|"},
+                                {name: gettext("换行符"), value: "\n"}
                             ],
                             default: ",",
                             hookable: true,

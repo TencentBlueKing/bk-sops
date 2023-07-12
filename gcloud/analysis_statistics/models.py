@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.constants import TASK_CATEGORY, TASK_CREATE_METHOD
+from gcloud.constants import TASK_CATEGORY, TASK_CREATE_METHOD, TaskCreateMethod
 
 
 class TemplateNodeStatistics(models.Model):
@@ -113,7 +113,9 @@ class TaskflowStatistics(models.Model):
     start_time = models.DateTimeField(_("启动时间"), null=True, blank=True)
     finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
     elapsed_time = models.IntegerField(_("实例执行耗时(s)"), null=True, blank=True)
-    create_method = models.CharField(_("实例创建方式"), max_length=30, choices=TASK_CREATE_METHOD, default="app")
+    create_method = models.CharField(
+        _("实例创建方式"), max_length=30, choices=TASK_CREATE_METHOD, default=TaskCreateMethod.APP.value
+    )
 
     class Meta:
         verbose_name = _("Pipeline实例引用数据")

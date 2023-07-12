@@ -97,8 +97,8 @@
                                         <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                                     </div>
                                     <!--任务类型-->
-                                    <div v-else-if="item.id === 'task_type'">
-                                        {{ props.row.flow_type === 'common_func' ? $t('职能化') : $t('常规') }}
+                                    <div v-else-if="item.id === 'flow_type'">
+                                        {{ props.row.flow_type === 'common_func' ? $t('task_职能化') : $t('常规') }}
                                     </div>
                                     <!-- 其他 -->
                                     <template v-else>
@@ -194,7 +194,7 @@
         },
         {
             id: 'taskName',
-            name: i18n.t('任务名'),
+            name: i18n.t('task_任务名'),
             isDefaultOption: true
         },
         {
@@ -229,11 +229,11 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            width: 100
+            width: 120
         },
         {
             id: 'name',
-            label: i18n.t('任务名称'),
+            label: i18n.t('task_任务名称'),
             disabled: true,
             min_width: 240
         },
@@ -280,8 +280,8 @@
             width: 100
         },
         {
-            id: 'task_type',
-            label: i18n.t('任务类型'),
+            id: 'flow_type',
+            label: i18n.t('task_任务类型'),
             width: 100
         },
         {
@@ -376,7 +376,7 @@
                 createMethodTabs: [
                     { id: 'all', name: i18n.t('全部') },
                     { id: 'app', name: i18n.t('手动任务') },
-                    { id: 'api', name: 'API ' + i18n.t('任务') },
+                    { id: 'api', name: i18n.t('API 任务') },
                     { id: 'periodic', name: i18n.t('周期任务') },
                     { id: 'clocked', name: i18n.t('计划任务') }
                 ],
@@ -717,8 +717,17 @@
                     this.onTaskPermissonCheck(['task_delete'], task)
                     return
                 }
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('任务') + '"' + task.name + '"?',
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('任务') + '"' + task.name + '"?'])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,

@@ -15,20 +15,19 @@ import logging
 import time
 import traceback
 
+from blueapps.account.decorators import login_exempt
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.http import JsonResponse
-from cryptography.fernet import Fernet
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
-from blueapps.account.decorators import login_exempt
 
 import env
 from gcloud.contrib.callback_retry.models import CallbackRetryTask, CallbackStatus
 from gcloud.core.models import EngineConfig
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
-from django.utils.translation import ugettext_lazy as _
+from gcloud.taskflow3.models import TaskFlowInstance
 
 logger = logging.getLogger("root")
 
@@ -96,6 +95,16 @@ def node_callback(request, token):
         # 考虑callback时Process状态还没及时修改为sleep的情况
         time.sleep(0.5)
 
+    if CallbackRetryTask.exists(task_id=taskflow_id, node_id=node_id, version=node_version):
+        # 将已经存在的记录设置为已丢弃状态
+        update_num = CallbackRetryTask.objects.filter(
+            task_id=taskflow_id, node_id=node_id, version=node_version
+        ).update(status=CallbackStatus.DISCARDED.value)
+
+        logger.info(
+            "[node_callback] found a callback retry ready exists, update success update_num={}".format(update_num)
+        )
+
     if final_status or not settings.ENABLE_CALLBACK_RETRY_TASK or engine_ver != EngineConfig.ENGINE_VER_V2:
         # 以下三种条件满足其一则不会开启回调重试
         # 1. 没开启，2.回调成功，3.引擎版本不是v2
@@ -108,16 +117,6 @@ def node_callback(request, token):
             taskflow_id, node_id, node_version, callback_data
         )
     )
-    if CallbackRetryTask.exists(task_id=taskflow_id, node_id=node_id, version=node_version):
-        # 将已经存在的记录设置为已丢弃状态
-        update_num = CallbackRetryTask.objects.filter(
-            task_id=taskflow_id, node_id=node_id, version=node_version
-        ).update(status=CallbackStatus.DISCARDED.value)
-
-        logger.info(
-            "[node_callback] found a callback retry ready exists, update success update_num={}".format(update_num)
-        )
-
     callback_retry_task = CallbackRetryTask.objects.create(
         task_id=taskflow_id,
         node_id=node_id,

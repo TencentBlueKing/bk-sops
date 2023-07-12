@@ -16,16 +16,21 @@ import traceback
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
+from pipeline.contrib.periodic_task.models import (
+    PeriodicTaskHistory as PipelinePeriodicTaskHistory,
+)
+from pipeline.contrib.periodic_task.signals import (
+    periodic_task_start_failed,
+    pre_periodic_task_start,
+)
 
+from gcloud.constants import PROJECT, TaskCreateMethod
 from gcloud.core.models import EngineConfig
-from gcloud.constants import PROJECT
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
-from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.shortcuts.message import send_periodic_task_message
-from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
-from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
-from pipeline.contrib.periodic_task.signals import pre_periodic_task_start, periodic_task_start_failed
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 
 logger = logging.getLogger("celery")
 
@@ -38,7 +43,7 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         category=periodic_task.extra_info["category"],
         template_id=periodic_task.extra_info["template_num_id"],
         template_source=periodic_task.extra_info.get("template_source", PROJECT),
-        create_method="periodic",
+        create_method=TaskCreateMethod.PERIODIC.value,
         create_info=periodic_task.id,
         flow_type="common",
         current_flow="execute_task",

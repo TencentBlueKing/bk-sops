@@ -37,27 +37,29 @@
         </tag-section>
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
-            <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
-                <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
-                <span v-if="showNotReuseTitle" class="not-reuse-tip">
-                    <i class="common-icon-dark-circle-warning"></i>
-                    {{ $t('未能重用') }}
-                </span>
-                <!-- 编辑模式下才显示常量禁止修改tip -->
-                <span class="pre-mako-tip" v-if="option.formEdit && scheme.attrs.pre_mako_tip">
-                    <i class="common-icon-dark-circle-warning"></i>
-                    {{ scheme.attrs.pre_mako_tip }}
-                </span>
-                <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
+            <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle, 'scheme-select-name': scheme.type === 'select' && !scheme.attrs.remote }]">
+                <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
+                <span class="required" v-if="isRequired()" style="display: none">*</span>
+                <span class="scheme-code">{{ scheme.tag_code }}</span>
+                <i
+                    v-if="showNotReuseTitle || showPreMakoTip"
+                    v-bk-tooltips="{
+                        content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
+                        placement: 'top-end',
+                        boundary: 'window',
+                        zIndex: 2072
+                    }"
+                    class="common-icon-dark-circle-warning">
+                </i>
+                <!-- <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ scheme.attrs.used_tip }}
-                </span>
+                </span> -->
             </div>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
             <!-- 表单名称 -->
             <label
                 v-if="option.showLabel && scheme.attrs.name"
-                :class="['rf-tag-label', { 'required': isRequired() }]">
+                class="rf-tag-label">
                 <span
                     v-bk-tooltips="{
                         allowHtml: true,
@@ -71,6 +73,7 @@
                     }"
                     :class="{ 'tag-label-tips': scheme.attrs.tips }">
                     {{scheme.attrs.name}}
+                    <span class="required" v-if="isRequired()">*</span>
                 </span>
             </label>
             <!-- 参数被使用占位popover -->
@@ -124,9 +127,9 @@
             <!-- 变量勾选checkbox -->
             <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
                 <i
-                    :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                    :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
-                        content: hook ? i18n.hooked : i18n.cancelHook,
+                        content: hook ? $t('取消变量引用') : $t('设置为变量'),
                         placement: 'bottom',
                         zIndex: 3000
                     }"
@@ -142,7 +145,9 @@
                     }"
                     @click="onRenderChange">
                 </i>
+                <i v-else class="bk-icon icon-angle-up-fill"></i>
             </div>
+            <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
         </template>
     </div>
 </template>
@@ -249,10 +254,6 @@
                 showForm,
                 showHook,
                 formValue,
-                i18n: {
-                    hooked: gettext('取消变量引用'),
-                    cancelHook: gettext('设置为变量')
-                },
                 isShowRenderIcon: true // 是否展示免渲染icon
             }
         },
@@ -262,6 +263,9 @@
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
+            },
+            showPreMakoTip () {
+                return this.option.formEdit && this.scheme.attrs.pre_mako_tip
             },
             showTagUsedStyle () {
                 const { type, attrs } = this.scheme
@@ -561,15 +565,10 @@
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
-        &.required {
-            &:before {
-                content: '*';
-                position: absolute;
-                top: 0px;
-                right: -10px;
-                color: #F00;
-                font-family: "SimSun";
-            }
+        .required {
+            color: #F00;
+            margin-left: 3px;
+            font-family: "SimSun";
         }
         .tag-label-tips {
             position: relative;
@@ -623,6 +622,11 @@
         }
         .hook-icon {
             font-size: 19px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin: 3px 0 0 6px;
         }
         &.hide-render-icon {
             justify-content: center;

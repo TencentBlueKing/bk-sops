@@ -15,16 +15,16 @@ import base64
 import hashlib
 import logging
 from functools import partial
-from typing import Tuple, List, Optional, Dict
+from typing import Any, Dict, List, Optional, Tuple
 
 import ujson as json
 from django.apps import apps
-
-from gcloud.constants import COMMON, PROJECT
+from django.utils.translation import ugettext_lazy as _
 from pipeline.core.constants import PE
+
 from gcloud import err_code
 from gcloud.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from gcloud.constants import COMMON, PROJECT
 
 logger = logging.getLogger("root")
 
@@ -90,6 +90,34 @@ def inject_template_node_id(pipeline_tree: dict):
                 inject_template_node_id(act["pipeline"])
 
 
+def inject_original_template_info(pipeline_tree: dict):
+    """填充模版信息到子流程"""
+
+    task_template_model = apps.get_model("tasktmpl3", "TaskTemplate")
+    common_template_model = apps.get_model("template", "CommonTemplate")
+
+    for act_id, act in pipeline_tree["activities"].items():
+        if act["type"] == "SubProcess":
+            inject_original_template_info(act["pipeline"])
+            pipeline_template_id = act["template_id"]
+            # 旧模版数据可能没有template_source字段
+            tmpl_model_cls, candidate_tmpl_model_cls = (
+                (common_template_model, task_template_model)
+                if act.get("template_source") == COMMON
+                else (task_template_model, common_template_model)
+            )
+            template = (
+                tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
+                or candidate_tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
+            )
+            if not template:
+                raise ValueError(f"Template with pipeline_template_id: {pipeline_template_id} not found")
+
+            act["template_source"] = COMMON if isinstance(template, common_template_model) else PROJECT
+            act["original_template_id"] = str(template.id)
+            act["original_template_version"] = template.version
+
+
 def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
     service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
     for act in service_acts:
@@ -103,6 +131,20 @@ def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
                 constant["source_tag"].endswith(".biz_cc_id") or constant["source_tag"].endswith(".bk_biz_id")
             ) and constant["value"]:
                 constant["value"] = bk_biz_id
+
+
+def fill_default_version_to_service_activities(pipeline_tree):
+    """
+    填充默认版本到 ServiceActivity 类型的节点，避免因导出数据版本丢失导致流程导入后无法正常执行
+    :param pipeline_tree:
+    :return:
+    """
+    service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
+    for act in service_acts:
+        if not act.get("component"):
+            continue
+        if not act["component"].get("version"):
+            act["component"]["version"] = "legacy"
 
 
 def fetch_templates_info(
@@ -136,3 +178,17 @@ def fetch_templates_info(
         )
         templates = task_templates + common_templates
     return templates
+
+
+def format_import_result_to_response_data(import_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    将模板导出结果解析为接口返回数据
+    :param import_result:
+    :return:
+    """
+    return {
+        "result": import_result["result"],
+        "message": import_result["message"],
+        "code": import_result["code"],
+        "data": import_result["data"],
+    }

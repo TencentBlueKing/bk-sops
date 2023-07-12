@@ -11,19 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import datetime
-import sys
 import importlib
+import sys
 from urllib.parse import urlparse
 
-from django.utils.translation import ugettext_lazy as _
-
-from blueapps.conf.log import get_logging_config_dict
-from blueapps.conf.default_settings import *  # noqa
-from blueapps.opentelemetry.utils import inject_logging_trace_info
-from gcloud.exceptions import ApiRequestError
-from pipeline.celery.queues import ScalableQueues
 from bamboo_engine.config import Settings as BambooSettings
+from blueapps.conf.default_settings import *  # noqa
+from blueapps.conf.log import get_logging_config_dict
+from blueapps.opentelemetry.utils import inject_logging_trace_info
+from django.utils.translation import ugettext_lazy as _
+from pipeline.celery.queues import ScalableQueues
+
 import env
+from gcloud.exceptions import ApiRequestError
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
@@ -154,11 +154,15 @@ MIDDLEWARE += (
 
 AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
 
+ENABLE_IPV6 = env.ENABLE_IPV6
+# paasv3 和 开启了ipv6 才会尝试加载 BK_API_URL_TMPL 这个变量
+if env.IS_PAAS_V3 or ENABLE_IPV6:
+    BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
+
 if env.IS_PAAS_V3:
     BK_APIGW_NAME = "bk-sops"
     BK_APP_CODE = os.getenv("BKPAAS_APP_ID")
     BK_APP_SECRET = os.getenv("BKPAAS_APP_SECRET")
-    BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
     BK_APIGW_MANAGER_MAINTAINERS = env.BK_APIGW_MANAGER_MAINTAINERS
 
     api_host = urlparse(env.BKAPP_APIGW_API_HOST)
@@ -204,7 +208,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.28.0"
+STATIC_VERSION = "3.28.11"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -481,9 +485,10 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
-from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
-from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
+
 from gcloud.contrib.cleaner import settings as cleaner_settings  # noqa
+from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
@@ -507,7 +512,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True, "LANGUAGE_MAPPINGS": {"en": "en"}}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN
@@ -665,6 +670,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
@@ -754,7 +760,6 @@ EXPIRED_TASK_CLEAN_NUM_LIMIT = env.EXPIRED_TASK_CLEAN_NUM_LIMIT
 TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
 MAX_EXPIRED_SESSION_CLEAN_NUM = env.MAX_EXPIRED_SESSION_CLEAN_NUM
 EXPIRED_SESSION_CLEAN_CRON = env.EXPIRED_SESSION_CLEAN_CRON
-ENABLE_IPV6 = env.ENABLE_IPV6
 
 # V2引擎任务清理配置
 ENABLE_CLEAN_EXPIRED_V2_TASK = env.ENABLE_CLEAN_EXPIRED_V2_TASK
@@ -785,3 +790,6 @@ def check_engine_admin_permission(request, *args, **kwargs):
 
 
 PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"
+
+# 任务列表过滤失败任务最大天数
+TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS

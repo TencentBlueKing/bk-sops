@@ -48,14 +48,14 @@
         <div class="condition-area">
             <select-condition
                 ref="conditions"
-                :label="i18n.filterTitle"
+                :label="$t('筛选条件和排除条件')"
                 :editable="editable"
                 :condition-fields="conditionFields"
                 :conditions="conditions"
                 @change="updateValue('conditions', $event)">
             </select-condition>
             <div class="cloud-area-form">
-                <label :class="[editable ? '' : 'disabled']">{{ i18n.showCloudArea }}</label>
+                <label :class="[editable ? '' : 'disabled']">{{ $t('变量值是否带云区域：') }}</label>
                 <bk-switcher
                     size="small"
                     theme="primary"
@@ -75,18 +75,6 @@
     import MultipleIpSelector from './MultipleIpSelector.vue'
     import SelectCondition from './SelectCondition.vue'
     import SeparatorSelect from '../SeparatorSelect.vue'
-
-    const i18n = {
-        filterTitle: gettext('筛选条件和排除条件'),
-        showCloudArea: gettext('变量值是否带云区域：')
-    }
-
-    // ip选择器兼容标准运维国际化
-    if (typeof window.gettext !== 'function') {
-        window.gettext = function gettext (string) {
-            return string
-        }
-    }
 
     export default {
         name: 'IpSelector',
@@ -178,7 +166,6 @@
                 with_cloud_id,
                 conditions,
                 separator,
-                i18n,
                 allowUnfoldInput: false
             }
         },

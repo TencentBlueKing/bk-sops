@@ -71,7 +71,7 @@
                                         <span
                                             class="label"
                                             v-if="row.is_latest === null"
-                                            v-bk-tooltips="{ content: '当前任务为旧版周期任务，无法判断创建周期任务后流程数据是否变更。可前往编辑任务，完成一次更新即升级到新版本，获得新版本的提示更新能力。', width: 440 }">
+                                            v-bk-tooltips="{ content: $t('当前任务为旧版周期任务，无法判断创建周期任务后流程数据是否变更。可前往编辑任务，完成一次更新即升级到新版本，获得新版本的提示更新能力。'), width: 440 }">
                                             {{ $t('旧版') }}
                                         </span>
                                     </div>
@@ -511,7 +511,8 @@
                     })
                     const list = periodicListData.results
                     this.periodicList = list.map(item => {
-                        item.parseValue = Translate(item.cron)
+                        const splitCron = this.splitPeriodicCron(item.cron)
+                        item.parseValue = Translate(splitCron)
                         return item
                     })
                     this.pagination.count = periodicListData.count
@@ -588,8 +589,17 @@
                     this.onPeriodicPermissonCheck(['periodic_task_delete'], periodic)
                     return
                 }
+                const h = this.$createElement
                 this.$bkInfo({
-                    title: i18n.t('确认删除') + i18n.t('周期任务') + '"' + periodic.name + '"?',
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [i18n.t('确认删除') + i18n.t('周期任务') + '"' + periodic.name + '"?'])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     width: 450,
                     confirmLoading: true,

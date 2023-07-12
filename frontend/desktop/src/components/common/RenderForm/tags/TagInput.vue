@@ -32,9 +32,9 @@
                         }"
                         :contenteditable="!isDisabled"
                         :data-placeholder="placeholder"
+                        v-bk-clickoutside="handleClickOutSide"
                         @mouseup="handleInputMouseUp"
                         @focus="handleInputFocus"
-                        @blur="handleInputBlur "
                         @keydown="handleInputKeyDown"
                         @input="handleInputChange">
                     </div>
@@ -48,7 +48,9 @@
                             <li
                                 class="rf-select-item"
                                 v-for="item in varList"
+                                v-bk-overflow-tips
                                 :key="item"
+                                :class="{ 'is-hover': hoverKey === item }"
                                 @click.stop="onSelectVal(item)">
                                 {{ item }}
                             </li>
@@ -63,6 +65,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import dom from '@/utils/dom.js'
     import { getFormMixins } from '../formMixins.js'
@@ -80,13 +83,13 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用表单输入')
+            desc: i18n.t('禁用表单输入')
         },
         showPassword: {
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('是否以密码模式显示')
+            desc: i18n.t('是否以密码模式显示')
         },
         value: {
             type: [String, Number],
@@ -110,7 +113,8 @@
                     focus: false
                 },
                 varList: [],
-                varListPositionLeft: 0
+                varListPositionLeft: 0,
+                hoverKey: ''
             }
         },
         computed: {
@@ -157,7 +161,9 @@
         },
         mounted () {
             const divInputDom = this.$el.querySelector('.div-input')
-            divInputDom.innerHTML = this.value
+            if (divInputDom) {
+                divInputDom.innerHTML = this.value
+            }
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
@@ -174,12 +180,12 @@
             },
             onSelectVal (val) {
                 const divInputDom = this.$el.querySelector('.div-input')
-                divInputDom.innerText = divInputDom.innerText.replace(VAR_REG, val)
+                divInputDom.innerHTML = divInputDom.innerHTML.replace(VAR_REG, val)
                 const replacedValue = this.value.replace(VAR_REG, val)
                 this.input.value = replacedValue
                 this.updateForm(replacedValue)
                 this.isListOpen = false
-                this.handleInputBlur()
+                this.handleInputFocus()
             },
             // 文本框点击
             handleInputMouseUp (e) {
@@ -246,13 +252,24 @@
                 }
                 this.isListOpen = !!this.varList.length
             },
+            // 点击到input外面
+            handleClickOutSide (e) {
+                const parent = e.target.offsetParent
+                const classList = parent ? parent.classList : null
+                const unFocus = !parent || (classList && !Array.from(classList.values()).some(key => {
+                    return ['tag-input', 'tippy-tooltip', 'tippy-content', 'rf-select-list'].includes(key)
+                }))
+                if (unFocus && e.target.className !== 'var-tag') {
+                    this.handleInputBlur()
+                }
+            },
             // 文本框失焦
             handleInputBlur  (e) {
                 this.$emit('blur')
                 this.input.focus = false
                 const varRegexp = /\s?\${[a-zA-Z_]\w*}\s?/g
                 const innerHtml = this.input.value.replace(varRegexp, (match) => {
-                    return ` <span contenteditable="false" class="var-tag">${match.trim()}</span> ` // 两边留空格保持间距
+                    return `&nbsp;<span contenteditable="false" class="var-tag">${match.trim()}</span>&nbsp;` // 两边留空格保持间距
                 })
                 const divInputDom = this.$el.querySelector('.div-input')
                 divInputDom.innerHTML = innerHtml
@@ -262,12 +279,38 @@
                 switch (e.code) {
                     case 'Enter':
                     case 'NumpadEnter':
+                        e.preventDefault()
+                        this.handleKeyEnter()
+                        break
                     case 'ArrowDown':
                     case 'ArrowUp':
                         e.preventDefault()
+                        this.handleDocumentKeydown(event)
                         break
                     default:
                         return false
+                }
+            },
+            handleKeyEnter () {
+                if (!this.hoverKey) return
+                this.onSelectVal(this.hoverKey)
+                this.hoverKey = ''
+                this.$nextTick(() => {
+                    this.handleInputFocus()
+                })
+            },
+            handleDocumentKeydown (event) {
+                const len = this.varList.length
+                if (len) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    let curIndex = this.varList.findIndex(item => item === this.hoverKey)
+                    curIndex = event.code === 'ArrowDown' ? curIndex + 1 : curIndex - 1
+                    curIndex = curIndex > len - 1 ? 0 : (curIndex < 0 ? len - 1 : curIndex)
+                    const option = this.varList[curIndex]
+                    if (option) {
+                        this.hoverKey = option
+                    }
                 }
             }
         }
@@ -303,9 +346,11 @@
             line-height: 32px;
             font-size: 12px;
             cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            &.is-hover,
             &:hover {
-                background: #eef6fe;
-                color: #3a84ff;
+                background: #f5f7fa;
             }
         }
     }
@@ -328,12 +373,14 @@
         }
     }
     .div-input {
+        height: 32px;
+        line-height: 18px;
+        padding: 7px 0;
         color: #63656e;
         white-space: nowrap;
         overflow: hidden;
         /deep/.var-tag {
-            line-height: 20px;
-            padding: 1px 4px;
+            padding: 0px 4px;
             background: #f0f1f5;
             cursor: pointer;
             &:hover {

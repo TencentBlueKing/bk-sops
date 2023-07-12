@@ -11,18 +11,17 @@
 <template>
     <div class="output-params">
         <bk-table :data="list" :col-border="false" :row-class-name="getRowClassName">
-            <bk-table-column show-overflow-tooltip :label="$t('名称')" :width="180" prop="name"></bk-table-column>
-            <bk-table-column show-overflow-tooltip :label="$t('说明')">
-                <template slot-scope="props">
-                    {{ props.row.name }}
+            <bk-table-column :label="$t('名称')" :width="180" prop="name">
+                <div class="params-name" slot-scope="props">
+                    <span class="name" v-bk-overflow-tips>{{ props.row.name }}</span>
                     <i
                         v-if="props.row.description"
                         v-bk-tooltips="props.row.description"
                         class="common-icon-tooltips">
                     </i>
-                </template>
+                </div>
             </bk-table-column>
-            <bk-table-column label="KEY" class-name="param-key" :width="260">
+            <bk-table-column label="KEY" class-name="param-key">
                 <div slot-scope="props" class="param-key-wrap">
                     <div
                         v-bk-tooltips="{
@@ -386,8 +385,19 @@
 </style>
 <style lang="scss" scoped>
     .output-params {
-        .common-icon-tooltips {
-            font-size: 14px;
+        .params-name {
+            display: flex;
+            align-items: center;
+            .name {
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+            .common-icon-tooltips {
+                flex-shrink: 0;
+                margin-left: 3px;
+                font-size: 14px;
+            }
         }
         .param-key-wrap {
             display: flex;

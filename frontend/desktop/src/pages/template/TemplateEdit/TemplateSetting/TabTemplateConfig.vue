@@ -508,9 +508,6 @@
                     const resp = await this.getProjectConfig(this.projectId)
                     if (resp.result) {
                         const { executor_proxy, executor_proxy_exempts } = resp.data
-                        if (executor_proxy) {
-                            this.formData.executorProxy = [executor_proxy]
-                        }
                         this.proxyPlaceholder = i18n.t('项目执行代理人(n)；免代理用户(m)', {
                             n: executor_proxy || '--',
                             m: executor_proxy_exempts || '--'

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+from enum import Enum
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
-from enum import Enum
 
 
 class CallbackStatus(Enum):
@@ -27,8 +27,7 @@ class CallbackRetryTask(models.Model):
     )
 
     task_id = models.BigIntegerField(_("提单人"))
-    # type = models.CharField(_("回调类型"), choices=CALLBACK_TYPE_CHOICES, default=CallbackType.JOB.value)
-    node_id = models.CharField(_("任务实例节点ID"), max_length=255, blank=True, default="")
+    node_id = models.CharField(_("版本"), max_length=64)
     version = models.CharField(_("版本"), max_length=64)
     data = models.JSONField(_("callback Data"), default=dict)
     status = models.CharField(

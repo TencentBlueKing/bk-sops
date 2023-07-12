@@ -12,7 +12,7 @@
 <template>
     <div class="node-tree-wrapper">
         <div class="tree-item" v-for="tree in treeData" :key="tree.id" data-test-id="taskExcute_tree_nodeTree">
-            <div v-if="!tree.children || tree.name === '汇聚网关' || tree.type === 'SubProcess'" :class="['tree-item-info', tree.isGateway ? 'gateway' : '']">
+            <div v-if="!tree.children || tree.name === $t('汇聚网关') || tree.type === 'SubProcess'" :class="['tree-item-info', tree.isGateway ? 'gateway' : '']">
                 <div class="tree-line"></div>
                 <div class="tree-item-status">
                     <span class="tree-item-expanded"></span>
@@ -382,13 +382,19 @@
                     }
                     rootNode = rootNode.parent
                 }
+                const parentIds = this.nodeNav.slice(1).map(item => item.id).toString().split(',').join('.')
                 // 最外层网关为null时传递id
                 nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
                 this.setDefaultActiveId(this.treeData, this.treeData, node.id)
-                this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
+                this.$emit('onSelectNode', parentIds ? parentIds + '.' + nodeHeirarchy : nodeHeirarchy, node.id, nodeType)
                 // 取缓存id
                 node.id = node.cacheId ? node.cacheId : node.id
                 node.selected = node.id === this.curSelectId
+                // 选中后,非tree列表切换到已展开tree时默认展开
+                if (node.selected) {
+                    this.$set(node, 'expanded', true)
+                    e.stopPropagation()
+                }
             }
         }
     }

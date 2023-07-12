@@ -12,19 +12,26 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import typing
 
 from django.utils import timezone
+from pipeline.exceptions import PipelineException
 from rest_framework import serializers
 
-from gcloud.core.models import Project
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import (
+    DATETIME_FORMAT,
+    TASK_CREATE_METHOD,
+    TASK_FLOW_TYPE,
+    TEMPLATE_SOURCE,
+    TaskCreateMethod,
+)
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, DATETIME_FORMAT
 from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
+from gcloud.core.models import Project
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.parser.validator import validate_web_pipeline_tree
-from pipeline.exceptions import PipelineException
 
 
 class TaskFlowInstanceSerializer(TaskSerializer):
@@ -44,6 +51,7 @@ class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
     pipeline_tree = serializers.SerializerMethodField()
     primitive_template_id = serializers.SerializerMethodField()
     primitive_template_source = serializers.SerializerMethodField()
+    constants_info = serializers.SerializerMethodField()
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
@@ -65,6 +73,30 @@ class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
             if primitive_template_source:
                 return primitive_template_source
         return primitive_template_source
+
+    def get_constants_info(self, obj) -> typing.Dict[str, typing.Any]:
+        """获取创建任务传入的全局变量信息"""
+
+        # has_key - 是否通过预期方式（目前指 API 调用）的方式，传入全局变量参数
+        # keys_in_constants_parameter - 传入的全局变量参数键名
+        # has_key = True 时，页面重试填参时仅允许编辑 keys_in_constants_parameter 中的参数，并且不做强制校验
+        constants_info: typing.Dict[str, typing.Any] = {"has_key": False, "keys_in_constants_parameter": []}
+
+        if not (
+            getattr(obj, "create_method", TaskCreateMethod.APP.value) == TaskCreateMethod.API.value
+            and getattr(obj, "extra_info", None)
+        ):
+            return constants_info
+
+        extra_info: typing.Dict = json.loads(obj.extra_info)
+
+        # 对于存量没有记录传入参数键名的任务，保持原来的重试填参逻辑
+        if "keys_in_constants_parameter" not in extra_info:
+            return constants_info
+
+        constants_info["has_key"] = True
+        constants_info["keys_in_constants_parameter"] = extra_info["keys_in_constants_parameter"]
+        return constants_info
 
 
 class CreateTaskFlowInstanceSerializer(TaskSerializer):

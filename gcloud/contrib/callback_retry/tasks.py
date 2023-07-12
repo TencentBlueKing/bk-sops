@@ -2,9 +2,9 @@
 import datetime
 import logging
 
+from celery.schedules import crontab
 from celery.task import periodic_task
 from django.conf import settings
-from celery.schedules import crontab
 
 from gcloud.contrib.callback_retry.models import CallbackRetryTask, CallbackStatus
 from gcloud.core.models import EngineConfig
@@ -14,7 +14,7 @@ from gcloud.utils.decorators import time_record
 logger = logging.getLogger("root")
 
 
-@periodic_task(run_every=(crontab(*settings.CALLBACK_RETRY_CRON)), ignore_result=True, queue="task_data_clean")
+@periodic_task(run_every=(crontab(*settings.CALLBACK_RETRY_CRON)), ignore_result=True, queue="callback_retry_queue")
 @time_record(logger)
 def run_callback_retry():
     if not settings.ENABLE_CALLBACK_RETRY_TASK:
@@ -44,7 +44,7 @@ def run_callback_retry():
             logger.info(
                 "[run_callback_retry] callback retry failed, task_id = {}, result = {}".format(task.id, callback_result)
             )
-            task.error = callback_result.get("message")
+            task.error = callback_result.get("message", "")
             if task.count > settings.MAX_CALLBACK_RETRY_TIMES:
                 task.status = CallbackStatus.FAILED.value
         else:
@@ -52,4 +52,7 @@ def run_callback_retry():
             task.finish_time = datetime.datetime.now()
 
     logger.info("[run_callback_retry] found {} tasks need to callback retry".format(tasks.count()))
-    CallbackRetryTask.objects.bulk_update(tasks, ["count", "error", "status", "finish_time"])
+    try:
+        CallbackRetryTask.objects.bulk_update(tasks, ["count", "error", "status", "finish_time"])
+    except Exception as e:
+        logger.exception("[run_callback_retry] bulk update task error, error={}".format(e))

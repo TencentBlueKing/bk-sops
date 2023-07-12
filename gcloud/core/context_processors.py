@@ -107,6 +107,8 @@ def mysetting(request):
         "MAX_NODE_EXECUTE_TIMEOUT": settings.MAX_NODE_EXECUTE_TIMEOUT,
         "BK_PLUGIN_DEVELOP_URL": settings.BK_PLUGIN_DEVELOP_URL,
         "ENABLE_IPV6": settings.ENABLE_IPV6,
+        "BK_DOMAIN": env.BKPAAS_BK_DOMAIN,
+        "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
     }
 
     # custom context config

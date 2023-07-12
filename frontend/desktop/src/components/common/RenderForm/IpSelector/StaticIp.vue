@@ -13,8 +13,8 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div :class="['operation-area', { 'is-view': !editable }]">
-                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
-                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
+                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('select')">{{$t('选择添加')}}</bk-button>
+                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{$t('手动添加')}}</bk-button>
                 <template v-if="staticIps.length">
                     <bk-dropdown-menu
                         trigger="click"
@@ -22,7 +22,7 @@
                         @show="onDropdownShow"
                         @hide="onDropdownHide">
                         <bk-button theme="default" size="small" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
-                            <span>{{i18n.batchOperations}}</span>
+                            <span>{{$t('批量操作')}}</span>
                             <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                         </bk-button>
                         <div slot="dropdown-content">
@@ -58,12 +58,12 @@
                     @onRemoveIpClick="onRemoveIpClick">
                 </IpSelectorTable>
                 <div class="table-footer" v-if="isShowQuantity || isPaginationShow">
-                    <div v-if="isShowQuantity" class="selected-num">{{i18n.total}}
+                    <div v-if="isShowQuantity" class="selected-num">{{$t('共')}}
                         <span class="total-ip">{{staticIps.length}}</span>
-                        {{i18n.staticIpNum}}
-                        {{i18n.among}}
+                        {{$t('个静态IP，')}}
+                        {{$t('其中')}}
                         <span class="total-not-installed">{{failedAgentLength}}</span>
-                        {{i18n.num}}{{i18n.error}}
+                        {{$t('个')}}{{$t('异常')}}
                     </div>
                     <div class="table-pagination" v-if="isPaginationShow">
                         <bk-pagination
@@ -78,7 +78,7 @@
                         </bk-pagination>
                     </div>
                 </div>
-                <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
+                <span v-show="dataError" class="common-error-tip error-info">{{$t('必填项')}}</span>
             </div>
         </div>
         <static-ip-adding-panel
@@ -101,34 +101,6 @@
     import IpSearchInput from './IpSearchInput.vue'
     import IpSelectorTable from './IpSelectorTable.vue'
     import tools from '@/utils/tools.js'
-
-    const i18n = {
-        copyIp: gettext('复制IP'),
-        copyAgentIp: gettext('复制Agent异常IP'),
-        clearIp: gettext('清空IP'),
-        clearFailedAgentIp: gettext('清空Agent异常IP'),
-        success: gettext('成功'),
-        selectAdd: gettext('选择添加'),
-        manualAdd: gettext('手动添加'),
-        batchOperations: gettext('批量操作'),
-        total: gettext('共'),
-        staticIpNum: gettext('个静态IP，'),
-        among: gettext('其中'),
-        num: gettext('个'),
-        cloudArea: gettext('云区域'),
-        status: gettext('状态'),
-        error: gettext('异常'),
-        operation: gettext('操作'),
-        remove: gettext('移除'),
-        normal: gettext('正常'),
-        server: gettext('服务器'),
-        noData: gettext('无数据'),
-        return: gettext('返回'),
-        noDataCan: gettext('无数据，可'),
-        notEmpty: gettext('必填项'),
-        or: gettext('或者'),
-        hostName: gettext('主机名')
-    }
 
     export default {
         name: 'StaticIp',
@@ -166,22 +138,21 @@
                 operations: [
                     {
                         type: 'copyIp',
-                        name: i18n.copyIp
+                        name: this.$t('复制IP')
                     },
                     {
                         type: 'copyAgentIp',
-                        name: i18n.copyAgentIp
+                        name: this.$t('复制Agent异常IP')
                     },
                     {
                         type: 'clearIp',
-                        name: i18n.clearIp
+                        name: this.$t('清空IP')
                     },
                     {
                         type: 'clearFailedAgentIp',
-                        name: i18n.clearFailedAgentIp
+                        name: this.$t('清空Agent异常IP')
                     }
                 ],
-                i18n,
                 isUnfold: false
             }
         },
@@ -301,7 +272,7 @@
                 const { type, name } = operation
                 this[type] && this[type]()
                 this.$bkMessage({
-                    message: name + this.i18n.success,
+                    message: name + this.$t('成功'),
                     theme: 'success'
                 })
             },

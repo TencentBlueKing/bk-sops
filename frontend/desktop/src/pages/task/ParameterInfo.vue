@@ -16,8 +16,8 @@
             class="task-param-wrapper"
             ref="taskParamEdit"
             :constants="refVariable"
-            @blur="handleFormBlur"
-            @change="onFormChange"
+            @blur="setRenderFormConfig"
+            @change="handleFormChange"
             @onChangeConfigLoading="onRefVarLoadingChange">
         </TaskParamEdit>
         <div
@@ -139,7 +139,7 @@
             }
         },
         mounted () {
-            this.onFormChange = tools.debounce(this.handleFormChange, 500)
+            this.setRenderFormConfig = tools.debounce(this.handleFormBlur, 500)
         },
         methods: {
             ...mapActions('template/', [
@@ -160,7 +160,7 @@
             },
             // 获取 TaskParamEdit
             getTaskParamEdit () {
-                return this.$refs.TaskParamEdit
+                return this.$refs.taskParamEdit
             },
             getReferencedStatus (variable) {
                 return (this.taskMessageLoading || !variable)
@@ -175,9 +175,9 @@
                     // 更新renderData
                     Object.assign(this.renderData, formData)
                 }
-                // 如果类型为输入框/下拉框/文本框/密码框，则不进行后续处理
+                // 如果类型为输入框/下拉框/文本框/数字框，则不进行后续处理
                 const config = this.renderConfig.find(item => item.tag_code === key)
-                if (!config || ['input', 'select'].includes(config.type)) return
+                if (!config || ['input', 'select', 'textarea', 'int'].includes(config.type)) return
 
                 this.handleFormBlur(key)
             },
@@ -379,7 +379,7 @@
 .variable-wrap {
     background: #f0f1f5;
     .unreferenced {
-       padding-bottom: 20px;
+       padding-bottom: 1px;
     }
     .title-background {
         position: relative;

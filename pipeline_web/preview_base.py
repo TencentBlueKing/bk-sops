@@ -107,7 +107,7 @@ class PipelineTemplateWebPreviewer(object):
         pipeline_tree["line"] = list(lines.values())
         pipeline_tree["location"] = list(locations.values())
 
-        PipelineTemplateWebPreviewer._remove_useless_constants(
+        PipelineTemplateWebPreviewer.remove_useless_constants(
             exclude_task_nodes_id=exclude_task_nodes_id,
             pipeline_tree=pipeline_tree,
             remove_outputs_without_refs=remove_outputs_without_refs,
@@ -225,7 +225,7 @@ class PipelineTemplateWebPreviewer(object):
             )
 
     @staticmethod
-    def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree, remove_outputs_without_refs=True):
+    def remove_useless_constants(exclude_task_nodes_id, pipeline_tree, remove_outputs_without_refs=True):
         """
         @param exclude_task_nodes_id:
         @param pipeline_tree:

@@ -241,7 +241,7 @@ class PluginServiceApiClient:
     def get_paas_plugin_tags(environment=None, **kwargs):
         """通过PaaS获取插件分类列表"""
         url, params = PluginServiceApiClient._prepare_paas_api_request(
-            path_params=["system/bk_plugin_tags"], environment=environment
+            path_params=["system/bk_plugin_tags"], environment=environment, force_add_app_info=True
         )
         return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
@@ -265,7 +265,7 @@ class PluginServiceApiClient:
         return url, headers
 
     @staticmethod
-    def _prepare_paas_api_request(path_params: list, environment=None):
+    def _prepare_paas_api_request(path_params: list, environment=None, force_add_app_info=False):
         """PaaS平台服务接口请求信息准备"""
         url = os.path.join(
             env.PAASV3_APIGW_API_HOST or f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
@@ -280,6 +280,10 @@ class PluginServiceApiClient:
                 "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,
             }
         )
+        if force_add_app_info:
+            params.update(
+                {"bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE, "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET}
+            )
         return url, params
 
     @staticmethod

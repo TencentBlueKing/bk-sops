@@ -14,9 +14,47 @@
                 @click.stop="handleSort('descending')">
             </i>
         </span>
+        <bk-popover
+            v-if="filterConfig.show"
+            placement="bottom"
+            theme="light"
+            trigger="click"
+            :distance="6"
+            :arrow="false"
+            ext-cls="table-header-filter-popover"
+            :on-hide="() => isFilterOpen = false">
+            <i
+                class="bk-table-column-filter-trigger bk-icon icon-funnel"
+                :class="{ 'is-selected': isSelected, 'is-open': isFilterOpen }"
+                @click="isFilterOpen = !isFilterOpen">
+            </i>
+            <div slot="content">
+                <template v-if="filterConfig.list.length">
+                    <ul class="option-list">
+                        <li
+                            v-for="item in filterConfig.list"
+                            :key="item.id"
+                            :class="['option-item', { 'is-checked': judgeOptionSelected(item) }]"
+                            @click="handleFilter(item)">
+                            <span
+                                v-if="item.color"
+                                class="label-name"
+                                :style="{ background: item.color, color: item.textColor }">
+                                {{ item.name }}
+                            </span>
+                            <span v-else>{{ item.name }}</span>
+                            <i class="check-icon bk-icon icon-check-line"></i>
+                        </li>
+                    </ul>
+                    <p class="clear-checked" @click="handleClearFilter">{{ $t('清空筛选') }}</p>
+                </template>
+                <p v-else class="no-search-data">{{ $t('查询无数据') }}</p>
+            </div>
+        </bk-popover>
         <bk-date-picker
+            v-if="dateFilterShow"
             :value="dateTimeRange"
-            :open="isDateOpen"
+            :open="isFilterOpen"
             :shortcuts="shortcuts"
             :type="'datetimerange'"
             :transfer="true"
@@ -28,8 +66,8 @@
             <i
                 slot="trigger"
                 class="bk-table-column-filter-trigger bk-icon icon-funnel"
-                :class="{ 'is-filtered': isFiltered, 'is-open': isDateOpen }"
-                @click.stop="isDateOpen = !isDateOpen">
+                :class="{ 'is-filtered': isFiltered, 'is-open': isFilterOpen }"
+                @click.stop="isFilterOpen = !isFilterOpen">
             </i>
         </bk-date-picker>
     </section>
@@ -48,6 +86,10 @@
                 type: Boolean,
                 default: true
             },
+            dateFilterShow: {
+                type: Boolean,
+                default: true
+            },
             property: {
                 type: String,
                 default: ''
@@ -59,13 +101,23 @@
             dateValue: {
                 type: Array,
                 default: () => ([])
+            },
+            filterConfig: {
+                type: Object,
+                default: () => {
+                    return {
+                        show: false,
+                        list: [],
+                        values: []
+                    }
+                }
             }
         },
         data () {
             return {
                 sortOrder: '',
                 dateTimeRange: [],
-                isDateOpen: false,
+                isFilterOpen: false,
                 shortcuts: [
                     {
                         text: i18n.t('今天'),
@@ -113,6 +165,9 @@
                 return this.dateValue.length
                     ? this.dateValue.every(date => date)
                     : false
+            },
+            isSelected () {
+                return this.filterConfig.values.length
             }
         },
         watch: {
@@ -146,7 +201,7 @@
                 this.$emit('sortChange', { prop: this.property, order: this.sortOrder })
             },
             handleDateOpenChange (state) {
-                this.isDateOpen = state
+                this.isFilterOpen = state
                 if (state) {
                     this.dateTimeRange = [...this.dateValue]
                 }
@@ -160,6 +215,25 @@
             },
             handlePickSuccess () {
                 this.$emit('dateChange', this.dateTimeRange)
+            },
+            judgeOptionSelected (data) {
+                return this.filterConfig.values.find(item => item.id === data.id)
+            },
+            handleFilter (data) {
+                const values = this.filterConfig.values
+                const index = values.findIndex(item => item.id === data.id)
+                if (index > -1) {
+                    values.splice(index, 1)
+                } else {
+                    values.push(data)
+                }
+                this.$emit('filterChange', values)
+            },
+            handleClearFilter () {
+                if (this.filterConfig.values.length) {
+                    this.filterConfig.values = []
+                    this.$emit('filterChange', [])
+                }
             }
         }
     }
@@ -213,6 +287,7 @@
             &.is-open {
                 color: #63656e;
             }
+            &.is-selected,
             &.is-filtered {
                 color: #3a84ff;
             }
@@ -225,6 +300,7 @@
     }
 </style>
 <style lang="scss">
+    @import '@/scss/mixins/scrollbar.scss';
     .date-time-range-popover {
         .bk-picker-panel-body {
             .bk-picker-confirm {
@@ -256,6 +332,63 @@
                     color: #3a84ff;
                 }
             }
+        }
+    }
+    .table-header-filter-popover {
+        .tippy-tooltip {
+            padding: 4px 0 0 0;
+            .tippy-content {
+                background: #fff;
+            }
+        }
+        .option-list {
+            width: 200px;
+            max-height: 350px;
+            overflow: auto;
+            @include scrollbar;
+            margin-bottom: 15px;
+            .option-item {
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 15px;
+                cursor: pointer;
+                .label-name {
+                    padding: 2px 6px;
+                    font-size: 12px;
+                    color: #63656e;
+                    border-radius: 8px;
+                }
+                .check-icon {
+                    display: none;
+                    font-size: 18px;
+                    color: #3a84ff;
+                }
+                &:hover {
+                    background: #f5f7fa;
+                }
+            }
+            .is-checked {
+                background: #e1ecff !important;
+                .check-icon {
+                    display: inline-block;
+                }
+            }
+        }
+        .clear-checked {
+            text-align: right;
+            margin: 0 16px;
+            padding: 16px 0;
+            color: #3a84ff;
+            cursor: pointer;
+            border-top: 1px solid #dedee5;
+        }
+        .no-search-data {
+            width: 200px;
+            line-height: 32px;
+            text-align: center;
+            color: #63656e;
         }
     }
 </style>

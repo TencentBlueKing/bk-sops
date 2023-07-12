@@ -15,52 +15,55 @@ import logging
 
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
-from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
-from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
-
 from gcloud import err_code
-from gcloud.utils.strings import check_and_rename_params
-from gcloud.utils.decorators import request_validate
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
-    FormInterceptor,
-    ExportInterceptor,
-    ImportInterceptor,
     BatchFormInterceptor,
+    ExportInterceptor,
+    FormInterceptor,
+    ImportInterceptor,
     ParentsInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.tasktmpl3.domains.constants import get_constant_values
-from .validators import (
-    ImportValidator,
-    GetTemplateCountValidator,
-    DrawPipelineValidator,
-    AnalysisConstantsRefValidator,
-    CheckBeforeImportValidator,
+from gcloud.tasktmpl3.domains.constants import (
+    analysis_pipeline_constants_ref,
+    get_constant_values,
+    get_task_referenced_constants,
 )
+from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.apis.django.api import (
     base_batch_form,
-    base_form,
     base_check_before_import,
     base_export_templates,
+    base_form,
     base_import_templates,
     base_template_parents,
     is_full_param_process,
 )
 from gcloud.template_base.apis.django.validators import (
     BatchFormValidator,
-    FormValidator,
     ExportTemplateApiViewValidator,
+    FormValidator,
     TemplateParentsValidator,
 )
-from django.utils.translation import ugettext_lazy as _
+from gcloud.utils.decorators import request_validate
+from gcloud.utils.strings import check_and_rename_params
+from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
+from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
+
+from .validators import (
+    AnalysisConstantsRefValidator,
+    CheckBeforeImportValidator,
+    DrawPipelineValidator,
+    GetTemplateCountValidator,
+    ImportValidator,
+)
 
 logger = logging.getLogger("root")
 
@@ -125,8 +128,7 @@ def batch_form(request, project_id):
 
 
 @swagger_auto_schema(
-    methods=["post"],
-    auto_schema=AnnotationAutoSchema,
+    methods=["post"], auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(ExportTemplateApiViewValidator)
@@ -149,12 +151,11 @@ def export_templates(request, project_id):
     return: DAT 文件
     {}
     """
-    return base_export_templates(request, TaskTemplate, project_id, [project_id])
+    return base_export_templates(request, TaskTemplate, project_id, project_id=int(project_id))
 
 
 @swagger_auto_schema(
-    methods=["post"],
-    auto_schema=AnnotationAutoSchema,
+    methods=["post"], auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(ImportValidator)
@@ -178,12 +179,11 @@ def import_templates(request, project_id):
         }
     }
     """
-    return base_import_templates(request, TaskTemplate, {"project_id": project_id})
+    return base_import_templates(request, TaskTemplate, {"project_id": int(project_id)})
 
 
 @swagger_auto_schema(
-    methods=["post"],
-    auto_schema=AnnotationAutoSchema,
+    methods=["post"], auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
@@ -299,6 +299,39 @@ def get_constant_preview_result(request):
     return JsonResponse({"result": True, "data": preview_results, "code": err_code.SUCCESS.code, "message": ""})
 
 
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
+def preview_task_referenced_constants(request):
+    """
+    基于当前变量填值，获取任务中被引用的变量列表
+
+    body: data
+    {
+        "pipeline_tree(required)": "流程树数据(string)",
+        "constants(required)": "pipeline_tree中对应变量数据字段(dict)",
+        "extra_data(required)": "额外数据(dict)"
+    }
+
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "referenced_constants": "被引用的变量key列表(list)"
+    }
+    """
+    constants = request.data.get("constants")
+    extra_data = request.data.get("extra_data")
+    pipeline_tree = json.loads(request.data.get("pipeline_tree"))
+
+    if not all([isinstance(param, dict) for param in [constants, extra_data, pipeline_tree]]):
+        return JsonResponse(
+            {"result": False, "message": "参数格式错误", "code": err_code.REQUEST_PARAM_INVALID.code, "data": None}
+        )
+
+    result = get_task_referenced_constants(pipeline_tree, constants, extra_data)
+    return JsonResponse({"result": True, "data": result, "code": err_code.SUCCESS.code, "message": ""})
+
+
 @require_POST
 @request_validate(AnalysisConstantsRefValidator)
 def analysis_constants_ref(request):
@@ -327,8 +360,7 @@ def analysis_constants_ref(request):
 
 
 @swagger_auto_schema(
-    methods=["get"],
-    auto_schema=AnnotationAutoSchema,
+    methods=["get"], auto_schema=AnnotationAutoSchema,
 )
 @api_view(["GET"])
 @request_validate(TemplateParentsValidator)

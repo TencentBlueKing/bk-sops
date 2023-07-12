@@ -56,14 +56,6 @@ class MakoTemplateOperation:
         if len(set(param_names)) != len(param_names):
             raise ValueError("MakoTemplateOperation %s found duplicate param" % self.name)
 
-        for names in [operator_names, param_names]:
-            for n in names:
-                if n not in " ".join(self.template):
-                    raise ValueError("MakoTemplateOperation %s's operator %s miss in template" % (self.name, n))
-
-                if n not in self.mako_template:
-                    raise ValueError("MakoTemplateOperation %s's operator %s miss in mako_template" % (self.name, n))
-
     def to_dict(self) -> dict:
         return {
             "name": self.name,

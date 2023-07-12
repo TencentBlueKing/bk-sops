@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.core.management.base import BaseCommand
 
+from gcloud.constants import TaskCreateMethod
 from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -28,7 +29,7 @@ class Command(BaseCommand):
 
         # 将之前模型中周期任务create_info字段补上
         print("sync create_info of periodic task instances...")
-        task_queryset = TaskFlowInstance.objects.filter(create_method="periodic", create_info="")
+        task_queryset = TaskFlowInstance.objects.filter(create_method=TaskCreateMethod.PERIODIC.value, create_info="")
         task_ids = task_queryset.values_list("id", flat=True)
         history_data = PeriodicTaskHistory.objects.filter(flow_instance__id__in=task_ids).values_list(
             "flow_instance__id", "task__task__id"

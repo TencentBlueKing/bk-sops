@@ -3,9 +3,10 @@ import i18n from '@/config/i18n/index.js'
 import bus from '@/utils/bus.js'
 export default class ErrorNotify {
     constructor (errorInfo, vueInstance) {
-        const { msg, type, traceId, errorSource } = errorInfo
+        const { msg, type, traceId, errorSource, content } = errorInfo
         const h = vueInstance.$createElement
         this.showMore = false
+        this.isPlugin = !errorSource
         this.notify = vueInstance.$bkNotify({
             theme: type,
             offsetY: 80,
@@ -35,7 +36,7 @@ export default class ErrorNotify {
                             '-webkit-box-orient': 'vertical'
                         }
                     }, [
-                        msg ? this.setNotifyTitleAndContent(msg, false, errorSource, 0) : ''
+                        msg ? this.setNotifyTitleAndContent(msg, false, errorSource, 0, content) : ''
                     ]),
                     h('div', {
                         class: 'bk-notify-trace-content',
@@ -61,6 +62,8 @@ export default class ErrorNotify {
         // 内容区域及进度条样式处理
         this.notify.$el.style.width = '450px'
         this.notify.$el.style.zIndex = '2500'
+        // 插件提示展示在top-center
+        if (this.isPlugin) this.notify.$el.style.left = 'calc(50% - 225px)'
         const progressWrap = document.createElement('div')
         const bar = document.createElement('div')
         progressWrap.style.cssText = 'position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #f0f1f5;'
@@ -82,11 +85,15 @@ export default class ErrorNotify {
         this.startTimeCountDown(this.remainingTime)
         this.handleMouseEvent()
     }
-    setNotifyTitleAndContent (info, isTitle, errorSource, msgIndex) {
+    setNotifyTitleAndContent (info, isTitle, errorSource, msgIndex, pluginContent) {
         let content = ''
         if (errorSource !== 'result') {
-            const infoArr = info.split(': ')
-            content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
+            if (!errorSource) { // 插件报错信息
+                content = isTitle ? info : pluginContent
+            } else {
+                const infoArr = info.split(': ')
+                content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
+            }
         } else {
             const { message } = JSON.parse(info)
             const regex = /([^:]*)?: (.*)?/ // 标准数据结构

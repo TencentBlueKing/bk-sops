@@ -101,7 +101,7 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
-                    :is-not-exist-atom-or-verion="isNotExistAtomOrVersion"
+                    :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -314,7 +314,9 @@
                 initType: '', // 记录最初的流程类型
                 isMultipleTabCount: 0,
                 isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
-                isParallelGwErrorMsg: '' // 缺少汇聚网关的报错信息
+                isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
+                checkedNodes: [],
+                checkedConvergeNodes: []
             }
         },
         computed: {
@@ -348,7 +350,10 @@
                     }
                     if (item.default_condition) {
                         const nodeId = item.default_condition.flow_id
-                        branchConditions[item.id][nodeId] = item.default_condition
+                        branchConditions[item.id][nodeId] = {
+                            ...item.default_condition,
+                            default_condition: true
+                        }
                     }
                 }
                 return {
@@ -422,6 +427,25 @@
             },
             isViewMode () {
                 return this.type === 'view'
+            },
+            nodeTargetMaps () {
+                return this.lines.reduce((acc, cur) => {
+                    const { source, target } = cur
+                    if (acc[source.id]) {
+                        acc[source.id].push(target.id)
+                    } else {
+                        acc[source.id] = [target.id]
+                    }
+                    return acc
+                }, {})
+            },
+            convergeGwNodes () {
+                return Object.values(this.gateways).reduce((acc, cur) => {
+                    if (cur.type === 'ConvergeGateway') {
+                        acc.push(cur.id)
+                    }
+                    return acc
+                }, [])
             }
         },
         watch: {
@@ -774,16 +798,10 @@
                         extCls: 'var-dirty-data-dialog',
                         width: 500,
                         okText: this.$t('清除'),
-                        subHeader: h('p',
-                                     { style: {} },
-                                     [
-                                         this.$t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)'),
-                                         h('p',
-                                           { style: { marginTop: '10px' } },
-                                           [this.$t('问题变量有：'), illegalKeys.join(',')]
-                                         )
-                                     ]
-                        ),
+                        subHeader: h('p', { style: {} }, [
+                            this.$t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)'),
+                            h('p', { style: { marginTop: '10px' } }, [this.$t('问题变量有：'), illegalKeys.join(',')])
+                        ]),
                         confirmFn: async () => {
                             const constants = ins.handleIllegalKeys()
                             this.setConstants(constants)
@@ -1396,10 +1414,11 @@
                 const index = this.validateConnectFailList.findIndex(val => {
                     const gateway = this.gateways[val]
                     if (gateway && ['ParallelGateway', 'ConditionalParallelGateway'].includes(gateway.type)) {
-                        let branchSinkNodes = new Set()
-                        this.getBranchNodes(gateway.id, '', branchSinkNodes)
-                        branchSinkNodes = [...branchSinkNodes]
-                        return branchSinkNodes.length === 1 && this.gateways[branchSinkNodes[0]]?.type === 'ConvergeGateway'
+                        const nodeBranches = new Set([gateway.id]) // 分支上包含的节点
+                        this.checkedNodes = []
+                        this.checkedConvergeNodes = []
+                        this.getNodeBranches(gateway.id, gateway.id, nodeBranches)
+                        return nodeBranches.size === 1
                     }
                 })
                 if (index > -1) {
@@ -1407,49 +1426,45 @@
                     this.isParallelGwErrorMsg = ''
                 }
             },
-            /**
-             * id 起始节点
-             * firstId 分支上首个节点
-             * branchSinkNodes 存在分支
-             */
-            getBranchNodes (id, firstId, branchSinkNodes) {
-                const { lines, activities, gateways, end_event } = this
-                const targetIds = lines.reduce((acc, cur) => {
-                    if (cur.source.id === id) {
-                        acc.push(cur.target.id)
-                    }
-                    return acc
-                }, [])
+            getNodeBranches (id, branchId, nodeBranches) {
+                // 重复节点
+                if (this.checkedNodes.includes(id)) {
+                    nodeBranches.delete(branchId)
+                    return
+                }
+                this.checkedNodes.push(id)
+                // 当前节点所有输出节点
+                const targetIds = this.nodeTargetMaps[id] || []
+                // 多个输出节点
                 if (targetIds.length > 1) {
-                    if (branchSinkNodes.has(firstId)) {
-                        branchSinkNodes.delete(firstId)
-                    }
-                    // 先获取到所有的分支再去递归查找!
+                    // 删除旧的分支branchId，添加新的分支
+                    nodeBranches.delete(branchId)
                     targetIds.forEach(targetId => {
-                        branchSinkNodes.add(targetId)
-                    })
-                    targetIds.forEach(targetId => {
-                        this.getBranchNodes(targetId, targetId, branchSinkNodes)
+                        nodeBranches.add(targetId)
+                        this.getNodeBranches(targetId, targetId, nodeBranches)
                     })
                 } else if (targetIds.length === 1) {
-                    const targetId = targetIds[0]
-                    const curId = firstId ? id : targetId
-                    const { incoming = [], type } = activities[curId] || gateways[curId] || {}
-                    // 如果只有一条分支并且找到了汇聚网关则退出递归
-                    if (branchSinkNodes.size <= 1 && type === 'ConvergeGateway') {
-                        branchSinkNodes.delete(firstId)
-                        branchSinkNodes.add(id)
-                    } else if (incoming.length <= 1) { // 单条输出
-                        // 找到结束节点则退出递归
-                        if (end_event.id === targetId) {
-                            branchSinkNodes.clear(firstId)
+                    // 汇聚网关
+                    if (this.convergeGwNodes.includes(id)) {
+                        // 如果这个汇聚网关之前被找到过，则表示当前分支和其他分支在该汇聚网关会合了，此时需要删掉当前分支branchId
+                        if (this.checkedConvergeNodes.includes(id)) {
+                            nodeBranches.delete(branchId)
                         } else {
-                            this.getBranchNodes(targetId, firstId || id, branchSinkNodes)
+                            // 将未找到过的汇聚网关记录下来
+                            this.checkedConvergeNodes.push(id)
+                            // 如果存在多个分支，则说明当前的汇聚节点不是分支的回合节点，所以需要用找到过的汇聚网关往下继续找
+                            if (nodeBranches.size > 1) {
+                                this.checkedConvergeNodes.forEach(nodeId => {
+                                    // 汇聚网关只有一个输出节点所以用[0]取输出id
+                                    const targetId = this.nodeTargetMaps[nodeId][0]
+                                    this.getNodeBranches(targetId, branchId, nodeBranches)
+                                })
+                            }
                         }
                     } else {
-                        // 如果该节点有多个输入连线则不继续查找
-                        branchSinkNodes.delete(firstId)
-                        branchSinkNodes.add(curId)
+                        const targetId = targetIds[0]
+                        // 找到结束节点则退出递归
+                        this.getNodeBranches(targetId, branchId, nodeBranches)
                     }
                 }
             },
@@ -1966,11 +1981,11 @@
                 this.$bkInfo({
                     ...this.infoBasicConfig,
                     confirmFn: () => {
-                        bus.$emit('cancelRoute')
-                    },
-                    cancelFn: () => {
                         this.allowLeave = true
                         this.$router.push({ path: this.leaveToPath })
+                    },
+                    cancelFn: () => {
+                        bus.$emit('cancelRoute')
                     }
                 })
             }

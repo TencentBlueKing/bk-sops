@@ -12,12 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+
 from django.test import TestCase
 from django.utils.timezone import now
 from mock import MagicMock, patch
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.tasks import clocked_task_start
+from gcloud.constants import TaskCreateMethod
 from gcloud.tests.mock_settings import *  # noqa
 
 
@@ -102,7 +104,7 @@ class ClockedTaskStartTestCase(TestCase):
             category=task_template.category,
             template_id=task.template_id,
             template_source=task.template_source,
-            create_method="clocked",
+            create_method=TaskCreateMethod.CLOCKED.value,
             create_info=task.id,
             flow_type="common",
             current_flow="execute_task",
