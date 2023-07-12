@@ -1405,7 +1405,8 @@
                     const filterConfig = {
                         show: true,
                         list,
-                        values: data ? data.values : []
+                        values: data ? data.values : [],
+                        multiple: true
                     }
                     return <TableRenderHeader
                         name={ column.label }

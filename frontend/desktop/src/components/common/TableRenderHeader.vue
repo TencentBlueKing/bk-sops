@@ -21,7 +21,7 @@
             trigger="click"
             :distance="6"
             :arrow="false"
-            ext-cls="table-header-filter-popover"
+            :ext-cls="`table-header-filter-popover ${filterConfig.extCls}`"
             :on-hide="() => isFilterOpen = false">
             <i
                 class="bk-table-column-filter-trigger bk-icon icon-funnel"
@@ -46,7 +46,7 @@
                             <i class="check-icon bk-icon icon-check-line"></i>
                         </li>
                     </ul>
-                    <p class="clear-checked" @click="handleClearFilter">{{ $t('清空筛选') }}</p>
+                    <p v-if="filterConfig.multiple" class="clear-checked" @click="handleClearFilter">{{ $t('清空筛选') }}</p>
                 </template>
                 <p v-else class="no-search-data">{{ $t('查询无数据') }}</p>
             </div>
@@ -108,7 +108,9 @@
                     return {
                         show: false,
                         list: [],
-                        values: []
+                        values: [],
+                        multiple: false,
+                        extCls: ''
                     }
                 }
             }
@@ -220,12 +222,16 @@
                 return this.filterConfig.values.find(item => item.id === data.id)
             },
             handleFilter (data) {
-                const values = this.filterConfig.values
+                let values = this.filterConfig.values
                 const index = values.findIndex(item => item.id === data.id)
                 if (index > -1) {
                     values.splice(index, 1)
                 } else {
-                    values.push(data)
+                    if (this.filterConfig.multiple) {
+                        values.push(data)
+                    } else {
+                        values = [data]
+                    }
                 }
                 this.$emit('filterChange', values)
             },
@@ -353,6 +359,7 @@
                 align-items: center;
                 justify-content: space-between;
                 padding: 0 15px;
+                color: #63656e;
                 cursor: pointer;
                 .label-name {
                     padding: 2px 6px;
