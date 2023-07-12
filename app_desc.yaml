@@ -58,7 +58,7 @@ modules:
                 plan: 4C1G5R
                 replicas: 1
             dworker:
-                command: python manage.py celery worker -Q default -n default@%h -P threads -c 10 -l info
+                command: python manage.py celery worker -Q default,callback_retry -n default@%h -P threads -c 10 -l info
                 plan: 4C2G5R
                 replicas: 5
         svc_discovery:
@@ -118,10 +118,6 @@ modules:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
                 plan: 4C5G5R
                 replicas: 5
-            callback_retry:
-                command: celery worker -A blueapps.core.celery -P threads -Q callback_retry -n callback_retry@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 2
         svc_discovery:
             bk_saas:
                 - bk_app_code: "bk_iam"
