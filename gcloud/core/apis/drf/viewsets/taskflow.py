@@ -79,6 +79,7 @@ iam = get_iam_client()
 class TaskFLowStatusFilterHandler:
     FAILED = "failed"
     PAUSE = "pause"
+    RUNNING = "running"
 
     def __init__(self, status, queryset, start_time):
         """
@@ -99,6 +100,8 @@ class TaskFLowStatusFilterHandler:
             return self._filter_failed()
         elif self.status == self.PAUSE:
             return self._filter_pipeline_pause()
+        elif self.status == self.RUNNING:
+            return self._filter_running()
         else:
             return self.queryset
 
@@ -151,6 +154,28 @@ class TaskFLowStatusFilterHandler:
         ).values_list("id", flat=True)
 
         queryset = self.queryset.filter(pipeline_instance_id__in=pause_pipeline_instance_id_list)
+
+        return queryset
+
+    def _filter_running(self):
+        """
+        正在运行的流程等于未完成的任务 -（暂停 + 失败的任务)
+
+        @return:
+        """
+        pipeline_id_list = self._get_pipeline_id_list()
+
+        # 这里统一使用 root_id 进行查询，可以避免进行失败和暂停两次查询
+        pipeline_failed_and_pause_root_id_list = (
+            State.objects.filter(name__in=[states.SUSPENDED, states.FAILED], root_id__in=pipeline_id_list)
+            .values("root_id")
+            .distinct()
+        )
+        pipeline_failed_and_pause_id_list = PipelineInstance.objects.filter(
+            instance_id__in=pipeline_failed_and_pause_root_id_list
+        ).values_list("id", flat=True)
+
+        queryset = self.queryset.exclude(pipeline_instance_id__in=pipeline_failed_and_pause_id_list)
 
         return queryset
 
@@ -262,7 +287,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 return Response(
                     {
                         "detail": ErrorDetail(
-                            "最近{}天有v1引擎的任务, 不支持筛选".format(settings.FAILED_TASK_LIST_FILTER_DAYS),
+                            "最近{}天有v1引擎的任务, 不支持筛选".format(settings.TASK_LIST_STATUS_FILTER_DAYS),
                             err_code.REQUEST_PARAM_INVALID.code,
                         )
                     },
