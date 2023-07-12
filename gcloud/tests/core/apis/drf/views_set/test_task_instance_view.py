@@ -87,7 +87,7 @@ class TestTaskInstanceView(
 
         resp = self.client.get(path=self.task_url, data=query_params)
         self.assertFalse(resp.data["result"])
-        self.assertEqual(resp.data["message"], "最近30天有v1引擎的任务, 不支持筛选")
+        self.assertEqual(resp.data["message"], "最近180天有v1引擎的任务, 不支持筛选")
 
         self.taskflow_instance.engine_ver = 2
         self.taskflow_instance.save()
@@ -119,6 +119,19 @@ class TestTaskInstanceView(
         self.state.node_id = self.root_id
         self.state.name = states.SUSPENDED
         self.state.save()
+
+        resp = self.client.get(path=self.task_url, data=query_params)
+        self.assertTrue(resp.data["result"])
+        self.assertEqual(resp.data["data"]["count"], 1)
+
+    def test_filter_running_task_list(self):
+        query_params = {
+            "pipeline_instance__is_started": True,
+            "pipeline_instance__is_finished": False,
+            "pipeline_instance__is_revoked": False,
+            "project__id": self.test_project.id,
+            "task_instance_status": "running",
+        }
 
         resp = self.client.get(path=self.task_url, data=query_params)
         self.assertTrue(resp.data["result"])
