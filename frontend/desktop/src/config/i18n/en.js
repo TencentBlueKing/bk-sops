@@ -1214,7 +1214,7 @@ const en = {
     '保存已修改的配置信息吗？': 'Save the modified setting',
     '全部项目': 'All',
     'sidebarTitle_一次性方案': 'A single-use node-group',
-    '设置默认方案': 'Default',
+    '设为默认方案': 'Default',
     '流程直接新建任务执行时，默认执行当前方案的组合。': 'When a flow directly creates a task, the current solution combination is executed by default.',
     '方案内容': 'Scheme Text',
     '变更节点对比': 'Node Selected List',
@@ -1770,7 +1770,10 @@ const en = {
     '请输入变量提示文本，不超过500个字符': 'Please enter variable help text, up to 500 characters.',
     '确认删除收藏?': 'Confirm to delete favorite?',
     'singleUseTips': 'You can select an existing node-group or use {0}',
-    '一次性方案': 'a single-use node-group'
+    '一次性方案': 'a single-use node-group',
+    'editSchemeTips': 'After manually selecting or {0} nodes, click "New" to create a node-group.',
+    '导入选择': 'importing the selection',
+    '导入选择节点': 'Import the Selection Node'
 }
 
 export default en

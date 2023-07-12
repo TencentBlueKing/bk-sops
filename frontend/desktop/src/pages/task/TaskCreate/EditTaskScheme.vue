@@ -12,7 +12,7 @@
                         {{$t('执行方案')}}
                     </span>
                     <span class="interval-symbol">></span>
-                    <span>{{$t('设置默认方案')}}</span>
+                    <span>{{$t('设为默认方案')}}</span>
                 </p>
                 <template v-else>
                     <p>{{$t('执行方案')}}</p>
@@ -21,8 +21,8 @@
             </div>
             <bk-alert type="info" class="single-use-alert" v-if="!isDefaultSchemeIng">
                 <template slot="title">
-                    <i18n tag="div" path="singleUseTips">
-                        <span class="single-use" @click="onImportTemporaryPlan">{{ $t('一次性方案') }}</span>
+                    <i18n tag="div" path="editSchemeTips">
+                        <span class="single-use" @click="onImportTemporaryPlan">{{ $t('导入选择') }}</span>
                     </i18n>
                 </template>
             </bk-alert>
@@ -32,7 +32,7 @@
             <div class="scheme-active-wrapper" v-else>
                 <div>
                     <bk-button data-test-id="templateEdit_form_addScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" @click="onSetDefaultPlan">{{ $t('设为默认方案') }}</bk-button>
                 </div>
                 <bk-button
                     data-test-id="templateEdit_form_previewNode"
@@ -388,7 +388,7 @@
                 this.$emit('onImportTemporaryPlan')
             },
             /**
-             * 设置默认方案
+             * 设为默认方案
             */
             async onSetDefaultPlan () {
                 // 提示用户先保存创建方案再进行其他操作

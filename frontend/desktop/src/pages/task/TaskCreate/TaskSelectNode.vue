@@ -95,7 +95,7 @@
             <div slot="header">
                 <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
                 >
-                <span>{{ $t('sidebarTitle_一次性方案') }}</span>
+                <span>{{ isEditProcessPage ? $t('sidebarTitle_一次性方案') : $t('导入选择节点') }}</span>
             </div>
             <edit-scheme
                 ref="editScheme"
