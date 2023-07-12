@@ -68,6 +68,7 @@ INSTALLED_APPS += (
     "gcloud.common_template",
     "gcloud.label",
     "gcloud.contrib.cleaner",
+    "gcloud.contrib.callback_retry",
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
@@ -86,6 +87,7 @@ INSTALLED_APPS += (
     "pipeline.contrib.statistics",
     "pipeline.contrib.periodic_task",
     "pipeline.contrib.external_plugins",
+    "pipeline.contrib.engine_admin",
     "pipeline.django_signal_valve",
     "pipeline_plugins",
     "pipeline_plugins.components",
@@ -479,9 +481,11 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
-from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
-from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
+
+from gcloud.contrib.callback_retry import settings as callback_retry_settings  # noqa
 from gcloud.contrib.cleaner import settings as cleaner_settings  # noqa
+from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
@@ -491,6 +495,7 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queue
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 CELERY_QUEUES.extend(cleaner_settings.CELERY_QUEUES)
+CELERY_QUEUES.extend(callback_retry_settings.CELERY_QUEUES)
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
@@ -505,7 +510,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True, "LANGUAGE_MAPPINGS": {"en": "en"}}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN
@@ -759,6 +764,12 @@ CLEAN_EXPIRED_V2_TASK_CRON = env.CLEAN_EXPIRED_V2_TASK_CRON
 V2_TASK_VALIDITY_DAY = env.V2_TASK_VALIDITY_DAY
 CLEAN_EXPIRED_V2_TASK_BATCH_NUM = env.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
 CLEAN_EXPIRED_V2_TASK_INSTANCE = env.CLEAN_EXPIRED_V2_TASK_INSTANCE
+
+
+# 回调重试相关
+ENABLE_CALLBACK_RETRY_TASK = env.ENABLE_CALLBACK_RETRY_TASK
+CALLBACK_RETRY_CRON = env.CALLBACK_RETRY_CRON
+MAX_CALLBACK_RETRY_TIMES = env.MAX_CALLBACK_RETRY_TIMES
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
