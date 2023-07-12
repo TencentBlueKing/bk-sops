@@ -87,7 +87,6 @@ INSTALLED_APPS += (
     "pipeline.contrib.statistics",
     "pipeline.contrib.periodic_task",
     "pipeline.contrib.external_plugins",
-    "pipeline.contrib.engine_admin",
     "pipeline.django_signal_valve",
     "pipeline_plugins",
     "pipeline_plugins.components",
@@ -510,7 +509,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True, "LANGUAGE_MAPPINGS": {"en": "en"}}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN
