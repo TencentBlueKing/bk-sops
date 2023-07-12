@@ -58,7 +58,7 @@ modules:
                 plan: 4C1G5R
                 replicas: 1
             dworker:
-                command: python manage.py celery worker -Q default -n default@%h -P threads -c 10 -l info
+                command: python manage.py celery worker -Q default,callback_retry -n default@%h -P threads -c 10 -l info
                 plan: 4C2G5R
                 replicas: 5
         svc_discovery:
