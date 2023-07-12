@@ -39,8 +39,8 @@
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle, 'scheme-select-name': scheme.type === 'select' && !scheme.attrs.remote }]">
                 <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
-                <span class="required" v-if="isRequired()" style="display: none">*</span>
-                <span class="scheme-code">{{ scheme.tag_code }}</span>
+                <span class="required" v-if="isRequired()">*</span>
+                <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
                 <i
                     v-if="showNotReuseTitle || showPreMakoTip"
                     v-bk-tooltips="{
@@ -265,7 +265,7 @@
         },
         computed: {
             showFormTitle () {
-                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+                return this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
@@ -524,7 +524,7 @@
 <style lang="scss">
 .rf-form-item {
     position: relative;
-    margin: 15px 0;
+    margin-top: 15px;
     min-height: 32px;
     font-size: 12px;
     color: #63656e;
@@ -541,9 +541,8 @@
     }
     &.rf-col-layout {
         display: inline-block;
-        margin: 0;
         padding-right: 10px;
-        vertical-align: top;
+        vertical-align: text-bottom;
     }
     &.rf-view-mode {
         margin: 8px 0;
@@ -557,6 +556,11 @@
     &.deleted {
         background: #ffeeec;
     }
+    .required {
+        color: #F00;
+        margin-left: 5px;
+        font-family: "SimSun";
+    }
     .rf-tag-label {
         float: left;
         position: relative;
@@ -567,14 +571,6 @@
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
-        .required {
-            position: absolute;
-            top: 2px;
-            right: -10px;
-            color: #F00;
-            margin-left: 5px;
-            font-family: "SimSun";
-        }
         .tag-label-tips {
             position: relative;
             &::after {
@@ -601,7 +597,7 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 0;
+        top: 30px;
         right: 0;
         display: flex;
         align-items: center;

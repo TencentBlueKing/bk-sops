@@ -14,7 +14,7 @@
         <!-- 分组名称和提示 -->
         <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
             <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
-            <span class="scheme-code">{{ scheme.tag_code }}</span>
+            <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
             <i
                 v-if="showNotReuseTitle || showPreMakoTip"
                 v-bk-tooltips="{
@@ -195,7 +195,7 @@
         },
         computed: {
             showFormTitle () {
-                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+                return this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
@@ -369,6 +369,7 @@
 <style lang="scss">
 .rf-form-group {
     position: relative;
+    margin-top: 15px;
     &.added {
         background: rgba(220,255,226,0.30);
     }
@@ -392,7 +393,7 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 0;
+        top: 30px;
         right: 0;
         display: flex;
         align-items: center;
