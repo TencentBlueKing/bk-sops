@@ -14,8 +14,8 @@ class Migration(migrations.Migration):
             name="CallbackRetryTask",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("task_id", models.BigIntegerField(verbose_name="提单人")),
-                ("node_id", models.CharField(max_length=64, verbose_name="版本")),
+                ("task_id", models.BigIntegerField(verbose_name="任务id")),
+                ("node_id", models.CharField(max_length=64, verbose_name="节点id")),
                 ("version", models.CharField(max_length=64, verbose_name="版本")),
                 ("data", models.JSONField(default=dict, verbose_name="callback Data")),
                 (

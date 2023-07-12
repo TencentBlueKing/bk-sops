@@ -26,8 +26,8 @@ class CallbackRetryTask(models.Model):
         (CallbackStatus.DISCARDED.value, _("丢弃")),
     )
 
-    task_id = models.BigIntegerField(_("提单人"))
-    node_id = models.CharField(_("版本"), max_length=64)
+    task_id = models.BigIntegerField(_("任务ID"))
+    node_id = models.CharField(_("节点ID"), max_length=64)
     version = models.CharField(_("版本"), max_length=64)
     data = models.JSONField(_("callback Data"), default=dict)
     status = models.CharField(
