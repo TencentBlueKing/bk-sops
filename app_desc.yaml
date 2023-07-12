@@ -119,9 +119,9 @@ modules:
                 plan: 4C5G5R
                 replicas: 5
             callback_retry:
-              command: celery worker -A blueapps.core.celery -P threads -Q callback_retry -n callback_retry@%h -c 100 -l info
-              plan: 4C1G5R
-              replicas: 2
+                command: celery worker -A blueapps.core.celery -P threads -Q callback_retry -n callback_retry@%h -c 100 -l info
+                plan: 4C1G5R
+                replicas: 2
         svc_discovery:
             bk_saas:
                 - bk_app_code: "bk_iam"
