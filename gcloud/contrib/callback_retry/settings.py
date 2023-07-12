@@ -14,9 +14,9 @@ from kombu import Exchange, Queue
 
 CELERY_QUEUES = [
     Queue(
-        "callback_retry_queue",
+        "callback_retry",
         Exchange("default", type="direct"),
-        routing_key="callback_retry_queue",
+        routing_key="callback_retry",
         queue_arguments={"x-max-priority": 255},
     ),
 ]

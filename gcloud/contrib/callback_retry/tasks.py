@@ -14,7 +14,7 @@ from gcloud.utils.decorators import time_record
 logger = logging.getLogger("root")
 
 
-@periodic_task(run_every=(crontab(*settings.CALLBACK_RETRY_CRON)), ignore_result=True, queue="callback_retry_queue")
+@periodic_task(run_every=(crontab(*settings.CALLBACK_RETRY_CRON)), ignore_result=True, queue="callback_retry")
 @time_record(logger)
 def run_callback_retry():
     if not settings.ENABLE_CALLBACK_RETRY_TASK:
