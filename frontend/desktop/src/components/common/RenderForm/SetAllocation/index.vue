@@ -471,7 +471,7 @@
                     })
                     data.push(value)
                 })
-                this.$tnextTick(() => {
+                this.$nextTick(() => {
                     this.joinCols(modules)
                     this.joinValue(rowCount, data)
                     this.localConfig = {
