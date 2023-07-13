@@ -256,7 +256,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
         task_instance_status = request.query_params.get("task_instance_status")
         if task_instance_status:
-            if self.queryset.filter(
+            if queryset.filter(
                 engine_ver=EngineConfig.ENGINE_VER_V1, pipeline_instance__start_time__gte=start_time
             ).exists():
                 return Response(
