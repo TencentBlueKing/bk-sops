@@ -407,7 +407,7 @@
                 return this.type === 'edit' || !id ? false : !this.hasPermission(['flow_create_clocked_task'], auth_actions)
             },
             schemeSelectPlaceholder () {
-                return !this.formData.template_id || this.isLoading || this.schemeLoading ? i18n.t('请选择') : i18n.t('此流程无执行方案，无需选择')
+                return this.formData.template_id && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
             }
         },
         created () {

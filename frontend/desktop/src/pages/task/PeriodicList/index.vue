@@ -848,6 +848,7 @@
                 this.curRow = {}
                 this.constants = {}
                 this.editTask = false
+                this.selectedCron = '*/5 * * * *'
                 this.isModifyDialogShow = true
             },
             onCreateTaskCancel () {
