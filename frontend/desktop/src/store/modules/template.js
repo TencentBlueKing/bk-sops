@@ -571,14 +571,18 @@ const template = {
                             const { conditions } = gatewayNode
                             let evaluate
                             let name
+                            let defaultSourceCondition
                             // copy 连线，需复制原来的分支条件信息
                             if (line.oldSouceId) {
                                 const sourceNodeId = state.flows[line.oldSouceId].source
                                 const sourceGateWayNode = state.gateways[sourceNodeId]
                                 const sourceCondition = sourceGateWayNode.conditions[line.oldSouceId]
-
-                                evaluate = sourceCondition.evaluate || sourceCondition.name
-                                name = sourceCondition.name
+                                if (sourceCondition) {
+                                    evaluate = sourceCondition.evaluate || sourceCondition.name
+                                    name = sourceCondition.name
+                                } else if (sourceGateWayNode.default_condition?.flow_id === line.oldSouceId) {
+                                    defaultSourceCondition = sourceGateWayNode.default_condition
+                                }
                             } else if (line.condition) { // 自动重连，保留原连线分支条件
                                 evaluate = line.condition.evaluate
                                 name = line.condition.name
@@ -598,12 +602,21 @@ const template = {
                                 name = defaultName + (maxCount + 1)
                             }
 
-                            const conditionItem = {
-                                evaluate,
-                                name,
-                                tag: `branch_${sourceNode}_${targetNode}`
+                            if (defaultSourceCondition) {
+                                Vue.set(gatewayNode, 'default_condition', {
+                                    name: i18n.t('默认'),
+                                    flow_id: id,
+                                    tag: `branch_${sourceNode}_${targetNode}`,
+                                    loc: defaultSourceCondition.loc
+                                })
+                            } else {
+                                const conditionItem = {
+                                    evaluate,
+                                    name,
+                                    tag: `branch_${sourceNode}_${targetNode}`
+                                }
+                                Vue.set(conditions, id, conditionItem)
                             }
-                            Vue.set(conditions, id, conditionItem)
                         }
                     } else {
                         gatewayNode.outgoing = id
