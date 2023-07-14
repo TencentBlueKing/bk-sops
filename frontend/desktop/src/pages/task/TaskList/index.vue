@@ -922,9 +922,9 @@
                 startDate = Number(startDate.split('-').join(''))
                 let nowDate = moment(new Date()).format('YYYY-MM-DD')
                 nowDate = Number(nowDate.split('-').join(''))
-                if (nowDate - startDate > 180) {
+                if (nowDate - startDate > window.TASK_LIST_STATUS_FILTER_DAYS) {
                     this.$bkMessage({
-                        message: i18n.t('仅支持查询最近x天任务记录', { x: 180 }),
+                        message: i18n.t('仅支持查询最近x天任务记录', { x: window.TASK_LIST_STATUS_FILTER_DAYS }),
                         theme: 'warning'
                     })
                     return true
