@@ -175,7 +175,9 @@ class TaskFLowStatusFilterHandler:
             instance_id__in=pipeline_failed_and_pause_root_id_list
         ).values_list("id", flat=True)
 
-        queryset = self.queryset.exclude(pipeline_instance_id__in=pipeline_failed_and_pause_id_list)
+        queryset = self.queryset.filter(pipeline_instance__start_time__gte=self.start_time).exclude(
+            pipeline_instance_id__in=pipeline_failed_and_pause_id_list
+        )
 
         return queryset
 
