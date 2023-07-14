@@ -350,6 +350,7 @@
             overflow: auto;
             @include scrollbar;
             margin-bottom: 15px;
+            background: #fff;
             .option-item {
                 height: 32px;
                 display: flex;
