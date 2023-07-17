@@ -304,6 +304,9 @@
             border: 1px solid #dcdee5;
             box-shadow: 0 2px 6px 0 rgba(0,0,0,0.10);
             border-radius: 2px;
+            .tippy-content {
+                padding: 0;
+            }
         }
         #more-language-html,
         #logout-html,

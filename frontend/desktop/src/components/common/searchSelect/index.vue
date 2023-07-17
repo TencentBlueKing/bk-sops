@@ -86,7 +86,7 @@
                                 class="search-item"
                                 v-for="(record, index) in recordsData" :key="index"
                                 @click="setSearchSelectValue(record)">
-                                <span class="search-item-label">{{ record.name + ' ：' }}</span>
+                                <span class="search-item-label">{{ record.name + '：' }}</span>
                                 <span class="search-item-text" v-bk-overflow-tips>{{ record.text_value }}</span>
                                 <i class="bk-icon icon-delete" @click.stop="onDeleteRecord(record)"></i>
                             </dd>
