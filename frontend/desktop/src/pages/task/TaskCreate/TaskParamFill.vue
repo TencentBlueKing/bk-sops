@@ -179,6 +179,7 @@
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
+                'functionClaimMsg': state => state.functionClaimMsg,
                 'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
@@ -246,6 +247,9 @@
                 'getSchemeDetail',
                 'loadPreviewNodeData',
                 'createTask'
+            ]),
+            ...mapMutations([
+                'setFunctionClaimMsg'
             ]),
             ...mapMutations('template/', [
                 'setTemplateData'
@@ -496,10 +500,37 @@
                     try {
                         const taskData = await this.createTask(data)
                         if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
-                            this.$bkMessage({
-                                message: i18n.t('提交成功，请通知职能化人员认领'),
-                                theme: 'success'
+                            const h = this.$createElement
+                            const self = this
+                            const functionClaimMsg = this.$bkMessage({
+                                message: h('div', {
+                                    style: { display: 'flex' }
+                                }, [
+                                    h('span', {
+                                        style: {
+                                            overflow: 'hidden',
+                                            whiteSpace: 'nowrap',
+                                            textOverflow: 'ellipsis'
+                                        }
+                                    }, this.$t('提交成功，请通知职能化人员认领')),
+                                    h('span', {
+                                        style: {
+                                            flexShrink: 0,
+                                            marginLeft: '15px',
+                                            color: '#3a84ff',
+                                            cursor: 'pointer'
+                                        },
+                                        on: {
+                                            click: function () {
+                                                self.cloneClaimLink(taskData.id)
+                                            }
+                                        }
+                                    }, this.$t('复制认领链接'))
+                                ]),
+                                theme: 'success',
+                                delay: 0
                             })
+                            this.setFunctionClaimMsg(functionClaimMsg)
                         }
                         let url = {}
                         if (this.viewMode === 'appmaker') {
@@ -539,6 +570,30 @@
                     } finally {
                         this.isSubmit = false
                     }
+                })
+            },
+            cloneClaimLink (instanceId) {
+                this.functionClaimMsg.close()
+                this.setFunctionClaimMsg(null)
+                const { href } = this.$router.resolve({
+                    name: 'functionTaskExecute',
+                    params: { project: this.project_id },
+                    query: { instance_id: instanceId }
+                })
+                const url = window.location.origin + href
+                this.copyText = url
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
                 })
             },
             paramsLoadingChange (val) {

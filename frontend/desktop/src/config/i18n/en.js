@@ -1758,6 +1758,7 @@ const en = {
     '常规': 'General',
     '提交职能化': 'To Helper-Team',
     '提交成功，请通知职能化人员认领': 'The task has been assign to the helper team,please inform the team members',
+    '复制认领链接': 'Copy claim link',
     '未认领的职能化任务不允许执行': 'Unclaimed functional tasks are not allowed to execute',
     '确认执行后将任务类型更新为 常规，并从职能化列表删除?': 'After confirming the execution update the task type to General and delete it from the functionalized list?',
     '确定开始执行?': 'Confirm to execute?',
