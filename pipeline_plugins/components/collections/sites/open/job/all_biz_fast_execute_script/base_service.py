@@ -14,12 +14,13 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-from gcloud.constants import JobBizScopeType
-from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, ArrayItemSchema
-from pipeline_plugins.components.utils import get_job_instance_url, has_biz_set
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
+
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.utils import get_job_instance_url, has_biz_set
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -65,16 +66,10 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"),
-                key="job_target_account",
-                type="int",
-                schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"),
-                key="job_target_account",
-                type="int",
-                schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
                 name=_("执行目标信息"),
@@ -85,7 +80,7 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
                     item_schema=ObjectItemSchema(
                         description=_("单条目标 IP 信息"),
                         property_schemas={
-                            "bk_cloud_id": StringItemSchema(description=_("云区域ID, 默认为0")),
+                            "bk_cloud_id": StringItemSchema(description=_("管控区域ID, 默认为0")),
                             "ip": StringItemSchema(description=_("待执行目标机器 IP，多IP请使用;分隔")),
                         },
                     ),

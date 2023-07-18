@@ -1419,15 +1419,15 @@ msgstr "目标服务器"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:163
 msgid ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+" 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 msgstr ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+" 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:361
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:488
-msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
+msgstr "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:365
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:492
@@ -1449,9 +1449,9 @@ msgstr "添加"
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:387
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:514
 #, fuzzy
-#| msgid "云区域ID"
-msgid "云区域ID(默认为0)"
-msgstr "云区域ID"
+#| msgid "管控区域ID"
+msgid "管控区域ID(默认为0)"
+msgstr "管控区域ID"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:400
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:527
@@ -1467,8 +1467,8 @@ msgid "执行目标"
 msgstr "执行目标"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:486
-msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
+msgstr "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:555
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:453
@@ -1562,8 +1562,8 @@ msgstr "源文件"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:337
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:688
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:93
-msgid "云区域ID"
-msgstr "云区域ID"
+msgid "管控区域ID"
+msgstr "管控区域ID"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:59
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:211
@@ -1825,8 +1825,8 @@ msgstr "输入IP, 多个用英文逗号 `,` 或换行分隔"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:76
-msgid "跨业务用【云区域ID:IP】"
-msgstr "跨业务用【云区域ID:IP】"
+msgid "跨业务用【管控区域ID:IP】"
+msgstr "跨业务用【管控区域ID:IP】"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:156
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:139
@@ -1838,8 +1838,8 @@ msgstr "请输入绝对路径"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:220
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:318
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一"
-msgstr "IP必须填写【云区域ID:IP】或者【IP】格式之一"
+msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一"
+msgstr "IP必须填写【管控区域ID:IP】或者【IP】格式之一"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:174
 msgid "【IP】"
@@ -2759,8 +2759,8 @@ msgstr "说明"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:522
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:689
-msgid "一行只能对应一个云区域ID"
-msgstr "一行只能对应一个云区域ID"
+msgid "一行只能对应一个管控区域ID"
+msgstr "一行只能对应一个管控区域ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:274
 msgid "是否安装最新版本插件"
@@ -2807,8 +2807,8 @@ msgid "主机ID"
 msgstr "主机ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:119
-msgid "请选云区域"
-msgstr "请选云区域"
+msgid "请选管控区域"
+msgstr "请选管控区域"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:234
 msgid "插件操作"
@@ -2905,8 +2905,8 @@ msgid "原始IP"
 msgstr "原始IP"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:26
-msgid "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"
-msgstr "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"
+msgid "IP为【IP】（管控区域ID为0）、【管控区域ID:IP】格式之一，多个用换行分隔"
+msgstr "IP为【IP】（管控区域ID为0）、【管控区域ID:IP】格式之一，多个用换行分隔"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:39
 msgid "GSE AGENT状态"
@@ -2921,8 +2921,8 @@ msgid "不在线"
 msgstr "不在线"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:53
-msgid "输出带云区域"
-msgstr "输出带云区域"
+msgid "输出带管控区域"
+msgstr "输出带管控区域"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:67
 msgid "输出分隔符"
@@ -2969,8 +2969,8 @@ msgstr "通过配置平台拓扑获取"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:77
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:62
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-msgstr "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgstr "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:110
 msgid "拓扑树"
@@ -3748,8 +3748,8 @@ msgstr "文本框"
 #~ msgid "手动添加"
 #~ msgstr "手动添加"
 
-#~ msgid "云区域"
-#~ msgstr "云区域"
+#~ msgid "管控区域"
+#~ msgstr "管控区域"
 
 #~ msgid "状态"
 #~ msgstr "状态"
@@ -3839,8 +3839,8 @@ msgstr "文本框"
 #~ msgid "搜索分组"
 #~ msgstr "搜索分组"
 
-#~ msgid "变量值是否带云区域："
-#~ msgstr "变量值是否带云区域："
+#~ msgid "变量值是否带管控区域："
+#~ msgstr "变量值是否带管控区域："
 
 #~ msgid "组件禁用态"
 #~ msgstr "组件禁用态"

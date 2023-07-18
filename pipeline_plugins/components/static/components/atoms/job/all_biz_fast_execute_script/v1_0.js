@@ -356,9 +356,9 @@
             attrs: {
                 name: gettext("目标服务器"),
                 pagination: true,
-                placeholder: gettext("请输入IP 地址，多IP可用空格、换行分隔\n 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"),
+                placeholder: gettext("请输入IP 地址，多IP可用空格、换行分隔\n 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"),
                 hookable: true,
-                empty_text: gettext("请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"),
+                empty_text: gettext("请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"),
                 table_buttons: [
                     {
                         type: "add_row",
@@ -384,7 +384,7 @@
                         tag_code: "bk_cloud_id",
                         type: "input",
                         attrs: {
-                            name: gettext("云区域ID(默认为0)"),
+                            name: gettext("管控区域ID(默认为0)"),
                             validation: [
                                 {
                                     type: "required"

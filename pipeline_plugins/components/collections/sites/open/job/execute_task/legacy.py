@@ -12,12 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 from functools import partial
+
 from django.utils.translation import ugettext_lazy as _
-from pipeline.core.flow.io import BooleanItemSchema
-from .execute_task_base import JobExecuteTaskServiceBase
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import BooleanItemSchema
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+
+from .execute_task_base import JobExecuteTaskServiceBase
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -44,5 +47,5 @@ class JobExecuteTaskComponent(Component):
     bound_service = JobExecuteTaskService
     form = "%scomponents/atoms/job/job_execute_task.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
-    desc = _("跨业务选项打开时IP参数需要按照(云区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息")
+    desc = _("跨业务选项打开时IP参数需要按照(管控区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息")
     version = "legacy"

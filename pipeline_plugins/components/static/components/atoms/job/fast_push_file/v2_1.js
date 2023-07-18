@@ -315,7 +315,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("IP"),
-                            placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一"),
+                            placeholder: gettext("IP必须填写【管控区域ID:IP】或者【IP】格式之一"),
                             hookable: true,
                             validation: [
                                 {

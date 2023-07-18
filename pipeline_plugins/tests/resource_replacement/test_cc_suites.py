@@ -66,9 +66,7 @@ class CCHostCustomPropertyChangeSuiteTestCase(TestCase):
             "key": "${cc_ip_list}",
             "desc": "",
             "custom_type": "",
-            "source_info": {
-                local_base.FIRST_ACT_ID: ["cc_ip_list"],
-            },
+            "source_info": {local_base.FIRST_ACT_ID: ["cc_ip_list"]},
             "value": "2:127.0.0.1, 3:127.0.0.1",
             "show_type": "show",
             "source_type": "component_inputs",
@@ -170,14 +168,7 @@ class CCCreateModuleSuiteTestCase(TestCase):
         "data": {
             "biz_cc_id": {"hook": False, "need_render": True, "value": 2},
             "cc_set_select_method": {"hook": False, "need_render": True, "value": "topo"},
-            "cc_set_select_topo": {
-                "hook": False,
-                "need_render": True,
-                "value": [
-                    "set_97",
-                    "set_98",
-                ],
-            },
+            "cc_set_select_topo": {"hook": False, "need_render": True, "value": ["set_97", "set_98"]},
             "cc_set_select_text": {"hook": False, "need_render": True, "value": "测试业务>集群A\n测试业务>集群B"},
             "cc_create_method": {"hook": False, "need_render": True, "value": "category"},
             "cc_module_infos_template": {
@@ -440,21 +431,11 @@ class CCVarCmdbSetAllocationSuiteTestCase(TestCase):
                 "set_count": "1",
                 "set_template_id": "set_102",
                 "set_template_name": "test1207",
-                "host_resources": [
-                    {"id": "set_101", "label": "标准运维"},
-                    {"id": "set_102", "label": "test1207"},
-                ],
+                "host_resources": [{"id": "set_101", "label": "标准运维"}, {"id": "set_102", "label": "test1207"}],
                 "mute_attribute": "",
                 "filter_lock": False,
                 "shareEqually": "",
-                "module_detail": [
-                    {
-                        "id": 232,
-                        "name": "test",
-                        "host_count": "1",
-                        "reuse_module": "",
-                    }
-                ],
+                "module_detail": [{"id": 232, "name": "test", "host_count": "1", "reuse_module": ""}],
             },
             "separator": ",",
         },
@@ -478,10 +459,7 @@ class CCVarCmdbSetAllocationSuiteTestCase(TestCase):
         suite: base.Suite = suites.CCVarCmdbSetAllocationSuite(suite_meta, local_base.DBMockHelper(None, "", ""))
         suite.do("${VarCmdbSetAllocation}", self.PIPELINE_TREE["constants"]["${VarCmdbSetAllocation}"])
         self.assertEqual(
-            [
-                {"id": "set_10101", "label": "标准运维"},
-                {"id": "set_10102", "label": "test1207"},
-            ],
+            [{"id": "set_10101", "label": "标准运维"}, {"id": "set_10102", "label": "test1207"}],
             self.PIPELINE_TREE["constants"]["${VarCmdbSetAllocation}"]["value"]["config"]["host_resources"],
         )
         self.assertEqual(
@@ -489,14 +467,7 @@ class CCVarCmdbSetAllocationSuiteTestCase(TestCase):
             self.PIPELINE_TREE["constants"]["${VarCmdbSetAllocation}"]["value"]["config"]["set_template_id"],
         )
         self.assertEqual(
-            [
-                {
-                    "id": 10232,
-                    "name": "test",
-                    "host_count": "1",
-                    "reuse_module": "",
-                }
-            ],
+            [{"id": 10232, "name": "test", "host_count": "1", "reuse_module": ""}],
             self.PIPELINE_TREE["constants"]["${VarCmdbSetAllocation}"]["value"]["config"]["module_detail"],
         )
 
@@ -690,7 +661,7 @@ class CCVarSetModuleIpSelectorSuiteTestCase(TestCase):
         "value": {
             "var_ip_method": "manual",
             "var_ip_custom_value": "1:127.0.0.1\n2:127.0.0.1",
-            "var_ip_select_value": {"var_set": ["直连区域", "云区域"], "var_module": ["空闲机", "故障机"], "var_module_name": ""},
+            "var_ip_select_value": {"var_set": ["直连区域", "管控区域"], "var_module": ["空闲机", "故障机"], "var_module_name": ""},
             "var_ip_manual_value": {"var_manual_set": "all", "var_manual_module": "all", "var_module_name": ""},
             "var_filter_set": "test",
             "var_filter_module": "test",
@@ -756,10 +727,8 @@ class CCVarSetModuleSelectorSuiteTestCase(TestCase):
         suite: base.Suite = suites.CCVarSetModuleSelectorSuite(suite_meta, local_base.DBMockHelper(None, "", ""))
         suite.do("${VarSetModuleSelector}", self.PIPELINE_TREE["constants"]["${VarSetModuleSelector}"])
         self.assertEqual(
-            10096,
-            self.PIPELINE_TREE["constants"]["${VarSetModuleSelector}"]["value"]["bk_set_id"],
+            10096, self.PIPELINE_TREE["constants"]["${VarSetModuleSelector}"]["value"]["bk_set_id"],
         )
         self.assertEqual(
-            [10219, 10218],
-            self.PIPELINE_TREE["constants"]["${VarSetModuleSelector}"]["value"]["bk_module_id"],
+            [10219, 10218], self.PIPELINE_TREE["constants"]["${VarSetModuleSelector}"]["value"]["bk_module_id"],
         )

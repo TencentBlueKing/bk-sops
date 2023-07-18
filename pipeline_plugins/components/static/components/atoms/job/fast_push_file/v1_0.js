@@ -74,7 +74,7 @@
                         type: "input",
                         attrs: {
                             name: gettext("IP"),
-                            placeholder: gettext("跨业务用【云区域ID:IP】"),
+                            placeholder: gettext("跨业务用【管控区域ID:IP】"),
                             width: '170px',
                             editable: true,
                             validation: [
@@ -125,7 +125,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("目标服务器"),
-                placeholder: gettext("请输入IP 地址，多IP可用空格、换行分隔\n 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"),
+                placeholder: gettext("请输入IP 地址，多IP可用空格、换行分隔\n 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"),
                 hookable: true,
                 validation: [
                     {

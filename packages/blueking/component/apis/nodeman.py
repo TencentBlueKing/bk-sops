@@ -79,7 +79,7 @@ class CollectionsNodeMan(object):
         )
 
         self.cloud_list = ComponentAPI(
-            client=self.client, method="GET", path="/api/c/compapi{bk_api_ver}/nodeman/api/cloud/", description="查询云区域"
+            client=self.client, method="GET", path="/api/c/compapi{bk_api_ver}/nodeman/api/cloud/", description="查询管控区域"
         )
         self.plugin_operate = ComponentAPI(
             client=self.client,

@@ -11,26 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from functools import partial
 from copy import deepcopy
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
-
-from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.utils import (
-    get_job_instance_url,
-    get_node_callback_url,
-    loose_strip,
-)
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, loose_strip
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -46,7 +40,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
                 name=_("是否允许跨业务"),
                 key="job_across_biz",
                 type="bool",
-                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】")),
+                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【管控区域ID:IP】")),
             ),
             self.InputItem(
                 name=_("源文件"),
@@ -71,10 +65,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -112,9 +103,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
                 {
                     "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
                     "server": server,
-                    "account": {
-                        "alias": loose_strip(item["account"]),
-                    },
+                    "account": {"alias": loose_strip(item["account"])},
                 }
             )
         # 获取目标IP

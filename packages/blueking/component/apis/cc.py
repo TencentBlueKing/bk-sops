@@ -646,7 +646,7 @@ class CollectionsCC(object):
             client=self.client,
             method="POST",
             path="/api/c/compapi{bk_api_ver}/cc/search_cloud_area/",
-            description="查询云区域",
+            description="查询管控区域",
         )
         self.list_set_template = ComponentAPI(
             client=self.client,
@@ -655,10 +655,7 @@ class CollectionsCC(object):
             description="查询集群模板",
         )
         self.add_host_lock = ComponentAPI(
-            client=self.client,
-            method="POST",
-            path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/",
-            description="新加主机锁",
+            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/", description="新加主机锁",
         )
         self.delete_host_lock = ComponentAPI(
             client=self.client,
