@@ -148,6 +148,7 @@
         },
         methods: {
             contentUpdate (val) {
+                if (this.hook) return
                 this.updateForm(val)
                 this.setVariableTag(val, true)
             },

@@ -254,7 +254,7 @@
                 showForm,
                 showHook,
                 formValue,
-                isShowRenderIcon: true // 是否展示免渲染icon
+                isShowRenderIcon: false // 是否展示免渲染icon
             }
         },
         computed: {
@@ -292,7 +292,11 @@
         created () {
             // 针对job的代码编辑框，移除「变量免渲染」的功能开关
             const { type, attrs } = this.scheme
-            if (type === 'code_editor' && !attrs.variable_render) { // variable_render 是否开启变量渲染
+            if (type === 'code_editor') {
+                if (attrs.variable_render) { // variable_render 是否开启变量渲染
+                    this.isShowRenderIcon = true
+                    return
+                }
                 /**
                  * need_render:
                     1. false
@@ -302,13 +306,16 @@
                         b. 包含${}，保留免渲染icon
                  */
                 if (this.render) {
-                    const regex = /\${[a-zA-Z_]\w*}/
-                    if (!regex.test(this.value)) {
-                        this.isShowRenderIcon = false
+                    const regex = /\${[a-zA-Z_]\w*}/g
+                    const matchList = this.value.match(regex)
+                    const isMatch = matchList && matchList.some(item => {
+                        return !!this.constants[item]
+                    })
+                    if (isMatch) {
+                        this.isShowRenderIcon = true
+                    } else {
                         this.onRenderChange()
                     }
-                } else {
-                    this.isShowRenderIcon = false
                 }
             }
         },

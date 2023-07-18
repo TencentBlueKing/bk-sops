@@ -89,7 +89,7 @@
             </component>
         </div>
         <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
+        <div class="rf-tag-hook" v-if="showHook">
             <i
                 :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
@@ -99,17 +99,7 @@
                 }"
                 @click="onHookForm(!hook)">
             </i>
-            <i
-                v-if="isShowRenderIcon"
-                :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
-                v-bk-tooltips="{
-                    content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
-                    placement: 'bottom',
-                    zIndex: 3000
-                }"
-                @click="onRenderChange">
-            </i>
-            <i v-else class="bk-icon icon-angle-up-fill"></i>
+            <i class="bk-icon icon-angle-up-fill"></i>
         </div>
         <!-- 分组描述 -->
         <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
@@ -182,8 +172,7 @@
                 eventActions: {}, // combine 类型配置项定义的事件回调函数
                 groupOption,
                 showForm, // combine 类型 Tag 组是否显示
-                showHook, // combine 类型 Tag 组是否可勾选
-                isShowRenderIcon: true // 是否展示免渲染icon
+                showHook // combine 类型 Tag 组是否可勾选
             }
         },
         computed: {
@@ -228,27 +217,6 @@
                     }
                 })
             }
-            // 针对job的代码编辑框，移除「变量免渲染」的功能开关
-            const { type, attrs } = this.scheme
-            if (type === 'code_editor' && !attrs.variable_render) { // variable_render 是否开启变量渲染
-                /**
-                 * need_render:
-                    1. false
-                        之前已勾选，现在去掉免渲染icon
-                    2.true，判断value
-                        a. 不包含${}，需要把need_render置为false，去掉免渲染icon
-                        b. 包含${}，保留免渲染icon
-                 */
-                if (this.render) {
-                    const regex = /\${[a-zA-Z_]\w*}/
-                    if (!regex.test(this.value)) {
-                        this.isShowRenderIcon = false
-                        this.onRenderChange()
-                    }
-                } else {
-                    this.isShowRenderIcon = false
-                }
-            }
         },
         beforeDestroy () {
             if (this.scheme.events) {
@@ -274,12 +242,6 @@
                     return
                 }
                 this.$emit('onHook', this.scheme.tag_code, val)
-            },
-            onRenderChange () {
-                if (!this.option.formEdit || this.hook) {
-                    return
-                }
-                this.$emit('onRenderChange', this.scheme.tag_code, !this.render)
             },
             get_parent () {
                 return this.$parent
@@ -403,15 +365,14 @@
         right: 0;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         padding: 0 8px;
         width: 56px;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
         z-index: 1;
-        .hook-icon,
-        .render-skip-icon {
+        .hook-icon {
             font-size: 14px;
             color: #979ba5;
             cursor: pointer;
@@ -425,6 +386,11 @@
         }
         .hook-icon {
             font-size: 19px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin: 3px 0 0 6px;
         }
     }
     .tag-label-tips {
