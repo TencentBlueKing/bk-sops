@@ -24,17 +24,11 @@ from gcloud.conf import settings as gcloud_settings
 from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
-from gcloud.utils.ip import (
-    extract_ip_from_ip_str,
-    get_ip_by_regex,
-    get_plat_ip_by_regex,
-)
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex, get_plat_ip_by_regex
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
-from pipeline_plugins.components.collections.sites.open.cc.base import (
-    cc_get_host_by_innerip_with_ipv6,
-)
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str
 from pipeline_plugins.components.utils.common import ip_re
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
@@ -117,8 +111,8 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
         "筛选条件和排除条件为 AND 关系\n"
         "- 筛选：会从IP列表中筛选出符合条件的IP\n"
         "- 排除：会从IP列表中去除符合条件的IP\n"
-        "变量值是否带云区域\n"
-        "- 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}\n"
+        "变量值是否带管控区域\n"
+        "- 是，返回格式为{BK-Net_id}:{ip},{BK-Net_id}:{ip}\n"
         "- 否，返回格式为{ip},{ip}"
     )
 
@@ -147,7 +141,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
             hosts = []
             for host in ip_result["data"]:
                 p_address = ipaddress.ip_address(host["bk_host_innerip"])
-                # 如果是ipv6地址，则不携带云区域
+                # 如果是ipv6地址，则不携带管控区域
                 if settings.ENABLE_IPV6 and p_address.version == 6:
                     hosts.append(f'{host["bk_cloud_id"]}:[{host["bk_host_innerip"]}]')
                 else:
@@ -231,9 +225,7 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
             FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__verbose_ip_list}",
-                type=Type.STRING,
-                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",
@@ -312,13 +304,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         if not ip_list:
             return []
 
-        hosts_list = get_business_host(
-            username,
-            bk_biz_id,
-            bk_supplier_account,
-            host_fields,
-            ip_list,
-        )
+        hosts_list = get_business_host(username, bk_biz_id, bk_supplier_account, host_fields, ip_list,)
         return hosts_list
 
     @staticmethod
@@ -408,7 +394,7 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         fields = [
-            FieldExplain(key="${KEY}", type=Type.STRING, description="返回符合过滤条件的【云区域:IP】"),
+            FieldExplain(key="${KEY}", type=Type.STRING, description="返回符合过滤条件的【管控区域:IP】"),
         ]
         return fields
 
@@ -439,7 +425,7 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
             for host in match_result_ip:
                 p_address = ipaddress.ip_address(host["ip"])
                 if p_address.version == 6:
-                    # 针对于ipv6 需要保持ipv6+云区域的格式
+                    # 针对于ipv6 需要保持ipv6+管控区域的格式
                     result.append("{}:[{}]".format(host["bk_cloud_id"], host["ip"]))
                 else:
                     result.append("{}:{}".format(host["bk_cloud_id"], host["ip"]))

@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import ipaddress
-import re
 import logging
+import re
 from enum import Enum
 
 ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
@@ -61,7 +61,7 @@ def extend_ipv6(ip_list):
 
 def get_ipv6_and_cloud_id_from_ipv6_cloud_str(ipv6_cloud_str):
     """ "
-    从ipv6+云区域的格式中提取出来ipv6和云区域地址
+    从ipv6+管控区域的格式中提取出来ipv6和管控区域地址
     ipv6_cloud_str: 0:[0000:0000:0000:0000:0000:0000]
     """
     cloud_id = ipv6_cloud_str.split(":")[0]
@@ -140,7 +140,7 @@ def extract_ip_from_ip_str(ip_str):
     ipv4_list_with_cloud_id, ip_str_without_ipv4_with_cloud_id = get_ip_by_regex_type(
         IpRegexType.IPV4_WITH_CLOUD_ID.value, ip_str_without_ipv6
     )
-    # 在ipv6下，云区域+ip 将不再唯一
+    # 在ipv6下，管控区域+ip 将不再唯一
     ipv4_list, ip_str_without_ipv4 = get_ip_by_regex_type(IpRegexType.IPV4.value, ip_str_without_ipv4_with_cloud_id)
 
     host_id_list, _ = get_ip_by_regex_type(IpRegexType.HOST_ID.value, ip_str_without_ipv4)
@@ -150,7 +150,7 @@ def extract_ip_from_ip_str(ip_str):
 
 def get_plat_ip_by_regex(ip_str):
     """
-    从给定文本匹配【云区域ID:IP】并返回,【IP】格式云区域默认为0
+    从给定文本匹配【管控区域ID:IP】并返回,【IP】格式管控区域默认为0
     @param ip_str:
     @return: [
         {

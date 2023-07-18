@@ -33,24 +33,19 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    ObjectItemSchema,
-    BooleanItemSchema,
-)
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.utils.request import batch_request
-from gcloud.exceptions import ApiRequestError
-from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from ..base import GetJobHistoryResultMixin
-
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
+
+from ..base import GetJobHistoryResultMixin
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -116,7 +111,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                 name=_("是否允许跨业务"),
                 key="job_across_biz",
                 type="bool",
-                schema=BooleanItemSchema(description=_("是否允许跨业务(跨业务需在作业平台添加白名单)，允许时，源文件IP格式需为【云区域ID:IP】")),
+                schema=BooleanItemSchema(description=_("是否允许跨业务(跨业务需在作业平台添加白名单)，允许时，源文件IP格式需为【管控区域ID:IP】")),
             ),
             self.InputItem(
                 name=_("目标 IP"),

@@ -13,31 +13,31 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from abc import ABCMeta
+from collections import Counter
 from enum import Enum
 from functools import partial
-from collections import Counter
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-from pipeline.core.flow.io import StringItemSchema
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema
 
-from gcloud.utils import cmdb
 from gcloud.conf import settings
+from gcloud.utils import cmdb
+from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import (
+    IpRegexType,
+    extract_ip_from_ip_str,
     get_ip_by_regex,
     get_ip_by_regex_type,
-    ipv6_pattern,
     ip_pattern,
-    extract_ip_from_ip_str,
-    IpRegexType,
+    ipv6_pattern,
 )
-from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
-    get_ipv6_host_list,
+    get_hosts_by_hosts_ids,
     get_ipv4_host_list,
     get_ipv4_host_with_cloud_list,
-    get_hosts_by_hosts_ids,
+    get_ipv6_host_list,
     get_ipv6_host_list_with_cloud_list,
 )
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
@@ -157,7 +157,7 @@ def cc_get_host_by_innerip_with_ipv6(
     if not ipv6_host_list_result["result"]:
         return ipv6_host_list_result
 
-    # 查IPV6带云区域
+    # 查IPV6带管控区域
     ipv6_host_with_cloud_list_result = get_ipv6_host_list_with_cloud_list(
         executor, bk_biz_id, supplier_account, ipv6_list_with_cloud_id, is_biz_set=is_biz_set
     )
@@ -169,7 +169,7 @@ def cc_get_host_by_innerip_with_ipv6(
     if not ipv4_host_list_result["result"]:
         return ipv4_host_list_result
 
-    # 查询ipv4带云区域
+    # 查询ipv4带管控区域
     ipv4_host_with_cloud_list_result = get_ipv4_host_with_cloud_list(
         executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=is_biz_set
     )

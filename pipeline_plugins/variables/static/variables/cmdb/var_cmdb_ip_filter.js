@@ -23,7 +23,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("原始IP"),
-                            placeholder: gettext("IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"),
+                            placeholder: gettext("IP为【IP】（管控区域ID为0）、【管控区域ID:IP】格式之一，多个用换行分隔"),
                             hookable: true,
                             validation: [
                                 {
@@ -50,7 +50,7 @@
                         tag_code: "ip_cloud",
                         type: "radio",
                         attrs: {
-                            name: gettext("输出带云区域"),
+                            name: gettext("输出带管控区域"),
                             items: [
                                 {name: gettext("是"), value: true},
                                 {name: gettext("否"), value: false},

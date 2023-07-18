@@ -1385,13 +1385,13 @@ msgstr "Server"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:163
 msgid ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "Multiple IP addresses can be separated by Spaces or new-line. For the IP addresses of other business, enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
+" 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
+msgstr "Multiple IP addresses can be separated by Spaces or new-line. For the IP addresses of other business, enter BK-Net :IP. Ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:361
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:488
-msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "Multiple IP addresses can be separated by Spaces or new-line. For the IP addresses of other business, enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
+msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
+msgstr "Multiple IP addresses can be separated by Spaces or new-line. For the IP addresses of other business, enter BK-Net :IP. Ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:365
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:492
@@ -1412,8 +1412,8 @@ msgstr "Add"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:387
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:514
-msgid "云区域ID(默认为0)"
-msgstr "Cloud Area ID"
+msgid "管控区域ID(默认为0)"
+msgstr "BK-Net ID"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:400
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:527
@@ -1430,8 +1430,8 @@ msgid "执行目标"
 msgstr "Target"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:486
-msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "Enter an IP address. Multiple IP addresses can be separated by Spaces or new-line. enter cloud area :IP. Ensure that the whitelist has been added to the job platform"
+msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
+msgstr "Enter an IP address. Multiple IP addresses can be separated by Spaces or new-line. enter BK-Net :IP. Ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:548
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:446
@@ -1544,8 +1544,8 @@ msgstr "Source File"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:337
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:688
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:93
-msgid "云区域ID"
-msgstr "Cloud Area ID"
+msgid "管控区域ID"
+msgstr "BK-Net ID"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:59
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:211
@@ -1806,8 +1806,8 @@ msgstr "Enter Ip, Multiple IP separate with \",\" or new-line"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:76
-msgid "跨业务用【云区域ID:IP】"
-msgstr "Use [Cloud Area ID:IP] when Use IP From diff business"
+msgid "跨业务用【管控区域ID:IP】"
+msgstr "Use [BK-Net ID:IP] when Use IP From diff business"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:156
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:139
@@ -1819,8 +1819,8 @@ msgstr "Enter absolute path"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:220
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:318
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一"
-msgstr "IP must be  [Cloud Area ID: IP] or [IP]"
+msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一"
+msgstr "IP must be  [BK-Net ID: IP] or [IP]"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:174
 msgid "【IP】"
@@ -2707,8 +2707,8 @@ msgstr "tip"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:522
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:689
-msgid "一行只能对应一个云区域ID"
-msgstr "A row can correspond to only one cloud area ID"
+msgid "一行只能对应一个管控区域ID"
+msgstr "A row can correspond to only one BK-Net ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:274
 msgid "是否安装最新版本插件"
@@ -2753,8 +2753,8 @@ msgid "主机ID"
 msgstr "Host ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:119
-msgid "请选云区域"
-msgstr "Select cloud area"
+msgid "请选管控区域"
+msgstr "Select BK-Net"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:234
 msgid "插件操作"
@@ -2849,8 +2849,8 @@ msgid "原始IP"
 msgstr "Original IP address"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:26
-msgid "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"
-msgstr "Enter [cloud area ID:IP] or [IP], Multiple IP are separate with ,"
+msgid "IP为【IP】（管控区域ID为0）、【管控区域ID:IP】格式之一，多个用换行分隔"
+msgstr "Enter [BK-Net ID:IP] or [IP], Multiple IP are separate with ,"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:39
 msgid "GSE AGENT状态"
@@ -2865,8 +2865,8 @@ msgid "不在线"
 msgstr "Offline"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:53
-msgid "输出带云区域"
-msgstr "Output IP with cloud area id"
+msgid "输出带管控区域"
+msgstr "Output IP with BK-Net id"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:67
 msgid "输出分隔符"
@@ -2911,8 +2911,8 @@ msgstr "Select from CMDB topology"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:77
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:62
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by new-line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
+msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgstr "IP format must be one of [set name|module name|IP], [BK-Net ID:IP] or [IP], multiple IP are separated by new-line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:110
 msgid "拓扑树"
@@ -3669,8 +3669,8 @@ msgstr ""
 #~ msgid "手动添加"
 #~ msgstr "Add manually"
 
-#~ msgid "云区域"
-#~ msgstr "Cloud Area"
+#~ msgid "管控区域"
+#~ msgstr "BK-Net"
 
 #~ msgid "状态"
 #~ msgstr "Status"
@@ -3749,8 +3749,8 @@ msgstr ""
 #~ msgid "搜索分组"
 #~ msgstr "Search dynamic groups"
 
-#~ msgid "变量值是否带云区域："
-#~ msgstr "Value with cloud id: "
+#~ msgid "变量值是否带管控区域："
+#~ msgstr "Value with BK-Net ID: "
 
 #~ msgid "组件禁用态"
 #~ msgstr "Tag disabled"
@@ -4089,9 +4089,9 @@ msgstr ""
 #~ msgstr "Account"
 
 #, fuzzy
-#~| msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-#~ msgid "格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-#~ msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by new-line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
+#~| msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+#~ msgid "格式为【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+#~ msgstr "IP format must be one of [set name|module name|IP], [BK-Net ID:IP] or [IP], multiple IP are separated by new-line;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
 
 #~ msgid "请添加目标IP信息"
 #~ msgstr "Add target IP"

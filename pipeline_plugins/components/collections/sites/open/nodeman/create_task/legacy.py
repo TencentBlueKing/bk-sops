@@ -15,18 +15,12 @@ import base64
 
 import rsa
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
+from pipeline.utils.crypt import rsa_decrypt_password
 
 from api.collections.nodeman import BKNodeManClient
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.component_framework.component import Component
-from pipeline.utils.crypt import rsa_decrypt_password
-from pipeline.core.flow.io import (
-    IntItemSchema,
-    StringItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-)
-
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
 
@@ -211,10 +205,10 @@ class NodemanCreateTaskService(Service):
                 name=_("业务 ID"), key="biz_cc_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
-                name=_("云区域 ID"),
+                name=_("管控区域 ID"),
                 key="nodeman_bk_cloud_id",
                 type="string",
-                schema=StringItemSchema(description=_("节点所在云区域 ID")),
+                schema=StringItemSchema(description=_("节点所在管控区域 ID")),
             ),
             self.InputItem(
                 name=_("节点类型"),
@@ -239,7 +233,7 @@ class NodemanCreateTaskService(Service):
                 key="nodeman_hosts",
                 type="array",
                 schema=ArrayItemSchema(
-                    description=_("主机所在云区域 ID"),
+                    description=_("主机所在管控区域 ID"),
                     item_schema=ObjectItemSchema(
                         description=_("主机相关信息"),
                         property_schemas={

@@ -14,15 +14,14 @@ import base64
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, BooleanItemSchema
+from pipeline.core.flow.io import BooleanItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.utils import get_job_instance_url
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -40,23 +39,17 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("生成文件名[后缀]"),
-                key="local_name",
-                type="string",
-                schema=StringItemSchema(description=_("生成文件名")),
+                name=_("生成文件名[后缀]"), key="local_name", type="string", schema=StringItemSchema(description=_("生成文件名")),
             ),
             self.InputItem(
-                name=_("文本内容"),
-                key="local_content",
-                type="string",
-                schema=StringItemSchema(description=_("文本内容")),
+                name=_("文本内容"), key="local_content", type="string", schema=StringItemSchema(description=_("文本内容")),
             ),
             self.InputItem(
                 name=_("目标IP"),
                 key="job_ip_list",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的")
+                    description=_("IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的")
                 ),
             ),
             self.InputItem(
@@ -66,16 +59,13 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("请输入在蓝鲸作业平台上注册的账户名")),
             ),
             self.InputItem(
-                name=_("目标路径"),
-                key="file_path",
-                type="string",
-                schema=StringItemSchema(description=_("目标路径")),
+                name=_("目标路径"), key="file_path", type="string", schema=StringItemSchema(description=_("目标路径")),
             ),
             self.InputItem(
                 name=_("是否允许跨业务"),
                 key="job_across_biz",
                 type="boolean",
-                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】")),
+                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【管控区域ID:IP】")),
             ),
         ]
 

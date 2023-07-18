@@ -29,10 +29,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("插件操作信息"),
@@ -61,7 +58,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
                 schema=ObjectItemSchema(
                     description=_("主机信息内容"),
                     property_schemas={
-                        "nodeman_bk_cloud_id": IntItemSchema(description=_("主机所在云区域 ID")),
+                        "nodeman_bk_cloud_id": IntItemSchema(description=_("主机所在管控区域 ID")),
                         "nodeman_host_ip": StringItemSchema(
                             description=_("主机ip,多个以英文','分隔，nodeman_host_input_type值为host_ip时必填")
                         ),
@@ -85,7 +82,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
         ip_str = data.inputs.nodeman_host_ip
         host_result = self.get_host_list(executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
         if not host_result["result"]:
-            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(host_result["message"])))
+            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(host_result["message"])))
             return False
         host = [int(host_id) for host_id in host_result["data"]]
 
@@ -98,4 +95,4 @@ class NodemanPluginOperateComponent(Component):
     bound_service = NodemanPluginOperateService
     form = "%scomponents/atoms/nodeman/plugin_operate/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
-    desc = _("移除填写方式，只支持主机IP方式\n 云区域ID、主机IP支持 设置为变量 \n 云区域ID 支持AllowCreate \n")
+    desc = _("移除填写方式，只支持主机IP方式\n 管控区域ID、主机IP支持 设置为变量 \n 管控区域ID 支持AllowCreate \n")

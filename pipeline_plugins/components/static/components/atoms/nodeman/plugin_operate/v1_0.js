@@ -90,7 +90,7 @@
                         tag_code: "nodeman_bk_cloud_id",
                         type: "select",
                         attrs: {
-                            name: gettext("云区域ID"),
+                            name: gettext("管控区域ID"),
                             hookable: true,
                             remote: true,
                             items: [],
@@ -116,7 +116,7 @@
                                         } else if (self.get_parent().get_child('nodeman_host_input_type')) {
                                             if (self.get_parent().get_child('nodeman_host_input_type').value === "host_ip" && !value.toString()) {
                                                 result.result = false;
-                                                result.error_message = gettext("请选云区域");
+                                                result.error_message = gettext("请选管控区域");
                                             }
                                         }
                                         return result

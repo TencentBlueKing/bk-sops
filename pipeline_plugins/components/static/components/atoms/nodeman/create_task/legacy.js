@@ -47,7 +47,7 @@
             tag_code: "nodeman_bk_cloud_id",
             type: "input",
             attrs: {
-                name: gettext("云区域ID"),
+                name: gettext("管控区域ID"),
                 hookable: true,
                 validation: [
                     {

@@ -182,7 +182,7 @@
                         tag_code: "bk_cloud_id",
                         type: "input",
                         attrs: {
-                            name: gettext("云区域ID"),
+                            name: gettext("管控区域ID"),
                             placeholder: gettext("默认为0"),
                             width: '90px',
                             editable: true,
@@ -334,7 +334,7 @@
                         tag_code: "bk_cloud_id",
                         type: "input",
                         attrs: {
-                            name: gettext("云区域ID"),
+                            name: gettext("管控区域ID"),
                             placeholder: gettext("默认为0"),
                             width: '90px',
                             editable: true,

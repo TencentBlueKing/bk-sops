@@ -68,7 +68,7 @@ It has been updated to "IP selector". This might be removed in future versions. 
 
 ### IP Selector
 You can select a static IP list in the business, select the dynamically generated IPs from business topology or input the dynamically generated IPs from certain layer of business topology. The value of the variable is the legal intranet IP of the host machine in the current business.
-The user can decide whether to include cloud region information. Multiple IPs are separated by comma `,` For example, `127.0.0.1,127.0.0.2` or `0:127.0.0.1,0:127.0.0.2` (assuming the cloud region ID of these IPs is 0).
+The user can decide whether to include BK-Net information. Multiple IPs are separated by comma `,` For example, `127.0.0.1,127.0.0.2` or `0:127.0.0.1,0:127.0.0.2` (assuming the BK-Net ID of these IPs is 0).
 Illegal IPs (including non-IP characters and IPs not in the current business) will be automatically filtered.
 
 ### Dropdown Box

@@ -12,12 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.io import (
-    ArrayItemSchema,
-    IntItemSchema,
-    ObjectItemSchema,
-    StringItemSchema,
-)
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 
@@ -34,10 +29,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("插件操作信息"),
@@ -69,7 +61,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
                         "nodeman_host_input_type": StringItemSchema(
                             description=_("主机填写方式"), enum=["host_ip", "host_id"]
                         ),
-                        "nodeman_bk_cloud_id": IntItemSchema(description=_("主机所在云区域 ID")),
+                        "nodeman_bk_cloud_id": IntItemSchema(description=_("主机所在管控区域 ID")),
                         "nodeman_host_ip": StringItemSchema(
                             description=_("主机ip,多个以英文','分隔，nodeman_host_input_type值为host_ip时必填")
                         ),
@@ -100,7 +92,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
             ip_str = host_info.get("nodeman_host_ip", "")
             host_result = self.get_host_list(executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
             if not host_result["result"]:
-                data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(host_result["message"])))
+                data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(host_result["message"])))
                 return False
             host = [int(host_id) for host_id in host_result["data"]]
         else:

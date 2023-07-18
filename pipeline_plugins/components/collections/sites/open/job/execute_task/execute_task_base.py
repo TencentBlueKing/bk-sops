@@ -11,23 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from functools import partial
 from copy import deepcopy
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    IntItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-)
+from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, loose_strip
-from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -110,7 +105,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                 ignore_ex_data=True,
             )
 
-            # 匹配不到云区域IP格式IP，尝试从当前业务下获取
+            # 匹配不到管控区域IP格式IP，尝试从当前业务下获取
             if not result:
                 result, server = self.get_target_server(
                     ip_str=val,
