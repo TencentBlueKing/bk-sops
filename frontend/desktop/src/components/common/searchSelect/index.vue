@@ -227,6 +227,10 @@
                         localStorage.setItem(`advanced_search_record`, JSON.stringify(records))
                     }
                 } else {
+                    const nameMap = this.searchList.reduce((acc, cur) => {
+                        acc[cur.id] = cur.name
+                        return acc
+                    }, {})
                     list = this.records.map(recordItem => {
                         if (Array.isArray(recordItem.values)) {
                             const values = recordItem.values.map(item => item.name || item)
@@ -234,6 +238,7 @@
                         } else {
                             recordItem.text_value = recordItem.values
                         }
+                        recordItem.name = nameMap[recordItem.id]
                         return recordItem
                     })
                 }
