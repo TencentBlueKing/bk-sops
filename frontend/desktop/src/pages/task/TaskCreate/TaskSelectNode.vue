@@ -595,7 +595,7 @@
 @import '@/scss/config.scss';
 
 .select-node-wrapper {
-    height: calc(100vh - 100px);
+    height: calc(100vh - 101px);
 }
 .task-create-page {
     .canvas-content {

@@ -316,6 +316,9 @@
                 color: #14a568;
                 background: #e4faf0;
             }
+            .scheme-title {
+                background: #fafbfd;
+            }
             .scheme-item {
                 &:hover {
                     background: #f0f1f5;
@@ -391,5 +394,9 @@
         .scheme-name-input {
             margin: 0 35px 0 120px;
         }
+    }
+    .no-data-wrapper {
+        height: auto;
+        padding: 22px 0 32px;
     }
 </style>

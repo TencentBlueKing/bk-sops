@@ -895,4 +895,8 @@
         display: inline-block;
         width: 374px;
     }
+    .no-data-wrapper {
+        height: auto;
+        padding: 22px 0 32px;
+    }
 </style>
