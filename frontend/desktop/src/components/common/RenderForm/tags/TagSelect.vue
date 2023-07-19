@@ -337,7 +337,7 @@
                         bus.$emit('tagRemoteLoaded', self.tagCode, remoteData)
                     },
                     error: function (resp) {
-                        self.placeholder = this.$t('请求数据失败')
+                        self.placeholder = self.$t('请求数据失败')
                         self.loading = false
                     }
                 })
