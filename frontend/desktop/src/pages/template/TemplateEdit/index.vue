@@ -27,13 +27,11 @@
                 :tpl-actions="tplActions"
                 :is-edit-process-page="isEditProcessPage"
                 :is-preview-mode="isPreviewMode"
-                :exclude-node="excludeNode"
-                :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
                 @goBackViewMode="goBackViewMode"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
-                @onOpenExecuteScheme="onOpenExecuteScheme"
+                @handleGoMangeScheme="handleGoMangeScheme"
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
@@ -80,13 +78,8 @@
                 :common="common"
                 :entrance="entrance"
                 :template_id="template_id"
-                :exclude-node="excludeNode"
                 :is-edit-process-page="isEditProcessPage"
-                :execute-scheme-saving="executeSchemeSaving"
-                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
-                @updateTaskSchemeList="updateTaskSchemeList"
-                @togglePreviewMode="togglePreviewMode"
-                @setExcludeNode="setExcludeNode">
+                @togglePreviewMode="togglePreviewMode">
             </TaskSelectNode>
             <div class="side-content">
                 <node-config
@@ -186,8 +179,8 @@
                         <i class="bk-icon icon-exclamation-circle">{{ $t('当前流程模板在浏览器多个标签页打开') }}</i>
                     </p>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
-                        <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
+                        <bk-button theme="primary" :loading="templateSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" :disabled="templateSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
                     </div>
                 </div>
             </bk-dialog>
@@ -235,15 +228,10 @@
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
-                isSchemaListChange: false,
-                executeSchemeSaving: false,
-                taskSchemeList: [],
                 isPreviewMode: false,
                 isExecuteSchemeDialog: false,
-                isBackViewMode: false,
-                isExecuteScheme: false, // 是否为执行方案
+                isGoManageScheme: false, // 是否去往管理执行方案页
                 isEditProcessPage: true,
-                excludeNode: [],
                 singleAtomListLoading: false,
                 projectInfoLoading: false,
                 templateDataLoading: false,
@@ -421,8 +409,6 @@
                 let tip = this.$t('确定保存流程并去设置执行方案？')
                 if (this.type === 'clone') {
                     tip = this.$t('确定保存克隆流程并去设置执行方案？')
-                } else if (this.isBackViewMode || !this.isEditProcessPage) {
-                    tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
             },
@@ -481,6 +467,10 @@
             if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
+            }
+            // 是否直接打开编辑执行方案
+            if (this.$route.query.manageScheme) {
+                this.isEditProcessPage = false
             }
         },
         beforeDestroy () {
@@ -546,7 +536,7 @@
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme',
-                'saveTaskSchemList'
+                'saveTaskSchemeList'
             ]),
             initData () {
                 this.initTemplateData()
@@ -854,19 +844,19 @@
                     // 如果为克隆模式保存模板时需要保存执行方案
                     if (this.type === 'clone' && !this.common) {
                         // 当前为根据源模板id获取方案列表
-                        this.taskSchemeList = await this.loadTaskScheme({
+                        const taskSchemeList = await this.loadTaskScheme({
                             project_id: this.project_id,
                             template_id: this.template_id,
                             isCommon: this.common
                         }) || []
                         // 当前为根据已生成模板id保存方案列表
-                        const schemes = this.taskSchemeList.map(item => {
+                        const schemes = taskSchemeList.map(item => {
                             return {
                                 data: item.data,
                                 name: item.name
                             }
                         })
-                        await this.saveTaskSchemList({
+                        await this.saveTaskSchemeList({
                             project_id: this.project_id,
                             template_id: data.template_id,
                             schemes,
@@ -1541,43 +1531,7 @@
             onDownloadCanvas () {
                 this.$refs.templateCanvas.onDownloadCanvas()
             },
-            async onSaveExecuteSchemeClick (isDefault) {
-                try {
-                    this.executeSchemeSaving = true
-                    const schemes = this.taskSchemeList.map(item => {
-                        return {
-                            id: item.id || undefined,
-                            data: item.data,
-                            name: item.name
-                        }
-                    })
-                    const resp = await this.saveTaskSchemList({
-                        project_id: this.project_id,
-                        template_id: this.template_id,
-                        schemes,
-                        isCommon: this.common
-                    })
-                    if (!resp.result) return
-                    this.$bkMessage({
-                        message: i18n.t('方案保存成功'),
-                        theme: 'success'
-                    })
-                    this.isExecuteSchemeDialog = false
-                    this.allowLeave = true
-                    this.isTemplateDataChanged = false
-                    this.isSchemaListChange = false
-                    this.isEditProcessPage = !isDefault
-                    if (isDefault) {
-                        this.$refs.taskSelectNode.loadSchemeList()
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.executeSchemeSaving = false
-                }
-            },
             goBackViewMode () {
-                this.isBackViewMode = true
                 this.$bkInfo({
                     ...this.infoBasicConfig,
                     confirmFn: () => {
@@ -1590,31 +1544,13 @@
                 })
             },
             goBackToTplEdit () {
-                const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
-                const isEqual = isDefaultSchemeIng ? judgeDataEqual() : !this.isSchemaListChange
-                if (isEqual) {
-                    this.isEditProcessPage = true
-                } else {
-                    this.$bkInfo({
-                        ...this.infoBasicConfig,
-                        confirmFn: () => {
-                            this.isEditProcessPage = true
-                            this.isTemplateDataChanged = false
-                        }
-                    })
-                }
-            },
-            updateTaskSchemeList (val, isChange) {
-                this.taskSchemeList = val
-                this.allowLeave = false
-                this.isTemplateDataChanged = isChange
-                this.isSchemaListChange = isChange
+                this.isEditProcessPage = true
             },
             onClosePreview () {
                 this.$refs.taskSelectNode.togglePreviewMode(false)
             },
-            onOpenExecuteScheme (val) {
-                this.isExecuteScheme = val
+            handleGoMangeScheme (val) {
+                this.isGoManageScheme = val
             },
             // 选择侧滑面板
             onChangeSettingPanel (val) {
@@ -1643,8 +1579,9 @@
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
                 this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
+                // 编辑模式下保存模板时，有多个tab
                 if (this.type === 'edit' && this.isMultipleTabCount > 1) {
-                    if (!this.isExecuteScheme) {
+                    if (!this.isGoManageScheme) {
                         this.multipleTabDialogShow = true
                     } else {
                         this.isExecuteSchemeDialog = true
@@ -1701,7 +1638,8 @@
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
-                        if (this.isExecuteScheme) {
+                        if (this.isGoManageScheme) {
+                            // 前往执行方案管理页时，如果为克隆模式或模板数据发生了改变，则需要弹出确认弹框
                             if (this.type === 'clone' || this.isTemplateDataChanged) {
                                 this.isExecuteSchemeDialog = true
                             } else {
@@ -1969,22 +1907,21 @@
             togglePreviewMode (isPreview) {
                 this.isPreviewMode = isPreview
             },
-            setExcludeNode (val) {
-                this.excludeNode = val
-            },
             // 编辑执行方案弹框 确定事件
             async onConfirmSave () {
-                if (this.isEditProcessPage) {
+                try {
                     await this.saveTemplate()
                     this.isExecuteSchemeDialog = false
                     this.isEditProcessPage = false
                     this.isTemplateDataChanged = false
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             // 编辑执行方案弹框 取消事件
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
-                this.isExecuteScheme = false
+                this.isGoManageScheme = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

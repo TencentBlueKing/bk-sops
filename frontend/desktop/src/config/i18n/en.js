@@ -1213,7 +1213,7 @@ const en = {
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
     '保存已修改的配置信息吗？': 'Save the modified setting',
     '全部项目': 'All',
-    'sidebarTitle_一次性方案': 'A single-use node-group',
+    '临时方案': 'Temporary plan',
     '设为默认方案': 'Default',
     '流程直接新建任务执行时，默认执行当前方案的组合。': 'When a flow directly creates a task, the current solution combination is executed by default.',
     '方案内容': 'Scheme Text',
@@ -1601,9 +1601,9 @@ const en = {
     '标签管理': 'Tags Management',
     '项目执行代理人(n)；免代理用户(m)': 'Project Representative ({n}); Exception({m})',
     '免代理用户': 'Users Not Using Agent',
-    '推荐留空使用': 'Recommended to leave blank',
-    '项目执行代理人设置': 'Project Representative Settings',
-    '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for better management, the representative of flow can also be configured separately to override the settings of the project',
+    '推荐留空使用': 'It is recommended to leave blank and  configure the Agent in the "',
+    '项目执行代理人设置': 'Projects Management',
+    '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': '".Alternatively, you can configure the agent in the flow separately to override the project settings.',
     '长度超过100个字符，请修改规则': 'The length exceeds 100 characters, please modify',
     '参数未修改': 'Parameter Not Changed',
     '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified',
@@ -1770,11 +1770,16 @@ const en = {
     '提示文本': 'Help Text',
     '请输入变量提示文本，不超过500个字符': 'Please enter variable help text, up to 500 characters.',
     '确认删除收藏?': 'Confirm to delete favorite?',
-    'singleUseTips': 'You can select an existing node-group or use {0}',
-    '一次性方案': 'a single-use node-group',
     'editSchemeTips': 'After manually selecting or {0} nodes, click "New" to create a node-group.',
     '导入选择': 'importing the selection',
-    '导入选择节点': 'Import the Selection Node'
+    '导入选择节点': 'Import the Selection Node',
+    '管理执行方案': 'Management plan',
+    '使用临时方案': 'Use temporary plan',
+    '前往新增方案': 'Go to add plan',
+    '暂无方案': 'No plan',
+    '方案修改成功': 'Node Group Edited',
+    '默认方案': 'Default',
+    '默认方案更新成功': 'Default Node Group Updated'
 }
 
 export default en

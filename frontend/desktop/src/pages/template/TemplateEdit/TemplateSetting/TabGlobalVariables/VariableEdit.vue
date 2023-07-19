@@ -242,7 +242,7 @@
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
-            const currentValType = isHookedVar ? 'component' : custom_type
+            const currentValType = isHookedVar ? source_type : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
 
             return {
@@ -325,7 +325,7 @@
                     '1': i18n.t('即将下线'),
                     '2': i18n.t('已下线')
                 }
-                if (this.currentValType !== 'component' && this.varTypeList.length) {
+                if (!['component_inputs', 'component_outputs'].includes(this.currentValType) && this.varTypeList.length) {
                     this.varTypeList.some(group => {
                         return group.children.some(item => {
                             if (item.code === this.currentValType) {
@@ -378,7 +378,10 @@
             const { is_meta, custom_type, source_tag, source_type } = this.theEditingData
 
             if (this.isHookedVar) {
-                this.varTypeList = [{ code: 'component', name: i18n.t('组件') }]
+                this.varTypeList = [
+                    { code: 'component_inputs', name: i18n.t('节点输入') },
+                    { code: 'component_outputs', name: i18n.t('节点输出') }
+                ]
             } else {
                 await this.getVarTypeList()
                 // 若当前编辑变量为自定义变量类型的元变量，则取meta_tag
