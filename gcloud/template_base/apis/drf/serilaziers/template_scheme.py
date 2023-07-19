@@ -10,8 +10,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import serializers
 from typing import List
+
+from rest_framework import serializers
 
 from gcloud.template_base.models import DefaultTemplateScheme
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
@@ -25,6 +26,12 @@ class SchemesSerizlializer(serializers.Serializer):
 
 class TemplateSchemeSerializer(SchemesSerizlializer):
     id = serializers.IntegerField(read_only=True, help_text="执行方案ID")
+
+    def update(self, instance, validated_data):
+        instance.data = validated_data["data"]
+        instance.name = validated_data["name"]
+        instance.save()
+        return instance
 
 
 class ParamsSerializer(serializers.Serializer):
