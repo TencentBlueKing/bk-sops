@@ -9,15 +9,18 @@
                 <span>{{$t('执行方案')}}</span>
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
-            <bk-alert type="info" class="single-use-alert">
-                <template slot="title">
-                    <i18n tag="div" path="singleUseTips">
-                        <span class="single-use" @click="onImportTemporaryPlan">{{ $t('一次性方案') }}</span>
-                    </i18n>
-                </template>
-            </bk-alert>
+            <div class="scheme-active-wrapper">
+                <bk-button :text="true" @click="goManageScheme">
+                    <i class="common-icon-box-top-right-corner"></i>
+                    {{ $t('管理执行方案') }}
+                </bk-button>
+                <bk-button :text="true" class="ml20" @click="onImportTemporaryPlan">
+                    <i class="common-icon-batch-select"></i>
+                    {{ $t('使用临时方案') }}
+                </bk-button>
+            </div>
             <div class="scheme-content" data-test-id="createTask_form_schemeList">
-                <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
+                <p :class="['scheme-title', { 'data-empty': !schemeList.length }]">
                     <bk-checkbox
                         :value="isAllChecked"
                         :indeterminate="indeterminate"
@@ -26,22 +29,31 @@
                     </bk-checkbox>
                     <span class="scheme-name">{{ $t('方案名称') }}</span>
                 </p>
-                <ul class="scheme-list" v-if="schemeList.length || nameEditing">
+                <ul class="scheme-list" v-if="schemeList.length">
                     <li
                         v-for="item in schemeList"
                         class="scheme-item"
-                        :class="{ 'is-checked': Boolean(planDataObj[item.uuid]) }"
-                        :key="item.uuid">
+                        :class="{ 'is-checked': item.isChecked }"
+                        :key="item.id">
                         <bk-checkbox
-                            :value="Boolean(planDataObj[item.uuid])"
-                            @change="onCheckChange($event, item)">
+                            :value="item.isChecked"
+                            @change="onCheckChange(item)">
                         </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
                     </li>
                 </ul>
                 <!-- 无数据提示 -->
-                <NoData v-else></NoData>
+                <NoData v-else :message="$t('暂无方案')">
+                    <p style="margin-top: 8px">
+                        <bk-button :text="true" @click="goManageScheme">
+                            {{ $t('前往新增方案') }}
+                        </bk-button>
+                        <bk-button :text="true" @click="onImportTemporaryPlan" class="ml15">
+                            {{ $t('使用临时方案') }}
+                        </bk-button>
+                    </p>
+                </NoData>
             </div>
         </div>
     </div>
@@ -78,22 +90,6 @@
                 type: Boolean,
                 default: false
             },
-            selectedNodes: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            planDataObj: {
-                type: Object,
-                default: () => {}
-            },
-            excludeNode: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
             orderedNodeData: {
                 type: Array,
                 default () {
@@ -105,8 +101,7 @@
             return {
                 showPanel: false,
                 schemeList: [],
-                defaultIdList: [],
-                defaultSchemeId: null
+                defaultSchemeList: []
             }
         },
         computed: {
@@ -114,12 +109,10 @@
                 'projectName': state => state.projectName
             }),
             isAllChecked () {
-                const selectPlanLength = Object.keys(this.planDataObj).length
-                return selectPlanLength && selectPlanLength === this.schemeList.length
+                return this.schemeList.every(item => item.isChecked)
             },
             indeterminate () {
-                const selectPlanLength = Object.keys(this.planDataObj).length
-                return Boolean(selectPlanLength) && selectPlanLength !== this.schemeList.length
+                return !this.isAllChecked && this.schemeList.some(item => item.isChecked)
             }
         },
         created () {
@@ -131,8 +124,9 @@
                 'getDefaultTaskScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
-            onCheckChange (e, scheme) {
-                this.$emit('selectScheme', scheme, e)
+            onCheckChange (scheme) {
+                scheme.isChecked = !scheme.isChecked
+                this.$emit('selectScheme')
             },
             async initLoad () {
                 try {
@@ -143,25 +137,27 @@
                 }
             },
             // 获取方案列表
-            async loadSchemeList () {
+            async loadSchemeList (setSelected = true) {
                 try {
                     this.schemeList = await this.loadTaskScheme({
                         project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
-                    const defaultObj = {}
+                    let selectNodes = []
                     this.schemeList.forEach(scheme => {
+                        this.$set(scheme, 'isChecked', false)
                         this.$set(scheme, 'isDefault', false)
-                        this.$set(scheme, 'uuid', scheme.id)
-                        if (this.defaultIdList.includes(scheme.uuid)) {
+                        if (this.defaultSchemeList.includes(scheme.id)) {
                             scheme.isDefault = true
-                            defaultObj[scheme.uuid] = JSON.parse(scheme.data)
+                            scheme.isChecked = true
+                            selectNodes.concat(JSON.parse(scheme.data))
                         }
                     })
-                    this.$emit('updateTaskSchemeList', this.schemeList, false)
-                    this.$emit('setDefaultScheme', defaultObj)
-                    this.$emit('setDefaultSelected', false)
+                    if (setSelected) {
+                        selectNodes = Array.from(new Set(selectNodes)) || []
+                        this.$emit('setCanvasSelected', selectNodes)
+                    }
                 } catch (e) {
                     console.log(e)
                 }
@@ -175,9 +171,8 @@
                         template_id: Number(this.template_id)
                     })
                     if (resp.data.length) {
-                        const { id, scheme_ids: schemeIds } = resp.data[0]
-                        this.defaultSchemeId = id
-                        this.defaultIdList = schemeIds
+                        const { scheme_ids: schemeIds } = resp.data[0]
+                        this.defaultSchemeList = schemeIds
                     }
                 } catch (error) {
                     console.warn(error)
@@ -195,8 +190,25 @@
             toggleSchemePanel () {
                 this.showPanel = !this.showPanel
             },
+            goManageScheme () {
+                const { href } = this.$router.resolve({
+                    name: 'templatePanel',
+                    params: { type: 'edit' },
+                    query: { template_id: this.template_id, manageScheme: true }
+                })
+                window.open(href, '_blank')
+                // 监听浏览器切换事件
+                document.addEventListener('visibilitychange', this.handleVisibilitychange)
+            },
+            handleVisibilitychange () {
+                if (document.visibilityState !== 'hidden') {
+                    document.removeEventListener('visibilitychange', this.handleVisibilitychange)
+                    // 更新执行列表
+                    this.loadSchemeList(false)
+                }
+            },
             /**
-             * 一次性方案
+             * 临时方案
             */
             onImportTemporaryPlan () {
                 this.$emit('onImportTemporaryPlan')
@@ -218,9 +230,8 @@
         position: absolute;
         top: 0;
         right: 0;
-        width: 640px;
+        width: 520px;
         height: 100%;
-        padding: 0 24px;
         display: flex;
         flex-direction: column;
         background: $whiteDefault;
@@ -233,8 +244,10 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 0 24px;
             font-size: 16px;
             color: #313238;
+            box-shadow: inset 0 -1px 0 0 #DCDEE5;
             .icon-close-line {
                 color: #63656e;
                 font-size: 14px;
@@ -246,6 +259,19 @@
                 }
             }
         }
+        .scheme-active-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 12px 0 16px;
+            margin: 0 24px;
+            font-size: 14px;
+            /deep/.bk-button-text i {
+                font-size: 12px;
+                margin-right: 3px;
+                vertical-align: middle;
+            }
+        }
         .single-use-alert {
             margin: 10px 0 15px 0;
             .single-use {
@@ -255,6 +281,7 @@
         }
         .scheme-content {
             max-height: calc(100% - 127px);
+            margin: 0 24px;
             border: 1px solid #dee0e6;
             .scheme-title, .scheme-item {
                 position: relative;
@@ -288,6 +315,9 @@
                 margin-left: 10px;
                 color: #14a568;
                 background: #e4faf0;
+            }
+            .scheme-title {
+                background: #fafbfd;
             }
             .scheme-item {
                 &:hover {
@@ -364,5 +394,9 @@
         .scheme-name-input {
             margin: 0 35px 0 120px;
         }
+    }
+    .no-data-wrapper {
+        height: auto;
+        padding: 22px 0 32px;
     }
 </style>

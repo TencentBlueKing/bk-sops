@@ -14,18 +14,14 @@
         <div class="header-left-area">
             <i class="bk-icon icon-arrows-left back-icon" @click="onBackClick"></i>
             <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
-            <h3 v-if="!schemeInfo" v-bk-overflow-tips class="template-name">{{ name }}</h3>
-            <template v-else>
-                <bk-input ref="schemeInput" class="template-name execution-scheme-input" v-model="schemeInfo.name"></bk-input>
-                <p class="execution-scheme-tip">{{ $t('执行') + schemeInfo.data.length + $t('个节点') }}</p>
-            </template>
+            <h3 v-bk-overflow-tips class="template-name">{{ name }}</h3>
             <span v-if="!isViewMode && isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
             <!-- 执行方案图标 -->
             <span
                 v-if="!isViewMode && isEditProcessPage"
                 class="common-icon-file-setting execute-scheme-icon"
                 v-bk-tooltips.bottom="$t('执行方案')"
-                @click="onOpenExecuteScheme">
+                @click="handleGoMangeScheme">
             </span>
         </div>
         <div class="header-right-area" slot="expand">
@@ -86,9 +82,6 @@
                     {{$t('导出为图片')}}
                 </bk-button>
             </div>
-            <div class="button-area edit-scheme" v-if="schemeInfo">
-                <bk-button theme="primary" data-test-id="templateEdit_form_saveScheme" @click="onSaveEditSchemeClick">{{ '保存' }}</bk-button>
-            </div>
             <div class="button-area preview" data-test-id="templateEdit_form_closePreview" v-if="!isEditProcessPage && isPreviewMode">
                 <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
             </div>
@@ -111,7 +104,6 @@
     import PageHeader from '@/components/layout/PageHeader.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     import SETTING_TABS from './SettingTabs.js'
-    import bus from '@/utils/bus.js'
 
     export default {
         name: 'TemplateHeader',
@@ -138,12 +130,6 @@
                 default () {
                     return []
                 }
-            },
-            excludeNode: {
-                type: Array,
-                default () {
-                    return []
-                }
             }
         },
         data () {
@@ -158,8 +144,7 @@
                 hasCommonTplCreateTaskPerm: false, // 公共流程在项目下创建任务权限
                 createCommonTplPermLoading: false,
                 commonTplCreateTaskPermLoading: false,
-                selectedProject: {}, // 公共流程创建任务所选择的项目
-                schemeInfo: null
+                selectedProject: {} // 公共流程创建任务所选择的项目
             }
         },
         computed: {
@@ -221,16 +206,6 @@
             }
         },
         async mounted () {
-            bus.$on('onEditScheme', (val) => {
-                if (typeof val.data === 'string') {
-                    val.data = JSON.parse(val.data)
-                }
-                this.schemeInfo = val
-                this.$nextTick(() => {
-                    const inputDom = this.$refs.schemeInput
-                    inputDom && inputDom.focus()
-                })
-            })
             // 新建、克隆公共流程需要查询创建公共流程权限
             if (this.common) {
                 await this.queryCreateCommonTplPerm()
@@ -292,7 +267,6 @@
                         this.applyTplPerm(this.saveRequiredPerm)
                     }
                 }
-                this.$emit('onOpenExecuteScheme', false)
             },
             onDownloadCanvas () {
                 this.$emit('onDownloadCanvas')
@@ -338,23 +312,6 @@
                 } else {
                     this.goBackToTplEdit()
                 }
-                this.schemeInfo = null
-            },
-            onSaveEditSchemeClick () {
-                /**
-                 * 方案至少需要选中一个节点
-                 * this.locations.length - 2 --> 画布所有任务节点
-                 * 当所有任务节点被排除时return
-                 */
-                if (this.excludeNode.length === this.locations.length - 2) {
-                    this.$bkMessage({
-                        message: i18n.t('不允许添加没有节点的执行方案'),
-                        theme: 'warning'
-                    })
-                    return
-                }
-                bus.$emit('onSaveEditScheme', this.schemeInfo)
-                this.schemeInfo = null
             },
             goBackTplList () {
                 if (this.isTemplateDataChanged && this.type === 'edit') {
@@ -525,9 +482,9 @@
                 }
                 this.applyForPermission(requiredPerm, curPermission, resourceData)
             },
-            onOpenExecuteScheme () {
+            handleGoMangeScheme () {
                 this.saveTemplate()
-                this.$emit('onOpenExecuteScheme', true)
+                this.$emit('handleGoMangeScheme', true)
             }
         }
     }
@@ -565,9 +522,6 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             color: #63656e;
-        }
-        .execution-scheme-input {
-            width: 240px;
         }
         .execution-scheme-tip {
             font-size: 12px;

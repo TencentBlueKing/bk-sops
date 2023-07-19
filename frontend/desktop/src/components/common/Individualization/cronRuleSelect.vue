@@ -15,7 +15,7 @@
         <i class="common-icon-info rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
-            <img style="width:100%" class="ui-img" :src="periodicCronImg">
+            <img style="width:542px;height: 258px;" class="ui-img" :src="periodicCronImg">
         </div>
         <div class="time-input">
             <input

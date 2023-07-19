@@ -132,6 +132,7 @@
     .title-background {
         position: relative;
         padding-left: 20px;
+        margin-bottom: 16px;
         cursor: pointer;
         &:hover {
             background: #e4e6ed;

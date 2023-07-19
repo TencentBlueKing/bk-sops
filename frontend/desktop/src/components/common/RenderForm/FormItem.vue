@@ -282,10 +282,7 @@
             },
             groupComponent () {
                 const groupComponent = [
-                    'tag-set-allocation',
                     'tag-upload',
-                    'tag-ip-selector',
-                    'tag-host-allocation',
                     'tag-datatable'
                 ]
                 return groupComponent.includes(this.tagComponent)
