@@ -470,7 +470,7 @@
                         return acc
                     }, [])
                     let result = {}
-                    if (this.isEditProcessPage) {
+                    if (this.isEditProcessPage && scheme) {
                         result = await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess })
                         selectNodes.push(...JSON.parse(result.data))
                     }
