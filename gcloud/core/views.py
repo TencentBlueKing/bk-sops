@@ -20,7 +20,6 @@ from blueapps.account.handlers.response import ResponseHandler
 from blueapps.account.middlewares import LoginRequiredMiddleware
 from django.contrib.auth import logout
 from django.http import HttpResponseNotFound, HttpResponseRedirect
-from django.middleware.csrf import rotate_token
 from django.shortcuts import render
 from django_prometheus.exports import ExportToDjangoView
 
@@ -45,7 +44,6 @@ def page_not_found(request, exception):
         refer_url = quote(request.build_absolute_uri())
         return HttpResponseRedirect(settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, refer_url))
     request.user = user
-    rotate_token(request)
     # not home url enter
     user_enter.send(username=user.username, sender=user.username)
     return render(request, "core/base_vue.html", {})
