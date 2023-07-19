@@ -40,7 +40,11 @@
                             @change="onCheckChange(item)">
                         </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
-                        <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
+                        <i
+                            v-if="item.isDefault"
+                            v-bk-tooltips="{ content: $t('默认方案'), boundary: 'window' }"
+                            :class="['common-icon-default', { 'is-default': item.isDefault }]">
+                        </i>
                     </li>
                 </ul>
                 <!-- 无数据提示 -->
@@ -315,6 +319,21 @@
                 margin-left: 10px;
                 color: #14a568;
                 background: #e4faf0;
+            }
+            .common-icon-default {
+                position: absolute;
+                top: 15px;
+                right: 10px;
+                font-size: 14px;
+                margin-top: 1px;
+                color: #979ba5;
+                font-weight: 500;
+                &:hover {
+                    color: #3a84ff !important;
+                }
+                &.is-default {
+                    color: #3a84ff;
+                }
             }
             .scheme-title {
                 background: #fafbfd;
