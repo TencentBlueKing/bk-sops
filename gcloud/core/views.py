@@ -15,16 +15,16 @@ import logging
 from urllib.parse import quote
 
 from blueapps.account import ConfFixture
+from blueapps.account.decorators import login_exempt
 from blueapps.account.handlers.response import ResponseHandler
+from blueapps.account.middlewares import LoginRequiredMiddleware
 from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render
 from django_prometheus.exports import ExportToDjangoView
 
-from blueapps.account.decorators import login_exempt
-from blueapps.account.middlewares import LoginRequiredMiddleware
-from gcloud.core.signals import user_enter
 from gcloud.conf import settings
+from gcloud.core.signals import user_enter
 
 logger = logging.getLogger("root")
 
@@ -37,6 +37,10 @@ def page_not_found(request, exception):
 
     # 未登录重定向到首页，跳到登录页面
     if not user:
+        user_forbidden, msg = LoginRequiredMiddleware().is_user_forbidden(request)
+        if user_forbidden:
+            handler = ResponseHandler(ConfFixture, settings)
+            return handler.build_403_response(msg)
         refer_url = quote(request.build_absolute_uri())
         return HttpResponseRedirect(settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, refer_url))
     request.user = user
