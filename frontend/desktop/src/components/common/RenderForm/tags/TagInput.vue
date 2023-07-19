@@ -70,8 +70,6 @@
     import dom from '@/utils/dom.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const VAR_REG = /\$[^\}]*$/
-
     export const attrs = {
         placeholder: {
             type: String,
@@ -183,8 +181,11 @@
                 if (!this.isListOpen) {
                     return
                 }
+                const parent = e.target.offsetParent
+                let classList = parent ? parent.classList : null
+                classList = classList && Array.from(classList.values())
                 const listPanel = this.$el.querySelector('.rf-select-list')
-                if (listPanel && !dom.nodeContains(listPanel, e.target)) {
+                if (listPanel && !dom.nodeContains(listPanel, e.target) && classList[0] !== 'rf-form-wrapper') {
                     this.isListOpen = false
                 }
             },
@@ -194,7 +195,13 @@
                 const divInputDom = this.$el.querySelector('.div-input')
                 const { outerHTML, id } = previousElementSibling || {}
                 const previousDomContent = outerHTML || ''
-                const focusNodeContent = focusNode.data.slice(0, anchorOffset - 1) + val + focusNode.data.slice(anchorOffset)
+                // 光标左边文本内容
+                let matchText = focusNode.data.slice(0, anchorOffset)
+                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
+                matchText = matchText.split(varRegexp).pop()
+                // 拿到字段最后以$开头的部分
+                matchText = matchText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
+                const focusNodeContent = focusNode.data.slice(0, anchorOffset - matchText.length) + val + focusNode.data.slice(anchorOffset)
                 const replaceContent = previousDomContent + focusNodeContent
                 divInputDom.innerHTML = divInputDom.innerHTML.replace(previousDomContent + focusNode.data, replaceContent)
                 // 更新表单
@@ -218,7 +225,7 @@
                         previousDom = item
                         return false
                     })
-                    selection.collapse(textNode, anchorOffset + val.length - 1)
+                    selection.collapse(textNode, anchorOffset - matchText.length + val.length)
                 })
             },
             // 文本框点击
@@ -258,28 +265,51 @@
                 }
             },
             // 文本框获取焦点
-            handleInputFocus () {
+            handleInputFocus (e) {
                 this.input.focus = true
                 const input = this.$refs.input
                 // 设置光标到最后
                 const selection = window.getSelection()
                 selection.selectAllChildren(input)
                 selection.collapseToEnd()
+                if (!this.input.value) return
+                setTimeout(() => {
+                    let focusSelection = null
+                    const { nodeName, lastChild } = selection.focusNode
+                    if (nodeName === 'DIV') {
+                        focusSelection = {
+                            anchorOffset: lastChild.data.length,
+                            focusNode: lastChild
+                        }
+                    } else if (nodeName === '#text') {
+                        focusSelection = selection
+                    }
+                    this.handleInputChange(e, focusSelection)
+                }, 0)
             },
             // 文本框输入
-            handleInputChange (e) {
-                const { innerText } = e.target
-                this.input.value = innerText
-                this.updateForm(innerText)
+            handleInputChange (e, selection) {
+                if (!selection) {
+                    const { innerText } = e.target
+                    this.input.value = innerText
+                    this.updateForm(innerText)
+                }
                 let matchResult = []
-                const selection = window.getSelection()
-                const { focusNode, anchorOffset } = selection
-                if (!focusNode.data) return
+                const { focusNode, anchorOffset } = selection || window.getSelection()
+                if (!focusNode.data) {
+                    this.isListOpen = false
+                    return
+                }
                 const offsetText = focusNode.data.substring(0, anchorOffset)
-                if (e.data === '$') {
+                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
+                let matchText = offsetText.split(varRegexp).pop()
+                // 拿到字段最后以$开头的部分
+                matchText = matchText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
+                // 判断是否为变量格式
+                if (matchText === '$') {
                     matchResult = ['$']
-                } else {
-                    matchResult = offsetText.match(VAR_REG)
+                } else if (/^\${[a-zA-Z_]*[\w|.]*/.test(matchText)) {
+                    matchResult = [matchText]
                 }
                 if (matchResult && matchResult[0]) {
                     const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
@@ -319,6 +349,7 @@
             },
             // 点击到input外面
             handleClickOutSide (e) {
+                if (!this.input.focus) return
                 const parent = e.target.offsetParent
                 const classList = parent ? parent.classList : null
                 const unFocus = !parent || (classList && !Array.from(classList.values()).some(key => {
@@ -332,7 +363,8 @@
             handleInputBlur  (e) {
                 this.$emit('blur')
                 this.input.focus = false
-                const varRegexp = /\s?\${[a-zA-Z_]\w*}\s?/g
+                // 支持所有变量（系统变量，内置变量，自定义变量）
+                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
                 const innerHtml = this.input.value.replace(varRegexp, (match) => {
                     if (this.constantArr.includes(match)) {
                         return `<span contenteditable="false" class="var-tag" id="${Math.random()}">${match}</span>` // 两边留空格保持间距
