@@ -1772,7 +1772,8 @@ const en = {
     '若坚持执行，职能化人员将无法操作该任务': 'If you still want to execute,  the team members will not be able to operate the task.',
     '执行方式': 'Source',
     'API 任务': 'API',
-    '清空筛选': 'Clear'
+    '清空筛选': 'Clear',
+    '仅支持查询最近x天任务记录': 'You can only query the tasks for the last {x} days.'
 }
 
 export default en
