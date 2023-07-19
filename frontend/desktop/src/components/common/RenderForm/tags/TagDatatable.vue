@@ -639,7 +639,7 @@
                             $this.loading = false
                         },
                         error: () => {
-                            $this.empty_text = this.$t('请求表头数据失败，使用预置表头')
+                            $this.empty_text = $this.$t('请求表头数据失败，使用预置表头')
                             $this.loading = false
                         }
                     })
