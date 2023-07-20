@@ -39,7 +39,7 @@
                     <bk-checkbox
                         :value="isAllChecked"
                         :indeterminate="indeterminate"
-                        v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing && !isSchemeEditing }"
+                        v-bk-tooltips="{ content: $t('请先完成当前操作'), boundary: 'window', disabled: !nameEditing && !isSchemeEditing }"
                         :disabled="!schemeList.length || nameEditing || isSchemeEditing"
                         @change="onAllCheckChange">
                     </bk-checkbox>
@@ -107,7 +107,7 @@
                             <bk-checkbox
                                 :value="item.isChecked"
                                 :disabled="nameEditing || isSchemeEditing"
-                                v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing && !isSchemeEditing }"
+                                v-bk-tooltips="{ content: $t('请先完成当前操作'), boundary: 'window', disabled: !nameEditing && !isSchemeEditing }"
                                 @change="onCheckChange(item)">
                             </bk-checkbox>
                             <span class="scheme-name" :title="item.name">{{item.name}}</span>
@@ -326,7 +326,7 @@
                 // 提示用户先保存创建方案再进行其他操作
                 if (this.nameEditing || this.isSchemeEditing) {
                     this.$bkMessage({
-                        message: i18n.t('请先保存方案再执行其他操作'),
+                        message: i18n.t('请先完成当前操作'),
                         theme: 'warning'
                     })
                     return true
@@ -846,7 +846,6 @@
                 }
                 .common-icon-default {
                     font-size: 14px;
-                    margin-top: 1px;
                 }
             }
             .scheme-title {
