@@ -216,7 +216,8 @@
                 isUpdate: false,
                 defaultSchemeId: null,
                 isPreview: false,
-                previousCheckedScheme: []
+                previousCheckedScheme: [],
+                previousCheckedNode: []
             }
         },
         computed: {
@@ -502,7 +503,7 @@
                 // 清楚报错异常
                 this.veeErrors.clear()
                 scheme.isEdit = true
-                // 记录编辑前选中的方案
+                // 记录编辑前选中的方案, 节点
                 this.previousCheckedScheme = []
                 this.previousCheckedNode = [...this.$parent.selectedNodes]
                 // 将所有非当前编辑的方案改为取消选中
