@@ -405,6 +405,7 @@
                     this.veeErrors.clear()
                     this.nameEditing = true
                     this.previousCheckedScheme = []
+                    this.previousCheckedNode = [...this.$parent.selectedNodes]
                     this.schemeList.forEach(item => {
                         if (item.isChecked) {
                             this.previousCheckedScheme.push(item.id)
@@ -429,6 +430,9 @@
                     })
                     this.previousCheckedScheme = []
                 }
+                // 取消编辑后，画布按编辑前选中的方案来勾选节点
+                this.$emit('setCanvasSelected', [...this.previousCheckedNode])
+                this.previousCheckedNode = []
             },
             /**
              * 添加方案
@@ -619,6 +623,7 @@
             async onDeleteConfirm (scheme) {
                 try {
                     scheme.isLoading = true
+                    this.previousCheckedNode = [...this.$parent.selectedNodes]
                     if (scheme.isDefault) {
                         scheme.isDefault = false
                         await this.onSaveDefaultExecuteScheme()
@@ -629,7 +634,9 @@
                     })
                     const index = this.schemeList.findIndex(item => item.id === scheme.id)
                     this.schemeList.splice(index, 1)
-                    this.onCheckChange(scheme)
+                    // 删除方案后，画布按编辑前选中的方案来勾选节点
+                    this.$emit('setCanvasSelected', [...this.previousCheckedNode])
+                    this.previousCheckedNode = []
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
