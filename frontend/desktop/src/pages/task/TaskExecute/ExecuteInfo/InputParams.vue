@@ -227,11 +227,6 @@
                     }
                 }
             }
-            .tag-set-allocation-wrap,
-            .tag-ip-selector-wrap,
-            .tag-host-allocation-wrap {
-                background: #f5f7fa;
-            }
         }
         /deep/.bk-schema-form {
             .bk-form-item {

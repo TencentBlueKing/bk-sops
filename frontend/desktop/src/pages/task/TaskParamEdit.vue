@@ -430,10 +430,12 @@
                     padding: 0;
                 }
             }
-            .tag-set-allocation-wrap,
-            .tag-ip-selector-wrap,
-            .tag-host-allocation-wrap {
-                background: #f5f7fa;
+            .resource-allocation {
+                border: none;
+                padding: 0;
+            }
+            .tag-ip-selector-wrap {
+                border: none;
             }
             .scheme-select-name {
                 .common-icon-dark-circle-warning {
