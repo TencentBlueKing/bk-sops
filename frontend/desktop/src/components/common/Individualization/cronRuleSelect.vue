@@ -95,6 +95,7 @@
                 isTimeMore: false,
                 periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 ruleTipsHtmlConfig: {
+                    extCls: 'periodic-cron-tips',
                     allowHtml: true,
                     width: 560,
                     trigger: 'mouseenter',
@@ -343,6 +344,11 @@
             right: 20px;
             color: #979ba5;
             font-size: 14px;
+        }
+    }
+    .periodic-cron-tips {
+        .tippy-tooltip {
+            padding: initial;
         }
     }
 </style>
