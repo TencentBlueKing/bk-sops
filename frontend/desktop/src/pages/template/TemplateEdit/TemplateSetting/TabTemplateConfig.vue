@@ -152,7 +152,7 @@
                     <bk-form-item property="defaultFlowType" :label="$t('任务类型偏好')" data-test-id="tabTemplateConfig_form_defaultFlowType">
                         <bk-select v-model="formData.defaultFlowType" :clearable="false" :disabled="isViewMode">
                             <bk-option id="common" :name="$t('常规')"></bk-option>
-                            <bk-option id="common_func" :name="$t('职能化任务')"></bk-option>
+                            <bk-option id="common_func" :name="$t('task_职能化')"></bk-option>
                         </bk-select>
                     </bk-form-item>
                 </section>

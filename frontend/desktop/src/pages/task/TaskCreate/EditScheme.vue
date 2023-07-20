@@ -42,7 +42,7 @@
             </bk-form>
         </div>
         <div class="btn-wrap">
-            <bk-button theme="primary" @click="onSaveScheme">{{ $t('保存') }}</bk-button>
+            <bk-button theme="primary" @click="onSaveScheme">{{ $t('确定') }}</bk-button>
             <bk-button @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
         </div>
     </div>

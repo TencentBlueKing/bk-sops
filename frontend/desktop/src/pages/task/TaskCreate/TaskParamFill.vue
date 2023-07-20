@@ -503,6 +503,7 @@
                             const h = this.$createElement
                             const self = this
                             const functionClaimMsg = this.$bkMessage({
+                                extCls: 'func-claim-message',
                                 message: h('div', {
                                     style: { display: 'flex' }
                                 }, [
@@ -512,20 +513,23 @@
                                             whiteSpace: 'nowrap',
                                             textOverflow: 'ellipsis'
                                         }
-                                    }, this.$t('提交成功，请通知职能化人员认领')),
-                                    h('span', {
-                                        style: {
-                                            flexShrink: 0,
-                                            marginLeft: '15px',
-                                            color: '#3a84ff',
-                                            cursor: 'pointer'
-                                        },
-                                        on: {
-                                            click: function () {
-                                                self.cloneClaimLink(taskData.id)
+                                    }, [
+                                        this.$t('任务提交成功，请'),
+                                        h('span', {
+                                            style: {
+                                                flexShrink: 0,
+                                                margin: '0 5px',
+                                                color: '#3a84ff',
+                                                cursor: 'pointer'
+                                            },
+                                            on: {
+                                                click: function () {
+                                                    self.cloneClaimLink(taskData.id)
+                                                }
                                             }
-                                        }
-                                    }, this.$t('复制认领链接'))
+                                        }, this.$t('tips_复制链接')),
+                                        this.$t('通知职能化成员')
+                                    ])
                                 ]),
                                 theme: 'success',
                                 delay: 0
@@ -760,4 +764,11 @@
         width: 140px;
     }
 }
+</style>
+<style lang="scss">
+    .func-claim-message {
+        .bk-message-content {
+            max-width: 590px;
+        }
+    }
 </style>
