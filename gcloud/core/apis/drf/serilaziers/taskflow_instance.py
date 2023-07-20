@@ -81,6 +81,7 @@ class TaskFlowInstanceListSerializer(serializers.ModelSerializer):
             "project",
             "current_flow",
             "engine_ver",
+            "flow_type",
         ]
 
 
