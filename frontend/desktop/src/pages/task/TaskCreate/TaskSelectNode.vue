@@ -485,7 +485,13 @@
              */
             setCanvasSelected (selectNodes = []) {
                 if (this.isPreviewMode) return
-                this.selectedNodes = selectNodes.length ? selectNodes : Object.keys(this.activities) // 默认全选
+                if (selectNodes.length) {
+                    // 使用传进来的选中节点，取消画布默认全选
+                    this.selectedNodes = selectNodes
+                    this.isAllSelected = !this.isEditProcessPage
+                } else {
+                    this.selectedNodes = Object.keys(this.activities)
+                }
                 this.updateDataAndCanvas()
             },
             /**
@@ -628,9 +634,6 @@
     background-color: #ffffff;
     .next-button {
         width: 140px;
-    }
-    .preview-button {
-        width: 120px;
     }
 }
 .title-back {

@@ -881,8 +881,10 @@
                         this.goToTaskUrl(data.template_id)
                     } else { // 保存后需要切到查看模式(查看执行方案时不需要)
                         if (this.initType === 'view') {
-                            this.$router.back()
-                            this.initData()
+                            if (!this.isGoManageScheme) {
+                                this.$router.back()
+                                this.initData()
+                            }
                         } else {
                             this.$router.push({
                                 params: { type: 'view' },
@@ -1544,6 +1546,7 @@
                 })
             },
             goBackToTplEdit () {
+                console.log('111')
                 this.isEditProcessPage = true
             },
             onClosePreview () {

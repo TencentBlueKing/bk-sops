@@ -141,7 +141,7 @@
                 }
             },
             // 获取方案列表
-            async loadSchemeList (setSelected = true) {
+            async loadSchemeList () {
                 try {
                     this.schemeList = await this.loadTaskScheme({
                         project_id: this.project_id,
@@ -155,13 +155,11 @@
                         if (this.defaultSchemeList.includes(scheme.id)) {
                             scheme.isDefault = true
                             scheme.isChecked = true
-                            selectNodes.concat(JSON.parse(scheme.data))
+                            selectNodes.push(...JSON.parse(scheme.data))
                         }
                     })
-                    if (setSelected) {
-                        selectNodes = Array.from(new Set(selectNodes)) || []
-                        this.$emit('setCanvasSelected', selectNodes)
-                    }
+                    selectNodes = Array.from(new Set(selectNodes)) || []
+                    this.$emit('setCanvasSelected', selectNodes)
                 } catch (e) {
                     console.log(e)
                 }
@@ -186,6 +184,9 @@
              * 执行方案全选/半选
              */
             onAllCheckChange (val) {
+                this.schemeList.forEach(scheme => {
+                    scheme.isChecked = val
+                })
                 this.$emit('selectAllScheme', val)
             },
             /**
@@ -208,7 +209,7 @@
                 if (document.visibilityState !== 'hidden') {
                     document.removeEventListener('visibilitychange', this.handleVisibilitychange)
                     // 更新执行列表
-                    this.loadSchemeList(false)
+                    this.initLoad()
                 }
             },
             /**

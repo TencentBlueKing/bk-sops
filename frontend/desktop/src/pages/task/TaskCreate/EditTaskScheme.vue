@@ -17,9 +17,16 @@
                 </template>
             </bk-alert>
             <div class="scheme-active-wrapper">
-                <bk-button data-test-id="templateEdit_form_addScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_addScheme"
+                    icon="plus-line"
+                    :disabled="nameEditing || isSchemeEditing"
+                    @click="onCreateScheme">
+                    {{ $t('新增') }}
+                </bk-button>
                 <bk-button
                     data-test-id="templateEdit_form_previewNode"
+                    :disabled="nameEditing || isSchemeEditing"
                     @click="onChangePreviewNode">
                     {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
                 </bk-button>
@@ -32,8 +39,8 @@
                     <bk-checkbox
                         :value="isAllChecked"
                         :indeterminate="indeterminate"
-                        v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing }"
-                        :disabled="!schemeList.length || nameEditing"
+                        v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing && !isSchemeEditing }"
+                        :disabled="!schemeList.length || nameEditing || isSchemeEditing"
                         @change="onAllCheckChange">
                     </bk-checkbox>
                     <span class="scheme-name">{{ $t('方案名称') }}</span>
@@ -99,26 +106,28 @@
                         <template v-else>
                             <bk-checkbox
                                 :value="item.isChecked"
-                                :disabled="nameEditing"
-                                v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing }"
+                                :disabled="nameEditing || isSchemeEditing"
+                                v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing && !isSchemeEditing }"
                                 @change="onCheckChange(item)">
                             </bk-checkbox>
                             <span class="scheme-name" :title="item.name">{{item.name}}</span>
                             <span v-if="item.quote_count > 0" class="quoted-count">{{ $tc('被个子流程引用', item.quote_count, { n: item.quote_count }) }}</span>
-                            <div class="icon-btn-wrapper" v-if="!isSchemeEditing">
+                            <div class="icon-btn-wrapper">
                                 <i
-
+                                    v-if="!isSchemeEditing && !nameEditing"
                                     v-bk-tooltips="{ content: $t('编辑'), boundary: 'window' }"
                                     class="bk-icon icon-edit-line"
                                     @click="onEditSelectScheme(item)">
                                 </i>
                                 <i
+                                    v-if="!isSchemeEditing && !nameEditing"
                                     v-bk-tooltips="{ content: $t('删除'), boundary: 'window' }"
                                     :class="['bk-icon icon-delete', { disabled: item.quote_count > 0 }]"
                                     @click="onDeleteScheme(item)">
                                 </i>
                                 <i
-                                    v-bk-tooltips="{ content: item.isDefault ? $t('默认方案') : $t('设为默认方案'), boundary: 'window' }"
+                                    v-if="(isSchemeEditing || nameEditing) ? item.isDefault : true"
+                                    v-bk-tooltips="{ content: item.isDefault ? $t('取消设为默认方案') : $t('设为默认方案'), boundary: 'window' }"
                                     :class="['common-icon-default', { 'is-default': item.isDefault }]"
                                     @click="onToggleDefaultPlan(item)">
                                 </i>
@@ -206,7 +215,8 @@
                 defaultSchemeList: [],
                 isUpdate: false,
                 defaultSchemeId: null,
-                isPreview: false
+                isPreview: false,
+                previousCheckedScheme: []
             }
         },
         computed: {
@@ -249,8 +259,6 @@
             ]),
             // 选择方案并进行切换更新选择的节点
             onCheckChange (scheme) {
-                // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
                 scheme.isChecked = !scheme.isChecked
                 this.$emit('selectScheme')
             },
@@ -273,7 +281,6 @@
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
-                    let selectNodes = []
                     this.schemeList.forEach(scheme => {
                         this.$set(scheme, 'isEdit', false)
                         this.$set(scheme, 'isChecked', false)
@@ -281,13 +288,10 @@
                         this.$set(scheme, 'isDefault', false)
                         if (this.defaultSchemeList.includes(scheme.id)) {
                             scheme.isDefault = true
-                            scheme.isChecked = true
-                            selectNodes.concat(JSON.parse(scheme.data))
                         }
                     })
-                    selectNodes = Array.from(new Set(selectNodes)) || []
                     // 画布按默认方案来勾选节点
-                    this.$emit('setCanvasSelected', selectNodes)
+                    this.$emit('setCanvasSelected', [])
                 } catch (error) {
                     console.error(error)
                 }
@@ -319,22 +323,26 @@
             */
             onImportTemporaryPlan () {
                 // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
+                if (this.nameEditing || this.isSchemeEditing) {
+                    this.$bkMessage({
+                        message: i18n.t('请先保存方案再执行其他操作'),
+                        theme: 'warning'
+                    })
+                    return true
+                }
                 this.$emit('onImportTemporaryPlan')
             },
             /**
              * 设为默认方案
             */
             async onToggleDefaultPlan (scheme) {
-                // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
+                if (this.nameEditing || this.isSchemeEditing) return
                 try {
                     scheme.isLoading = true
-                    scheme.isChecked = true
                     scheme.isDefault = !scheme.isDefault
                     await this.onSaveDefaultExecuteScheme()
                     this.$bkMessage({
-                        message: i18n.t('默认方案更新成功'),
+                        message: i18n.t(scheme.isDefault ? '添加默认方案成功' : '取消默认方案成功'),
                         theme: 'success'
                     })
                 } catch (error) {
@@ -378,8 +386,6 @@
              * 执行方案全选/半选
              */
             onAllCheckChange (val) {
-                // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
                 this.schemeList.forEach(scheme => {
                     scheme.isChecked = val
                 })
@@ -397,21 +403,17 @@
                 if (hasCreatePermission && !this.isPreviewMode) {
                     this.veeErrors.clear()
                     this.nameEditing = true
+                    this.previousCheckedScheme = []
+                    this.schemeList.forEach(item => {
+                        if (item.isChecked) {
+                            this.previousCheckedScheme.push(item.id)
+                        }
+                        item.isChecked = false
+                    })
                     this.$nextTick(() => {
                         this.$refs.nameInput.focus()
                     })
                 }
-            },
-            // 提示用户先保存创建方案再进行其他操作
-            setRemindUserMsg () {
-                if (this.nameEditing) {
-                    this.$bkMessage({
-                        message: i18n.t('请先保存方案再执行其他操作'),
-                        theme: 'warning'
-                    })
-                    return true
-                }
-                return false
             },
             /**
              * 取消创建方案
@@ -420,6 +422,12 @@
                 this.nameEditing = false
                 this.schemeName = ''
                 this.veeErrors.clear()
+                if (this.previousCheckedScheme.length) {
+                    this.schemeList.forEach(item => {
+                        item.isChecked = this.previousCheckedScheme.includes(item.id)
+                    })
+                    this.previousCheckedScheme = []
+                }
             },
             /**
              * 添加方案
@@ -432,10 +440,12 @@
                     })
                     return
                 }
-                const isSchemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
+                const isSchemeNameExist = this.schemeList.some(item => {
+                    return item.name.toLowerCase() === this.schemeName.toLowerCase()
+                })
                 if (isSchemeNameExist) {
                     this.$bkMessage({
-                        message: i18n.t('方案名称已存在'),
+                        message: i18n.t('方案名称已存在（不区分大小写）'),
                         theme: 'warning'
                     })
                     return
@@ -456,10 +466,13 @@
                             name: this.schemeName
                         })
                         if (!resp.result) return
+                        this.schemeList.forEach(item => {
+                            item.isChecked = false
+                        })
                         this.schemeList.unshift({
                             ...resp.data,
                             isEdit: false,
-                            isChecked: false,
+                            isChecked: true,
                             isLoading: false,
                             isDefault: false
                         })
@@ -484,13 +497,21 @@
              * 编辑选中的方案
              */
             onEditSelectScheme (scheme) {
-                // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
                 // 将当前数据记录下来
                 scheme.initScheme = { ...scheme }
                 // 清楚报错异常
                 this.veeErrors.clear()
                 scheme.isEdit = true
+                // 记录编辑前选中的方案
+                this.previousCheckedScheme = []
+                this.previousCheckedNode = [...this.$parent.selectedNodes]
+                // 将所有非当前编辑的方案改为取消选中
+                this.schemeList.forEach(item => {
+                    if (item.isChecked) {
+                        this.previousCheckedScheme.push(item.id)
+                        item.isChecked = item.id === scheme.id
+                    }
+                })
                 // 画布按当前方案勾选节点
                 this.$emit('setCanvasSelected', JSON.parse(scheme.data))
                 // 获取焦点
@@ -510,11 +531,11 @@
                     return
                 }
                 const isSchemeNameExist = this.schemeList.some(item => {
-                    return item.name === scheme.name && item.id !== scheme.id
+                    return item.name.toLowerCase() === scheme.name.toLowerCase() && item.id !== scheme.id
                 })
                 if (isSchemeNameExist) {
                     this.$bkMessage({
-                        message: i18n.t('方案名称已存在'),
+                        message: i18n.t('方案名称已存在（不区分大小写）'),
                         theme: 'warning'
                     })
                     return
@@ -536,7 +557,8 @@
                         const index = this.schemeList.findIndex(item => item.id === scheme.id)
                         this.schemeList.splice(index, 1, {
                             ...scheme,
-                            ...resp.data
+                            ...resp.data,
+                            isChecked: true
                         })
                         this.$bkMessage({
                             message: i18n.t('方案修改成功'),
@@ -552,15 +574,22 @@
                 Object.assign(scheme, scheme.initScheme || {})
                 // 删除多余字段
                 delete scheme.initScheme
-                // 取消编辑后，画布按所有选中的方案来勾选节点
-                this.$emit('selectScheme')
+                // 取消后恢复到编辑前的选中效果
+                if (this.previousCheckedScheme.length) {
+                    this.schemeList.forEach(item => {
+                        item.isChecked = this.previousCheckedScheme.includes(item.id)
+                    })
+                    this.previousCheckedScheme = []
+                }
+                // 取消编辑后，画布按编辑前选中的方案来勾选节点
+                this.$emit('setCanvasSelected', [...this.previousCheckedNode])
+                this.previousCheckedNode = []
             },
             /**
              * 删除方案
              */
             onDeleteScheme (scheme) {
-                // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg() || scheme.quote_count > 0) return
+                if (scheme.quote_count > 0) return
                 const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                 const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
@@ -573,7 +602,7 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('确认删除执行方案') + '【' + scheme.name + '】' + '?'])
+                        }, [i18n.t('确认删除执行方案【n】?', { n: scheme.name })])
                     ]),
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
@@ -637,8 +666,6 @@
              * @params {Boolean} isPreview  是否是预览模式
              */
             onChangePreviewNode () {
-                // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
                 this.isPreview = !this.isPreview
                 this.$emit('togglePreviewMode', this.isPreview)
             }
@@ -794,7 +821,7 @@
                     &:not(:first-child) {
                         margin-left: 12px;
                     }
-                    &:not(.disabled):hover {
+                    &:not(.common-icon-default):hover {
                         color: #3a84ff !important;
                     }
                     &.disabled {
