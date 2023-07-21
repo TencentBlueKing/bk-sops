@@ -74,7 +74,7 @@
                 class="preview-button"
                 data-test-id="createTask_form_togglePreview"
                 @click="togglePreviewMode(!isPreviewMode)">
-                {{ isPreviewMode ? $t('关闭预览') : $t('节点预览')}}
+                {{ isPreviewMode ? $t('关闭预览') : $t('预览')}}
             </bk-button>
         </div>
         <bk-sideslider
