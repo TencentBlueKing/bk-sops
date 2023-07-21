@@ -1546,7 +1546,6 @@
                 })
             },
             goBackToTplEdit () {
-                console.log('111')
                 this.isEditProcessPage = true
             },
             onClosePreview () {

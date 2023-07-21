@@ -713,7 +713,6 @@ const en = {
     '插件配置': 'Plugin Setting',
     '预览': 'Preview',
     '关闭预览': 'Close',
-    '节点预览': 'Nodes Preview',
     '新增方案': 'New Group',
     '下载': 'Download',
     '导入文件': 'Import File',

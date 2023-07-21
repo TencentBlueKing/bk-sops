@@ -28,7 +28,7 @@
                     data-test-id="templateEdit_form_previewNode"
                     :disabled="nameEditing || isSchemeEditing"
                     @click="onChangePreviewNode">
-                    {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
+                    {{ isPreview ? $t('关闭预览') : $t('预览')}}
                 </bk-button>
             </div>
             <section
@@ -338,6 +338,10 @@
             */
             async onToggleDefaultPlan (scheme) {
                 if (this.nameEditing || this.isSchemeEditing) return
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                const hasPermission = this.checkSchemeRelativePermission([tplAction])
+
+                if (!hasPermission) return
                 try {
                     scheme.isLoading = true
                     scheme.isDefault = !scheme.isDefault
@@ -456,10 +460,7 @@
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {
-                    if (!result) {
-                        this.schemeName = ''
-                        return
-                    }
+                    if (!result) return
                     try {
                         this.schemeName = this.schemeName.trim()
                         const selectedNodes = this.selectedNodes.slice()
@@ -502,6 +503,10 @@
              * 编辑选中的方案
              */
             onEditSelectScheme (scheme) {
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                const hasPermission = this.checkSchemeRelativePermission([tplAction])
+
+                if (!hasPermission) return
                 // 将当前数据记录下来
                 scheme.initScheme = { ...scheme }
                 // 清楚报错异常
