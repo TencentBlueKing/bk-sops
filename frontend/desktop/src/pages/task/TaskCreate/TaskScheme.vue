@@ -10,7 +10,11 @@
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
             <div class="scheme-active-wrapper">
-                <bk-button :text="true" @click="goManageScheme">
+                <bk-button
+                    :text="true"
+                    :class="{ 'text-permission-disable': !hasOperateSchemeTpl }"
+                    v-cursor="{ active: !hasOperateSchemeTpl }"
+                    @click="goManageScheme">
                     <i class="common-icon-box-top-right-corner"></i>
                     {{ $t('管理执行方案') }}
                 </bk-button>
@@ -50,7 +54,11 @@
                 <!-- 无数据提示 -->
                 <NoData v-else :message="$t('暂无方案')">
                     <p style="margin-top: 8px">
-                        <bk-button :text="true" @click="goManageScheme">
+                        <bk-button
+                            :text="true"
+                            :class="{ 'text-permission-disable': !hasOperateSchemeTpl }"
+                            v-cursor="{ active: !hasOperateSchemeTpl }"
+                            @click="goManageScheme">
                             {{ $t('前往新增方案') }}
                         </bk-button>
                         <bk-button :text="true" @click="onImportTemporaryPlan" class="ml15">
@@ -78,6 +86,10 @@
                 type: [String, Number],
                 default: ''
             },
+            templateName: {
+                type: String,
+                default: ''
+            },
             project_id: {
                 type: [String, Number],
                 default: ''
@@ -99,6 +111,12 @@
                 default () {
                     return []
                 }
+            },
+            tplActions: {
+                type: Array,
+                default () {
+                    return []
+                }
             }
         },
         data () {
@@ -110,6 +128,7 @@
         },
         computed: {
             ...mapState('project', {
+                'projectId': state => state.project_id,
                 'projectName': state => state.projectName
             }),
             isAllChecked () {
@@ -117,6 +136,10 @@
             },
             indeterminate () {
                 return !this.isAllChecked && this.schemeList.some(item => item.isChecked)
+            },
+            hasOperateSchemeTpl () {
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                return this.hasPermission([tplAction], this.tplActions)
             }
         },
         created () {
@@ -196,6 +219,10 @@
                 this.showPanel = !this.showPanel
             },
             goManageScheme () {
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                const hasPermission = this.checkSchemeRelativePermission([tplAction])
+
+                if (!hasPermission) return
                 const { href } = this.$router.resolve({
                     name: 'templatePanel',
                     params: { type: 'edit' },
@@ -204,6 +231,28 @@
                 window.open(href, '_blank')
                 // 监听浏览器切换事件
                 document.addEventListener('visibilitychange', this.handleVisibilitychange)
+            },
+            /**
+             * 校验权限，若无权限弹出权限申请弹窗
+             * @params {Array} required 被校验的权限
+             */
+            checkSchemeRelativePermission (required) {
+                if (!this.hasPermission(required, this.tplActions)) {
+                    const flowType = this.isCommonProcess ? 'common_flow' : 'flow'
+                    const resourceData = {
+                        [`${flowType}`]: [{
+                            id: this.template_id,
+                            name: this.templateName
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(required, this.tplActions, resourceData)
+                    return false
+                }
+                return true
             },
             handleVisibilitychange () {
                 if (document.visibilityState !== 'hidden') {

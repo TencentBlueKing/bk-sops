@@ -20,6 +20,8 @@
                 <bk-button
                     data-test-id="templateEdit_form_addScheme"
                     icon="plus-line"
+                    v-cursor="{ active: !hasOperateSchemeTpl }"
+                    :class="{ 'btn-permission-disable': !hasOperateSchemeTpl }"
                     :disabled="nameEditing || isSchemeEditing"
                     @click="onCreateScheme">
                     {{ $t('新增') }}
@@ -115,20 +117,24 @@
                             <div class="icon-btn-wrapper">
                                 <i
                                     v-if="!isSchemeEditing && !nameEditing"
+                                    v-cursor="{ active: !hasOperateSchemeTpl }"
                                     v-bk-tooltips="{ content: $t('编辑'), boundary: 'window' }"
                                     class="bk-icon icon-edit-line"
+                                    :class="{ 'text-permission-disable': !hasOperateSchemeTpl }"
                                     @click="onEditSelectScheme(item)">
                                 </i>
                                 <i
                                     v-if="!isSchemeEditing && !nameEditing"
+                                    v-cursor="{ active: !hasOperateSchemeTpl }"
                                     v-bk-tooltips="{ content: $t('删除'), boundary: 'window' }"
-                                    :class="['bk-icon icon-delete', { disabled: item.quote_count > 0 }]"
+                                    :class="['bk-icon icon-delete', { disabled: item.quote_count > 0, 'text-permission-disable': !hasOperateSchemeTpl }]"
                                     @click="onDeleteScheme(item)">
                                 </i>
                                 <i
                                     v-if="(isSchemeEditing || nameEditing) ? item.isDefault : true"
+                                    v-cursor="{ active: !hasOperateSchemeTpl }"
                                     v-bk-tooltips="{ content: item.isDefault ? $t('取消设为默认方案') : $t('设为默认方案'), boundary: 'window' }"
-                                    :class="['common-icon-default', { 'is-default': item.isDefault }]"
+                                    :class="['common-icon-default', { 'is-default': item.isDefault, 'text-permission-disable': !hasOperateSchemeTpl }]"
                                     @click="onToggleDefaultPlan(item)">
                                 </i>
                             </div>
@@ -225,7 +231,7 @@
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
             }),
-            haveCreateSchemeTpl () {
+            hasOperateSchemeTpl () {
                 const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                 return this.hasPermission([tplAction], this.tplActions)
             },
@@ -401,7 +407,7 @@
              */
             onCreateScheme () {
                 let hasCreatePermission = true
-                if (!this.haveCreateSchemeTpl) {
+                if (!this.hasOperateSchemeTpl) {
                     const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                     hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
                 }
@@ -835,7 +841,7 @@
                         margin-left: 12px;
                     }
                     &:not(.common-icon-default):hover {
-                        color: #3a84ff !important;
+                        color: #3a84ff;
                     }
                     &.disabled {
                         color: #c4c6cc;
