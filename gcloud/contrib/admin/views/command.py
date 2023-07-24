@@ -87,7 +87,7 @@ def batch_insert_project_based_component(request):
     body: data
     {
         "project_id(optional)": "项目 ID",
-        "project_ids(optional)": "项目 ID 列表(list)"
+        "project_ids(optional)": "项目 ID 列表(list)",
         "component_codes(required)": "插件code列表(list)"
     }
     """
@@ -125,7 +125,7 @@ def batch_delete_project_based_component(request):
     body: data
     {
         "project_id(optional)": "项目 ID",
-        "project_ids(optional)": "项目 ID 列表(list)"
+        "project_ids(optional)": "项目 ID 列表(list)",
         "component_codes(required)": "插件code列表(list)"
     }
     """
