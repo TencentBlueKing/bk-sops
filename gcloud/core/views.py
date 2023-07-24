@@ -38,6 +38,10 @@ def page_not_found(request, exception):
 
     # 未登录重定向到首页，跳到登录页面
     if not user:
+        user_forbidden, msg = LoginRequiredMiddleware().is_user_forbidden(request)
+        if user_forbidden:
+            handler = ResponseHandler(ConfFixture, settings)
+            return handler.build_403_response(msg)
         refer_url = quote(request.build_absolute_uri())
         return HttpResponseRedirect(settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, refer_url))
     request.user = user
