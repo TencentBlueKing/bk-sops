@@ -430,12 +430,10 @@
                     padding: 0;
                 }
             }
+            .tag-ip-selector-wrap,
             .resource-allocation {
                 border: none;
                 padding: 0;
-            }
-            .tag-ip-selector-wrap {
-                border: none;
             }
             .scheme-select-name {
                 .common-icon-dark-circle-warning {
