@@ -86,7 +86,7 @@
                                 class="search-item"
                                 v-for="(record, index) in recordsData" :key="index"
                                 @click="setSearchSelectValue(record)">
-                                <span class="search-item-label">{{ record.name + '：' }}</span>
+                                <span class="search-item-label">{{ record.name + $t('：') + (lang === 'en' ? '&nbsp;' : '') }}</span>
                                 <span class="search-item-text" v-bk-overflow-tips>{{ record.text_value }}</span>
                                 <i class="bk-icon icon-delete" @click.stop="onDeleteRecord(record)"></i>
                             </dd>
@@ -169,6 +169,7 @@
         },
         computed: {
             ...mapState({
+                lang: state => state.lang,
                 username: state => state.username
             }),
             isShowPlaceholder () {
@@ -238,7 +239,7 @@
                         } else {
                             recordItem.text_value = recordItem.values
                         }
-                        recordItem.name = nameMap[recordItem.id]
+                        recordItem.name = nameMap[recordItem.id] || this.$t(recordItem.name)
                         return recordItem
                     })
                 }
