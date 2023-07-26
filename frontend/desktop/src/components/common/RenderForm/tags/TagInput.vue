@@ -14,20 +14,43 @@
         <div class="rf-form-wrapper">
             <template v-if="formMode">
                 <el-input
+                    v-if="showPassword"
                     type="text"
                     v-model="inputValue"
-                    :disabled="!editable || disabled"
+                    :disabled="isDisabled"
                     :show-password="showPassword"
                     :placeholder="placeholder"
-                    @input="onInput">
+                    @blur="$emit('blur')"
+                    @input="handleInputChange">
                 </el-input>
+                <div v-else class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
+                    <div
+                        ref="input"
+                        class="div-input"
+                        :class="{
+                            'input-before': !input.value
+                        }"
+                        :contenteditable="!isDisabled"
+                        :data-placeholder="placeholder"
+                        v-bk-clickoutside="handleClickOutSide"
+                        @mouseup="handleInputMouseUp"
+                        @focus="handleInputFocus"
+                        @keydown="handleInputKeyDown"
+                        @input="handleInputChange">
+                    </div>
+                </div>
                 <transition>
-                    <div class="rf-select-list" v-show="showVarList && isListOpen">
+                    <div
+                        class="rf-select-list"
+                        :style="`right: ${varListPositionRight}px`"
+                        v-show="showVarList && isListOpen">
                         <ul class="rf-select-content">
                             <li
                                 class="rf-select-item"
                                 v-for="item in varList"
+                                v-bk-overflow-tips
                                 :key="item"
+                                :class="{ 'is-hover': hoverKey === item }"
                                 @click.stop="onSelectVal(item)">
                                 {{ item }}
                             </li>
@@ -46,8 +69,6 @@
     import { mapState } from 'vuex'
     import dom from '@/utils/dom.js'
     import { getFormMixins } from '../formMixins.js'
-
-    const VAR_REG = /\$.*$/
 
     export const attrs = {
         placeholder: {
@@ -85,7 +106,14 @@
         data () {
             return {
                 isListOpen: false,
-                varList: []
+                input: {
+                    value: this.value,
+                    focus: false
+                },
+                varList: [],
+                varListPositionRight: 0,
+                hoverKey: '',
+                selection: {}
             }
         },
         computed: {
@@ -122,10 +150,28 @@
                 } else {
                     return this.showPassword ? '******' : this.value
                 }
+            },
+            isDisabled () {
+                return !this.editable || this.disable
+            }
+        },
+        watch: {
+            isListOpen (val) {
+                if (!val) {
+                    this.hoverKey = ''
+                    const selectDom = this.$el.querySelector('.rf-select-content')
+                    selectDom.scrollTo({ top: 0 })
+                }
             }
         },
         created () {
             window.addEventListener('click', this.handleListShow, false)
+        },
+        mounted () {
+            const divInputDom = this.$el.querySelector('.div-input')
+            if (divInputDom) {
+                divInputDom.innerHTML = this.value
+            }
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
@@ -135,28 +181,240 @@
                 if (!this.isListOpen) {
                     return
                 }
-                const listPanel = document.querySelector('.rf-select-list')
-                if (listPanel && !dom.nodeContains(listPanel, e.target)) {
+                const parent = e.target.offsetParent
+                let classList = parent ? parent.classList : null
+                classList = classList && Array.from(classList.values())
+                const listPanel = this.$el.querySelector('.rf-select-list')
+                if (listPanel && !dom.nodeContains(listPanel, e.target) && classList[0] !== 'rf-form-wrapper') {
                     this.isListOpen = false
                 }
             },
-            onInput (val) {
-                const matchResult = val.match(VAR_REG)
+            onSelectVal (val) {
+                // 替换内容
+                const { focusNode, anchorOffset, previousElementSibling } = this.selection
+                const divInputDom = this.$el.querySelector('.div-input')
+                const { outerHTML, id } = previousElementSibling || {}
+                const previousDomContent = outerHTML || ''
+                // 光标左边文本内容
+                let matchText = focusNode.data.slice(0, anchorOffset)
+                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
+                matchText = matchText.split(varRegexp).pop()
+                // 拿到字段最后以$开头的部分
+                matchText = matchText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
+                const focusNodeContent = focusNode.data.slice(0, anchorOffset - matchText.length) + val + focusNode.data.slice(anchorOffset)
+                const replaceContent = previousDomContent + focusNodeContent
+                divInputDom.innerHTML = divInputDom.innerHTML.replace(previousDomContent + focusNode.data, replaceContent)
+                // 更新表单
+                const replacedValue = divInputDom.innerText
+                this.input.value = replacedValue
+                this.updateForm(replacedValue)
+                // 清空/关闭
+                this.isListOpen = false
+                this.hoverKey = ''
+                this.selection = {}
+                this.input.focus = true
+                // 设置光标在变量后面
+                this.$nextTick(() => {
+                    const selection = window.getSelection()
+                    let previousDom = null
+                    const textNode = Array.from(divInputDom.childNodes).find(item => {
+                        const previousDomMatch = id ? id === previousDom?.id : true
+                        if (previousDomMatch && item.nodeName === '#text' && item.textContent.indexOf(val) > -1) {
+                            return true
+                        }
+                        previousDom = item
+                        return false
+                    })
+                    selection.collapse(textNode, anchorOffset - matchText.length + val.length)
+                })
+            },
+            // 文本框点击
+            handleInputMouseUp (e) {
+                // 判断是否点到变量节点上
+                let isVarTagDom = false
+                const varTagDoms = this.$el.querySelectorAll('.var-tag')
+                if (varTagDoms && varTagDoms.length) {
+                    isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
+                }
+                if (isVarTagDom) {
+                    const varText = e.target.innerText
+                    const divInputDom = this.$el.querySelector('.div-input')
+                    // 记录光标的位置
+                    const selection = window.getSelection()
+                    const varTextOffset = selection.anchorOffset
+                    // 上一个相邻的tag
+                    const tagNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== '#text')
+                    const index = tagNodes.findIndex(item => item.id === e.target.id)
+                    const previousTagDom = tagNodes[index - 1]
+                    // 替换内容
+                    divInputDom.innerHTML = divInputDom.innerHTML.replace(e.target.outerHTML, varText)
+                    // 变量左侧文本的长度
+                    let startToVarTextLength = 0
+                    let previousDom = null
+                    // 选取符合条件的文本节点
+                    const textNode = Array.from(divInputDom.childNodes).find(item => {
+                        const previousDomMatch = previousTagDom ? previousTagDom.id === previousDom?.id : true
+                        if (previousDomMatch && item.nodeName === '#text' && item.textContent.indexOf(varText) > -1) {
+                            startToVarTextLength = item.textContent.split(varText)[0].length
+                            return true
+                        }
+                        previousDom = item
+                        return false
+                    })
+                    selection.collapse(textNode, startToVarTextLength + varTextOffset)
+                }
+            },
+            // 文本框获取焦点
+            handleInputFocus (e) {
+                this.input.focus = true
+                const input = this.$refs.input
+                // 设置光标到最后
+                const selection = window.getSelection()
+                selection.selectAllChildren(input)
+                selection.collapseToEnd()
+                if (!this.input.value) return
+                setTimeout(() => {
+                    let focusSelection = null
+                    const { nodeName, lastChild } = selection.focusNode
+                    if (nodeName === 'DIV') {
+                        focusSelection = {
+                            anchorOffset: lastChild.data.length,
+                            focusNode: lastChild
+                        }
+                    } else if (nodeName === '#text') {
+                        focusSelection = selection
+                    }
+                    this.handleInputChange(e, focusSelection)
+                }, 0)
+            },
+            // 文本框输入
+            handleInputChange (e, selection) {
+                if (!selection) {
+                    const { innerText } = e.target
+                    this.input.value = innerText
+                    this.updateForm(innerText)
+                }
+                let matchResult = []
+                const { focusNode, anchorOffset } = selection || window.getSelection()
+                if (!focusNode.data) {
+                    this.isListOpen = false
+                    return
+                }
+                const offsetText = focusNode.data.substring(0, anchorOffset)
+                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
+                let matchText = offsetText.split(varRegexp).pop()
+                // 拿到字段最后以$开头的部分
+                matchText = matchText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
+                // 判断是否为变量格式
+                if (matchText === '$') {
+                    matchResult = ['$']
+                } else if (/^\${[a-zA-Z_]*[\w|.]*/.test(matchText)) {
+                    matchResult = [matchText]
+                }
                 if (matchResult && matchResult[0]) {
                     const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
                     const inputReg = new RegExp(regStr)
                     this.varList = this.constantArr.filter(item => {
                         return inputReg.test(item)
                     })
+                    // 计算变量下拉列表的left
+                    this.isListOpen = false
+                    if (this.varList.length) {
+                        const { width: inputWidth } = this.$el.querySelector('.rf-form-wrap').getBoundingClientRect()
+                        let previousDomWidth = 0
+                        let previousDomLeft = 0
+                        const { previousElementSibling } = focusNode
+                        this.selection = {
+                            previousElementSibling,
+                            focusNode,
+                            anchorOffset
+                        }
+                        if (previousElementSibling) {
+                            previousDomWidth = previousElementSibling.offsetWidth || 0
+                            previousDomLeft = previousElementSibling.offsetLeft || 0
+                        }
+                        const newDom = document.createElement('span')
+                        newDom.innerHTML = offsetText
+                        this.$el.appendChild(newDom)
+                        const focusValueWidth = newDom.offsetWidth || 0
+                        this.$el.removeChild(newDom)
+                        let right = inputWidth - 238 - previousDomLeft - previousDomWidth - focusValueWidth
+                        right = right > 0 ? right : 0
+                        this.varListPositionRight = right
+                    }
                 } else {
                     this.varList = []
                 }
                 this.isListOpen = !!this.varList.length
             },
-            onSelectVal (val) {
-                const replacedValue = this.value.replace(VAR_REG, val)
-                this.updateForm(replacedValue)
-                this.isListOpen = false
+            // 点击到input外面
+            handleClickOutSide (e) {
+                if (!this.input.focus) return
+                const parent = e.target.offsetParent
+                const classList = parent ? parent.classList : null
+                const unFocus = !parent || (classList && !Array.from(classList.values()).some(key => {
+                    return ['tag-input', 'tippy-tooltip', 'tippy-content', 'rf-select-list'].includes(key)
+                }))
+                if (unFocus && e.target.className !== 'var-tag') {
+                    this.handleInputBlur()
+                }
+            },
+            // 文本框失焦
+            handleInputBlur  (e) {
+                this.$emit('blur')
+                this.input.focus = false
+                // 支持所有变量（系统变量，内置变量，自定义变量）
+                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
+                const innerHtml = this.input.value.replace(varRegexp, (match) => {
+                    if (this.constantArr.includes(match)) {
+                        return `<span contenteditable="false" class="var-tag" id="${Math.random()}">${match}</span>` // 两边留空格保持间距
+                    }
+                    return match
+                })
+                const divInputDom = this.$el.querySelector('.div-input')
+                divInputDom.innerHTML = innerHtml
+            },
+            // 文本框按键事件
+            handleInputKeyDown (e) {
+                switch (e.code) {
+                    case 'Enter':
+                    case 'NumpadEnter':
+                        e.preventDefault()
+                        this.handleKeyEnter()
+                        break
+                    case 'ArrowDown':
+                    case 'ArrowUp':
+                        e.preventDefault()
+                        this.handleDocumentKeydown(event)
+                        break
+                    default:
+                        return false
+                }
+            },
+            handleKeyEnter () {
+                if (!this.hoverKey) return
+                this.onSelectVal(this.hoverKey)
+            },
+            handleDocumentKeydown (event) {
+                const len = this.varList.length
+                if (len) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    let curIndex = this.varList.findIndex(item => item === this.hoverKey)
+                    curIndex = event.code === 'ArrowDown' ? curIndex + 1 : curIndex - 1
+                    curIndex = curIndex > len - 1 ? 0 : (curIndex < 0 ? len - 1 : curIndex)
+                    const option = this.varList[curIndex]
+                    if (option) {
+                        this.hoverKey = option
+                        const selectDom = this.$el.querySelector('.rf-select-content')
+                        const hoverItemDom = selectDom.querySelector('.is-hover')
+                        if (hoverItemDom) {
+                            selectDom.scrollTo({
+                                top: 32 * (curIndex < 3 ? 0 : curIndex - 2)
+                            })
+                        }
+                    }
+                }
             }
         }
     }
@@ -174,7 +432,7 @@
             position: absolute;
             top: 40px;
             right: 0;
-            width: 100%;
+            width: 238px;
             background: #ffffff;
             border-radius: 2px;
             box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.1);
@@ -183,6 +441,7 @@
         }
         .rf-select-content {
             max-height: 100px;
+            padding: 2px 0;
             overflow: auto;
             @include scrollbar;
         }
@@ -191,10 +450,50 @@
             line-height: 32px;
             font-size: 12px;
             cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            &.is-hover,
             &:hover {
-                background: #eef6fe;
-                color: #3a84ff;
+                background: #f5f7fa;
             }
+        }
+    }
+    .rf-form-wrap {
+        line-height: 32px;
+        padding: 0 10px;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        margin-top: 20px;
+        &.input-focus {
+            border-color: #3a84ff;
+        }
+        &.input-disable {
+            cursor: not-allowed;
+            background-color: #fafbfd;
+            border-color: #dcdee5;
+            .div-input {
+                height: 32px;
+            }
+        }
+    }
+    .div-input {
+        height: 32px;
+        line-height: 18px;
+        padding: 7px 0;
+        color: #63656e;
+        white-space: nowrap;
+        overflow: hidden;
+        /deep/.var-tag {
+            padding: 0px 4px;
+            background: #f0f1f5;
+            cursor: pointer;
+            &:hover {
+                background: #eaebf0;
+            }
+        }
+        &.input-before::before {
+            content: attr(data-placeholder);
+            color: #c4c6cc;
         }
     }
 }
