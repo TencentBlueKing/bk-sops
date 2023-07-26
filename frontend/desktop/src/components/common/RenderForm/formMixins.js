@@ -110,6 +110,10 @@ export const getFormMixins = (attrs = {}) => {
                 type: Boolean,
                 default: false
             },
+            render: {
+                type: Boolean,
+                default: true
+            },
             constants: {
                 type: Object,
                 default () {

@@ -31,6 +31,7 @@
             </i>
         </div>
         <code-editor
+            ref="codeEditor"
             :key="isFullScreen"
             :value="value"
             :options="options"

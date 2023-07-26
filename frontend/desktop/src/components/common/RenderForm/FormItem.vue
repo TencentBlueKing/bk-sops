@@ -114,6 +114,7 @@
                 v-bind="getDefaultAttrs()"
                 :tag-code="scheme.tag_code"
                 :hook="hook"
+                :render="render"
                 :constants="constants"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
@@ -125,9 +126,9 @@
                 @onHide="onHideForm">
             </component>
             <!-- 变量勾选checkbox -->
-            <div class="rf-tag-hook" v-if="showHook">
+            <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
                 <i
-                    :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                    :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
                         content: hook ? $t('取消变量引用') : $t('设置为变量'),
                         placement: 'bottom',
@@ -136,6 +137,7 @@
                     @click="onHookForm(!hook)">
                 </i>
                 <i
+                    v-if="isShowRenderIcon"
                     :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                     v-bk-tooltips="{
                         content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
@@ -144,6 +146,7 @@
                     }"
                     @click="onRenderChange">
                 </i>
+                <i v-else class="bk-icon icon-angle-up-fill"></i>
             </div>
             <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
                 <div class="hide-html-text">{{ scheme.attrs.desc }}</div>
@@ -260,7 +263,8 @@
                 showHook,
                 formValue,
                 isDescTipsShow: false,
-                isExpand: false
+                isExpand: false,
+                isShowRenderIcon: false // 是否展示免渲染icon
             }
         },
         computed: {
@@ -304,6 +308,36 @@
             Object.keys(tagComponent).forEach(item => {
                 this.$options.components[item] = tagComponent[item]
             })
+        },
+        created () {
+            // 针对job的代码编辑框，移除「变量免渲染」的功能开关
+            const { type, attrs } = this.scheme
+            if (type === 'code_editor') {
+                if (attrs.variable_render) { // variable_render 是否开启变量渲染
+                    this.isShowRenderIcon = true
+                    return
+                }
+                /**
+                 * need_render:
+                    1. false
+                        之前已勾选，现在去掉免渲染icon
+                    2.true，判断value
+                        a. 不包含${}，需要把need_render置为false，去掉免渲染icon
+                        b. 包含${}，保留免渲染icon
+                 */
+                if (this.render) {
+                    const regex = /\${[a-zA-Z_]\w*}/g
+                    const matchList = this.value.match(regex)
+                    const isMatch = matchList && matchList.some(item => {
+                        return !!this.constants[item]
+                    })
+                    if (isMatch) {
+                        this.isShowRenderIcon = true
+                    } else {
+                        this.onRenderChange()
+                    }
+                }
+            }
         },
         mounted () {
             const showDom = this.$el.querySelector('.rf-group-desc')
@@ -627,6 +661,14 @@
         }
         .hook-icon {
             font-size: 19px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin: 3px 0 0 6px;
+        }
+        &.hide-render-icon {
+            justify-content: center;
         }
     }
     .rf-view-value {
