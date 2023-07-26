@@ -92,7 +92,7 @@
         <!-- 变量勾选checkbox -->
         <div class="rf-tag-hook" v-if="showHook">
             <i
-                :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
                     content: hook ? $t('取消变量引用') : $t('设置为变量'),
                     placement: 'bottom',
@@ -100,15 +100,7 @@
                 }"
                 @click="onHookForm(!hook)">
             </i>
-            <i
-                :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
-                v-bk-tooltips="{
-                    content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
-                    placement: 'bottom',
-                    zIndex: 3000
-                }"
-                @click="onRenderChange">
-            </i>
+            <i class="bk-icon icon-angle-up-fill"></i>
         </div>
         <!-- 分组描述 -->
         <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
@@ -268,12 +260,6 @@
                 }
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
-            onRenderChange () {
-                if (!this.option.formEdit || this.hook) {
-                    return
-                }
-                this.$emit('onRenderChange', this.scheme.tag_code, !this.render)
-            },
             get_parent () {
                 return this.$parent
             },
@@ -397,15 +383,14 @@
         right: 0;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         padding: 0 8px;
         width: 56px;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
         z-index: 1;
-        .hook-icon,
-        .render-skip-icon {
+        .hook-icon {
             font-size: 16px;
             color: #979ba5;
             cursor: pointer;
@@ -419,6 +404,11 @@
         }
         .hook-icon {
             font-size: 19px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin: 3px 0 0 6px;
         }
     }
     .tag-label-tips {

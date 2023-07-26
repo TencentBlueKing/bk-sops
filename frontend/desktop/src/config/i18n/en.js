@@ -1782,7 +1782,10 @@ const en = {
     '添加默认方案成功': 'Default Node-Group Added',
     '取消默认方案成功': 'Default Node-Group Cancelled',
     '确认删除执行方案【n】?': 'Confirm to delete node-group [ {n} ] ?',
-    '取消设为默认方案': 'Unset as Default'
+    '取消设为默认方案': 'Unset as Default',
+    'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and it is recommended to use script parameters to pass in.',
+    '不再支持': 'no supported',
+    '添加收藏': 'Collection'
 }
 
 export default en
