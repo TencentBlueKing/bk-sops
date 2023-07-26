@@ -49,7 +49,7 @@
                                 :prop="item.id"
                                 :width="item.width"
                                 :render-header="renderTableHeader"
-                                show-overflow-tooltip
+                                :show-overflow-tooltip="item.id !== 'name'"
                                 :min-width="item.min_width">
                                 <template slot-scope="{ row }">
                                     <!--任务-->
@@ -67,7 +67,7 @@
                                             }"
                                             @click="onCollectTask(row)">
                                         </a>
-                                        <span class="name" :title="row.name">{{row.name || '--'}}</span>
+                                        <span class="name" v-bk-overflow-tips>{{row.name || '--'}}</span>
                                         <span
                                             class="label"
                                             v-if="row.is_latest === null"
