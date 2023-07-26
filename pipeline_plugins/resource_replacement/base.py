@@ -18,9 +18,7 @@ import typing
 
 from MySQLdb import Connection
 
-from pipeline_plugins.components.collections.sites.open.cc.base import (
-    cc_parse_path_text,
-)
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_parse_path_text
 from pipeline_plugins.components.utils.sites.open.utils import ip_pattern
 
 logger = logging.getLogger("root")
@@ -260,8 +258,8 @@ class CmdbSuite(Suite, abc.ABC):
 
     def to_new_cloud_id(self, old_cloud_id: int) -> int:
         """
-        获得迁移后的云区域 ID
-        规则：除直连区域（0）外，其他云区域 ID 按规定量偏移
+        获得迁移后的管控区域 ID
+        规则：除直连区域（0）外，其他管控区域 ID 按规定量偏移
         :param old_cloud_id:
         :return:
         """
@@ -275,7 +273,7 @@ class CmdbSuite(Suite, abc.ABC):
         return new_cloud_id
 
     def to_new_ip_list_str_or_raise(self, old_ip_list_str: str) -> str:
-        # 匹配出所有格式为 云区域:IP 的输入
+        # 匹配出所有格式为 管控区域:IP 的输入
         local_ip_pattern = re.compile(r"(\d+:)?((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 
         cloud_ip_list: typing.List[typing.List] = [
@@ -291,7 +289,7 @@ class CmdbSuite(Suite, abc.ABC):
                 _cloud, _ip = cloud_ip
                 plat_ip_list.append(f"{self.to_new_cloud_id(int(_cloud))}:{_ip}")
 
-        # 最小处理原则，如果填写的 IP 不包含云区域，则不做处理，尽可能不修改用户数据
+        # 最小处理原则，如果填写的 IP 不包含管控区域，则不做处理，尽可能不修改用户数据
         if not plat_ip_list:
             logger.info(f"[to_new_ip_list_str_or_raise] {old_ip_list_str} not hit plat_ip, skip")
             return old_ip_list_str
@@ -376,7 +374,7 @@ class CmdbSuite(Suite, abc.ABC):
 
     def process_ip_list_str(self, node_id: str, schema_attr_data: typing.Dict[str, typing.Any]):
         """
-        处理 IP 列表字符串，将其中可能存在的云区域 ID 按规则偏移
+        处理 IP 列表字符串，将其中可能存在的管控区域 ID 按规则偏移
         :param node_id:
         :param schema_attr_data:
         :return:

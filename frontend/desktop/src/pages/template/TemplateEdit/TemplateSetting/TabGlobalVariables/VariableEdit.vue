@@ -178,14 +178,17 @@
                 </div>
                 <!-- 描述 -->
                 <div class="form-item clearfix">
-                    <label class="form-label">{{ $t('说明') }}</label>
-                    <div class="form-content">
-                        <bk-input
+                    <label class="form-label">{{ $t('提示文本') }}</label>
+                    <div class="form-content" :class="['textarea-wrap', { 'readonly': isViewMode || isInternalVal }]">
+                        <textarea
+                            class="label_desc"
                             type="textarea"
                             v-model="theEditingData.desc"
-                            :placeholder="isInternalVal ? ' ' : $t('请输入')"
+                            :placeholder="isInternalVal ? ' ' : $t('请输入变量提示文本，不超过500个字符')"
+                            :maxlength="500"
                             :readonly="isViewMode || isInternalVal">
-                        </bk-input>
+                        </textarea>
+                        <p class="limit-box"><span class="strong">{{ theEditingData.desc.length }}</span>/<span>500</span></p>
                     </div>
                 </div>
             </section>
@@ -239,7 +242,7 @@
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
-            const currentValType = isHookedVar ? 'component' : custom_type
+            const currentValType = isHookedVar ? source_type : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
 
             return {
@@ -322,7 +325,7 @@
                     '1': i18n.t('即将下线'),
                     '2': i18n.t('已下线')
                 }
-                if (this.currentValType !== 'component' && this.varTypeList.length) {
+                if (!['component_inputs', 'component_outputs'].includes(this.currentValType) && this.varTypeList.length) {
                     this.varTypeList.some(group => {
                         return group.children.some(item => {
                             if (item.code === this.currentValType) {
@@ -375,7 +378,10 @@
             const { is_meta, custom_type, source_tag, source_type } = this.theEditingData
 
             if (this.isHookedVar) {
-                this.varTypeList = [{ code: 'component', name: i18n.t('组件') }]
+                this.varTypeList = [
+                    { code: 'component_inputs', name: i18n.t('节点输入') },
+                    { code: 'component_outputs', name: i18n.t('节点输出') }
+                ]
             } else {
                 await this.getVarTypeList()
                 // 若当前编辑变量为自定义变量类型的元变量，则取meta_tag
@@ -895,7 +901,7 @@
             &.required:before {
                 content: '*';
                 position: absolute;
-                top: 0px;
+                top: 2px;
                 right: -10px;
                 color: #ff2602;
                 font-family: "SimSun";
@@ -1024,6 +1030,60 @@
         .bk-button {
             margin-right: 10px;
             padding: 0 25px;
+        }
+        
+    }
+    .textarea-wrap {
+        height: 88px;
+        position: relative;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        &:focus-within {
+            border-color: #3a84ff;
+        }
+        &.readonly {
+            color: #aaaaaa;
+            background: #fafbfd;
+            border-color: #dedee5;
+            cursor: not-allowed;
+            .label_desc {
+                background: #fafbfd;
+            }
+        }
+        .label_desc {
+            width: 100%;
+            min-height: 70px;
+            font-size: 12px;
+            padding: 5px 10px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            color: #63656e;
+            border: none;
+            resize: none;
+            outline: none;
+            border-radius: inherit;
+            &::-webkit-input-placeholder {
+                color: #c4c6cc;
+            }
+            &::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+                &-thumb {
+                    border-radius: 20px;
+                    background: #a5a5a5;
+                    box-shadow: inset 0 0 6px hsla(0,0%,80%,.3);
+                }
+            }
+        }
+        .limit-box {
+            position: absolute;
+            bottom: 2px;
+            right: 7px;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            color: #979ba5;
+            transform: scale(0.8);
         }
     }
     /deep/ .variable-confirm-dialog-content {

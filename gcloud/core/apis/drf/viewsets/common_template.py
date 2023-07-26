@@ -15,37 +15,44 @@ import logging
 
 import ujson as json
 from django.db import transaction
-from django.db.models import ExpressionWrapper, Q, BooleanField
+from django.db.models import BooleanField, ExpressionWrapper, Q
 from drf_yasg.utils import swagger_auto_schema
-from iam import Request, Subject, Action, Resource
+from iam import Action, Request, Resource, Subject
+from pipeline.models import TemplateScheme
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ErrorDetail
-from rest_framework import status, permissions
-from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 from gcloud import err_code
+from gcloud.common_template.models import CommonTemplate
+from gcloud.common_template.signals import post_template_save_commit
 from gcloud.contrib.collection.models import Collection
+from gcloud.contrib.operate_record.constants import (
+    OperateSource,
+    OperateType,
+    RecordType,
+)
 from gcloud.contrib.operate_record.signal import operate_record_signal
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.core.apis.drf.filters import BooleanPropertyFilter
+from gcloud.core.apis.drf.filtersets import PropertyFilterSet
+from gcloud.core.apis.drf.permission import (
+    HAS_OBJECT_PERMISSION,
+    IamPermission,
+    IamPermissionInfo,
+)
+from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.common_template import (
     CommonTemplateListSerializer,
     CommonTemplateSerializer,
     CreateCommonTemplateSerializer,
     TopCollectionCommonTemplateSerializer,
 )
-from gcloud.common_template.signals import post_template_save_commit
-from gcloud.common_template.models import CommonTemplate
-from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
-from gcloud.iam_auth import res_factory, get_iam_client
-from gcloud.iam_auth import IAMMeta
-from gcloud.core.apis.drf.filtersets import PropertyFilterSet
-from gcloud.core.apis.drf.filters import BooleanPropertyFilter
-from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
-from pipeline.models import TemplateScheme
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -98,7 +105,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     ordering = ["-id"]
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "list_with_top_collection"]:
             return CommonTemplateListSerializer
         return CommonTemplateSerializer
 

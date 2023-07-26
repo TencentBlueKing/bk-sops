@@ -13,23 +13,17 @@ specific language governing permissions and limitations under the License.
 import itertools
 
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.collections.nodeman import BKNodeManClient
-from pipeline.component_framework.component import Component
-from pipeline.core.flow.io import (
-    IntItemSchema,
-    StringItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-)
-
 from gcloud.conf import settings
-from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
+from gcloud.utils.crypto import decrypt_auth_key, encrypt_auth_key
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
     get_host_id_by_inner_ip,
-    get_nodeman_rsa_public_key,
     get_host_id_by_inner_ipv6,
+    get_nodeman_rsa_public_key,
 )
 
 __group_name__ = _("节点管理(Nodeman)")
@@ -171,7 +165,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(inner_ip)))
+                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -208,10 +202,7 @@ class NodemanCreateTaskService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("操作对象"),
@@ -220,7 +211,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                 schema=ObjectItemSchema(
                     description=_("需要操作的对象"),
                     property_schemas={
-                        "nodeman_bk_cloud_id": StringItemSchema(description=_("云区域 ID")),
+                        "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域 ID")),
                         "nodeman_node_type": StringItemSchema(
                             description=_("节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）")
                         ),

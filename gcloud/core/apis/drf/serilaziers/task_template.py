@@ -12,14 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 import json
 
-from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import serializers
 
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.core.models import Project
+from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
-from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
+from gcloud.core.models import Project
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 class BaseTaskTemplateSerializer(BaseTemplateSerializer):
@@ -34,8 +34,8 @@ class TaskTemplateListSerializer(BaseTaskTemplateSerializer):
     create_time = serializers.DateTimeField(help_text="创建时间", format=DATETIME_FORMAT)
     edit_time = serializers.DateTimeField(help_text="编辑时间", format=DATETIME_FORMAT)
     template_id = serializers.CharField(read_only=True, help_text="模板id")
-    subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(read_only=True, help_text="版本")
+    subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     subprocess_has_update = serializers.BooleanField(read_only=True, help_text="子流程是否更新")
     has_subprocess = serializers.BooleanField(read_only=True, help_text="是否有子流程")
     description = serializers.CharField(read_only=True, help_text="流程描述", source="pipeline_template.description")

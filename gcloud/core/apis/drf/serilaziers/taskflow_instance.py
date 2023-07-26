@@ -19,14 +19,9 @@ from pipeline.exceptions import PipelineException
 from rest_framework import serializers
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import (
-    DATETIME_FORMAT,
-    TASK_CREATE_METHOD,
-    TASK_FLOW_TYPE,
-    TEMPLATE_SOURCE,
-    TaskCreateMethod,
-)
+from gcloud.constants import DATETIME_FORMAT, TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, TaskCreateMethod
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
 from gcloud.core.models import Project
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -45,6 +40,49 @@ class TaskFlowInstanceSerializer(TaskSerializer):
     class Meta:
         model = TaskFlowInstance
         fields = "__all__"
+
+
+class TaskFlowInstanceListSerializer(serializers.ModelSerializer):
+    project = ProjectSerializer()
+    create_time = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S %z", read_only=True, source="pipeline_instance.create_time"
+    )
+    finish_time = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S %z", read_only=True, source="pipeline_instance.finish_time"
+    )
+    start_time = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S %z", read_only=True, source="pipeline_instance.start_time"
+    )
+    name = serializers.CharField(source="pipeline_instance.name", read_only=True)
+    is_expired = serializers.BooleanField(source="pipeline_instance.is_expired", read_only=True)
+    is_finished = serializers.BooleanField(source="pipeline_instance.is_finished", read_only=True)
+    is_revoked = serializers.BooleanField(source="pipeline_instance.is_revoked", read_only=True)
+    is_started = serializers.BooleanField(source="pipeline_instance.is_started", read_only=True)
+    executor_name = serializers.CharField(help_text="执行者名称", read_only=True)
+
+    class Meta:
+        model = TaskFlowInstance
+        fields = [
+            "id",
+            "name",
+            "create_method",
+            "finish_time",
+            "creator_name",
+            "executor_name",
+            "is_deleted",
+            "is_expired",
+            "is_finished",
+            "is_revoked",
+            "is_started",
+            "template_id",
+            "template_source",
+            "create_time",
+            "start_time",
+            "project",
+            "current_flow",
+            "engine_ver",
+            "flow_type",
+        ]
 
 
 class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):

@@ -449,54 +449,60 @@
 <style lang="scss" scoped>
 .render-form {
     /deep/ .rf-group-name {
-        margin-bottom: 12px;
-        .name {
-            display: inline-block;
-            margin: 0;
-            margin-bottom: -1px;
-            padding: 5px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #313238;
+        margin-bottom: 8px;
+        .scheme-name,
+        .scheme-code {
+            font-size: 14px;
+            color: #63656e;
+            line-height: 22px;
         }
-        &:before {
-            content: '';
-            display: inline-block;
-            position: relative;
-            top: 4px;
-            width: 2px;
-            height: 20px;
-            background: #a3c5fd;
+        .scheme-code {
+            color: #979ba5;
+            margin-left: 16px;
         }
         &.not-reuse {
             &:before {
                 background: #ffd695;
             }
         }
-        .used-tip,
-        .not-reuse-tip,
-        .pre-mako-tip {
-            color: #979ba5;
-            font-size: 12px;
-            margin-left: 10px;
-            i {
-                font-size: 14px;
-                color: #ff9c01;
-            }
+        .common-icon-dark-circle-warning {
+            position: absolute;
+            right: 8px;
+            top: 39px;
+            z-index: 2;
+            font-size: 14px;
+            color: #ff9c01;
         }
     }
-    /deep/ .rf-group-desc {
-        color: #63656e;
-        font-size: 12px;
-        word-break: break-word;
-        margin-bottom: 12px;
-        display: -webkit-box;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-all;
-        -webkit-line-clamp: 10;
-        -webkit-box-orient: vertical;
+    /deep/ .scheme-desc-wrap {
+        position: relative;
+        color: #979ba5;
+        .hide-html-text {
+            position: absolute;
+            z-index: -1;
+            left: -99999px;
+            top: -99999px;
+            width: 100%;
+        }
+        .hide-html-text,
+        .rf-group-desc {
+            width: 100%;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 8px;
+            padding: 0;
+            white-space: pre-wrap;
+        }
+        .is-fold {
+            max-height: 36px;
+            overflow: hidden;
+        }
+        .expand-btn {
+            color: #3a84ff;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+        }
     }
-
 }
 </style>

@@ -20,11 +20,12 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils import cmdb
-from gcloud.utils.ip import format_sundry_ip, extract_ip_from_ip_str
 from gcloud.utils.handlers import handle_api_error
-from .constants import NO_ERROR, ERROR_CODES
+from gcloud.utils.ip import extract_ip_from_ip_str, format_sundry_ip
+
 from ..components.collections.sites.open.cc.base import cc_parse_path_text
 from ..components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
+from .constants import ERROR_CODES, NO_ERROR
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -686,9 +687,9 @@ def get_bk_cloud_id_for_host(host_info, cloud_key="cloud"):
             ...
         ]
     }
-    :param cloud_key: 云区域 ID 键, defaults to 'cloud'
+    :param cloud_key: 管控区域 ID 键, defaults to 'cloud'
     :type cloud_key: str, optional
-    :return: 主机云区域 ID
+    :return: 主机管控区域 ID
     :rtype: int
     """
 

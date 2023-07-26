@@ -2146,7 +2146,7 @@ msgstr "Timing, seconds(s) or datetime(%%Y-%%m-%%d %%H:%%M:%%S)"
 
 #: pipeline_plugins/components/collections/controller.py:98
 msgid "是否强制晚于当前时间"
-msgstr "Force to be later than current time"
+msgstr "Ensure time later than current time"
 
 #: pipeline_plugins/components/collections/controller.py:101
 msgid "用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效"
@@ -3684,8 +3684,8 @@ msgstr "Single target IP information"
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:88
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/base_service.py:47
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/base_service.py:76
-msgid "云区域ID, 默认为0"
-msgstr "Cloud region ID, default is 0"
+msgid "管控区域ID, 默认为0"
+msgstr "BK-Net ID, default is 0"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/base_service.py:89
 msgid "待执行目标机器 IP，多IP请使用;分隔"
@@ -3993,8 +3993,8 @@ msgid "执行作业"
 msgstr "Execution JOB"
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:47
-msgid "跨业务选项打开时IP参数需要按照(云区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息"
-msgstr "IP should be [Cloud ID:IP] when use different business, otherwise it will try to obtain IP information from this business"
+msgid "跨业务选项打开时IP参数需要按照(管控区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息"
+msgstr "IP should be [BK-Net ID:IP] when use different business, otherwise it will try to obtain IP information from this business"
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_0.py:49
 msgid ""
@@ -4007,23 +4007,24 @@ msgstr ""
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_1.py:76
 msgid ""
 "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
-"2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
+"2.在接收到用户编辑的全局变量后，v1.0及v1.1版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
+"如果不需要双引号包裹，可以使用legacy或v1.2版本插件，也可以手动在表格中去掉。"
 msgstr ""
 "1. When the user selects the JOB success history, the plugin will no longer create a new JOB instance and directly inherit the JOB success status. \n"
-"2. After receiving the global variable edited by the user, v1.0 and above will wrap the default variable value in English double quotation marks by default, and then pass the obtained string as a whole when calling the API.\n"
-"If you don't need double quotation marks, you can use the legacy version plugin, or you can manually remove it from the table."
+"2. After receiving the global variable edited by the user, v1.0 and v1.1 will wrap the default variable value in English double quotation marks by default, and then pass the obtained string as a whole when calling the API.\n"
+"If you don't need double quotation marks, you can use the legacy version and v1.2 plugin, or you can manually remove it from the table."
 
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_2.py:102
 msgid ""
 "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
-"2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。\n"
+"2.在接收到用户编辑的全局变量后，v1.0及v1.1会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
+"如果不需要双引号包裹，可以使用legacy或v1.2版本插件，也可以手动在表格中去掉。\n"
 "3. 去除IP存在性校验，默认开启新版IP tag分组, 默认开启失败时提取变量，job成功历史调整为只在重试时显示"
 msgstr ""
 "1. When the user selects the JOB success history, the plugin will no longer create a new JOB instance and directly inherit the JOB success status. \n"
-"2. After receiving the global variable edited by the user, v1.0 and above will wrap the default variable value in English double quotation marks by default, and then pass the obtained string as a whole when calling the API.\n"
-"If you don't need double quotation marks, you can use the legacy version plugin, or you can manually remove it from the table."
+"2. After receiving the global variable edited by the user, v1.0 and v1.1 will wrap the default variable value in English double quotation marks by default, and then pass the obtained string as a whole when calling the API.\n"
+"If you don't need double quotation marks, you can use the legacy version or v1.2 plugin, or you can manually remove it from the table. \n"
+"3. Remove IP existence validation, enable new version IP tag grouping by default, enable variable extraction on failure by default, and adjust job success history to only display on retry."
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/legacy.py:71
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_0.py:72
@@ -4103,8 +4104,8 @@ msgstr "Use IP From Diff-Busi."
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_0.py:117
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_1.py:119
-msgid "是否允许跨业务(跨业务需在作业平台添加白名单)，允许时，源文件IP格式需为【云区域ID:IP】"
-msgstr "The format should be [Cloud ID:IP] when use IP from different business"
+msgid "是否允许跨业务(跨业务需在作业平台添加白名单)，允许时，源文件IP格式需为【管控区域ID:IP】"
+msgstr "The format should be [BK-Net ID:IP] when use IP from different business"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_0.py:135
 msgid "自定义任务名"
@@ -4193,8 +4194,8 @@ msgstr "Quick File Distribution"
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v1_0.py:49
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py:49
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/base_service.py:78
-msgid "是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】"
-msgstr "the format should be [Cloud ID:IP] when use different business IP"
+msgid "是否允许跨业务，如果允许，源文件IP格式需为【管控区域ID:IP】"
+msgstr "the format should be [BK-Net ID:IP] when use different business IP"
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v1_0.py:177
 msgid "该版本不支持目标 IP 跨业务，需要目标 IP 跨业务分发请使用 2.0 及以上版本插件"
@@ -4246,8 +4247,8 @@ msgid "目标IP"
 msgstr "Target IP"
 
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/base_service.py:59
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-msgstr "IP should be filled with format [Cloud ID:IP] or [IP], separated by newline; [IP] format should be guaranteed unique of the CMDB business inner ips."
+msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgstr "IP should be filled with format [BK-Net ID:IP] or [IP], separated by newline; [IP] format should be guaranteed unique of the CMDB business inner ips."
 
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/base_service.py:66
 msgid "请输入在蓝鲸作业平台上注册的账户名"
@@ -4591,12 +4592,12 @@ msgstr "log: "
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:214
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:223
-msgid "云区域 ID"
-msgstr "Cloud ID"
+msgid "管控区域 ID"
+msgstr "BK-Net ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:217
-msgid "节点所在云区域 ID"
-msgstr "Node cloud ID"
+msgid "节点所在管控区域 ID"
+msgstr "Node BK-Net ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:220
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:219
@@ -4622,8 +4623,8 @@ msgstr "Host"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:242
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:76
-msgid "主机所在云区域 ID"
-msgstr "Host cloud ID"
+msgid "主机所在管控区域 ID"
+msgstr "Host BK-Net ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:244
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:247
@@ -4718,8 +4719,8 @@ msgstr "Obtaining the node management public key failed, please check the node l
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:178
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:167
 #: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py:114
-msgid "获取bk_host_id失败:{},请确认云区域是否正确"
-msgstr "Get bk_host_id failed: {}, please confirm cloud area's correctness"
+msgid "获取bk_host_id失败:{},请确认管控区域是否正确"
+msgstr "Get bk_host_id failed: {}, please confirm BK-Net's correctness"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:187
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:191
@@ -4790,8 +4791,8 @@ msgstr "AGENT or PROXY"
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:261
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:237
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:256
-msgid "云区域ID"
-msgstr "Cloud Region ID"
+msgid "管控区域ID"
+msgstr "BK-Net ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:243
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:238
@@ -4805,10 +4806,10 @@ msgstr "Host Info(For Upgrade,Install,Reinstall)"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v3_0.py:278
 msgid ""
-"v3.0版本支持多云区域主机新建任务 \n"
+"v3.0版本支持多管控区域主机新建任务 \n"
 "注意：节点类型PROXY仅支持非直连区域"
 msgstr ""
-"v3.0 version supports multi-cloud regional host creation tasks \n"
+"v3.0 version supports multi-BK-Net host creation tasks \n"
 "Note: Node type PROXY only supports non-directly connected areas"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v4_0.py:273
@@ -4958,8 +4959,8 @@ msgid "节点管理(NODEMAN)"
 msgstr "NodeMan"
 
 #: pipeline_plugins/components/utils/sites/open/utils.py:511
-msgid "允许跨业务时IP格式需满足：【云区域ID:IP】。失败 IP： {}"
-msgstr "Format should be [Cloud ID:IP] when use different business IP"
+msgid "允许跨业务时IP格式需满足：【管控区域ID:IP】。失败 IP： {}"
+msgstr "Format should be [BK-Net ID:IP] when use different business IP"
 
 #: pipeline_plugins/components/utils/sites/open/utils.py:515
 #: pipeline_plugins/components/utils/sites/open/utils.py:574
@@ -5170,16 +5171,16 @@ msgid ""
 "筛选条件和排除条件为 AND 关系\n"
 "- 筛选：会从IP列表中筛选出符合条件的IP\n"
 "- 排除：会从IP列表中去除符合条件的IP\n"
-"变量值是否带云区域\n"
-"- 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}\n"
+"变量值是否带管控区域\n"
+"- 是，返回格式为{BK-Net_id}:{ip},{BK-Net_id}:{ip}\n"
 "- 否，返回格式为{ip},{ip}"
 msgstr ""
 "The output format is a string separated by ',' for the selected IP\n"
 "Filter and exclude conditions are AND relationships\n"
 "- Filter: Filter out eligible IPs from the IP list\n"
 "- Exclude: Remove eligible IPs from IP list\n"
-"Whether the variable value has cloud area\n"
-"- True,The return format is {cloud_id}:{IP},{cloud_id}:{IP}\n"
+"Whether the variable value has BK-Net\n"
+"- True,The return format is {BK-Net_id}:{ip},{BK-Net_id}:{ip}\n"
 "- False,The return format is {IP},{IP}"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:199
@@ -5843,6 +5844,13 @@ msgstr "Loop execution times"
 
 msgid "业务"
 msgstr "Business"
+
+msgid "注意： 1.屏蔽方案选择自定义监控时，屏蔽范围CC大区和集群必须选择all, 2.当按业务屏蔽时，使用当前项目选择的业务值"
+msgstr "Note: 1. When the shielding scheme is selected to customize monitoring, the shielding range CC region and cluster must choose ALL. 2. When the business is shielded, use the business value of the current project selection"
+
+msgid "移除填写方式，只支持主机IP方式\n 管控区域ID、主机IP支持 设置为变量 \n 管控区域ID 支持AllowCreate \n"
+msgstr "Remove the filling method, only support the host IP method \n BK-Net ID, host IP support setting to variable \n BK-Net ID supports supportingCreate \n"
+
 
 #~ msgid "信号模块名"
 #~ msgstr "Signal module name"

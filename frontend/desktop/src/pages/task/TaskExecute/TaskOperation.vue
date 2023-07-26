@@ -275,6 +275,7 @@
     // 执行按钮的变更
     const STATE_OPERATIONS = {
         'RUNNING': 'pause',
+        'NODE_SUSPENDED': 'pause',
         'SUSPENDED': 'resume',
         'CREATED': 'execute',
         'FAILED': 'pause'
@@ -658,7 +659,7 @@
              */
             async getSingleAtomList () {
                 try {
-                    const params = {}
+                    const params = { scope: 'task' }
                     if (!this.common) {
                         params.project_id = this.project_id
                     }
@@ -765,7 +766,7 @@
                 }
             },
             async taskPause (subflowPause, nodeId) {
-                let res
+                let res, state, message
                 try {
                     if (!this.isTopTask || subflowPause) { // 子流程画布暂停或子流程节点暂停
                         const data = {
@@ -773,13 +774,20 @@
                             node_id: nodeId || this.taskId
                         }
                         res = await this.subInstancePause(data)
+                        state = 'NODE_SUSPENDED'
+                        const { activities } = this.pipelineData
+                        const { name } = activities[nodeId]
+                        message = name + ' ' + i18n.t('节点已暂停执行')
                     } else {
                         res = await this.instancePause(this.instance_id)
+                        state = 'SUSPENDED'
+                        message = i18n.t('任务已暂停执行')
                     }
                     if (res.result) {
-                        this.state = 'SUSPENDED'
+                        this.state = state
+                        this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: i18n.t('任务已暂停执行'),
+                            message,
                             theme: 'success'
                         })
                     }
@@ -790,7 +798,7 @@
                 }
             },
             async taskResume (subflowResume, nodeId) {
-                let res
+                let res, message
                 try {
                     if (!this.isTopTask || subflowResume) {
                         const data = {
@@ -798,14 +806,18 @@
                             node_id: nodeId || this.taskId
                         }
                         res = await this.subInstanceResume(data)
+                        const { activities } = this.pipelineData
+                        const { name } = activities[nodeId]
+                        message = name + ' ' + i18n.t('节点已继续执行')
                     } else {
                         res = await this.instanceResume(this.instance_id)
+                        message = i18n.t('任务已继续执行')
                     }
                     if (res.result) {
                         this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: i18n.t('任务已继续执行'),
+                            message,
                             theme: 'success'
                         })
                     }
@@ -1326,7 +1338,7 @@
                     case 'execute':
                         return this.state === 'CREATED' && this.isTopTask
                     case 'pause':
-                        return this.state === 'RUNNING'
+                        return ['RUNNING', 'NODE_SUSPENDED'].includes(this.state)
                     case 'resume':
                         return this.state === 'SUSPENDED'
                     case 'revoke':

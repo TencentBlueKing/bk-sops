@@ -27,13 +27,11 @@
                 :tpl-actions="tplActions"
                 :is-edit-process-page="isEditProcessPage"
                 :is-preview-mode="isPreviewMode"
-                :exclude-node="excludeNode"
-                :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
                 @goBackViewMode="goBackViewMode"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
-                @onOpenExecuteScheme="onOpenExecuteScheme"
+                @handleGoMangeScheme="handleGoMangeScheme"
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
@@ -80,13 +78,8 @@
                 :common="common"
                 :entrance="entrance"
                 :template_id="template_id"
-                :exclude-node="excludeNode"
                 :is-edit-process-page="isEditProcessPage"
-                :execute-scheme-saving="executeSchemeSaving"
-                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
-                @updateTaskSchemeList="updateTaskSchemeList"
-                @togglePreviewMode="togglePreviewMode"
-                @setExcludeNode="setExcludeNode">
+                @togglePreviewMode="togglePreviewMode">
             </TaskSelectNode>
             <div class="side-content">
                 <node-config
@@ -102,6 +95,7 @@
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
                     :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
+                    :isolation-atom-config="isolationAtomConfig"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -185,8 +179,8 @@
                         <i class="bk-icon icon-exclamation-circle">{{ $t('当前流程模板在浏览器多个标签页打开') }}</i>
                     </p>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
-                        <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
+                        <bk-button theme="primary" :loading="templateSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" :disabled="templateSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
                     </div>
                 </div>
             </bk-dialog>
@@ -234,15 +228,10 @@
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
-                isSchemaListChange: false,
-                executeSchemeSaving: false,
-                taskSchemeList: [],
                 isPreviewMode: false,
                 isExecuteSchemeDialog: false,
-                isBackViewMode: false,
-                isExecuteScheme: false, // 是否为执行方案
+                isGoManageScheme: false, // 是否去往管理执行方案页
                 isEditProcessPage: true,
-                excludeNode: [],
                 singleAtomListLoading: false,
                 projectInfoLoading: false,
                 templateDataLoading: false,
@@ -315,7 +304,8 @@
                 isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
                 isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
                 checkedNodes: [],
-                checkedConvergeNodes: []
+                checkedConvergeNodes: [],
+                isolationAtomConfig: {} // 被隔离插件的基础配置
             }
         },
         computed: {
@@ -419,8 +409,6 @@
                 let tip = this.$t('确定保存流程并去设置执行方案？')
                 if (this.type === 'clone') {
                     tip = this.$t('确定保存克隆流程并去设置执行方案？')
-                } else if (this.isBackViewMode || !this.isEditProcessPage) {
-                    tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
             },
@@ -479,6 +467,10 @@
             if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
+            }
+            // 是否直接打开编辑执行方案
+            if (this.$route.query.manageScheme) {
+                this.isEditProcessPage = false
             }
         },
         beforeDestroy () {
@@ -544,7 +536,7 @@
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme',
-                'saveTaskSchemList'
+                'saveTaskSchemeList'
             ]),
             initData () {
                 this.initTemplateData()
@@ -579,7 +571,7 @@
             async getSingleAtomList (val) {
                 this.singleAtomListLoading = true
                 try {
-                    const params = {}
+                    const params = { scope: 'flow' }
                     if (!this.common) {
                         params.project_id = this.project_id
                     }
@@ -852,19 +844,19 @@
                     // 如果为克隆模式保存模板时需要保存执行方案
                     if (this.type === 'clone' && !this.common) {
                         // 当前为根据源模板id获取方案列表
-                        this.taskSchemeList = await this.loadTaskScheme({
+                        const taskSchemeList = await this.loadTaskScheme({
                             project_id: this.project_id,
                             template_id: this.template_id,
                             isCommon: this.common
                         }) || []
                         // 当前为根据已生成模板id保存方案列表
-                        const schemes = this.taskSchemeList.map(item => {
+                        const schemes = taskSchemeList.map(item => {
                             return {
                                 data: item.data,
                                 name: item.name
                             }
                         })
-                        await this.saveTaskSchemList({
+                        await this.saveTaskSchemeList({
                             project_id: this.project_id,
                             template_id: data.template_id,
                             schemes,
@@ -889,8 +881,10 @@
                         this.goToTaskUrl(data.template_id)
                     } else { // 保存后需要切到查看模式(查看执行方案时不需要)
                         if (this.initType === 'view') {
-                            this.$router.back()
-                            this.initData()
+                            if (!this.isGoManageScheme) {
+                                this.$router.back()
+                                this.initData()
+                            }
                         } else {
                             this.$router.push({
                                 params: { type: 'view' },
@@ -1212,14 +1206,31 @@
              * 打开节点配置面板
              */
             async onShowNodeConfig (id) {
+                this.isolationAtomConfig = { list: [] }
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
                 if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name && nodeConfig.component.code !== 'remote_plugin') {
                     let atom = true
                     atom = this.atomList.find(item => item.code === nodeConfig.component.code)
-                    this.isNotExistAtomOrVersion = false
+                    // 插件列表中未匹配到，1.该插件被移除 2.该插件被隔离
                     if (!atom) {
-                        this.isNotExistAtomOrVersion = true
+                        const resp = await this.loadAtomConfig({
+                            atom: nodeConfig.component.code,
+                            version: nodeConfig.component.version,
+                            project_id: this.common ? undefined : this.project_id,
+                            scope: 'flow'
+                        }).catch(() => {
+                            this.isNotExistAtomOrVersion = true
+                        })
+                        // 隔离插件允许拉取详情数据
+                        if (resp) {
+                            this.isNotExistAtomOrVersion = false
+                            // 被隔离插件的基础配置
+                            this.isolationAtomConfig = {
+                                ...resp.data,
+                                list: [resp.data]
+                            }
+                        }
                     } else {
                         const matchResult = atom.list.find(item => item.version === nodeConfig.component.version)
                         this.isNotExistAtomOrVersion = !matchResult
@@ -1522,43 +1533,7 @@
             onDownloadCanvas () {
                 this.$refs.templateCanvas.onDownloadCanvas()
             },
-            async onSaveExecuteSchemeClick (isDefault) {
-                try {
-                    this.executeSchemeSaving = true
-                    const schemes = this.taskSchemeList.map(item => {
-                        return {
-                            id: item.id || undefined,
-                            data: item.data,
-                            name: item.name
-                        }
-                    })
-                    const resp = await this.saveTaskSchemList({
-                        project_id: this.project_id,
-                        template_id: this.template_id,
-                        schemes,
-                        isCommon: this.common
-                    })
-                    if (!resp.result) return
-                    this.$bkMessage({
-                        message: i18n.t('方案保存成功'),
-                        theme: 'success'
-                    })
-                    this.isExecuteSchemeDialog = false
-                    this.allowLeave = true
-                    this.isTemplateDataChanged = false
-                    this.isSchemaListChange = false
-                    this.isEditProcessPage = !isDefault
-                    if (isDefault) {
-                        this.$refs.taskSelectNode.loadSchemeList()
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.executeSchemeSaving = false
-                }
-            },
             goBackViewMode () {
-                this.isBackViewMode = true
                 this.$bkInfo({
                     ...this.infoBasicConfig,
                     confirmFn: () => {
@@ -1571,31 +1546,13 @@
                 })
             },
             goBackToTplEdit () {
-                const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
-                const isEqual = isDefaultSchemeIng ? judgeDataEqual() : !this.isSchemaListChange
-                if (isEqual) {
-                    this.isEditProcessPage = true
-                } else {
-                    this.$bkInfo({
-                        ...this.infoBasicConfig,
-                        confirmFn: () => {
-                            this.isEditProcessPage = true
-                            this.isTemplateDataChanged = false
-                        }
-                    })
-                }
-            },
-            updateTaskSchemeList (val, isChange) {
-                this.taskSchemeList = val
-                this.allowLeave = false
-                this.isTemplateDataChanged = isChange
-                this.isSchemaListChange = isChange
+                this.isEditProcessPage = true
             },
             onClosePreview () {
                 this.$refs.taskSelectNode.togglePreviewMode(false)
             },
-            onOpenExecuteScheme (val) {
-                this.isExecuteScheme = val
+            handleGoMangeScheme (val) {
+                this.isGoManageScheme = val
             },
             // 选择侧滑面板
             onChangeSettingPanel (val) {
@@ -1624,8 +1581,9 @@
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
                 this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
+                // 编辑模式下保存模板时，有多个tab
                 if (this.type === 'edit' && this.isMultipleTabCount > 1) {
-                    if (!this.isExecuteScheme) {
+                    if (!this.isGoManageScheme) {
                         this.multipleTabDialogShow = true
                     } else {
                         this.isExecuteSchemeDialog = true
@@ -1682,7 +1640,8 @@
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
-                        if (this.isExecuteScheme) {
+                        if (this.isGoManageScheme) {
+                            // 前往执行方案管理页时，如果为克隆模式或模板数据发生了改变，则需要弹出确认弹框
                             if (this.type === 'clone' || this.isTemplateDataChanged) {
                                 this.isExecuteSchemeDialog = true
                             } else {
@@ -1800,19 +1759,33 @@
              * 移动画布，将节点放到画布左上角
              */
             moveNodeToView (id) {
-                const { x, y } = this.locations.find(item => item.id === id)
-                const offsetX = 200 - x
-                const offsetY = 200 - y
-                this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
-
-                // 移动画布到选中节点位置的摇晃效果
+                // 获取对应dom
                 const nodeEl = document.querySelector(`#${id} .canvas-node-item`)
+                // 判断dom是否存在当前视图中
+                const isInViewPort = this.judgeInViewPort(nodeEl)
+                // 如果存在只需要节点摇晃，不存在需要将节点挪到画布中间并节点摇晃
+                if (!isInViewPort) {
+                    const { width, height } = document.querySelector('#canvasContainer').getBoundingClientRect()
+                    const { x, y } = this.locations.find(item => item.id === id)
+                    const offsetX = (width - 154) / 2 - x
+                    const offsetY = (height - 54) / 2 - y
+                    this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
+                }
+                // 移动画布到选中节点位置的摇晃效果
                 if (nodeEl) {
                     nodeEl.classList.add('node-shake')
                     setTimeout(() => {
                         nodeEl.classList.remove('node-shake')
                     }, 500)
                 }
+            },
+            // dom是否存在当前视图中
+            judgeInViewPort (element) {
+                if (!element) return false
+                const viewWidth = window.innerWidth || document.documentElement.clientWidth
+                const viewHeight = window.innerHeight || document.documentElement.clientHeight
+                const { top, right, bottom, left } = element.getBoundingClientRect()
+                return top >= 0 && left >= 0 && right <= viewWidth && bottom <= viewHeight
             },
             // 开启子流程更新的小红点动画效果
             showDotAnimation (id) {
@@ -1936,22 +1909,21 @@
             togglePreviewMode (isPreview) {
                 this.isPreviewMode = isPreview
             },
-            setExcludeNode (val) {
-                this.excludeNode = val
-            },
             // 编辑执行方案弹框 确定事件
             async onConfirmSave () {
-                if (this.isEditProcessPage) {
+                try {
                     await this.saveTemplate()
                     this.isExecuteSchemeDialog = false
                     this.isEditProcessPage = false
                     this.isTemplateDataChanged = false
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             // 编辑执行方案弹框 取消事件
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
-                this.isExecuteScheme = false
+                this.isGoManageScheme = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

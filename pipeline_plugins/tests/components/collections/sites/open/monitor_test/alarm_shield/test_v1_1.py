@@ -13,16 +13,18 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1 import MonitorAlarmShieldComponent
+
+from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1 import (
+    MonitorAlarmShieldComponent,
+)
 
 
 class MonitorAlarmShieldComponentTest(TestCase, ComponentTestMixin):
@@ -42,19 +44,19 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1.BKMonitorClient"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base.BKMonitorClient"
 GET_MODULE_ID_LIST_BY_NAME = (
-    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1" ".get_module_id_list_by_name"
+    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base" ".get_module_id_list_by_name"
 )
-GET_SET_LIST = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1.get_set_list"
+GET_SET_LIST = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base.get_set_list"
 GET_LIST_BY_SELECTED_NAMES = (
-    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1" ".get_list_by_selected_names"
+    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base" ".get_list_by_selected_names"
 )
 GET_SERVICE_TEMPLATE_LIST = (
-    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1" ".get_service_template_list"
+    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base" ".get_service_template_list"
 )
 GET_SERVICE_TEMPLATE_LIST_BY_NAMES = (
-    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1" ".get_service_template_list_by_names"
+    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base" ".get_service_template_list_by_names"
 )
 
 # mock client

@@ -334,7 +334,7 @@
                                     tag_code: "nodeman_bk_cloud_id",
                                     type: "select",
                                     attrs: {
-                                        name: gettext("云区域ID"),
+                                        name: gettext("管控区域ID"),
                                         width: "180px",
                                         remote: true,
                                         items: [],
@@ -685,8 +685,8 @@
                                     tag_code: "nodeman_bk_cloud_id",
                                     type: "input",
                                     attrs: {
-                                        name: gettext("云区域ID"),
-                                        placeholder: gettext("一行只能对应一个云区域ID"),
+                                        name: gettext("管控区域ID"),
+                                        placeholder: gettext("一行只能对应一个管控区域ID"),
                                         hookable: true,
                                         validation: [
                                             {

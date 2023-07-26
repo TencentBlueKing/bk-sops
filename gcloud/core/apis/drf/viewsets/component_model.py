@@ -11,17 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.db.models import Q
-from rest_framework import permissions
 from django_filters import CharFilter, FilterSet
-
 from pipeline.component_framework.models import ComponentModel
-from gcloud.core.models import ProjectBasedComponent
+from rest_framework import permissions
 
-from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.apis.drf.serilaziers.component_model import (
-    ComponentModelListSerializer,
     ComponentModelDetailSerializer,
+    ComponentModelListSerializer,
 )
+from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
+from gcloud.core.models import DisabledComponent, ProjectBasedComponent
 
 
 class ComponentModelFilter(FilterSet):
@@ -56,3 +55,17 @@ class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
     filterset_class = ComponentModelFilter
     pagination_class = None
     lookup_field = "code"
+
+    def get_queryset(self):
+
+        if self.request.query_params.get("scope"):
+            scope = self.request.query_params["scope"]
+        else:
+            scope = DisabledComponent.SCOPE_TYPE_FLOW
+
+        # 隔离已禁用的插件
+        return (
+            super()
+            .get_queryset()
+            .exclude(code__in=DisabledComponent.objects.get_disabled_components(action=self.action, scope=scope))
+        )

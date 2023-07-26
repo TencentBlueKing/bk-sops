@@ -11,16 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import copy
+import logging
 from abc import ABCMeta, abstractmethod
 
-import yaml
 import jsonschema
-
+import yaml
+from django.utils.translation import ugettext_lazy as _
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
+
 from pipeline_web.drawing_new.drawing import draw_pipeline
-from django.utils.translation import ugettext_lazy as _
-import logging
 
 logger = logging.getLogger("root")
 
@@ -111,6 +111,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             "spec": {"type": "object", "required": ["nodes"], "properties": {"nodes": {"type": "array"}}},
         },
     }
+    NOT_HOOK_COMPONENT_INPUT_KEY = "dummy_component_inputs"
 
     def validate_data(self, yaml_docs: list):
         """检查导入yaml数据结构合法性"""
@@ -390,6 +391,16 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
+        if self.NOT_HOOK_COMPONENT_INPUT_KEY in template:
+            for constant_key, constant_attrs in template[self.NOT_HOOK_COMPONENT_INPUT_KEY].items():
+                reconverted_constant, is_create = self._reconvert_constant(
+                    constant={**constant_attrs, "key": constant_key},
+                    cur_constants=reconverted_tree["constants"],
+                    source_tag=constant_attrs.get("source_tag"),
+                    source_type="component_inputs",
+                )
+                if is_create:
+                    reconverted_tree["constants"][constant_key] = reconverted_constant
         # constants添加index
         index_num = 0
         for i, constant in reconverted_tree["constants"].items():
@@ -552,6 +563,10 @@ class YamlSchemaConverter(BaseSchemaConverter):
         converted_tree = {"nodes": result_nodes}
         if converted_constants:
             converted_tree["constants"] = converted_constants
+        if param_constants["component_inputs"].get(self.NOT_HOOK_COMPONENT_INPUT_KEY):
+            converted_tree[self.NOT_HOOK_COMPONENT_INPUT_KEY] = param_constants["component_inputs"][
+                self.NOT_HOOK_COMPONENT_INPUT_KEY
+            ]
         if tree["outputs"]:
             converted_tree["outputs"] = tree["outputs"]
         return converted_tree
@@ -569,9 +584,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 is_hooked = data.pop("hook")
                 if is_hooked:
                     input_constant = param_constants["component_inputs"][node["id"]][form_key]
-                    # 组件节点下可以通过component_code+type拼接source_tag，所以这里不需要保留
-                    if "source_tag" in input_constant:
-                        input_constant.pop("source_tag")
                     component_data[form_key] = input_constant
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
@@ -615,6 +627,12 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     for node_id, form_keys in constant["source_info"].items():
                         for form_key in form_keys:
                             param_constants[constant["source_type"]].setdefault(node_id, {})[form_key] = cur_constant
+                    # 勾选变量对应插件删掉但对应变量保留的情况
+                    if not constant["source_info"]:
+                        key = cur_constant.pop("key")
+                        param_constants[constant["source_type"]].setdefault(self.NOT_HOOK_COMPONENT_INPUT_KEY, {})[
+                            key
+                        ] = cur_constant
                 else:
                     cur_constant = {"used_by": constant["source_info"]}
                     param_constants[constant["source_type"]][key] = cur_constant

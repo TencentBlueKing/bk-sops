@@ -73,7 +73,7 @@
                         type: "input",
                         attrs: {
                             name: gettext("IP"),
-                            placeholder: gettext("跨业务用【云区域ID:IP】"),
+                            placeholder: gettext("跨业务用【管控区域ID:IP】"),
                             width: '170px',
                             editable: true,
                             validation: [
@@ -217,7 +217,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("IP"),
-                            placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一"),
+                            placeholder: gettext("IP必须填写【管控区域ID:IP】或者【IP】格式之一"),
                             hookable: true,
                             validation: [
                                 {

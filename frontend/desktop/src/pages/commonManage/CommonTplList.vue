@@ -151,10 +151,10 @@
                                             {{$t('新建任务')}}
                                         </a>
                                         <a
-                                            v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
+                                            v-if="!hasPermission(['common_flow_view'], props.row.auth_actions) || !hasCreateCommonTplPerm"
                                             v-cursor
                                             class="text-permission-disable"
-                                            @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
+                                            @click="onTaskClone(props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <a
@@ -1313,6 +1313,16 @@
                 this.selectedTpl = {}
                 this.selectedProject = {}
                 this.isSelectProjectShow = false
+            },
+            onTaskClone (row) {
+                const applyAuth = []
+                if (!this.hasPermission(['common_flow_view'], row.auth_actions)) {
+                    applyAuth.push('common_flow_view')
+                }
+                if (!this.hasCreateCommonTplPerm) {
+                    applyAuth.unshift('common_flow_create')
+                }
+                this.onTemplatePermissonCheck(applyAuth, row)
             }
         }
     }

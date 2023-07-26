@@ -70,6 +70,7 @@
                     @onToggleAllNode="onToggleAllNode"
                     @onToggleHotKeyInfo="onToggleHotKeyInfo"
                     @onTogglePerspective="onTogglePerspective"
+                    @onExportScheme="onExportScheme"
                     @onDownloadCanvas="onDownloadCanvas">
                 </tool-panel>
             </template>
@@ -184,7 +185,6 @@
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
-    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import { endpointOptions, connectorOptions, nodeOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
 
@@ -337,7 +337,8 @@
                 isExecRecordPanelShow: false,
                 connectionHoverList: [],
                 execRecordLoading: false,
-                curMinDis: null // 拖拽的节点与发起连线节点间最短的距离
+                curMinDis: null, // 拖拽的节点与发起连线节点间最短的距离
+                matchLines: []
             }
         },
         watch: {
@@ -664,26 +665,39 @@
             },
             onCreateNodeMoving (node) {
                 // 计算节点基于画布的坐标
-                const canvasDom = document.querySelector('.canvas-flow')
-                let nodeLeft = 0
-                let nodeTop = 0
-                let { style } = canvasDom.attributes
-                if (style) {
-                    style = style.value.split(';').filter(value => value)
-                    nodeLeft = style.find(item => item.indexOf('left') > -1)
-                    nodeLeft = nodeLeft ? /:.((\-)?[0-9.]+)px/.exec(nodeLeft)[1] : 0
-                    nodeLeft = Number(nodeLeft)
-                    nodeTop = style.find(item => item.indexOf('top') > -1)
-                    nodeTop = nodeTop ? /:.((\-)?[0-9.]+)px/.exec(nodeTop)[1] : 0
-                    nodeTop = Number(nodeTop)
-                }
+                const { x: canvasWrapLeft, y: canvasWrapTop } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const { x: canvasLeft, y: canvasTop } = document.querySelector('.canvas-flow').getBoundingClientRect()
+                const offsetLeft = canvasLeft - canvasWrapLeft
+                const offsetTop = canvasTop - canvasWrapTop
+                const { x, y } = this.getNodeActualPosition(node)
                 const location = {
                     ...node,
-                    x: node.x - 60 - nodeLeft, // 60为画布左边栏的宽度
-                    y: node.y - nodeTop
+                    x: x - offsetLeft,
+                    y: y - offsetTop
                 }
                 // 节点拖拽到过连线过程
                 this.onNodeToLineDragging(location)
+            },
+            // 节点实际位置
+            getNodeActualPosition (node) {
+                const ratio = this.zoomRatio / 100
+                // 中点坐标, 放大/缩小后节点宽高
+                let halfWidth, halfHeight, nodeHeight, nodeWidth
+                if (node.type.indexOf('gateway') > -1) {
+                    halfWidth = 34 / 2
+                    halfHeight = 34 / 2
+                    nodeHeight = (34 * ratio) / 2
+                    nodeWidth = (34 * ratio) / 2
+                } else {
+                    halfWidth = 154 / 2
+                    halfHeight = 54 / 2
+                    nodeHeight = (54 * ratio) / 2
+                    nodeWidth = (154 * ratio) / 2
+                }
+                let { x, y } = node
+                x = x + halfWidth - nodeWidth
+                y = y + halfHeight - nodeHeight
+                return { x, y }
             },
             // 拖拽到节点上自动连接
             onConnectionDragOnNode (source, targetId, event) {
@@ -850,7 +864,7 @@
                         arrow: targetType
                     }
                 }
-                
+
                 const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', data)
@@ -973,7 +987,7 @@
             // 拖拽节点到线上, 自动生成连线
             handleDraggerNodeToLine (location, isCreate = false) {
                 // 获取节点对应匹配连线
-                const matchLines = this.getNodeMatchLines(location)
+                const matchLines = this.matchLines
                 // 只对符合单条线的情况进行处理
                 if (Object.keys(matchLines).length === 1) {
                     const values = Object.values(matchLines)[0]
@@ -1029,7 +1043,7 @@
                         this.$refs.jsFlow.createConnector(endLine)
                     })
                     // 删除节点两端插入连线的端点,isCreate为true时表示从左侧菜单栏直接拖拽创建，插入端点还存在在画布里面
-                    const nodeDom = document.querySelector(`#${!isCreate ? location.id : 'canvas-flow'}`)
+                    const nodeDom = document.querySelector(!isCreate ? `#${location.id}` : '.canvas-flow-wrap')
                     const pointDoms = nodeDom && nodeDom.querySelectorAll('.node-inset-line-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
@@ -1052,14 +1066,31 @@
                         return {}
                     }
                 }
-                // 横向区间
-                let horizontalInterval = [loc.x + 40, loc.x + 154 - 40]
-                // 纵向区间
-                let verticalInterval = [loc.y + 15, loc.y + 54 - 15 + 2]
-                if (loc.type.indexOf('gateway') > -1) { // 网关区间
-                    horizontalInterval = [loc.x + 7, loc.x + 34 - 7]
-                    verticalInterval = [loc.y + 7, loc.y + 34 - 7 + 2]
+                const ratio = this.zoomRatio / 100
+                let nodeWidth, nodeHeight, offsetLeft, offsetTop
+                let paletteWidth = 0
+                if (loc.type.indexOf('gateway') > -1) {
+                    nodeHeight = 34
+                    nodeWidth = 34
+                    offsetLeft = 7
+                    offsetTop = 7
+                } else {
+                    nodeHeight = 54
+                    nodeWidth = 154
+                    offsetLeft = 40
+                    offsetTop = 15
                 }
+                if (!loc.id) {
+                    nodeHeight = nodeHeight * ratio
+                    nodeWidth = nodeWidth * ratio
+                    offsetLeft = offsetLeft * ratio
+                    offsetTop = offsetTop * ratio
+                    paletteWidth = 60 // 左侧导航栏宽度
+                }
+                // 横向区间
+                const horizontalInterval = [loc.x + offsetLeft - paletteWidth, loc.x + nodeWidth - offsetLeft - paletteWidth]
+                // 纵向区间
+                const verticalInterval = [loc.y + offsetTop, loc.y + nodeHeight - offsetTop]
                 // 符合匹配连线
                 const matchLines = {}
                 // 符合匹配的线段
@@ -1149,9 +1180,17 @@
                             nodeWidth = 34
                             nodeHeight = 34
                         }
-                        
+                        if (!loc.id) {
+                            left = left * ratio
+                            top = top * ratio
+                            width = width * ratio
+                            height = height * ratio
+                            nodeWidth = nodeWidth * ratio
+                            nodeHeight = nodeHeight * ratio
+                        }
+
                         if (width > nodeWidth || height > nodeHeight) { // 线段长需大于节点宽度或高度
-                            if (height > 8) { // 垂直线
+                            if (height > (8 * ratio)) { // 垂直线
                                 return (left > horizontalInterval[0] && horizontalInterval[1] > left)
                                     && (top < verticalInterval[0] && top + height > verticalInterval[1])
                             } else {
@@ -1234,7 +1273,7 @@
                     nodeConfig = gateways[node.id]
                 }
                 this.showShortcutPanel = false
-                
+
                 if (remove) { // 删除节点
                     this.$refs.jsFlow.removeNode(node)
                     this.$emit('templateDataChanged')
@@ -1355,10 +1394,6 @@
             },
             // 节点拖动回调
             onNodeMoving (node) {
-                // 关闭快捷菜单面板
-                if (this.activeNode) {
-                    this.closeShortcutPanel()
-                }
                 this.adjustLineEndpoint(node.id)
                 // 获取节点的动态坐标
                 const nodeDom = document.querySelector(`#${node.id}`)
@@ -1380,6 +1415,10 @@
                 // 节点执行历史面板跟着节点移动
                 if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
                     this.judgeNodeExecRecordPanelPos(location)
+                }
+                // 节点快捷操作面板跟随节点移动
+                if (this.showShortcutPanel) {
+                    this.openShortcutPanel('node')
                 }
             },
             /**
@@ -1472,22 +1511,34 @@
             onNodeToLineDragging (location) {
                 if (!location) return
                 // 获取父级节点dom, id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
-                const parentDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
+                const parentDom = document.querySelector(location.id ? `#${location.id}` : '.canvas-flow-wrap')
                 // 拖拽节点到线上, 自动匹配连线
                 const matchLines = this.getNodeMatchLines(location)
+                this.matchLines = matchLines || []
                 if (Object.keys(matchLines).length === 1) {
                     const lineConfig = Object.values(matchLines)[0]
                     this.setPaintStyle(lineConfig.id, '#3a84ff')
                     this.connectionHoverList.push(lineConfig.id)
+                    const ratio = this.zoomRatio / 100
                     // 节点宽高
                     let nodeWidth, nodeHeight
                     if (['tasknode', 'subflow'].includes(location.type)) {
-                        nodeWidth = 154
-                        nodeHeight = 54
+                        nodeWidth = 154 * ratio
+                        nodeHeight = 54 * ratio
                     } else {
-                        nodeWidth = 34
-                        nodeHeight = 34
+                        nodeWidth = 34 * ratio
+                        nodeHeight = 34 * ratio
                     }
+                    let { x: left, y: top } = location
+                    const { x: canvasWrapLeft, y: canvasWrapTop } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                    const { x: canvasLeft, y: canvasTop } = document.querySelector('.canvas-flow').getBoundingClientRect()
+                    const offsetLeft = canvasLeft - canvasWrapLeft
+                    const offsetTop = canvasTop - canvasWrapTop
+                    if (offsetLeft || offsetTop) {
+                        left = left + offsetLeft
+                        top = top + offsetTop
+                    }
+                    left = left - 60 // 60为画布左边栏的宽度
                     const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
                     // 判断端点是否已经创建
                     const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
@@ -1499,23 +1550,23 @@
                         pointDom2.className = 'node-inset-line-point'
                         if (lineConfig.segmentPosition.width > 8) { // 平行
                             if (!location.id) { // 还未生成的节点
-                                const { x, y } = location
-                                const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
-                                pointDom1.style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
-                                pointDom2.style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                                const sameTop = `top: ${top + (nodeHeight - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
+                                pointDom2.style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
                             } else {
-                                pointDom1.style.cssText = defaultAttribute + `left: -7px; top: ${(nodeHeight - 14) / 2}px;`
-                                pointDom2.style.cssText = defaultAttribute + `right: -7px; top: ${(nodeHeight - 14) / 2}px;`
+                                const sameAttribute = `top: ${((nodeHeight - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                pointDom1.style.cssText = defaultAttribute + 'left: -7px;' + sameAttribute
+                                pointDom2.style.cssText = defaultAttribute + 'right: -7px;' + sameAttribute
                             }
                         } else { // 垂直
                             if (!location.id) { // 还未生成的节点
-                                const { x, y } = location
-                                const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
-                                pointDom1.style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
-                                pointDom2.style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                                const sameLeft = `left: ${left + (nodeWidth - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
+                                pointDom2.style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
                             } else {
-                                pointDom1.style.cssText = defaultAttribute + `top: -7px; left: ${(nodeWidth - 14) / 2}px;`
-                                pointDom2.style.cssText = defaultAttribute + `bottom: -7px; left: ${(nodeWidth - 14) / 2}px;`
+                                const sameAttribute = `left: ${((nodeWidth - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                pointDom1.style.cssText = defaultAttribute + 'top: -7px;' + sameAttribute
+                                pointDom2.style.cssText = defaultAttribute + 'bottom: -7px;' + sameAttribute
                             }
                         }
                         parentDom.appendChild(pointDom1)
@@ -1523,15 +1574,13 @@
                     } else if (!location.id) { // 未创建的节点拖拽时需要实时计算端点的位置
                         const doms = Array.from(pointDoms)
                         if (lineConfig.segmentPosition.width > 8) { // 平行
-                            const { x, y } = location
-                            const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
-                            doms[0].style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
-                            doms[1].style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                            const sameTop = `top: ${top + (nodeHeight - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
+                            doms[1].style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
                         } else { // 垂直
-                            const { x, y } = location
-                            const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
-                            doms[0].style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
-                            doms[1].style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                            const sameLeft = `left: ${left + (nodeWidth - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
+                            doms[1].style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
                         }
                     }
                 } else if (this.connectionHoverList.length) {
@@ -1597,6 +1646,9 @@
                 this.isShowHotKey = false
                 this.isPerspective = !this.isPerspective
                 this.$emit('onTogglePerspective', this.isPerspective)
+            },
+            onExportScheme () {
+                this.$emit('onExportScheme')
             },
             onCloseHotkeyInfo () {
                 this.isShowHotKey = false
@@ -1711,31 +1763,30 @@
             judgeNodeExecRecordPanelPos (node) {
                 if (!node) return
                 // 节点提示面板宽度
-                const { x, y, type, id } = node
                 // 计算判断节点右边的距离是否够展示气泡卡片
-                const nodeDom = document.querySelector(`#${id}`)
+                const nodeDom = document.querySelector(`#${node.id}`)
                 if (!nodeDom) return
-                const { left: nodeLeft, right: nodeRight } = nodeDom.getBoundingClientRect()
-                const bodyWidth = document.body.offsetWidth
+                const { left: nodeLeft, right: nodeRight, top: nodeTop } = nodeDom.getBoundingClientRect()
+                const canvasDom = document.querySelector('#canvasContainer')
+                const { left: canvasLeft, top: canvasTop } = canvasDom.getBoundingClientRect()
                 // 200节点的气泡卡片展示最小宽度
+                const bodyWidth = document.body.offsetWidth
                 const isRight = bodyWidth - nodeRight > 200
                 // 设置坐标
-                const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
-                const top = y + offsetY - 10
-                const nodeWidth = ['tasknode', 'subflow'].includes(type) ? 154 : 34
+                let top = nodeTop - canvasTop - 10
+                let left, padding
                 if (isRight) {
-                    const left = x + offsetX + nodeWidth + (this.editable ? 60 : 0) // 60为画布左边栏的宽度
-                    this.nodeTipsPanelPosition = {
-                        top: `${top}px`,
-                        left: `${left}px`,
-                        padding: '0 0 0 15px'
-                    }
+                    left = nodeRight - canvasLeft
+                    padding = '0 0 0 15px'
                 } else {
-                    this.nodeTipsPanelPosition = {
-                        top: `${top}px`,
-                        right: `${bodyWidth - nodeLeft}px`,
-                        padding: '0 15px 0 0'
-                    }
+                    left = nodeLeft - canvasLeft - 200
+                    padding = '0 15px 0 0'
+                }
+                top = top > 0 ? top : 0
+                this.nodeTipsPanelPosition = {
+                    top: `${top}px`,
+                    left: `${left}px`,
+                    padding: padding
                 }
             },
             // 鼠标在节点上拖动，处理快捷连线高亮目标端点
@@ -1814,24 +1865,14 @@
             openShortcutPanel (type, e) {
                 let left, top
                 if (type === 'node') {
-                    const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
-                    const { x, y } = this.activeNode
-                    switch (this.activeNode.type) {
-                        case 'tasknode':
-                        case 'subflow':
-                            left = x + offsetX + NODES_SIZE_POSITION.ACTIVITY_SIZE[0] / 2 + 80
-                            top = y + offsetY + NODES_SIZE_POSITION.ACTIVITY_SIZE[1] + 10
-                            this.shortcutPanelNodeOperate = true
-                            break
-                        case 'startpoint':
-                            left = x + offsetX + NODES_SIZE_POSITION.EVENT_SIZE[0] / 2 + 80
-                            top = y + offsetY + NODES_SIZE_POSITION.EVENT_SIZE[1] + 10
-                            break
-                        default:
-                            left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0] / 2 + 80
-                            top = y + offsetY + NODES_SIZE_POSITION.GATEWAY_SIZE[1] + 10
-                            this.shortcutPanelNodeOperate = true
-                    }
+                    const nodeDom = document.querySelector(`#${this.activeNode.id}`)
+                    const { left: nodeLeft, bottom: nodeBottom, width: nodeWidth } = nodeDom.getBoundingClientRect()
+                    const canvasDom = document.querySelector('#canvasContainer')
+                    const { left: canvasLeft, top: canvasTop } = canvasDom.getBoundingClientRect()
+                    left = nodeLeft - canvasLeft + (nodeWidth / 2) + 20
+                    top = nodeBottom - canvasTop + 10
+                    top = top > 0 ? top : 0
+                    this.shortcutPanelNodeOperate = this.activeNode.type !== 'startpoint'
                     this.shortcutPanelDeleteLine = false
                 } else {
                     const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
@@ -2064,6 +2105,23 @@
                     const left = Number(leftStr.replace('px', ''))
                     const top = Number(topStr.replace('px', ''))
                     this.setCanvasPosition(left - e.deltaX / 2, top - e.deltaY / 2)
+                }
+                // 计算节点快捷操作面板/执行历史面板面板坐标
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    this.judgeNodeExecRecordPanelPos(this.activeNode)
+                }
+                if (this.showShortcutPanel) {
+                    if (this.activeCon) {
+                        // 画布放大缩小时保持现状
+                        if (e.ctrlKey) return
+                        // 鼠标滑轮滚动时清除连线的hover状态, 关闭面板
+                        const { sourceId, targetId } = this.activeCon
+                        const line = this.canvasData.lines.find(item => item.source.id === sourceId && item.target.id === targetId)
+                        this.setPaintStyle(line.id)
+                        this.closeShortcutPanel()
+                    } else {
+                        this.openShortcutPanel('node')
+                    }
                 }
             },
             // 记录缩放点
@@ -2346,7 +2404,7 @@
             box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
         }
         .jtk-endpoint {
-            z-index: 5;
+            z-index: 4;
         }
         .jsflow-node {
             z-index: 4;

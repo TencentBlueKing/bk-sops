@@ -77,8 +77,8 @@
                                 <!-- 状态 -->
                                 <template v-else-if="item.id === 'task_status'">
                                     <div class="ui-task-status">
-                                        <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                        <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                        <span :class="executeStatus[props.row.id] && executeStatus[props.row.id].cls"></span>
+                                        <span class="task-status-text" v-if="executeStatus[props.row.id]">{{executeStatus[props.row.id].text}}</span>
                                     </div>
                                 </template>
                                 <!-- 其他 -->
@@ -265,7 +265,7 @@
                     authority: false
                 },
                 appmakerList: [],
-                executeStatus: [], // 任务执行状态
+                executeStatus: {}, // 任务执行状态
                 pagination: {
                     current: Number(page),
                     count: 0,
@@ -309,6 +309,7 @@
             ]),
             async getAppmakerList () {
                 this.listLoading = true
+                this.executeStatus = {}
                 try {
                     const { start_time, finish_time, category, executor, statusSync, taskName, task_id } = this.requestData
                     let pipeline_instance__is_started

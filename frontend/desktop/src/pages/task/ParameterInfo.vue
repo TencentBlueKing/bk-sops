@@ -127,11 +127,12 @@
 .variable-wrap {
     background: #f0f1f5;
     .unreferenced {
-       padding-bottom: 20px;
+       padding-bottom: 1px;
     }
     .title-background {
         position: relative;
         padding-left: 20px;
+        margin-bottom: 16px;
         cursor: pointer;
         &:hover {
             background: #e4e6ed;

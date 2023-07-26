@@ -11,19 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.collections.nodeman import BKNodeManClient
-from pipeline.component_framework.component import Component
-from pipeline.core.flow.io import (
-    IntItemSchema,
-    StringItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-)
-
 from gcloud.conf import settings
-from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
 from gcloud.utils.cmdb import get_business_host, get_business_host_ipv6
+from gcloud.utils.crypto import decrypt_auth_key, encrypt_auth_key
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
@@ -164,7 +158,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(inner_ip)))
+                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -205,10 +199,7 @@ class NodemanCreateTaskService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("节点类型"),
@@ -234,7 +225,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                             item_schema=ObjectItemSchema(
                                 description=_("主机相关信息"),
                                 property_schemas={
-                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("云区域ID")),
+                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
                                     "nodeman_ap_id": StringItemSchema(description=_("接入点")),
                                     "inner_ip": StringItemSchema(description=_("内网 IP")),
                                     "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
@@ -253,7 +244,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                             item_schema=ObjectItemSchema(
                                 description=_("主机相关信息"),
                                 property_schemas={
-                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("云区域ID")),
+                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
                                     "nodeman_ip_str": StringItemSchema(description=_("IP")),
                                 },
                             ),

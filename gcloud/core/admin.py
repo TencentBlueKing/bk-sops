@@ -93,3 +93,9 @@ class ResourceConfigAdmin(admin.ModelAdmin):
 @admin.register(models.EngineConfig)
 class EngineConfigAdmin(admin.ModelAdmin):
     list_display = ["id", "scope_id", "scope", "engine_ver", "template_source"]
+
+
+@admin.register(models.DisabledComponent)
+class DisabledComponentAdmin(admin.ModelAdmin):
+    search_fields = ["component_code", "action", "scope"]
+    list_display = ["component_code", "action", "scope"]

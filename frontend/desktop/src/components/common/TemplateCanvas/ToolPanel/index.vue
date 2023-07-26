@@ -119,6 +119,17 @@
                 @click="onTogglePerspective">
                 <i class="common-icon-perspective"></i>
             </div>
+            <div
+                class="tool-icon"
+                v-if="isShowSelectAllTool"
+                v-bk-tooltips="{
+                    content: $t('导出'),
+                    delay: 300,
+                    placements: ['bottom']
+                }"
+                @click="onExportScheme">
+                <i class="common-icon-export-scheme"></i>
+            </div>
         </div>
     </transition>
 </template>
@@ -197,6 +208,9 @@
             },
             onTogglePerspective () {
                 this.$emit('onTogglePerspective')
+            },
+            onExportScheme () {
+                this.$emit('onExportScheme')
             }
         }
     }

@@ -155,7 +155,7 @@
                     </li>
                 </ul>
                 <div v-else class="empty-variable-tips">
-                    <NoData message="$t('该流程暂无自定义全局变量')"></NoData>
+                    <NoData :message="$t('该流程暂无自定义全局变量')"></NoData>
                 </div>
             </div>
             <div class="variable-footer">

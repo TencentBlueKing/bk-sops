@@ -179,6 +179,7 @@
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
+                'functionClaimMsg': state => state.functionClaimMsg,
                 'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
@@ -246,6 +247,9 @@
                 'getSchemeDetail',
                 'loadPreviewNodeData',
                 'createTask'
+            ]),
+            ...mapMutations([
+                'setFunctionClaimMsg'
             ]),
             ...mapMutations('template/', [
                 'setTemplateData'
@@ -496,10 +500,41 @@
                     try {
                         const taskData = await this.createTask(data)
                         if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
-                            this.$bkMessage({
-                                message: i18n.t('提交成功，请通知职能化人员认领'),
-                                theme: 'success'
+                            const h = this.$createElement
+                            const self = this
+                            const functionClaimMsg = this.$bkMessage({
+                                extCls: 'func-claim-message',
+                                message: h('div', {
+                                    style: { display: 'flex' }
+                                }, [
+                                    h('span', {
+                                        style: {
+                                            overflow: 'hidden',
+                                            whiteSpace: 'nowrap',
+                                            textOverflow: 'ellipsis'
+                                        }
+                                    }, [
+                                        this.$t('任务提交成功，请'),
+                                        h('span', {
+                                            style: {
+                                                flexShrink: 0,
+                                                margin: '0 5px',
+                                                color: '#3a84ff',
+                                                cursor: 'pointer'
+                                            },
+                                            on: {
+                                                click: function () {
+                                                    self.cloneClaimLink(taskData.id)
+                                                }
+                                            }
+                                        }, this.$t('tips_复制链接')),
+                                        this.$t('通知职能化成员')
+                                    ])
+                                ]),
+                                theme: 'success',
+                                delay: 0
                             })
+                            this.setFunctionClaimMsg(functionClaimMsg)
                         }
                         let url = {}
                         if (this.viewMode === 'appmaker') {
@@ -541,6 +576,30 @@
                     }
                 })
             },
+            cloneClaimLink (instanceId) {
+                this.functionClaimMsg.close()
+                this.setFunctionClaimMsg(null)
+                const { href } = this.$router.resolve({
+                    name: 'functionTaskExecute',
+                    params: { project: this.project_id },
+                    query: { instance_id: instanceId }
+                })
+                const url = window.location.origin + href
+                this.copyText = url
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
+            },
             paramsLoadingChange (val) {
                 this.paramsLoading = val
             }
@@ -553,7 +612,7 @@
 
 .param-fill-wrapper {
     position: relative;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 101px);
     background: #fff;
 }
 .form-area {
@@ -572,7 +631,7 @@
         font-weight: 600;
         color: #313238;
         border-bottom: 1px solid #cacedb;
-        margin-bottom: 30px;
+        margin-bottom: 16px;
         .reuse-tip {
             color: #3a84ff;
             font-size: 12px;
@@ -705,4 +764,11 @@
         width: 140px;
     }
 }
+</style>
+<style lang="scss">
+    .func-claim-message {
+        .bk-message-content {
+            max-width: 590px;
+        }
+    }
 </style>

@@ -18,9 +18,13 @@ import requests
 from django.core.files.uploadedfile import UploadedFile
 
 from . import env
+from .client_decorators import (
+    check_use_plugin_service,
+    data_parser,
+    json_response_decoder,
+)
 from .conf import PLUGIN_CLIENT_LOGGER
-from .client_decorators import data_parser, json_response_decoder, check_use_plugin_service
-from .exceptions import PluginServiceNotUse, PluginServiceException
+from .exceptions import PluginServiceException, PluginServiceNotUse
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -227,14 +231,14 @@ class PluginServiceApiClient:
     @json_response_decoder
     def get_paas_logs(plugin_code, trace_id, scroll_id=None, environment=None):
         """通过PaaS平台查询插件服务日志"""
-        url, params = PluginServiceApiClient._prepare_paas_api_request(
+        url, data = PluginServiceApiClient._prepare_paas_api_request(
             path_params=["system/bk_plugins", plugin_code, "logs"], environment=environment
         )
-        params.update({"trace_id": trace_id})
+        data.update({"trace_id": trace_id})
         if scroll_id:
-            params.update({"scroll_id": scroll_id})
+            data.update({"scroll_id": scroll_id})
 
-        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="post", data=data)
 
     @staticmethod
     @json_response_decoder
@@ -248,7 +252,9 @@ class PluginServiceApiClient:
     def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = None):
         """插件服务APIGW接口请求信息准备"""
         url = os.path.join(
-            env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name), env.APIGW_ENVIRONMENT, *path_params,
+            env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name),
+            env.APIGW_ENVIRONMENT,
+            *path_params,
         )
         authorization_info = {
             "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,

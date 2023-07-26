@@ -90,8 +90,8 @@
                                 </div>
                                 <!--执行状态-->
                                 <div v-else-if="item.id === 'excute_status'" class="task-status">
-                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                    <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                                    <span :class="executeStatus[props.row.task.id] && executeStatus[props.row.task.id].cls"></span>
+                                    <span v-if="executeStatus[props.row.task.id]" class="task-status-text">{{executeStatus[props.row.task.id].text}}</span>
                                 </div>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -440,7 +440,7 @@
                 claimant: [],
                 transferPending: false,
                 functorList: [],
-                executeStatus: [], // 任务执行状态
+                executeStatus: {}, // 任务执行状态
                 business: {
                     list: [],
                     loading: false,
@@ -561,6 +561,7 @@
             ]),
             async loadFunctionTask () {
                 this.listLoading = true
+                this.executeStatus = {}
                 try {
                     const { selectedProject, create_time, claim_time, creator, statusSync, taskName, claimant, task_id, claimStatus } = this.requestData
                     let task__pipeline_instance__is_started

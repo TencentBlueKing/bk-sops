@@ -37,27 +37,29 @@
         </tag-section>
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
-            <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
-                <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
-                <span v-if="showNotReuseTitle" class="not-reuse-tip">
-                    <i class="common-icon-dark-circle-warning"></i>
-                    {{ $t('未能重用') }}
-                </span>
-                <!-- 编辑模式下才显示常量禁止修改tip -->
-                <span class="pre-mako-tip" v-if="option.formEdit && scheme.attrs.pre_mako_tip">
-                    <i class="common-icon-dark-circle-warning"></i>
-                    {{ scheme.attrs.pre_mako_tip }}
-                </span>
-                <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
+            <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle, 'scheme-select-name': scheme.type === 'select' && !scheme.attrs.remote }]">
+                <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
+                <span class="required" v-if="isRequired()" style="display: none">*</span>
+                <span class="scheme-code">{{ scheme.tag_code }}</span>
+                <i
+                    v-if="showNotReuseTitle || showPreMakoTip"
+                    v-bk-tooltips="{
+                        content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
+                        placement: 'top-end',
+                        boundary: 'window',
+                        zIndex: 2072
+                    }"
+                    class="common-icon-dark-circle-warning">
+                </i>
+                <!-- <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ scheme.attrs.used_tip }}
-                </span>
+                </span> -->
             </div>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
             <!-- 表单名称 -->
             <label
                 v-if="option.showLabel && scheme.attrs.name"
-                :class="['rf-tag-label', { 'required': isRequired() }]">
+                class="rf-tag-label">
                 <span
                     v-bk-tooltips="{
                         allowHtml: true,
@@ -69,9 +71,11 @@
                         zIndex: 2072,
                         disabled: !!!scheme.attrs.tips
                     }"
+                    class="label"
                     :class="{ 'tag-label-tips': scheme.attrs.tips }">
                     {{scheme.attrs.name}}
                 </span>
+                <span class="required" v-if="isRequired()">*</span>
             </label>
             <!-- 参数被使用占位popover -->
             <bk-popover
@@ -102,6 +106,7 @@
                 v-show="!hook"
                 :class="[
                     scheme.attrs.name ? 'rf-tag-form' : '',
+                    groupComponent ? 'form-item-group' : '',
                     showTagUsedStyle
                 ]"
                 ref="tagComponent"
@@ -139,6 +144,14 @@
                     }"
                     @click="onRenderChange">
                 </i>
+            </div>
+            <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
+                <div class="hide-html-text">{{ scheme.attrs.desc }}</div>
+                <div :class="['rf-group-desc', { 'is-fold': !isExpand }]">{{ scheme.attrs.desc }}</div>
+                <div :class="{ 'mt10': isExpand }" v-if="isDescTipsShow">
+                    <span v-if="!isExpand">...</span>
+                    <span class="expand-btn" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('展开全部') }}</span>
+                </div>
             </div>
         </template>
     </div>
@@ -245,7 +258,9 @@
                 tagComponent: `tag-${this.scheme.type.replace(/_/g, '-')}`,
                 showForm,
                 showHook,
-                formValue
+                formValue,
+                isDescTipsShow: false,
+                isExpand: false
             }
         },
         computed: {
@@ -255,12 +270,25 @@
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
             },
+            showPreMakoTip () {
+                return this.option.formEdit && this.scheme.attrs.pre_mako_tip
+            },
             showTagUsedStyle () {
                 const { type, attrs } = this.scheme
                 if (attrs.html_used_tip && ['input', 'textarea', 'select'].includes(type)) {
                     return 'rf-tag-used'
                 }
                 return ''
+            },
+            groupComponent () {
+                const groupComponent = [
+                    'tag-set-allocation',
+                    'tag-upload',
+                    'tag-ip-selector',
+                    'tag-host-allocation',
+                    'tag-datatable'
+                ]
+                return groupComponent.includes(this.tagComponent)
             }
         },
         watch: {
@@ -276,6 +304,15 @@
             Object.keys(tagComponent).forEach(item => {
                 this.$options.components[item] = tagComponent[item]
             })
+        },
+        mounted () {
+            const showDom = this.$el.querySelector('.rf-group-desc')
+            const hideDom = this.$el.querySelector('.hide-html-text')
+            if (showDom && hideDom) {
+                const showDomHeight = showDom.getBoundingClientRect().height
+                const hideDomHeight = hideDom.getBoundingClientRect().height
+                this.isDescTipsShow = hideDomHeight > showDomHeight
+            }
         },
         methods: {
             getDefaultAttrs () {
@@ -530,15 +567,13 @@
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
-        &.required {
-            &:before {
-                content: '*';
-                position: absolute;
-                top: 0px;
-                right: -10px;
-                color: #F00;
-                font-family: "SimSun";
-            }
+        .required {
+            position: absolute;
+            top: 2px;
+            right: -10px;
+            color: #F00;
+            margin-left: 5px;
+            font-family: "SimSun";
         }
         .tag-label-tips {
             position: relative;

@@ -4,19 +4,20 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #: gcloud/core/static/remote/jquery/jquery-1.7.2.min.js:2
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:559
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:562
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:457
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:741
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:754
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:444
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:190
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:306
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:419
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:429
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:226
+#: static/remote/jquery/jquery-1.7.2.min.js:2
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-18 16:25+0800\n"
+"POT-Creation-Date: 2023-07-18 17:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -134,20 +135,20 @@ msgid "请求头，一行填写一个头部的信息"
 msgstr "请求头，一行填写一个头部的信息"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:86
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:293
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:420
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:296
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:423
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:286
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:413
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:542
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:543
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:658
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:545
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:546
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:661
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:169
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:302
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:400
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:619
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:622
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:152
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:268
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:375
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:385
 msgid "超时时间"
 msgstr "超时时间"
 
@@ -193,16 +194,16 @@ msgstr "根据返回的 JSON 的数据来控制节点的成功或失败，使用
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:18
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_2.js:18
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:222
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:222
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:338
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:225
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:225
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:341
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:18
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:134
 #: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:18
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:222
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:225
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:7
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:7
@@ -211,11 +212,13 @@ msgstr "根据返回的 JSON 的数据来控制节点的成功或失败，使用
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:33
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:17
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:33
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:17
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:19
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:42
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:42
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:43
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:19
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:19
 msgid "业务"
 msgstr "业务"
 
@@ -321,26 +324,26 @@ msgstr "通知执行人"
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:197
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:344
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js:108
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:342
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:423
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:345
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:426
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:264
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:281
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:275
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:292
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:309
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:408
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:605
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:663
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:579
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:637
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:654
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:754
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:608
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:666
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:582
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:640
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:657
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:757
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:52
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:204
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:52
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:263
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:280
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:682
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:685
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:98
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:225
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:90
@@ -357,26 +360,26 @@ msgstr "是"
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:198
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:345
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js:109
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:343
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:424
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:346
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:427
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:265
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:282
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:276
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:293
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:310
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:409
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:606
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:664
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:580
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:638
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:655
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:755
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:609
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:667
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:583
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:641
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:658
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:758
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:53
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:205
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:53
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:264
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:281
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:683
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:686
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:99
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:226
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:91
@@ -456,6 +459,9 @@ msgstr "拓扑选择"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:97
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:202
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:450
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:44
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:149
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:397
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:49
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:123
 msgid "手动输入"
@@ -479,6 +485,8 @@ msgstr "手动输入"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:175
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:115
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:175
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:62
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:122
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:63
 msgid "集群"
 msgstr "集群"
@@ -495,6 +503,7 @@ msgstr "集群"
 #: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:108
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:119
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:119
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:66
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:111
 msgid "请选择集群"
 msgstr "请选择集群"
@@ -553,8 +562,8 @@ msgstr "模块属性"
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_1.js:23
 #: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:85
 #: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:50
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:372
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:499
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:375
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:502
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:43
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:194
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:170
@@ -574,8 +583,8 @@ msgstr "导出"
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_1.js:30
 #: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:92
 #: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:57
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:379
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:506
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:382
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:509
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:50
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:201
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:177
@@ -630,6 +639,7 @@ msgstr "主机所属模块修改详情"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:58
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:332
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:332
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:279
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:37
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:37
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:37
@@ -740,6 +750,7 @@ msgstr "复制故障机属性"
 #: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:66
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:280
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:280
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:227
 #: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:72
 msgid "模块"
 msgstr "模块"
@@ -839,8 +850,8 @@ msgstr "关闭"
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_delete_host_lock/v1_0.js:47
 #: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:9
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:211
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:637
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:611
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:640
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:614
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_attribute_query.js:19
 msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
 msgstr "输入IP, 多个用英文逗号 `,` 或换行分隔"
@@ -881,6 +892,7 @@ msgstr "模块信息不能为空"
 #: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:387
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:220
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:220
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:167
 msgid "服务模板"
 msgstr "服务模板"
 
@@ -1124,7 +1136,7 @@ msgid "process_id"
 msgstr "process_id"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:24
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:222
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:225
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:18
 msgid "业务集ID"
 msgstr "业务集ID"
@@ -1160,9 +1172,9 @@ msgstr "执行方案"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:195
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js:106
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:340
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:343
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:307
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:652
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:655
 msgid "IP Tag 分组"
 msgstr "IP Tag 分组"
 
@@ -1223,9 +1235,9 @@ msgid "刷新全局变量"
 msgstr "全局变量"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js:342
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:421
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:424
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:406
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:752
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:755
 msgid "失败时提取变量"
 msgstr "失败时提取变量"
 
@@ -1260,108 +1272,342 @@ msgid "作业日志"
 msgstr "作业日志"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/v1_1/all_biz_execute_job_plan_v1_1.js:24
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:338
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:341
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:134
 #, fuzzy
 #| msgid "业务"
 msgid "业务集"
 msgstr "业务"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:235
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:362
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:281
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:281
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:397
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:281
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:21
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:21
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:21
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:21
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:21
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:21
+msgid ""
+"#!/bin/bash\n"
+"\n"
+"anynowtime=\"date +'%Y-%m-%d %H:%M:%S'\"\n"
+"NOW=\"echo [\\`$anynowtime\\`][PID:$$]\"\n"
+"\n"
+"##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n"
+"function job_start\n"
+"{\n"
+"    echo \"`eval $NOW` job_start\"\n"
+"}\n"
+"\n"
+"##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n"
+"function job_success\n"
+"{\n"
+"    MSG=\"$*\"\n"
+"    echo \"`eval $NOW` job_success:[$MSG]\"\n"
+"    exit 0\n"
+"}\n"
+"\n"
+"##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n"
+"function job_fail\n"
+"{\n"
+"    MSG=\"$*\"\n"
+"    echo \"`eval $NOW` job_fail:[$MSG]\"\n"
+"    exit 1\n"
+"}\n"
+"\n"
+"job_start\n"
+"\n"
+"###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n"
+"###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n"
+"###### 可在此处开始编写您的脚本逻辑代码\n"
+"\n"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:56
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:56
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:56
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:56
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:56
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:56
+msgid ""
+"@echo on\n"
+"setlocal enabledelayedexpansion\n"
+"call:job_start\n"
+"\n"
+"REM 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n"
+"REM 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n"
+"REM 可在此处开始编写您的脚本逻辑代码\n"
+"\n"
+"\n"
+"\n"
+"REM 函数自定义区域，不要把正文写到函数区下面 \n"
+"goto:eof\n"
+"REM 可在脚本开始运行时调用，打印当时的时间戳及PID。\n"
+":job_start\n"
+"    set cu_time=[%date:~0,10% %time:~0,8%]\n"
+"    for /F \"skip=3 tokens=2\" %%i in ('tasklist /v /FI \"IMAGENAME eq cmd.exe\" /FI \"STATUS eq Unknown\"') do (\n"
+"        set pid=[PID:%%i]\n"
+"        goto:break\n"
+"    )\n"
+"    :break\n"
+"    echo %cu_time%%pid% job_start\n"
+"    goto:eof\n"
+"    \n"
+"REM 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n"
+":job_success\n"
+"    set cu_time=[%date:~0,10% %time:~0,8%]\n"
+"    for /F \"skip=3 tokens=2\" %%i in ('tasklist /v /FI \"IMAGENAME eq cmd.exe\" /FI \"STATUS eq Unknown\"') do (\n"
+"        set pid=[PID:%%i]\n"
+"        goto:break\n"
+"    )\n"
+"    :break\n"
+"    echo %cu_time%%pid% job_success:[%*]\n"
+"    exit 0\n"
+"    \n"
+"REM 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n"
+":job_fail\n"
+"    set cu_time=[%date:~0,10% %time:~0,8%]\n"
+"    for /F \"skip=3 tokens=2\" %%i in ('tasklist /v /FI \"IMAGENAME eq cmd.exe\" /FI \"STATUS eq Unknown\"') do (\n"
+"        set pid=[PID:%%i]\n"
+"        goto:break\n"
+"    )\n"
+"    :break\n"
+"    echo %cu_time%%pid% job_fail:[%*]\n"
+"    exit 1\n"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:102
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:102
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:102
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:102
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:102
+#, javascript-format
+msgid ""
+"#!/usr/bin/perl\n"
+"\n"
+"use strict;\n"
+"\n"
+"sub job_localtime {\n"
+"    my @n = localtime();\n"
+"    return sprintf(\"%04d-%02d-%02d %02d:%02d:%02d\",$n[5]+1900,$n[4]+1,$n[3], $n[2], $n[1], $n[0] );\n"
+"}\n"
+"\n"
+"##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n"
+"sub job_start {\n"
+"    print \"[\",&job_localtime,\"][PID:$$] job_start\n"
+"\";\n"
+"}\n"
+"\n"
+"##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n"
+"sub job_success {\n"
+"    print \"[\",&job_localtime,\"][PID:$$] job_success:[@_]\n"
+"\";\n"
+"    exit 0;\n"
+"}\n"
+"\n"
+"##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n"
+"sub job_fail {\n"
+"    print \"[\",&job_localtime,\"][PID:$$] job_fail:[@_]\n"
+"\";\n"
+"    exit 1;\n"
+"}\n"
+"\n"
+"job_start;\n"
+"\n"
+"###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n"
+"###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n"
+"###### 可在此处开始编写您的脚本逻辑代码\n"
+"\n"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:136
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:136
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:136
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:136
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:136
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:136
+msgid ""
+"#!/usr/bin/env python\n"
+"# -*- coding: utf8 -*-\n"
+"\n"
+"import datetime\n"
+"import os\n"
+"import sys\n"
+"\n"
+"def _now(format=\"%Y-%m-%d %H:%M:%S\"):\n"
+"    return datetime.datetime.now().strftime(format)\n"
+"\n"
+"##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n"
+"def job_start():\n"
+"    print(\"[%s][PID:%s] job_start\" % (_now(), os.getpid()))\n"
+"\n"
+"##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n"
+"def job_success(msg):\n"
+"    print(\"[%s][PID:%s] job_success:[%s]\" % (_now(), os.getpid(), msg))\n"
+"    sys.exit(0)\n"
+"\n"
+"##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n"
+"def job_fail(msg):\n"
+"    print(\"[%s][PID:%s] job_fail:[%s]\" % (_now(), os.getpid(), msg))\n"
+"    sys.exit(1)\n"
+"\n"
+"if __name__ == '__main__':\n"
+"\n"
+"    job_start()\n"
+"\n"
+"###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n"
+"###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n"
+"###### 可在此处开始编写您的脚本逻辑代码\n"
+"\n"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:170
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:170
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:170
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:170
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:170
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:170
+msgid ""
+"##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n"
+"function job_start\n"
+"{\n"
+"    $cu_date = Get-Date -Format \"yyyy-MM-dd HH:mm:ss\"    \n"
+"    \"[{0}][PID:{1}] job_start\" -f $cu_date,$pid\n"
+"}\n"
+"\n"
+"##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n"
+"function job_success\n"
+"{\n"
+"    $cu_date = Get-Date -Format \"yyyy-MM-dd HH:mm:ss\"\n"
+"    if($args.count -ne 0)\n"
+"    {\n"
+"        $args | foreach {$arg_str=$arg_str + \" \" + $_}\n"
+"        \"[{0}][PID:{1}] job_success:[{2}]\" -f $cu_date,$pid,$arg_str.TrimStart(' ')\n"
+"    }\n"
+"    else\n"
+"    {\n"
+"        \"[{0}][PID:{1}] job_success:[]\" -f $cu_date,$pid\n"
+"    }\n"
+"    exit 0\n"
+"}\n"
+"\n"
+"##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n"
+"function job_fail\n"
+"{\n"
+"    $cu_date = Get-Date -Format \"yyyy-MM-dd HH:mm:ss\"\n"
+"    if($args.count -ne 0)\n"
+"    {\n"
+"        $args | foreach {$arg_str=$arg_str + \" \" + $_}\n"
+"        \"[{0}][PID:{1}] job_fail:[{2}]\" -f $cu_date,$pid,$arg_str.TrimStart(' ')\n"
+"    }\n"
+"    else\n"
+"    {\n"
+"        \"[{0}][PID:{1}] job_fail:[]\" -f $cu_date,$pid\n"
+"    }\n"
+"    exit 1\n"
+"}\n"
+"\n"
+"job_start\n"
+"\n"
+"###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n"
+"###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n"
+"###### 可在此处开始编写您的脚本逻辑代码\n"
+"\n"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:238
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:365
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:284
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:284
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:400
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:284
 msgid "脚本类型"
 msgstr "脚本类型"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:256
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:383
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:335
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:335
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:451
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:335
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:259
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:386
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:338
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:338
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:454
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:338
 msgid "脚本内容"
 msgstr "脚本内容"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:258
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:385
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:337
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:337
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:453
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:337
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:261
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:388
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:340
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:340
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:456
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:340
 msgid "填写执行脚本内容"
 msgstr "填写执行脚本内容"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:284
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:411
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:533
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:534
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:649
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:610
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:287
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:414
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:536
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:537
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:652
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:613
 msgid "脚本参数"
 msgstr "脚本参数"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:285
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:412
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:534
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:535
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:650
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:611
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:288
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:415
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:537
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:538
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:653
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:614
 msgid "可为空, 脚本执行时传入的参数，同脚本在终端执行时的传参格式， 如:./test.sh xxxx xxx xxx"
 msgstr "可为空, 脚本执行时传入的参数，同脚本在终端执行时的传参格式， 如:./test.sh xxxx xxx xxx"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:294
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:421
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:544
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:659
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:620
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:297
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:424
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:547
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:662
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:623
 msgid "单位为秒(1 - 86400)，为空时使用 JOB 默认值"
 msgstr "单位为秒(1 - 86400)，为空时使用 JOB 默认值"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:310
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:437
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:313
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:440
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:303
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:430
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:559
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:560
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:675
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:562
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:563
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:678
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:186
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:319
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:417
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:636
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:639
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:169
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:285
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:392
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:402
 #, fuzzy
 #| msgid "超时时间"
 msgid "超时时间必须为整数"
 msgstr "超时时间"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:314
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:317
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:307
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:434
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:563
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:564
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:679
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:566
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:567
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:682
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:190
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:323
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:421
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:640
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:643
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:173
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:289
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:396
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:406
 msgid "超时时间必须在 1 - 86400 范围内"
 msgstr "超时时间必须在 1 - 86400 范围内"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:326
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:453
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:647
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:621
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:705
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:329
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:456
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:650
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:624
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:708
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:141
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:666
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:669
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:124
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:127
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:254
@@ -1371,17 +1617,17 @@ msgstr "超时时间必须在 1 - 86400 范围内"
 msgid "执行账号"
 msgstr "执行账号"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:327
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:454
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:330
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:457
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:256
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:383
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:648
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:622
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:706
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:651
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:625
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:709
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:142
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:248
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:346
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:667
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:670
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:125
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:255
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:351
@@ -1390,12 +1636,12 @@ msgstr "执行账号"
 msgid "请输入在蓝鲸作业平台上注册的账户名"
 msgstr "请输入在蓝鲸作业平台上注册的账户名"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:357
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:620
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:594
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:691
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:360
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:623
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:597
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:694
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:127
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:652
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:655
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:110
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:113
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:240
@@ -1405,12 +1651,12 @@ msgstr "请输入在蓝鲸作业平台上注册的账户名"
 msgid "目标服务器"
 msgstr "目标服务器"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:359
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:621
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:595
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:692
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:362
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:624
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:598
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:695
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:128
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:653
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:656
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:111
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:114
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:241
@@ -1419,18 +1665,18 @@ msgstr "目标服务器"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:163
 msgid ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+" 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 msgstr ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
-" 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+" 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:361
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:488
-msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:364
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:491
+msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
+msgstr "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:365
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:492
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:368
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:495
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:36
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:187
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:163
@@ -1446,98 +1692,132 @@ msgstr "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请
 msgid "添加"
 msgstr "添加"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:387
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:514
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:390
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:517
 #, fuzzy
-#| msgid "云区域ID"
-msgid "云区域ID(默认为0)"
-msgstr "云区域ID"
+#| msgid "管控区域ID"
+msgid "管控区域ID(默认为0)"
+msgstr "管控区域ID"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:400
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:527
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:403
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:530
 msgid "多个IP以,分隔"
 msgstr "多个IP以,分隔"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:441
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:444
 msgid "超时时间必须在 60 - 86400 范围内"
 msgstr "超时时间必须在 60 - 86400 范围内"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:484
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:487
 msgid "执行目标"
 msgstr "执行目标"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:486
-msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:489
+msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
+msgstr "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入管控区域:IP，并确保已在作业平台添加白名单"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:555
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:551
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:446
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:743
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:433
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:418
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:215
+#, fuzzy
+#| msgid "滚动执行"
+msgid "滚动执行配置"
+msgstr "滚动执行"
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:558
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:453
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:737
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:750
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:440
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:415
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:425
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:222
 msgid "滚动执行"
 msgstr "滚动执行"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:568
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:560
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:455
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:752
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:442
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:427
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:224
+msgid "<p>启动滚动执行后，目标服务器将按策略规则分批次串行执行（而非全量并行）</p>"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:571
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:466
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:750
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:763
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:453
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:428
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:438
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:235
 msgid "滚动策略"
 msgstr "滚动策略"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:589
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:573
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:468
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:765
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:455
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:440
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:237
+msgid ""
+"<p>.&nbsp;每个批次支持用整数、百分比(n%)和算式(+n,&nbsp;*n)，以空格分隔</p>\n"
+"\n"
+"</br><p>.&nbsp;使用算式&nbsp;(+n,&nbsp;*n)&nbsp;时，前一个批次必须是整数（如：2&nbsp;*2）</p>\n"
+"\n"
+"</br><p>.&nbsp;百分比取值遇小数点时会向上取整，100%代表取全量服务器（100%&nbsp;只允许出现在末位）</p>"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:592
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:487
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:771
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:784
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:474
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:449
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:459
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:256
 msgid "滚动执行开启时滚动策略为必填项"
 msgstr "滚动执行开启时滚动策略为必填项"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:636
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:639
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:534
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:818
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:831
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:521
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:496
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:506
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:303
 msgid "滚动机制"
 msgstr "滚动机制"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:653
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:656
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:551
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:835
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:848
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:538
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:513
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:523
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:320
 msgid "滚动执行开启时滚动机制为必填项"
 msgstr "滚动执行开启时滚动机制为必填项"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:661
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:664
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:559
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:843
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:856
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:546
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:521
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:531
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:328
 msgid "默认（执行失败则暂停）"
 msgstr "默认（执行失败则暂停）"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:662
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:665
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:560
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:844
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:857
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:547
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:522
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:532
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:329
 msgid "忽略失败，自动滚动下一批"
 msgstr "忽略失败，自动滚动下一批"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:663
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:666
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:561
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:845
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:858
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:548
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:523
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:533
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:330
 msgid "不自动，每批次都人工确认"
 msgstr "不自动，每批次都人工确认"
@@ -1562,8 +1842,9 @@ msgstr "源文件"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:337
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:688
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:93
-msgid "云区域ID"
-msgstr "云区域ID"
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:68
+msgid "管控区域ID"
+msgstr "管控区域ID"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:59
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:211
@@ -1679,23 +1960,23 @@ msgstr "请输入绝对路径（可用[FILESRCIP]代替源IP）"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:287
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:414
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:543
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:546
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:170
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:303
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:401
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:153
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:269
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:376
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:386
 msgid "单位为秒(1 - 86400)，为空时使用JOB默认值"
 msgstr "单位为秒(1 - 86400)，为空时使用JOB默认值"
 
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_0.js:262
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:273
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:661
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:635
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:664
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:638
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:202
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:261
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:680
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:683
 msgid "IP 存在性校验"
 msgstr "IP 存在性校验"
 
@@ -1708,106 +1989,106 @@ msgid "IP 允许跨业务"
 msgstr "是否允许跨业务"
 
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:324
-#: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_2.js:273
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:669
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:882
+#: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_2.js:262
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:672
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:895
 msgid "JOB成功历史"
 msgstr "JOB成功历史"
-
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:253
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:253
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:369
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:253
-msgid "脚本来源"
-msgstr "脚本来源"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:256
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:256
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:372
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:256
+msgid "脚本来源"
+msgstr "脚本来源"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:259
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:259
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:375
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:259
 msgid "手工录入"
 msgstr "手工录入"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:257
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:257
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:373
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:257
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:260
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:260
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:376
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:260
 msgid "业务脚本"
 msgstr "业务脚本"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:258
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:258
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:374
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:258
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:261
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:261
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:377
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:261
 msgid "公共脚本"
 msgstr "公共脚本"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:305
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:309
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:305
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:309
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:421
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:425
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:305
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:309
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:308
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:312
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:308
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:312
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:424
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:428
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:308
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:312
 msgid "请选择脚本类型"
 msgstr "请选择脚本类型"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:356
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:360
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:356
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:360
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:472
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:476
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:356
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:360
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:359
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:363
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:359
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:363
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:475
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:479
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:359
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:363
 msgid "请输入脚本内容"
 msgstr "请输入脚本内容"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:394
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:450
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:395
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:451
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:510
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:566
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:394
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:473
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:397
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:453
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:398
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:454
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:513
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:569
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:397
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:476
 msgid "脚本列表"
 msgstr "脚本列表"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:420
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:424
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:477
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:481
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:421
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:425
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:478
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:482
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:536
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:540
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:593
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:597
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:421
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:425
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:500
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:504
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:423
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:427
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:480
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:484
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:424
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:428
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:481
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:485
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:539
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:543
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:596
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:600
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:424
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:428
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:503
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:507
 msgid "请选择脚本"
 msgstr "请选择脚本"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:575
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:578
 msgid "自定义任务名"
 msgstr "自定义任务名"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:576
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:579
 msgid "用户自定义任务名称。不填的话，作业平台会自动生成任务名称"
 msgstr "用户自定义任务名称。不填的话，作业平台会自动生成任务名称"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:589
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:592
 msgid "请输入非空格之外的任务名"
 msgstr "请输入非空格之外的任务名"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:602
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:576
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:605
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:579
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:49
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:49
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:95
@@ -1816,8 +2097,8 @@ msgstr "请输入非空格之外的任务名"
 msgid "是否允许跨业务"
 msgstr "是否允许跨业务"
 
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:635
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:609
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:638
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:612
 #, fuzzy
 #| msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
 msgid "输入 CLOUD_ID:IP, 多个用英文逗号 `,` 或换行分隔"
@@ -1825,8 +2106,8 @@ msgstr "输入IP, 多个用英文逗号 `,` 或换行分隔"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:76
-msgid "跨业务用【云区域ID:IP】"
-msgstr "跨业务用【云区域ID:IP】"
+msgid "跨业务用【管控区域ID:IP】"
+msgstr "跨业务用【管控区域ID:IP】"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:156
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:139
@@ -1838,8 +2119,8 @@ msgstr "请输入绝对路径"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:220
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:318
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一"
-msgstr "IP必须填写【云区域ID:IP】或者【IP】格式之一"
+msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一"
+msgstr "IP必须填写【管控区域ID:IP】或者【IP】格式之一"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:174
 msgid "【IP】"
@@ -1893,7 +2174,7 @@ msgstr "启动"
 msgid "刷新"
 msgstr "刷新"
 
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:556
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:559
 msgid "脚本名称"
 msgstr "脚本名称"
 
@@ -1975,6 +2256,8 @@ msgstr "目标路径"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:14
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:7
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:14
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:7
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:14
 msgid "屏蔽范围"
 msgstr "屏蔽范围"
 
@@ -1982,11 +2265,14 @@ msgstr "屏蔽范围"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:86
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:19
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:86
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:19
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:33
 msgid "结点"
 msgstr "结点"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:93
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:93
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:40
 msgid "大区获取方式"
 msgstr "大区获取方式"
 
@@ -1994,11 +2280,14 @@ msgstr "大区获取方式"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:201
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:96
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:201
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:43
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:148
 msgid "从CMDB获取"
 msgstr "从CMDB获取"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:177
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:177
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:124
 #, fuzzy
 #| msgid "填写用户名，多个用英文逗号 `,` 分隔"
 msgid "请输入集群名，多个目标集群用英文逗号`,`分隔"
@@ -2006,6 +2295,7 @@ msgstr "填写用户名，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:198
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:198
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:145
 #, fuzzy
 #| msgid "服务模板"
 msgid "服务模板获取方式"
@@ -2013,6 +2303,7 @@ msgstr "服务模板"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:223
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:223
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:170
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:134
 #, fuzzy
 #| msgid "服务模板"
@@ -2021,6 +2312,7 @@ msgstr "服务模板"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:282
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:282
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:229
 #, fuzzy
 #| msgid "填写用户名，多个用英文逗号 `,` 分隔"
 msgid "请输入模块名，多个目标模块用英文逗号`,`分隔"
@@ -2028,6 +2320,7 @@ msgstr "填写用户名，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:334
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:334
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:281
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:39
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:39
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:39
@@ -2038,21 +2331,25 @@ msgstr "请输入主机内网IP，多个用换行分隔"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:349
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:349
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:296
 msgid "IP不可为空"
 msgstr "IP不可为空"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:392
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:392
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:339
 msgid "指标"
 msgstr "指标"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:396
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:396
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:343
 msgid "所有告警"
 msgstr "所有告警"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:397
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:397
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:344
 #, fuzzy
 #| msgid "5分钟平均负载"
 msgid "1分钟平均负载"
@@ -2060,11 +2357,13 @@ msgstr "5分钟平均负载"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:398
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:398
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:345
 msgid "5分钟平均负载"
 msgstr "5分钟平均负载"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:399
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:399
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:346
 #, fuzzy
 #| msgid "5分钟平均负载"
 msgid "15分钟平均负载"
@@ -2072,181 +2371,217 @@ msgstr "5分钟平均负载"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:400
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:400
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:347
 msgid "CPU总使用率"
 msgstr "CPU总使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:401
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:401
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:348
 msgid "CPU单核使用率"
 msgstr "CPU单核使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:402
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:402
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:349
 msgid "接收字节流量"
 msgstr "接收字节流量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:403
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:403
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:350
 msgid "发送字节流量"
 msgstr "发送字节流量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:404
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:404
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:351
 msgid "发送包速率"
 msgstr "发送包速率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:405
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:405
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:352
 msgid "接收包速率"
 msgstr "接收包速率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:406
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:406
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:353
 msgid "可用物理内存"
 msgstr "可用物理内存"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:407
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:407
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:354
 msgid "交换分区使用量"
 msgstr "交换分区使用量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:408
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:408
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:355
 msgid "物理内存使用率"
 msgstr "物理内存使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:409
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:409
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:356
 msgid "磁盘使用率"
 msgstr "磁盘使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:410
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:410
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:357
 msgid "读速率"
 msgstr "读速率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:411
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:411
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:358
 msgid "写速率"
 msgstr "写速率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:412
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:412
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:359
 msgid "磁盘IO使用率"
 msgstr "磁盘IO使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:413
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:413
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:360
 msgid "物理内存使用量"
 msgstr "物理内存使用量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:414
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:414
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:361
 msgid "应用内存使用量"
 msgstr "应用内存使用量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:415
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:415
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:362
 msgid "应用内存使用率"
 msgstr "应用内存使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:416
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:416
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:363
 msgid "ESTABLISHED连接数"
 msgstr "ESTABLISHED连接数"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:417
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:417
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:364
 msgid "TIME_WAIT连接数"
 msgstr "TIME_WAIT连接数"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:418
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:418
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:365
 msgid "SYN_RECV连接数"
 msgstr "SYN_RECV连接数"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:419
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:419
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:366
 msgid "UDP接收包量"
 msgstr "UDP接收包量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:420
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:420
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:367
 msgid "UDP发送包量"
 msgstr "UDP发送包量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:421
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:421
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:368
 msgid "CPU使用率"
 msgstr "CPU使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:422
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:422
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:369
 msgid "内存使用率"
 msgstr "内存使用率"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:423
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:423
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:370
 msgid "进程物理内存使用量"
 msgstr "进程物理内存使用量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:424
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:424
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:371
 msgid "进程虚拟内存使用量"
 msgstr "进程虚拟内存使用量"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:425
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:425
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:372
 msgid "文件句柄数"
 msgstr "文件句柄数"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:426
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:426
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:373
 msgid "系统进程数"
 msgstr "系统进程数"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:427
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:427
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:374
 msgid "CLOSE_WAIT连接数"
 msgstr "CLOSE_WAIT连接数"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:428
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:428
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:375
 msgid "系统重新启动"
 msgstr "系统重新启动"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:429
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:429
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:376
 msgid "进程端口"
 msgstr "进程端口"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:430
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:430
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:377
 msgid "Agent心跳丢失"
 msgstr "Agent心跳丢失"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:431
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:431
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:378
 msgid "磁盘只读"
 msgstr "磁盘只读"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:432
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:432
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:379
 msgid "磁盘写满"
 msgstr "磁盘写满"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:433
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:433
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:380
 msgid "Corefile产生"
 msgstr "Corefile产生"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:434
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:434
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:381
 msgid "PING不可达告警"
 msgstr "PING不可达告警"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:447
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:475
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:422
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:46
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:74
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:148
@@ -2257,6 +2592,8 @@ msgstr "开始时间"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:463
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:477
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:534
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:424
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:481
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:47
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:61
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:76
@@ -2268,6 +2605,7 @@ msgstr "时间格式 yyyy-MM-dd HH:mm:ss，建议引用自定义时间日期变�
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:461
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:532
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:479
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:60
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:131
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:205
@@ -2275,24 +2613,28 @@ msgid "结束时间"
 msgstr "结束时间"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:447
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:394
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:46
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:120
 msgid "时间选择"
 msgstr "时间选择"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:451
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:398
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:50
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:124
 msgid "从当前时间开始，仅输入持续时间"
 msgstr "从当前时间开始，仅输入持续时间"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:452
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:399
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:51
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:125
 msgid "输入开始时间和持续时间"
 msgstr "输入开始时间和持续时间"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:493
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:440
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:92
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:166
 #, fuzzy
@@ -2301,6 +2643,7 @@ msgid "开始时间不可为空"
 msgstr "开始时间"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:550
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:497
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:149
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:223
 #, fuzzy
@@ -2309,18 +2652,21 @@ msgid "结束时间不可为空"
 msgstr "结束时间"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:590
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:537
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:189
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:263
 msgid "持续时间(分钟)"
 msgstr "持续时间(分钟)"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:591
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:538
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:190
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:264
 msgid "输入屏蔽的分钟数"
 msgstr "输入屏蔽的分钟数"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:607
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_2.js:554
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:206
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:280
 #, fuzzy
@@ -2404,6 +2750,7 @@ msgstr "非直连区域AGENT"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:180
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:205
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:241
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:113
 msgid "操作类型"
 msgstr "操作类型"
 
@@ -2416,6 +2763,7 @@ msgstr "操作类型"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:251
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:261
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:243
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:115
 msgid "安裝"
 msgstr "安裝"
 
@@ -2512,6 +2860,7 @@ msgstr "操作系统类型"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:359
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:442
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:53
 msgid "LINUX"
 msgstr "LINUX"
 
@@ -2520,6 +2869,7 @@ msgstr "LINUX"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:360
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:443
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:54
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:54
 msgid "WINDOWS"
 msgstr "WINDOWS"
 
@@ -2584,6 +2934,7 @@ msgstr "操作对象"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:262
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:346
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:102
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:78
 msgid "直连区域"
 msgstr "直连区域"
 
@@ -2660,6 +3011,7 @@ msgstr "接入点"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:295
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:379
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:159
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:93
 #, fuzzy
 #| msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
 msgid "多个用英文逗号 `,` 或换行分隔"
@@ -2759,8 +3111,8 @@ msgstr "说明"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:522
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:689
-msgid "一行只能对应一个云区域ID"
-msgstr "一行只能对应一个云区域ID"
+msgid "一行只能对应一个管控区域ID"
+msgstr "一行只能对应一个管控区域ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:274
 msgid "是否安装最新版本插件"
@@ -2783,6 +3135,7 @@ msgid "请输入数字"
 msgstr "请输入数字"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:50
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:50
 #, fuzzy
 #| msgid "操作系统类型"
 msgid "主机系统类型"
@@ -2798,6 +3151,7 @@ msgstr "填写方式"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:78
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:158
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:92
 msgid "主机IP"
 msgstr "主机IP"
 
@@ -2807,54 +3161,66 @@ msgid "主机ID"
 msgstr "主机ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:119
-msgid "请选云区域"
-msgstr "请选云区域"
+msgid "请选管控区域"
+msgstr "请选管控区域"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:234
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:106
 msgid "插件操作"
 msgstr "插件操作"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:244
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:116
 msgid "停止"
 msgstr "停止"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:261
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:133
 msgid "插件类型"
 msgstr "插件类型"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:263
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:135
 msgid "官方插件"
 msgstr "官方插件"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:264
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:136
 msgid "第三方插件"
 msgstr "第三方插件"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:265
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:137
 msgid "脚本插件"
 msgstr "脚本插件"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:281
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:153
 msgid "选择插件"
 msgstr "选择插件"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:320
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:192
 msgid "选择插件版本"
 msgstr "选择插件版本"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:360
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:232
 msgid "操作类型为`安装`时插件版本为必填项"
 msgstr "操作类型为`安装`时插件版本为必填项"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:431
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:303
 msgid " "
 msgstr " "
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:434
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:306
 msgid "保留原有配置文件"
 msgstr "保留原有配置文件"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:435
+#: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v2_0.js:307
 msgid "仅更新文件，不重启进程"
 msgstr "仅更新文件，不重启进程"
 
@@ -2905,8 +3271,8 @@ msgid "原始IP"
 msgstr "原始IP"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:26
-msgid "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"
-msgstr "IP为【IP】（云区域ID为0）、【云区域ID:IP】格式之一，多个用换行分隔"
+msgid "IP为【IP】（管控区域ID为0）、【管控区域ID:IP】格式之一，多个用换行分隔"
+msgstr "IP为【IP】（管控区域ID为0）、【管控区域ID:IP】格式之一，多个用换行分隔"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:39
 msgid "GSE AGENT状态"
@@ -2921,8 +3287,8 @@ msgid "不在线"
 msgstr "不在线"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:53
-msgid "输出带云区域"
-msgstr "输出带云区域"
+msgid "输出带管控区域"
+msgstr "输出带管控区域"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:67
 msgid "输出分隔符"
@@ -2969,8 +3335,8 @@ msgstr "通过配置平台拓扑获取"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:77
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:62
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-msgstr "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgid "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgstr "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:110
 msgid "拓扑树"
@@ -3293,7 +3659,7 @@ msgid "密码"
 msgstr "密码"
 
 #: pipeline_plugins/variables/static/variables/select.js:18
-#: pipeline_plugins/variables/static/variables/select.js:119
+#: pipeline_plugins/variables/static/variables/select.js:120
 msgid "下拉框"
 msgstr "下拉框"
 
@@ -3329,8 +3695,8 @@ msgstr "多选"
 msgid "请输入下拉框的默认值，单选为 value 的格式，多选为 value,value,... 的格式"
 msgstr "请输入下拉框的默认值，单选为 value 的格式，多选为 value,value,... 的格式"
 
-#: pipeline_plugins/variables/static/variables/select.js:94
-#: pipeline_plugins/variables/static/variables/select.js:98
+#: pipeline_plugins/variables/static/variables/select.js:95
+#: pipeline_plugins/variables/static/variables/select.js:99
 msgid "非法下拉框数据源，请检查您的配置"
 msgstr "非法下拉框数据源，请检查您的配置"
 
@@ -3748,8 +4114,8 @@ msgstr "文本框"
 #~ msgid "手动添加"
 #~ msgstr "手动添加"
 
-#~ msgid "云区域"
-#~ msgstr "云区域"
+#~ msgid "管控区域"
+#~ msgstr "管控区域"
 
 #~ msgid "状态"
 #~ msgstr "状态"
@@ -3839,8 +4205,8 @@ msgstr "文本框"
 #~ msgid "搜索分组"
 #~ msgstr "搜索分组"
 
-#~ msgid "变量值是否带云区域："
-#~ msgstr "变量值是否带云区域："
+#~ msgid "变量值是否带管控区域："
+#~ msgstr "变量值是否带管控区域："
 
 #~ msgid "组件禁用态"
 #~ msgstr "组件禁用态"

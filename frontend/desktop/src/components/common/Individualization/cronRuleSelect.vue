@@ -15,7 +15,7 @@
         <i class="common-icon-info rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
-            <img style="width:100%" class="ui-img" :src="periodicCronImg">
+            <img style="width:542px;height: 258px;" class="ui-img" :src="periodicCronImg">
         </div>
         <div class="time-input">
             <input
@@ -95,6 +95,7 @@
                 isTimeMore: false,
                 periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 ruleTipsHtmlConfig: {
+                    extCls: 'periodic-cron-tips',
                     allowHtml: true,
                     width: 560,
                     trigger: 'mouseenter',
@@ -343,6 +344,11 @@
             right: 20px;
             color: #979ba5;
             font-size: 14px;
+        }
+    }
+    .periodic-cron-tips {
+        .tippy-tooltip {
+            padding: initial;
         }
     }
 </style>

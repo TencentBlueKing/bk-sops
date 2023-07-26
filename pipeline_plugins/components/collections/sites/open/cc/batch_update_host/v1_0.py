@@ -15,15 +15,14 @@ from copy import deepcopy
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, CCPluginIPMixin
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_prop_data
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
@@ -124,7 +123,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
         update_host_message = []
         for host_property_dir in host_property_copy:
             inner_host_ip = host_property_dir["bk_host_innerip"]
-            # 兼容填写云区域ID：IP的情况, 只获取对应IP, 判断ipv4
+            # 兼容填写管控区域ID：IP的情况, 只获取对应IP, 判断ipv4
             if plat_ip_reg.match(inner_host_ip) and ":" in inner_host_ip:
                 inner_host_ip = inner_host_ip.split(":")[1]
 

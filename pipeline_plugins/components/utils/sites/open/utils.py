@@ -22,11 +22,7 @@ import env
 from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
 from gcloud.utils import cmdb
-from gcloud.utils.ip import (
-    extract_ip_from_ip_str,
-    get_ip_by_regex,
-    get_ipv6_and_cloud_id_from_ipv6_cloud_str,
-)
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex, get_ipv6_and_cloud_id_from_ipv6_cloud_str
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
@@ -157,7 +153,7 @@ def get_ipv4_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv4
 
     ipv4_info_with_cloud_valid = []
     for ip_info in ipv4_info_list:
-        # 清洗出来所有带云区域带ip
+        # 清洗出来所有带管控区域带ip
         plat_ip = "{}:{}".format(ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""))
         if plat_ip in ipv4_list_with_cloud_id:
             ipv4_info_with_cloud_valid.append(ip_info)
@@ -208,7 +204,7 @@ def get_ipv6_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv6
 
     ipv6_info_with_cloud_valid = []
     for ip_info in ipv6_info_list:
-        # 清洗出来所有带云区域带ip
+        # 清洗出来所有带管控区域带ip
         plat_ip = "{}:[{}]".format(
             ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip_v6", "")
         )
@@ -294,7 +290,7 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
     if not ipv6_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_data}
 
-    # ipv6带云区域
+    # ipv6带管控区域
     ipv6_list_with_cloud_id_result, ipv6_list_with_cloud_id_data = get_ipv6_info_list_with_cloud_id(
         username, biz_cc_id, supplier_account, ipv6_list_with_cloud_id
     )
@@ -336,7 +332,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         1： IP，纯IP格式
         2： 集群名称|模块名称|IP，集群名称|模块名称|IP  这种格式可以唯一定位到一
             个IP（如果业务把相同IP放到同一模块，还是有问题）
-        3： 云区域ID:IP，云区域ID:IP  这种格式可以唯一定位到一个IP，主要是兼容Job组件
+        3： 管控区域ID:IP，管控区域ID:IP  这种格式可以唯一定位到一个IP，主要是兼容Job组件
             传参需要和获取Job作业模板步骤参数
     @return: {'result': True or False, 'data': [{'InnerIP': ,'HostID': ,
         'Source': , 'SetID': , 'SetName': , 'ModuleID': , 'ModuleName': , 'Sets': , 'Module': },{}]}
@@ -392,7 +388,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                             }
                         )
 
-    # 格式3 云区域ID:IP
+    # 格式3 管控区域ID:IP
     elif plat_ip_reg.match(ip_str):
         plat_ip = []
         for match in plat_ip_reg.finditer(ip_str):
@@ -511,7 +507,7 @@ def get_biz_ip_from_frontend(
     if is_across:
         plat_ip = [match.group() for match in plat_ip_reg.finditer(ip_str)]
         ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
-        err_msg = _("允许跨业务时IP格式需满足：【云区域ID:IP】。失败 IP： {}")
+        err_msg = _("允许跨业务时IP格式需满足：【管控区域ID:IP】。失败 IP： {}")
     else:
         var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
@@ -534,9 +530,19 @@ def get_biz_ip_from_frontend(
     return True, ip_list
 
 
+def get_repeat_ip(ip_list):
+    repeat_ip_detail = {}
+    for ip_info in ip_list:
+        repeat_ip_detail.setdefault(ip_info["ip"], []).append(ip_info["bk_cloud_id"])
+
+    return ",".join(
+        ["ip: {} 管控区域{}".format(repeat_ip, value) for repeat_ip, value in repeat_ip_detail.items() if len(value) > 0]
+    )
+
+
 def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex_data=False):
     """
-    处理前端ip,云区域:ip 混合输入的情况，最终提取出来的格式为:
+    处理前端ip,管控区域:ip 混合输入的情况，最终提取出来的格式为:
     [
         {
             "bk_cloud_id": 0,
@@ -549,7 +555,7 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
             ip_str, biz_cc_id
         )
     )
-    # 先提取所有带云区域的ip
+    # 先提取所有带管控区域的ip
     plat_ip = [match.group().split(":") for match in plat_ip_reg.finditer(ip_str)]
     plat_ip_list = [{"ip": _ip, "bk_cloud_id": int(_cloud)} for _cloud, _ip in plat_ip]
     logger.info(
@@ -565,7 +571,7 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
             ip_str, without_plat_ip_list
         )
     )
-    # 对于用户没有输入云区域的ip,则去当前业务下查询云区域
+    # 对于用户没有输入管控区域的ip,则去当前业务下查询管控区域
     if not without_plat_ip_list:
         return True, plat_ip_list
 
@@ -577,15 +583,23 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
     err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
 
     difference_ip_list = list(get_difference_ip_list(without_plat_ip_list, [ip_item["ip"] for ip_item in ip_list]))
-    if len(ip_list) != len(set(without_plat_ip_list)):
+
+    if difference_ip_list:
         difference_ip_list.sort()
         if not ignore_ex_data:
             data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
-        return False, ip_list
+        return False, []
+
+    if len(ip_list) != len(set(without_plat_ip_list)):
+        # 这种情况应该是存在一个ip下有多个管控区域的情况
+        if not ignore_ex_data:
+            repeat_err_msg = get_repeat_ip(ip_list)
+            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(repeat_err_msg)
+        return False, []
     if not ip_list:
         if not ignore_ex_data:
             data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
-        return False, ip_list
+        return False, []
 
     ip_list.extend(plat_ip_list)
     return True, ip_list

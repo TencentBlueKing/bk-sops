@@ -13,17 +13,19 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
     Call,
     CallAssertion,
     ComponentTestCase,
     ComponentTestMixin,
     ExecuteAssertion,
-    ScheduleAssertion,
     Patcher,
+    ScheduleAssertion,
 )
-from pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v1_0 import NodemanPluginOperateComponent
+
+from pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v1_0 import (
+    NodemanPluginOperateComponent,
+)
 
 
 class NodemanPluginOperateComponentTest(TestCase, ComponentTestMixin):
@@ -45,7 +47,7 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v1_0.BKNodeManClient"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
 GET_CLIENT_BY_USER_BASE = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"

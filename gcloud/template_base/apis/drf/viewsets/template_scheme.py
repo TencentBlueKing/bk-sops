@@ -14,33 +14,33 @@ import logging
 from collections import Counter
 
 from django.db import transaction
+from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
-from rest_framework.response import Response
+from pipeline.models import TemplateRelationship, TemplateScheme
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework import permissions, viewsets
 from rest_framework.exceptions import ErrorDetail
-from pipeline.models import TemplateScheme, TemplateRelationship
+from rest_framework.response import Response
+
 from gcloud import err_code
+from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.apis.drf.permission import SchemeEditPermission
 from gcloud.template_base.apis.drf.serilaziers.template_scheme import (
-    TemplateSchemeSerializer,
-    ParamsSerializer,
     DefaultTemplateSchemeSerializer,
+    ParamsSerializer,
+    TemplateSchemeSerializer,
 )
 from gcloud.template_base.models import DefaultTemplateScheme
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
 
 class DefaultTemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     queryset = DefaultTemplateScheme.objects.all()
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser | SchemeEditPermission]
+    permission_classes = [permissions.IsAuthenticated, SchemeEditPermission]
     serializer_class = DefaultTemplateSchemeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ("project_id", "template_id")

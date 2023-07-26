@@ -342,7 +342,8 @@
             backToVariablePanel: Boolean,
             isNotExistAtomOrVersion: Boolean,
             pluginLoading: Boolean,
-            isViewMode: Boolean
+            isViewMode: Boolean,
+            isolationAtomConfig: Object
         },
         data () {
             return {
@@ -395,7 +396,9 @@
                 return this.nodeConfig.type !== 'ServiceActivity'
             },
             atomGroup () { // 某一标准插件下所有版本分组
-                return this.atomList.find(item => item.code === this.basicInfo.plugin)
+                let atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
+                atom = atom || this.isolationAtomConfig
+                return atom
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
                 return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
@@ -525,34 +528,6 @@
                     basicInfo,
                     versionList,
                     isSelectorPanelShow
-                }
-            },
-            async setThirdPartyList (nodeConfig) {
-                try {
-                    // 设置第三发插件缓存
-                    const thirdPartyList = this.$parent.thirdPartyList
-                    if (nodeConfig.component
-                        && nodeConfig.component.code === 'remote_plugin'
-                        && !thirdPartyList[this.nodeId]) {
-                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
-                        const { code, versions, description } = resp.data
-                        const versionList = versions.map(version => {
-                            return { version }
-                        })
-                        const { data } = nodeConfig.component
-                        let version = data && data.plugin_version
-                        version = version && version.value
-                        const group = {
-                            code,
-                            list: versionList,
-                            version,
-                            desc: description
-                        }
-                        thirdPartyList[this.nodeId] = group
-                    }
-                } catch (error) {
-                    console.warn(error)
-                    this.isBaseInfoLoading = false
                 }
             },
             // 初始化节点数据
@@ -733,13 +708,12 @@
              */
             async getSubflowInputsConfig () {
                 this.constantsLoading = true
-                const inputs = []
                 const variables = Object.keys(this.subflowForms)
                     .map(key => this.subflowForms[key])
                     .filter(item => item.show_type === 'show')
                     .sort((a, b) => a.index - b.index)
 
-                await Promise.all(variables.map(async (variable) => {
+                const inputs = await Promise.all(variables.map(async (variable) => {
                     const { key } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
@@ -775,7 +749,7 @@
                             }
                         })
                     }
-                    inputs.push(formItemConfig)
+                    return formItemConfig
                 }))
                 this.constantsLoading = false
                 return inputs
@@ -804,7 +778,8 @@
                             version = atom.version
                             desc = atom.desc
                         } else {
-                            const atom = this.atomList.find(item => item.code === component.code)
+                            let atom = this.atomList.find(item => item.code === component.code)
+                            atom = atom || this.isolationAtomConfig
                             code = component.code
                             basicInfoName = `${atom.group_name}-${atom.name}`
                             version = component.hasOwnProperty('version') ? component.version : 'legacy'
@@ -892,6 +867,7 @@
                     return atom && atom.list
                 } else {
                     atom = this.atomList.find(item => item.code === code)
+                    atom = atom || this.isolationAtomConfig
                     return atom.list.map(item => {
                         return {
                             version: item.version
@@ -1012,7 +988,8 @@
                 // 获取不同版本的描述
                 let desc = atomGroup.desc || ''
                 if (!this.isThirdParty) {
-                    const atom = this.atomList.find(item => item.code === code)
+                    let atom = this.atomList.find(item => item.code === code)
+                    atom = atom || this.isolationAtomConfig
                     desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
                 } else {
                     desc = ''
@@ -1052,7 +1029,8 @@
                 // 获取不同版本的描述
                 let desc = this.basicInfo.desc
                 if (!this.isThirdParty) {
-                    const atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
+                    let atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
+                    atom = atom || this.isolationAtomConfig
                     desc = atom.list.find(item => item.version === val).desc
                 }
                 if (desc && desc.includes('\n')) {
@@ -1493,13 +1471,11 @@
              */
             getAtomPhase () {
                 let phase = ''
-                this.atomList.some(group => {
-                    if (group.code === this.basicInfo.plugin) {
-                        return group.list.some(item => {
-                            if (item.version === (this.basicInfo.version || 'legacy')) {
-                                phase = item.phase
-                            }
-                        })
+                let atom = this.atomList.find(group => group.code === this.basicInfo.plugin)
+                atom = atom || this.isolationAtomConfig
+                atom.list.some(item => {
+                    if (item.version === (this.basicInfo.version || 'legacy')) {
+                        phase = item.phase
                     }
                 })
                 return phase

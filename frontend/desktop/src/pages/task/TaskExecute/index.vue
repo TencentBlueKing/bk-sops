@@ -43,7 +43,7 @@
     </div>
 </template>
 <script>
-    import { mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations, mapActions } from 'vuex'
     import TaskOperation from './TaskOperation.vue'
     import TaskFunctionalization from './TaskFunctionalization.vue'
     import dom from '@/utils/dom.js'
@@ -79,10 +79,18 @@
                 unclaimFuncTask: false // 是否为未执行的职能化任务
             }
         },
+        computed: {
+            ...mapState({
+                'functionClaimMsg': state => state.functionClaimMsg
+            })
+        },
         created () {
             this.getTaskData()
         },
         methods: {
+            ...mapMutations([
+                'setFunctionClaimMsg'
+            ]),
             ...mapMutations('template/', [
                 'setPipelineTree'
             ]),
@@ -129,6 +137,10 @@
         beforeRouteLeave (to, from, next) {
             document.title = this.primaryTitle
             dom.setPageTabIcon(`${window.SITE_URL}static/core/images/bk_sops.png`)
+            if (this.functionClaimMsg) {
+                this.functionClaimMsg.close()
+                this.setFunctionClaimMsg(null)
+            }
             next()
         }
     }

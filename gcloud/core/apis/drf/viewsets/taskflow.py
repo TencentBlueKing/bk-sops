@@ -58,6 +58,7 @@ from gcloud.core.apis.drf.serilaziers import (
     RetrieveTaskFlowInstanceSerializer,
     RootTaskflowQuerySerializer,
     RootTaskflowResponseSerializer,
+    TaskFlowInstanceListSerializer,
     TaskFlowInstanceSerializer,
 )
 from gcloud.core.apis.drf.viewsets import IAMMixin
@@ -350,6 +351,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     def get_serializer_class(self, *args, **kwargs):
         if self.action == "create":
             return CreateTaskFlowInstanceSerializer
+        elif self.action == "list":
+            return TaskFlowInstanceListSerializer
         elif self.action == "retrieve":
             return RetrieveTaskFlowInstanceSerializer
         return super().get_serializer_class(*args, **kwargs)

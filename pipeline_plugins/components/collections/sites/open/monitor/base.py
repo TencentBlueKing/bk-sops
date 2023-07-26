@@ -3,13 +3,12 @@ from functools import partial
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
-from gcloud.utils.handlers import handle_api_error
-from gcloud.utils import cmdb
 from gcloud.core.models import Business
+from gcloud.utils import cmdb
+from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("监控平台(Monitor)")
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
@@ -62,7 +61,7 @@ class MonitorBaseService(Service):
                 ip_list=ip_list,
             )
         if not hosts:
-            raise Exception("cmdb.get_business_host return empty")
+            raise Exception(_("当前业务下未查询到ip信息, 请检查ip地址是否填写正确:{}").format(scope_value))
 
         target = []
         for host in hosts:

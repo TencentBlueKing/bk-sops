@@ -269,7 +269,7 @@
                     is_latest: this.isEdit ? is_latest : true,
                     task_template_name,
                     template_id,
-                    schemeId: this.isEdit ? (schemeId.length ? schemeId : []) : []
+                    schemeId: this.isEdit && schemeId.length ? schemeId : []
                 },
                 initFormData: {},
                 templateData: {},
@@ -392,7 +392,7 @@
                 return this.isEdit || !id ? false : !this.hasPermission(['flow_create_periodic_task'], auth_actions)
             },
             schemeSelectPlaceholder () {
-                return !this.formData.template_id || this.isLoading || this.schemeLoading ? i18n.t('请选择') : i18n.t('此流程无执行方案，无需选择')
+                return this.formData.template_id && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
             },
             isSelectSchemeDisable () {
                 const { is_latest, template_id } = this.formData
@@ -568,6 +568,10 @@
                             idDefault: false,
                             name: '<' + i18n.t('不使用执行方案') + '>'
                         })
+                        if (this.isEdit) {
+                            const { schemeId } = this.formData
+                            this.formData.schemeId = schemeId.length ? schemeId : [0]
+                        }
                     }
                 } catch (e) {
                     console.log(e)

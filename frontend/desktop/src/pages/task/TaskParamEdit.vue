@@ -234,7 +234,7 @@
                             if (!remote_url && pipelineTree && pipelineTree.constants[key]) { // 重用(远程数据源不进行重用)
                                 const { value, meta, custom_type } = pipelineTree.constants[key]
                                 const listType = custom_type === 'datatable' ? 'columns' : 'items'
-                                const match = meta && meta.value[`${listType}_text`].replace(/ /g, '') === JSON.stringify(currentFormConfig.attrs[listType])
+                                const match = meta && tools.isDataEqual(JSON.parse(meta.value[`${listType}_text`]), currentFormConfig.attrs[listType])
                                 if (match) {
                                     currentFormConfig.attrs.value = value
                                 }
@@ -320,7 +320,7 @@
                 if (formvalid) {
                     return tools.isDataEqual(this.initalRenderData, this.renderData)
                 } else {
-                    return false
+                    return !this.$refs.renderForm
                 }
             },
             getChangeParams () {
@@ -380,8 +380,66 @@
 @import '@/scss/config.scss';
     .task-param-wrapper {
         /deep/ .render-form {
-            .form-item {
-                margin-bottom: 20px;
+            .rf-form-item {
+                margin: 0 0 24px;
+                .rf-group-name .required {
+                    display: inline-block !important;
+                    color: #F00;
+                    margin-left: 3px;
+                    font-family: "SimSun";
+                }
+                .rf-tag-label {
+                    display: none;
+                }
+                .rf-tag-form {
+                    margin-left: 0;
+                }
+                .el-input-number {
+                    line-height: 32px;
+                }
+            }
+            .rf-form-group {
+                margin-bottom: 24px;
+                .common-icon-dark-circle-warning {
+                    right: 16px;
+                    top: 39px;
+                }
+            }
+            .form-item-group {
+                padding: 16px;
+                background: #f5f7fa;
+                .rf-form-item {
+                    .rf-tag-label {
+                        display: block;
+                        float: initial;
+                        margin: 0 0 6px;
+                        text-align: left;
+                        color: #63656e;
+                        line-height: 20px;
+                        .required {
+                            position: relative;
+                            top: 0;
+                            right: 0;
+                        }
+                    }
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+                .form-item-group {
+                    padding: 0;
+                }
+            }
+            .tag-ip-selector-wrap,
+            .resource-allocation {
+                border: none;
+                padding: 0;
+            }
+            .scheme-select-name {
+                .common-icon-dark-circle-warning {
+                    right: 30px;
+                    top: 39px;
+                }
             }
         }
     }

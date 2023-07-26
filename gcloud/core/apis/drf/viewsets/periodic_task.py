@@ -14,35 +14,19 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.db import transaction
-from django.db.models import ExpressionWrapper, Q, BooleanField
-from rest_framework import status, permissions
-from rest_framework.response import Response
+from django.db.models import BooleanField, ExpressionWrapper, Q
+from django.utils.translation import ugettext_lazy as _
+from pipeline.exceptions import PipelineException
+from rest_framework import permissions, status
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
-
-from gcloud.contrib.collection.models import Collection
-from gcloud.core.apis.drf.exceptions import ValidationException
-from gcloud.core.models import Project
-from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
-from pipeline_web.parser.validator import validate_web_pipeline_tree
-from pipeline.exceptions import PipelineException
+from rest_framework.response import Response
 
 from gcloud import err_code
-from gcloud.periodictask.models import PeriodicTask
-from gcloud.constants import PROJECT, COMMON, PERIOD_TASK_NAME_MAX_LENGTH
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import replace_template_id
-from gcloud.utils.strings import standardize_name
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.core.apis.drf.serilaziers.periodic_task import (
-    PeriodicTaskReadOnlySerializer,
-    CreatePeriodicTaskSerializer,
-    PatchUpdatePeriodicTaskSerializer,
-)
-from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import IAMMeta
+from gcloud.constants import COMMON, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
+from gcloud.contrib.collection.models import Collection
+from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
 from gcloud.core.apis.drf.permission import (
     HAS_OBJECT_PERMISSION,
@@ -50,7 +34,25 @@ from gcloud.core.apis.drf.permission import (
     IamPermissionInfo,
     IamUserTypeBasedValidator,
 )
-from django.utils.translation import ugettext_lazy as _
+from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
+from gcloud.core.apis.drf.serilaziers.periodic_task import (
+    CreatePeriodicTaskSerializer,
+    PatchUpdatePeriodicTaskSerializer,
+    PeriodicTaskListReadOnlySerializer,
+    PeriodicTaskReadOnlySerializer,
+)
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.core.models import Project
+from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth.utils import (
+    get_common_flow_allowed_actions_for_user,
+    get_flow_allowed_actions_for_user,
+)
+from gcloud.periodictask.models import PeriodicTask
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.template_base.utils import replace_template_id
+from gcloud.utils.strings import standardize_name
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 logger = logging.getLogger("root")
 
@@ -121,6 +123,11 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         ],
     )
     permission_classes = [permissions.IsAuthenticated, PeriodicTaskPermission]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PeriodicTaskListReadOnlySerializer
+        return PeriodicTaskReadOnlySerializer
 
     @staticmethod
     def _handle_serializer(request, serializer):

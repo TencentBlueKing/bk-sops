@@ -476,7 +476,7 @@
                             this.outputs = [] // jsonschema form输出参数
                         }
                     } else {
-                        await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
+                        await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id, scope: 'task' })
                         this.outputs = this.pluginOutput[plugin][version]
                     }
                     const config = $.atoms[plugin]

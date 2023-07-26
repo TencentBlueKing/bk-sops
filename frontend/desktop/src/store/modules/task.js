@@ -51,6 +51,22 @@ const task = {
             return axios.post('api/v3/scheme/', params).then(response => response.data)
         },
         /**
+         * 更新任务节点选择方案
+         * @param {String} payload 方案参数
+         */
+        updateTaskScheme ({ commit }, payload) {
+            const { isCommon, id, data, name } = payload
+            const params = {
+                data,
+                name
+            }
+            if (isCommon) {
+                params.template_type = 'common'
+            }
+
+            return axios.put(`api/v3/scheme/${id}/`, params).then(response => response.data)
+        },
+        /**
          * 删除任务节点选择方案
          * @param {String} payload 方案参数
          */
@@ -80,7 +96,7 @@ const task = {
          * 保存所有执行方案
          * @param {String} payload 方案参数
          */
-        saveTaskSchemList ({ commit }, payload) {
+        saveTaskSchemeList ({ commit }, payload) {
             const { project_id, template_id, schemes, isCommon } = payload
             const params = {
                 template_id,

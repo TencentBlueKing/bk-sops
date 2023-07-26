@@ -105,7 +105,7 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
-    :param bk_cloud_id: IP列表对应的云区域
+    :param bk_cloud_id: IP列表对应的管控区域
     :type bk_cloud_id: int
     :return:
     [
@@ -122,7 +122,7 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     """
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
-    # 带云区域的主机数据查询
+    # 带管控区域的主机数据查询
     if ip_list and bk_cloud_id:
         kwargs["host_property_filter"] = {
             "condition": "AND",
@@ -191,7 +191,7 @@ def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, i
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
-    :param bk_cloud_id: IP列表对应的云区域
+    :param bk_cloud_id: IP列表对应的管控区域
     :type bk_cloud_id: int
     :return:
     [
@@ -237,7 +237,7 @@ def get_business_set_host_ipv6(username, supplier_account, host_fields, ip_list=
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
-    :param bk_cloud_id: IP列表对应的云区域
+    :param bk_cloud_id: IP列表对应的管控区域
     :type bk_cloud_id: int
     :return:
     [

@@ -13,23 +13,24 @@
     <div class="rf-form-group" :key="randomKey" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
         <!-- 分组名称和提示 -->
         <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
-            <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
-            <span v-if="showNotReuseTitle" class="not-reuse-tip">
-                <i class="common-icon-dark-circle-warning"></i>
-                {{ $t('未能重用') }}
-            </span>
-            <!-- 编辑模式下才显示常量禁止修改tip -->
-            <span class="pre-mako-tip" v-if="option.formEdit && scheme.attrs.pre_mako_tip">
-                <i class="common-icon-dark-circle-warning"></i>
-                {{ scheme.attrs.pre_mako_tip }}
-            </span>
-            <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
+            <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
+            <span class="scheme-code">{{ scheme.tag_code }}</span>
+            <i
+                v-if="showNotReuseTitle || showPreMakoTip"
+                v-bk-tooltips="{
+                    content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
+                    placement: 'top-end',
+                    boundary: 'window',
+                    zIndex: 2072
+                }"
+                class="common-icon-dark-circle-warning">
+            </i>
+            <!-- <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ scheme.attrs.used_tip }}
-            </span>
+            </span> -->
         </div>
-        <!-- 分组描述 -->
-        <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
+        
         <!-- 参数被使用占位popover -->
         <bk-popover
             v-if="scheme.attrs.html_used_tip"
@@ -63,6 +64,7 @@
                         zIndex: 2072,
                         disabled: !option.formEdit || !!!scheme.attrs.tips
                     }"
+                    class="label"
                     :class="{ 'tag-label-tips': option.formEdit && scheme.attrs.tips }">
                     {{scheme.attrs.name}}
                 </span>
@@ -72,19 +74,21 @@
             </div>
         </div>
         <!-- 分组表单元素 -->
-        <component
-            v-else
-            v-for="(form, index) in scheme.attrs.children"
-            :key="`${form.tag_code}_${index}`"
-            :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
-            :constants="constants"
-            :scheme="form"
-            :option="groupOption"
-            :value="value[form.tag_code]"
-            :parent-value="value"
-            @init="$emit('init', $event)"
-            @change="updateForm">
-        </component>
+        <div class="form-item-group" v-else>
+            <component
+                v-for="(form, index) in scheme.attrs.children"
+                :key="`${form.tag_code}_${index}`"
+                :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
+                :constants="constants"
+                :scheme="form"
+                :option="groupOption"
+                :value="value[form.tag_code]"
+                :parent-value="value"
+                @blur="$emit('blur')"
+                @init="$emit('init', $event)"
+                @change="updateForm">
+            </component>
+        </div>
         <!-- 变量勾选checkbox -->
         <div class="rf-tag-hook" v-if="showHook">
             <i
@@ -105,6 +109,15 @@
                 }"
                 @click="onRenderChange">
             </i>
+        </div>
+        <!-- 分组描述 -->
+        <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
+            <div class="hide-html-text">{{ scheme.attrs.desc }}</div>
+            <div :class="['rf-group-desc', { 'is-fold': !isExpand }]">{{ scheme.attrs.desc }}</div>
+            <div :class="{ 'mt10': isExpand }" v-if="isDescTipsShow">
+                <span v-if="!isExpand">...</span>
+                <span class="expand-btn" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('展开全部') }}</span>
+            </div>
         </div>
     </div>
 </template>
@@ -175,7 +188,9 @@
                 eventActions: {}, // combine 类型配置项定义的事件回调函数
                 groupOption,
                 showForm, // combine 类型 Tag 组是否显示
-                showHook // combine 类型 Tag 组是否可勾选
+                showHook, // combine 类型 Tag 组是否可勾选
+                isDescTipsShow: false,
+                isExpand: false
             }
         },
         computed: {
@@ -184,6 +199,9 @@
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
+            },
+            showPreMakoTip () {
+                return this.option.formEdit && this.scheme.attrs.pre_mako_tip
             }
         },
         watch: {
@@ -231,6 +249,13 @@
             this.$nextTick(() => {
                 this.emit_event(this.tagCode, 'init', this.value)
             })
+            const showDom = this.$el.querySelector('.rf-group-desc')
+            const hideDom = this.$el.querySelector('.hide-html-text')
+            if (showDom && hideDom) {
+                const showDomHeight = showDom.getBoundingClientRect().height
+                const hideDomHeight = hideDom.getBoundingClientRect().height
+                this.isDescTipsShow = hideDomHeight > showDomHeight
+            }
         },
         methods: {
             updateForm (fieldArr, val) {
