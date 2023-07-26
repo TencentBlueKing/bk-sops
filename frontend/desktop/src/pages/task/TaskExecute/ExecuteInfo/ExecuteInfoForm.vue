@@ -712,6 +712,11 @@
                 padding: 0;
                 margin-right: 0;
             }
+            .tag-ip-selector-wrap,
+            .resource-allocation {
+                border: none;
+                padding: 0;
+            }
         }
         .rf-tag-form {
             margin-left: 0;
