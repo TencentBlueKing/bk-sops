@@ -80,7 +80,7 @@
                         size="small"
                         theme="primary"
                         :value="outputed"
-                        :disabled="isViewMode"
+                        :disabled="isViewMode || variableData.isSysVar"
                         @change="onChangeVariableOutput(variableData.key, $event)">
                     </bk-switcher>
                 </div>
