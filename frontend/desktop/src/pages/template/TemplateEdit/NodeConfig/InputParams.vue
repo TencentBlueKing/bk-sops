@@ -98,7 +98,7 @@
                 reuseableVarList: [],
                 notReferredExpand: false, // 未引用变量是否展开
                 option: {
-                    showGroup: false,
+                    showGroup: true,
                     showHook: this.showHook,
                     showLabel: true,
                     showVarList: true,
@@ -370,6 +370,54 @@
                 background: #e4e6ed;
             }
         }
+    }
+}
+/deep/.render-form {
+    .rf-tag-label {
+        display: none;
+    }
+    .rf-form-group {
+        >.rf-form-item {
+            margin-top: 0;
+        }
+    }
+    .form-item-group {
+        padding: 16px;
+        margin-right: 64px;
+        background: #f5f7fa;
+        .rf-tag-form {
+            margin-right: 0;
+        }
+        .rf-form-item {
+            .rf-tag-label {
+                display: block;
+                float: initial;
+                text-align: left;
+                margin: 0 0 6px;
+                color: #63656e;
+                line-height: 20px;
+                .required {
+                    position: relative;
+                    top: 0;
+                    right: 0;
+                }
+            }
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+        .form-item-group {
+            padding: 0;
+            margin-right: 0;
+        }
+        .tag-ip-selector-wrap,
+        .resource-allocation {
+            border: none;
+            padding: 0;
+        }
+    }
+    .rf-tag-form {
+        margin-left: 0;
     }
 }
 </style>
