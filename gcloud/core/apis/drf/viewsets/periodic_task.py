@@ -44,10 +44,7 @@ from gcloud.core.apis.drf.serilaziers.periodic_task import (
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, res_factory
-from gcloud.iam_auth.utils import (
-    get_common_flow_allowed_actions_for_user,
-    get_flow_allowed_actions_for_user,
-)
+from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import replace_template_id
@@ -270,6 +267,6 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
                 instance.task.name = serializer.validated_data["name"]
                 instance.task.save(update_fields=["name"])
             instance.editor = request.user.username
-            instance.save(update_fields=["editor"])
+            instance.save(update_fields=["editor", "edit_time"])
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
