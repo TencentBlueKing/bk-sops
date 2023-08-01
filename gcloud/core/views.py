@@ -36,19 +36,21 @@ def page_not_found(request, exception):
 
     user = LoginRequiredMiddleware().authenticate(request)
 
+    if user:
+        request.user = user
+        rotate_token(request)
+        # not home url enter
+        user_enter.send(username=user.username, sender=user.username)
+        return render(request, "core/base_vue.html", {})
+
     # 未登录重定向到首页，跳到登录页面
-    if not user:
+    if hasattr(LoginRequiredMiddleware(), "is_user_forbidden"):
         user_forbidden, msg = LoginRequiredMiddleware().is_user_forbidden(request)
         if user_forbidden:
             handler = ResponseHandler(ConfFixture, settings)
             return handler.build_403_response(msg)
-        refer_url = quote(request.build_absolute_uri())
-        return HttpResponseRedirect(settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, refer_url))
-    request.user = user
-    rotate_token(request)
-    # not home url enter
-    user_enter.send(username=user.username, sender=user.username)
-    return render(request, "core/base_vue.html", {})
+    refer_url = quote(request.build_absolute_uri())
+    return HttpResponseRedirect(settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, refer_url))
 
 
 def home(request):
