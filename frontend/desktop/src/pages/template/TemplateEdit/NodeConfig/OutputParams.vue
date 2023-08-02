@@ -67,10 +67,20 @@
                     :rules="rules">
                     <template>
                         <bk-form-item :label="$t('变量名称')" property="name" :required="true">
-                            <bk-input name="variableName" v-model="formData.name"></bk-input>
+                            <bk-input
+                                name="variableName"
+                                v-model="formData.name"
+                                :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
+                                :show-word-limit="true">
+                            </bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('变量KEY')" property="key" :required="true">
-                            <bk-input name="variableKey" v-model="formData.key"></bk-input>
+                            <bk-input
+                                name="variableKey"
+                                v-model="formData.key"
+                                :maxlength="stringLength.VARIABLE_KEY_MAX_LENGTH"
+                                :show-word-limit="true">
+                            </bk-input>
                         </bk-form-item>
                     </template>
                 </bk-form>
@@ -105,6 +115,7 @@
                 isShow: false,
                 formData: {},
                 selectIndex: '',
+                stringLength: STRING_LENGTH,
                 rules: {
                     name: [
                         {

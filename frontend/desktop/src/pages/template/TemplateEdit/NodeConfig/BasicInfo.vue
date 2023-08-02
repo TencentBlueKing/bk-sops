@@ -44,10 +44,22 @@
                 </bk-select>
             </bk-form-item>
             <bk-form-item :label="$t('节点名称')" data-test-id="templateEdit_form_nodeName" :required="true" property="nodeName">
-                <bk-input :readonly="isViewMode" v-model="formData.nodeName" @change="updateData"></bk-input>
+                <bk-input
+                    :readonly="isViewMode"
+                    v-model="formData.nodeName"
+                    :maxlength="stringLength.TEMPLATE_NODE_NAME_MAX_LENGTH"
+                    :show-word-limit="true"
+                    @change="updateData">
+                </bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('步骤名称')" data-test-id="templateEdit_form_stageName" property="stageName">
-                <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
+                <bk-input
+                    :readonly="isViewMode"
+                    v-model="formData.stageName"
+                    :maxlength="stringLength.STAGE_NAME_MAX_LENGTH"
+                    :show-word-limit="true"
+                    @change="updateData">
+                </bk-input>
             </bk-form-item>
             <!-- <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit_form_nodeLabel" property="label">
                 <bk-search-select
@@ -229,10 +241,22 @@
                 </p>
             </bk-form-item>
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
-                <bk-input :readonly="isViewMode" v-model="formData.nodeName" @change="updateData"></bk-input>
+                <bk-input
+                    :readonly="isViewMode"
+                    v-model="formData.nodeName"
+                    :maxlength="stringLength.TEMPLATE_NODE_NAME_MAX_LENGTH"
+                    :show-word-limit="true"
+                    @change="updateData">
+                </bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('步骤名称')" property="stageName">
-                <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
+                <bk-input
+                    :readonly="isViewMode"
+                    v-model="formData.stageName"
+                    :maxlength="stringLength.STAGE_NAME_MAX_LENGTH"
+                    :show-word-limit="true"
+                    @change="updateData">
+                </bk-input>
             </bk-form-item>
             <bk-form-item>
                 <div slot="tip" class="bk-label slot-bk-label">
@@ -456,6 +480,7 @@
                 maxNodeExecuteTimeout: window.MAX_NODE_EXECUTE_TIMEOUT,
                 schemeList: [],
                 schemeListLoading: true,
+                stringLength: STRING_LENGTH,
                 pluginRules: {
                     plugin: [
                         {

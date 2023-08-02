@@ -28,7 +28,9 @@
                     <bk-input
                         name="taskName"
                         v-model="name"
-                        v-validate="taskNameRule">
+                        v-validate="taskNameRule"
+                        :maxlength="stringLength.TASK_NAME_MAX_LENGTH"
+                        :show-word-limit="true">
                     </bk-input>
                     <span v-if="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                 </div>
@@ -45,6 +47,7 @@
         data () {
             return {
                 name: 'copy' + this.taskName.slice(0, STRING_LENGTH.TASK_NAME_MAX_LENGTH - 4),
+                stringLength: STRING_LENGTH,
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,

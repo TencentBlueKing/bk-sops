@@ -62,13 +62,25 @@
                         property="name"
                         :label="$t('变量名称')"
                         :required="true">
-                        <bk-input name="variableName" :disabled="createMethod === 'autoCreate'" v-model="formData.name"></bk-input>
+                        <bk-input
+                            name="variableName"
+                            :disabled="createMethod === 'autoCreate'"
+                            v-model="formData.name"
+                            :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
+                            :show-word-limit="true">
+                        </bk-input>
                     </bk-form-item>
                     <bk-form-item
                         property="key"
                         :label="$t('变量KEY')"
                         :required="true">
-                        <bk-input name="variableKey" :disabled="createMethod === 'autoCreate'" v-model="formData.key"></bk-input>
+                        <bk-input
+                            name="variableKey"
+                            :disabled="createMethod === 'autoCreate'"
+                            v-model="formData.key"
+                            :maxlength="stringLength.VARIABLE_KEY_MAX_LENGTH"
+                            :show-word-limit="true">
+                        </bk-input>
                     </bk-form-item>
                 </template>
             </bk-form>
@@ -113,6 +125,7 @@
                     name: this.newVarKeyName.name,
                     key: this.newVarKeyName.key
                 },
+                stringLength: STRING_LENGTH,
                 rules: {
                     name: [
                         {

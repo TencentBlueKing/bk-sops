@@ -32,7 +32,9 @@
                             class="task-name"
                             name="taskName"
                             v-model="name"
-                            v-validate="taskNameRule">
+                            v-validate="taskNameRule"
+                            :maxlength="stringLength.TASK_NAME_MAX_LENGTH"
+                            :show-word-limit="true">
                         </bk-input>
                         <span class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                     </div>
@@ -163,6 +165,7 @@
                 nodeSwitching: false,
                 pipelineData: JSON.parse(this.instanceFlow),
                 previewData: JSON.parse(this.instanceFlow),
+                stringLength: STRING_LENGTH,
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,

@@ -25,7 +25,9 @@
                                 v-validate="taskNameRule"
                                 class="step-form-content-size"
                                 data-test-id="createTask_form_taskName"
-                                name="taskName">
+                                name="taskName"
+                                :maxlength="stringLength.TASK_NAME_MAX_LENGTH"
+                                :show-word-limit="true">
                             </bk-input>
                             <span v-show="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                         </div>
@@ -145,6 +147,7 @@
                 appmakerTaskName: '',
                 pipelineData: {},
                 unreferenced: {},
+                stringLength: STRING_LENGTH,
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
