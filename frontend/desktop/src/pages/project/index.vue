@@ -108,7 +108,9 @@
                             :disabled="dialogType === 'edit'"
                             v-model="projectDetail.name"
                             data-vv-validate-on=" "
-                            v-validate="nameRule">
+                            v-validate="nameRule"
+                            :maxlength="stringLength.PROJECT_NAME_MAX_LENGTH"
+                            :show-word-limit="true">
                         </bk-input>
                         <span v-show="veeErrors.has('projectName')" class="common-error-tip error-msg">{{ veeErrors.first('projectName') }}</span>
                     </div>
@@ -139,7 +141,9 @@
                             rows="5"
                             name="projectDesc"
                             data-vv-validate-on=" "
-                            v-validate="descRule">
+                            v-validate="descRule"
+                            :maxlength="stringLength.PROJECT_DESC_LENGTH"
+                            :show-word-limit="true">
                         </textarea>
                         <span v-show="veeErrors.has('projectDesc')" class="common-error-tip error-msg">{{ veeErrors.first('projectDesc') }}</span>
                     </div>
@@ -274,6 +278,7 @@
                     desc: ''
                 },
                 timeZoneList: getTimeZoneList(),
+                stringLength: STRING_LENGTH,
                 nameRule: {
                     required: true,
                     max: STRING_LENGTH.PROJECT_NAME_MAX_LENGTH,

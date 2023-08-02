@@ -11,7 +11,9 @@
                             name="variableName"
                             v-model="theEditingData.name"
                             v-validate="variableNameRule"
-                            :readonly="isViewMode || isInternalVal">
+                            :readonly="isViewMode || isInternalVal"
+                            :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
+                            :show-word-limit="true">
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
@@ -278,6 +280,7 @@
                 inputRegexp: '', // input，textarea类型正则
                 atomConfigLoading: false,
                 atomTypeKey: '',
+                stringLength: STRING_LENGTH,
                 // 变量名称校验规则
                 variableNameRule: {
                     required: true,

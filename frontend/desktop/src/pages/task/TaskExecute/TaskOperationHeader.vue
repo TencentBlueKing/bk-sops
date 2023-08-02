@@ -256,7 +256,7 @@
             font-size: 14px;
             overflow: hidden;
             &.name-ellipsis {
-                max-width: 190px;
+                max-width: 700px;
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;

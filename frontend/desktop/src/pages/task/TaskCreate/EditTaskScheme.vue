@@ -58,6 +58,8 @@
                             class="bk-input-inline"
                             :clearable="true"
                             :placeholder="$t('方案名称')"
+                            :maxlength="stringLength.SCHEME_NAME_MAX_LENGTH"
+                            :show-word-limit="true"
                             @keyup.enter.native="onAddScheme">
                         </bk-input>
                         <div class="icon-btn-wrapper">
@@ -89,6 +91,8 @@
                                 class="bk-input-inline"
                                 :clearable="true"
                                 :placeholder="$t('方案名称')"
+                                :maxlength="stringLength.SCHEME_NAME_MAX_LENGTH"
+                                :show-word-limit="true"
                                 @keyup.enter.native="onUpdateScheme(item)">
                             </bk-input>
                             <div class="icon-btn-wrapper">
@@ -211,6 +215,7 @@
                 showPanel: true,
                 nameEditing: false,
                 schemeName: '',
+                stringLength: STRING_LENGTH,
                 schemeNameRule: {
                     required: true,
                     max: STRING_LENGTH.SCHEME_NAME_MAX_LENGTH,

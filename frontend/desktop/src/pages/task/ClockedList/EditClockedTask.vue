@@ -128,7 +128,12 @@
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
                         <bk-form-item :label="$t('计划名称')" :required="true" property="taskName" data-test-id="clockedEdit_form_taskName">
-                            <bk-input :clearable="true" v-model="formData.task_name"></bk-input>
+                            <bk-input
+                                :clearable="true"
+                                v-model="formData.task_name"
+                                :maxlength="stringLength.TASK_NAME_MAX_LENGTH"
+                                :show-word-limit="true">
+                            </bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('启动时间')" :required="true" property="startTime" data-test-id="clockedEdit_form_startTime">
                             <bk-date-picker
@@ -264,6 +269,7 @@
                         return date.getTime() + 86400000 < Date.now()
                     }
                 },
+                stringLength: STRING_LENGTH,
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
@@ -288,7 +294,7 @@
                         },
                         {
                             validator: (val) => {
-                                return STRING_LENGTH.TASK_NAME_MAX_LENGTH > this.formData.task_name.length
+                                return STRING_LENGTH.TASK_NAME_MAX_LENGTH >= this.formData.task_name.length
                             },
                             message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'change'

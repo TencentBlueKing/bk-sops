@@ -504,9 +504,13 @@
                 cursor: pointer;
             }
             .title {
+                flex-shrink: 0;
                 font-size: 14px;
                 color: #313238;
             }
+        }
+        .expand {
+            flex-shrink: 0;
         }
         .header-right-area {
             display: flex;
@@ -515,7 +519,6 @@
         }
         .template-name {
             margin: 0 0 0 20px;
-            max-width: 300px;
             font-size: 14px;
             font-weight: normal;
             overflow: hidden;
@@ -548,7 +551,7 @@
         }
         .setting-tab-wrap {
             display: inline-block;
-            margin-right: 20px;
+            margin: 0 20px;
             padding-right: 24px;
             height: 32px;
             line-height: 32px;

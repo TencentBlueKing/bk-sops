@@ -463,7 +463,6 @@
         padding: 0 10px;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
-        margin-top: 20px;
         &.input-focus {
             border-color: #3a84ff;
         }

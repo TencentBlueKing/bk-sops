@@ -65,6 +65,8 @@
                                     class="snapshoot-name-input"
                                     :name="'snapshootName' + item.timestamp"
                                     :placeholder="$t('名称')"
+                                    :maxlength="stringLength.DRAFT_NAME_MAX_LENGTH"
+                                    :show-word-limit="true"
                                     @blur="onSaveName(item)"
                                     @enter="onSaveName(item)" />
                                 <span v-else>{{item.name}}</span>
@@ -118,6 +120,7 @@
                     key: null,
                     name: ''
                 },
+                stringLength: STRING_LENGTH,
                 nameRule: {
                     required: true,
                     max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
