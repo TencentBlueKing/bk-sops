@@ -16,22 +16,20 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
-
-from pipeline_plugins.components.collections.sites.open.cc.base import (
-    BkObjType,
-    SelectMethod,
-    cc_format_tree_mode_id,
-    cc_format_prop_data,
-    cc_list_select_node_inst_id,
-)
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.base import (
+    BkObjType,
+    SelectMethod,
+    cc_format_prop_data,
+    cc_format_tree_set_id,
+    cc_list_select_node_inst_id,
+)
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -100,7 +98,7 @@ class CCUpdateSetService(Service):
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         if cc_set_select_method == SelectMethod.TOPO.value:
-            cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
+            cc_set_select = cc_format_tree_set_id(data.get_one_of_inputs("cc_set_select_topo"))
         elif cc_set_select_method == SelectMethod.TEXT.value:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
