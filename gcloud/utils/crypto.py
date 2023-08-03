@@ -11,10 +11,44 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import base64
+import json
 
+from bkcrypto import constants as crypto_constants
+from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
+from Crypto import Util
 from Crypto.Cipher import PKCS1_v1_5 as PKCS1_v1_5_cipher
 from Crypto.PublicKey import RSA
-from Crypto import Util
+from django.conf import settings
+
+
+def get_default_asymmetric_key_config(cipher_type: str) -> AsymmetricKeyConfig:
+    """
+    获取项目默认非对称加密配置
+    :param cipher_type:
+    :return:
+    """
+
+    if cipher_type == crypto_constants.AsymmetricCipherType.SM2.value:
+        private_key_string: str = settings.SM2_PRIV_KEY
+        public_key_string: str = json.loads(f'"{settings.SM2_PUB_KEY}"')
+    elif cipher_type == crypto_constants.AsymmetricCipherType.RSA.value:
+        private_key_string: str = settings.RSA_PRIV_KEY
+        public_key_string: str = json.loads(f'"{settings.RSA_PUB_KEY}"')
+    else:
+        raise NotImplementedError(f"cipher_type -> {cipher_type}")
+
+    return AsymmetricKeyConfig(
+        private_key_string=private_key_string.strip("\n"), public_key_string=public_key_string.strip("\n")
+    )
+
+
+def get_nodeman_asymmetric_key_config(cipher_type: str) -> AsymmetricKeyConfig:
+    """
+    获取节点管理非对称加密配置
+    :param cipher_type:
+    :return:
+    """
+    pass
 
 
 def _get_block_size(key_obj, is_encrypt=True) -> int:
@@ -68,6 +102,7 @@ def decrypt_auth_key(encrypt_message, private_key):
     @param private_key: rsa私钥
     @return: 解密后的信息
     """
+    # TODO 要改的
     decrypt_message_bytes = b""
     private_key_obj = RSA.importKey(private_key.strip("\n"))
     encrypt_message_bytes = base64.b64decode(encrypt_message)
