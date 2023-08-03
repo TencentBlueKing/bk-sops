@@ -502,6 +502,8 @@
                                 {
                                     tag_code: "auth_key",
                                     type: "textarea",
+                                    // TODO 能不能加一个动态选项？如果具有加密前缀，默认展示 * 脱敏
+                                    // TODO 如果重新输入保存，可以拉公钥去做加密
                                     attrs: {
                                         name: gettext("认证密钥"),
                                         width: "400px",
