@@ -1782,7 +1782,9 @@ const en = {
     '添加默认方案成功': 'Default Node-Group Added',
     '取消默认方案成功': 'Default Node-Group Cancelled',
     '确认删除执行方案【n】?': 'Confirm to delete node-group [ {n} ] ?',
-    '取消设为默认方案': 'Unset as Default'
+    '取消设为默认方案': 'Unset as Default',
+    'password_手动输入': 'custom input',
+    'password_使用密码变量': 'use password var.'
 }
 
 export default en
