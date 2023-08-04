@@ -11,12 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from bamboo_engine.eri import ContextValue, ContextValueType
+from bamboo_engine.exceptions import NotFoundError
 from django.test import TestCase
 
 from gcloud import err_code
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
-from bamboo_engine.exceptions import NotFoundError
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -90,11 +89,8 @@ class GetNodeDataV2TestCase(TestCase):
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
 
-        preview_node_inputs_result = MagicMock()
-        preview_node_inputs_result.result = True
-        preview_node_inputs_result.data = "inputs"
+        preview_node_inputs_result = MagicMock(return_value="inputs")
 
-        bamboo_api.preview_node_inputs = MagicMock(return_value=preview_node_inputs_result)
         format_outputs = "format_outputs"
         dispatcher._format_outputs = MagicMock(return_value=(True, None, format_outputs))
 
@@ -102,31 +98,25 @@ class GetNodeDataV2TestCase(TestCase):
             with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_API, bamboo_api):
                 with patch(TASKFLOW_DISPATCHERS_NODE_GET_PIPELINE_CONTEXT, get_pipeline_context):
                     with patch(TASKFLOW_DISPATCHERS_NODE_SYSTEM_OBJ, system_obj):
-                        node_data = dispatcher.get_node_data_v2(
-                            username=username,
-                            component_code=component_code,
-                            subprocess_stack=subprocess_stack,
-                            loop=loop,
-                            **kwargs
-                        )
+                        with patch(TASKFLOW_CUSTOM_PREVIEW_NODE_INPUTS, preview_node_inputs_result):
+                            node_data = dispatcher.get_node_data_v2(
+                                username=username,
+                                component_code=component_code,
+                                subprocess_stack=subprocess_stack,
+                                loop=loop,
+                                **kwargs
+                            )
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
-        bamboo_api.preview_node_inputs.assert_called_once_with(
-            runtime=runtime,
-            pipeline=pipeline_instance.execution_data,
-            node_id=dispatcher.node_id,
-            subprocess_stack=subprocess_stack,
-            root_pipeline_data={},
-            parent_params={
-                "${_system}": {"type": "plain", "value": "system_obj"},
-                "${log_output}": {"type": "plain", "value": "test"},
-            },
-        )
+
         dispatcher._get_node_info.assert_called_once_with(
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
         )
         dispatcher._format_outputs.assert_called_once_with(
-            outputs={}, component_code=component_code, pipeline_instance=pipeline_instance, subprocess_stack=["1"]
+            outputs={},
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,
