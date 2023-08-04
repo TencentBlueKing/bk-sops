@@ -122,7 +122,6 @@
                 this.change()
             },
             handleInput (e) {
-                console.log(e.target.value)
                 this.localVal.value = e.target.value
                 this.inputPlaceholder = ''
             },
