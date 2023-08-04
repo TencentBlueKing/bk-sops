@@ -369,7 +369,6 @@
                     case 'radio':
                     case 'text':
                     case 'datetime':
-                    case 'password':
                     case 'memberSelector':
                     case 'logDisplay':
                     case 'code_editor':
@@ -462,6 +461,15 @@
                                 },
                                 data: [],
                                 separator: ','
+                            }
+                        }
+                        break
+                    case 'password':
+                        valueFormat = {
+                            type: ['String', 'Object'],
+                            value: {
+                                tag: 'value',
+                                value: ''
                             }
                         }
                         break
