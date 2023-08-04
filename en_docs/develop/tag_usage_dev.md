@@ -313,7 +313,9 @@ Password input box.
 
 **Attributes**
 
+  - `pubKey`: crypto public key
   - `disabled`: set whether this component is disabled.
+  - `canUseVar`: whether global variables can be used, which defaults to true
   - `value`: the encrypted password value
 
 **Methods**
