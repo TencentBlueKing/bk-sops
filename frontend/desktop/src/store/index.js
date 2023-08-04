@@ -38,7 +38,6 @@ const store = new Vuex.Store({
         components: [],
         isSuperUser: window.IS_SUPERUSER === 1,
         v1_import_flag: window.IMPORT_V1_FLAG,
-        rsa_pub_key: window.RSA_PUB_KEY,
         permissionMeta: {
             system: [],
             resources: [],
