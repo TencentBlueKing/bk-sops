@@ -17,14 +17,15 @@ import pytz
 import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
+from iam.exceptions import AuthFailedException
 
 from gcloud import err_code
+from gcloud.apigw.constants import DEFAULT_APP_WHITELIST, PROJECT_SCOPE_CMDB_BIZ
 from gcloud.apigw.exceptions import InvalidUserError
+from gcloud.apigw.utils import get_project_with
+from gcloud.apigw.whitelist import EnvWhitelist
 from gcloud.conf import settings
 from gcloud.core.models import Project
-from gcloud.apigw.utils import get_project_with
-from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ, DEFAULT_APP_WHITELIST
-from gcloud.apigw.whitelist import EnvWhitelist
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
@@ -86,7 +87,16 @@ def return_json_response(view_func):
 
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        result = view_func(request, *args, **kwargs)
+        try:
+            result = view_func(request, *args, **kwargs)
+        except AuthFailedException as e:
+            # 针对权限中心的异常进行统一的处理
+            result = {
+                "result": True,
+                "data": None,
+                "message": "iam authentication exception, please check, action:{}".format(e.action.id),
+                "code": 0,
+            }
         # 如果返回的是dict且request中有trace_id，则在响应中加上
         if isinstance(result, dict):
             if hasattr(request, "trace_id"):
