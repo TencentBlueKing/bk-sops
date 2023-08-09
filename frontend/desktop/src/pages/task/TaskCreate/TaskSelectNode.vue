@@ -485,7 +485,6 @@
              * 设置默认勾选值
              */
             async setCanvasSelected (selectNodes = []) {
-                if (this.isPreviewMode) return
                 if (selectNodes.length) {
                     // 使用传进来的选中节点，取消画布默认全选
                     this.selectedNodes = selectNodes
@@ -494,7 +493,9 @@
                     const defaultSelected = await this.getDefaultSelected()
                     this.selectedNodes = defaultSelected
                 }
-                this.updateDataAndCanvas()
+                if (!this.isPreviewMode) {
+                    this.updateDataAndCanvas()
+                }
             },
             async getDefaultSelected () {
                 try {
