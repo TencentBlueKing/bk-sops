@@ -83,7 +83,7 @@
                 </bk-button>
             </div>
             <div class="button-area preview" data-test-id="templateEdit_form_closePreview" v-if="!isEditProcessPage && isPreviewMode">
-                <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
+                <bk-button theme="primary" @click="onClosePreview">{{ $t('关闭预览') }}</bk-button>
             </div>
         </div>
         <SelectProjectModal
