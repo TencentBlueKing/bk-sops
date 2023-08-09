@@ -250,6 +250,7 @@ class IPPickerHandler:
             self.property_filters["module_property_filter"]["rules"].append(
                 {"field": "bk_module_id", "operator": "in", "value": list(module_ids)}
             )
+        return module_ids
 
     def dispatch(self, params):
         handle_func = getattr(self, f"{self.selector}_picker_handler")
@@ -271,7 +272,10 @@ class IPPickerHandler:
         topo选择情况
         :params inputted_topo: 拓扑结构信息列表, list
         """
-        self._inject_topo_params(inputted_topo)
+        module_ids = self._inject_topo_params(inputted_topo)
+        if not module_ids:
+            logger.warning(f"[topo_picker_handler] no module_ids, inputted_topo: {inputted_topo}")
+            return {"result": True, "data": [], "message": ""}
         host_info_result = self.fetch_host_ip_with_property_filter()
         if not host_info_result["result"]:
             return host_info_result
