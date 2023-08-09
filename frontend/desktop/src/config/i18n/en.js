@@ -1785,7 +1785,9 @@ const en = {
     '取消设为默认方案': 'Unset as Default',
     'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and it is recommended to use script parameters to pass in.',
     '不再支持': 'no supported',
-    '添加收藏': 'Collection'
+    '添加收藏': 'Collection',
+    '执行结果': 'Results',
+    '最大化': 'Max'
 }
 
 export default en

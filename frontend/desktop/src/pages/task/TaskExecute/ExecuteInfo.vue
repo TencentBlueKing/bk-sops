@@ -11,167 +11,198 @@
 */
 <template>
     <div class="parameter-details">
-        <div class="details-wrapper">
+        <bk-resize-layout class="details-wrapper" placement="left" :max="500" :initial-divide="403" :min="400">
             <NodeTree
-                class="nodeTree"
+                slot="aside"
                 :data="nodeData"
-                :node-nav="nodeNav"
                 :node-display-status="nodeDisplayStatus"
-                :selected-flow-path="selectedFlowPath"
                 :default-active-id="defaultActiveId"
-                :is-condition="isCondition"
-                @onOpenGatewayInfo="onOpenGatewayInfo"
-                @onNodeClick="onNodeClick"
                 @onSelectNode="onSelectNode">
             </NodeTree>
-            <div
-                v-if="location"
-                :class="['execute-info', { 'loading': loading }]"
-                v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
+            <div slot="main" class="execute-content">
                 <div class="execute-head">
                     <span class="node-name">{{isCondition ? conditionData.name : executeInfo.name}}</span>
+                    <bk-divider direction="vertical"></bk-divider>
                     <div class="node-state">
                         <span :class="displayStatus"></span>
                         <span class="status-text-messages">{{nodeState}}</span>
                     </div>
                 </div>
-                <bk-tab
-                    :key="nodeDetailConfig.node_id"
-                    :active.sync="curActiveTab"
-                    type="unborder-card"
-                    ext-cls="execute-info-tab"
-                    @tab-change="onTabChange">
-                    <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" v-if="isCondition || (['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
-                    <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
-                    <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
-                </bk-tab>
-                <div class="scroll-area" :key="randomKey">
-                    <task-condition
-                        v-if="isCondition"
-                        ref="conditionEdit"
-                        :is-readonly="true"
-                        :is-show.sync="isShow"
-                        :gateways="gateways"
-                        :condition-data="conditionData"
-                        @close="close">
-                    </task-condition>
-                    <template v-else>
-                        <section class="execute-time-section" v-if="isExecuteTimeShow">
-                            <div class="cycle-wrap" v-if="loop > 1">
-                                <span>{{$t('第')}}</span>
-                                <bk-select
-                                    :clearable="false"
-                                    :value="theExecuteTime"
-                                    @selected="onSelectExecuteTime">
-                                    <bk-option
-                                        v-for="index in loop"
-                                        :key="index"
-                                        :id="index"
-                                        :name="index">
-                                    </bk-option>
-                                </bk-select>
-                                <span>{{$t('次循环')}}</span>
-                            </div>
-                            <span class="divid-line" v-if="loop > 1 && historyInfo.length > 1"></span>
-                            <div class="time-wrap" v-if="historyInfo.length > 1">
-                                <span>{{$t('第')}}</span>
-                                <bk-select
-                                    :clearable="false"
-                                    :value="theExecuteRecord"
-                                    @selected="onSelectExecuteRecord">
-                                    <bk-option
-                                        v-for="index in historyInfo.length"
-                                        :key="index"
-                                        :id="index"
-                                        :name="index">
-                                    </bk-option>
-                                </bk-select>
-                                <span>{{$t('次执行')}}</span>
-                            </div>
-                        </section>
-                        <ExecuteRecord
-                            v-if="curActiveTab === 'record'"
-                            :admin-view="adminView"
-                            :loading="loading"
-                            :location="location"
-                            :is-ready-status="isReadyStatus"
-                            :node-activity="nodeActivity"
-                            :execute-info="executeRecord"
-                            :node-detail-config="nodeDetailConfig"
-                            :is-sub-process-node="isSubProcessNode">
-                        </ExecuteRecord>
-                        <ExecuteInfoForm
-                            v-else-if="curActiveTab === 'config'"
-                            :node-activity="nodeActivity"
-                            :execute-info="executeInfo"
-                            :node-detail-config="nodeDetailConfig"
-                            :constants="constants"
-                            :is-third-party-node="isThirdPartyNode"
-                            :third-party-node-code="thirdPartyNodeCode"
-                            :is-sub-process-node="isSubProcessNode">
-                        </ExecuteInfoForm>
-                        <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
-                            <NodeOperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></NodeOperationFlow>
-                        </section>
-                        <NodeLog
-                            v-else-if="curActiveTab === 'log'"
-                            ref="nodeLog"
-                            :admin-view="adminView"
-                            :node-detail-config="nodeDetailConfig"
-                            :execute-info="executeRecord"
-                            :third-party-node-code="thirdPartyNodeCode"
-                            :engine-ver="engineVer">
-                        </NodeLog>
-                    </template>
-                </div>
-                <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="realTimeState.state === 'RUNNING' && !isSubProcessNode">
-                        <bk-button
-                            v-if="nodeDetailConfig.component_code === 'pause_node'"
-                            theme="primary"
-                            data-test-id="taskExcute_form_resumeBtn"
-                            @click="onResumeClick">
-                            {{ $t('继续执行') }}
-                        </bk-button>
-                        <bk-button
-                            v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
-                            theme="primary"
-                            data-test-id="taskExcute_form_approvalBtn"
-                            @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
-                            {{ $t('审批') }}
-                        </bk-button>
-                        <bk-button
-                            v-else
-                            data-test-id="taskExcute_form_mandatoryFailBtn"
-                            @click="mandatoryFailure">
-                            {{ $t('强制终止') }}
-                        </bk-button>
-                    </template>
-                    <template v-if="isShowRetryBtn || isShowSkipBtn">
-                        <bk-button
-                            theme="primary"
-                            v-if="isShowRetryBtn"
-                            data-test-id="taskExcute_form_retryBtn"
-                            @click="onRetryClick">
-                            {{ $t('重试') }}
-                        </bk-button>
-                        <bk-button
-                            theme="default"
-                            v-if="isShowSkipBtn"
-                            data-test-id="taskExcute_form_skipBtn"
-                            @click="onSkipClick">
-                            {{ $t('跳过') }}
-                        </bk-button>
-                    </template>
+                <div :class="['scroll-box', { 'subprocess-scroll': subProcessPipeline }]">
+                    <div
+                        :class="['sub-process', { 'canvas-expand': canvasExpand }]"
+                        v-if="subProcessPipeline">
+                        <TemplateCanvas
+                            ref="subProcessCanvas"
+                            class="sub-flow"
+                            :show-palette="false"
+                            :show-tool="false"
+                            :editable="false"
+                            :canvas-data="canvasData">
+                        </TemplateCanvas>
+                        <div class="flow-option">
+                            <i
+                                class="bk-icon icon-narrow-line"
+                                v-bk-tooltips.top="$t('缩小')"
+                                @click="onZoomOut">
+                            </i>
+                            <i
+                                class="bk-icon icon-enlarge-line"
+                                v-bk-tooltips.top="$t('放大')"
+                                @click="onZoomIn">
+                            </i>
+                            <i
+                                :class="canvasExpand ? 'common-icon-partial-screen' : 'common-icon-full-screen'"
+                                v-bk-tooltips.top="$t(canvasExpand ? '收起' : '最大化')"
+                                @click="canvasExpand = !canvasExpand">
+                            </i>
+                        </div>
+                    </div>
+                    <div
+                        v-if="location"
+                        :key="randomKey"
+                        :class="['execute-info', { 'loading': loading }]"
+                        v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
+                        <bk-tab
+                            :active.sync="curActiveTab"
+                            type="unborder-card"
+                            ext-cls="execute-info-tab"
+                            @tab-change="onTabChange">
+                            <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行记录')"></bk-tab-panel>
+                            <bk-tab-panel name="config" v-if="isCondition || (!loading && ['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
+                            <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
+                            <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
+                        </bk-tab>
+                        <div class="scroll-area">
+                            <task-condition
+                                v-if="isCondition"
+                                ref="conditionEdit"
+                                :is-readonly="true"
+                                :is-show.sync="isShow"
+                                :gateways="gateways"
+                                :condition-data="conditionData"
+                                @close="close">
+                            </task-condition>
+                            <template v-else>
+                                <section class="execute-time-section" v-if="isExecuteTimeShow">
+                                    <div class="cycle-wrap" v-if="loop > 1">
+                                        <span>{{$t('第')}}</span>
+                                        <bk-select
+                                            :clearable="false"
+                                            :value="theExecuteTime"
+                                            @selected="onSelectExecuteTime">
+                                            <bk-option
+                                                v-for="index in loop"
+                                                :key="index"
+                                                :id="index"
+                                                :name="index">
+                                            </bk-option>
+                                        </bk-select>
+                                        <span>{{$t('次循环')}}</span>
+                                    </div>
+                                    <span class="divid-line" v-if="loop > 1 && historyInfo.length > 1"></span>
+                                    <div class="time-wrap" v-if="historyInfo.length > 1">
+                                        <span>{{$t('第')}}</span>
+                                        <bk-select
+                                            :clearable="false"
+                                            :value="theExecuteRecord"
+                                            @selected="onSelectExecuteRecord">
+                                            <bk-option
+                                                v-for="index in historyInfo.length"
+                                                :key="index"
+                                                :id="index"
+                                                :name="index">
+                                            </bk-option>
+                                        </bk-select>
+                                        <span>{{$t('次执行')}}</span>
+                                    </div>
+                                </section>
+                                <ExecuteRecord
+                                    v-if="curActiveTab === 'record'"
+                                    :admin-view="adminView"
+                                    :loading="loading"
+                                    :location="location"
+                                    :is-ready-status="isReadyStatus"
+                                    :node-state="nodeState"
+                                    :node-activity="nodeActivity"
+                                    :execute-info="executeRecord"
+                                    :node-detail-config="nodeDetailConfig"
+                                    :is-sub-process-node="isSubProcessNode">
+                                </ExecuteRecord>
+                                <ExecuteInfoForm
+                                    v-else-if="curActiveTab === 'config'"
+                                    :node-activity="nodeActivity"
+                                    :execute-info="executeInfo"
+                                    :node-detail-config="nodeDetailConfig"
+                                    :constants="pipelineData.constants"
+                                    :is-third-party-node="isThirdPartyNode"
+                                    :third-party-node-code="thirdPartyNodeCode"
+                                    :is-sub-process-node="isSubProcessNode">
+                                </ExecuteInfoForm>
+                                <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
+                                    <NodeOperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></NodeOperationFlow>
+                                </section>
+                                <NodeLog
+                                    v-else-if="curActiveTab === 'log'"
+                                    ref="nodeLog"
+                                    :admin-view="adminView"
+                                    :node-detail-config="nodeDetailConfig"
+                                    :execute-info="executeRecord"
+                                    :third-party-node-code="thirdPartyNodeCode"
+                                    :engine-ver="engineVer">
+                                </NodeLog>
+                            </template>
+                        </div>
+                        <div class="action-wrapper" v-if="isShowActionWrap">
+                            <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
+                                <bk-button
+                                    v-if="nodeDetailConfig.component_code === 'pause_node'"
+                                    theme="primary"
+                                    data-test-id="taskExcute_form_resumeBtn"
+                                    @click="onResumeClick">
+                                    {{ $t('继续执行') }}
+                                </bk-button>
+                                <bk-button
+                                    v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
+                                    theme="primary"
+                                    data-test-id="taskExcute_form_approvalBtn"
+                                    @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
+                                    {{ $t('审批') }}
+                                </bk-button>
+                                <bk-button
+                                    v-else
+                                    data-test-id="taskExcute_form_mandatoryFailBtn"
+                                    @click="mandatoryFailure">
+                                    {{ $t('强制终止') }}
+                                </bk-button>
+                            </template>
+                            <template v-if="isShowRetryBtn || isShowSkipBtn">
+                                <bk-button
+                                    theme="primary"
+                                    v-if="isShowRetryBtn"
+                                    data-test-id="taskExcute_form_retryBtn"
+                                    @click="onRetryClick">
+                                    {{ $t('重试') }}
+                                </bk-button>
+                                <bk-button
+                                    theme="default"
+                                    v-if="isShowSkipBtn"
+                                    data-test-id="taskExcute_form_skipBtn"
+                                    @click="onSkipClick">
+                                    {{ $t('跳过') }}
+                                </bk-button>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </bk-resize-layout>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapActions } from 'vuex'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
+    import { mapState, mapMutations, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
@@ -190,7 +221,8 @@
             ExecuteRecord,
             NodeLog,
             ExecuteInfoForm,
-            taskCondition
+            taskCondition,
+            TemplateCanvas
         },
         props: {
             adminView: {
@@ -202,18 +234,6 @@
                 required: true
             },
             nodeData: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            selectedFlowPath: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            nodeNav: {
                 type: Array,
                 default () {
                     return []
@@ -253,6 +273,10 @@
             isReadonly: {
                 type: Boolean,
                 default: false
+            },
+            smallMapImg: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -280,10 +304,16 @@
                 isShowRetryBtn: false,
                 curActiveTab: 'record',
                 theExecuteRecord: 0,
-                executeRecord: {}
+                executeRecord: {},
+                subFlowData: {},
+                subCanvasData: {},
+                canvasExpand: false
             }
         },
         computed: {
+            ...mapMutations('template/', [
+                'setLine'
+            ]),
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'atomOutputConfig': state => state.atomForm.outputConfig,
@@ -361,23 +391,87 @@
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 return this.state !== 'REVOKED' && ((this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode) || this.isShowRetryBtn || this.isShowSkipBtn)
+            },
+            isLegacySubProcess () { // 是否为旧版子流程
+                return !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
+            },
+            subProcessPipeline () {
+                let pipelineData
+                if (this.isSubProcessNode || this.isLegacySubProcess) {
+                    if (this.nodeActivity.pipeline) {
+                        pipelineData = this.nodeActivity.pipeline
+                    } else {
+                        let { data: componentData } = this.nodeActivity.component
+                        componentData = componentData && componentData.subprocess
+                        componentData = componentData && componentData.value
+                        componentData = componentData && componentData.pipeline
+                        pipelineData = componentData || pipelineData
+                    }
+                } else if (this.nodeDetailConfig.root_node) {
+                    pipelineData = this.pipelineData
+                }
+                return pipelineData
+            },
+            canvasData () {
+                if (!this.subProcessPipeline) return {}
+                const { line, location, gateways, activities } = this.subProcessPipeline
+                const branchConditions = {}
+                for (const gKey in gateways) {
+                    const item = gateways[gKey]
+                    if (item.conditions) {
+                        branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
+                    }
+                }
+                return {
+                    lines: line,
+                    locations: location.map(item => {
+                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+                        return { ...item, mode: 'execute', checked: true, code, ready: true }
+                    }),
+                    branchConditions
+                }
             }
         },
         watch: {
-            'nodeDetailConfig.node_id': {
+            nodeDetailConfig: {
                 handler (val) {
-                    if (val !== undefined) {
-                        this.loop = 1
-                        this.theExecuteTime = undefined
-                        this.curActiveTab = 'record'
+                    if (val.node_id !== undefined) {
                         this.loadNodeInfo()
+                    }
+                    if (val.component_code === 'subprocess_plugin') {
+                        this.subCanvasData = val.componentData.subprocess.value.pipeline
+                        const { lines, locations: nodes } = this.subCanvasData
+                        this.subFlowData = {
+                            lines,
+                            nodes
+                        }
                     }
                 },
                 deep: true
+            },
+            nodeDisplayStatus: {
+                handler (val) {
+                    this.updateNodeInfo()
+                },
+                deep: true,
+                immediate: true
             }
         },
         mounted () {
             this.loadNodeInfo()
+            if (this.subProcessPipeline) {
+                this.$nextTick(() => {
+                    const flowDom = this.$el.querySelector('.sub-flow')
+                    const { height = 0, width = 0 } = flowDom?.getBoundingClientRect()
+                    let jsFlowInstance = this.$refs.subProcessCanvas
+                    jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                    jsFlowInstance && jsFlowInstance.zoomOut(0.75, width / 2, height / 2)
+                })
+            }
         },
         methods: {
             ...mapActions('task/', [
@@ -449,12 +543,6 @@
                     this.loading = false
                 }
             },
-            onNodeClick (id, type, event) {
-                this.$emit('onNodeClick', id, type)
-            },
-            onOpenGatewayInfo (data, isCondition) {
-                this.$emit('onOpenGatewayInfo', data, isCondition)
-            },
             close () {
                 this.$emit('close')
             },
@@ -486,15 +574,13 @@
                 let constants = {}
                 let inputsInfo = inputs
                 let failInfo = ''
-                // 判断是否为旧版子流程
-                const islegacySubProcess = !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
                 // 添加插件输出表单所需上下文
                 $.context.input_form.inputs = inputs
                 $.context.output_form.outputs = outputs
                 $.context.output_form.state = state
                 // 获取子流程配置详情
-                if (componentCode === 'subprocess_plugin' || islegacySubProcess) {
-                    const { constants } = islegacySubProcess ? this.pipelineData : this.componentValue.pipeline
+                if (componentCode === 'subprocess_plugin' || this.isLegacySubProcess) {
+                    const { constants } = this.isLegacySubProcess ? this.pipelineData : this.componentValue.pipeline
                     this.renderConfig = await this.getSubflowInputsConfig(constants)
                 } else if (componentCode) { // 任务节点需要加载标准插件
                     await this.getNodeConfig(componentCode, version, inputs.plugin_version)
@@ -512,7 +598,7 @@
                         }
                         return acc
                     }, {})
-                } else if (islegacySubProcess) {
+                } else if (this.isLegacySubProcess) {
                     /**
                      * 兼容旧版本子流程节点输入数据
                      * 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
@@ -560,7 +646,7 @@
                                 outputsInfo.push(info)
                             }
                         })
-                    } else if (islegacySubProcess) {
+                    } else if (this.isLegacySubProcess) {
                         // 兼容旧版本子流程节点输出数据
                         outputsInfo = outputs.reduce((acc, cur) => {
                             const { value, key } = cur
@@ -594,7 +680,6 @@
             },
             async getTaskNodeDetail () {
                 try {
-                    if (this.nodeDetailConfig.root_node) return
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                     let res
 
@@ -784,15 +869,92 @@
                 }
                 this.randomKey = new Date().getTime()
             },
+            onZoomOut () {
+                const flowDom = this.$el.querySelector('.sub-flow')
+                const { height = 0, width = 0 } = flowDom?.getBoundingClientRect()
+                this.$refs.subProcessCanvas.onZoomOut({ x: width / 2, y: height / 2 })
+            },
+            onZoomIn () {
+                const flowDom = this.$el.querySelector('.sub-flow')
+                const { height = 0, width = 0 } = flowDom?.getBoundingClientRect()
+                this.$refs.subProcessCanvas.onZoomIn({ x: width / 2, y: height / 2 })
+            },
             onTabChange (name) {
                 this.curActiveTab = name
                 if (['record', 'log'].includes(name)) {
                     this.onSelectExecuteRecord(this.theExecuteRecord)
                 }
+                if (this.canvasExpand) {
+                    const scrollBoxDom = document.querySelector('.scroll-box')
+                    const subProcessCanvasDom = document.querySelector('.sub-process')
+                    const { height = 0 } = subProcessCanvasDom.getBoundingClientRect()
+                    scrollBoxDom.scrollTo({ top: height, behavior: 'smooth' })
+                }
             },
-            onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+            onSelectNode (node) {
                 this.loading = true
-                this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
+                if (this.subProcessPipeline) {
+                    this.onUpdateNodeInfo(this.nodeDetailConfig.node_id, { isActived: false })
+                }
+                if ((node.isSubProcess || node.parentId) && !this.subProcessPipeline) {
+                    this.$nextTick(() => {
+                        let jsFlowInstance = this.$refs.subProcessCanvas
+                        jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                        jsFlowInstance && jsFlowInstance.zoomOut(0.75)
+                    })
+                }
+                this.$emit('onClickTreeNode', node)
+                this.$nextTick(() => {
+                    if (node.parentId) {
+                        this.onUpdateNodeInfo(node.id, { isActived: true })
+                    }
+                    this.updateNodeInfo()
+                })
+            },
+            updateNodeInfo () {
+                if (!this.subProcessPipeline) return
+                const { root_node, node_id } = this.nodeDetailConfig
+                const parentId = root_node?.split('-') || [node_id]
+                let nodes = this.nodeDisplayStatus.children
+                parentId.forEach(id => {
+                    if (nodes[id]) {
+                        nodes = nodes[id].children
+                    }
+                })
+                for (const id in nodes) {
+                    let code, skippable, retryable, errorIgnorable, autoRetry
+                    const currentNode = nodes[id]
+                    const nodeActivities = this.subProcessPipeline.activities[id]
+
+                    if (nodeActivities) {
+                        code = nodeActivities.component ? nodeActivities.component.code : ''
+                        skippable = nodeActivities.isSkipped || nodeActivities.skippable
+                        retryable = nodeActivities.can_retry || nodeActivities.retryable
+                        errorIgnorable = nodeActivities.error_ignorable
+                        autoRetry = nodeActivities.auto_retry
+                    }
+                    const data = {
+                        code,
+                        skippable,
+                        retryable,
+                        loop: currentNode.loop,
+                        status: currentNode.state,
+                        skip: currentNode.skip,
+                        retry: currentNode.retry,
+                        error_ignored: currentNode.error_ignored,
+                        error_ignorable: errorIgnorable,
+                        auto_retry: autoRetry,
+                        ready: false,
+                        task_state: this.state // 任务状态
+                    }
+
+                    this.$nextTick(() => {
+                        this.onUpdateNodeInfo(id, data)
+                    })
+                }
+            },
+            onUpdateNodeInfo (id, info) {
+                this.$refs.subProcessCanvas && this.$refs.subProcessCanvas.onUpdateNodeInfo(id, info)
             },
             onRetryClick () {
                 this.$emit('onRetryClick', this.nodeDetailConfig.node_id)
@@ -835,16 +997,22 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    .nodeTree{
-        border-right: 1px solid #DCDEE5;
-    }
     .details-wrapper {
         display: flex;
         flex: 1;
         height: calc(100% - 48px);
         border-bottom: 1px solid $commonBorderColor;
     }
+    .bk-resize-layout-border {
+        border: none;
+        .bk-resize-layout-aside {
+            width: 280;
+        }
+    }
     .action-wrapper {
+        width: 100%;
+        position: fixed;
+        bottom: 0;
         padding-left: 20px;
         height: 48px;
         line-height: 48px;
@@ -857,38 +1025,19 @@
         }
     }
 }
-.execute-info {
-    flex: 1;
+.execute-content {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    padding-bottom: 0;
-    width: 500px;
-    height: 100%;
-    color: #313238;
-    &.loading {
-        overflow: hidden;
-    }
-    &.admin-view {
-        .code-block-wrap {
-            background: #313238;
-            padding: 10px;
-            /deep/ .vjs-tree {
-                color: #ffffff;
-            }
-        }
-    }
-    /deep/ .vjs-tree {
-        font-size: 12px;
-    }
     .execute-head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         line-height: 20px;
         font-size: 14px;
-        padding: 15px 16px 16px;
+        padding: 15px 24px 16px 15px;
         .node-name {
             font-weight: 600;
+            padding-right: 4px;
             word-break: break-all;
         }
         .node-state {
@@ -898,105 +1047,208 @@
                 margin: 2px 5px 0;
             }
         }
+        .common-icon-dark-circle-ellipsis {
+            font-size: 14px;
+            color: #3a84ff;
+        }
+        .common-icon-dark-circle-pause {
+            font-size: 14px;
+            color: #f8B53f;
+        }
+        .icon-check-circle-shape {
+            font-size: 14px;
+            color: #30d878;
+        }
+        .common-icon-dark-circle-close {
+            font-size: 14px;
+            color: #ff5757;
+        }
+        .common-icon-waitting {
+            font-size: 16px;
+            color: #dcdee5;
+        }
+        .common-icon-fail-skip {
+            font-size: 14px;
+            color: #f7b6b6;
+        }
+        .icon-circle-shape {
+            display: inline-block;
+            height: 14px;
+            width: 14px;
+            background: #f0f1f5;
+            border: 1px solid #c4c6cc;
+            border-radius: 50%;
+            &::before {
+                content: initial;
+            }
+        }
     }
-    /deep/.execute-info-tab .bk-tab-section{
-        padding: 0;
+    .sub-process {
+        flex-shrink: 0;
+        height: 160px;
+        margin: 0 25px 8px 15px;
+        position: relative;
+        background: #e1e4e8;
+        .sub-flow {
+            height: 100%;
+            border: 0;
+            background: #e1e4e8;
+            /deep/.canvas-flow {
+                .actived {
+                    box-shadow: none;
+                    &::before {
+                        content: '';
+                        display: block;
+                        height: calc(100% + 8px);
+                        width: calc(100% + 8px);
+                        position: absolute;
+                        top: -4.5px;
+                        left: -5px;
+                        z-index: -1;
+                        background: #e1ecff;
+                        border: 1px solid #699df4;
+                        border-radius: 2px;
+                    }
+                }
+            }
+        }
+        .flow-option {
+            width: 96px;
+            height: 32px;
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #979ba5;
+            background: #fff;
+            box-shadow: 0 2px 4px 0 #0000001a;
+            border-radius: 2px;
+            i {
+                cursor: pointer;
+                &:nth-child(2) {
+                    margin: 0 14px;
+                }
+                &:last-child {
+                    font-size: 14px;
+                }
+                &:hover {
+                    color: #3a84ff;
+                }
+            }
+        }
+        &.canvas-expand {
+            height: calc(100% - 125px);
+        }
     }
-    .scroll-area {
+    .execute-info {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0;
+        color: #313238;
+        &.loading {
+            overflow: hidden;
+        }
+        &.admin-view {
+            .code-block-wrap {
+                background: #313238;
+                padding: 10px;
+                /deep/ .vjs-tree {
+                    color: #ffffff;
+                }
+            }
+        }
+        /deep/ .vjs-tree {
+            font-size: 12px;
+        }
+        /deep/.execute-info-tab .bk-tab-section{
+            padding: 0;
+        }
+        .scroll-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 16px 24px 66px 15px;
+            @include scrollbar;
+        }
+        .execute-time-section {
+            display: flex;
+            align-items: center;
+            height: 40px;
+            font-size: 12px;
+            padding: 8px 16px;
+            background: #f5f7fa;
+            margin-bottom: 24px;
+            .cycle-wrap,
+            .time-wrap {
+                display: flex;
+                align-items: center;
+                /deep/.bk-select {
+                    width: 64px;
+                    height: 24px;
+                    line-height: 22px !important;
+                    margin: 0 8px;
+                    .bk-select-angle {
+                        top: 0;
+                    }
+                    .bk-select-name {
+                        height: 24px;
+                    }
+                }
+            }
+            .divid-line {
+                display: inline-block;
+                width: 1px;
+                height: 16px;
+                margin: 0 16px;
+                background: #dcdee5;
+            }
+        }
+        .panel-title {
+            margin: 0;
+            color: #313238;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        /deep/.common-section-title {
+            color: #313238;
+            font-weight: 600;
+            line-height: 18px;
+            font-size: 12px;
+            margin-bottom: 16px;
+            &::before {
+                height: 18px;
+                top: 0;
+            }
+        }
+        /deep/ .primary-value.code-editor {
+            height: 300px;
+        }
+    }
+    .scroll-box {
         flex: 1;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
-        padding: 16px 24px 16px 16px;
-        @include scrollbar;
-    }
-    .execute-time-section {
-        display: flex;
-        align-items: center;
-        height: 40px;
-        font-size: 12px;
-        padding: 8px 16px;
-        background: #f5f7fa;
-        margin-bottom: 24px;
-        .cycle-wrap,
-        .time-wrap {
-            display: flex;
-            align-items: center;
-            /deep/.bk-select {
-                width: 64px;
-                height: 24px;
-                line-height: 22px !important;
-                margin: 0 8px;
-                .bk-select-angle {
-                    top: 0;
-                }
-                .bk-select-name {
-                    height: 24px;
-                }
+        &::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+            &-thumb {
+                border-radius: 20px;
+                background: #dcdee5;
+                box-shadow: inset 0 0 6px hsla(0,0%,80%,.3);
             }
         }
-        .divid-line {
-            display: inline-block;
-            width: 1px;
-            height: 16px;
-            margin: 0 16px;
-            background: #dcdee5;
+        &.subprocess-scroll {
+            .scroll-area {
+                overflow-y: initial;
+            }
         }
-    }
-    .panel-title {
-        margin: 0;
-        color: #313238;
-        font-size: 14px;
-        font-weight: 600;
-    }
-    /deep/.common-section-title {
-        color: #313238;
-        font-weight: 600;
-        line-height: 18px;
-        font-size: 12px;
-        margin-bottom: 16px;
-        &::before {
-            height: 18px;
-            top: 0;
-        }
-    }
-    .common-icon-dark-circle-ellipsis {
-        font-size: 14px;
-        color: #3a84ff;
-    }
-    .common-icon-dark-circle-pause {
-        font-size: 14px;
-        color: #f8B53f;
-    }
-    .icon-check-circle-shape {
-        font-size: 14px;
-        color: #30d878;
-    }
-    .common-icon-dark-circle-close {
-        font-size: 14px;
-        color: #ff5757;
-    }
-    .common-icon-waitting {
-        font-size: 16px;
-        color: #dcdee5;
-    }
-    .common-icon-fail-skip {
-        font-size: 14px;
-        color: #f7b6b6;
-    }
-    .icon-circle-shape {
-        display: inline-block;
-        height: 14px;
-        width: 14px;
-        background: #f0f1f5;
-        border: 1px solid #c4c6cc;
-        border-radius: 50%;
-        &::before {
-            content: initial;
-        }
-    }
-    /deep/ .primary-value.code-editor {
-        height: 300px;
     }
 }
 </style>

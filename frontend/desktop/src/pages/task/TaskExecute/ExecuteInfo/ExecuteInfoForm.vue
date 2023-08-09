@@ -611,7 +611,7 @@
             color: #63656e;
             border-bottom: 1px solid #dcdee5;
             .th {
-                width: 140px;
+                width: 20%;
                 font-weight: 400;
                 color: #313238;
                 padding-left: 12px;
