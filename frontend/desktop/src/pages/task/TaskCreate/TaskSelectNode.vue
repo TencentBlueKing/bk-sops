@@ -71,6 +71,7 @@
                 {{ $t('下一步') }}
             </bk-button>
             <bk-button
+                v-if="viewMode !== 'appmaker'"
                 class="preview-button"
                 data-test-id="createTask_form_togglePreview"
                 @click="togglePreviewMode(!isPreviewMode)">
@@ -190,9 +191,6 @@
             }
         },
         created () {
-            if (this.viewMode === 'appmaker') {
-                this.isPreviewMode = true
-            }
             this.getTemplateData()
         },
         methods: {
