@@ -174,7 +174,6 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        max-width: 682px;
         border: 1px solid #dcdee5;
         border-bottom: none;
         border-radius: 2px;
@@ -190,7 +189,7 @@
             }
             .input-name {
                 line-height: 20px;
-                width: 30%;
+                width: 40%;
             }
         }
         /deep/.render-form {
@@ -201,7 +200,7 @@
                 width: 100% !important;
                 border-bottom: 1px solid #dcdee5;
                 label {
-                    width: 30%;
+                    width: 40%;
                     text-align: left;
                     padding-left: 13px;
                     color: #63656e;
@@ -210,7 +209,7 @@
                     }
                 }
                 >.rf-tag-form {
-                    margin-left: 30%;
+                    margin-left: 40%;
                     padding-left: 13px;
                     padding-right: 15px;
                 }
@@ -235,7 +234,7 @@
                 width: 100% !important;
                 border-bottom: 1px solid #dcdee5;
                 label {
-                    width: 30% !important;
+                    width: 40% !important;
                     text-align: left;
                     padding-left: 13px;
                     color: #63656e;
@@ -244,7 +243,7 @@
                     }
                 }
                 >.bk-form-content {
-                    margin-left: 30% !important;
+                    margin-left: 40% !important;
                     padding-left: 13px;
                     padding-right: 15px;
                 }
