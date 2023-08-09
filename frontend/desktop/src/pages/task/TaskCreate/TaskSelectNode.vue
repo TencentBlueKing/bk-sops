@@ -485,7 +485,6 @@
              * 设置默认勾选值
              */
             setCanvasSelected (selectNodes = []) {
-                if (this.isPreviewMode) return
                 if (selectNodes.length) {
                     // 使用传进来的选中节点，取消画布默认全选
                     this.selectedNodes = selectNodes
@@ -493,7 +492,9 @@
                 } else {
                     this.selectedNodes = Object.keys(this.activities)
                 }
-                this.updateDataAndCanvas()
+                if (!this.isPreviewMode) {
+                    this.updateDataAndCanvas()
+                }
             },
             /**
              * 批量选择执行方案
