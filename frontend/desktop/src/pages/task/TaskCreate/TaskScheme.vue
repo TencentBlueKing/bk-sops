@@ -9,7 +9,7 @@
                 <span>{{$t('执行方案')}}</span>
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
-            <div class="scheme-active-wrapper" v-if="isSchemeEditable">
+            <div class="scheme-active-wrapper" v-if="viewMode !== 'appmaker'">
                 <bk-button
                     :text="true"
                     :class="{ 'text-permission-disable': !hasOperateSchemeTpl }"
@@ -101,6 +101,10 @@
             isSchemeShow: {
                 type: Boolean,
                 default: false
+            },
+            viewMode: {
+                type: String,
+                default: ''
             },
             isSchemeEditable: {
                 type: Boolean,

@@ -42,11 +42,11 @@
             <component
                 :is="schemeTemplate"
                 ref="taskScheme"
-                v-show="!isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
-                :is-scheme-show="isSchemeShow"
+                :is-scheme-show="true"
+                :view-mode="viewMode"
                 :is-scheme-editable="viewMode !== 'appmaker'"
                 :is-preview-mode="isPreviewMode"
                 :is-common-process="isCommonProcess"
@@ -191,6 +191,9 @@
             }
         },
         created () {
+            if (this.viewMode === 'appmaker') {
+                this.isPreviewMode = true
+            }
             this.getTemplateData()
         },
         methods: {
