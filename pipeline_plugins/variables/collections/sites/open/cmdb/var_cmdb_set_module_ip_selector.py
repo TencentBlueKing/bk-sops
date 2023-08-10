@@ -14,24 +14,24 @@ import logging
 from typing import List
 
 from django.utils.translation import ugettext_lazy as _
+from pipeline.core.data.var import LazyVariable
 
 from gcloud.conf import settings
 from gcloud.constants import BIZ_INTERNAL_SET, Type
 from gcloud.core.models import Project
-from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 from pipeline_plugins.variables.utils import (
-    get_service_template_list_by_names,
-    get_list_by_selected_names,
     filter_ip,
-    get_set_list,
-    get_service_template_list,
-    list_biz_hosts,
     find_module_with_relation,
     get_biz_internal_module,
+    get_list_by_selected_names,
+    get_service_template_list,
+    get_service_template_list_by_names,
+    get_set_list,
+    list_biz_hosts,
 )
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 ALL_SELECTED_STR = "all"
 
@@ -87,6 +87,9 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
             )
             logger.info("[SetModuleIpSelector.get_value] module_ids: %s" % module_ids)
 
+            # 如果没有过滤到任何模块id，此时返回空
+            if not module_ids:
+                return ""
             # 自定义输入ip
             custom_value = var_ip_selector["var_ip_custom_value"]
             if settings.ENABLE_IPV6:
@@ -283,6 +286,10 @@ def get_module_id_list(
             if biz_internal_module_item["name"] in internal_module_in_filter
         ]
 
+    # 当存在服务模板过滤，并一个也过滤不到时
+    if filter_service_template_names and not service_template_ids:
+        return []
+
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
     # 拼接空闲机、待回收等模块ID
@@ -418,6 +425,7 @@ def get_ip_result_by_input_method(
     module_ids = get_module_id_list(
         bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template, bk_supplier_account
     )
+
     # 根据模块 id 列表获取 ip 并返回
     if settings.ENABLE_IPV6:
         data = get_ip_list_by_module_id_with_ipv6(username, bk_biz_id, bk_supplier_account, module_ids)
