@@ -141,9 +141,8 @@ class NodeManBaseService(Service):
         # 如果开启了ipv6的逻辑，则执行
         if settings.ENABLE_IPV6:
             ipv6_list, ipv4_list, *_ = extract_ip_from_ip_str(ip_str)
-            ip_list = ipv4_list + ipv6_list
-            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
-            bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
+            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ipv6_list)
+            bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ipv4_list)
             return list(set(bk_host_id_dict_ipv6.values()) | set(bk_host_id_dict.values()))
 
         ip_list = get_ip_by_regex(ip_str)

@@ -123,7 +123,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                     try:
                         auth_key = decrypt_auth_key(auth_key, settings.RSA_PRIV_KEY)
                     except Exception:
-                        # password is not encrypted
+                        self.logger.info("try to decrypt password error, use plaintext.")
                         pass
 
                     # auth_key加密
