@@ -13,35 +13,35 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from copy import deepcopy
-from typing import Optional, List
+from typing import List, Optional
 
-from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import api as bamboo_engine_api
+from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.eri import ContextValueType
-
-from engine_pickle_obj.context import SystemObject
-from gcloud.project_constants.domains.context import get_project_constants_context
-from pipeline.engine import states as pipeline_states
+from django.utils.translation import ugettext_lazy as _
+from opentelemetry import trace
+from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import api as pipeline_api
-from pipeline.service import task_service
-from pipeline.models import PipelineInstance
+from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.engine import models as pipeline_engine_models
-from pipeline.parser.context import get_pipeline_context
+from pipeline.engine import states as pipeline_states
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.log.models import LogEntry
-from pipeline.component_framework.library import ComponentLibrary
-from pipeline.engine import exceptions as pipeline_exceptions
-from opentelemetry import trace
+from pipeline.models import PipelineInstance
+from pipeline.parser.context import get_pipeline_context
+from pipeline.service import task_service
 
+from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
-from gcloud.utils.handlers import handle_plain_log
+from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.utils import format_pipeline_status
+from gcloud.tasktmpl3.domains.constants import preview_node_inputs
+from gcloud.utils.handlers import handle_plain_log
 from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.parser.format import format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -554,17 +554,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 )
 
                 formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
-                preview_result = bamboo_engine_api.preview_node_inputs(
-                    runtime=runtime,
-                    pipeline=formatted_pipeline,
-                    node_id=self.node_id,
-                    subprocess_stack=subprocess_stack,
-                    root_pipeline_data=root_pipeline_data,
-                    parent_params=root_pipeline_context,
-                )
-
-                if not preview_result.result:
-                    message = _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {preview_result.exc} | get_node_data_v2")
+                try:
+                    preview_inputs = preview_node_inputs(
+                        runtime=runtime,
+                        pipeline=formatted_pipeline,
+                        node_id=self.node_id,
+                        subprocess_stack=subprocess_stack,
+                        root_pipeline_data=root_pipeline_data,
+                        parent_params=root_pipeline_context,
+                    )
+                except Exception as e:
+                    message = _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {e} | get_node_data_v2")
                     logger.error(message)
                     return {
                         "result": False,
@@ -575,9 +575,9 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
                 if node_info["type"] == "SubProcess":
                     # remove prefix '${' and subfix '}' in subprocess execution input
-                    inputs = {k[2:-1]: v for k, v in preview_result.data.items()}
+                    inputs = {k[2:-1]: v for k, v in preview_inputs.items()}
                 else:
-                    inputs = preview_result.data
+                    inputs = preview_inputs
 
             except Exception as err:
                 return {
