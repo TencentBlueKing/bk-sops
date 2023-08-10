@@ -3,13 +3,12 @@ from functools import partial
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
-from gcloud.utils.handlers import handle_api_error
-from gcloud.utils import cmdb
 from gcloud.core.models import Business
+from gcloud.utils import cmdb
+from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("监控平台(Monitor)")
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
@@ -75,6 +74,7 @@ class MonitorBaseService(Service):
         if not response["result"]:
             message = monitor_handle_api_error("monitor.create_shield", request_body, response)
             self.logger.error(message)
+            data.outputs.ex_data = message
             shield_id = ""
             ret_flag = False
         else:
