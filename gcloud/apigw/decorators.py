@@ -92,10 +92,10 @@ def return_json_response(view_func):
         except AuthFailedException as e:
             # 针对权限中心的异常进行统一的处理
             result = {
-                "result": True,
+                "result": False,
                 "data": None,
                 "message": "iam authentication exception, please check, action:{}".format(e.action.id),
-                "code": 0,
+                "code": 3599999,
             }
         # 如果返回的是dict且request中有trace_id，则在响应中加上
         if isinstance(result, dict):
