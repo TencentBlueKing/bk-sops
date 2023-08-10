@@ -88,8 +88,6 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
             logger.info("[SetModuleIpSelector.get_value] module_ids: %s" % module_ids)
 
             # 如果没有过滤到任何模块id，此时返回空
-            if not module_ids:
-                return ""
             # 自定义输入ip
             custom_value = var_ip_selector["var_ip_custom_value"]
             if settings.ENABLE_IPV6:
