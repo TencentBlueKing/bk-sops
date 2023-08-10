@@ -11,15 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
+from mock import MagicMock
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    ExecuteAssertion,
-    CallAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
-from mock import MagicMock
 
 from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_strategy.v1_2 import (
     MonitorAlarmShieldStrategyComponent,
@@ -112,6 +112,14 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
+            "ex_data": "调用监控平台(Monitor)接口monitor.create_shield返回失败, error=create shield fail, "
+            'params={"begin_time":"2019-11-04 00:00:00",'
+            '"bk_biz_id":2,"category":"strategy","cycle_config":{"begin_time":"","end_time":"","day_list":'
+            '[],"week_list":[],"type":1},"description":"shield by bk_sops","dimension_config":{"id":"123",'
+            '"dimension_conditions":[{"condition":"and","key":"bk_biz_id","method":"eq","value":["1","2"],'
+            '"name":"bk_biz_id"}],'  # noqa
+            '"scope_type":"ip","target":[{"ip":"127.0.0.1","bk_cloud_id":0},{"ip":"127.0.0.2",'
+            '"bk_cloud_id":1}]},"end_time":"2019-11-05 00:00:00","notice_config":{},"shield_notice":false}',
             "shield_id": "",
             "message": "调用监控平台(Monitor)接口monitor.create_shield返回失败, error=create shield fail, "
             'params={"begin_time":"2019-11-04 00:00:00",'

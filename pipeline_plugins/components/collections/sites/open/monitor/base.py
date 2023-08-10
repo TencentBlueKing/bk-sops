@@ -74,6 +74,7 @@ class MonitorBaseService(Service):
         if not response["result"]:
             message = monitor_handle_api_error("monitor.create_shield", request_body, response)
             self.logger.error(message)
+            data.outputs.ex_data = message
             shield_id = ""
             ret_flag = False
         else:
