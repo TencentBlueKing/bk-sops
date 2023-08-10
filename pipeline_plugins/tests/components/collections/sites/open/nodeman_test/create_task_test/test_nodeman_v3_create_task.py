@@ -13,16 +13,16 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
     Call,
     CallAssertion,
     ComponentTestCase,
     ComponentTestMixin,
     ExecuteAssertion,
-    ScheduleAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.nodeman.create_task.v3_0 import NodemanCreateTaskComponent
 
 
@@ -743,7 +743,6 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
     inputs={
         "bk_biz_id": "1",
         "nodeman_node_type": "AGENT",
-        "nodeman_ticket": {"nodeman_tjj_ticket": "xxxxx"},
         "nodeman_op_info": {
             "nodeman_op_type": "INSTALL",
             "nodeman_ip_str": "",
@@ -798,7 +797,6 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
                                 "data_ip": "1.1.1.1",
                             }
                         ],
-                        "tcoa_ticket": "xxxxx",
                     }
                 )
             ],
