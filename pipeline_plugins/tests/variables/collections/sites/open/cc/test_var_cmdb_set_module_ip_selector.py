@@ -649,15 +649,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             [
                 {
                     "func": self.client.new().cc.find_module_with_relation,
-                    "calls": [
-                        call(
-                            bk_biz_id=1,
-                            bk_service_template_ids=[],
-                            bk_set_ids=[31],
-                            fields=["bk_module_id"],
-                            page={"start": 0, "limit": 1},
-                        )
-                    ],
+                    "calls": [],
                 },
                 {"func": self.client.new().cc.list_biz_hosts, "calls": []},
             ]
@@ -821,15 +813,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             [
                 {
                     "func": self.client.new().cc.find_module_with_relation,
-                    "calls": [
-                        call(
-                            bk_biz_id=1,
-                            bk_service_template_ids=[],
-                            bk_set_ids=[31],
-                            fields=["bk_module_id"],
-                            page={"start": 0, "limit": 1},
-                        )
-                    ],
+                    "calls": [],
                 },
                 {"func": self.client.new().cc.list_biz_hosts, "calls": []},
             ]
@@ -858,15 +842,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             [
                 {
                     "func": self.client.new().cc.find_module_with_relation,
-                    "calls": [
-                        call(
-                            bk_biz_id=1,
-                            bk_service_template_ids=[],
-                            bk_set_ids=[31],
-                            fields=["bk_module_id"],
-                            page={"start": 0, "limit": 1},
-                        )
-                    ],
+                    "calls": [],
                 },
                 {"func": self.client.new().cc.list_biz_hosts, "calls": []},
             ]
@@ -979,15 +955,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             [
                 {
                     "func": self.client.new().cc.find_module_with_relation,
-                    "calls": [
-                        call(
-                            bk_biz_id=1,
-                            bk_service_template_ids=[],
-                            bk_set_ids=[31],
-                            fields=["bk_module_id"],
-                            page={"start": 0, "limit": 1},
-                        )
-                    ],
+                    "calls": [],
                 },
                 {"func": self.client.new().cc.list_biz_hosts, "calls": []},
             ]
@@ -1012,22 +980,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             [
                 {
                     "func": self.client.new().cc.find_module_with_relation,
-                    "calls": [
-                        call(
-                            bk_biz_id=1,
-                            bk_service_template_ids=[61],
-                            bk_set_ids=[31, 32],
-                            fields=["bk_module_id"],
-                            page={"start": 0, "limit": 1},
-                        ),
-                        call(
-                            bk_biz_id=1,
-                            bk_service_template_ids=[61],
-                            bk_set_ids=[31, 32],
-                            fields=["bk_module_id"],
-                            page={"limit": 500, "start": 0},
-                        ),
-                    ],
+                    "calls": [],
                 },
                 {
                     "func": self.client.new().cc.list_biz_hosts,
@@ -1070,15 +1023,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             [
                 {
                     "func": self.client.new().cc.find_module_with_relation,
-                    "calls": [
-                        call(
-                            bk_biz_id=1,
-                            bk_service_template_ids=[],
-                            bk_set_ids=[31, 32],
-                            fields=["bk_module_id"],
-                            page={"start": 0, "limit": 1},
-                        )
-                    ],
+                    "calls": [],
                 },
                 {"func": self.client.new().cc.list_biz_hosts, "calls": []},
             ]
