@@ -22,6 +22,7 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta
 
+
 # flow
 
 
@@ -307,6 +308,22 @@ def resources_for_mini_app_obj(mini_app_obj):
                 "iam_resource_owner": mini_app_obj.creator,
                 "_bk_iam_path_": "/project,{}/".format(mini_app_obj.project_id),
                 "name": mini_app_obj.name,
+            },
+        )
+    ]
+
+
+def resources_list_for_mini_app(mini_app_id):
+    min_app_obj = AppMaker.objects.get(id=mini_app_id).values("id", "creator", "name", "project_id")
+    return [
+        Resource(
+            IAMMeta.SYSTEM_ID,
+            IAMMeta.MINI_APP_RESOURCE,
+            str(min_app_obj.id),
+            {
+                "iam_resource_owner": min_app_obj.creator,
+                "_bk_iam_path_": "/project,{}/".format(min_app_obj.project_id),
+                "name": min_app_obj.name,
             },
         )
     ]

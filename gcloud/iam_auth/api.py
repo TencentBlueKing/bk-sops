@@ -18,6 +18,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework.decorators import api_view
 
 from iam import Subject, Action, Resource, Request, MultiActionRequest
@@ -26,6 +27,12 @@ from iam.exceptions import AuthInvalidRequest, AuthAPIError
 from gcloud.iam_auth import conf
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client, get_iam_api_client
+from gcloud.iam_auth.res_factory import (
+    resources_for_flow,
+    resources_for_task,
+    resources_for_common_flow,
+    resources_list_for_mini_app,
+)
 from gcloud.shortcuts.http import standard_response
 from gcloud.openapi.schema import AnnotationAutoSchema
 
@@ -59,7 +66,6 @@ def apply_perms_url(request):
 @csrf_exempt
 @require_POST
 def is_allow(request):
-
     data = json.loads(request.body)
 
     action_id = data["action"]
@@ -75,6 +81,51 @@ def is_allow(request):
         is_allow = iam.is_allowed(Request(conf.SYSTEM_ID, subject, action, resource, None))
     except (AuthInvalidRequest, AuthAPIError) as e:
         return standard_response(False, str(e))
+
+    return standard_response(True, "success", {"is_allow": is_allow})
+
+
+@csrf_exempt
+@require_POST
+def is_view_action_allow(request):
+    """
+    @param request:
+    @return:
+    """
+    action_map = {
+        IAMMeta.FLOW_RESOURCE: IAMMeta.FLOW_VIEW_ACTION,
+        IAMMeta.TASK_RESOURCE: IAMMeta.TASK_VIEW_ACTION,
+        IAMMeta.COMMON_FLOW_RESOURCE: IAMMeta.COMMON_FLOW_VIEW_ACTION,
+        IAMMeta.MINI_APP_RESOURCE: IAMMeta.MINI_APP_VIEW_ACTION,
+    }
+
+    resource_map = {
+        IAMMeta.FLOW_RESOURCE: resources_for_flow,
+        IAMMeta.TASK_RESOURCE: resources_for_task,
+        IAMMeta.COMMON_FLOW_RESOURCE: resources_for_common_flow,
+        IAMMeta.MINI_APP_RESOURCE: resources_list_for_mini_app,
+    }
+
+    data = json.loads(request.body)
+    resource_id = data["resource_id"]
+    resource_type = data["resource_type"]
+    subject = Subject("user", request.user.username)
+
+    try:
+        action = Action(action_map[resource_type])
+        resources = resource_map[resource_type](resource_id)
+    except Exception as e:
+        return standard_response(False, str(e))
+
+    iam = get_iam_client()
+
+    allow_or_raise_auth_failed(
+        iam=iam,
+        system=IAMMeta.SYSTEM_ID,
+        subject=subject,
+        action=action,
+        resources=resources,
+    )
 
     return standard_response(True, "success", {"is_allow": is_allow})
 
