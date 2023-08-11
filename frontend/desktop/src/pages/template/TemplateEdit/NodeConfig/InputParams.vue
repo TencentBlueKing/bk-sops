@@ -12,6 +12,7 @@
     <div class="input-params">
         <render-form
             ref="renderForm"
+            :class="{ 'subflow-form': isSubflow }"
             :scheme="formsScheme"
             :hooked="hooked"
             :constants="isSubflow ? subflowForms : constants"
@@ -373,12 +374,57 @@
     }
 }
 /deep/.render-form {
-    .rf-tag-label {
-        display: none;
+    >.rf-form-item {
+        .rf-group-name {
+            display: none;
+        }
+        .rf-tag-label {
+            width: 130px;
+            padding-right: 24px;
+            white-space: nowrap;
+            .required {
+                position: absolute;
+                top: 2px;
+                right: 15px;
+            }
+        }
+        .hide-render-icon {
+            top: 0;
+        }
     }
     .rf-form-group {
-        >.rf-form-item {
-            margin-top: 0;
+        .rf-group-name {
+            display: none;
+        }
+        .rf-tag-hook {
+            top: 0;
+        }
+    }
+}
+/deep/.subflow-form {
+    .rf-form-group {
+        .rf-group-name {
+            display: block;
+            width: 130px;
+            padding-right: 24px;
+            text-align: right;
+            font-size: 12px;
+        }
+        .rf-has-hook {
+            .rf-tag-label {
+                display: none;
+            }
+        }
+        .rf-tag-hook {
+            top: 0;
+        }
+    }
+    >.rf-form-group {
+        .rf-group-name {
+            float: left;
+        }
+        .form-item-group {
+            margin-left: 130px;
         }
     }
     .form-item-group {
@@ -391,16 +437,13 @@
         .rf-form-item {
             .rf-tag-label {
                 display: block;
-                float: initial;
                 text-align: left;
-                margin: 0 0 6px;
                 color: #63656e;
                 line-height: 20px;
-                .required {
-                    position: relative;
-                    top: 0;
-                    right: 0;
-                }
+                padding-right: 10px;
+            }
+            .rf-tag-form {
+                margin-left: 100px;
             }
             &:last-child {
                 margin-bottom: 0;
@@ -415,9 +458,6 @@
             border: none;
             padding: 0;
         }
-    }
-    .rf-tag-form {
-        margin-left: 0;
     }
 }
 </style>
