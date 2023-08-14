@@ -34,6 +34,7 @@
                         v-if="subProcessPipeline">
                         <TemplateCanvas
                             ref="subProcessCanvas"
+                            :key="canvasRandomKey"
                             class="sub-flow"
                             :show-palette="false"
                             :show-tool="false"
@@ -282,6 +283,7 @@
         data () {
             return {
                 randomKey: '',
+                canvasRandomKey: null,
                 loading: true,
                 isRenderOutputForm: false,
                 executeInfo: {},
@@ -325,8 +327,17 @@
             }),
             // 节点实时状态
             realTimeState () {
-                const nodeStateMap = this.nodeDisplayStatus.children || {}
-                return nodeStateMap[this.nodeDetailConfig.node_id] || { state: 'READY' }
+                const { root_node, node_id } = this.nodeDetailConfig
+                let nodes = this.nodeDisplayStatus.children || {}
+                if (this.subProcessPipeline) {
+                    const parentId = root_node?.split('-') || []
+                    parentId.forEach(id => {
+                        if (nodes[id]) {
+                            nodes = nodes[id].children
+                        }
+                    })
+                }
+                return nodes[node_id] || { state: 'READY' }
             },
             displayStatus () {
                 let state = ''
@@ -465,11 +476,7 @@
             this.loadNodeInfo()
             if (this.subProcessPipeline) {
                 this.$nextTick(() => {
-                    const flowDom = this.$el.querySelector('.sub-flow')
-                    const { height = 0, width = 0 } = flowDom?.getBoundingClientRect()
-                    let jsFlowInstance = this.$refs.subProcessCanvas
-                    jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                    jsFlowInstance && jsFlowInstance.zoomOut(0.75, width / 2, height / 2)
+                    this.setSubprocessCanvasZoom()
                 })
             }
         },
@@ -896,12 +903,13 @@
                 if (this.subProcessPipeline) {
                     this.onUpdateNodeInfo(this.nodeDetailConfig.node_id, { isActived: false })
                 }
-                if ((node.isSubProcess || node.parentId) && !this.subProcessPipeline) {
-                    this.$nextTick(() => {
-                        let jsFlowInstance = this.$refs.subProcessCanvas
-                        jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                        jsFlowInstance && jsFlowInstance.zoomOut(0.75)
-                    })
+                if (node.isSubProcess || node.parentId) {
+                    if (!this.subProcessPipeline || !this.subProcessPipeline.activities[node.id]) {
+                        this.canvasRandomKey = new Date().getTime()
+                        this.$nextTick(() => {
+                            this.setSubprocessCanvasZoom()
+                        })
+                    }
                 }
                 this.$emit('onClickTreeNode', node)
                 this.$nextTick(() => {
@@ -910,6 +918,13 @@
                     }
                     this.updateNodeInfo()
                 })
+            },
+            setSubprocessCanvasZoom () {
+                const flowDom = this.$el.querySelector('.sub-flow')
+                const { height = 0, width = 0 } = flowDom?.getBoundingClientRect()
+                let jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                jsFlowInstance && jsFlowInstance.zoomOut(0.75, width / 2, height / 2)
             },
             updateNodeInfo () {
                 if (!this.subProcessPipeline) return
