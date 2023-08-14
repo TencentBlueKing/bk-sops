@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
+from gcloud.utils.validate import ObjectJsonBodyValidator, RequestValidator
 
 
 class StatusValidator(RequestValidator):
@@ -23,6 +23,16 @@ class StatusValidator(RequestValidator):
 
         if not (instance_id or subprocess_id):
             return False, "instance_id and subprocess_id can not both be empty"
+
+        return True, ""
+
+
+class BatchStatusValidator(RequestValidator):
+    def validate(self, request, *args, **kwargs):
+        try:
+            json.loads(request.body)
+        except Exception as e:
+            return False, f"request body is not a valid json string: {e}"
 
         return True, ""
 
