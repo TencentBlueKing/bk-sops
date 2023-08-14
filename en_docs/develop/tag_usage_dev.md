@@ -316,6 +316,7 @@ Password input box.
   - `pubKey`: crypto public key
   - `disabled`: set whether this component is disabled.
   - `canUseVar`: whether global variables can be used, which defaults to true
+  - `textareaMode`: When entering a password manually, the form type is textarea and the default is false
   - `value`: the encrypted password value
 
 **Methods**

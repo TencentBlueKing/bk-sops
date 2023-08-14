@@ -314,6 +314,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `pubKey`: 加密公钥
   - `disabled`：设置是否禁用组件
   - `canUseVar`: 是否可以使用全局变量，默认为true
+  - `textareaMode`: 手动输入密码时，表单类型为textarea，默认为false
   - `value`：加密后的密码值
 
 **方法**

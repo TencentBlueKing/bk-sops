@@ -16,15 +16,28 @@
                 <bk-option id="value" :name="$t('password_手动输入')"></bk-option>
                 <bk-option id="variable" :name="$t('password_使用密码变量')"></bk-option>
             </bk-select>
-            <input
-                v-if="localVal.tag === 'value'"
-                class="value-input"
-                type="password"
-                :value="inputText"
-                :placeholder="inputPlaceholder"
-                @input="handleInput"
-                @focus="handleFocus"
-                @blur="handleBlur" />
+            <template v-if="localVal.tag === 'value'">
+                <input
+                    v-if="!textareaMode"
+                    class="value-input"
+                    type="password"
+                    :value="inputText"
+                    :placeholder="inputPlaceholder"
+                    @input="handleInput"
+                    @focus="handleFocus"
+                    @blur="handleBlur" />
+                <textarea
+                    v-else
+                    class="value-textarea"
+                    type="textarea"
+                    rows="4"
+                    :value="inputText"
+                    :placeholder="inputPlaceholder"
+                    @input="handleTextareaInput"
+                    @focus="handleFocus"
+                    @blur="handleBlur">
+                </textarea>
+            </template>
             <bk-select v-else class="select-var" :value="localVal.value" @selected="handleSelectVariable">
                 <bk-option v-for="item in variables" :key="item.id" :id="item.id" :name="item.name"></bk-option>
             </bk-select>
@@ -50,6 +63,11 @@
             type: Boolean,
             required: false,
             default: true
+        },
+        textareaMode: {
+            type: Boolean,
+            required: false,
+            default: false
         },
         disabled: {
             type: Boolean,
@@ -125,6 +143,12 @@
                 this.localVal.value = e.target.value
                 this.inputPlaceholder = ''
             },
+            handleTextareaInput (e) {
+                console.log('textarea input: ', e.target.value)
+                this.localVal.value = e.target.value
+                this.inputPlaceholder = ''
+                e.target.value = e.target.value.replace(/[^\n]/g, '·')
+            },
             handleFocus () {
                 if (this.localVal.value.length > 0) {
                     this.inputPlaceholder = i18n.t('要修改密码请点击后重新输入密码')
@@ -135,7 +159,7 @@
             },
             // 输入框失焦后执行加密逻辑
             handleBlur () {
-                this.inputText = this.localVal.value
+                this.inputText = this.textareaMode ? this.localVal.value.replace(/[^\n]/g, '·') : this.localVal.value
                 const encryptedVal = this.encryptPassword()
                 this.localVal.value = encryptedVal
                 this.change()
@@ -171,7 +195,7 @@
 <style lang="scss" scoped>
     .password-edit-wrapper {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         .select-type {
             flex: 0 0 120px;
             border-right: none;
@@ -194,6 +218,26 @@
             text-align: left;
             outline: none;
             resize: none;
+            &:focus {
+                border-color: #3a84ff;
+                background-color: #ffffff;
+            }
+        }
+        .value-textarea {
+            flex: 1;
+            padding: 6px 10px;
+            width: 100%;
+            line-height: 16px;
+            color: #63656e;
+            background-color: #fff;
+            border-top-right-radius: 2px;
+            border-bottom-right-radius: 2px;
+            font-size: 12px;
+            border: 1px solid #c4c6cc;
+            text-align: left;
+            outline: none;
+            resize: none;
+            // -webkit-text-security: disc !important;
             &:focus {
                 border-color: #3a84ff;
                 background-color: #ffffff;
