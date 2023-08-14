@@ -74,6 +74,18 @@ def get_constant_values(constants, extra_data):
     return {**constant_values, **hydrated_context}
 
 
+def is_need_render_subprocess(used_keys, value):
+    keys = set()
+    if isinstance(value, str):
+        # 需要从子流程的入参数中去找到需要父流程渲染的那部分
+        for value in var_pattern.findall(value):
+            keys.add("${" + value + "}")
+        # 如果子流程有父流程的数据，说明是需要被渲染的
+        if keys.issubset(used_keys):
+            return True
+    return False
+
+
 def preview_node_inputs(
     runtime: BambooDjangoRuntime,
     pipeline: dict,
@@ -84,6 +96,16 @@ def preview_node_inputs(
 ):
     def get_need_render_context_keys():
         keys = set()
+        # 如果遇到子流程，到最后一层才会实际去解析需要渲染的变量
+        if subprocess_stack:
+            subprocess = subprocess_stack[0]
+            param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
+            for value in param_data.values():
+                if isinstance(value, str):
+                    for value in var_pattern.findall(value):
+                        keys.add("${" + value + "}")
+            return keys
+
         node_info = pipeline["activities"][node_id]
         for item in node_info.get("component").get("inputs").values():
 
@@ -100,15 +122,24 @@ def preview_node_inputs(
         for key, info in list(pipeline["data"].get("inputs", {}).items()) + list(parent_params.items())
         if key in need_render_context_keys
     ]
+
     context = Context(runtime, context_values, root_pipeline_data)
 
     if subprocess_stack:
+        # 如果子流程依赖了父流程的变量，那么需要把父流程的变量传递到下一层子流程中
         subprocess = subprocess_stack[0]
         child_pipeline = pipeline["activities"][subprocess]["pipeline"]
-        param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
         hydrated_context = context.hydrate(deformat=True)
+        # 子流程需要有选择的渲染父流程的变量
+        print(pipeline["activities"][subprocess]["params"])
+        param_data = {
+            key: info["value"]
+            for key, info in pipeline["activities"][subprocess]["params"].items()
+            if is_need_render_subprocess(need_render_context_keys, info["value"])
+        }
         hydrated_param_data = Template(param_data).render(hydrated_context)
         formatted_param_data = {key: {"value": value, "type": "plain"} for key, value in hydrated_param_data.items()}
+        print(formatted_param_data)
         return preview_node_inputs(
             runtime=runtime,
             pipeline=child_pipeline,
