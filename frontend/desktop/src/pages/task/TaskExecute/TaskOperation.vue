@@ -1730,6 +1730,9 @@
                 const targetNodes = this.nodeTargetMaps[id]
                 if (!targetNodes) return false
                 if (targetNodes.length > 1) {
+                    if (targetNodes.includes(backId)) {
+                        return true
+                    }
                     return targetNodes.some(targetId => {
                         return this.judgeNodeBack(targetId, backId)
                     })
