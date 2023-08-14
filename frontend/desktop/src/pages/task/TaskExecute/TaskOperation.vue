@@ -1456,11 +1456,12 @@
                                 }
                             })
                             conditions = Object.keys(nodeConfig.conditions).map((key, index) => {
-                                const { name: branchName } = nodeConfig.conditions[key]
+                                const { name: branchName, evaluate } = nodeConfig.conditions[key]
                                 return {
                                     id: id + '-' + key,
                                     name: branchName + '-' + key,
                                     title: branchName,
+                                    value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
                                     conditionType: 'condition', // 条件、条件并行网关
@@ -1472,12 +1473,13 @@
                             })
                             // 添加条件分支默认节点
                             if (nodeConfig.default_condition) {
-                                const { name: branchName, flow_id } = nodeConfig.default_condition
+                                const { name: branchName, flow_id, evaluate } = nodeConfig.default_condition
                                 // 默认条件置顶
                                 conditions.unshift({
                                     id: id + '-' + flow_id,
                                     name: branchName + '-' + flow_id,
                                     title: branchName,
+                                    value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
                                     conditionType: 'default',
@@ -1728,6 +1730,9 @@
                 const targetNodes = this.nodeTargetMaps[id]
                 if (!targetNodes) return false
                 if (targetNodes.length > 1) {
+                    if (targetNodes.includes(backId)) {
+                        return true
+                    }
                     return targetNodes.some(targetId => {
                         return this.judgeNodeBack(targetId, backId)
                     })

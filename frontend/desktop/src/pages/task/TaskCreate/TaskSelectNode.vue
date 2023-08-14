@@ -501,16 +501,16 @@
                 try {
                     let selectedNodes = []
                     const { task_id: reuseTaskId } = this.$route.query
-                    if (this.excludeNode.length) { // 优先使用勾选记录
+                    if (reuseTaskId) { // 优先复用变量的勾选
+                        const instanceData = await this.getTaskInstanceData(reuseTaskId)
+                        const pipelineTree = JSON.parse(instanceData.pipeline_tree)
+                        selectedNodes = Object.values(pipelineTree.activities).map(item => item.template_node_id)
+                    } else if (this.excludeNode.length) { // 其次使用勾选记录
                         Object.keys(this.activities).forEach(key => {
                             if (!this.excludeNode.includes(key)) {
                                 selectedNodes.push(key)
                             }
                         })
-                    } else if (reuseTaskId) { // 其次复用变量的勾选
-                        const instanceData = await this.getTaskInstanceData(reuseTaskId)
-                        const pipelineTree = JSON.parse(instanceData.pipeline_tree)
-                        selectedNodes = Object.values(pipelineTree.activities).map(item => item.template_node_id)
                     } else {
                         selectedNodes = Object.keys(this.activities) // 默认全选
                     }
