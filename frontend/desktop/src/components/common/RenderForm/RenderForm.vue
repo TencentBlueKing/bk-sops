@@ -292,11 +292,8 @@
                             break
                         case 'password':
                             val = {
-                                type: 'object',
-                                value: {
-                                    tag: 'value',
-                                    value: ''
-                                }
+                                tag: 'value',
+                                value: ''
                             }
                             break
                         default:
