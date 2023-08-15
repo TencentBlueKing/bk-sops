@@ -74,18 +74,6 @@ def get_constant_values(constants, extra_data):
     return {**constant_values, **hydrated_context}
 
 
-def is_need_render_subprocess(used_keys, value):
-    keys = set()
-    if isinstance(value, str):
-        # 需要从子流程的入参数中去找到需要父流程渲染的那部分
-        for value in var_pattern.findall(value):
-            keys.add("${" + value + "}")
-        # 如果子流程有父流程的数据，说明是需要被渲染的
-        if keys.issubset(used_keys):
-            return True
-    return False
-
-
 def preview_node_inputs(
     runtime: BambooDjangoRuntime,
     pipeline: dict,
@@ -129,17 +117,30 @@ def preview_node_inputs(
         # 如果子流程依赖了父流程的变量，那么需要把父流程的变量传递到下一层子流程中
         subprocess = subprocess_stack[0]
         child_pipeline = pipeline["activities"][subprocess]["pipeline"]
-        hydrated_context = context.hydrate(deformat=True)
+        parent_hydrated_context = context.hydrate(deformat=True)
         # 子流程需要有选择的渲染父流程的变量
-        print(pipeline["activities"][subprocess]["params"])
-        param_data = {
-            key: info["value"]
-            for key, info in pipeline["activities"][subprocess]["params"].items()
-            if is_need_render_subprocess(need_render_context_keys, info["value"])
+        param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
+        # 获取子流程的参数
+        hydrated_param_data = Template(param_data).render(parent_hydrated_context)
+        child_inputs = child_pipeline.get("data").get("inputs")
+        # 需要提前渲染好子流程参数的值
+        subprocess_context_values = [
+            ContextValue(
+                key=key,
+                type=VAR_CONTEXT_MAPPING[child_inputs.get(key)["type"]],
+                value=value,
+                code=child_inputs.get(key).get("custom_type"),
+            )
+            for key, value in hydrated_param_data.items()
+        ]
+
+        subprocess_context = Context(runtime, subprocess_context_values, root_pipeline_data)
+        subprocess_hydrated_context = subprocess_context.hydrate(deformat=True)
+        # 此时已经准备好了子流程所有的输出，到下一层递归时，由于parent_params在inputs之后被处理，所以parent_params会更新最终的值
+        formatted_param_data = {
+            "${" + key + "}": {"value": value, "type": "plain"} for key, value in subprocess_hydrated_context.items()
         }
-        hydrated_param_data = Template(param_data).render(hydrated_context)
-        formatted_param_data = {key: {"value": value, "type": "plain"} for key, value in hydrated_param_data.items()}
-        print(formatted_param_data)
+
         return preview_node_inputs(
             runtime=runtime,
             pipeline=child_pipeline,
