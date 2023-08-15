@@ -332,6 +332,16 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     return result
 
 
+def get_dynamic_group_list(username, bk_biz_id, bk_supplier_account):
+    """获取业务下的所有动态分组列表"""
+    client = get_client_by_user(username)
+    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    result = batch_request(client.cc.search_dynamic_group, kwargs, limit=200, check_iam_auth_fail=True)
+
+    dynamic_groups = [{"id": dynamic_group["id"]} for dynamic_group in result if dynamic_group["bk_obj_id"] == "host"]
+    return dynamic_groups
+
+
 def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
     """获取动态分组中对应主机列表"""
     client = get_client_by_user(username)

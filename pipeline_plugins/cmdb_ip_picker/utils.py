@@ -20,6 +20,7 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils import cmdb
+from gcloud.utils.cmdb import get_dynamic_group_list
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import extract_ip_from_ip_str, format_sundry_ip
 
@@ -283,6 +284,13 @@ class IPPickerHandler:
         :params inputted_group: 动态分组信息列表, list
         """
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in inputted_group]
+        try:
+            existing_dynamic_groups = get_dynamic_group_list(self.username, self.bk_biz_id, self.bk_supplier_account)
+            existing_dynamic_group_ids = set([dynamic_group["id"] for dynamic_group in existing_dynamic_groups])
+            dynamic_group_ids = set(dynamic_group_ids) & existing_dynamic_group_ids
+        except Exception as e:
+            # 如果获取动态分组失败，则不做过滤
+            logger.info(f"[group_picker_handler]: get_dynamic_group_list error {e}")
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
             success, result = cmdb.get_dynamic_group_host_list(
