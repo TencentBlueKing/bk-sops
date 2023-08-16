@@ -66,6 +66,7 @@
                     }
                     let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                     let bk_job_host = window.BK_JOB_HOST;
+                    if (bk_job_host.charAt(bk_job_host.length - 1) == "/") bk_job_host = bk_job_host.substr(0, bk_job_host.length - 1);
                     let url = bk_job_host + "/api_plan/" + this.value;
                     window.open(url, '_blank')
                 },
