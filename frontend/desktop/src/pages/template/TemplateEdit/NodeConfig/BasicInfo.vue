@@ -76,17 +76,10 @@
                 </bk-search-select>
             </bk-form-item> -->
             <bk-form-item>
-                <div slot="tip" class="bk-label slot-bk-label">
+                <div slot="tip" class="bk-label slot-bk-label error-handle-label">
                     <span v-bk-tooltips="errorHandleTipsConfig" class="form-item-tips">{{ $t('失败处理') }}</span>
                 </div>
                 <div class="error-handle">
-                    <bk-checkbox
-                        :value="formData.ignorable"
-                        :disabled="isViewMode || formData.autoRetry.enable || formData.timeoutConfig.enable"
-                        @change="onErrorHandlerChange($event, 'ignorable')">
-                        <span class="error-handle-icon"><span class="text">AS</span></span>
-                        <span class="error-handle-text" v-bk-overflow-tips>{{ $t('自动跳过') }}</span>
-                    </bk-checkbox>
                     <bk-checkbox
                         :value="formData.skippable"
                         :disabled="isViewMode || formData.ignorable"
@@ -94,6 +87,15 @@
                         <span class="error-handle-icon"><span class="text">MS</span></span>
                         <span class="error-handle-text" v-bk-overflow-tips>{{ $t('手动跳过') }}</span>
                     </bk-checkbox>
+                    <bk-checkbox
+                        :value="formData.ignorable"
+                        :disabled="isViewMode || formData.autoRetry.enable || formData.timeoutConfig.enable"
+                        @change="onErrorHandlerChange($event, 'ignorable')">
+                        <span class="error-handle-icon"><span class="text">AS</span></span>
+                        <span class="error-handle-text" v-bk-overflow-tips>{{ $t('自动跳过') }}</span>
+                    </bk-checkbox>
+                </div>
+                <div class="error-handle">
                     <bk-checkbox
                         :value="formData.retryable"
                         :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
@@ -107,35 +109,37 @@
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
                         <span class="auto-retry-times" @click.stop>
-                            {{ $t('在') }}
-                            <div class="number-input" style="margin: 0 4px;">
-                                <bk-input
-                                    v-model.number="formData.autoRetry.interval"
-                                    type="number"
-                                    style="width: 68px;"
-                                    :placeholder="' '"
-                                    :disabled="isViewMode || !formData.autoRetry.enable"
-                                    :max="10"
-                                    :min="0"
-                                    :precision="0"
-                                    @change="updateData">
-                                </bk-input>
-                                <span class="unit">{{ $tc('秒', 0) }}</span>
-                            </div>
-                            <span class="error-handle-text" v-bk-overflow-tips>{{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}</span>
-                            <div class="number-input" style=" margin-left: 4px;">
+                            {{ $t('自动重试') }}
+                            <div class="number-input retry-times-input" style=" margin-left: 4px;">
                                 <bk-input
                                     v-model.number="formData.autoRetry.times"
                                     type="number"
-                                    style="width: 68px;"
                                     :placeholder="' '"
                                     :disabled="isViewMode || !formData.autoRetry.enable"
                                     :max="10"
                                     :min="1"
                                     :precision="0"
                                     @change="updateData">
+                                    <template slot="append">
+                                        <div class="group-append-text">{{ $t('次') }}</div>
+                                    </template>
                                 </bk-input>
-                                <span class="unit">{{ $t('次') }}</span>
+                            </div>
+                            <span class="error-handle-text" v-bk-overflow-tips>{{ $t('，') }}{{ $t('间隔') }}</span>
+                            <div class="number-input interval-input" style="margin: 0 4px;">
+                                <bk-input
+                                    v-model.number="formData.autoRetry.interval"
+                                    type="number"
+                                    :placeholder="' '"
+                                    :disabled="isViewMode || !formData.autoRetry.enable"
+                                    :max="10"
+                                    :min="0"
+                                    :precision="0"
+                                    @change="updateData">
+                                    <template slot="append">
+                                        <div class="group-append-text">{{ $t('error_handle_秒') }}</div>
+                                    </template>
+                                </bk-input>
                             </div>
                         </span>
                     </bk-checkbox>
@@ -284,19 +288,12 @@
             </bk-form-item>
             <template v-if="isShowFailTimeoutHandle">
                 <bk-form-item>
-                    <div slot="tip" class="bk-label slot-bk-label">
+                    <div slot="tip" class="bk-label slot-bk-label error-handle-label">
                         <span v-bk-tooltips="errorHandleTipsConfig" class="form-item-tips">
                             {{ $t('失败处理') }}
                         </span>
                     </div>
                     <div class="error-handle">
-                        <bk-checkbox
-                            :value="formData.ignorable"
-                            :disabled="isViewMode || formData.autoRetry.enable || formData.timeoutConfig.enable"
-                            @change="onErrorHandlerChange($event, 'ignorable')">
-                            <span class="error-handle-icon"><span class="text">AS</span></span>
-                            <span class="error-handle-text" v-bk-overflow-tips>{{ $t('自动跳过') }}</span>
-                        </bk-checkbox>
                         <bk-checkbox
                             :value="formData.skippable"
                             :disabled="isViewMode || formData.ignorable"
@@ -304,6 +301,15 @@
                             <span class="error-handle-icon"><span class="text">MS</span></span>
                             <span class="error-handle-text" v-bk-overflow-tips>{{ $t('手动跳过') }}</span>
                         </bk-checkbox>
+                        <bk-checkbox
+                            :value="formData.ignorable"
+                            :disabled="isViewMode || formData.autoRetry.enable || formData.timeoutConfig.enable"
+                            @change="onErrorHandlerChange($event, 'ignorable')">
+                            <span class="error-handle-icon"><span class="text">AS</span></span>
+                            <span class="error-handle-text" v-bk-overflow-tips>{{ $t('自动跳过') }}</span>
+                        </bk-checkbox>
+                    </div>
+                    <div class="error-handle">
                         <bk-checkbox
                             :value="formData.retryable"
                             :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
@@ -316,39 +322,41 @@
                             :disabled="isViewMode || formData.ignorable || formData.timeoutConfig.enable"
                             @change="onErrorHandlerChange($event, 'autoRetry')">
                             <span class="error-handle-icon"><span class="text">AR</span></span>
+                            <span class="auto-retry-times" @click.stop>
+                                {{ $t('自动重试') }}
+                                <div class="number-input retry-times-input" style=" margin-left: 4px;">
+                                    <bk-input
+                                        v-model.number="formData.autoRetry.times"
+                                        type="number"
+                                        :placeholder="' '"
+                                        :disabled="isViewMode || !formData.autoRetry.enable"
+                                        :max="10"
+                                        :min="1"
+                                        :precision="0"
+                                        @change="updateData">
+                                        <template slot="append">
+                                            <div class="group-append-text">{{ $t('次') }}</div>
+                                        </template>
+                                    </bk-input>
+                                </div>
+                                <span class="error-handle-text" v-bk-overflow-tips>{{ $t('，') }}{{ $t('间隔') }}</span>
+                                <div class="number-input interval-input" style="margin: 0 4px;">
+                                    <bk-input
+                                        v-model.number="formData.autoRetry.interval"
+                                        type="number"
+                                        :placeholder="' '"
+                                        :disabled="isViewMode || !formData.autoRetry.enable"
+                                        :max="10"
+                                        :min="0"
+                                        :precision="0"
+                                        @change="updateData">
+                                        <template slot="append">
+                                            <div class="group-append-text">{{ $t('error_handle_秒') }}</div>
+                                        </template>
+                                    </bk-input>
+                                </div>
+                            </span>
                         </bk-checkbox>
-                        <span class="auto-retry-times">
-                            {{ $t('在') }}
-                            <div class="number-input" style="margin: 0 4px;">
-                                <bk-input
-                                    v-model.number="formData.autoRetry.interval"
-                                    type="number"
-                                    style="width: 68px;"
-                                    :placeholder="' '"
-                                    :disabled="isViewMode || !formData.autoRetry.enable"
-                                    :max="10"
-                                    :min="0"
-                                    :precision="0"
-                                    @change="updateData">
-                                </bk-input>
-                                <span class="unit">{{ $tc('秒', 0) }}</span>
-                            </div>
-                            <span class="error-handle-text" v-bk-overflow-tips>{{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}</span>
-                            <div class="number-input" style=" margin-left: 4px;">
-                                <bk-input
-                                    v-model.number="formData.autoRetry.times"
-                                    type="number"
-                                    style="width: 68px;"
-                                    :placeholder="' '"
-                                    :disabled="isViewMode || !formData.autoRetry.enable"
-                                    :max="10"
-                                    :min="1"
-                                    :precision="0"
-                                    @change="updateData">
-                                </bk-input>
-                                <span class="unit">{{ $t('次') }}</span>
-                            </div>
-                        </span>
                     </div>
                     <p
                         v-if="!formData.ignorable && !formData.skippable && !formData.retryable && !formData.autoRetry.enable"
@@ -900,17 +908,21 @@
             left: 0;
         }
     }
+    .error-handle-label {
+        top: -8px !important;
+    }
     .error-handle {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         flex-wrap: wrap;
+        &:not(:first-of-type) {
+            margin-top: 20px;
+        }
         /deep/ .bk-form-checkbox {
             display: flex;
             align-items: center;
             &:not(:last-of-type) {
-                margin-right: 8px;
-                margin-bottom: 10px;
+                margin-right: 50px;
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
@@ -937,7 +949,6 @@
             }
         }
         .error-handle-text {
-            min-width: 49px;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
@@ -977,6 +988,42 @@
             line-height: 30px;
             color: #999999;
             background: transparent;
+        }
+    }
+    .retry-times-input,
+    .interval-input {
+        /deep/.bk-input-number {
+            width: 50px;
+            .bk-form-input {
+                padding-right: 5px !important;
+            }
+        }
+        /deep/.group-append {
+            align-items: center;
+            border: 1px solid #c4c6cc !important;
+            border-left: none !important;
+            background: #fff !important;
+            transition: border .2s linear;
+            .group-append-text {
+                font-size: 12px;
+                padding-right: 15px;
+            }
+        }
+        .control-active {
+            /deep/.group-append {
+                border-color: #3a84ff !important;
+            }
+        }
+        .control-disable {
+            /deep/.group-append {
+                background-color: #fafbfd !important;
+                border-color: #dcdee5 !important;
+            }
+        }
+    }
+    .retry-times-input {
+        /deep/.bk-input-number {
+            width: 45px;
         }
     }
     .auto-retry-times,

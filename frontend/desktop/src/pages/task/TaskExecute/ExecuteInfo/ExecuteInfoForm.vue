@@ -51,7 +51,7 @@
                     </template>
                     <template v-if="templateConfig.auto_retry && templateConfig.auto_retry.enable">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('在') + $tc('秒', templateConfig.auto_retry.interval) + $t('后') + $t('，') + $t('自动重试') + ' ' + templateConfig.auto_retry.times + ' ' + $t('次') }}
+                        {{ $t('自动重试') + ' ' + templateConfig.auto_retry.times + ' ' + $t('次') + $t('，') + $t('间隔') + ' ' + templateConfig.auto_retry.interval + ' ' + $t('error_handle_秒') }}
                     </template>
                 </span>
                 <span v-else class="td">{{ '--' }}</span>
@@ -76,6 +76,7 @@
                     <render-form
                         v-if="inputs.length > 0"
                         ref="renderForm"
+                        :class="{ 'subflow-form': isLegacySubProcess }"
                         :scheme="inputs"
                         :hooked="hooked"
                         :constants="isSubProcessNode ? subflowForms : constants"
@@ -444,7 +445,7 @@
                         // 获取参数
                         const { outputs: respsOutputs, forms, inputs } = resp.data
                         if (forms.renderform) {
-                            if (!this.isSubflow) {
+                            if (!this.isLegacySubProcess) {
                                 // 获取第三方插件公共输出参数
                                 if (!this.pluginOutput['remote_plugin']) {
                                     await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
@@ -675,34 +676,89 @@
         padding-top: 20px;
     }
     /deep/.render-form {
-        .rf-tag-label {
-            display: none;
+        >.rf-form-item {
+            .rf-group-name {
+                display: none;
+            }
+            
+            .hide-render-icon {
+                top: 0;
+            }
         }
         .rf-form-group {
-            >.rf-form-item {
-                margin-top: 0;
+            .rf-group-name {
+                display: none;
+            }
+            .rf-tag-hook {
+                top: 0;
+            }
+        }
+        .rf-tag-label {
+            width: 130px;
+            padding-right: 24px;
+            .label {
+                white-space: initial;
+            }
+            .required {
+                position: absolute;
+                top: 2px;
+                right: 15px;
+            }
+        }
+    }
+    /deep/.subflow-form {
+        .rf-form-group {
+            .rf-group-name {
+                display: block;
+                width: 130px;
+                padding-right: 24px;
+                text-align: right;
+                .scheme-name {
+                    font-size: 12px;
+                }
+            }
+            .rf-has-hook {
+                .rf-tag-label {
+                    display: none;
+                }
+            }
+            .rf-tag-hook {
+                top: 0;
+            }
+        }
+        >.rf-form-group {
+            .rf-group-name {
+                float: left;
+            }
+            .form-item-group {
+                margin-left: 130px;
             }
         }
         .form-item-group {
             padding: 16px;
-            margin-right: 64px;
+            margin-right: 45px;
             background: #f5f7fa;
             .rf-tag-form {
                 margin-right: 0;
             }
             .rf-form-item {
                 .rf-tag-label {
-                    display: block;
-                    float: initial;
+                    display: flex;
                     text-align: left;
-                    margin: 0 0 6px;
                     color: #63656e;
+                    width: 100px;
                     line-height: 20px;
-                    .required {
-                        position: relative;
-                        top: 0;
-                        right: 0;
+                    padding-right: 10px;
+                    margin-top: 6px;
+                    .label {
+                        white-space: initial;
                     }
+                    .required {
+                        position: initial;
+                    }
+                }
+                .rf-tag-form {
+                    margin-left: 100px;
                 }
                 &:last-child {
                     margin-bottom: 0;
@@ -718,8 +774,10 @@
                 padding: 0;
             }
         }
-        .rf-tag-form {
-            margin-left: 0;
+        .show-render {
+            .form-item-group {
+                margin-right: 64px;
+            }
         }
     }
     

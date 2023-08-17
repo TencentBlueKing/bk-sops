@@ -378,16 +378,7 @@
         .rf-group-name {
             display: none;
         }
-        .rf-tag-label {
-            width: 130px;
-            padding-right: 24px;
-            white-space: nowrap;
-            .required {
-                position: absolute;
-                top: 2px;
-                right: 15px;
-            }
-        }
+        
         .hide-render-icon {
             top: 0;
         }
@@ -400,6 +391,18 @@
             top: 0;
         }
     }
+    .rf-tag-label {
+        width: 130px;
+        padding-right: 24px;
+        .label {
+            white-space: initial;
+        }
+        .required {
+            position: absolute;
+            top: 2px;
+            right: 15px;
+        }
+    }
 }
 /deep/.subflow-form {
     .rf-form-group {
@@ -408,7 +411,9 @@
             width: 130px;
             padding-right: 24px;
             text-align: right;
-            font-size: 12px;
+            .scheme-name {
+                font-size: 12px;
+            }
         }
         .rf-has-hook {
             .rf-tag-label {
@@ -429,18 +434,26 @@
     }
     .form-item-group {
         padding: 16px;
-        margin-right: 64px;
+        margin-right: 45px;
         background: #f5f7fa;
         .rf-tag-form {
             margin-right: 0;
         }
         .rf-form-item {
             .rf-tag-label {
-                display: block;
+                display: flex;
                 text-align: left;
                 color: #63656e;
+                width: 100px;
                 line-height: 20px;
                 padding-right: 10px;
+                margin-top: 6px;
+                .label {
+                    white-space: initial;
+                }
+                .required {
+                    position: initial;
+                }
             }
             .rf-tag-form {
                 margin-left: 100px;
@@ -457,6 +470,11 @@
         .resource-allocation {
             border: none;
             padding: 0;
+        }
+    }
+    .show-render {
+        .form-item-group {
+            margin-right: 64px;
         }
     }
 }

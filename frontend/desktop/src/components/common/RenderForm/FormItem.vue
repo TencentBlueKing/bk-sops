@@ -20,6 +20,7 @@
             {
                 'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
+                'show-render': isShowRenderIcon,
                 'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols,
                 'rf-section-item': scheme.type === 'section'
@@ -128,7 +129,7 @@
             <!-- 变量勾选checkbox -->
             <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
                 <i
-                    :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                    :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
                         content: hook ? $t('取消变量引用') : $t('设置为变量'),
                         placement: 'bottom',
@@ -146,7 +147,6 @@
                     }"
                     @click="onRenderChange">
                 </i>
-                <i v-else class="bk-icon icon-angle-up-fill"></i>
             </div>
             <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
                 <div class="hide-html-text">{{ scheme.attrs.desc }}</div>
@@ -310,33 +310,39 @@
             })
         },
         created () {
-            // 针对job的代码编辑框，移除「变量免渲染」的功能开关
+            // 移除「变量免渲染」的功能开关
             const { type, attrs } = this.scheme
             if (type === 'code_editor') {
-                if (attrs.variable_render) { // variable_render 是否开启变量渲染
-                    this.isShowRenderIcon = true
-                    return
-                }
-                /**
-                 * need_render:
-                    1. false
-                        之前已勾选，现在去掉免渲染icon
-                    2.true，判断value
-                        a. 不包含${}，需要把need_render置为false，去掉免渲染icon
-                        b. 包含${}，保留免渲染icon
-                 */
-                if (this.render) {
-                    const regex = /\${[a-zA-Z_]\w*}/g
-                    const matchList = this.value.match(regex)
-                    const isMatch = matchList && matchList.some(item => {
-                        return !!this.constants[item]
-                    })
-                    if (isMatch) {
+                if (attrs.variable_render === false) { // variable_render 开启变量渲染
+                    /**
+                     * need_render:
+                        1. false
+                            之前已勾选，现在去掉免渲染icon
+                        2.true，判断value
+                            a. 不包含${}，需要把need_render置为false，去掉免渲染icon
+                            b. 包含${}，保留免渲染icon
+                     */
+                    if (this.render) {
+                        const regex = /\${[a-zA-Z_]\w*}/g
+                        const matchList = this.value.match(regex)
+                        const isMatch = matchList && matchList.some(item => {
+                            return !!this.constants[item]
+                        })
+                        if (isMatch) {
+                            this.isShowRenderIcon = true
+                        } else {
+                            this.$nextTick(() => {
+                                this.onRenderChange()
+                            })
+                        }
+                    }
+                } else {
+                    if (!this.render) {
                         this.isShowRenderIcon = true
-                    } else {
-                        this.onRenderChange()
                     }
                 }
+            } else if (!this.render) { // 如果开启了免渲染则展示按钮
+                this.isShowRenderIcon = true
             }
         },
         mounted () {
@@ -570,6 +576,11 @@
     }
     &.rf-has-hook {
         & > .rf-tag-form {
+            margin-right: 45px;
+        }
+    }
+    &.show-render {
+        > .rf-tag-form {
             margin-right: 64px;
         }
     }
@@ -637,7 +648,6 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 8px;
-        width: 56px;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
@@ -657,6 +667,9 @@
         }
         .hook-icon {
             font-size: 19px;
+        }
+        .render-skip-icon {
+            margin-left: 7px;
         }
         .icon-angle-up-fill {
             font-size: 12px;

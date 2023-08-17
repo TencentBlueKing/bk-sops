@@ -76,6 +76,7 @@
                                                 <i
                                                     :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
                                                     v-bk-tooltips="{
+                                                        allowHTML: false,
                                                         content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
                                                         placements: ['bottom']
                                                     }">
@@ -83,6 +84,7 @@
                                                 <i
                                                     :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
                                                     v-bk-tooltips="{
+                                                        allowHTML: false,
                                                         content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
                                                         placements: ['bottom']
                                                     }">
@@ -1016,7 +1018,7 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = true
+                        acc[crt.tag_code] = crt.type !== 'code_editor'
                         return acc
                     }, {})
                 }
@@ -1043,7 +1045,7 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = true
+                        acc[crt.tag_code] = crt.type !== 'code_editor'
                         return acc
                     }, {})
                 }

@@ -18,22 +18,6 @@
                 @click="handleClickNode(node)">
                 <!-- 左侧图标 -->
                 <div :class="['node-flex-start', { expanded: node.expanded }]">
-                    <!--子流程展开/收起-->
-                    <span
-                        v-if="node.isSubProcess"
-                        class="common-icon-next-triangle-shape gateway-triangle"
-                        @click.stop="toggleExpanded(node)">
-                    </span>
-                    <!--分支条件图标-->
-                    <span
-                        v-else-if="node.conditionType"
-                        class="branch-condition-box"
-                        :class="{ 'default-condition': node.conditionType === 'default' }"
-                        @click.stop="toggleExpanded(node)">
-                        <i v-if="node.children && node.children.length" class="common-icon-next-triangle-shape"></i>
-                    </span>
-                    <!--空的占位符-->
-                    <span v-else-if="!node.parentId" class="empty-div"></span>
                     <!--打回图标-->
                     <span
                         v-if="node.isCallback"
@@ -42,9 +26,25 @@
                         @click.stop="handleClickNode(node.callbackInfo)">
                         <i class="common-icon-reback-branch"></i>
                     </span>
+                    <!--子流程展开/收起-->
+                    <span
+                        v-if="node.isSubProcess"
+                        class="common-icon-next-triangle-shape gateway-triangle"
+                        @click.stop="toggleExpanded(node)">
+                    </span>
+                    <!--分支条件图标-->
+                    <span
+                        v-else-if="node.conditionType && (node.isCallback ? node.children.length : true)"
+                        class="branch-condition-box"
+                        :class="{ 'default-condition': node.conditionType === 'default' }"
+                        @click.stop="toggleExpanded(node)">
+                        <i v-if="node.children && node.children.length" class="common-icon-next-triangle-shape"></i>
+                    </span>
+                    <!--空的占位符-->
+                    <span v-else-if="node.isCallback ? false : !node.parentId" class="empty-div"></span>
                     <!--网关图标-->
                     <span
-                        v-else-if="nodeType[node.type]"
+                        v-if="nodeType[node.type]"
                         :class="[
                             nodeType[node.type],
                             nodeStateMap[node.state]
@@ -57,11 +57,17 @@
                 <!-- 节点名称 -->
                 <span v-bk-overflow-tips class="node-name">{{ node.title }}</span>
             </div>
+            <div
+                v-if="node.expanded && node.dynamicLoad"
+                class="dynamic-load"
+                v-bkloading="{ isLoading: node.expanded && node.dynamicLoad, opacity: 1 }">
+            </div>
             <NodeTreeItem
-                v-if="node.expanded && node.children && node.children.length"
+                v-else-if="node.expanded && node.children && node.children.length"
                 v-show="node.expanded"
                 :active-id="activeId"
                 :node-list="node.children"
+                @dynamicLoad="$emit('dynamicLoad', $event)"
                 @click="handleClickNode">
             </NodeTreeItem>
         </li>
@@ -111,6 +117,9 @@
                     node.children.forEach(item => {
                         item.expanded = false
                     })
+                }
+                if (node.dynamicLoad) {
+                    this.$emit('dynamicLoad', node)
                 }
             },
             handleClickNode (node) {
@@ -267,7 +276,7 @@
         &::before {
             content: '';
             display: block;
-            height: calc(100% - 25px);
+            height: calc(100% - 20px);
             position: absolute;
             top: 28px;
             left: 25.5px;
@@ -294,12 +303,20 @@
         &::before {
             content: '';
             display: block;
-            height: calc(100% - 25px);
+            height: calc(100% - 20px);
             position: absolute;
             top: 28px;
             left: 25.5px;
             width: 1px;
             border-left: 1px dashed #dcdee5;
+        }
+    }
+    .dynamic-load {
+        margin-left: 42px;
+        height: 40px;
+        /deep/.bk-loading-wrapper {
+            top: 70%;
+            left: 15%;
         }
     }
 }

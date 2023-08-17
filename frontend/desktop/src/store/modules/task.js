@@ -282,6 +282,16 @@ const task = {
             }).then(response => response.data)
         },
         /**
+         * 批量获取任务实例状态信息(包含子流程状态)
+         * @param {String} data 实例数据
+         */
+        getBatchInstanceStatus ({ commit }, data) {
+            const { task_ids, project_id, cancelToken } = data
+            return axios.post(`taskflow/api/batch_status/${project_id}/`, {
+                task_ids
+            }, { cancelToken }).then(response => response.data)
+        },
+        /**
          * 开始执行任务实例
          * @param {String} instance_id 实例id
          */

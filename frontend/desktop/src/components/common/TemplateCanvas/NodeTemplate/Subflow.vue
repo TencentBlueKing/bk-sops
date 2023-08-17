@@ -71,10 +71,6 @@
                     {{ $t('继续') }}
                 </span>
             </template>
-            <span v-if="!isSubProcessNode" @click.stop="$emit('onSubflowDetailClick', node.id)">
-                <i class="common-icon-bkflow-setting"></i>
-                {{ $t('节点参数') }}
-            </span>
         </div>
     </div>
 </template>
