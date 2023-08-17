@@ -13,19 +13,20 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.v1_0 import (
     AllBizJobExecuteJobPlanComponent,
 )
+from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_PASSWORD
 
 
 class AllBizJobExecuteJobPlanComponentTest(TestCase, ComponentTestMixin):
@@ -228,7 +229,15 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT = MockClient(
         "data": {
             "job_instance_id": 10000,
             "step_instance_var_list": [
-                {"step_instance_id": 20000000577, "global_var_list": [{"type": 1, "name": "name", "value": "test"}]},
+                {
+                    "step_instance_id": 20000000577,
+                    "global_var_list": [
+                        # 已重新编辑，需要传递给 Job
+                        {"type": JOBV3_VAR_CATEGORY_PASSWORD, "name": "password_1", "value": "test"},
+                        # Job 侧脱敏，无需传递
+                        {"type": JOBV3_VAR_CATEGORY_PASSWORD, "name": "password", "value": "******"},
+                    ],
+                },
                 {"step_instance_id": 20000000578, "global_var_list": [{"type": 1, "name": "name", "value": "test"}]},
             ],
         },
