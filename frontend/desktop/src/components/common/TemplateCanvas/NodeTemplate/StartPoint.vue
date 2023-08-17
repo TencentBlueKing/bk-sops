@@ -10,7 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['circle-node', 'start-point', node.status ? node.status.toLowerCase() : '', { 'ready': node.ready }]">
+    <div :class="[
+        'circle-node',
+        'start-point', node.status ? node.status.toLowerCase() : '',
+        { 'ready': node.ready },
+        { 'actived': node.isActived }
+    ]">
         <div class="circle-node-text">
             {{ $t('开始') }}
         </div>

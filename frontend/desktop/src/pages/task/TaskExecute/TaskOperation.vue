@@ -80,7 +80,7 @@
                 <div class="header">
                     <span>{{sideSliderTitle}}</span>
                     <div class="sub-title" v-if="nodeInfoType === 'modifyParams' && retryNodeId">
-                        {{ previewData.activities[retryNodeId] && previewData.activities[retryNodeId].name }}
+                        {{ nodePipelineData.activities[retryNodeId] && nodePipelineData.activities[retryNodeId].name }}
                     </div>
                 </div>
             </div>
@@ -92,7 +92,7 @@
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
-                    :instance_id="instance_id"
+                    :instance_id="subProcessTaskId || instance_id"
                     :retry-node-id="retryNodeId"
                     :is-sub-canvas="nodeNav.length > 1"
                     @nodeTaskRetry="nodeTaskRetry"
@@ -331,6 +331,7 @@
                 taskParamsType: '',
                 timer: null,
                 pipelineData: pipelineData,
+                nodeTreePipelineData: tools.deepClone(pipelineData),
                 treeNodeConfig: {},
                 nodeDetailConfig: {},
                 nodeSwitching: false,
@@ -387,6 +388,8 @@
                 isCondition: false,
                 conditionOutgoing: [],
                 unrenderedCoverNode: [],
+                subProcessTaskId: null,
+                nodeData: [],
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {}
@@ -438,10 +441,6 @@
             },
             common () {
                 return this.templateSource !== 'project'
-            },
-            nodeData () {
-                this.convergeInfo = {}
-                return this.getOrderedTree(this.completePipelineData)
             },
             taskState () {
                 return TASK_STATE_DICT[this.state]
@@ -831,7 +830,7 @@
                     this.pending.task = false
                 }
             },
-            async nodeTaskSkip (id) {
+            async nodeTaskSkip (id, taskId) {
                 if (this.pending.skip) {
                     return
                 }
@@ -840,7 +839,7 @@
                 this.isFailedSubproceeNodeInfo = null
                 try {
                     const data = {
-                        instance_id: this.instance_id,
+                        instance_id: taskId || this.instance_id,
                         node_id: id
                     }
                     const res = await this.instanceNodeSkip(data)
@@ -861,7 +860,7 @@
                     this.pending.skip = false
                 }
             },
-            async nodeForceFail (id) {
+            async nodeForceFail (id, taskId) {
                 if (this.pending.forceFail) {
                     return
                 }
@@ -869,7 +868,7 @@
                 try {
                     const params = {
                         node_id: id,
-                        task_id: Number(this.instance_id)
+                        task_id: Number(taskId || this.instance_id)
                     }
                     const res = await this.forceFail(params)
                     if (res.result) {
@@ -913,14 +912,14 @@
                     this.pending.selectGateway = false
                 }
             },
-            async nodeResume (id) {
+            async nodeResume (id, taskId) {
                 if (this.pending.parseNodeResume) {
                     return
                 }
                 this.pending.parseNodeResume = true
                 try {
                     const data = {
-                        instance_id: this.instance_id,
+                        instance_id: taskId || this.instance_id,
                         node_id: id,
                         data: { callback: 'resume' }
                     }
@@ -1017,9 +1016,10 @@
                     componentData
                 }
             },
-            async onRetryClick (id) {
+            async onRetryClick (id, taskId) {
                 try {
-                    if (this.isChildTaskFlow) {
+                    this.subProcessTaskId = taskId
+                    if (this.isChildTaskFlow || taskId) {
                         const h = this.$createElement
                         this.$bkInfo({
                             subHeader: h('div', { class: 'custom-header' }, [
@@ -1041,10 +1041,13 @@
                         })
                         return
                     }
-                    const resp = await this.getInstanceRetryParams({ id: this.instance_id })
+                    const resp = await this.getInstanceRetryParams({ id: taskId || this.instance_id })
                     if (resp.data.enable) {
                         this.openNodeInfoPanel('retryNode', i18n.t('重试节点'))
-                        this.setNodeDetailConfig(id)
+                        // 子流程任务节点，不需要重新获取节点配置
+                        if (!taskId) {
+                            this.setNodeDetailConfig(id)
+                        }
                         if (this.nodeDetailConfig.component_code) {
                             await this.loadNodeInfo(id)
                         }
@@ -1068,7 +1071,17 @@
                             } else if (this.nodeDetailConfig.component_code === 'subprocess_plugin') { // 新版子流程任务节点输入参数处理
                                 const value = nodeInfo.data.inputs[key]
                                 if (key === 'subprocess') {
-                                    const nodeConfig = this.pipelineData.activities[id]
+                                    let pipelineData = this.nodeTreePipelineData
+                                    if (this.nodeDetailConfig.root_node) {
+                                        const parentIdList = this.nodeDetailConfig.root_node.split('-')
+                                        parentIdList.forEach(item => {
+                                            const nodeData = pipelineData.activities[item]
+                                            if (nodeData.pipeline) {
+                                                pipelineData = nodeData.pipeline
+                                            }
+                                        })
+                                    }
+                                    const nodeConfig = pipelineData.activities[id]
                                     const subprocess = nodeConfig.component.data.subprocess
                                     nodeInfo.data.inputs[key] = subprocess.value
                                     Object.keys(value.pipeline.constants).forEach(key => {
@@ -1116,7 +1129,7 @@
                     console.warn(e)
                 }
             },
-            onSkipClick (id) {
+            onSkipClick (id, taskId) {
                 const h = this.$createElement
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [
@@ -1138,19 +1151,21 @@
                     confirmLoading: true,
                     cancelText: this.$t('取消'),
                     confirmFn: async () => {
-                        await this.nodeTaskSkip(id)
+                        await this.nodeTaskSkip(id, taskId)
                     }
                 })
             },
             async nodeTaskRetry () {
                 try {
                     this.pending.retry = true
-                    this.setNodeDetailConfig(this.retryNodeId)
+                    if (!this.nodeDetailConfig.component_code) {
+                        this.setNodeDetailConfig(this.retryNodeId)
+                    }
                     await this.loadNodeInfo()
 
                     const { instance_id, component_code, node_id } = this.nodeDetailConfig
                     const data = {
-                        instance_id,
+                        instance_id: this.subProcessTaskId || instance_id,
                         component_code,
                         node_id
                     }
@@ -1162,7 +1177,7 @@
                         } else {
                             const inputs = tools.deepClone(this.nodeInputs)
                             // 当重试节点引用了变量时，对应的inputs值设置为变量
-                            const { constants } = this.pipelineData
+                            const { constants } = this.nodeTreePipelineData
                             for (const key in constants) {
                                 const values = constants[key]
                                 if (this.retryNodeId in values.source_info) {
@@ -1190,7 +1205,7 @@
                     this.pending.retry = false
                 }
             },
-            onForceFailClick (id) {
+            onForceFailClick (id, taskId) {
                 const h = this.$createElement
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [
@@ -1212,13 +1227,16 @@
                     confirmLoading: true,
                     cancelText: this.$t('取消'),
                     confirmFn: async () => {
-                        await this.nodeForceFail(id)
+                        await this.nodeForceFail(id, taskId)
                     }
                 })
             },
-            onModifyTimeClick (id) {
+            onModifyTimeClick (id, taskId) {
+                this.subProcessTaskId = taskId
                 this.openNodeInfoPanel('modifyTime', i18n.t('修改时间'))
-                this.setNodeDetailConfig(id)
+                if (!taskId) {
+                    this.setNodeDetailConfig(id)
+                }
             },
             onGatewaySelectionClick (id) {
                 const nodeGateway = this.pipelineData.gateways[id]
@@ -1243,14 +1261,14 @@
                 this.gatewayBranches = branches
                 this.isGatewaySelectDialogShow = true
             },
-            onTaskNodeResumeClick (id) {
+            onTaskNodeResumeClick (id, taskId) {
                 this.$bkInfo({
                     title: i18n.t('确定继续往后执行?'),
                     maskClose: false,
                     confirmLoading: true,
                     cancelText: this.$t('取消'),
                     confirmFn: async () => {
-                        await this.nodeResume(id)
+                        await this.nodeResume(id, taskId)
                     }
                 })
             },
@@ -1336,7 +1354,7 @@
                 const endNode = tools.deepClone(data.end_event)
                 const fstLine = startNode.outgoing
                 const nodeId = data.flows[fstLine].target
-                const { parentId, parentLevel, lastLevelStyle } = pipelineInfo
+                const { parentId, parentLevel, lastLevelStyle, taskId } = pipelineInfo
                 let marginLeft
                 if (lastLevelStyle) {
                     marginLeft = lastLevelStyle.match(/[0-9]+/g)[0]
@@ -1351,6 +1369,7 @@
                     nodeLevel: 1,
                     parentId,
                     expanded: false,
+                    taskId,
                     style: `margin-left: ${marginLeft}px`
                 })]
                 const endEvent = Object.assign({}, endNode, {
@@ -1359,11 +1378,12 @@
                     nodeLevel: 1,
                     parentId,
                     expanded: false,
+                    taskId,
                     style: `margin-left: ${marginLeft}px`
                 })
                 this.getNodeTargetMaps(data)
                 this.getNodeSourceMaps(data)
-                const nodeInfo = { id: nodeId, parentId, parentLevel, lastLevelStyle }
+                const nodeInfo = { id: nodeId, parentId, parentLevel, lastLevelStyle, taskId }
                 this.retrieveLines(data, nodeInfo, orderedData)
                 orderedData.push(endEvent)
                 // 过滤root最上层汇聚网关
@@ -1378,11 +1398,11 @@
              *
              */
             retrieveLines (data, nodeInfo, ordered, parentOrdered) {
-                const { id, gatewayId, branchId, nodeLevel = 1, parentId, parentLevel, lastLevelStyle, lastId } = nodeInfo
+                const { id, gatewayId, branchId, nodeLevel = 1, parentId, parentLevel, lastLevelStyle, lastId, taskId } = nodeInfo
                 const { activities, gateways, flows } = data
                 const nodeConfig = activities[id] || gateways[id]
                 if (this.nodeIds.includes(id)) {
-                    const isBack = this.judgeNodeBack(id, id)
+                    const isBack = this.judgeNodeBack(id, id, [])
                     if (isBack) { // 打回节点
                         const lastNode = this.getMatchOrderedNode(ordered, lastId, false)
                         const existNode = this.getMatchOrderedNode(ordered, id, false)
@@ -1421,7 +1441,8 @@
                         type: nodeConfig.type,
                         parentId,
                         expanded: false,
-                        nodeLevel: parentLevel ? parentLevel + nodeLevel : nodeLevel
+                        nodeLevel: parentLevel ? parentLevel + nodeLevel : nodeLevel,
+                        taskId
                     }
                     let marginLeft = 0
                     if (treeItem.nodeLevel === 1) {
@@ -1511,11 +1532,11 @@
                             this.nodeIds.push(id)
                         }
                     } else { // 任务节点
-                        if (nodeConfig.type === 'SubProcess') {
+                        if (nodeConfig.type === 'SubProcess' || nodeConfig.component.code === 'subprocess_plugin') {
                             const parentInfo = {
                                 parentId: parentId ? parentId + '-' + id : id,
                                 parentLevel: nodeLevel,
-                                lastLevelStyle: treeItem.style
+                                lastLevelStyle: 'margin-left: 0px'
                             }
                             // 兼容旧数据
                             if (nodeConfig.pipeline) {
@@ -1523,15 +1544,9 @@
                                 this.getNodeSourceMaps(nodeConfig.pipeline)
                                 treeItem.children = this.getOrderedTree(nodeConfig.pipeline, parentInfo)
                             } else {
-                                let { data: componentData } = nodeConfig.component
-                                componentData = componentData && componentData.subprocess
-                                componentData = componentData && componentData.value
-                                componentData = componentData && componentData.pipeline
-                                if (componentData) {
-                                    this.getNodeTargetMaps(componentData)
-                                    this.getNodeSourceMaps(componentData)
-                                    treeItem.children = this.getOrderedTree(componentData, parentInfo)
-                                }
+                                treeItem.type = 'SubProcess'
+                                treeItem.dynamicLoad = true
+                                treeItem.children = []
                             }
                             treeItem.isSubProcess = true
                         }
@@ -1726,22 +1741,24 @@
                 }, {})
                 return maxNum
             },
-            judgeNodeBack (id, backId) {
+            judgeNodeBack (id, backId, checked) {
+                if (checked.includes(id)) return id === backId
                 const targetNodes = this.nodeTargetMaps[id]
                 if (!targetNodes) return false
+                checked.push(id)
                 if (targetNodes.length > 1) {
                     if (targetNodes.includes(backId)) {
                         return true
                     }
                     return targetNodes.some(targetId => {
-                        return this.judgeNodeBack(targetId, backId)
+                        return this.judgeNodeBack(targetId, backId, checked)
                     })
                 } else {
                     const targetId = targetNodes[0]
                     if (targetId === backId) {
                         return true
                     } else {
-                        return this.judgeNodeBack(targetId, backId)
+                        return this.judgeNodeBack(targetId, backId, checked)
                     }
                 }
             },
@@ -1881,13 +1898,16 @@
                 }
                 this.updateNodeActived(id, true)
                 // 如果为子流程节点则需要重置pipelineData的constants
-                this.nodePipelineData = { ...this.pipelineData }
+                this.nodePipelineData = { ...this.nodeTreePipelineData }
                 // 兼容旧版本子流程节点输出数据
                 const selectLocation = this.canvasData.locations.find(item => item.id === id)
                 if (selectLocation?.type === 'subflow') {
-                    const { constants } = this.pipelineData.activities[id].pipeline
+                    const { constants } = this.nodeTreePipelineData.activities[id].pipeline
                     this.nodePipelineData['constants'] = constants
                 }
+                this.convergeInfo = {}
+                this.nodeIds = []
+                this.nodeData = this.getOrderedTree(this.completePipelineData)
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
             onOpenConditionEdit (data, isCondition = true) {
@@ -2010,12 +2030,12 @@
                 this.updateTaskStatus(id)
             },
             async onClickTreeNode (node) {
-                const { id, conditionType, parentId } = node
+                const { id, conditionType, parentId, taskId } = node
                 if (this.nodeDetailConfig.node_id) {
                     this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
                 this.updateNodeActived(id, true)
-                let pipelineData = this.pipelineData
+                let pipelineData = this.nodeTreePipelineData
                 if (parentId) {
                     const parentIdList = parentId.split('-')
                     parentIdList.forEach(item => {
@@ -2045,12 +2065,18 @@
                     this.isCondition = true
                     this.conditionData = { ...node }
                 }
-                const subprocessStack = parentId ? parentId.split('-') : []
+                let subprocessStack = parentId ? parentId.split('-') : []
+                let instance_id = this.instance_id
+                if (taskId) {
+                    subprocessStack = []
+                    instance_id = taskId
+                }
                 this.nodeDetailConfig = {
                     component_code: code,
                     version: version,
                     node_id: nodeId,
-                    instance_id: this.instance_id,
+                    instance_id,
+                    taskId,
                     root_node: parentId,
                     subprocess_stack: JSON.stringify(subprocessStack),
                     componentData
@@ -2254,6 +2280,7 @@
                 }
             },
             onHiddenSideslider () {
+                this.subProcessTaskId = null
                 this.nodeInfoType = ''
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             },

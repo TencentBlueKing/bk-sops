@@ -14,13 +14,13 @@
         <NodeTreeItem
             :active-id="activeId"
             :node-list="treeData"
+            @dynamicLoad="$emit('dynamicLoad', $event)"
             @click="handleClickNode">
         </NodeTreeItem>
     </div>
 </template>
 <script>
 
-    import tools from '@/utils/tools.js'
     import NodeTreeItem from './NodeTreeItem'
 
     export default {
@@ -29,7 +29,7 @@
             NodeTreeItem
         },
         props: {
-            data: {
+            treeData: {
                 type: Array,
                 default () {
                     return []
@@ -38,35 +38,11 @@
             defaultActiveId: {
                 type: String,
                 default: ''
-            },
-            nodeDisplayStatus: {
-                type: Object,
-                default: {},
-                required: true
             }
         },
         data () {
             return {
-                activeId: this.defaultActiveId,
-                treeData: []
-            }
-        },
-        watch: {
-            data: {
-                handler (value) {
-                    const treeData = tools.deepClone(value)
-                    this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
-                    this.treeData = treeData
-                },
-                deep: true,
-                immediate: true
-            },
-            nodeDisplayStatus: {
-                handler (val) {
-                    this.nodeAddStatus(this.treeData, val.children)
-                },
-                deep: true,
-                immediate: true
+                activeId: this.defaultActiveId
             }
         },
         mounted () {
@@ -79,28 +55,10 @@
                 this.activeId = node.id
                 this.$emit('onSelectNode', node)
             },
-            nodeAddStatus (treeData = [], states) {
-                treeData.forEach(node => {
-                    const { id, conditionType, isSubProcess, children } = node
-                    if (conditionType) {
-                        if (children?.length) {
-                            this.nodeAddStatus(children, states)
-                        }
-                        return
-                    }
-                    if (!states[id]) return
-                    let nodeState = 'READY'
-                    nodeState = states[id].skip ? 'SKIP' : states[id].state
-                    if (children) {
-                        const newStates = isSubProcess ? Object.assign({}, states, states[id].children) : states
-                        this.nodeAddStatus(children, newStates)
-                    }
-                    this.$set(node, 'state', nodeState)
-                })
-            },
             setDefaultActiveId (treeData = [], id) {
                 return treeData.some(item => {
                     if (item.id === id) {
+                        item.expanded = !!item.isSubProcess
                         return true
                     } else if (item.children?.length) {
                         item.expanded = this.setDefaultActiveId(item.children, id)

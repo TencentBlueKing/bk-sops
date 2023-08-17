@@ -10,7 +10,17 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="rf-form-group" :key="randomKey" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
+    <div
+        class="rf-form-group"
+        :key="randomKey"
+        :class="[
+            {
+                'rf-has-hook': option.showHook,
+                'show-render': isShowRenderIcon
+            },
+            scheme.status || ''
+        ]"
+        v-show="showForm">
         <!-- 分组名称和提示 -->
         <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
             <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
@@ -90,9 +100,9 @@
             </component>
         </div>
         <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="showHook">
+        <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
             <i
-                :class="['common-icon-var hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
                     content: hook ? $t('取消变量引用') : $t('设置为变量'),
                     placement: 'bottom',
@@ -100,7 +110,16 @@
                 }"
                 @click="onHookForm(!hook)">
             </i>
-            <i class="bk-icon icon-angle-up-fill"></i>
+            <i
+                v-if="isShowRenderIcon"
+                :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
+                v-bk-tooltips="{
+                    content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
+                    placement: 'bottom',
+                    zIndex: 3000
+                }"
+                @click="onRenderChange">
+            </i>
         </div>
         <!-- 分组描述 -->
         <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
@@ -182,7 +201,8 @@
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
                 isDescTipsShow: false,
-                isExpand: false
+                isExpand: false,
+                isShowRenderIcon: false
             }
         },
         computed: {
@@ -227,6 +247,40 @@
                     }
                 })
             }
+            // 移除「变量免渲染」的功能开关
+            const { type, attrs } = this.scheme
+            if (type === 'code_editor') {
+                if (attrs.variable_render === false) { // variable_render 开启变量渲染
+                    /**
+                     * need_render:
+                        1. false
+                            之前已勾选，现在去掉免渲染icon
+                        2.true，判断value
+                            a. 不包含${}，需要把need_render置为false，去掉免渲染icon
+                            b. 包含${}，保留免渲染icon
+                     */
+                    if (this.render) {
+                        const regex = /\${[a-zA-Z_]\w*}/g
+                        const matchList = this.value.match(regex)
+                        const isMatch = matchList && matchList.some(item => {
+                            return !!this.constants[item]
+                        })
+                        if (isMatch) {
+                            this.isShowRenderIcon = true
+                        } else {
+                            this.$nextTick(() => {
+                                this.onRenderChange()
+                            })
+                        }
+                    }
+                } else {
+                    if (!this.render) {
+                        this.isShowRenderIcon = true
+                    }
+                }
+            } else if (!this.render) { // 如果开启了免渲染则展示按钮
+                this.isShowRenderIcon = true
+            }
         },
         beforeDestroy () {
             if (this.scheme.events) {
@@ -259,6 +313,12 @@
                     return
                 }
                 this.$emit('onHook', this.scheme.tag_code, val)
+            },
+            onRenderChange () {
+                if (!this.option.formEdit || this.hook) {
+                    return
+                }
+                this.$emit('onRenderChange', this.scheme.tag_code, !this.render)
             },
             get_parent () {
                 return this.$parent
@@ -363,7 +423,7 @@
         background: #ffeeec;
     }
     &.rf-has-hook .rf-tag-form {
-        margin-right: 64px;
+        margin-right: 45px;
     }
     .rf-group-name {
         display: block
@@ -385,7 +445,6 @@
         align-items: center;
         justify-content: center;
         padding: 0 8px;
-        width: 56px;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
@@ -409,6 +468,9 @@
             font-size: 12px;
             color: #c4c6cc;
             margin: 3px 0 0 6px;
+        }
+        &.hide-render-icon {
+            justify-content: center;
         }
     }
     .tag-label-tips {
