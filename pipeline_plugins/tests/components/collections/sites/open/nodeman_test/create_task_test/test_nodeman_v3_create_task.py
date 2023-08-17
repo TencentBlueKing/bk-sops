@@ -75,7 +75,9 @@ GET_HOST_ID_BY_INNER_IP_BASE = (
 )
 
 GET_HOST_ID_BY_INNER_IP = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_host_id_by_inner_ip"
-ENCRYPT_AUTH_KEY = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v3_0.encrypt_auth_key"
+ENCRYPT_AUTH_KEY = (
+    "pipeline_plugins.components.collections.sites.open.nodeman." "base.NodeManBaseService.parse2nodeman_ciphertext"
+)
 
 # mock clients
 CASE_FAIL_CLIENT = MockClient(

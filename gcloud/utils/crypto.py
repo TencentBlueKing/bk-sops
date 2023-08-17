@@ -10,14 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import base64
 import json
+import typing
 
 from bkcrypto import constants as crypto_constants
 from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
-from Crypto import Util
-from Crypto.Cipher import PKCS1_v1_5 as PKCS1_v1_5_cipher
-from Crypto.PublicKey import RSA
+from bkcrypto.constants import AsymmetricCipherType
+from bkcrypto.contrib.django.ciphers import asymmetric_cipher_manager
+from bkcrypto.contrib.django.selectors import AsymmetricCipherSelector
 from django.conf import settings
 
 
@@ -42,72 +42,23 @@ def get_default_asymmetric_key_config(cipher_type: str) -> AsymmetricKeyConfig:
     )
 
 
-def get_nodeman_asymmetric_key_config(cipher_type: str) -> AsymmetricKeyConfig:
-    """
-    获取节点管理非对称加密配置
-    :param cipher_type:
-    :return:
-    """
-    pass
+def decrypt(ciphertext: str, using: typing.Optional[str] = None) -> str:
+    using = using or "default"
+    # 1. 尝试根据前缀解密
+    plaintext: str = AsymmetricCipherSelector(using=using).decrypt(ciphertext)
+
+    # 2. 尝试对明文二次 RSA 解密，用于兼容原逻辑
+    try:
+        plaintext = asymmetric_cipher_manager.cipher(using=using, cipher_type=AsymmetricCipherType.RSA.value).decrypt(
+            plaintext
+        )
+    except Exception:
+        # 已经是明文的情况下会抛出该异常
+        pass
+
+    return plaintext
 
 
-def _get_block_size(key_obj, is_encrypt=True) -> int:
-    """
-    获取加解密最大片长度，用于分割过长的文本，单位：bytes
-    :param key_obj:
-    :param is_encrypt:
-    :return:
-    """
-    block_size = Util.number.size(key_obj.n) / 8
-    reserve_size = 11
-    if not is_encrypt:
-        reserve_size = 0
-    return int(block_size - reserve_size)
-
-
-def _block_list(lst, block_size):
-    """
-    序列切片
-    :param lst:
-    :param block_size:
-    :return:
-    """
-    for idx in range(0, len(lst), block_size):
-        yield lst[idx : idx + block_size]
-
-
-def encrypt_auth_key(auth_key, public_key_name, public_key):
-    """
-    @summary: rsa分块加密
-    @param auth_key: 待加密的敏感信息
-    @param public_key_name: 公钥名称
-    @param public_key: 公钥
-    """
-    public_key_obj = RSA.importKey(public_key)
-    message_bytes = auth_key.encode(encoding="utf-8")
-    encrypt_message_bytes = b""
-    block_size = _get_block_size(public_key_obj)
-    cipher = PKCS1_v1_5_cipher.new(public_key_obj)
-    for block in _block_list(message_bytes, block_size):
-        encrypt_message_bytes += cipher.encrypt(block)
-
-    encrypt_message = base64.b64encode(public_key_name.encode("utf-8")) + base64.b64encode(encrypt_message_bytes)
-    return encrypt_message.decode(encoding="utf-8")
-
-
-def decrypt_auth_key(encrypt_message, private_key):
-    """
-    @summary: rsa分块解密
-    @param encrypt_message: 密文
-    @param private_key: rsa私钥
-    @return: 解密后的信息
-    """
-    # TODO 要改的
-    decrypt_message_bytes = b""
-    private_key_obj = RSA.importKey(private_key.strip("\n"))
-    encrypt_message_bytes = base64.b64decode(encrypt_message)
-    block_size = _get_block_size(private_key_obj, is_encrypt=False)
-    cipher = PKCS1_v1_5_cipher.new(private_key_obj)
-    for block in _block_list(encrypt_message_bytes, block_size):
-        decrypt_message_bytes += cipher.decrypt(block, "")
-    return decrypt_message_bytes.decode(encoding="utf-8")
+def encrypt(plaintext: str, using: typing.Optional[str] = None) -> str:
+    using = using or "default"
+    return AsymmetricCipherSelector(using=using).encrypt(plaintext)

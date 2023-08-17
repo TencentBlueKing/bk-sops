@@ -15,14 +15,17 @@ import traceback
 
 import requests
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 from pipeline.conf import settings
+from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
+
 from gcloud.core.models import EnvironmentVariables
 
 __group_name__ = _("企业微信(WechatWork)")
+
+from gcloud.utils import crypto
+from pipeline_plugins.components.utils import parse_passwd_value
 
 
 class WechatWorkSendMessageService(Service):
@@ -35,7 +38,10 @@ class WechatWorkSendMessageService(Service):
                 schema=StringItemSchema(description=_("通过在群里@企业微信机器人获取，多个用换行分隔")),
             ),
             self.InputItem(
-                name=_("消息内容"), key="message_content", type="string", schema=StringItemSchema(description=_("消息内容")),
+                name=_("消息内容"),
+                key="message_content",
+                type="string",
+                schema=StringItemSchema(description=_("消息内容")),
             ),
             self.InputItem(
                 name=_("提醒人"),
@@ -57,7 +63,12 @@ class WechatWorkSendMessageService(Service):
         mentioned_members = data.inputs.wechat_work_mentioned_members
         msgtype = data.get_one_of_inputs("msgtype", "text")
 
+        # 尝试解密
+        chat_id: str = crypto.decrypt(parse_passwd_value(chat_id))
+
         chat_id_list = chat_id.split("\n")
+
+        print(chat_id_list)
 
         url = EnvironmentVariables.objects.get_var("BKAPP_SOPS_WECHAT_WORK_WEB_HOOK")
         if not url:
@@ -68,9 +79,9 @@ class WechatWorkSendMessageService(Service):
             data.outputs.ex_data = _("会话 ID 不能为空")
             return False
 
-        for c in chat_id_list:
+        for idx, c in enumerate(chat_id_list, 1):
             if len(c) != 32:
-                data.outputs.ex_data = _("无效的会话 ID: {}".format(c))
+                data.outputs.ex_data = _("第{idx}行的会话 ID 格式不正确（长度需为 32）".format(idx=idx))
                 return False
 
         mentioned_list = []

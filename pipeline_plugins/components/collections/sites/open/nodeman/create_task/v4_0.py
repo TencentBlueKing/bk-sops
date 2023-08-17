@@ -17,15 +17,15 @@ from pipeline.component_framework.component import Component
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
+from gcloud.utils import crypto
 from gcloud.utils.cmdb import get_business_host, get_business_host_ipv6
-from gcloud.utils.crypto import decrypt_auth_key, encrypt_auth_key
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.nodeman.base import (
-    NodeManNewBaseService,
-    get_nodeman_rsa_public_key,
-)
+from pipeline_plugins.components.collections.sites.open.nodeman.base import NodeManNewBaseService
 
 __group_name__ = _("节点管理(Nodeman)")
+
+from pipeline_plugins.components.utils import parse_passwd_value
+
 VERSION = "v4.0"
 
 # 无需认证信息的操作
@@ -117,21 +117,12 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                         }
                     )
 
-                    auth_key = host["auth_key"]
-
                     # 处理表格中每行的key/psw
+                    auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
                     try:
-                        auth_key = decrypt_auth_key(auth_key, settings.RSA_PRIV_KEY)
-                    except Exception:
-                        self.logger.info("try to decrypt password error, use plaintext.")
-                        pass
-
-                    # auth_key加密
-                    success, ras_public_key = get_nodeman_rsa_public_key(executor, self.logger)
-                    if not success:
-                        data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
+                        auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                    except ValueError:
                         return False
-                    auth_key = encrypt_auth_key(auth_key, ras_public_key["name"], ras_public_key["content"])
 
                     if auth_params["auth_type"] == "PASSWORD":
                         auth_params["password"] = auth_key

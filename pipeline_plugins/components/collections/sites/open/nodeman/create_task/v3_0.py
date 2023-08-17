@@ -17,15 +17,17 @@ from pipeline.component_framework.component import Component
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
-from gcloud.utils.crypto import decrypt_auth_key, encrypt_auth_key
+from gcloud.utils import crypto
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManNewBaseService,
     get_host_id_by_inner_ip,
     get_host_id_by_inner_ipv6,
-    get_nodeman_rsa_public_key,
 )
 
 __group_name__ = _("节点管理(Nodeman)")
+
+from pipeline_plugins.components.utils import parse_passwd_value
+
 VERSION = "v3.0"
 
 # 安装类任务(job_install)
@@ -98,7 +100,6 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
                 ap_id = host["nodeman_ap_id"]
                 auth_type = host["auth_type"]
-                auth_key = host["auth_key"]
                 use_inner_ip = True if host.get("inner_ip") else False
                 # use_inner_ip 判定用户输入的的是ipv4还是ipv6
                 inner_ip_list = self.get_ip_list(
@@ -112,17 +113,12 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                     return False
 
                 # 处理表格中每行的key/psw
+                auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
                 try:
-                    auth_key = decrypt_auth_key(auth_key, settings.RSA_PRIV_KEY)
-                except Exception:
-                    # password is not encrypted
-                    pass
-                # auth_key加密
-                success, ras_public_key = get_nodeman_rsa_public_key(executor, self.logger)
-                if not success:
-                    data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
+                    auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                except ValueError:
                     return False
-                auth_key = encrypt_auth_key(auth_key, ras_public_key["name"], ras_public_key["content"])
+
                 # 表格每行基础参数
                 base_params = {
                     "bk_biz_id": bk_biz_id,

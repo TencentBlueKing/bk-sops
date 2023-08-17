@@ -16,8 +16,8 @@ import sys
 from urllib.parse import urlparse
 
 from bamboo_engine.config import Settings as BambooSettings
+from bkcrypto import constants as bkcrypto_constants
 from bkcrypto.asymmetric.options import RSAAsymmetricOptions
-from bkcrypto.symmetric.options import AESSymmetricOptions, SM4SymmetricOptions
 from blueapps.conf.default_settings import *  # noqa
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.opentelemetry.utils import inject_logging_trace_info
@@ -26,8 +26,6 @@ from pipeline.celery.queues import ScalableQueues
 
 import env
 from gcloud.exceptions import ApiRequestError
-
-from bkcrypto import constants as bkcrypto_constants
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
@@ -676,7 +674,6 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
-
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
