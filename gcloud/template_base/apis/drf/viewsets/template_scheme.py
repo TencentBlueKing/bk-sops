@@ -203,10 +203,8 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
                 scheme_obj.unique_id = f'{template_id}-{scheme["name"]}'
                 scheme_obj.name = scheme["name"]
                 scheme_obj.data = scheme["data"]
+                scheme_obj.unique_id = "{}-{}".format(template_id, scheme["name"])
                 update_schemes.append(scheme_obj)
-                scheme.update(
-                    {"unique_id": "{}-{}".format(template_id, scheme["name"]), "template_id": pipeline_template_id}
-                )
             else:
                 scheme.update(
                     {"unique_id": "{}-{}".format(template_id, scheme["name"]), "template_id": pipeline_template_id}
