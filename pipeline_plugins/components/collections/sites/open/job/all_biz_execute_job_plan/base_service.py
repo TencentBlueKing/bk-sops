@@ -138,7 +138,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
                 if result:
                     global_var_list.append({"id": _value["id"], "server": server})
             # 密文变量在没有修改的情况下不加入全局变量，避免脱敏字符串作为正式值进行作业执行逻辑
-            elif _value["category"] == JOBV3_VAR_CATEGORY_PASSWORD and val == "******":
+            elif _value.get("category") == JOBV3_VAR_CATEGORY_PASSWORD and val == "******":
                 continue
             else:
                 global_var_list.append({"id": _value["id"], "value": val})
