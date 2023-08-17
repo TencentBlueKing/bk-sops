@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.components.utils import chunk_table_data, parse_passwd_value
 
 
 class UtilsTestCase(TestCase):
@@ -65,3 +65,15 @@ class UtilsTestCase(TestCase):
         self.assertEqual(has_two_list_expect_column, has_two_list_actual_column["data"])
         self.assertEqual([], failed_actual_column["data"])
         self.assertFalse(failed_actual_column["result"])
+
+    def test_parse_passwd_value__nest(self):
+        value = "123"
+        passwd_value = {"tag": "value", "value": {"tag": "value", "value": value}}
+        self.assertEqual(parse_passwd_value(passwd_value), value)
+
+    def test_parse_passwd_value__str(self):
+        value = "123"
+        self.assertEqual(parse_passwd_value(value), value)
+
+    def test_parse_passwd_value__invalid_type(self):
+        self.assertEqual(parse_passwd_value([]), "")

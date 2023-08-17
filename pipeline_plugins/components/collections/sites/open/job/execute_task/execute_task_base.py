@@ -19,9 +19,11 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
+from gcloud.utils import crypto
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP, JOBV3_VAR_CATEGORY_PASSWORD
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, loose_strip
 
 __group_name__ = _("作业平台(JOB)")
@@ -149,9 +151,9 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
         biz_across = data.get_one_of_inputs("biz_across")
 
         for _value in original_global_var:
-            val = loose_strip(_value["value"])
+            val = loose_strip(crypto.decrypt(_value["value"]))
             # category为3,表示变量类型为IP
-            if _value["category"] == 3:
+            if _value["category"] == JOBV3_VAR_CATEGORY_IP:
                 self.logger.info("[job_execute_task_base] start find ip, var={}".format(val))
                 if val:
                     server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
@@ -160,6 +162,9 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                         data.outputs.ex_data = _(f"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {val}")
                         return False
                     global_vars.append({"name": _value["name"], "server": server})
+            # 密文变量在没有修改的情况下不加入全局变量，避免脱敏字符串作为正式值进行作业执行逻辑
+            elif _value["category"] == JOBV3_VAR_CATEGORY_PASSWORD and val == "******":
+                continue
             else:
                 global_vars.append({"name": _value["name"], "value": val})
         job_kwargs = {

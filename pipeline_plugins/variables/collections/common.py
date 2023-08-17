@@ -92,7 +92,6 @@ class Int(CommonPlainVariable, SelfExplainVariable):
 
 
 class Password(LazyVariable, SelfExplainVariable):
-    # TODO 需要改的
     code = "password"
     name = _("密码")
     type = "general"

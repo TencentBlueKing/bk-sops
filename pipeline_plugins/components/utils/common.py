@@ -14,6 +14,7 @@ import logging
 import random
 import re
 import time
+import typing
 from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
@@ -118,3 +119,13 @@ def convert_num_to_str(export_data: list):
             if isinstance(value, int) or isinstance(value, float):
                 data[key] = str(value)
     return export_data
+
+
+def parse_passwd_value(passwd_value: typing.Union[str, typing.Dict[str, str]]) -> str:
+    if isinstance(passwd_value, str):
+        return passwd_value
+    elif isinstance(passwd_value, dict):
+        return parse_passwd_value(passwd_value.get("value", ""))
+    else:
+        # 仅有两种合法结构，如果都不满足直接返回空串
+        return ""
