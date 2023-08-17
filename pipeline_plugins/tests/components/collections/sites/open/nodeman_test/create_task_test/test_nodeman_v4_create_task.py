@@ -71,7 +71,9 @@ BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.no
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_BUSINESS_HOST = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.get_business_host"
 GET_HOST_ID_BY_INNER_IP = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_host_id_by_inner_ip"
-ENCRYPT_AUTH_KEY = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.encrypt_auth_key"
+ENCRYPT_AUTH_KEY = (
+    "pipeline_plugins.components.collections.sites.open.nodeman." "base.NodeManBaseService.parse2nodeman_ciphertext"
+)
 
 # mock clients
 CASE_FAIL_CLIENT = MockClient(

@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
     Call,
     CallAssertion,
@@ -22,9 +21,11 @@ from pipeline.component_framework.test import (
     ExecuteAssertion,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.wechat_work.wechat_work_send_message.v1_0 import (
+
+from gcloud.utils import crypto
+from pipeline_plugins.components.collections.sites.open.wechat_work.wechat_work_send_message.v1_0 import (  # noqa
     WechatWorkSendMessageComponent,
-)  # noqa
+)
 
 
 class WechatWorkSendMessageComponentTest(TestCase, ComponentTestMixin):
@@ -89,7 +90,7 @@ INVALID_CHAT_ID_CASE = ComponentTestCase(
         "msgtype": "text",
     },
     parent_data={},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无效的会话 ID: @all"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "第1行的会话 ID 格式不正确（长度需为 32）"}),
     schedule_assertion=None,
     patchers=[Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url")],
 )
@@ -144,6 +145,43 @@ SUCCESS_CASE = ComponentTestCase(
     name="success case",
     inputs={
         "wechat_work_chat_id": "11111111111111111111111111111111\n22222222222222222222222222222222",  # noqa
+        "message_content": "haha",
+        "wechat_work_mentioned_members": "m1,m2",
+        "msgtype": "text",
+    },
+    parent_data={},
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    schedule_assertion=None,
+    execute_call_assertion=[
+        CallAssertion(
+            func=SUCCESS_REQUEST_POST,
+            calls=[
+                Call(
+                    url="test_url",
+                    json={
+                        "chatid": "11111111111111111111111111111111|22222222222222222222222222222222",  # noqa
+                        "msgtype": "text",
+                        "text": {"content": "haha", "mentioned_list": ["m1", "m2"]},
+                    },
+                    timeout=5,
+                )
+            ],
+        )
+    ],
+    patchers=[
+        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url"),
+        Patcher(target=REQUESTS_POST, side_effect=SUCCESS_REQUEST_POST),
+    ],
+)
+
+
+ENCRYPT_SUCCESS_CASE = ComponentTestCase(
+    name="success case",
+    inputs={
+        "wechat_work_chat_id": {
+            "tag": "variable",
+            "value": crypto.encrypt("11111111111111111111111111111111\n22222222222222222222222222222222"),
+        },
         "message_content": "haha",
         "wechat_work_mentioned_members": "m1,m2",
         "msgtype": "text",

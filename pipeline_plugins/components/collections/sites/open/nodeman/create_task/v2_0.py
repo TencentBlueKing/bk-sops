@@ -18,15 +18,17 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
-from gcloud.utils.crypto import decrypt_auth_key, encrypt_auth_key
+from gcloud.utils import crypto
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
     get_host_id_by_inner_ip,
     get_host_id_by_inner_ipv6,
-    get_nodeman_rsa_public_key,
 )
 
 __group_name__ = _("节点管理(Nodeman)")
+
+from pipeline_plugins.components.utils import parse_passwd_value
+
 VERSION = "v2.0"
 
 # 安装类任务(job_install)
@@ -54,15 +56,6 @@ class NodemanCreateTaskService(NodeManBaseService):
         nodeman_op_target = data.inputs.nodeman_op_target
         bk_cloud_id = nodeman_op_target.get("nodeman_bk_cloud_id", "")
         node_type = nodeman_op_target.get("nodeman_node_type", "")
-
-        nodeman_ticket = data.get_one_of_inputs("nodeman_ticket", {})
-        nodeman_tjj_ticket = nodeman_ticket.get("nodeman_tjj_ticket", "")
-        if nodeman_tjj_ticket:
-            try:
-                nodeman_tjj_ticket = decrypt_auth_key(nodeman_tjj_ticket, settings.RSA_PRIV_KEY)
-            except Exception:
-                # password is not encrypted
-                pass
 
         nodeman_op_info = data.inputs.nodeman_op_info
         op_type = nodeman_op_info.get("nodeman_op_type", "")
@@ -105,7 +98,6 @@ class NodemanCreateTaskService(NodeManBaseService):
             all_hosts, row_host_params_list = [], []
             for host in nodeman_hosts:
                 auth_type = host["auth_type"]
-                auth_key = host["auth_key"]
                 use_inner_ip = True if host.get("inner_ip") else False
                 # use_inner_ip 判定用户输入的的是ipv4还是ipv6
                 inner_ip_list = self.get_ip_list(
@@ -118,17 +110,12 @@ class NodemanCreateTaskService(NodeManBaseService):
                     return False
 
                 # 处理表格中每行的key/psw
+                auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
                 try:
-                    auth_key = decrypt_auth_key(auth_key, settings.RSA_PRIV_KEY)
-                except Exception:
-                    # password is not encrypted
-                    pass
-                # auth_key加密
-                success, ras_public_key = get_nodeman_rsa_public_key(executor, self.logger)
-                if not success:
-                    data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
+                    auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                except ValueError:
                     return False
-                auth_key = encrypt_auth_key(auth_key, ras_public_key["name"], ras_public_key["content"])
+
                 # 表格每行基础参数
                 base_params = {
                     "bk_biz_id": bk_biz_id,
@@ -188,8 +175,6 @@ class NodemanCreateTaskService(NodeManBaseService):
 
             kwargs = {"job_type": job_name, "hosts": all_hosts, "action": "job_install"}
 
-            if nodeman_tjj_ticket:
-                kwargs.update({"tcoa_ticket": nodeman_tjj_ticket})
         else:
             data.set_outputs("ex_data", _("无效的操作请求:{}".format(job_name)))
             return False
@@ -202,7 +187,10 @@ class NodemanCreateTaskService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("操作对象"),

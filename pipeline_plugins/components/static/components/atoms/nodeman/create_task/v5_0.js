@@ -203,13 +203,12 @@
             },
             {
                 tag_code: "auth_key",
-                type: "textarea",
-                // TODO 能不能加一个动态选项？如果具有加密前缀，默认展示 * 脱敏
-                // TODO 如果重新输入保存，可以拉公钥去做加密
+                type: "password",
                 attrs: {
                     name: gettext("认证密钥"),
                     width: "400px",
                     editable: true,
+                    textareaMode: true,
                     validation: [
                         {
                             type: "custom",
@@ -219,15 +218,14 @@
                                     result: true,
                                     error_message: ""
                                 };
-                                if (auth_type !== "TJJ_PASSWORD" && !value.length) {
+                                if (auth_type !== "TJJ_PASSWORD" && !value.value.length) {
                                     result.result = false;
                                     result.error_message = gettext("请输入认证密钥");
                                 }
                                 return result;
                             }
                         }
-                    ],
-                    showPassword: true
+                    ]
                 },
             },
         ];
