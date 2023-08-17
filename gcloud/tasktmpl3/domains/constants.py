@@ -84,6 +84,16 @@ def preview_node_inputs(
 ):
     def get_need_render_context_keys():
         keys = set()
+        # 如果遇到子流程，到最后一层才会实际去解析需要渲染的变量
+        if subprocess_stack:
+            subprocess = subprocess_stack[0]
+            param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
+            for value in param_data.values():
+                if isinstance(value, str):
+                    for value in var_pattern.findall(value):
+                        keys.add("${" + value + "}")
+            return keys
+
         node_info = pipeline["activities"][node_id]
         for item in node_info.get("component").get("inputs").values():
 
@@ -100,15 +110,37 @@ def preview_node_inputs(
         for key, info in list(pipeline["data"].get("inputs", {}).items()) + list(parent_params.items())
         if key in need_render_context_keys
     ]
+
     context = Context(runtime, context_values, root_pipeline_data)
 
     if subprocess_stack:
+        # 如果子流程依赖了父流程的变量，那么需要把父流程的变量传递到下一层子流程中
         subprocess = subprocess_stack[0]
         child_pipeline = pipeline["activities"][subprocess]["pipeline"]
+        parent_hydrated_context = context.hydrate(deformat=True)
+        # 子流程需要有选择的渲染父流程的变量
         param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
-        hydrated_context = context.hydrate(deformat=True)
-        hydrated_param_data = Template(param_data).render(hydrated_context)
-        formatted_param_data = {key: {"value": value, "type": "plain"} for key, value in hydrated_param_data.items()}
+        # 获取子流程的参数
+        hydrated_param_data = Template(param_data).render(parent_hydrated_context)
+        child_inputs = child_pipeline.get("data").get("inputs")
+        # 需要提前渲染好子流程参数的值
+        subprocess_context_values = [
+            ContextValue(
+                key=key,
+                type=VAR_CONTEXT_MAPPING[child_inputs.get(key)["type"]],
+                value=value,
+                code=child_inputs.get(key).get("custom_type"),
+            )
+            for key, value in hydrated_param_data.items()
+        ]
+
+        subprocess_context = Context(runtime, subprocess_context_values, root_pipeline_data)
+        subprocess_hydrated_context = subprocess_context.hydrate(deformat=True)
+        # 此时已经准备好了子流程所有的输出，到下一层递归时，由于parent_params在inputs之后被处理，所以parent_params会更新最终的值
+        formatted_param_data = {
+            "${" + key + "}": {"value": value, "type": "plain"} for key, value in subprocess_hydrated_context.items()
+        }
+
         return preview_node_inputs(
             runtime=runtime,
             pipeline=child_pipeline,
