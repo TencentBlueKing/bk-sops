@@ -188,6 +188,15 @@
     import task from '@/mixins/task.js'
     import CancelRequest from '@/api/cancelRequest.js'
 
+    const TASK_STATUS_LIST = [
+        { id: 'nonExecution', name: i18n.t('未执行') },
+        { id: 'running', name: i18n.t('执行中') },
+        { id: 'failed', name: i18n.t('失败') },
+        { id: 'pause', name: i18n.t('暂停') },
+        { id: 'finished', name: i18n.t('完成') },
+        { id: 'revoked', name: i18n.t('终止') }
+    ]
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -209,12 +218,7 @@
         {
             id: 'statusSync',
             name: i18n.t('状态'),
-            children: [
-                { id: 'nonExecution', name: i18n.t('未执行') },
-                { id: 'running', name: i18n.t('未完成') },
-                { id: 'revoked', name: i18n.t('终止') },
-                { id: 'finished', name: i18n.t('完成') }
-            ]
+            children: TASK_STATUS_LIST
         },
         {
             id: 'create_method',
@@ -322,6 +326,7 @@
                 create_method = '',
                 recorded_executor_proxy = ''
             } = this.$route.query
+            const dateInfo = { start_time, create_time, finish_time }
             const searchList = [
                 ...SEARCH_LIST,
                 { id: 'start_time', name: i18n.t('执行开始'), type: 'dateRange' },
@@ -333,8 +338,20 @@
                 if (values_text) {
                     let values = []
                     if (!cur.children) {
-                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
-                        acc.push({ ...cur, values })
+                        if (cur.type === 'dateRange') {
+                            // 判断时间是否超出
+                            const startDate = values_text.split(',')[0]
+                            const isExceed = this.judgeDateIsExceed(startDate)
+                            if (isExceed) {
+                                dateInfo[cur.id] = ''
+                            } else {
+                                values = values_text.split(',')
+                                acc.push({ ...cur, values })
+                            }
+                        } else {
+                            values = [values_text]
+                            acc.push({ ...cur, values })
+                        }
                     } else if (cur.children.length) {
                         const ids = values_text.split(',')
                         values = cur.children.filter(item => ids.includes(String(item.id)))
@@ -357,9 +374,9 @@
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
-                    start_time: start_time ? start_time.split(',') : ['', ''],
-                    create_time: create_time ? create_time.split(',') : ['', ''],
-                    finish_time: finish_time ? finish_time.split(',') : ['', ''],
+                    start_time: dateInfo.start_time ? dateInfo.start_time.split(',') : ['', ''],
+                    create_time: dateInfo.create_time ? dateInfo.create_time.split(',') : ['', ''],
+                    finish_time: dateInfo.finish_time ? dateInfo.finish_time.split(',') : ['', ''],
                     creator,
                     executor,
                     statusSync,
@@ -442,14 +459,18 @@
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
+                    let task_instance_status
                     switch (statusSync) {
                         case 'nonExecution':
                             pipeline_instance__is_started = false
                             break
+                        case 'failed':
+                        case 'pause':
                         case 'running':
                             pipeline_instance__is_started = true
                             pipeline_instance__is_finished = false
                             pipeline_instance__is_revoked = false
+                            task_instance_status = statusSync
                             break
                         case 'revoked':
                             pipeline_instance__is_revoked = true
@@ -475,7 +496,8 @@
                         id: task_id || undefined,
                         create_method: create_method || undefined,
                         recorded_executor_proxy: recorded_executor_proxy || undefined,
-                        is_child_taskflow: false
+                        is_child_taskflow: false,
+                        task_instance_status: task_instance_status || undefined
                     }
 
                     if (start_time && start_time[0] && start_time[1]) {
@@ -831,6 +853,23 @@
                         dateValue={ date }
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
+                } else if (column.property === 'task_status') {
+                    const data = this.searchSelectValue.find(item => item.id === 'statusSync')
+                    const filterConfig = {
+                        show: true,
+                        list: TASK_STATUS_LIST,
+                        values: data ? data.values : [],
+                        multiple: false,
+                        extCls: 'task-status-popover'
+                    }
+                    return <TableRenderHeader
+                        name={ column.label }
+                        property={ column.property }
+                        orderShow={ false }
+                        dateFilterShow={ false }
+                        filterConfig = { filterConfig }
+                        onFilterChange={ data => this.handleTaskStatusFilter(data) }>
+                    </TableRenderHeader>
                 } else {
                     return h('p', {
                         class: 'label-text',
@@ -842,7 +881,23 @@
                     ])
                 }
             },
+            handleTaskStatusFilter (data) {
+                const index = this.searchSelectValue.findIndex(item => item.id === 'statusSync')
+                if (data.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = data
+                    } else {
+                        const form = this.searchList.find(item => item.id === 'statusSync')
+                        this.searchSelectValue.push({ ...form, values: data })
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
             handleDateTimeFilter (date = [], id) {
+                // 判断时间是否超出
+                const isExceed = this.judgeDateIsExceed(date[0])
+                if (isExceed) return
                 const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
@@ -862,6 +917,21 @@
                 } else if (index > -1) {
                     this.searchSelectValue.splice(index, 1)
                 }
+            },
+            // 判断时间是否超出
+            judgeDateIsExceed (date) {
+                let startDate = moment(date).format('YYYY-MM-DD')
+                startDate = Number(startDate.split('-').join(''))
+                let nowDate = moment(new Date()).format('YYYY-MM-DD')
+                nowDate = Number(nowDate.split('-').join(''))
+                if (nowDate - startDate > 180) {
+                    this.$bkMessage({
+                        message: i18n.t('仅支持查询最近x天任务记录', { x: 180 }),
+                        theme: 'warning'
+                    })
+                    return true
+                }
+                return false
             },
             getRowClassName ({ row }) {
                 return this.selectedTaskId === row.id ? 'selected-row' : row.is_child_taskflow ? 'expand-row' : ''
@@ -1106,6 +1176,13 @@
     }
     /deep/ .cell .task-id {
         margin-left: 16px;
+    }
+}
+</style>
+<style lang="scss">
+.task-status-popover {
+    .option-list {
+        width: 100px;
     }
 }
 </style>
