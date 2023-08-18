@@ -1789,7 +1789,8 @@ const en = {
     '执行结果': 'Results',
     '最大化': 'Max',
     '间隔': 'with ',
-    'error_handle_秒': 'Sec Interval'
+    'error_handle_秒': 'Sec Interval',
+    '仅支持查询最近x天任务记录': 'You can only query the tasks for the last {x} days.'
 }
 
 export default en
