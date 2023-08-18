@@ -111,4 +111,4 @@ BKPAAS_BK_DOMAIN = os.getenv("BKPAAS_BK_DOMAIN", "") or os.getenv("BK_DOMAIN", "
 
 
 # 获取加密类型
-BKAPP_CRYPTO_TYPE = os.getenv("BK_CRYPTO_TYPE") or os.getenv("BKAPP_CRYPTO_TYPE") or "CLASSIC"
+BKPAAS_CRYPTO_TYPE = os.getenv("BKPAAS_BK_CRYPTO_TYPE", "") or os.getenv("BK_CRYPTO_TYPE") or "CLASSIC"
