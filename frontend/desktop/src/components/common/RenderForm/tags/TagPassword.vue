@@ -33,7 +33,9 @@
                     rows="4"
                     :value="inputText"
                     :placeholder="inputPlaceholder"
+                    @keydown="handleTextareaKeyDown"
                     @input="handleTextareaInput"
+                    @keyup="handleTextareaKeyUp"
                     @focus="handleFocus"
                     @blur="handleBlur">
                 </textarea>
@@ -91,6 +93,7 @@
                     tag: 'value',
                     value: ''
                 },
+                cursorPos: 0,
                 inputText: '',
                 inputPlaceholder: '',
                 ASYMMETRIC_CIPHER_TYPE: window.ASYMMETRIC_CIPHER_TYPE,
@@ -143,11 +146,24 @@
                 this.localVal.value = e.target.value
                 this.inputPlaceholder = ''
             },
+            handleTextareaKeyDown (e) {
+                this.cursorPos = e.target.selectionStart
+            },
             handleTextareaInput (e) {
-                console.log('textarea input: ', e.target.value)
-                this.localVal.value = e.target.value
+                const value = e.target.value
+                const start = this.cursorPos > e.target.selectionStart ? e.target.selectionStart : this.cursorPos
+                const crtLength = this.localVal.value.length
+                const targetLength = value.length
+                const lenGap = targetLength - crtLength
+                if (lenGap < 0) { // 删除
+                    this.localVal.value = this.localVal.value.slice(0, start) + this.localVal.value.slice(start - lenGap)
+                } else { // 新增
+                    this.localVal.value = this.localVal.value.slice(0, start) + value.slice(start, start + lenGap) + this.localVal.value.slice(start)
+                }
+            },
+            handleTextareaKeyUp (e) {
                 this.inputPlaceholder = ''
-                e.target.value = e.target.value.replace(/[^\n]/g, '·')
+                this.inputText = e.target.value.replace(/[^\n]/g, '·')
             },
             handleFocus () {
                 if (this.localVal.value.length > 0) {
@@ -237,7 +253,6 @@
             text-align: left;
             outline: none;
             resize: none;
-            // -webkit-text-security: disc !important;
             &:focus {
                 border-color: #3a84ff;
                 background-color: #ffffff;
