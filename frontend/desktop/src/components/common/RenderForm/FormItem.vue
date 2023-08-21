@@ -331,10 +331,13 @@
                         if (isMatch) {
                             this.isShowRenderIcon = true
                         } else {
+                            this.showHook = false
                             this.$nextTick(() => {
                                 this.onRenderChange()
                             })
                         }
+                    } else {
+                        this.showHook = false
                     }
                 } else {
                     if (!this.render) {
@@ -642,7 +645,7 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 30px;
+        top: 0;
         right: 0;
         display: flex;
         align-items: center;

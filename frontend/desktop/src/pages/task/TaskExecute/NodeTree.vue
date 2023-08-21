@@ -52,7 +52,7 @@
         },
         methods: {
             handleClickNode (node) {
-                this.activeId = node.id
+                this.activeId = node.parentId ? node.id + '-' + node.parentId : node.id
                 this.$emit('onSelectNode', node)
             },
             setDefaultActiveId (treeData = [], id) {

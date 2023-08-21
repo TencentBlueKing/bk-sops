@@ -1,6 +1,6 @@
 <template>
     <div class="execute-record">
-        <template v-if="Object.keys(executeInfo).length">
+        <template v-if="Object.keys(executeInfo).length && !notPerformedSubNode">
             <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.ex_data">
                 <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
                 <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
@@ -22,7 +22,7 @@
                     </li>
                     <li>
                         <p class="th">{{ $t('耗时') }}</p>
-                        <p class="td">{{ getLastTime(executeInfo.elapsed_time) || '--' }}</p>
+                        <p class="td">{{ executeInfo.finish_time && getLastTime(executeInfo.elapsed_time) || '--' }}</p>
                     </li>
                 </ul>
                 <NoData v-else :message="$t('暂无执行信息')"></NoData>
@@ -89,6 +89,10 @@
                 type: Object,
                 default: () => ({})
             },
+            notPerformedSubNode: {
+                type: Boolean,
+                default: false
+            },
             isSubProcessNode: {
                 type: Boolean,
                 default: false
@@ -128,7 +132,6 @@
     /deep/.abnormal-section {
         position: relative;
         font-size: 12px;
-        padding: 8px 16px;
         margin-bottom: 8px !important;
         color: #313238;
         background: #fff3e1;
@@ -258,6 +261,7 @@
         margin-bottom: 32px;
     }
     .no-data-wrapper {
+        height: 150px;
         margin-top: 32px;
     }
 }

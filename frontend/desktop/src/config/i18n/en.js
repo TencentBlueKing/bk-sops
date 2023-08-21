@@ -1783,14 +1783,16 @@ const en = {
     '取消默认方案成功': 'Default Node-Group Cancelled',
     '确认删除执行方案【n】?': 'Confirm to delete node-group [ {n} ] ?',
     '取消设为默认方案': 'Unset as Default',
-    'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and it is recommended to use script parameters to pass in.',
+    'tagRenderCodeEditorTips': 'A suspected reference to {1} was detected global variable. This usage is about to be discarded, it is recommended to use script parameters to pass in.',
+    'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and please use script parameters to pass in.',
     '不再支持': 'no supported',
     '添加收藏': 'Collection',
     '执行结果': 'Results',
     '最大化': 'Max',
     '间隔': 'with ',
     'error_handle_秒': 'Sec Interval',
-    '仅支持查询最近x天任务记录': 'You can only query the tasks for the last {x} days.'
+    '仅支持查询最近x天任务记录': 'You can only query the tasks for the last {x} days.',
+    '失效': 'Invalid'
 }
 
 export default en
