@@ -121,9 +121,6 @@
                 </template>
             </div>
             <template slot="content">
-                <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
-                <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
-                <div class="resize-mask" ref="resizeMask"></div>
                 <!-- 插件/插件版本不存在面板 -->
                 <bk-exception v-if="isNotExistAtomOrVersion" class="exception-wrap" type="500">
                     <span>{{ $t('未找到可用的插件或插件版本') }}</span>
@@ -156,6 +153,11 @@
                 </div>
                 <!-- 插件/子流程表单面板 -->
                 <template v-else>
+                    <!--可拖拽-->
+                    <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                    <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
+                    <div class="resize-mask" ref="resizeMask"></div>
+
                     <div class="node-config" v-bkloading="{ isLoading: isSubflow && subflowListLoading, opacity: 1 }">
                         <template v-if="!isSubflow || !subflowListLoading">
                             <div class="config-form">
@@ -481,15 +483,11 @@
             this.localConstants = tools.deepClone(this.constants)
         },
         async mounted () {
-            document.addEventListener('mouseup', this.handleMouseUp)
             const defaultData = await this.initDefaultData()
             for (const [key, val] of Object.entries(defaultData)) {
                 this[key] = val
             }
             this.initData()
-        },
-        destroyed () {
-            document.removeEventListener('mouseup', this.handleMouseUp)
         },
         methods: {
             ...mapActions('atomForm/', [
@@ -1642,6 +1640,7 @@
                 this.updateResizeMaskStyle()
                 this.updateResizeProxyStyle()
                 document.addEventListener('mousemove', this.handleMouseMove)
+                document.addEventListener('mouseup', this.handleMouseUp)
             },
             handleMouseMove (event) {
                 let width = window.innerWidth - event.clientX
@@ -1666,6 +1665,7 @@
                 resizeMask.style.display = 'none'
                 this.sideWidth = resizeProxy.style.right
                 document.removeEventListener('mousemove', this.handleMouseMove)
+                document.removeEventListener('mouseup', this.handleMouseUp)
             }
         }
     }
