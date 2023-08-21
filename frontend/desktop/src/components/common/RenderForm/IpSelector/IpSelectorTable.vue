@@ -23,7 +23,7 @@
                 <template slot-scope="{ row }">
                     <div v-if="columnInfo.id === 'bk_host_innerip'" class="host-inner-ip">
                         <div class="inner-ip" v-bk-overflow-tips>{{ row.bk_host_innerip }}</div>
-                        <span class="invalid" v-if="row.diff">{{ $t('失效') }}</span>
+                        <span class="invalid" :class="{ 'disabled': !editable }" v-if="row.diff">{{ $t('失效') }}</span>
                     </div>
                     <div
                         v-else-if="columnInfo.id === 'agent'"
@@ -295,6 +295,11 @@
             background: #f0f1f5;
             border: 1px solid #c4c6cc;
             border-radius: 2px;
+            &.disabled {
+                color: #ccc;
+                background-color: #fafbfd;
+                border-color: #dcdee5;
+            }
         }
     }
     .agent-disabled {

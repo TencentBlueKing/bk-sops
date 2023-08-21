@@ -208,6 +208,11 @@
                     color: #dcdee6;
                 }
             }
+            .invalid {
+                color: #ccc;
+                background-color: #fafbfd;
+                border-color: #dcdee5;
+            }
         }
     }
     .common-icon-dark-circle-close {
