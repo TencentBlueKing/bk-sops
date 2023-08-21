@@ -81,15 +81,15 @@ class TaskFLowStatusFilterHandler:
     PAUSE = "pause"
     RUNNING = "running"
 
-    def __init__(self, status, queryset, start_time):
+    def __init__(self, status, queryset):
         """
         @param status: 状态
         @param queryset: task_instance queryset
         @param start_time: 查询开始时间
         """
         self.status = status
-        self.queryset = queryset
-        self.start_time = start_time
+        # 只会查询v2的数据
+        self.queryset = queryset.filter(engine_ver=EngineConfig.ENGINE_VER_V2)
 
     def get_queryset(self):
         """
@@ -110,9 +110,7 @@ class TaskFLowStatusFilterHandler:
         获取当前符合条件的 pipeline_id 列表
         @return:
         """
-        pipeline_instance_id_list = TaskFlowInstance.objects.filter(
-            pipeline_instance__start_time__gte=self.start_time
-        ).values_list("pipeline_instance_id", flat=True)
+        pipeline_instance_id_list = self.queryset.values_list("pipeline_instance_id", flat=True)
 
         pipeline_id_list = PipelineInstance.objects.filter(id__in=pipeline_instance_id_list).values_list(
             "instance_id", flat=True
@@ -175,9 +173,7 @@ class TaskFLowStatusFilterHandler:
             instance_id__in=pipeline_failed_and_pause_root_id_list
         ).values_list("id", flat=True)
 
-        queryset = self.queryset.filter(pipeline_instance__start_time__gte=self.start_time).exclude(
-            pipeline_instance_id__in=pipeline_failed_and_pause_id_list
-        )
+        queryset = self.queryset.exclude(pipeline_instance_id__in=pipeline_failed_and_pause_id_list)
 
         return queryset
 
@@ -280,24 +276,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         start_time = datetime.now() - timedelta(days=settings.TASK_LIST_STATUS_FILTER_DAYS)
-
+        queryset = queryset.filter(pipeline_instance__start_time__gte=start_time)
         task_instance_status = request.query_params.get("task_instance_status")
         if task_instance_status:
-            if queryset.filter(
-                engine_ver=EngineConfig.ENGINE_VER_V1, pipeline_instance__start_time__gte=start_time
-            ).exists():
-                return Response(
-                    {
-                        "detail": ErrorDetail(
-                            "最近{}天有v1引擎的任务, 不支持筛选".format(settings.TASK_LIST_STATUS_FILTER_DAYS),
-                            err_code.REQUEST_PARAM_INVALID.code,
-                        )
-                    },
-                    exception=True,
-                )
-            queryset = TaskFLowStatusFilterHandler(
-                status=task_instance_status, queryset=queryset, start_time=start_time
-            ).get_queryset()
+            queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
 
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
