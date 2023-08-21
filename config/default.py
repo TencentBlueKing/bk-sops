@@ -804,7 +804,7 @@ BKCRYPTO = {
 }
 
 # 加密
-if env.BKPAAS_CRYPTO_TYPE == "SHANGMI":
+if env.BKPAAS_BK_CRYPTO_TYPE == "SHANGMI":
     BKCRYPTO_ASYMMETRIC_CIPHER_TYPE = bkcrypto_constants.AsymmetricCipherType.SM2.value
     BKCRYPTO.update(
         {
