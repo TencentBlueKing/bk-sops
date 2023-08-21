@@ -24,7 +24,7 @@
                 </template>
                 <template v-else>
                     <jsonschema-form
-                        v-if="renderConfig.properties && Object.keys(renderConfig.properties).length > 0"
+                        v-if="renderConfig?.properties && Object.keys(renderConfig.properties).length > 0"
                         :schema="renderConfig"
                         :value="inputRenderDate">
                     </jsonschema-form>

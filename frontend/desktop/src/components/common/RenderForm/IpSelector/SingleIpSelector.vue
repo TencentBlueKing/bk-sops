@@ -21,18 +21,6 @@
                 <span class="radio-text">{{selector.name}}</span>
             </div>
         </div>
-        <bk-alert
-            v-if="curSelectorTab.hasDiff"
-            ref="diffAlert"
-            type="warning"
-            style="margin-bottom: 10px;"
-            :class="{ 'alert-disabled': !editable }"
-            :show-icon="false">
-            <div class="diff-alert" slot="title">
-                <span>{{ $t('表单保存数据与最新的CMDB') + curSelectorTab.name.replace(/\s/, '') + $t('配置存在差异，是否更新变量数据？') }}</span>
-                <bk-link theme="primary" @click="updateDiffData">{{ $t('确认') }}</bk-link>
-            </div>
-        </bk-alert>
         <div class="selector-content">
             <static-ip
                 v-show="activeSelector === 'ip'"
@@ -129,36 +117,6 @@
                 this.curSelectorTab = selector
                 this.$emit('change', 'selectors', [selector.id])
             },
-            updateDiffData () {
-                if (!this.editable) return
-                const selectors = this.activeSelector
-                let selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
-                selectList = selectList.filter((value, index) => {
-                    let result = true
-                    // 删除掉没匹配上的
-                    if (selectors === 'ip') {
-                        result = this.staticIpList.find(item => item.bk_host_id === value.bk_host_id)
-                    } else if (selectors === 'topo') {
-                        result = this.loopDynamicIpList(this.dynamicIpList, value.bk_obj_id, value.bk_inst_id)
-                    } else {
-                        result = this.dynamicGroupList.find(item => item.id === value.id)
-                    }
-                    return result
-                })
-                this.$emit('change', selectors, selectList)
-                this.curSelectorTab.hasDiff = false
-            },
-            loopDynamicIpList (list, objId, instId) {
-                return list.some(item => {
-                    if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
-                        return true
-                    } else if (item.child && item.child.length) {
-                        return this.loopDynamicIpList(item.child, objId, instId)
-                    } else {
-                        return false
-                    }
-                })
-            },
             onStaticIpTableSettingChange (val) {
                 this.$emit('change', 'static_ip_table_config', val)
             },
@@ -225,22 +183,6 @@
     }
     &:not(:last-of-type){
         margin-right: 30px;
-    }
-}
-.diff-alert {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /deep/ .bk-link-text {
-        font-size: 12px;
-    }
-}
-.alert-disabled {
-    color: #ccc;
-    cursor: not-allowed;
-    /deep/ .bk-link-text {
-        color: #ccc;
-        cursor: not-allowed;
     }
 }
 </style>

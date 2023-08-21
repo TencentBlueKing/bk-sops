@@ -268,12 +268,14 @@
                         if (isMatch) {
                             this.isShowRenderIcon = true
                         } else {
+                            this.showHook = false
                             this.$nextTick(() => {
                                 this.onRenderChange()
                             })
                         }
                     }
                 } else {
+                    this.showHook = false
                     if (!this.render) {
                         this.isShowRenderIcon = true
                     }

@@ -14,7 +14,7 @@
         <bk-sideslider
             ref="nodeConfigPanel"
             ext-cls="node-config-panel"
-            :width="800"
+            :width="sideWidth"
             :is-show="isShow"
             :quick-close="true"
             :before-close="beforeClose">
@@ -121,6 +121,9 @@
                 </template>
             </div>
             <template slot="content">
+                <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
+                <div class="resize-mask" ref="resizeMask"></div>
                 <!-- 插件/插件版本不存在面板 -->
                 <bk-exception v-if="isNotExistAtomOrVersion" class="exception-wrap" type="500">
                     <span>{{ $t('未找到可用的插件或插件版本') }}</span>
@@ -349,6 +352,7 @@
         },
         data () {
             return {
+                sideWidth: 800, // 侧栏宽度
                 subflowUpdated: false, // 子流程是否更新
                 taskNodeLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
@@ -477,11 +481,15 @@
             this.localConstants = tools.deepClone(this.constants)
         },
         async mounted () {
+            document.addEventListener('mouseup', this.handleMouseUp)
             const defaultData = await this.initDefaultData()
             for (const [key, val] of Object.entries(defaultData)) {
                 this[key] = val
             }
             this.initData()
+        },
+        destroyed () {
+            document.removeEventListener('mouseup', this.handleMouseUp)
         },
         methods: {
             ...mapActions('atomForm/', [
@@ -1629,6 +1637,35 @@
             onClosePanel (openVariablePanel) {
                 this.$emit('updateNodeInfo', this.nodeId, { isActived: false })
                 this.$emit('close', openVariablePanel)
+            },
+            handleMousedown (event) {
+                this.updateResizeMaskStyle()
+                this.updateResizeProxyStyle()
+                document.addEventListener('mousemove', this.handleMouseMove)
+            },
+            handleMouseMove (event) {
+                let width = window.innerWidth - event.clientX
+                width = width > 800 ? width : 800
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.right = `${width}px`
+            },
+            updateResizeMaskStyle () {
+                const resizeMask = this.$refs.resizeMask
+                resizeMask.style.display = 'block'
+                resizeMask.style.cursor = 'col-resize'
+            },
+            updateResizeProxyStyle () {
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'visible'
+                resizeProxy.style.right = `${this.sideWidth}px`
+            },
+            handleMouseUp () {
+                const resizeMask = this.$refs.resizeMask
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'hidden'
+                resizeMask.style.display = 'none'
+                this.sideWidth = resizeProxy.style.right
+                document.removeEventListener('mousemove', this.handleMouseMove)
             }
         }
     }
@@ -1732,8 +1769,64 @@
             }
         }
     }
+    .bk-sideslider-wrapper {
+        overflow: initial;
+    }
     .bk-sideslider-content {
         overflow: initial;
+    }
+    .resize-trigger {
+        width: 5px;
+        height: calc(100vh - 109px);
+        position: absolute;
+        left: 0;
+        top: 60px;
+        cursor: col-resize;
+        z-index: 3;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: #dcdee5;
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -1px;
+            width: 2px;
+            height: 2px;
+            color: #979ba5;
+            transform: translate3d(0,-50%,0);
+            background: currentColor;
+            box-shadow: 0 4px 0 0 currentColor,0 8px 0 0 currentColor,0 -4px 0 0 currentColor,0 -8px 0 0 currentColor;
+        }
+        &:hover::before {
+            background-color: #3a84ff;
+        }
+    }
+    .resize-proxy {
+        visibility: hidden;
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999;
+        &.left {
+            top: 0;
+            height: 100%;
+            border-left: 1px dashed #3a84ff;
+        }
+    }
+    .resize-mask {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
     }
     .variable-edit-panel {
         height: calc(100vh - 60px);

@@ -13,7 +13,11 @@
     <div class="tag-code-editor">
         <bk-alert type="warning" closable :close-text="$t('我知道了')" v-if="globalVarLength">
             <template slot="title">
-                <i18n tag="div" path="tagCodeEditorTips">
+                <i18n v-if="render" tag="div" path="tagRenderCodeEditorTips">
+                    <span class="strong">{{ $t('即将废弃') }}</span>
+                    <span class="strong num">{{ globalVarLength }}</span>
+                </i18n>
+                <i18n v-else tag="div" path="tagCodeEditorTips">
                     <span class="strong">{{ $t('不再支持') }}</span>
                     <span class="strong num">{{ globalVarLength }}</span>
                 </i18n>
@@ -154,72 +158,69 @@
             },
             // 变量tag设置
             setVariableTag (value, valueUpdate) {
-                // 不是变量免渲染则首先判断脚本内容是否包含全局变量
-                if (this.render) {
-                    const regex = /\${[a-zA-Z_]\w*}/
-                    const rows = value.split('\n')
-                    // 获取光标所在行
-                    const { monacoInstance } = this.$refs.tagCodeEditor?.$refs.codeEditor || {}
-                    const { lineNumber } = monacoInstance?.getPosition() || {}
-                    if (regex.test(value)) {
-                        const matchMap = rows.reduce((acc, cur, idx) => {
-                            const variables = cur.match(/\${[a-zA-Z_]\w*}/g) || []
-                            const matchList = variables.filter(item => this.constantArr.includes(item))
-                            if (matchList.length) {
-                                acc[idx + 1] = matchList
-                            }
-                            return acc
-                        }, {})
-                        // 脚本内容存在全局变量
-                        this.globalVarLength = Object.values(matchMap).flat().length
-                        // 数据更新处理逻辑
-                        if (valueUpdate) {
-                            // 清空本行所有变量色块
-                            if (this.decorationsMap[lineNumber]) {
-                                this.decorationsMap[lineNumber].forEach(decorations => {
-                                    monacoInstance.deltaDecorations(
-                                        [...decorations],
-                                        []
-                                    )
-                                })
-                                delete this.decorationsMap[lineNumber]
-                            }
-                            // 检查光标位置，如果光标没有定位在全局变量所在行，则不进行后续处理
-                            if (!matchMap[lineNumber]) return
+                const regex = /\${[a-zA-Z_]\w*}/
+                const rows = value.split('\n')
+                // 获取光标所在行
+                const { monacoInstance } = this.$refs.tagCodeEditor?.$refs.codeEditor || {}
+                const { lineNumber } = monacoInstance?.getPosition() || {}
+                if (regex.test(value)) {
+                    const matchMap = rows.reduce((acc, cur, idx) => {
+                        const variables = cur.match(/\${[a-zA-Z_]\w*}/g) || []
+                        const matchList = variables.filter(item => this.constantArr.includes(item))
+                        if (matchList.length) {
+                            acc[idx + 1] = matchList
                         }
-                        Object.keys(matchMap).forEach(idx => {
-                            let start = 0 // 兼容一行中有多个相同的变量
-                            matchMap[idx].forEach(variable => {
-                                const startNumber = rows[idx - 1].indexOf(variable, start) + 1
-                                const endNumber = startNumber + variable.length
-                                start = endNumber
-                                const decorations = monacoInstance.deltaDecorations(
-                                    [],
-                                    [
-                                        {
-                                            range: new monaco.Range(idx, startNumber, idx, endNumber),
-                                            options: {
-                                                inlineClassName: 'variable-tag'
-                                            }
-                                        }
-                                    ]
+                        return acc
+                    }, {})
+                    // 脚本内容存在全局变量
+                    this.globalVarLength = Object.values(matchMap).flat().length
+                    // 数据更新处理逻辑
+                    if (valueUpdate) {
+                        // 清空本行所有变量色块
+                        if (this.decorationsMap[lineNumber]) {
+                            this.decorationsMap[lineNumber].forEach(decorations => {
+                                monacoInstance.deltaDecorations(
+                                    [...decorations],
+                                    []
                                 )
-                                if (idx in this.decorationsMap) {
-                                    this.decorationsMap[idx].push(decorations)
-                                } else {
-                                    this.decorationsMap[idx] = [decorations]
-                                }
                             })
-                        })
-                    } else if (this.decorationsMap[lineNumber]) {
-                        this.decorationsMap[lineNumber].forEach(decorations => {
-                            monacoInstance.deltaDecorations(
-                                [...decorations],
-                                []
-                            )
-                        })
-                        this.decorationsMap = {}
+                            delete this.decorationsMap[lineNumber]
+                        }
+                        // 检查光标位置，如果光标没有定位在全局变量所在行，则不进行后续处理
+                        if (!matchMap[lineNumber]) return
                     }
+                    Object.keys(matchMap).forEach(idx => {
+                        let start = 0 // 兼容一行中有多个相同的变量
+                        matchMap[idx].forEach(variable => {
+                            const startNumber = rows[idx - 1].indexOf(variable, start) + 1
+                            const endNumber = startNumber + variable.length
+                            start = endNumber
+                            const decorations = monacoInstance.deltaDecorations(
+                                [],
+                                [
+                                    {
+                                        range: new monaco.Range(idx, startNumber, idx, endNumber),
+                                        options: {
+                                            inlineClassName: 'variable-tag'
+                                        }
+                                    }
+                                ]
+                            )
+                            if (idx in this.decorationsMap) {
+                                this.decorationsMap[idx].push(decorations)
+                            } else {
+                                this.decorationsMap[idx] = [decorations]
+                            }
+                        })
+                    })
+                } else if (this.decorationsMap[lineNumber]) {
+                    this.decorationsMap[lineNumber].forEach(decorations => {
+                        monacoInstance.deltaDecorations(
+                            [...decorations],
+                            []
+                        )
+                    })
+                    this.decorationsMap = {}
                 }
             },
             onLanguageChange () {

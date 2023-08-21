@@ -27,6 +27,10 @@
             nodeId: {
                 type: String,
                 default: ''
+            },
+            notPerformedSubNode: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -50,6 +54,7 @@
             async getOperationTaskData () {
                 const { params, query } = this.$route
                 try {
+                    if (this.notPerformedSubNode) return
                     this.isFlowLoading = true
                     if (!this.nodeId) { // 未执行的任务节点操作历史为空
                         this.operateFlowData = []

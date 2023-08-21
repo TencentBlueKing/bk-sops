@@ -129,6 +129,7 @@
                                     :node-activity="nodeActivity"
                                     :execute-info="executeRecord"
                                     :node-detail-config="nodeDetailConfig"
+                                    :not-performed-sub-node="notPerformedSubNode"
                                     :is-sub-process-node="isSubProcessNode">
                                 </ExecuteRecord>
                                 <ExecuteInfoForm
@@ -139,10 +140,15 @@
                                     :constants="pipelineData.constants"
                                     :is-third-party-node="isThirdPartyNode"
                                     :third-party-node-code="thirdPartyNodeCode"
+                                    :not-performed-sub-node="notPerformedSubNode"
                                     :is-sub-process-node="isSubProcessNode">
                                 </ExecuteInfoForm>
                                 <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
-                                    <NodeOperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></NodeOperationFlow>
+                                    <NodeOperationFlow
+                                        :locations="pipelineData.location"
+                                        :node-id="executeInfo.id"
+                                        :not-performed-sub-node="notPerformedSubNode">
+                                    </NodeOperationFlow>
                                 </section>
                                 <NodeLog
                                     v-else-if="curActiveTab === 'log'"
@@ -318,7 +324,9 @@
                 timer: null,
                 subprocessLoading: true,
                 subprocessTasks: [],
-                subprocessNodeStatus: {}
+                subprocessNodeStatus: {},
+                subNodesExpanded: [], // 节点树展开的独立子流程节点
+                notPerformedSubNode: false // 是否为未执行的独立子流程节点
             }
         },
         computed: {
@@ -468,7 +476,17 @@
             nodeDetailConfig: {
                 handler (val) {
                     if (val.node_id !== undefined) {
-                        this.loadNodeInfo()
+                        this.loop = 1
+                        this.theExecuteTime = undefined
+                        this.curActiveTab = 'record'
+                        // 未执行的独立子流程节点
+                        if (this.notPerformedSubNode) {
+                            this.loading = false
+                            this.subprocessLoading = false
+                            this.randomKey = new Date().getTime()
+                        } else {
+                            this.loadNodeInfo()
+                        }
                     }
                     if (val.component_code === 'subprocess_plugin') {
                         this.subCanvasData = val.componentData.subprocess.value.pipeline
@@ -542,21 +560,26 @@
                     this.executeInfo = respData
                     // 独立子流程任务特殊处理
                     if (this.isSubProcessNode) {
-                        const taskId = respData.outputsInfo[0].value
+                        const taskInfo = respData.outputsInfo.find(item => item.key === 'task_id') || {}
+                        const taskId = taskInfo.value
                         const { root_node, node_id } = this.nodeDetailConfig
                         this.subprocessLoading = true
-                        // 获取子流程任务详情
-                        await this.getSubprocessData({
-                            taskId,
-                            root_node,
-                            node_id
-                        })
-                        this.subprocessTasks[taskId] = {
-                            root_node,
-                            node_id
+                        const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
+                        if (taskId) { // 子流程任务已执行才可以查详情和状态
+                            // 获取子流程任务详情
+                            await this.getSubprocessData(taskId, nodeInfo)
+                            this.subprocessTasks[taskId] = {
+                                root_node,
+                                node_id
+                            }
+                            // 获取独立子流程任务状态
+                            this.loadSubprocessStatus()
+                        } else {
+                            nodeInfo.dynamicLoad = false
+                            this.subprocessLoading = false
+                            // 记录子流程展开收起
+                            this.setSubNodeExpanded(nodeInfo)
                         }
-                        // 获取独立子流程任务状态
-                        this.loadSubprocessStatus()
                     } else if (this.subProcessPipeline) {
                         this.subprocessLoading = false
                     }
@@ -751,6 +774,8 @@
                     }
                     if (res.result) {
                         return res.data
+                    } else {
+                        this.subprocessLoading = false
                     }
                 } catch (e) {
                     console.log(e)
@@ -947,6 +972,16 @@
             },
             onSelectNode (node) {
                 this.loading = true
+                // 如果子节点的父流程为独立任务且未执行时不调接口，默认数据为空
+                this.notPerformedSubNode = false
+                if (node.parentId && !node.state) {
+                    const ids = node.parentId.split('-')
+                    const rootId = ids.slice(0, -1).join('-')
+                    const parentInfo = this.getNodeInfo(this.nodeData, rootId, ids.pop())
+                    if (parentInfo && !parentInfo.state && 'dynamicLoad' in parentInfo) {
+                        this.notPerformedSubNode = true
+                    }
+                }
                 if (this.subProcessPipeline) {
                     this.toggleNodeActive(this.nodeDetailConfig.node_id, false)
                 }
@@ -1006,6 +1041,17 @@
                     if (!states[id]) return
                     const nodeState = states[id].skip ? 'SKIP' : states[id].state
                     this.$set(node, 'state', nodeState)
+                    if (this.subNodesExpanded.includes(node.id)) {
+                        const index = this.subNodesExpanded.findIndex(item => item === node.id)
+                        if (index > -1) {
+                            this.subNodesExpanded.splice(index, 1)
+                        }
+                        this.handleDynamicLoad(node, true)
+                    }
+                    if (this.nodeDetailConfig.node_id === id && !this.executeRecord.finish_time) {
+                        this.executeRecord.finish_time = states[id].finish_time
+                        this.executeRecord.elapsed_time = states[id].elapsed_time
+                    }
                     if (children) {
                         const newStates = isSubProcess ? Object.assign({}, states, states[id].children) : states
                         this.nodeAddStatus(children, newStates)
@@ -1069,10 +1115,22 @@
                 this.$refs.subProcessCanvas && this.$refs.subProcessCanvas.onUpdateNodeInfo(id, info)
             },
             // 只点击子流程展开/收起
-            async handleDynamicLoad (node) {
+            async handleDynamicLoad (node, updateState) {
                 try {
-                    // 子节点动态加载
-                    if (!node.dynamicLoad || !node.expanded) return
+                    if (!updateState) {
+                        // 独立子流程任务节点
+                        if (!node.dynamicLoad) return
+                        // 记录子流程展开收起
+                        this.setSubNodeExpanded(node)
+                        // 节点收起
+                        if (!node.expanded) return
+                        // 子流程任务未执行时，节点树从父流程取
+                        if (!node.state) {
+                            node.dynamicLoad = false
+                            this.subprocessLoading = false
+                            return
+                        }
+                    }
                     const { id, parentId } = node
                     const { instance_id } = this.$route.query
                     // 该独立子流程节点的父流程也可能为独立子流程
@@ -1080,18 +1138,17 @@
                     const nodeConfig = await this.getTaskNodeDetail(nodeDetailConfig)
                     if (!nodeConfig) return
                     // 获取子流程任务id
-                    const taskId = nodeConfig.outputs[0].value
+                    const taskInfo = nodeConfig.outputs.find(item => item.key === 'task_id') || {}
+                    const taskId = taskInfo.value
                     this.subprocessLoading = false
-                    await this.getSubprocessData({
-                        taskId,
-                        root_node: parentId,
-                        node_id: id
-                    })
-                    this.subprocessTasks[taskId] = {
-                        root_node: parentId,
-                        node_id: id
+                    if (taskId) { // 子流程任务已执行才可以查详情和状态
+                        await this.getSubprocessData(taskId, node, updateState)
+                        this.subprocessTasks[taskId] = {
+                            root_node: parentId,
+                            node_id: id
+                        }
+                        this.loadSubprocessStatus()
                     }
-                    this.loadSubprocessStatus()
                 } catch (error) {
                     console.warn(error)
                 }
@@ -1135,21 +1192,10 @@
                 }
             },
             // 获取独立子流程节点详情
-            async getSubprocessData (taskInfo) {
+            async getSubprocessData (taskId, nodeInfo, updateState) {
                 try {
-                    const { taskId, root_node, node_id } = taskInfo
-                    let nodes = this.nodeData
-                    const parentId = root_node?.split('-') || []
-                    parentId.forEach(id => {
-                        nodes.some(item => {
-                            if (item.id === id) {
-                                nodes = item.children
-                                return true
-                            }
-                        })
-                    })
-                    const nodeInfo = nodes.find(item => item.id === node_id)
-                    if (nodeInfo?.dynamicLoad) {
+                    const parentId = nodeInfo.parentId?.split('-') || []
+                    if (nodeInfo.dynamicLoad || updateState) {
                         const resp = await this.getTaskInstanceData(taskId)
                         const pipelineTree = JSON.parse(resp.pipeline_tree)
                         const parentInfo = {
@@ -1178,7 +1224,7 @@
                                 }
                             })
                         }
-                        const nodeActivity = pipelineData.activities[node_id]
+                        const nodeActivity = pipelineData.activities[nodeInfo.id]
                         this.$set(nodeActivity, 'pipeline', { ...pipelineTree, taskId })
                         this.canvasRandomKey = new Date().getTime()
                         this.$nextTick(() => {
@@ -1189,6 +1235,46 @@
                     console.warn(error)
                     this.subprocessLoading = false
                 }
+            },
+            // 记录独立子流程展开收起
+            setSubNodeExpanded (node) {
+                // 子任务展开收起
+                if (node.expanded) { // 记录展开的子流程id
+                    if (!this.subNodesExpanded.includes(node.id)) {
+                        this.subNodesExpanded.push(node.id)
+                    }
+                } else {
+                    const index = this.subNodesExpanded.findIndex(item => item === node.id)
+                    if (index > -1) {
+                        this.subNodesExpanded.splice(index, 1)
+                    }
+                }
+            },
+            getNodeInfo (data, rootId, nodeId) {
+                let nodes = data
+                if (rootId) {
+                    const parentId = rootId.split('-') || []
+                    parentId.forEach(id => {
+                        nodes.some(item => {
+                            if (item.id === id) {
+                                nodes = item.children
+                                return true
+                            }
+                        })
+                    })
+                }
+                let nodeInfo
+                nodes.some(item => {
+                    const { id, isGateway, conditionType, children } = item
+                    if (id === nodeId) {
+                        nodeInfo = item
+                        return true
+                    } else if ((isGateway || conditionType) && children.length) {
+                        nodeInfo = this.getNodeInfo(item.children, '', nodeId)
+                        return !!nodeInfo
+                    }
+                })
+                return nodeInfo
             },
             async loadSubprocessStatus () {
                 try {
@@ -1209,17 +1295,7 @@
                     Object.assign(this.subprocessNodeStatus, resp.data)
                     for (const [key, value] of Object.entries(resp.data)) {
                         const { root_node, node_id } = this.subprocessTasks[key]
-                        let nodes = this.nodeData
-                        const parentId = root_node?.split('-') || []
-                        parentId.forEach(id => {
-                            nodes.some(item => {
-                                if (item.id === id) {
-                                    nodes = item.children
-                                    return true
-                                }
-                            })
-                        })
-                        const nodeInfo = nodes.find(item => item.id === node_id)
+                        const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
                         this.nodeAddStatus(nodeInfo.children, value.data.children)
                         this.updateNodeInfo(value.data.children)
                         if (!['CREATED', 'RUNNING'].includes(value.data.state)) {
@@ -1297,9 +1373,6 @@
     }
     .bk-resize-layout-border {
         border: none;
-        .bk-resize-layout-aside {
-            width: 280;
-        }
     }
     .action-wrapper {
         width: 100%;

@@ -21,11 +21,15 @@
                 :sortable="columnInfo.sortable"
                 :prop="columnInfo.id">
                 <template slot-scope="{ row }">
+                    <div v-if="columnInfo.id === 'bk_host_innerip'" class="host-inner-ip">
+                        <div class="inner-ip" v-bk-overflow-tips>{{ row.bk_host_innerip }}</div>
+                        <span class="invalid" v-if="row.diff">{{ $t('失效') }}</span>
+                    </div>
                     <div
-                        v-if="columnInfo.id === 'agent'"
+                        v-else-if="columnInfo.id === 'agent'"
                         v-bk-overflow-tips
-                        :class="!editable ? 'agent-disabled' : row.agent === 1 ? 'agent-normal' : 'agent-failed'">
-                        {{ row.agent === 1 ? $t('正常') : $t('异常') }}
+                        :class="!editable ? 'agent-disabled' : row.diff ? '' : row.agent === 1 ? 'agent-normal' : 'agent-failed'">
+                        {{ row.diff ? '--' : row.agent === 1 ? $t('正常') : $t('异常') }}
                     </div>
                     <div v-else-if="columnInfo.id === 'cloud'">
                         {{ row.cloud[0] && row.cloud[0].bk_inst_name }}
@@ -179,6 +183,7 @@
             }
         },
         created () {
+            console.log(this.listInPage)
             if (this.staticIpTableConfig.length) {
                 this.tableColumnList.forEach(item => {
                     item.checked = this.staticIpTableConfig.includes(item.id)
@@ -272,6 +277,25 @@
         overflow:hidden;
         text-overflow:ellipsis;
         white-space:nowrap;
+    }
+    .host-inner-ip {
+        display: flex;
+        align-items: center;
+        .inner-ip {
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .invalid {
+            flex-shrink: 0;
+            padding: 2px 5px;
+            margin-left: 5px;
+            transform: scale(0.8);
+            color: #63656e;
+            background: #f0f1f5;
+            border: 1px solid #c4c6cc;
+            border-radius: 2px;
+        }
     }
     .agent-disabled {
         color: #ccc;

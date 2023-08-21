@@ -14,7 +14,7 @@
                 }
             ]">
             <div
-                :class="['tree-node-item', { 'node-active': node.id === activeId }]"
+                :class="['tree-node-item', { 'node-active': (node.parentId ? `${node.id}-${node.parentId}` : node.id) === activeId }]"
                 @click="handleClickNode(node)">
                 <!-- 左侧图标 -->
                 <div :class="['node-flex-start', { expanded: node.expanded }]">

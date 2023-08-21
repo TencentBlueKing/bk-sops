@@ -381,7 +381,7 @@
                 isExecRecordOpen: false,
                 nodeExecRecordInfo: {},
                 isInjectVarDialogShow: false,
-                nodeIds: [],
+                nodeIds: {},
                 nodeDisplayStatus: {},
                 showNodeList: [0, 1, 2],
                 converNodeList: [],
@@ -1384,24 +1384,25 @@
                 this.getNodeTargetMaps(data)
                 this.getNodeSourceMaps(data)
                 const nodeInfo = { id: nodeId, parentId, parentLevel, lastLevelStyle, taskId }
-                this.retrieveLines(data, nodeInfo, orderedData)
+                this.retrieveLines(data.id, data, nodeInfo, orderedData)
                 orderedData.push(endEvent)
                 // 过滤root最上层汇聚网关
                 return orderedData
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
+             * @param {String} flowId 画布id
              * @param {Object} data 画布数据
              * @param {Object} nodeInfo 节点属性
              * @param {Array} ordered 排序后的节点数据
              * @param {Array} parentOrdered 父级排序
              *
              */
-            retrieveLines (data, nodeInfo, ordered, parentOrdered) {
+            retrieveLines (flowId, data, nodeInfo, ordered, parentOrdered) {
                 const { id, gatewayId, branchId, nodeLevel = 1, parentId, parentLevel, lastLevelStyle, lastId, taskId } = nodeInfo
                 const { activities, gateways, flows } = data
                 const nodeConfig = activities[id] || gateways[id]
-                if (this.nodeIds.includes(id)) {
+                if (this.nodeIds[flowId] && this.nodeIds[flowId].includes(id)) {
                     const isBack = this.judgeNodeBack(id, id, [])
                     if (isBack) { // 打回节点
                         const lastNode = this.getMatchOrderedNode(ordered, lastId, false)
@@ -1432,8 +1433,9 @@
                             }
                         }
                     }
+                    return
                 }
-                if (nodeConfig && !this.nodeIds.includes(id)) {
+                if (nodeConfig) {
                     const targetNodes = this.nodeTargetMaps[id]
                     const taskAndGwNodeMap = Object.assign({}, activities, gateways)
                     const treeItem = {
@@ -1472,7 +1474,7 @@
                             const loopList = [] // 需要打回的node的incoming
                             targetNodes.forEach(item => {
                                 const curNode = taskAndGwNodeMap[item]
-                                if (curNode && this.nodeIds.find(ite => ite === curNode.id)) {
+                                if (curNode && this.nodeIds[flowId]?.find(ite => ite === curNode.id)) {
                                     loopList.push(...curNode.incoming)
                                 }
                             })
@@ -1529,7 +1531,11 @@
                                     children: []
                                 }
                             })
-                            this.nodeIds.push(id)
+                            if (this.nodeIds[flowId]) {
+                                this.nodeIds[flowId].push(id)
+                            } else {
+                                this.nodeIds[flowId] = [id]
+                            }
                         }
                     } else { // 任务节点
                         if (nodeConfig.type === 'SubProcess' || nodeConfig.component.code === 'subprocess_plugin') {
@@ -1544,9 +1550,20 @@
                                 this.getNodeSourceMaps(nodeConfig.pipeline)
                                 treeItem.children = this.getOrderedTree(nodeConfig.pipeline, parentInfo)
                             } else {
+                                let { data: componentData } = nodeConfig.component
+                                componentData = componentData && componentData.subprocess
+                                componentData = componentData && componentData.value
+                                componentData = componentData && componentData.pipeline
+                                if (componentData) {
+                                    this.getNodeTargetMaps(componentData)
+                                    this.getNodeSourceMaps(componentData)
+                                    if (this.nodeIds[componentData.id]) {
+                                        delete this.nodeIds[componentData.id]
+                                    }
+                                    treeItem.children = this.getOrderedTree(componentData, parentInfo)
+                                }
                                 treeItem.type = 'SubProcess'
                                 treeItem.dynamicLoad = true
-                                treeItem.children = []
                             }
                             treeItem.isSubProcess = true
                         }
@@ -1554,7 +1571,11 @@
                         treeItem.name = nodeConfig.name
                         treeItem.title = nodeConfig.name
                     }
-                    this.nodeIds.push(id)
+                    if (this.nodeIds[flowId]) {
+                        this.nodeIds[flowId].push(id)
+                    } else {
+                        this.nodeIds[flowId] = [id]
+                    }
                     const nextNodeInfo = { ...nodeInfo }
                     let newOrdered = parentOrdered
                     if (parentOrdered) {
@@ -1598,6 +1619,7 @@
                             item.style = `margin-left: ${marginLeft + 33}px`
                             treeItem.children.push(item)
                             this.retrieveLines(
+                                flowId,
                                 data,
                                 {
                                     id: item.target,
@@ -1614,6 +1636,7 @@
                     } else {
                         targetNodes.forEach(node => {
                             this.retrieveLines(
+                                flowId,
                                 data,
                                 {
                                     ...nextNodeInfo,
@@ -1906,7 +1929,7 @@
                     this.nodePipelineData['constants'] = constants
                 }
                 this.convergeInfo = {}
-                this.nodeIds = []
+                this.nodeIds = {}
                 this.nodeData = this.getOrderedTree(this.completePipelineData)
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },

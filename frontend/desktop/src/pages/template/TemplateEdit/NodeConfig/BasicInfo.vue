@@ -1006,7 +1006,7 @@
             transition: border .2s linear;
             .group-append-text {
                 font-size: 12px;
-                padding-right: 15px;
+                padding-right: 5px;
             }
         }
         .control-active {

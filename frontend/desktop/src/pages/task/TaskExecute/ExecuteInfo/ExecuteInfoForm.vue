@@ -269,7 +269,7 @@
             async initData () {
                 try {
                     // 获取对应模板配置
-                    const tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
+                    const tplConfig = this.getNodeSnapshotConfig ? {} : await this.getNodeSnapshotConfig(this.nodeDetailConfig)
                     this.templateConfig = tplConfig.data || { ...this.nodeActivity, isOldData: true } || {}
                     if (this.isSubProcessNode || this.nodeActivity.type === 'SubProcess') { // 子流程任务节点
                         // tplConfig.data为null为该功能之前的旧数据，没有original_template_id字段的，不调接口
