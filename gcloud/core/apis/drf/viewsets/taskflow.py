@@ -89,7 +89,7 @@ class TaskFLowStatusFilterHandler:
         """
         self.status = status
         # 只会查询v2的数据
-        self.queryset = queryset.filter(engine_ver=EngineConfig.ENGINE_VER_V2)
+        self.queryset = queryset
 
     def get_queryset(self):
         """
@@ -276,9 +276,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         start_time = datetime.now() - timedelta(days=settings.TASK_LIST_STATUS_FILTER_DAYS)
-        queryset = queryset.filter(pipeline_instance__start_time__gte=start_time)
+        queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
         task_instance_status = request.query_params.get("task_instance_status")
         if task_instance_status:
+            # 状态查询的范围为最近TASK_LIST_STATUS_FILTER_DAYS天内，已经开始的v2引擎的任务
+            queryset = queryset.filter(
+                pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
+            )
             queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
 
         # [我的动态] 接口过滤
