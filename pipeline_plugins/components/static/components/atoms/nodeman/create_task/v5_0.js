@@ -281,8 +281,8 @@
         if (node_type === "PROXY") {
             self.columns.push(...proxy_columns);
         }
-        // 安装 / 卸载需要认证信息
-        if (op_type === "INSTALL" || op_type === "UNINSTALL") {
+        // 安装 / 重装 / 卸载需要认证信息
+        if (op_type === "INSTALL" || op_type === "UNINSTALL" || op_type === "REINSTALL") {
             self.columns.push(...auth_columns);
         }
         // 非卸载场景需要配置信息
