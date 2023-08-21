@@ -565,7 +565,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     )
                 except Exception as e:
                     message = _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {e} | get_node_data_v2")
-                    logger.error(message)
+                    logger.exception(message)
                     return {
                         "result": False,
                         "data": {},

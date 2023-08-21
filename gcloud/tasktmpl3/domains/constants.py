@@ -95,14 +95,23 @@ def preview_node_inputs(
             return keys
 
         node_info = pipeline["activities"][node_id]
-        for item in node_info.get("component").get("inputs").values():
 
-            if not item["need_render"]:
-                continue
-            if isinstance(item["value"], str):
-                for value in var_pattern.findall(item["value"]):
-                    keys.add("${" + value + "}")
-        return keys
+        if node_info["type"] == "SubProcess":
+            inputs_values = node_info.get("pipeline", {}).get("data", {}).get("inputs").values()
+            for item in inputs_values:
+                if isinstance(item["value"], str):
+                    for value in var_pattern.findall(item["value"]):
+                        keys.add("${" + value + "}")
+            return keys
+        else:
+            inputs_values = node_info.get("component", {}).get("inputs", {}).values()
+            for item in inputs_values:
+                if not item["need_render"]:
+                    continue
+                if isinstance(item["value"], str):
+                    for value in var_pattern.findall(item["value"]):
+                        keys.add("${" + value + "}")
+            return keys
 
     need_render_context_keys = get_need_render_context_keys()
     context_values = [
