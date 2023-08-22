@@ -296,9 +296,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             self.paginator.offset = self.paginator.get_offset(request)
             self.paginator.count = -1
             create_method = request.query_params.get("create_method")
+
             queryset = self._optimized_my_dynamic_query(
                 queryset, request.user.username, self.paginator.limit, self.paginator.offset, create_method
             )
+
             page = list(queryset)
         else:
             page = self.paginate_queryset(queryset)
@@ -465,7 +467,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         """
         优化我的动态接口查询速度
         """
-        original_query = str(queryset.query)
+        original_query, params = queryset.query.sql_with_params()
         new_query = re.sub(
             "FROM (.*?) ON",
             "FROM `pipeline_pipelineinstance` STRAIGHT_JOIN `taskflow3_taskflowinstance` ON",
@@ -476,7 +478,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         if create_method:
             new_query = new_query.replace(create_method, f"'{create_method}'")
         new_query += f" LIMIT {limit} OFFSET {offset}"
-        return TaskFlowInstance.objects.raw(new_query)
+        return TaskFlowInstance.objects.raw(original_query, params)
 
     @swagger_auto_schema(
         method="GET",

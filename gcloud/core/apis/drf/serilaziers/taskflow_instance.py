@@ -82,6 +82,7 @@ class TaskFlowInstanceListSerializer(serializers.ModelSerializer):
             "current_flow",
             "engine_ver",
             "flow_type",
+            "recorded_executor_proxy",
         ]
 
 
