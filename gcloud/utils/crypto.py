@@ -18,6 +18,7 @@ from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
 from bkcrypto.constants import AsymmetricCipherType
 from bkcrypto.contrib.django.ciphers import asymmetric_cipher_manager
 from bkcrypto.contrib.django.selectors import AsymmetricCipherSelector
+from bkcrypto.symmetric.configs import KeyConfig as SymmetricKeyConfig
 from django.conf import settings
 
 
@@ -40,6 +41,16 @@ def get_default_asymmetric_key_config(cipher_type: str) -> AsymmetricKeyConfig:
     return AsymmetricKeyConfig(
         private_key_string=private_key_string.strip("\n"), public_key_string=public_key_string.strip("\n")
     )
+
+
+def get_default_symmetric_key_config(cipher_type: str) -> SymmetricKeyConfig:
+    """
+    获取项目默认对称加密配置
+    :param cipher_type:
+    :return:
+    """
+    # 统一使用 APP_SECRET 作为对称加密密钥，SDK 会截断，取符合预期的 key length
+    return SymmetricKeyConfig(key=settings.SECRET_KEY)
 
 
 def decrypt(ciphertext: str, using: typing.Optional[str] = None) -> str:
