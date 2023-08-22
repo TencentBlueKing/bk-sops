@@ -11,22 +11,50 @@
 */
 <template>
     <div class="tag-textarea">
-        <el-input
-            ref="tagTextarea"
-            type="textarea"
-            v-model="textareaValue"
-            :class="{ 'rf-view-textarea-value': !formMode }"
-            :disabled="!editable || !formMode || disabled"
-            :autosize="formMode ? { minRows: 2 } : true"
-            resize="none"
-            :placeholder="placeholder">
-        </el-input>
+        <div class="rf-form-wrapper">
+            <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
+                <div
+                    ref="input"
+                    class="div-input"
+                    :class="{
+                        'input-before': !input.value
+                    }"
+                    :contenteditable="!isDisabled"
+                    :data-placeholder="placeholder"
+                    v-bk-clickoutside="handleClickOutSide"
+                    @mouseup="handleInputMouseUp"
+                    @focus="handleInputFocus"
+                    @keydown="handleInputKeyDown"
+                    @input="handleInputChange">
+                </div>
+            </div>
+            <transition>
+                <div
+                    class="rf-select-list"
+                    :style="`${varListPosition}`"
+                    v-show="showVarList && isListOpen">
+                    <ul class="rf-select-content">
+                        <li
+                            class="rf-select-item"
+                            v-for="item in varList"
+                            v-bk-overflow-tips
+                            :key="item"
+                            :class="{ 'is-hover': hoverKey === item }"
+                            @click.stop="onSelectVal(item)">
+                            {{ item }}
+                        </li>
+                    </ul>
+                </div>
+            </transition>
+        </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import i18n from '@/config/i18n/index.js'
+    import { mapState } from 'vuex'
+    import dom from '@/utils/dom.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -46,12 +74,49 @@
             required: false,
             default: '',
             desc: 'placeholder'
+        },
+        showVarList: {
+            type: Boolean,
+            default: false,
+            inner: true
         }
     }
     export default {
         name: 'TagTextarea',
         mixins: [getFormMixins(attrs)],
+        data () {
+            return {
+                isListOpen: false,
+                input: {
+                    value: this.value,
+                    focus: false
+                },
+                varList: [],
+                varListPosition: 0,
+                hoverKey: '',
+                selection: {},
+                lastEditRange: null
+            }
+        },
         computed: {
+            ...mapState({
+                'internalVariable': state => state.template.internalVariable
+            }),
+            constantArr: {
+                get () {
+                    let KeyList = []
+                    if (this.constants) {
+                        KeyList = [...Object.keys(this.constants)]
+                    }
+                    if (this.internalVariable) {
+                        KeyList = [...KeyList, ...Object.keys(this.internalVariable)]
+                    }
+                    return KeyList
+                },
+                set (val) {
+                    this.varList = val
+                }
+            },
             textareaValue: {
                 get () {
                     if (!this.formMode && ['', undefined].includes(this.value)) {
@@ -62,43 +127,354 @@
                 set (val) {
                     this.updateForm(val)
                 }
+            },
+            isDisabled () {
+                return !this.editable || !this.formMode || this.disable
             }
         },
         watch: {
-            formMode () {
-                /**
-                 * 重新计算 textarea 高度，解决 disabled 下有滚动条和空白问题
-                 * resizeTextarea 为非官方暴露 api，后续需关注 element textarea 组件该问题修复后删除
-                 */
-                this.$nextTick(() => {
-                    this.$refs.tagTextarea.resizeTextarea()
+            isListOpen (val) {
+                if (!val) {
+                    this.hoverKey = ''
+                    const selectDom = this.$el.querySelector('.rf-select-content')
+                    selectDom.scrollTo({ top: 0 })
+                }
+            }
+        },
+        created () {
+            window.addEventListener('click', this.handleListShow, false)
+        },
+        mounted () {
+            const divInputDom = this.$el.querySelector('.div-input')
+            if (divInputDom) {
+                divInputDom.innerText = this.value
+                this.handleInputBlur()
+            }
+        },
+        beforeDestroy () {
+            window.removeEventListener('click', this.handleListShow, false)
+        },
+        methods: {
+            handleListShow (e) {
+                if (!this.isListOpen) {
+                    return
+                }
+                const parent = e.target.offsetParent
+                let classList = parent ? parent.classList : null
+                classList = classList && Array.from(classList.values())
+                const listPanel = this.$el.querySelector('.rf-select-list')
+                if (listPanel && !dom.nodeContains(listPanel, e.target) && classList[0] !== 'rf-form-wrapper') {
+                    this.isListOpen = false
+                }
+            },
+            onSelectVal (val) {
+                // 获取选定对象
+                const selection = getSelection()
+                // 如果保存的有上次的光标对象
+                if (this.lastEditRange) {
+                    // 清除所有选区
+                    selection.removeAllRanges()
+                    // 添加最后光标还原之前的状态
+                    selection.addRange(this.lastEditRange)
+                }
+                const range = selection.getRangeAt(0)
+                const textNode = range.startContainer
+                const rangeStartOffset = range.startOffset
+                // 匹配光标前内容最后面变量部分
+                const previousText = textNode.textContent.slice(0, rangeStartOffset)
+                const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
+                // 需要补全的变量
+                const addText = val.replace(matchText, '')
+                textNode.insertData(rangeStartOffset, addText)
+                range.setStart(textNode, rangeStartOffset + addText.length)
+
+                // 将选区折叠为一个光标
+                range.collapse(true)
+                selection.removeAllRanges()
+                selection.addRange(range)
+                // 更新表单
+                const divInputDom = this.$el.querySelector('.div-input')
+                this.input.value = divInputDom.innerText
+                this.updateForm(divInputDom.innerText)
+                // 清空/关闭
+                this.isListOpen = false
+                this.hoverKey = ''
+                this.input.focus = true
+            },
+            // 文本框点击
+            handleInputMouseUp (e) {
+                // 判断是否点到变量节点上
+                let isVarTagDom = false
+                const varTagDoms = this.$el.querySelectorAll('.var-tag')
+                if (varTagDoms && varTagDoms.length) {
+                    isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
+                }
+                if (isVarTagDom) {
+                    const varText = e.target.innerText
+                    const divInputDom = this.$el.querySelector('.div-input')
+                    const varTextNode = document.createTextNode(varText)
+                    // 替换内容
+                    Array.from(divInputDom.childNodes).some(node => {
+                        return Array.from(node.childNodes).some(child => {
+                            if (child.id === e.target.id) {
+                                node.replaceChild(varTextNode, child)
+                                return true
+                            }
+                        })
+                    })
+                    const selection = window.getSelection()
+                    const range = document.createRange()
+                    range.selectNodeContents(varTextNode)
+                    range.setStart(varTextNode, varTextNode.length)
+                    range.collapse(true)
+                    selection.removeAllRanges()
+                    selection.addRange(range)
+                } else if (this.input.value) {
+                    this.handleInputChange(e, false)
+                }
+            },
+            // 文本框获取焦点
+            handleInputFocus (e) {
+                this.input.focus = true
+            },
+            // 文本框输入
+            handleInputChange (e, updateForm = true) {
+                if (updateForm) {
+                    const { innerText } = e.target
+                    this.input.value = innerText
+                    this.updateForm(innerText)
+                }
+                const range = window.getSelection().getRangeAt(0)
+                this.lastEditRange = range
+                const { startContainer: textNode, startOffset } = range
+                const textValue = textNode.textContent
+                // 如果光标所在元素没有内容则不进行后续操作
+                if (!textValue) return
+                let previousText
+                if (textNode.nodeName === '#text') {
+                    previousText = textValue.slice(0, startOffset)
+                } else if (textNode.nodeName === 'DIV') {
+                    const lastNode = textNode.childNodes[startOffset - 1]
+                    previousText = lastNode.textContent
+                }
+                const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
+                // 如果是完整全局变量则不进行手续操作
+                if (/^\$\{\w+\}$/.test(matchText)) {
+                    this.isListOpen = false
+                    return
+                }
+                // 判断是否为变量格式
+                if (matchText === '$' || /^\${[a-zA-Z_]*[\w|.]*/.test(matchText)) {
+                    const regStr = matchText.replace(/[\$\{\}]/g, '\\$&')
+                    const inputReg = new RegExp(regStr)
+                    this.varList = this.constantArr.filter(item => {
+                        return inputReg.test(item)
+                    })
+                    // 计算变量下拉列表的坐标
+                    this.isListOpen = false
+                    if (this.varList.length) {
+                        const { top: textNodeTop, width } = textNode.parentNode.getBoundingClientRect()
+                        const { width: inputWidth, top: inputTop } = this.$el.querySelector('.rf-form-wrap').getBoundingClientRect()
+                        let previousDomWidth = 0
+                        let previousDomLeft = 0
+                        const { previousSibling, previousElementSibling } = textNode
+                        if (previousSibling) {
+                            if (previousSibling.nodeName === '#text') {
+                                previousText = previousSibling.textContent + previousText
+                                if (previousElementSibling && previousElementSibling.nodeName !== '#text') {
+                                    previousDomWidth = previousElementSibling.offsetWidth || 0
+                                    previousDomLeft = previousElementSibling.offsetLeft || 0
+                                }
+                            } else {
+                                previousDomWidth = previousElementSibling.offsetWidth || 0
+                                previousDomLeft = previousElementSibling.offsetLeft || 0
+                            }
+                        }
+                        const newDom = document.createElement('span')
+                        newDom.style.maxWidth = `${width}px`
+                        newDom.style.lineHeight = '18px'
+                        newDom.style.display = 'inline-block'
+                        newDom.innerHTML = previousText
+                        this.$el.appendChild(newDom)
+                        const focusValueWidth = newDom.offsetWidth || 0
+                        const focusValueHeight = newDom.offsetHeight || 0
+                        this.$el.removeChild(newDom)
+                        let popLeft = previousDomLeft + previousDomWidth + focusValueWidth
+                        if (popLeft > inputWidth - 238) {
+                            popLeft = inputWidth - 238
+                        }
+                        let popTop = textNodeTop - inputTop + focusValueHeight + 2 // 2px是为了使光标和联想列表隔开
+                        this.$nextTick(() => {
+                            const { height: varListHeight } = document.querySelector('.rf-select-list').getBoundingClientRect()
+                            if (window.innerHeight < textNodeTop + focusValueHeight + varListHeight + 50) {
+                                popTop = textNodeTop - inputTop - varListHeight - 2
+                            }
+                            this.varListPosition = `left: ${popLeft}px; top: ${popTop}px`
+                        })
+                    }
+                } else {
+                    this.varList = []
+                }
+                this.isListOpen = !!this.varList.length
+            },
+            // 点击到input外面
+            handleClickOutSide (e) {
+                if (!this.input.focus) return
+                const parent = e.target.offsetParent
+                const classList = parent ? parent.classList : null
+                const unFocus = !parent || (classList && !Array.from(classList.values()).some(key => {
+                    return ['tag-textarea', 'tippy-tooltip', 'tippy-content', 'rf-select-list'].includes(key)
+                }))
+                if (unFocus && e.target.className !== 'var-tag') {
+                    this.handleInputBlur()
+                }
+            },
+            // 文本框失焦
+            handleInputBlur  (e) {
+                this.$emit('blur')
+                this.input.focus = false
+                // 支持所有变量（系统变量，内置变量，自定义变量）
+                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
+                const divInputDom = this.$el.querySelector('.div-input')
+                divInputDom.childNodes.forEach(dom => {
+                    const domValue = dom.textContent
+                    const innerHtml = domValue.replace(varRegexp, (match) => {
+                        if (this.constantArr.includes(match)) {
+                            // 两边留空格保持间距
+                            const randomId = Math.random().toString().slice(-6)
+                            return `<span class="var-tag" contenteditable="false" id="tag_${randomId}">${match}</span>`
+                        }
+                        return match
+                    })
+                    if (dom.nodeName === '#text') {
+                        const newDom = document.createElement('div')
+                        newDom.innerHTML = innerHtml
+                        divInputDom.replaceChild(newDom, dom)
+                    } else if (dom.nodeName === 'DIV') {
+                        dom.innerHTML = innerHtml
+                    } else {
+                        const newDom = document.createElement('text')
+                        divInputDom.replaceChild(newDom, dom)
+                    }
                 })
+            },
+            // 文本框按键事件
+            handleInputKeyDown (e) {
+                switch (e.code) {
+                    case 'Enter':
+                    case 'NumpadEnter':
+                        if (this.isListOpen) {
+                            e.preventDefault()
+                            this.handleKeyEnter()
+                        }
+                        break
+                    case 'ArrowDown':
+                    case 'ArrowUp':
+                        if (this.isListOpen) {
+                            e.preventDefault()
+                            this.handleDocumentKeydown(e)
+                        }
+                        break
+                    default:
+                        return false
+                }
+            },
+            handleKeyEnter () {
+                if (!this.hoverKey) return
+                this.onSelectVal(this.hoverKey)
+            },
+            handleDocumentKeydown (event) {
+                const len = this.varList.length
+                if (len) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    let curIndex = this.varList.findIndex(item => item === this.hoverKey)
+                    curIndex = event.code === 'ArrowDown' ? curIndex + 1 : curIndex - 1
+                    curIndex = curIndex > len - 1 ? 0 : (curIndex < 0 ? len - 1 : curIndex)
+                    const option = this.varList[curIndex]
+                    if (option) {
+                        this.hoverKey = option
+                        const selectDom = this.$el.querySelector('.rf-select-content')
+                        const hoverItemDom = selectDom.querySelector('.is-hover')
+                        if (hoverItemDom) {
+                            selectDom.scrollTo({
+                                top: 32 * (curIndex < 3 ? 0 : curIndex - 2)
+                            })
+                        }
+                    }
+                }
             }
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 .tag-textarea {
-    .el-textarea__inner {
-        padding-left: 10px;
-        padding-right: 10px;
-        font-size: 12px;
-        word-break: break-all;
-        @include scrollbar;
+    .rf-form-wrapper {
+        position: relative;
+        .rf-select-list {
+            position: absolute;
+            top: 40px;
+            right: 0;
+            width: 238px;
+            background: #ffffff;
+            border-radius: 2px;
+            box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.1);
+            overflow-y: hidden;
+            z-index: 100;
+        }
+        .rf-select-content {
+            max-height: 100px;
+            padding: 2px 0;
+            overflow: auto;
+            @include scrollbar;
+        }
+        .rf-select-item {
+            padding: 0 10px;
+            line-height: 32px;
+            font-size: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            &.is-hover,
+            &:hover {
+                background: #f5f7fa;
+            }
+        }
     }
-}
-.rf-view-textarea-value {
-    .el-textarea__inner {
-        padding: 6px 0;
-        line-height: 24px;
-        color: #333333;
-        border: none;
-        resize: none;
-        &[disabled = "disabled"] {
-            background: inherit;
-            color: inherit;
-            cursor: text;
+    .rf-form-wrap {
+        padding: 5px 10px;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        &.input-focus {
+            border-color: #3a84ff;
+        }
+        &.input-disable {
+            cursor: not-allowed;
+            background-color: #fafbfd;
+            border-color: #dcdee5;
+        }
+    }
+    .div-input {
+        min-height: 36px;
+        line-height: 18px;
+        color: #63656e;
+        outline: 0;
+        word-wrap: break-word;
+        overflow-x: hidden;
+        overflow-y: auto;
+        /deep/.var-tag {
+            padding: 0px 4px;
+            background: #f0f1f5;
+            cursor: pointer;
+            white-space: nowrap;
+            &:hover {
+                background: #eaebf0;
+            }
+        }
+        &.input-before::before {
+            content: attr(data-placeholder);
+            color: #c4c6cc;
         }
     }
 }

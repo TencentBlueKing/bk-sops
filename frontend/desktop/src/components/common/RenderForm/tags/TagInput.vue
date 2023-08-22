@@ -42,7 +42,7 @@
                 <transition>
                     <div
                         class="rf-select-list"
-                        :style="`right: ${varListPositionRight}px`"
+                        :style="varListPosition"
                         v-show="showVarList && isListOpen">
                         <ul class="rf-select-content">
                             <li
@@ -111,7 +111,7 @@
                     focus: false
                 },
                 varList: [],
-                varListPositionRight: 0,
+                varListPosition: '',
                 hoverKey: '',
                 selection: {}
             }
@@ -171,6 +171,7 @@
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
                 divInputDom.innerHTML = this.value
+                this.handleInputBlur()
             }
         },
         beforeDestroy () {
@@ -262,6 +263,8 @@
                         return false
                     })
                     selection.collapse(textNode, startToVarTextLength + varTextOffset)
+                } else if (this.input.value) {
+                    this.handleInputChange(e)
                 }
             },
             // 文本框获取焦点
@@ -278,7 +281,7 @@
                     const { nodeName, lastChild } = selection.focusNode
                     if (nodeName === 'DIV') {
                         focusSelection = {
-                            anchorOffset: lastChild.data.length,
+                            anchorOffset: lastChild.textContent.length,
                             focusNode: lastChild
                         }
                     } else if (nodeName === '#text') {
@@ -320,7 +323,7 @@
                     // 计算变量下拉列表的left
                     this.isListOpen = false
                     if (this.varList.length) {
-                        const { width: inputWidth } = this.$el.querySelector('.rf-form-wrap').getBoundingClientRect()
+                        const { width: inputWidth, top: inputTop } = this.$el.querySelector('.rf-form-wrap').getBoundingClientRect()
                         let previousDomWidth = 0
                         let previousDomLeft = 0
                         const { previousElementSibling } = focusNode
@@ -341,6 +344,11 @@
                         let right = inputWidth - 238 - previousDomLeft - previousDomWidth - focusValueWidth
                         right = right > 0 ? right : 0
                         this.varListPositionRight = right
+                        this.$nextTick(() => {
+                            const { height: varListHeight } = document.querySelector('.rf-select-list').getBoundingClientRect()
+                            const top = window.innerHeight < inputTop + 30 + varListHeight + 50 ? -95 : 30
+                            this.varListPosition = `right: ${right}px; top: ${top}px`
+                        })
                     }
                 } else {
                     this.varList = []
@@ -430,7 +438,7 @@
         position: relative;
         .rf-select-list {
             position: absolute;
-            top: 40px;
+            top: 30px;
             right: 0;
             width: 238px;
             background: #ffffff;
