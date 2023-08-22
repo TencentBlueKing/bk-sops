@@ -101,11 +101,12 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         @return:
         """
         app_maker_queryset = AppMaker.objects.filter(task_template__id=template_id, is_deleted=False)
+
         return list(
             {
                 app_maker.name
                 for app_maker in app_maker_queryset
-                if int(app_maker.template_scheme_id) in remove_scheme_ids_set
+                if app_maker.template_scheme_id and int(app_maker.template_scheme_id) in remove_scheme_ids_set
             }
         )
 
@@ -127,7 +128,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         clocked_task_names = []
 
         for clocked_task in clocked_task_queryset:
-            template_scheme_ids = json.loads(clocked_task.task_params).get("template_schemes_id")
+            template_scheme_ids = json.loads(clocked_task.task_params).get("template_schemes_id", [])
             if set(template_scheme_ids) & remove_scheme_ids_set:
                 clocked_task_names.append(clocked_task.task_name)
 
