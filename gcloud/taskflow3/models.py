@@ -1025,6 +1025,8 @@ class TaskFlowInstance(models.Model):
 
         with transaction.atomic():
             record = TaskCallBackRecord.objects.filter(task_id=self.id).first()
+            if not record:
+                return
             info = json.loads(record.extra_info)
             parent_node_id, parent_node_version = info["node_id"], info["node_version"]
             runtime = BambooDjangoRuntime()

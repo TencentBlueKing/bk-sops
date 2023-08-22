@@ -10,32 +10,31 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
-import time
-import socket
 import logging
+import socket
+import time
 
 from celery import task
 from django.conf import settings
 from django.utils import timezone
-
+from django.utils.translation import ugettext_lazy as _
 from pipeline.engine.models import PipelineProcess
-from pipeline.eri.models import State, Process
+from pipeline.eri.models import Process, State
 from pipeline.eri.runtime import BambooDjangoRuntime
 
 import metrics
 from gcloud.constants import CallbackStatus
+from gcloud.shortcuts.message import send_task_flow_message
 from gcloud.taskflow3.domains.callback import TaskCallBacker
+from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.taskflow3.domains.node_timeout_strategy import node_timeout_handler
 from gcloud.taskflow3.models import (
-    TaskFlowInstance,
     AutoRetryNodeStrategy,
     EngineConfig,
+    TaskFlowInstance,
     TimeoutNodeConfig,
     TimeoutNodesRecord,
 )
-from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
-from gcloud.shortcuts.message import send_task_flow_message
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("celery")
 
@@ -104,6 +103,15 @@ def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_
         settings.redis_inst.delete(lock_name)
         logger.warning("[auto_retry_node] task(%s) node(%s) ensure_node_can_retry timeout" % (taskflow_id, node_id))
         return
+
+    # 如果是独立子任务，自动重试时更新父任务节点状态
+    if engine_ver == EngineConfig.ENGINE_VER_V2:
+        try:
+            task_instance = TaskFlowInstance.objects.get(id=taskflow_id)
+            task_instance.change_parent_task_node_state_to_running()
+        except TaskFlowInstance.DoesNotExist:
+            logger.exception("[auto_retry_node] get task for (task_id={}) fail.".format(taskflow_id))
+            pass
 
     dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=taskflow_id)
 
