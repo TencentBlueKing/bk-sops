@@ -801,7 +801,16 @@ BKCRYPTO = {
             },
         },
     },
+    "SYMMETRIC_CIPHERS": {
+        "default": {"get_key_config": "gcloud.utils.crypto.get_default_symmetric_key_config"},
+    },
 }
+
+# 启用框架内置数据加密
+BLUEAPPS_ENABLE_DB_ENCRYPTION = True
+# 复用已有的 default 对称加密实例
+BKCRYPTO["SYMMETRIC_CIPHERS"]["blueapps"] = BKCRYPTO["SYMMETRIC_CIPHERS"]["default"]
+
 
 # 加密
 if env.BKPAAS_BK_CRYPTO_TYPE == "SHANGMI":
