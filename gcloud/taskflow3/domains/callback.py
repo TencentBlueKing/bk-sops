@@ -62,12 +62,12 @@ class TaskCallBacker:
                     # 如果对应节点已经在回调，则直接忽略本次回调
                     logger.error(f"[TaskCallBacker _subprocess_callback] get lock error: {err}")
                     return None
-                parent_task_id = TaskFlowRelation.objects.filter(task_id=self.task_id).first().parent_task_id
-                dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=parent_task_id)
                 runtime = BambooDjangoRuntime()
                 node_state = runtime.get_state(node_id)
                 if node_state.name not in [states.RUNNING, states.FAILED]:
                     raise ValidationError(f"node state is not running or failed, but {node_state.name}")
+                if node_state.version != version:
+                    raise ValidationError(f"node version is not {version}, but {node_state.version}")
                 if node_state.name == states.FAILED:
                     if self.extra_info["task_success"] is False:
                         logger.info(
@@ -79,6 +79,8 @@ class TaskCallBacker:
                     # FAILED 状态需要转换为 READY 之后才能转换为 RUNNING
                     runtime.set_state(node_id=node_id, version=version, to_state=states.READY)
                     runtime.set_state(node_id=node_id, version=version, to_state=states.RUNNING)
+                parent_task_id = TaskFlowRelation.objects.filter(task_id=self.task_id).first().parent_task_id
+                dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=parent_task_id)
                 dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
         except Exception as e:
             message = f"[TaskCallBacker _subprocess_callback] error: {e}, with data {self.record.extra_info}"
