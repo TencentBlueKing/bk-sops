@@ -19,7 +19,6 @@ django-nose==1.4.5
 coverage==4.5.1
 python-magic==0.4.15
 cryptography==3.3.2
-bk-crypto-python-sdk==1.1.1
 gitdb2==2.0.6
 GitPython==2.1.11
 PyJWT==1.7.1
@@ -62,7 +61,7 @@ importlib-metadata==3.7.3
 protobuf==3.19.4
 
 # blueapps
-blueapps[opentelemetry, bkcrypto]==4.8.0
+blueapps[opentelemetry,bkcrypto]==4.8.0
 whitenoise==5.2.0
 raven==6.5.0
 python-json-logger==2.0.1
