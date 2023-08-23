@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import typing
+import base64
 
 from bkcrypto import constants as crypto_constants
 from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
@@ -60,6 +61,11 @@ def decrypt(ciphertext: str, using: typing.Optional[str] = None) -> str:
 
     # 2. 尝试对明文二次 RSA 解密，用于兼容原逻辑
     try:
+        # 该校验用于避免非 b64 串 decode 返回空的场景
+        # 尝试 base64 解密，如果解密结果是空串，说明 plaintext 为空或者字符非法，说明非密文，直接返回；
+        # 如果抛出异常，在外层被 catch 后返回
+        if not base64.b64decode(plaintext.encode(encoding="utf-8")):
+            return plaintext
         plaintext = asymmetric_cipher_manager.cipher(using=using, cipher_type=AsymmetricCipherType.RSA.value).decrypt(
             plaintext
         )
