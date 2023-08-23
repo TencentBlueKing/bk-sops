@@ -20,23 +20,20 @@ from bamboo_engine.template import Template
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from pipeline.models import PipelineTemplate
-
-from pipeline.core.flow.io import StringItemSchema, IntItemSchema
-
+from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow import Service
+from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 from pipeline.eri.runtime import BambooDjangoRuntime
-
-from gcloud.core.models import EngineConfig, Project
-from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
+from pipeline.models import PipelineTemplate
 from pydantic import BaseModel
 
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskCallBackRecord, TaskFlowRelation
+from gcloud.core.models import EngineConfig, Project
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
+from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
-from pipeline.component_framework.component import Component
-from pipeline.core.flow import Service
-from django.utils.translation import ugettext_lazy as _
 
 
 class Subprocess(BaseModel):
@@ -206,8 +203,7 @@ class SubprocessPluginService(Service):
         task_id = data.get_one_of_outputs("task_id")
         self.finish_schedule()
         if not task_success:
-            task_url = data.get_one_of_outputs("task_url")
-            data.set_outputs("ex_data", f'子流程节点执行异常，请<a href="{task_url}" target="_blank">去往子任务</a>查看详情')
+            data.set_outputs("ex_data", "子流程执行失败，请检查失败节点")
             return False
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)

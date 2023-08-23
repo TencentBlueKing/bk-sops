@@ -1036,8 +1036,13 @@ class TaskFlowInstance(models.Model):
             schedule = runtime.get_schedule_with_node_and_version(parent_node_id, parent_node_version)
             DBSchedule.objects.filter(id=schedule.id).update(expired=False)
             # FAILED 状态需要转换为 READY 之后才能转换为 RUNNING
-            runtime.set_state(node_id=parent_node_id, version=parent_node_version, to_state=states.READY)
+            runtime.set_state(
+                node_id=parent_node_id, version=parent_node_version, to_state=states.READY, clear_archived_time=True
+            )
             runtime.set_state(node_id=parent_node_id, version=parent_node_version, to_state=states.RUNNING)
+            data_outputs = runtime.get_execution_data_outputs(parent_node_id)
+            data_outputs.pop("ex_data", None)
+            runtime.set_execution_data_outputs(parent_node_id, data_outputs)
 
             # 仅当父流程的节点状态为失败时，才需要唤醒父流程的节点
             parent_task_id = TaskFlowRelation.objects.filter(task_id=self.id).first().parent_task_id
