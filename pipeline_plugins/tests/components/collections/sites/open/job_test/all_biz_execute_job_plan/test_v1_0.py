@@ -23,6 +23,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
+from gcloud.utils import crypto
 from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.v1_0 import (
     AllBizJobExecuteJobPlanComponent,
 )
@@ -709,6 +710,12 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
             "is_tagged_ip": True,
             "job_global_var": [
                 {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
+                {
+                    "id": 1000032,
+                    "type": JOBV3_VAR_CATEGORY_PASSWORD,
+                    "name": "password",
+                    "value": {"tag": "variable", "value": crypto.encrypt("123")},
+                },
                 {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
             ],
         }
@@ -750,6 +757,7 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
                         "job_plan_id": 1000010,
                         "global_var_list": [
                             {"id": 1000030, "value": "test"},
+                            {"id": 1000032, "value": "123"},
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",

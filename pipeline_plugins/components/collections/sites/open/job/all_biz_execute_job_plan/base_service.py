@@ -20,6 +20,7 @@ from pipeline_plugins.components.utils import (
     get_node_callback_url,
     has_biz_set,
     loose_strip,
+    parse_passwd_value,
     plat_ip_reg,
 )
 
@@ -123,7 +124,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         for _value in original_global_var:
-            val = loose_strip(crypto.decrypt(_value["value"]))
+            val = loose_strip(crypto.decrypt(parse_passwd_value(_value["value"])))
             if _value["type"] == JOBV3_VAR_CATEGORY_IP:
 
                 ip_list = self.get_ip_list(val)
