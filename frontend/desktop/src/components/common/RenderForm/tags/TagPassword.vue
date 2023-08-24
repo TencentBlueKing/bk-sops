@@ -199,7 +199,7 @@
                     const pkey = cryptoJsSdk.helper.asn1.decode(pubKey)
                     const cipher = sm2.encrypt(pkey, cryptoJsSdk.helper.encode.strToHex(this.localVal.value))
                     const base64Ret = cryptoJsSdk.helper.encode.hexToBase64(cipher)
-                    return base64Ret
+                    return `${this.ASYMMETRIC_PREFIX}${base64Ret}`
                 }
             },
             change () {
