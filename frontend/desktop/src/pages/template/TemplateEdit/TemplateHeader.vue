@@ -331,6 +331,7 @@
                 }
             },
             goBackToTplEdit () {
+                this.$emit('handleGoMangeScheme', false)
                 this.$emit('goBackToTplEdit')
             },
             goTaskCreate (pid) {

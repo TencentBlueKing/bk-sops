@@ -85,12 +85,6 @@
                 if (val === 'third_party_plugin' || this.nodeLogPageInfo) {
                     this.watchEditorScroll()
                 }
-            },
-            executeInfo: {
-                handler (val) {
-                    this.initLog()
-                },
-                deep: true
             }
         },
         beforeDestroy () {

@@ -34,13 +34,6 @@
             @onTaskParamsClick="onTaskParamsClick"
             @onInjectGlobalVariable="onInjectGlobalVariable">
         </task-operation-header>
-        <bk-alert v-if="isFailedSubproceeNodeInfo" type="error" class="subprocess-failed-tips">
-            <template slot="title">
-                <span>{{ $t('存在子流程节点执行失败，可从节点执行记录去往子任务处理，并及时') }}</span>
-                <bk-link theme="primary" @click="handleRefreshTaskStatus">{{ $t('刷新任务状态') }}</bk-link>
-                {{ $t('。') }}
-            </template>
-        </bk-alert>
         <div class="task-container">
             <div class="pipeline-nodes">
                 <TemplateCanvas
@@ -80,7 +73,7 @@
                 <div class="header">
                     <span>{{sideSliderTitle}}</span>
                     <div class="sub-title" v-if="nodeInfoType === 'modifyParams' && retryNodeId">
-                        {{ nodePipelineData.activities[retryNodeId] && nodePipelineData.activities[retryNodeId].name }}
+                        {{ nodeTreePipelineData.activities[retryNodeId] && nodeTreePipelineData.activities[retryNodeId].name }}
                     </div>
                 </div>
             </div>
@@ -118,6 +111,8 @@
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onPauseClick="onPauseClick"
+                    @onContinueClick="onContinueClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onForceFail="onForceFailClick"
                     @onApprovalClick="onApprovalClick"
@@ -375,7 +370,6 @@
                     }
                 },
                 nodePipelineData: {},
-                isFailedSubproceeNodeInfo: null,
                 nodeInfo: {},
                 nodeInputs: {},
                 isExecRecordOpen: false,
@@ -614,9 +608,6 @@
                             this.setRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
-                        this.isFailedSubproceeNodeInfo = this.canvasData.locations.find(item => {
-                            return item.code === 'subprocess_plugin' && item.status === 'FAILED'
-                        })
                     } else {
                         // 查询流程状态接口返回失败后再请求一次
                         this.pollErrorTimes += 1
@@ -748,12 +739,12 @@
                     this.pending.task = false
                 }
             },
-            async taskPause (subflowPause, nodeId) {
+            async taskPause (subflowPause, nodeId, taskId) {
                 let res, state, message
                 try {
                     if (!this.isTopTask || subflowPause) { // 子流程画布暂停或子流程节点暂停
                         const data = {
-                            instance_id: this.instance_id,
+                            instance_id: taskId || this.instance_id,
                             node_id: nodeId || this.taskId
                         }
                         res = await this.subInstancePause(data)
@@ -780,12 +771,12 @@
                     this.pending.task = false
                 }
             },
-            async taskResume (subflowResume, nodeId) {
+            async taskResume (subflowResume, nodeId, taskId) {
                 let res, message
                 try {
                     if (!this.isTopTask || subflowResume) {
                         const data = {
-                            instance_id: this.instance_id,
+                            instance_id: taskId || this.instance_id,
                             node_id: nodeId || this.taskId
                         }
                         res = await this.subInstanceResume(data)
@@ -836,7 +827,6 @@
                 }
 
                 this.pending.skip = true
-                this.isFailedSubproceeNodeInfo = null
                 try {
                     const data = {
                         instance_id: taskId || this.instance_id,
@@ -1196,7 +1186,6 @@
                     this.isNodeInfoPanelShow = false
                     this.retryNodeId = undefined
                     // 重新轮询任务状态
-                    this.isFailedSubproceeNodeInfo = null
                     this.setTaskStatusTimer()
                     this.updateNodeActived(this.nodeDetailConfig.id, false)
                 } catch (error) {
@@ -1319,6 +1308,22 @@
                 this.approval.message = ''
                 this.approval.dialogShow = false
             },
+            onPauseClick (id, taskId) {
+                this.taskPause(true, id, taskId)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
+                setTimeout(() => {
+                    this.setTaskStatusTimer()
+                }, 1000)
+            },
+            onContinueClick (id, taskId) {
+                this.taskResume(true, id, taskId)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
+                setTimeout(() => {
+                    this.setTaskStatusTimer()
+                }, 1000)
+            },
             onCloseConfigPanel () {
                 this.isShowConditionEdit = false
             },
@@ -1399,7 +1404,19 @@
              *
              */
             retrieveLines (flowId, data, nodeInfo, ordered, parentOrdered) {
-                const { id, gatewayId, branchId, nodeLevel = 1, parentId, parentLevel, lastLevelStyle, lastId, taskId } = nodeInfo
+                const {
+                    id,
+                    gatewayId,
+                    branchId,
+                    nodeLevel = 1,
+                    parentId,
+                    parentLevel,
+                    lastLevelStyle,
+                    lastId,
+                    taskId,
+                    isLevelUp,
+                    style
+                } = nodeInfo
                 const { activities, gateways, flows } = data
                 const nodeConfig = activities[id] || gateways[id]
                 if (this.nodeIds[flowId] && this.nodeIds[flowId].includes(id)) {
@@ -1426,8 +1443,11 @@
                                 const branchInfo = gatewayOrdered.children.splice(branchIndex, 1)
                                 gatewayOrdered.children.splice(convergeIndex, 0, branchInfo[0])
                             } else if (existNode) { // 跨层级汇聚
+                                const lastNode = this.getMatchOrderedNode(ordered, lastId, false)
                                 parentOrdered.push({
                                     ...existNode,
+                                    isLevelUp: lastNode.isLevelUp,
+                                    style: lastNode.style,
                                     isDifferLevelConverge: true
                                 })
                             }
@@ -1444,6 +1464,7 @@
                         parentId,
                         expanded: false,
                         nodeLevel: parentLevel ? parentLevel + nodeLevel : nodeLevel,
+                        isLevelUp,
                         taskId
                     }
                     let marginLeft = 0
@@ -1458,7 +1479,7 @@
                             marginLeft = marginLeft + 33
                         }
                     }
-                    treeItem.style = `margin-left: ${marginLeft}px`
+                    treeItem.style = style || `margin-left: ${marginLeft}px`
                     let conditions = []
 
                     if (id in gateways) { // 网关节点
@@ -1584,26 +1605,39 @@
                             const convergeNode = Object.values(this.convergeInfo).find(item => item.convergeNode === id)
                             if (convergeNode) {
                                 result = this.getMatchOrderedNode(ordered, convergeNode.id, true)
+                                const gatewayInfo = this.getMatchOrderedNode(ordered, convergeNode.id, false)
                                 const { gatewayId, nodeLevel } = result[0]
                                 treeItem.nodeLevel = nodeLevel
+                                treeItem.style = gatewayInfo.style
+                                treeItem.isLevelUp = gatewayInfo.isLevelUp
+                                // 添加同级的汇聚网关标识
+                                if (gateways[id]?.type === 'ConvergeGateway') {
+                                    gatewayInfo.hasConvergeGW = true
+                                }
                                 result.push(treeItem)
                                 newOrdered = result
                                 nextNodeInfo.gatewayId = gatewayId
                                 nextNodeInfo.nodeLevel = nodeLevel
+                                nextNodeInfo.isLevelUp = treeItem.isLevelUp
+                                nextNodeInfo.style = treeItem.style
                             } else {
                                 result = this.getMatchOrderedNode(ordered, gatewayId, false)
                                 if (result) {
                                     treeItem.nodeLevel = result.children[0].nodeLevel
+                                    treeItem.style = result.children[0].style
+                                    treeItem.isLevelUp = true
                                     result.children.push(treeItem)
                                     newOrdered = result.children
                                     nextNodeInfo.gatewayId = result.gatewayId
                                     nextNodeInfo.nodeLevel = treeItem.nodeLevel
+                                    nextNodeInfo.isLevelUp = true
+                                    nextNodeInfo.style = treeItem.style
                                 } else {
                                     parentOrdered.push(treeItem)
                                 }
                             }
                             // 汇聚节点层级会提高
-                            if (treeItem.nodeLevel === 1) {
+                            if (treeItem.nodeLevel === 1 && !parentId) {
                                 treeItem.style = 'margin-left: 0px'
                             }
                         } else {
@@ -1616,7 +1650,7 @@
                     
                     if (conditions.length) {
                         conditions.forEach(item => {
-                            item.style = `margin-left: ${marginLeft + 33}px`
+                            item.style = `margin-left: ${item.parentId ? 16 : marginLeft + 33}px`
                             treeItem.children.push(item)
                             this.retrieveLines(
                                 flowId,
@@ -2206,7 +2240,6 @@
                     this.pending.retry = true
                     await this.onRetryTask(data)
                     this.isNodeInfoPanelShow = false
-                    this.isFailedSubproceeNodeInfo = null
                     this.setTaskStatusTimer()
                     this.updateNodeActived(this.nodeDetailConfig.id, false)
                 } catch (error) {
@@ -2316,13 +2349,6 @@
                         && this.pipelineData.activities[key].component.code === 'pause_node'))
                         ? 'SUSPENDED'
                         : ''
-            },
-            // 刷新任务状态
-            handleRefreshTaskStatus () {
-                const nodeId = this.isFailedSubproceeNodeInfo.id
-                this.isFailedSubproceeNodeInfo = null
-                this.setTaskStatusTimer()
-                this.updateNodeActived(nodeId, false)
             }
         }
     }
@@ -2342,20 +2368,6 @@
     font-size: 12px;
 }
 
-.subprocess-failed-tips {
-    margin-top: -1px;
-    color: #63656e;
-    /deep/.bk-alert-title {
-        display: flex;
-    }
-    /deep/.bk-link {
-        vertical-align: initial;
-        line-height: 16px;
-        .bk-link-text {
-            font-size: 12px;
-        }
-    }
-}
 .task-container {
     position: relative;
     width: 100%;

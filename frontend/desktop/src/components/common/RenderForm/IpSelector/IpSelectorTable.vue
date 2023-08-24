@@ -118,7 +118,7 @@
                     {
                         name: 'IP',
                         id: 'bk_host_innerip',
-                        width: 120,
+                        width: 180,
                         fixed: true,
                         sortable: true,
                         checked: true
@@ -128,7 +128,7 @@
                         id: 'bk_host_innerip_v6',
                         width: 120,
                         fixed: true,
-                        checked: true
+                        checked: false
                     },
                     {
                         name: this.$t('管控区域'),
@@ -183,7 +183,6 @@
             }
         },
         created () {
-            console.log(this.listInPage)
             if (this.staticIpTableConfig.length) {
                 this.tableColumnList.forEach(item => {
                     item.checked = this.staticIpTableConfig.includes(item.id)

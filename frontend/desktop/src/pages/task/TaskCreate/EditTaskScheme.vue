@@ -644,10 +644,11 @@
                         scheme.isDefault = false
                         await this.onSaveDefaultExecuteScheme()
                     }
-                    await this.deleteTaskScheme({
+                    const resp = await this.deleteTaskScheme({
                         isCommon: this.isCommonProcess,
                         id: scheme.id
                     })
+                    if (!resp.result) return
                     const index = this.schemeList.findIndex(item => item.id === scheme.id)
                     this.schemeList.splice(index, 1)
                     // 删除方案后，画布按编辑前选中的方案来勾选节点
