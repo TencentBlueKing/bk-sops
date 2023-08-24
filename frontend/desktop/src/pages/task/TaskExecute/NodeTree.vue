@@ -45,9 +45,15 @@
                 activeId: this.defaultActiveId
             }
         },
-        mounted () {
-            if (this.defaultActiveId) {
-                this.setDefaultActiveId(this.treeData, this.defaultActiveId)
+        watch: {
+            defaultActiveId: {
+                handler (val) {
+                    this.activeId = val
+                    const nodeId = val.split('-')[0]
+                    this.setDefaultActiveId(this.treeData, nodeId)
+                },
+                deep: true,
+                immediate: true
             }
         },
         methods: {

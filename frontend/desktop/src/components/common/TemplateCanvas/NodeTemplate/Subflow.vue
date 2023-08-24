@@ -25,7 +25,6 @@
         </div>
         <div class="node-name" :title="node.name">
             <div class="name-text">{{ node.name }}</div>
-            <div class="subflow-mark"></div>
         </div>
         <div class="node-options-icon">
             <template v-if="node.optional">
@@ -133,23 +132,18 @@
     }
 </script>
 <style lang="scss" scoped>
-    .node-name {
-        position: relative;
-        .subflow-mark {
-            &::before {
-                content: '';
-                position: absolute;
-                bottom: -1px;
-                right: -1px;
-                background: linear-gradient(to left top,
-                    #a2a5ad, #9fa3aa 40%, #82848a 50%, #ffffff 60%, #ffffff) 100% 0 no-repeat;
-                width: 11px;
-                height: 11px;
-                border-top: 1px solid #e5e5e5;
-                border-left: 1px solid #e5e5e5;
-                border-bottom-right-radius: 4px;
-                box-shadow: -1px -1px 2px -2px rgba(0, 0, 0, .5);
-            }
+    .task-node {
+        &::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 100%;
+            height: 100%;
+            background: #b5c0d599;
+            border: 1px solid #B5C0D5;
+            border-radius: 4px;
+            z-index: -1;
         }
     }
     .updated-dot {

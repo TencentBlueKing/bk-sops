@@ -94,7 +94,7 @@
                 </span>
                 <span v-else class="col-operation-item">{{ $t('编辑') }}</span>
             </span>
-            <span class="col-item col-more" v-if="!isViewMode && !isInternalVal">
+            <span class="col-item col-more" v-if="!isViewMode && !isInternalVal && !['component_outputs', 'component_inputs'].includes(variableData.source_type)">
                 <bk-popover placement="bottom" theme="light" :distance="0" :arrow="false" ext-cls="var-operate-popover">
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">

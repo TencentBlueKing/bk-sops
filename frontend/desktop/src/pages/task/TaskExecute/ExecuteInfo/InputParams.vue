@@ -1,11 +1,17 @@
 <template>
     <section class="info-section input-section" data-test-id="taskExecute_form_inputParams">
-        <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-        <div class="origin-value" v-if="!adminView">
-            <bk-switcher size="small" @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
-            {{ 'Code' }}
+        <div class="section-title-wrap">
+            <i
+                class="trigger common-icon-next-triangle-shape"
+                :class="{ 'is-expand': isExpand }"
+                @click="isExpand = !isExpand"></i>
+            {{ $t('输入参数') }}
+            <div class="origin-value" v-if="!adminView">
+                <bk-switcher size="small" @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
+                {{ 'Code' }}
+            </div>
         </div>
-        <template v-if="!adminView">
+        <template v-if="!adminView && isExpand">
             <div class="input-table" v-if="!isShowInputOrigin">
                 <div class="table-header">
                     <span class="input-name">{{ $t('参数名') }}</span>
@@ -24,7 +30,7 @@
                 </template>
                 <template v-else>
                     <jsonschema-form
-                        v-if="renderConfig?.properties && Object.keys(renderConfig.properties).length > 0"
+                        v-if="renderConfig && renderConfig.properties && Object.keys(renderConfig.properties).length > 0"
                         :schema="renderConfig"
                         :value="inputRenderDate">
                     </jsonschema-form>
@@ -33,7 +39,7 @@
             </div>
             <full-code-editor v-else :value="inputsInfo"></full-code-editor>
         </template>
-        <div class="code-block-wrap" v-else>
+        <div class="code-block-wrap" v-else-if="isExpand">
             <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
         </div>
     </section>
@@ -93,7 +99,8 @@
                 },
                 renderKey: null,
                 inputConstants: {},
-                inputRenderDate: {}
+                inputRenderDate: {},
+                isExpand: true
             }
         },
         computed: {
@@ -177,6 +184,7 @@
         border: 1px solid #dcdee5;
         border-bottom: none;
         border-radius: 2px;
+        margin: 13px 12px 0;
         .table-header {
             display: flex;
             align-items: center;
@@ -268,5 +276,6 @@
     }
     .input-section .full-code-editor {
         height: 400px;
+        margin: 13px 12px 0;
     }
 </style>

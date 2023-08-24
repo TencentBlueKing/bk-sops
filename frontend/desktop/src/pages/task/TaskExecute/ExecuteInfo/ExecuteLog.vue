@@ -1,6 +1,6 @@
 <template>
     <section class="info-section" data-test-id="taskExecute_form_executeLog">
-        <h4 class="common-section-title">{{ $t('节点执行记录') }}</h4>
+        <h4 class="common-section-title">{{ $t('节点执行详情') }}</h4>
         <div class="excute-time" v-if="loop && loop > 1">
             <span>{{$t('第')}}</span>
             <bk-select

@@ -53,6 +53,7 @@
     import InputParams from './InputParams.vue'
     import OutputParams from './OutputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import { TASK_STATE_DICT } from '@/constants/index.js'
     export default {
         name: 'executeRecord',
         components: {
@@ -77,10 +78,6 @@
                 type: Boolean,
                 default: false
             },
-            nodeState: {
-                type: String,
-                default: ''
-            },
             executeInfo: {
                 type: Object,
                 default: () => ({})
@@ -102,6 +99,16 @@
             return {
                 isExpand: false,
                 isExpandTextShow: false
+            }
+        },
+        computed: {
+            nodeState () {
+                const { state, skip, error_ignored } = this.executeInfo
+                // 如果整体任务未执行的话不展示描述
+                if (state === 'CREATED') return this.$t('未执行')
+                // 如果整体任务执行完毕但有的节点没执行的话不展示描述
+                if (['FAILED', 'FINISHED'].includes(state) && state === 'READY') return this.$t('未执行')
+                return skip || error_ignored ? this.$t.t('失败后跳过') : state && TASK_STATE_DICT[state]
             }
         },
         mounted () {
@@ -263,6 +270,31 @@
     .no-data-wrapper {
         height: 150px;
         margin-top: 32px;
+    }
+    /deep/.section-title-wrap {
+        display: flex;
+        align-items: center;
+        position: relative;
+        color: #313238;
+        height: 24px;
+        font-weight: 600;
+        line-height: 18px;
+        padding: 0 8px;
+        background: #eaebf0;
+        .trigger {
+            margin-right: 10px;
+            color: #979ba5;
+            translate: all .2s;
+            cursor: pointer;
+        }
+        .is-expand {
+            transform: rotate(90deg);
+        }
+        .origin-value {
+            font-weight: normal;
+            top: 2px !important;
+            right: 12px !important;
+        }
     }
 }
 </style>

@@ -10,7 +10,9 @@
                     'branch-condition-container': node.conditionType,
                     'parallel-gateway-container': node.type === 'ParallelGateway',
                     'gateway-border-line': node.isGateway && node.expanded && node.type !== 'ConvergeGateway',
-                    'subprocess-border-line': node.isSubProcess && node.expanded
+                    'has-converge-gateway': node.hasConvergeGW,
+                    'subprocess-border-line': node.isSubProcess && node.expanded,
+                    'condition-or-level-up': node.conditionType || node.isLevelUp
                 }
             ]">
             <div
@@ -41,7 +43,7 @@
                         <i v-if="node.children && node.children.length" class="common-icon-next-triangle-shape"></i>
                     </span>
                     <!--空的占位符-->
-                    <span v-else-if="node.isCallback ? false : !node.parentId" class="empty-div"></span>
+                    <span v-else-if="node.isCallback || node.isLevelUp ? false : !node.parentId" class="empty-div"></span>
                     <!--网关图标-->
                     <span
                         v-if="nodeType[node.type]"
@@ -273,42 +275,83 @@
         }
     }
     .gateway-border-line {
-        &::before {
-            content: '';
-            display: block;
-            height: calc(100% - 20px);
-            position: absolute;
-            top: 28px;
-            left: 25.5px;
-            width: 1px;
-            border-left: 1px solid #dcdee5;
-        }
         >.node-tree {
-            >.branch-condition-container::before {
-                content: '';
-                display: block;
-                position: absolute;
-                top: 15.5px;
-                left: -7px;
-                width: 7px;
-                height: 1px;
-                border-top: 1px solid #dcdee5;
+            >.tree-node-container {
+                &:not(:last-child)::before {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    top: -6px;
+                    left: -8px;
+                    width: 1px;
+                    height: 100%;
+                    border-left: 1px solid #dcdee5;
+                }
+                &.branch-condition-container::after {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    top: 15.5px;
+                    left: -8px;
+                    width: 8px;
+                    height: 1px;
+                    border-top: 1px solid #dcdee5;
+                }
+                &:last-child {
+                    >.tree-node-item::before {
+                        content: '';
+                        display: block;
+                        position: absolute;
+                        top: -6px;
+                        left: -6px;
+                        width: 1px;
+                        height: calc(100% - 10px);
+                        border-left: 1px solid #dcdee5;
+                    }
+                }
             }
         }
-        &.parallel-gateway-container::before {
-            height: calc(100% - 44px);
+        &.has-converge-gateway {
+            >.node-tree {
+                >.tree-node-container:last-child {
+                    &::before {
+                        content: '';
+                        display: block;
+                        position: absolute;
+                        top: 5px;
+                        left: -8px;
+                        width: 1px;
+                        height: 100%;
+                        border-left: 1px solid #dcdee5;
+                    }
+                    >.tree-node-item::before {
+                        content: '';
+                    }
+                }
+            }
         }
     }
     .subprocess-border-line {
         &::before {
             content: '';
             display: block;
-            height: calc(100% - 20px);
+            height: calc(100% - 23px);
             position: absolute;
             top: 28px;
             left: 25.5px;
             width: 1px;
             border-left: 1px dashed #dcdee5;
+        }
+    }
+    .condition-or-level-up {
+        >.tree-node-item {
+            padding: 2px;
+            margin-left: -2px;
+        }
+        >.node-tree {
+            >.branch-condition-container {
+                margin-left: 15px !important;
+            }
         }
     }
     .dynamic-load {

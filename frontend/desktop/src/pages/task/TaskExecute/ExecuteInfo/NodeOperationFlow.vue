@@ -31,6 +31,9 @@
             notPerformedSubNode: {
                 type: Boolean,
                 default: false
+            },
+            subProcessTaskId: {
+                type: [String, Number]
             }
         },
         data () {
@@ -62,7 +65,7 @@
                     }
                     const resp = await this.getOperationRecordTask({
                         project_id: params.project_id,
-                        instance_id: query.instance_id,
+                        instance_id: this.subProcessTaskId || query.instance_id,
                         node_id: this.nodeId || undefined
                     })
                     this.operateFlowData = resp.data.map(item => {
