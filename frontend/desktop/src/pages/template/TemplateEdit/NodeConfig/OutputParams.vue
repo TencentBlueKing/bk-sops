@@ -27,7 +27,7 @@
                     <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
                     <span class="hook-icon-wrap">
                         <i
-                            :class="['common-icon-variable-cite hook-icon', {
+                            :class="['common-icon-variable-hook hook-icon', {
                                 actived: props.row.hooked,
                                 disabled: isViewMode || !hook
                             }]"

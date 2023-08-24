@@ -48,11 +48,11 @@
                 <template v-if="node.status === 'FAILED' && node.type === 'tasknode'">
                     <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
                         <i class="common-icon-retry"></i>
-                        {{ $t('重试') }}
+                        {{ $t('重试子流程') }}
                     </span>
                     <span v-if="isShowSkipBtn" @click.stop="$emit('onSkipClick', node.id)">
                         <i class="common-icon-skip"></i>
-                        {{ $t('跳过') }}
+                        {{ $t('跳过子流程') }}
                     </span>
                 </template>
                 <template v-if="!isSubProcessNode && node.status === 'RUNNING'">

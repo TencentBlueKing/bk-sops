@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-textarea">
-        <div class="rf-form-wrapper">
+        <div class="rf-form-wrapper" v-if="formMode">
             <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
                 <div
                     ref="input"
@@ -47,6 +47,7 @@
                 </div>
             </transition>
         </div>
+        <span v-else class="rf-view-value">{{ viewValue }}</span>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
@@ -117,15 +118,11 @@
                     this.varList = val
                 }
             },
-            textareaValue: {
-                get () {
-                    if (!this.formMode && ['', undefined].includes(this.value)) {
-                        return '--'
-                    }
+            viewValue () {
+                if (this.value === '' || this.value === undefined) {
+                    return '--'
+                } else {
                     return this.value
-                },
-                set (val) {
-                    this.updateForm(val)
                 }
             },
             isDisabled () {
@@ -138,6 +135,17 @@
                     this.hoverKey = ''
                     const selectDom = this.$el.querySelector('.rf-select-content')
                     selectDom.scrollTo({ top: 0 })
+                }
+            },
+            value (val) {
+                this.input.value = val
+                if (!this.input.focus) {
+                    this.$nextTick(() => {
+                        const divInputDom = this.$el.querySelector('.div-input')
+                        if (divInputDom) {
+                            divInputDom.innerText = this.value
+                        }
+                    })
                 }
             }
         },
@@ -203,6 +211,7 @@
             },
             // 文本框点击
             handleInputMouseUp (e) {
+                if (this.isDisabled) return
                 // 判断是否点到变量节点上
                 let isVarTagDom = false
                 const varTagDoms = this.$el.querySelectorAll('.var-tag')
@@ -453,6 +462,9 @@
             cursor: not-allowed;
             background-color: #fafbfd;
             border-color: #dcdee5;
+            /deep/.var-tag {
+                cursor: not-allowed;
+            }
         }
     }
     .div-input {

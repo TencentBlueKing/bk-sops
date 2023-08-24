@@ -200,14 +200,14 @@
                             v-if="isShowRetryBtn"
                             data-test-id="taskExecute_form_retryBtn"
                             @click="onRetryClick">
-                            {{ $t('重试') }}
+                            {{ isSubProcessNode ? $t('重试子流程') : $t('重试') }}
                         </bk-button>
                         <bk-button
                             theme="default"
                             v-if="isShowSkipBtn"
                             data-test-id="taskExecute_form_skipBtn"
                             @click="onSkipClick">
-                            {{ $t('跳过') }}
+                            {{ isSubProcessNode ? $t('跳过子流程') : $t('跳过') }}
                         </bk-button>
                     </template>
                     <bk-button
@@ -1035,7 +1035,7 @@
                         nodeStatus = nodeStatus.data.children
                     }
                     this.updateNodeInfo(nodeStatus)
-                    if (node.parentId) { // 只有子流程下的节点在画布上才能找到
+                    if (node.parentId && !node.isSubProcess) { // 只有子流程下的节点在画布上才能找到
                         this.moveNodeToView(node.id)
                     }
                 })
@@ -1391,10 +1391,20 @@
                 }
             },
             onRetryClick () {
-                this.$emit('onRetryClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                const info = {
+                    name: this.executeInfo.name,
+                    taskId: this.subProcessTaskId,
+                    isSubProcessNode: this.isSubProcessNode
+                }
+                this.$emit('onRetryClick', this.nodeDetailConfig.node_id, info)
             },
             onSkipClick () {
-                this.$emit('onSkipClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                const info = {
+                    name: this.executeInfo.name,
+                    taskId: this.subProcessTaskId,
+                    isSubProcessNode: this.isSubProcessNode
+                }
+                this.$emit('onSkipClick', this.nodeDetailConfig.node_id, info)
             },
             onResumeClick () {
                 this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)

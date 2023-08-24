@@ -610,7 +610,7 @@
             onDeleteVarList () {
                 let title = ''
                 if (this.deleteVarListLen === 1) {
-                    title = i18n.t('确认删除') + i18n.t('全局变量') + `"${this.deleteVarList[0].key}"?`
+                    title = i18n.t('确认删除') + i18n.t('全局变量') + `【${this.deleteVarList[0].key}】?`
                 } else {
                     title = i18n.t('确认删除所选的x个变量？', { num: this.deleteVarListLen })
                 }
@@ -628,7 +628,7 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('若该变量被节点引用，请及时检查并更新节点配置')])
+                        }, [i18n.t('删除变量将导致所有变量引用失效，请及时检查并更新节点配置')])
                     ]),
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,

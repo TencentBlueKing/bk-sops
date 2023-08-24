@@ -162,6 +162,17 @@
                     const selectDom = this.$el.querySelector('.rf-select-content')
                     selectDom.scrollTo({ top: 0 })
                 }
+            },
+            value (val) {
+                this.input.value = val
+                if (!this.input.focus) {
+                    this.$nextTick(() => {
+                        const divInputDom = this.$el.querySelector('.div-input')
+                        if (divInputDom) {
+                            divInputDom.innerHTML = this.value
+                        }
+                    })
+                }
             }
         },
         created () {
@@ -231,6 +242,7 @@
             },
             // 文本框点击
             handleInputMouseUp (e) {
+                if (this.isDisabled) return
                 // 判断是否点到变量节点上
                 let isVarTagDom = false
                 const varTagDoms = this.$el.querySelectorAll('.var-tag')
@@ -270,11 +282,7 @@
             // 文本框获取焦点
             handleInputFocus (e) {
                 this.input.focus = true
-                const input = this.$refs.input
-                // 设置光标到最后
                 const selection = window.getSelection()
-                selection.selectAllChildren(input)
-                selection.collapseToEnd()
                 if (!this.input.value) return
                 setTimeout(() => {
                     let focusSelection = null
@@ -480,6 +488,9 @@
             border-color: #dcdee5;
             .div-input {
                 height: 32px;
+            }
+            /deep/.var-tag {
+                cursor: not-allowed;
             }
         }
     }
