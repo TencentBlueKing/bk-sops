@@ -15,14 +15,14 @@ from abc import ABCMeta, abstractmethod
 
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.constants import GseAgentStatus
 from gcloud.conf import settings as gcloud_settings
+from gcloud.constants import GseAgentStatus
 from gcloud.core.models import Project
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
-from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex_type, IpRegexType
-from pipeline_plugins.base.utils.inject import supplier_id_for_project, supplier_account_for_business
-from pipeline_plugins.cmdb_ip_picker.utils import get_ges_agent_status_ipv6
+from gcloud.utils.ip import IpRegexType, extract_ip_from_ip_str, get_ip_by_regex_type
+from pipeline_plugins.base.utils.inject import supplier_account_for_business, supplier_id_for_project
+from pipeline_plugins.cmdb_ip_picker.utils import get_gse_agent_status_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 
 logger = logging.getLogger("root")
@@ -121,7 +121,7 @@ class GseAgentStatusIpV6Filter:
             bk_agent_id_list.append(bk_agent_id)
 
         try:
-            agent_id_status_map = get_ges_agent_status_ipv6(bk_agent_id_list)
+            agent_id_status_map = get_gse_agent_status_ipv6(bk_agent_id_list)
         except Exception as e:
             raise ApiRequestError(f"ERROR:{e}")
 

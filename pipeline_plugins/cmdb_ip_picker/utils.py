@@ -332,7 +332,11 @@ class IPPickerHandler:
             fields.append("bk_host_innerip_v6")
 
         host_info = cmdb.get_business_host_topo(
-            self.username, self.bk_biz_id, self.bk_supplier_account, fields, property_filters=self.property_filters,
+            self.username,
+            self.bk_biz_id,
+            self.bk_supplier_account,
+            fields,
+            property_filters=self.property_filters,
         )
         logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
 
@@ -706,7 +710,7 @@ def get_bk_cloud_id_for_host(host_info, cloud_key="cloud"):
     return host_info[cloud_key][0]["id"]
 
 
-def get_ges_agent_status_ipv6(bk_agent_id_list):
+def get_gse_agent_status_ipv6(bk_agent_id_list):
     if not bk_agent_id_list:
         return {}
     ENV_MAP = {"PRODUCT": "prod", "STAGING": "stag"}
@@ -720,13 +724,13 @@ def get_ges_agent_status_ipv6(bk_agent_id_list):
     resp = requests.post(url=get_agent_status_url, json=params)
 
     if resp.status_code != 200:
-        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
+        raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
     try:
         data = resp.json()
     except Exception as e:
-        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值非Json, err={}".format(e))
+        raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非Json, err={}".format(e))
     if data["code"] != 0:
-        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值非code非0")
+        raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非code非0")
 
     agent_id_status_map = {}
     for item in data.get("data", []):

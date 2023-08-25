@@ -16,24 +16,23 @@ import logging
 import ujson as json
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
-
-from api.utils.request import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
+from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.utils import cmdb
-from gcloud.utils.ip import format_sundry_ip
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import format_sundry_ip
 
+from .constants import ERROR_CODES, NO_ERROR
 from .utils import (
     get_cmdb_topo_tree,
-    get_objects_of_topo_tree,
-    get_modules_of_bk_obj,
+    get_gse_agent_status_ipv6,
     get_modules_id,
-    get_ges_agent_status_ipv6,
+    get_modules_of_bk_obj,
+    get_objects_of_topo_tree,
 )
-from .constants import NO_ERROR, ERROR_CODES
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -144,7 +143,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                     bk_agent_id_list.append(bk_agent_id)
 
                 try:
-                    agent_id_status_map = get_ges_agent_status_ipv6(bk_agent_id_list)
+                    agent_id_status_map = get_gse_agent_status_ipv6(bk_agent_id_list)
                 except Exception as e:
                     result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": e}
                     return JsonResponse(result)
