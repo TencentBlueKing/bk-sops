@@ -344,14 +344,14 @@
         right: 22px;
         top: 9px;
         display: inline-block;
-        width: 24px;
-        height: 24px;
-        line-height: 24px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
         background: #f0f1f5;
         text-align: center;
         border-radius: 2px;
         .hook-icon {
-            font-size: 18px;
+            font-size: 16px;
             color: #979ba5;
             cursor: pointer;
             &.disabled {

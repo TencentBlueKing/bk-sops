@@ -43,7 +43,7 @@
         <!-- 节点右上角执行相关的icon区域 -->
         <node-right-icon-status :node="node"></node-right-icon-status>
         <!-- tooltip提示（任务终止时禁止节点操作） -->
-        <div class="state-icon">
+        <div class="state-icon" :class="{ 'subprocess-operate': isSubProcessNode }">
             <template v-if="node.task_state !== 'REVOKED'">
                 <template v-if="node.status === 'FAILED' && node.type === 'tasknode'">
                     <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
@@ -173,5 +173,8 @@
             width: 200%;
             height: 200%;
         }
+    }
+    .subprocess-operate {
+        right: -18px !important;
     }
 </style>

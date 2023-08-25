@@ -669,7 +669,7 @@
             }
         }
         .hook-icon {
-            font-size: 19px;
+            font-size: 16px;
         }
         .render-skip-icon {
             margin-left: 7px;

@@ -464,7 +464,7 @@
             }
         }
         .hook-icon {
-            font-size: 19px;
+            font-size: 16px;
         }
         .icon-angle-up-fill {
             font-size: 12px;
