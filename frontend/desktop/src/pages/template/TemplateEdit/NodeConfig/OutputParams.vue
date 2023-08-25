@@ -27,7 +27,7 @@
                     <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
                     <span class="hook-icon-wrap">
                         <i
-                            :class="['common-icon-variable-cite hook-icon', {
+                            :class="['common-icon-variable-hook hook-icon', {
                                 actived: props.row.hooked,
                                 disabled: isViewMode || !hook
                             }]"
@@ -344,14 +344,14 @@
         right: 22px;
         top: 9px;
         display: inline-block;
-        width: 24px;
-        height: 24px;
-        line-height: 24px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
         background: #f0f1f5;
         text-align: center;
         border-radius: 2px;
         .hook-icon {
-            font-size: 18px;
+            font-size: 16px;
             color: #979ba5;
             cursor: pointer;
             &.disabled {

@@ -102,7 +102,7 @@
         <!-- 变量勾选checkbox -->
         <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
             <i
-                :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                :class="['common-icon-variable-hook hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
                     content: hook ? $t('取消变量引用') : $t('设置为变量'),
                     placement: 'bottom',
@@ -464,7 +464,7 @@
             }
         }
         .hook-icon {
-            font-size: 19px;
+            font-size: 16px;
         }
         .icon-angle-up-fill {
             font-size: 12px;

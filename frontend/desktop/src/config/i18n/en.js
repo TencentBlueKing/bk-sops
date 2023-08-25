@@ -1621,12 +1621,10 @@ const en = {
     '确认删除该标签?': 'Delete this tag?',
     '关联的流程将同时移除本标签': 'All flow using this tag will remove it  at the same time',
     '分组': 'group',
-    '确定跳过当前节点?': 'Skip this node?',
-    '跳过节点将忽略当前失败节点继续往后执行': 'Skip node will ignore the current failed node and continue to execute',
     '确定终止当前任务?': 'Terminate this task?',
     '终止任务将停止执行任务，但执行中节点将运行完成': 'Terminating a task will stop executing tasks, but executing nodes will run to completion',
     '确定继续往后执行?': 'Want to continue?',
-    '若该变量被节点引用，请及时检查并更新节点配置': 'If the variable is used by the node, please check and update the node setting',
+    '删除变量将导致所有变量引用失效，请及时检查并更新节点配置': 'Deleting a variable will cause all variable references to become invalid. Please check and update node setttings.',
     '此流程无执行方案，无需选择': 'No node-group',
     '最近 x 次成功执行耗时': 'Time Cost for the last {num} successful records',
     '暂无成功执行历史': 'No Records',
@@ -1791,7 +1789,18 @@ const en = {
     '间隔': 'with ',
     'error_handle_秒': 'Sec Interval',
     '仅支持查询最近x天任务记录': 'You can only query the tasks for the last {x} days.',
-    '失效': 'Invalid'
+    '失效': 'Invalid',
+    '该类型仅支持从节点配置生成变量': 'The type only supports "Set as A Variable" from node settings.',
+    '该类型仅支持从节点配置取消引用': 'The type only supports "Unlink Variable "  from  node settings.',
+    '重试子流程': 'Retry Subflow',
+    '跳过子流程': 'Skip  Subflow',
+    '确定跳过子流程【n】 ？': 'Skip this subflow [ {n} ] ?',
+    '跳过子流程将忽略子流程中所有未完成节点': 'Skipping a subflow will ignore all unfinished nodes within the subflow.',
+    '确定跳过节点【n】 ？': 'Skip this node [ {n} ] ?',
+    '跳过节点将忽略失败继续往后执行': 'Skipping  node will ignore the failure and continue executing the next step.',
+    '确定重试子流程【n】 ？': 'Retry this subflow [ {n} ] ？',
+    '确定重试节点【n】 ？': 'Retry this node [ {n} ] ？',
+    '子任务中重试无法修改参数，如需修改请在根任务中操作': 'Retrying in a sub-task does not allow modifying parameters. If modification is needed, please operate in the root task.'
 }
 
 export default en

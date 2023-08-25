@@ -546,21 +546,21 @@
                         this.totalPage = totalPage
                     }
                     const result = await this.setListHaveChild(list)
+                    // mixins getExecuteStatus
+                    this.getExecuteStatus('executeStatus', result)
+                    this.setTaskListData(result)
                     // 当存在默认打开的子流程时，需手动打开
                     if (this.initOpenTask.length) {
-                        this.setTaskListData(result)
                         const task = result.find(item => item.id === Number(this.initOpenTask[0]))
                         task && await this.getCurProcessChdProcess(task)
                         this.initOpenTask = []
                         return
                     }
-                    // mixins getExecuteStatus
-                    this.getExecuteStatus('executeStatus', result)
-                    this.setTaskListData(result)
-                    this.listLoading = false
                 } catch (e) {
                     this.listLoading = e.message === 'cancelled'
                     console.log(e)
+                } finally {
+                    this.listLoading = false
                 }
             },
             // 设置每条记录是否有子流程

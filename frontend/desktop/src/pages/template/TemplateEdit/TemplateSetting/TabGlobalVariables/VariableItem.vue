@@ -14,7 +14,7 @@
         <div :class="['variable-content', { 'view-model': isViewMode }]" @click="onEditVariable(variableData.key, variableData.index)">
             <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag common-icon-drawable f16"></i>
             <span v-if="!isViewMode && !isSystemVar && !isProjectVar" @click.stop class="col-item-checkbox">
-                <bk-checkbox :value="variableChecked" @change="onChooseVariable"></bk-checkbox>
+                <bk-checkbox :disabled="isComponentVar" :value="variableChecked" @change="onChooseVariable"></bk-checkbox>
             </span>
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
@@ -94,12 +94,21 @@
                 </span>
                 <span v-else class="col-operation-item">{{ $t('编辑') }}</span>
             </span>
-            <span class="col-item col-more" v-if="!isViewMode && !isInternalVal && !['component_outputs', 'component_inputs'].includes(variableData.source_type)">
+            <span class="col-item col-more" v-if="!isViewMode && !isInternalVal">
                 <bk-popover placement="bottom" theme="light" :distance="0" :arrow="false" ext-cls="var-operate-popover">
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">
-                        <p class="operate-item" @click.stop="onCloneVariable()">{{ $t('克隆') }}</p>
-                        <p class="operate-item" @click.stop="onDeleteVariable">{{ $t('删除') }}</p>
+                        <p
+                            :class="['operate-item', { 'disabled': isComponentVar }]"
+                            v-bk-tooltips="{ content: $t('该类型仅支持从节点配置生成变量'), disabled: !isComponentVar }"
+                            @click.stop="onCloneVariable()">
+                            {{ $t('克隆') }}
+                        </p>
+                        <p
+                            :class="['operate-item', { 'disabled': isComponentVar }]"
+                            v-bk-tooltips="{ content: $t('该类型仅支持从节点配置取消引用'), disabled: !isComponentVar }"
+                            @click.stop="onDeleteVariable">{{ $t('删除') }}
+                        </p>
                     </template>
                 </bk-popover>
             </span>
@@ -164,6 +173,9 @@
             },
             isProjectVar () {
                 return this.variableData.source_type === 'project'
+            },
+            isComponentVar () {
+                return ['component_outputs', 'component_inputs'].includes(this.variableData.source_type)
             },
             citedList () {
                 const defaultCiteData = {
@@ -277,6 +289,7 @@
                 }
             },
             onDeleteVariable () {
+                if (this.isComponentVar) return
                 const h = this.$createElement
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [
@@ -285,13 +298,13 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('确认删除') + i18n.t('全局变量') + `"${this.variableData.key}"?`]),
+                        }, [i18n.t('确认删除') + i18n.t('全局变量') + `【${this.variableData.key}】?`]),
                         h('div', {
                             class: 'custom-header-sub-title bk-dialog-header-inner',
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('若该变量被节点引用，请及时检查并更新节点配置')])
+                        }, [i18n.t('删除变量将导致所有变量引用失效，请及时检查并更新节点配置')])
                     ]),
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
@@ -307,6 +320,7 @@
                 this.$emit('onEditVariable', key, index)
             },
             onCloneVariable () {
+                if (this.isComponentVar) return
                 this.$emit('onCloneVariable', this.variableData)
             },
             onChooseVariable (value) {
@@ -332,6 +346,11 @@
             &:hover {
                 background: rgba(225,236,255,0.60);
                 color: #3a84ff;
+            }
+            &.disabled {
+                color: #cccccc;
+                cursor: not-allowed;
+                background: #fff;
             }
         }
     }

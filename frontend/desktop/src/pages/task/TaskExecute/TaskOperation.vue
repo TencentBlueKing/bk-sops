@@ -73,7 +73,7 @@
                 <div class="header">
                     <span>{{sideSliderTitle}}</span>
                     <div class="sub-title" v-if="nodeInfoType === 'modifyParams' && retryNodeId">
-                        {{ nodeTreePipelineData.activities[retryNodeId] && nodeTreePipelineData.activities[retryNodeId].name }}
+                        {{ retryNodeName }}
                     </div>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
-                    :instance_id="subProcessTaskId || instance_id"
+                    :instance_id="instance_id"
                     :retry-node-id="retryNodeId"
                     :is-sub-canvas="nodeNav.length > 1"
                     @nodeTaskRetry="nodeTaskRetry"
@@ -386,7 +386,8 @@
                 nodeData: [],
                 convergeInfo: {},
                 nodeSourceMaps: {},
-                nodeTargetMaps: {}
+                nodeTargetMaps: {},
+                retryNodeName: ''
             }
         },
         computed: {
@@ -1006,20 +1007,33 @@
                     componentData
                 }
             },
-            async onRetryClick (id, taskId) {
+            async onRetryClick (id, info) {
                 try {
-                    this.subProcessTaskId = taskId
-                    if (this.isChildTaskFlow || taskId) {
+                    // 独立子任务重试使用二次确认弹框
+                    if (this.isChildTaskFlow) {
+                        const nodeConfig = this.nodeTreePipelineData.activities[id]
+                        const isSubProcessNode = nodeConfig.component.code === 'subprocess_plugin'
+                        const title = isSubProcessNode
+                            ? this.$t('确定重试子流程【n】 ？', { n: nodeConfig.name })
+                            : this.$t('确定重试节点【n】 ？', { n: nodeConfig.name })
+                        const subTitle = this.$t('子任务中重试无法修改参数，如需修改请在根任务中操作')
                         const h = this.$createElement
                         this.$bkInfo({
                             subHeader: h('div', { class: 'custom-header' }, [
                                 h('div', {
-                                    class: 'custom-header-title mb20',
+                                    class: 'custom-header-title',
                                     directives: [{
                                         name: 'bk-overflow-tips'
                                     }]
-                                }, [i18n.t('确定重试当前节点？')])
+                                }, [title]),
+                                isSubProcessNode ? h('div', {
+                                    class: 'custom-header-sub-title bk-dialog-header-inner',
+                                    directives: [{
+                                        name: 'bk-overflow-tips'
+                                    }]
+                                }, [subTitle]) : ''
                             ]),
+                            width: 450,
                             extCls: 'dialog-custom-header-title',
                             maskClose: false,
                             confirmLoading: true,
@@ -1031,6 +1045,8 @@
                         })
                         return
                     }
+                    const { taskId } = info || {}
+                    this.subProcessTaskId = taskId
                     const resp = await this.getInstanceRetryParams({ id: taskId || this.instance_id })
                     if (resp.data.enable) {
                         this.openNodeInfoPanel('retryNode', i18n.t('重试节点'))
@@ -1042,7 +1058,20 @@
                             await this.loadNodeInfo(id)
                         }
                     } else {
-                        this.openNodeInfoPanel('modifyParams', i18n.t('重试节点'))
+                        // 子流程任务节点，不需要重新获取节点配置
+                        if (!taskId) {
+                            this.setNodeDetailConfig(id)
+                        }
+                        let isSubProcessNode = false
+                        if (info) {
+                            isSubProcessNode = info.isSubProcessNode
+                            this.retryNodeName = info.name
+                        } else {
+                            const nodeConfig = this.nodeTreePipelineData.activities[id]
+                            isSubProcessNode = nodeConfig?.component.code === 'subprocess_plugin'
+                            this.retryNodeName = nodeConfig.name
+                        }
+                        this.openNodeInfoPanel('modifyParams', isSubProcessNode ? i18n.t('重试子流程') : i18n.t('重试节点'))
                         this.retryNodeId = id
                     }
                 } catch (error) {
@@ -1119,8 +1148,29 @@
                     console.warn(e)
                 }
             },
-            onSkipClick (id, taskId) {
+            onSkipClick (id, info) {
                 const h = this.$createElement
+                let name = ''
+                let taskId = this.instance_id
+                let title = ''
+                let subTitle = ''
+                let isSubProcessNode = false
+                if (info) {
+                    name = info.name
+                    taskId = info.taskId
+                    isSubProcessNode = info.isSubProcessNode
+                } else {
+                    const nodeConfig = this.nodeTreePipelineData.activities[id]
+                    name = nodeConfig.name
+                    isSubProcessNode = nodeConfig.component.code === 'subprocess_plugin'
+                }
+                if (isSubProcessNode) {
+                    title = this.$t('确定跳过子流程【n】 ？', { n: name })
+                    subTitle = this.$t('跳过子流程将忽略子流程中所有未完成节点')
+                } else {
+                    title = this.$t('确定跳过节点【n】 ？', { n: name })
+                    subTitle = this.$t('跳过节点将忽略失败继续往后执行')
+                }
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [
                         h('div', {
@@ -1128,14 +1178,15 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('确定跳过当前节点?')]),
+                        }, [title]),
                         h('div', {
                             class: 'custom-header-sub-title bk-dialog-header-inner',
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('跳过节点将忽略当前失败节点继续往后执行')])
+                        }, [subTitle])
                     ]),
+                    width: 450,
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
@@ -1153,9 +1204,9 @@
                     }
                     await this.loadNodeInfo()
 
-                    const { instance_id, component_code, node_id } = this.nodeDetailConfig
+                    const { component_code, node_id } = this.nodeDetailConfig
                     const data = {
-                        instance_id: this.subProcessTaskId || instance_id,
+                        instance_id: this.subProcessTaskId || this.instance_id,
                         component_code,
                         node_id
                     }
@@ -1448,7 +1499,8 @@
                                     ...existNode,
                                     isLevelUp: lastNode.isLevelUp,
                                     style: lastNode.style,
-                                    isDifferLevelConverge: true
+                                    isDifferLevelConverge: true,
+                                    children: []
                                 })
                             }
                         }
@@ -2338,6 +2390,7 @@
             onHiddenSideslider () {
                 this.subProcessTaskId = null
                 this.nodeInfoType = ''
+                this.retryNodeName = ''
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             },
             // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态

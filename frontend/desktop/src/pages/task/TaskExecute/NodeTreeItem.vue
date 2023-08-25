@@ -30,7 +30,7 @@
                     </span>
                     <!--子流程展开/收起-->
                     <span
-                        v-if="node.isSubProcess"
+                        v-if="node.isSubProcess && node.children.length"
                         class="common-icon-next-triangle-shape gateway-triangle"
                         @click.stop="toggleExpanded(node)">
                     </span>
@@ -44,9 +44,14 @@
                     </span>
                     <!--空的占位符-->
                     <span v-else-if="node.isCallback || node.isLevelUp ? false : !node.parentId" class="empty-div"></span>
+                    <!--汇合图标-->
+                    <span
+                        v-if="node.isDifferLevelConverge"
+                        :class="['common-icon-converge-node', nodeStateMap[node.state]]">
+                    </span>
                     <!--网关图标-->
                     <span
-                        v-if="nodeType[node.type]"
+                        v-else-if="nodeType[node.type]"
                         :class="[
                             nodeType[node.type],
                             nodeStateMap[node.state]
@@ -204,9 +209,11 @@
                     }
 
                 }
+                .common-icon-converge-node,
                 .subprocess-icon,
                 .gateway-icon {
                     margin-top: 2px;
+                    color: #c4c6cc;
                     &.finished {
                         color: #2dcb56;
                     }
@@ -222,6 +229,9 @@
                     &.skip {
                         color: #da635f;
                     }
+                }
+                .common-icon-converge-node {
+                    font-size: 12px;
                 }
                 .default-node {
                     display: inline-block;
@@ -332,7 +342,7 @@
         }
     }
     .subprocess-border-line {
-        &::before {
+        &::after {
             content: '';
             display: block;
             height: calc(100% - 23px);
