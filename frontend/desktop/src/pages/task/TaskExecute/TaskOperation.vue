@@ -1009,14 +1009,15 @@
             },
             async onRetryClick (id, info) {
                 try {
+                    const { taskId } = info || {}
+                    this.subProcessTaskId = taskId
                     // 独立子任务重试使用二次确认弹框
-                    if (this.isChildTaskFlow) {
+                    if (this.isChildTaskFlow || (info && info.isSubNode)) {
                         const nodeConfig = this.nodeTreePipelineData.activities[id]
-                        const isSubProcessNode = nodeConfig.component.code === 'subprocess_plugin'
-                        const title = isSubProcessNode
-                            ? this.$t('确定重试子流程【n】 ？', { n: nodeConfig.name })
-                            : this.$t('确定重试节点【n】 ？', { n: nodeConfig.name })
-                        const subTitle = this.$t('子任务中重试无法修改参数，如需修改请在根任务中操作')
+                        const name = info ? info.name : nodeConfig.name
+                        const title = info.isSubProcessNode
+                            ? this.$t('确定重试子流程【n】 ？', { n: name })
+                            : this.$t('确定重试节点【n】 ？', { n: name })
                         const h = this.$createElement
                         this.$bkInfo({
                             subHeader: h('div', { class: 'custom-header' }, [
@@ -1026,12 +1027,12 @@
                                         name: 'bk-overflow-tips'
                                     }]
                                 }, [title]),
-                                isSubProcessNode ? h('div', {
+                                h('div', {
                                     class: 'custom-header-sub-title bk-dialog-header-inner',
                                     directives: [{
                                         name: 'bk-overflow-tips'
                                     }]
-                                }, [subTitle]) : ''
+                                }, [this.$t('非根节点仅支持以原参数进行重试')])
                             ]),
                             width: 450,
                             extCls: 'dialog-custom-header-title',
@@ -1045,32 +1046,18 @@
                         })
                         return
                     }
-                    const { taskId } = info || {}
-                    this.subProcessTaskId = taskId
                     const resp = await this.getInstanceRetryParams({ id: taskId || this.instance_id })
                     if (resp.data.enable) {
                         this.openNodeInfoPanel('retryNode', i18n.t('重试节点'))
-                        // 子流程任务节点，不需要重新获取节点配置
-                        if (!taskId) {
-                            this.setNodeDetailConfig(id)
-                        }
+                        this.setNodeDetailConfig(id)
                         if (this.nodeDetailConfig.component_code) {
                             await this.loadNodeInfo(id)
                         }
                     } else {
-                        // 子流程任务节点，不需要重新获取节点配置
-                        if (!taskId) {
-                            this.setNodeDetailConfig(id)
-                        }
-                        let isSubProcessNode = false
-                        if (info) {
-                            isSubProcessNode = info.isSubProcessNode
-                            this.retryNodeName = info.name
-                        } else {
-                            const nodeConfig = this.nodeTreePipelineData.activities[id]
-                            isSubProcessNode = nodeConfig?.component.code === 'subprocess_plugin'
-                            this.retryNodeName = nodeConfig.name
-                        }
+                        this.setNodeDetailConfig(id)
+                        const nodeConfig = this.nodeTreePipelineData.activities[id]
+                        const isSubProcessNode = nodeConfig?.component.code === 'subprocess_plugin'
+                        this.retryNodeName = nodeConfig.name
                         this.openNodeInfoPanel('modifyParams', isSubProcessNode ? i18n.t('重试子流程') : i18n.t('重试节点'))
                         this.retryNodeId = id
                     }
@@ -1410,7 +1397,7 @@
                 const endNode = tools.deepClone(data.end_event)
                 const fstLine = startNode.outgoing
                 const nodeId = data.flows[fstLine].target
-                const { parentId, parentLevel, lastLevelStyle, taskId } = pipelineInfo
+                const { parentId, independentId, parentLevel, lastLevelStyle, taskId } = pipelineInfo
                 let marginLeft
                 if (lastLevelStyle) {
                     marginLeft = lastLevelStyle.match(/[0-9]+/g)[0]
@@ -1439,7 +1426,7 @@
                 })
                 this.getNodeTargetMaps(data)
                 this.getNodeSourceMaps(data)
-                const nodeInfo = { id: nodeId, parentId, parentLevel, lastLevelStyle, taskId }
+                const nodeInfo = { id: nodeId, parentId, independentId, parentLevel, lastLevelStyle, taskId }
                 this.retrieveLines(data.id, data, nodeInfo, orderedData)
                 orderedData.push(endEvent)
                 // 过滤root最上层汇聚网关
@@ -1461,6 +1448,7 @@
                     branchId,
                     nodeLevel = 1,
                     parentId,
+                    independentId,
                     parentLevel,
                     lastLevelStyle,
                     lastId,
@@ -1518,6 +1506,11 @@
                         nodeLevel: parentLevel ? parentLevel + nodeLevel : nodeLevel,
                         isLevelUp,
                         taskId
+                    }
+                    if (parentId) {
+                        let subprocessStack = independentId ? parentId.split(independentId)[1] : parentId
+                        subprocessStack = subprocessStack?.split('-') || []
+                        treeItem.subprocessStack = subprocessStack.filter(item => item)
                     }
                     let marginLeft = 0
                     if (treeItem.nodeLevel === 1) {
@@ -1633,6 +1626,7 @@
                                     if (this.nodeIds[componentData.id]) {
                                         delete this.nodeIds[componentData.id]
                                     }
+                                    parentInfo.independentId = id
                                     treeItem.children = this.getOrderedTree(componentData, parentInfo)
                                 }
                                 treeItem.type = 'SubProcess'
@@ -1703,6 +1697,7 @@
                     if (conditions.length) {
                         conditions.forEach(item => {
                             item.style = `margin-left: ${item.parentId ? 16 : marginLeft + 33}px`
+                            item.subprocessStack = treeItem.subprocessStack
                             treeItem.children.push(item)
                             this.retrieveLines(
                                 flowId,
@@ -1712,6 +1707,7 @@
                                     branchId: item.id,
                                     nodeLevel: item.nodeLevel,
                                     parentId,
+                                    independentId,
                                     gatewayId: id,
                                     lastId: item.id
                                 },
@@ -2139,7 +2135,7 @@
                 this.updateTaskStatus(id)
             },
             async onClickTreeNode (node) {
-                const { id, conditionType, parentId, taskId } = node
+                const { id, conditionType, parentId, taskId, subprocessStack = [] } = node
                 if (this.nodeDetailConfig.node_id) {
                     this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
@@ -2174,17 +2170,11 @@
                     this.isCondition = true
                     this.conditionData = { ...node }
                 }
-                let subprocessStack = parentId ? parentId.split('-') : []
-                let instance_id = this.instance_id
-                if (taskId) {
-                    subprocessStack = []
-                    instance_id = taskId
-                }
                 this.nodeDetailConfig = {
                     component_code: code,
                     version: version,
                     node_id: nodeId,
-                    instance_id,
+                    instance_id: taskId || this.instance_id,
                     taskId,
                     root_node: parentId,
                     subprocess_stack: JSON.stringify(subprocessStack),

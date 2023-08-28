@@ -24,7 +24,7 @@
                         :scheme="renderConfig"
                         :form-option="renderOption"
                         :constants="inputConstants"
-                        v-model="inputRenderDate">
+                        v-model="inputRenderData">
                     </RenderForm>
                     <NoData v-else></NoData>
                 </template>
@@ -32,7 +32,7 @@
                     <jsonschema-form
                         v-if="renderConfig && renderConfig.properties && Object.keys(renderConfig.properties).length > 0"
                         :schema="renderConfig"
-                        :value="inputRenderDate">
+                        :value="inputRenderData">
                     </jsonschema-form>
                     <no-data v-else></no-data>
                 </template>
@@ -99,7 +99,7 @@
                 },
                 renderKey: null,
                 inputConstants: {},
-                inputRenderDate: {},
+                inputRenderData: {},
                 isExpand: true
             }
         },
@@ -132,7 +132,8 @@
                     }
                     this.inputConstants = constants
                 },
-                deep: true
+                deep: true,
+                immediate: true
             },
             renderData: {
                 handler (val) {
@@ -143,11 +144,11 @@
                         Object.keys(this.renderData).forEach(key => {
                             const value = this.renderData[key]
                             if (/^\${[^${}]+}$/.test(value) && key in this.inputConstants) {
-                                this.renderData[key] = this.inputConstants[key]
+                                renderData[key] = this.inputConstants[key]
                             }
                         })
                     }
-                    this.inputRenderDate = renderData
+                    this.inputRenderData = renderData
                 },
                 deep: true,
                 immediate: true

@@ -54,12 +54,11 @@
                                 v-bk-tooltips.top="$t('放大')"
                                 @click="onZoomIn">
                             </i>
-                            <i
-                                :class="canvasExpand ? 'common-icon-partial-screen' : 'common-icon-full-screen'"
-                                v-bk-tooltips.top="$t(canvasExpand ? '收起' : '最大化')"
-                                @click="canvasExpand = !canvasExpand">
-                            </i>
                         </div>
+                        <!--可拖拽-->
+                        <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                        <i :class="['resize-proxy', 'top']" ref="resizeProxy"></i>
+                        <div class="resize-mask" ref="resizeMask"></div>
                     </div>
                     <div
                         v-if="location"
@@ -534,7 +533,7 @@
             this.loadNodeInfo()
             if (this.subProcessPipeline) {
                 this.$nextTick(() => {
-                    this.setSubprocessCanvasZoom()
+                    this.initCanvasZoom()
                 })
             }
         },
@@ -701,13 +700,13 @@
                      * 兼容旧版本子流程节点输入数据
                      * 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
                      */
+                    constants = { subflow_detail_var: true, ...inputsInfo }
                     inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
                         if (cur.show_type === 'show') {
                             acc[cur.key] = cur.value
                         }
                         return acc
                     }, {})
-                    constants = { subflow_detail_var: true, ...inputsInfo }
                 }
                 for (const key in inputsInfo) {
                     renderData[key] = inputsInfo[key]
@@ -997,7 +996,9 @@
                     const time = name === 'history' ? 300 : 0
                     setTimeout(() => {
                         const scrollBoxDom = document.querySelector('.scroll-box')
-                        scrollBoxDom.scrollTo({ top: scrollBoxDom.scrollHeight, behavior: 'smooth' })
+                        const subProcessCanvasDom = document.querySelector('.sub-process')
+                        const { height = 0 } = subProcessCanvasDom.getBoundingClientRect()
+                        scrollBoxDom.scrollTo({ top: height, behavior: 'smooth' })
                     }, time)
                 }
             },
@@ -1021,7 +1022,7 @@
                 if (node.isSubProcess || updateCanvas) {
                     this.canvasRandomKey = new Date().getTime()
                     this.$nextTick(() => {
-                        this.setSubprocessCanvasZoom()
+                        this.initCanvasZoom()
                     })
                 }
                 this.$emit('onClickTreeNode', node)
@@ -1040,23 +1041,11 @@
                     }
                 })
             },
-            setSubprocessCanvasZoom () {
-                const flowDom = this.$el.querySelector('.sub-flow')
-                if (!flowDom) return
-                const { height = 0, width = 0 } = flowDom.getBoundingClientRect()
-                let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                jsFlowInstance && jsFlowInstance.zoomOut(0.75, width / 2, height / 2)
-                const { start_event, flows } = this.subProcessPipeline
-                const firstNodeId = flows[start_event.outgoing].target
-                const firstNodeDom = document.querySelector(`#${firstNodeId}`)
-                const { y } = firstNodeDom.getBoundingClientRect()
-                jsFlowInstance.setCanvasPosition(0, 180 - y)
-            },
             // 移动画布，将节点放到画布中央
             moveNodeToView (id) {
                 // 判断dom是否存在当前视图中
                 const nodeEl = document.querySelector(`#${id} .canvas-node-item`)
+                if (!nodeEl) return
                 const isInViewPort = this.judgeInViewPort(nodeEl)
                 // 如果不存在需要将节点挪到画布中间
                 if (!isInViewPort) {
@@ -1078,6 +1067,34 @@
                 const { width, height, top: canvasTop, left: canvasLeft } = this.$el.querySelector('.sub-flow').getBoundingClientRect()
                 const { top, left } = element.getBoundingClientRect()
                 return top > canvasTop && top < canvasTop + height && left > canvasLeft && left < canvasLeft + width
+            },
+            // 画布初始化时缩放比偏移
+            initCanvasZoom () {
+                // 获取画布上下左右最大坐标
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const maxX = Math.max(...xList)
+                const minY = Math.min(...yList)
+                const maxY = Math.max(...yList)
+                const maxXNodeId = this.canvasData.locations.find(node => node.x === maxX).id
+                const maxYNodeId = this.canvasData.locations.find(node => node.y === maxY).id
+                const { width } = this.$el.querySelector(`#${maxXNodeId}`).getBoundingClientRect()
+                const { height } = this.$el.querySelector(`#${maxYNodeId}`).getBoundingClientRect()
+                const netHeight = maxY - minY + height + 60
+                const netWidth = maxX - minX + width + 80
+                const subprocessDom = this.$el.querySelector('.sub-process')
+                const { height: canvasHeight, width: canvasWidth } = subprocessDom.getBoundingClientRect()
+                // 最大比例0.75
+                let ratio = Math.min(canvasHeight / netHeight, canvasWidth / netWidth)
+                ratio = ratio > 0.75 ? 0.75 : ratio
+                let jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                jsFlowInstance && jsFlowInstance.zoomOut(ratio, 0, 0)
+                // 设置偏移量
+                const offsetX = canvasWidth / 2 - (minX - 30 + netWidth / 2) * ratio
+                const offsetY = canvasHeight / 2 - (minY + netHeight / 2) * ratio
+                jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
             },
             
             toggleNodeActive (id, isActive) {
@@ -1265,6 +1282,7 @@
                         const pipelineTree = JSON.parse(resp.pipeline_tree)
                         const parentInfo = {
                             parentId: nodeInfo.parentId ? nodeInfo.parentId + '-' + nodeInfo.id : nodeInfo.id,
+                            independentId: nodeInfo.id,
                             parentLevel: nodeInfo.nodeLevel,
                             lastLevelStyle: 'margin-left: 0px',
                             taskId
@@ -1294,7 +1312,7 @@
                         this.$set(nodeActivity, 'pipeline', { ...pipelineTree, taskId })
                         this.canvasRandomKey = new Date().getTime()
                         this.$nextTick(() => {
-                            this.setSubprocessCanvasZoom()
+                            this.initCanvasZoom()
                         })
                     }
                 } catch (error) {
@@ -1394,7 +1412,8 @@
                 const info = {
                     name: this.executeInfo.name,
                     taskId: this.subProcessTaskId,
-                    isSubProcessNode: this.isSubProcessNode
+                    isSubProcessNode: this.isSubProcessNode,
+                    isSubNode: !!this.nodeDetailConfig.root_node
                 }
                 this.$emit('onRetryClick', this.nodeDetailConfig.node_id, info)
             },
@@ -1420,6 +1439,44 @@
             },
             onContinueClick () {
                 this.$emit('onContinueClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+            },
+            handleMousedown (event) {
+                this.updateResizeMaskStyle()
+                this.updateResizeProxyStyle()
+                this.canvasExpand = false
+                document.addEventListener('mousemove', this.handleMouseMove)
+                document.addEventListener('mouseup', this.handleMouseUp)
+            },
+            handleMouseMove (event) {
+                const flowDom = this.$el.querySelector('.sub-flow')
+                const { top: flowTop } = flowDom.getBoundingClientRect()
+                let top = event.clientY - flowTop
+                let maxHeight = window.innerHeight - 180
+                maxHeight = maxHeight - (this.isShowActionWrap ? 48 : 0)
+                top = top > maxHeight ? maxHeight : top
+                top = top < 160 ? 160 : top
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.top = `${top}px`
+            },
+            updateResizeMaskStyle () {
+                const resizeMask = this.$refs.resizeMask
+                resizeMask.style.display = 'block'
+                resizeMask.style.cursor = 'row-resize'
+            },
+            updateResizeProxyStyle () {
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'visible'
+            },
+            handleMouseUp () {
+                const resizeMask = this.$refs.resizeMask
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'hidden'
+                resizeMask.style.display = 'none'
+                const subProcessDom = document.querySelector('.sub-process')
+                subProcessDom.style.height = resizeProxy.style.top
+                this.canvasExpand = true
+                document.removeEventListener('mousemove', this.handleMouseMove)
+                document.removeEventListener('mouseup', this.handleMouseUp)
             }
         }
     }
@@ -1530,7 +1587,7 @@
     }
     .sub-process {
         flex-shrink: 0;
-        height: 160px;
+        height: 320px;
         margin: 0 25px 8px 15px;
         position: relative;
         background: #e1e4e8;
@@ -1573,7 +1630,7 @@
             }
         }
         .flow-option {
-            width: 96px;
+            width: 68px;
             height: 32px;
             position: absolute;
             bottom: 16px;
@@ -1589,11 +1646,8 @@
             border-radius: 2px;
             i {
                 cursor: pointer;
-                &:nth-child(2) {
-                    margin: 0 14px;
-                }
                 &:last-child {
-                    font-size: 14px;
+                    margin-left: 14px;
                 }
                 &:hover {
                     color: #3a84ff;
@@ -1601,7 +1655,6 @@
             }
         }
         &.canvas-expand {
-            height: calc(100% - 85px);
             & + div {
                 .log-section {
                     height: 858px;
@@ -1714,6 +1767,59 @@
                 overflow-y: initial;
             }
         }
+    }
+    .resize-trigger {
+        height: 5px;
+        width: calc(100% + 40px);
+        position: absolute;
+        left: -15px;
+        bottom: -5px;
+        cursor: row-resize;
+        z-index: 3;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 1px;
+            width: 100%;
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            right: 50%;
+            width: 2px;
+            height: 2px;
+            color: #979ba5;
+            transform: translate3d(0,-50%,0);
+            background: currentColor;
+            box-shadow: 4px 0 0 0 currentColor,8px 0 0 0 currentColor,-4px 0 0 0 currentColor,-8px 0 0 0 currentColor;
+        }
+        &:hover::before {
+            background-color: #3a84ff;
+        }
+    }
+    .resize-proxy {
+        visibility: hidden;
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999;
+        &.top {
+            top: 320px;
+            left: -15px;
+            width: calc(100% + 40px);
+            border-top: 1px dashed #3a84ff;
+        }
+    }
+    .resize-mask {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
     }
 }
 </style>

@@ -1800,7 +1800,7 @@ const en = {
     '跳过节点将忽略失败继续往后执行': 'Skipping  node will ignore the failure and continue executing the next step.',
     '确定重试子流程【n】 ？': 'Retry this subflow [ {n} ] ？',
     '确定重试节点【n】 ？': 'Retry this node [ {n} ] ？',
-    '子任务中重试无法修改参数，如需修改请在根任务中操作': 'Retrying in a sub-task does not allow modifying parameters. If modification is needed, please operate in the root task.'
+    '非根节点仅支持以原参数进行重试': 'Non-root nodes only support retrying with the original parameters.'
 }
 
 export default en
