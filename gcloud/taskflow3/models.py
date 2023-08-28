@@ -48,7 +48,7 @@ from gcloud.constants import (
     TaskCreateMethod,
 )
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.core.models import EngineConfig, Project, StaffGroupSet
+from gcloud.core.models import EngineConfig, Project, ProjectConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.shortcuts.cmdb import get_business_attrinfo, get_business_group_members
@@ -1243,9 +1243,11 @@ class TaskFlowInstance(models.Model):
         notify_type = json.loads(self.template.notify_type)
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
 
-    def record_and_get_executor_proxy(self, executor_proxy):
+    def record_and_get_executor_proxy(self, operator):
         if self.recorded_executor_proxy is None:
-            self.recorded_executor_proxy = executor_proxy
+            self.recorded_executor_proxy = self.executor_proxy or ProjectConfig.objects.task_executor_for_project(
+                self.project_id, operator
+            )
             self.save(update_fields=["recorded_executor_proxy"])
         return self.recorded_executor_proxy
 
