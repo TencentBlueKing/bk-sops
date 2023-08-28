@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
-from django.utils import translation, timezone
 from django.conf import settings
+from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
 
 from engine_pickle_obj.context import SystemObject
-from gcloud.core.models import Business, ProjectConfig, Project
+from gcloud.core.models import Business, Project, ProjectConfig
 from gcloud.project_constants.domains.context import get_project_constants_context
 
 logger = logging.getLogger("root")
@@ -69,10 +69,11 @@ class TaskContext(object):
         :return: 该任务执行时实际使用的执行人
         :rtype: str
         """
-        runtime_executor_proxy = taskflow.executor_proxy or ProjectConfig.objects.task_executor_for_project(
-            self.project_id, operator
+        return (
+            taskflow.recorded_executor_proxy
+            or taskflow.executor_proxy
+            or ProjectConfig.objects.task_executor_for_project(self.project_id, operator)
         )
-        return taskflow.record_and_get_executor_proxy(runtime_executor_proxy)
 
     def context(self):
         return {"${%s}" % TaskContext.prefix: {"type": "plain", "is_param": True, "value": self}}

@@ -11,46 +11,41 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import copy
+import json
 import logging
 import traceback
 from typing import Optional
 
-from django.utils import timezone
-from django.db import transaction
 from bamboo_engine import api as bamboo_engine_api
+from bamboo_engine import exceptions as bamboo_engine_exceptions
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
 from bamboo_engine.eri import ContextValue
-from bamboo_engine import exceptions as bamboo_engine_exceptions
+from django.db import transaction
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from opentelemetry import trace
+from pipeline.core.data.var import Variable
+from pipeline.engine import api as pipeline_api
+from pipeline.engine import exceptions as pipeline_exceptions
+from pipeline.engine.models import PipelineModel
 from pipeline.eri.runtime import BambooDjangoRuntime
-from pipeline.service import task_service
+from pipeline.eri.utils import CONTEXT_TYPE_MAP
+from pipeline.exceptions import ConnectionValidateError, ConvergeMatchError, IsolateNodeError, StreamValidateError
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
-from pipeline.engine import api as pipeline_api
-from pipeline.engine.models import PipelineModel
-from pipeline.core.data.var import Variable
-from pipeline.eri.utils import CONTEXT_TYPE_MAP
-from pipeline_web.parser.format import format_web_data_to_pipeline, classify_constants
-from pipeline.engine import exceptions as pipeline_exceptions
-from pipeline.exceptions import (
-    ConvergeMatchError,
-    ConnectionValidateError,
-    IsolateNodeError,
-    StreamValidateError,
-)
-from opentelemetry import trace
+from pipeline.service import task_service
 
-
-from gcloud import err_code
-from gcloud.taskflow3.signals import taskflow_started
-from gcloud.taskflow3.domains.context import TaskContext
-from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_status
-from gcloud.project_constants.domains.context import get_project_constants_context
 from engine_pickle_obj.context import SystemObject
+from gcloud import err_code
+from gcloud.project_constants.domains.context import get_project_constants_context
+from gcloud.taskflow3.domains.context import TaskContext
+from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_started
+from gcloud.taskflow3.utils import format_bamboo_engine_status, format_pipeline_status
+from pipeline_web.parser.format import classify_constants, format_web_data_to_pipeline
+
 from .base import EngineCommandDispatcher, ensure_return_is_dict
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -109,6 +104,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
     def start_v1(self, executor: str) -> dict:
         try:
+            pre_taskflow_start.send(sender=self.__class__, task_id=self.taskflow_id, executor=executor)
             result = self.pipeline_instance.start(executor=executor, queue=self.queue, check_workers=False)
             if result.result:
                 taskflow_started.send(sender=self.__class__, task_id=self.taskflow_id)
@@ -157,6 +153,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
     def start_v2(self, executor: str) -> dict:
         # CAS
+        pre_taskflow_start.send(sender=self.__class__, task_id=self.taskflow_id, executor=executor)
         update_success = PipelineInstance.objects.filter(
             instance_id=self.pipeline_instance.instance_id, is_started=False
         ).update(start_time=timezone.now(), is_started=True, executor=executor)

@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from gcloud.taskflow3.models import TaskFlowInstance
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -54,9 +53,10 @@ class ExecutorProxyTestCase(TestCase):
             self.assertEqual(taskflow.executor_proxy, "dummy")
 
     @patch("gcloud.taskflow3.models.TaskFlowInstance.save", MagicMock(return_value=None))
+    @patch("gcloud.taskflow3.models.ProjectConfig.objects.task_executor_for_project", MagicMock(return_value="dummy"))
     def test_recorded_executor_proxy(self):
-        taskflow = TaskFlowInstance()
-        ep = taskflow.record_and_get_executor_proxy("dummy")
+        taskflow = TaskFlowInstance(template_source="None")
+        ep = taskflow.record_and_get_executor_proxy("operator")
         self.assertEqual(ep, "dummy")
         self.assertEqual(taskflow.recorded_executor_proxy, "dummy")
 
