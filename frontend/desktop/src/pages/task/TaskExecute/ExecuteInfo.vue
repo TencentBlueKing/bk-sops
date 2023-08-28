@@ -1657,7 +1657,7 @@
         &.canvas-expand {
             & + div {
                 .log-section {
-                    height: 858px;
+                    height: 768px;
                 }
             }
         }
