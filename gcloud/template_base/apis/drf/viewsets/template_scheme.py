@@ -274,7 +274,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         # 防止用户不传name
-        instance.unique_id = "{}-{}".format(template_id, serializer.validated_data.get("data") or instance.name)
+        instance.unique_id = "{}-{}".format(template_id, serializer.validated_data.get("name") or instance.name)
         self.perform_update(serializer)
         return Response(serializer.data)
 
