@@ -348,11 +348,15 @@
                     defaultValueFormat = this.getDefaultValueFormat()
                 }
 
-                const isTypeValid = Array.isArray(defaultValueFormat.type)
-                    ? defaultValueFormat.type.indexOf(valueType) > -1
-                    : defaultValueFormat.type === valueType
+                const defaultValueType = Array.isArray(defaultValueFormat.type) ? defaultValueFormat.type : [defaultValueFormat.type]
 
-                if (isTypeValid) {
+                // 处理非密码框表单使用密码变量时，需要展示******的场景
+                // 非密码框且值类型包含string的表单，如果当前value为Object类型，且type值为password_value时，展示值为******
+                if (this.scheme.type !== 'password' && defaultValueType.includes('String') && checkDataType(val) === 'Object' && val.type === 'password_value') {
+                    return '******'
+                }
+
+                if (defaultValueType.includes(valueType)) {
                     formValue = tools.deepClone(val)
                 } else {
                     formValue = tools.deepClone(defaultValueFormat.value)
@@ -468,6 +472,7 @@
                         valueFormat = {
                             type: ['String', 'Object'],
                             value: {
+                                type: 'password_value',
                                 tag: 'value',
                                 value: ''
                             }

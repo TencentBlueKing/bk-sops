@@ -292,6 +292,7 @@
                             break
                         case 'password':
                             val = {
+                                type: 'password_value',
                                 tag: 'value',
                                 value: ''
                             }
