@@ -14,7 +14,12 @@
         <div :class="['variable-content', { 'view-model': isViewMode }]" @click="onEditVariable(variableData.key, variableData.index)">
             <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag common-icon-drawable f16"></i>
             <span v-if="!isViewMode && !isSystemVar && !isProjectVar" @click.stop class="col-item-checkbox">
-                <bk-checkbox :disabled="isComponentVar" :value="variableChecked" @change="onChooseVariable"></bk-checkbox>
+                <bk-checkbox
+                    :disabled="isComponentVar"
+                    :value="variableChecked"
+                    v-bk-tooltips="{ content: $t('该类型仅支持从节点配置取消引用'), disabled: !isComponentVar }"
+                    @change="onChooseVariable">
+                </bk-checkbox>
             </span>
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
@@ -99,8 +104,8 @@
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">
                         <p
-                            :class="['operate-item', { 'disabled': isComponentVar }]"
-                            v-bk-tooltips="{ content: $t('该类型仅支持从节点配置生成变量'), disabled: !isComponentVar }"
+                            v-if="!isComponentVar"
+                            class="operate-item"
                             @click.stop="onCloneVariable()">
                             {{ $t('克隆') }}
                         </p>

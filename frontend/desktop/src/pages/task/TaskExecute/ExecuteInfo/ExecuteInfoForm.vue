@@ -680,6 +680,12 @@
             .rf-group-name {
                 display: none;
             }
+            .rf-tag-label {
+                width: 20%;
+            }
+            .rf-tag-form {
+                margin-left: 20%;
+            }
             
             .hide-render-icon {
                 top: 0;
@@ -691,6 +697,16 @@
             }
             .rf-tag-hook {
                 top: 0;
+            }
+        }
+        >.rf-form-group {
+            .form-item-group >.rf-form-item {
+                .rf-tag-label {
+                    width: 20%;
+                }
+                .rf-tag-form {
+                    margin-left: 20%;
+                }
             }
         }
         .rf-tag-label {

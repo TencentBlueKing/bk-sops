@@ -312,7 +312,9 @@
                 return this.deleteVarList.length
             },
             editVarList () {
-                return this.variableList.filter(item => item.source_type !== 'system' && item.source_type !== 'project')
+                return this.variableList.filter(item => {
+                    return !['system', 'project', 'component_outputs', 'component_inputs'].includes(item.source_type)
+                })
             }
         },
         watch: {
@@ -737,8 +739,11 @@
         }
     }
 }
+/deep/.bk-sideslider-content {
+    height: calc(100% - 60px);
+}
 .global-variable-panel {
-    height: calc(100vh - 60px);
+    height: 100%;
     .is-hidden {
         transform: scale(0)
     }
