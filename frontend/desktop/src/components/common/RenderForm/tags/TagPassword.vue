@@ -12,7 +12,14 @@
 <template>
     <div class="tag-password">
         <div v-if="formMode" class="password-edit-wrapper">
-            <bk-select v-if="canUseVar" slot="prepend" class="select-type" :clearable="false" :value="localVal.tag" @selected="handleSelectType">
+            <bk-select
+                v-if="canUseVar"
+                slot="prepend"
+                class="select-type"
+                :disabled="!editable || !formMode || disabled"
+                :clearable="false"
+                :value="localVal.tag"
+                @selected="handleSelectType">
                 <bk-option id="value" :name="$t('password_手动输入')"></bk-option>
                 <bk-option id="variable" :name="$t('password_使用密码变量')"></bk-option>
             </bk-select>
@@ -23,6 +30,7 @@
                     type="password"
                     :value="inputText"
                     :placeholder="inputPlaceholder"
+                    :disabled="!editable || !formMode || disabled"
                     @input="handleInput"
                     @focus="handleFocus"
                     @blur="handleBlur" />
@@ -33,6 +41,7 @@
                     rows="4"
                     :value="inputText"
                     :placeholder="inputPlaceholder"
+                    :disabled="!editable || !formMode || disabled"
                     @keydown="handleTextareaKeyDown"
                     @input="handleTextareaInput"
                     @keyup="handleTextareaKeyUp"
@@ -41,7 +50,7 @@
                 </textarea>
             </template>
             <bk-select v-else class="select-var" :value="localVal.value" @selected="handleSelectVariable">
-                <bk-option v-for="item in variables" :key="item.id" :id="item.id" :name="item.name"></bk-option>
+                <bk-option v-for="item in variables" :key="item.id" :id="item.id" :name="item.id"></bk-option>
             </bk-select>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
@@ -90,6 +99,7 @@
         data () {
             return {
                 localVal: {
+                    type: 'password_value',
                     tag: 'value',
                     value: ''
                 },
