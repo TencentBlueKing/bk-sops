@@ -114,6 +114,7 @@ def preview_node_inputs(
             return keys
 
     need_render_context_keys = get_need_render_context_keys()
+
     context_values = [
         ContextValue(key=key, type=VAR_CONTEXT_MAPPING[info["type"]], value=info["value"], code=info.get("custom_type"))
         for key, info in list(pipeline["data"].get("inputs", {}).items()) + list(parent_params.items())
@@ -131,24 +132,7 @@ def preview_node_inputs(
         param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
         # 获取子流程的参数
         hydrated_param_data = Template(param_data).render(parent_hydrated_context)
-        child_inputs = child_pipeline.get("data").get("inputs")
-        # 需要提前渲染好子流程参数的值
-        subprocess_context_values = [
-            ContextValue(
-                key=key,
-                type=VAR_CONTEXT_MAPPING[child_inputs.get(key)["type"]],
-                value=value,
-                code=child_inputs.get(key).get("custom_type"),
-            )
-            for key, value in hydrated_param_data.items()
-        ]
-
-        subprocess_context = Context(runtime, subprocess_context_values, root_pipeline_data)
-        subprocess_hydrated_context = subprocess_context.hydrate(deformat=True)
-        # 此时已经准备好了子流程所有的输出，到下一层递归时，由于parent_params在inputs之后被处理，所以parent_params会更新最终的值
-        formatted_param_data = {
-            "${" + key + "}": {"value": value, "type": "plain"} for key, value in subprocess_hydrated_context.items()
-        }
+        formatted_param_data = {key: {"value": value, "type": "plain"} for key, value in hydrated_param_data.items()}
 
         return preview_node_inputs(
             runtime=runtime,
