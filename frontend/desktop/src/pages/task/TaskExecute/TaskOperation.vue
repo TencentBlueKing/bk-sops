@@ -1467,7 +1467,8 @@
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
-                            if (ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity')]) {
+                            const lastIndex = this.findLastIndex(ordered, (order) => order.type !== 'ServiceActivity')
+                            if (ordered[lastIndex]) {
                                 renderNodelist = []
                                 renderNodeOutgoing = []
                                 this.nodeIds.forEach(item => {
@@ -1521,7 +1522,8 @@
                             outgoing.forEach(line => {
                                 this.retrieveLines(data, line, ordered)
                             })
-                            if (ordered[ordered.findLastIndex(order => order.type === 'ParallelGateway')]) {
+                            const lastIndex = this.findLastIndex(ordered, (order) => order.type === 'ParallelGateway')
+                            if (ordered[lastIndex]) {
                                 renderNodelist = []
                                 renderNodeOutgoing = []
                                 this.nodeIds.forEach(item => {
@@ -1570,7 +1572,8 @@
                             })
                             if (gateway.incoming.every(item => outgoingList.concat(this.conditionOutgoing).includes(item))) {
                                 // 汇聚网关push在最近的条件网关下
-                                const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' && order.type !== 'ConvergeGateway')]
+                                const lastIndex = this.findLastIndex(ordered, (order) => order.type !== 'ServiceActivity' && order.type !== 'ConvergeGateway')
+                                const prev = ordered[lastIndex]
                                 // 独立子流程的children为 subChildren
                                 this.nodeIds.push(gateway.id)
                                 if (prev && prev.children && !prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
@@ -1608,6 +1611,15 @@
                     }
                 }
             },
+            findLastIndex (arr, callback, thisArg) {
+                for (let index = arr.length - 1; index >= 0; index--) {
+                    const value = arr[index]
+                    if (callback.call(thisArg, value, index, arr)) {
+                        return index
+                    }
+                }
+                return -1
+            },
             renderConverGateway (ids, ordered, data) {
                 const allNode = Object.assign({}, data.activities, data.gateways)
                 ids.forEach(id => {
@@ -1616,7 +1628,7 @@
                             const node = Object.keys(allNode).find(item => Array.isArray(allNode[item].outgoing) ? allNode[item].outgoing.includes(incoming) : allNode[item].outgoing === incoming)
                             ordered.forEach(item => {
                                 if (item.id === node && allNode[node].type !== 'ServiceActivity' && allNode[node].type !== 'ConvergeGateway') {
-                                    if (!item.children.map(chd => chd.id).includes(data.gateways[id].id) && !this.renderedCoverNode.includes(id)) {
+                                    if (item.children && !item.children.map(chd => chd.id).includes(data.gateways[id].id) && !this.renderedCoverNode.includes(id)) {
                                         this.renderedCoverNode.push(id)
                                         item.children.push(Object.assign(data.gateways[id], { name: this.$t('汇聚网关') }))
                                     }
