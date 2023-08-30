@@ -267,6 +267,17 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        template_id = instance.unique_id.split("-")[0]
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        # 防止用户不传name
+        instance.unique_id = "{}-{}".format(template_id, serializer.validated_data.get("name") or instance.name)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
     def destroy(self, request, *args, **kwargs):
 
         scheme = self.get_object()
