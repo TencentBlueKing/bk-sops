@@ -269,18 +269,14 @@
                     previousText = lastNode.textContent
                 }
                 const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
-                // 如果是完整全局变量则不进行手续操作
+                // 如果是完整全局变量则不进行后续操作
                 if (/^\$\{\w+\}$/.test(matchText)) {
                     this.isListOpen = false
                     return
                 }
                 // 判断是否为变量格式
                 if (matchText === '$' || /^\${[a-zA-Z_]*[\w|.]*/.test(matchText)) {
-                    const regStr = matchText.replace(/[\$\{\}]/g, '\\$&')
-                    const inputReg = new RegExp(regStr)
-                    this.varList = this.constantArr.filter(item => {
-                        return inputReg.test(item)
-                    })
+                    this.varList = this.constantArr.filter(item => item.indexOf(matchText) > -1)
                     // 计算变量下拉列表的坐标
                     this.isListOpen = false
                     if (this.varList.length) {

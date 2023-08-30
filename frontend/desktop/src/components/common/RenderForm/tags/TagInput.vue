@@ -262,29 +262,21 @@
                 if (isVarTagDom) {
                     const varText = e.target.value
                     const divInputDom = this.$el.querySelector('.div-input')
-                    // 记录光标的位置
-                    const selection = window.getSelection()
-                    const varTextOffset = selection.anchorOffset
-                    // 上一个相邻的tag
-                    const tagNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== '#text')
-                    const index = tagNodes.findIndex(item => item.id === e.target.id)
-                    const previousTagDom = tagNodes[index - 1]
+                    const varTextNode = document.createTextNode(varText)
                     // 替换内容
-                    divInputDom.innerHTML = divInputDom.innerHTML.replace(e.target.outerHTML, varText)
-                    // 变量左侧文本的长度
-                    let startToVarTextLength = 0
-                    let previousDom = null
-                    // 选取符合条件的文本节点
-                    const textNode = Array.from(divInputDom.childNodes).find(item => {
-                        const previousDomMatch = previousTagDom ? previousTagDom.id === previousDom?.id : true
-                        if (previousDomMatch && item.nodeName === '#text' && item.textContent.indexOf(varText) > -1) {
-                            startToVarTextLength = item.textContent.split(varText)[0].length
+                    Array.from(divInputDom.childNodes).some(node => {
+                        if (node.id === e.target.id) {
+                            divInputDom.replaceChild(varTextNode, node)
                             return true
                         }
-                        previousDom = item
-                        return false
                     })
-                    selection.collapse(textNode, startToVarTextLength + varTextOffset)
+                    const selection = window.getSelection()
+                    const range = document.createRange()
+                    range.selectNodeContents(varTextNode)
+                    range.setStart(varTextNode, varTextNode.length)
+                    range.collapse(true)
+                    selection.removeAllRanges()
+                    selection.addRange(range)
                 } else if (this.input.value) {
                     this.handleInputChange(e)
                 }
@@ -331,11 +323,7 @@
                     matchResult = [matchText]
                 }
                 if (matchResult && matchResult[0]) {
-                    const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
-                    const inputReg = new RegExp(regStr)
-                    this.varList = this.constantArr.filter(item => {
-                        return inputReg.test(item)
-                    })
+                    this.varList = this.constantArr.filter(item => item.indexOf(matchText) > -1)
                     // 计算变量下拉列表的left
                     this.isListOpen = false
                     if (this.varList.length) {
