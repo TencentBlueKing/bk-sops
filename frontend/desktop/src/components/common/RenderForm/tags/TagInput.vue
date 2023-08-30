@@ -323,11 +323,7 @@
                     matchResult = [matchText]
                 }
                 if (matchResult && matchResult[0]) {
-                    const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
-                    const inputReg = new RegExp(regStr)
-                    this.varList = this.constantArr.filter(item => {
-                        return inputReg.test(item)
-                    })
+                    this.varList = this.constantArr.filter(item => item.indexOf(matchText) > -1)
                     // 计算变量下拉列表的left
                     this.isListOpen = false
                     if (this.varList.length) {

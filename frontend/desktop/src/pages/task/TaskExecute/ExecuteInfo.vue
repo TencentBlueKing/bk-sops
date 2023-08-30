@@ -997,9 +997,9 @@
                     this.onSelectExecuteRecord(this.theExecuteRecord)
                 }
                 const { top } = document.querySelector('.execute-info').getBoundingClientRect()
-                const height = 700 + top - window.innerHeight
-                if (height > 0) {
-                    const scrollBoxDom = document.querySelector('.scroll-box')
+                const scrollBoxDom = document.querySelector('.scroll-box')
+                const height = window.innerHeight - top
+                if (height < 700) {
                     scrollBoxDom.scrollTo({ top: height, behavior: 'smooth' })
                 }
             },
