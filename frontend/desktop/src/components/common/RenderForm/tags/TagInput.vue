@@ -170,8 +170,18 @@
                         const divInputDom = this.$el.querySelector('.div-input')
                         if (divInputDom) {
                             divInputDom.innerHTML = this.value
+                            this.handleInputBlur()
                         }
                     })
+                }
+            },
+            render (val) {
+                // 如果表单项开启了变量免渲染，不以tag展示
+                if (!val) {
+                    const divInputDom = this.$el.querySelector('.div-input')
+                    divInputDom.innerHTML = this.value
+                } else {
+                    this.handleInputBlur()
                 }
             }
         },
@@ -182,7 +192,9 @@
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
                 divInputDom.innerHTML = this.value
-                this.handleInputBlur()
+                if (this.render) {
+                    this.handleInputBlur()
+                }
             }
         },
         beforeDestroy () {
@@ -217,9 +229,7 @@
                 const replaceContent = previousDomContent + focusNodeContent
                 divInputDom.innerHTML = divInputDom.innerHTML.replace(previousDomContent + focusNode.data, replaceContent)
                 // 更新表单
-                const replacedValue = divInputDom.innerText
-                this.input.value = replacedValue
-                this.updateForm(replacedValue)
+                this.updateInputValue()
                 // 清空/关闭
                 this.isListOpen = false
                 this.hoverKey = ''
@@ -250,7 +260,7 @@
                     isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
                 }
                 if (isVarTagDom) {
-                    const varText = e.target.innerText
+                    const varText = e.target.value
                     const divInputDom = this.$el.querySelector('.div-input')
                     // 记录光标的位置
                     const selection = window.getSelection()
@@ -301,9 +311,7 @@
             // 文本框输入
             handleInputChange (e, selection) {
                 if (!selection) {
-                    const { innerText } = e.target
-                    this.input.value = innerText
-                    this.updateForm(innerText)
+                    this.updateInputValue()
                 }
                 let matchResult = []
                 const { focusNode, anchorOffset } = selection || window.getSelection()
@@ -375,19 +383,51 @@
                     this.handleInputBlur()
                 }
             },
+            updateInputValue () {
+                // 获取行内纯文本
+                const divInputDom = this.$el.querySelector('.div-input')
+                let inputValue = divInputDom.textContent
+                if (divInputDom.childNodes.length) {
+                    inputValue = Array.from(divInputDom.childNodes).map(item => {
+                        return item.type === 'button' ? item.value : item.textContent
+                    }).join('')
+                }
+                this.input.value = inputValue
+                this.updateForm(inputValue)
+            },
             // 文本框失焦
             handleInputBlur  (e) {
                 this.$emit('blur')
                 this.input.focus = false
+                // 如果表单项开启了变量免渲染，不以tag展示
+                if (!this.render) return
                 // 支持所有变量（系统变量，内置变量，自定义变量）
-                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
-                const innerHtml = this.input.value.replace(varRegexp, (match) => {
-                    if (this.constantArr.includes(match)) {
-                        return `<span contenteditable="false" class="var-tag" id="${Math.random()}">${match}</span>` // 两边留空格保持间距
+                const varRegexp = /\${([^${}]+)}/g
+                // 获取行内纯文本
+                const divInputDom = this.$el.querySelector('.div-input')
+                let domValue = divInputDom.textContent
+                if (divInputDom.childNodes.length) {
+                    domValue = Array.from(divInputDom.childNodes).map(item => {
+                        return item.type === 'button' ? item.value : item.textContent
+                    }).join('')
+                }
+                const innerHtml = domValue.replace(varRegexp, (match, $0) => {
+                    let isExistVar = false
+                    if ($0) {
+                        isExistVar = this.constantArr.some(item => {
+                            const varText = item.slice(2, -1)
+                            if ($0.indexOf(varText) > -1) {
+                                const regexp = new RegExp(`^(.*\\W|\\W)?${varText}(\\W|\\W.*)?$`)
+                                return regexp.test($0)
+                            }
+                        })
+                    }
+                    if (isExistVar) {
+                        const randomId = Math.random().toString().slice(-6)
+                        return `<input type="button" class="var-tag" id="${randomId}" value=${match} />` // 两边留空格保持间距
                     }
                     return match
                 })
-                const divInputDom = this.$el.querySelector('.div-input')
                 divInputDom.innerHTML = innerHtml
             },
             // 文本框按键事件
@@ -502,9 +542,11 @@
         white-space: nowrap;
         overflow: hidden;
         /deep/.var-tag {
+            margin-right: 1px;
             padding: 0px 4px;
             background: #f0f1f5;
             cursor: pointer;
+            border: none;
             &:hover {
                 background: #eaebf0;
             }

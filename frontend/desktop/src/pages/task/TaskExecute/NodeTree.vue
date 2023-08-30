@@ -49,7 +49,12 @@
             defaultActiveId: {
                 handler (val) {
                     this.activeId = val
-                    const nodeId = val.split('-')[0]
+                    let nodeId = val.split('-')[0]
+                    // 分支条件默认选中特殊处理
+                    if (val.split('-').pop() === 'condition') {
+                        nodeId = val.split('-').slice(0, -1).join('-')
+                        this.activeId = nodeId
+                    }
                     this.setDefaultActiveId(this.treeData, nodeId)
                 },
                 deep: true,

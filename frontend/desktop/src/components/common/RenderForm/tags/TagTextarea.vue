@@ -11,8 +11,8 @@
 */
 <template>
     <div class="tag-textarea">
-        <div class="rf-form-wrapper" v-if="formMode">
-            <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
+        <div class="rf-form-wrapper">
+            <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled, 'text-view-mode': !formMode }">
                 <div
                     ref="input"
                     class="div-input"
@@ -47,7 +47,6 @@
                 </div>
             </transition>
         </div>
-        <span v-else class="rf-view-value">{{ viewValue }}</span>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
@@ -93,7 +92,7 @@
                     focus: false
                 },
                 varList: [],
-                varListPosition: 0,
+                varListPosition: '',
                 hoverKey: '',
                 selection: {},
                 lastEditRange: null
@@ -118,13 +117,6 @@
                     this.varList = val
                 }
             },
-            viewValue () {
-                if (this.value === '' || this.value === undefined) {
-                    return '--'
-                } else {
-                    return this.value
-                }
-            },
             isDisabled () {
                 return !this.editable || !this.formMode || this.disable
             }
@@ -144,8 +136,18 @@
                         const divInputDom = this.$el.querySelector('.div-input')
                         if (divInputDom) {
                             divInputDom.innerText = this.value
+                            this.handleInputBlur()
                         }
                     })
+                }
+            },
+            render (val) {
+                // 如果表单项开启了变量免渲染，不以tag展示
+                if (!val) {
+                    const divInputDom = this.$el.querySelector('.div-input')
+                    divInputDom.innerText = this.value
+                } else {
+                    this.handleInputBlur()
                 }
             }
         },
@@ -156,7 +158,11 @@
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
                 divInputDom.innerText = this.value
-                this.handleInputBlur()
+                if (this.render) {
+                    this.handleInputBlur()
+                    // 把用户手动换行变成div标签
+                    divInputDom.innerHTML = divInputDom.innerHTML.replace(/<br>/g, '<div><br></div>')
+                }
             }
         },
         beforeDestroy () {
@@ -201,9 +207,7 @@
                 selection.removeAllRanges()
                 selection.addRange(range)
                 // 更新表单
-                const divInputDom = this.$el.querySelector('.div-input')
-                this.input.value = divInputDom.innerText
-                this.updateForm(divInputDom.innerText)
+                this.updateInputValue()
                 // 清空/关闭
                 this.isListOpen = false
                 this.hoverKey = ''
@@ -219,7 +223,7 @@
                     isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
                 }
                 if (isVarTagDom) {
-                    const varText = e.target.innerText
+                    const varText = e.target.value
                     const divInputDom = this.$el.querySelector('.div-input')
                     const varTextNode = document.createTextNode(varText)
                     // 替换内容
@@ -249,9 +253,7 @@
             // 文本框输入
             handleInputChange (e, updateForm = true) {
                 if (updateForm) {
-                    const { innerText } = e.target
-                    this.input.value = innerText
-                    this.updateForm(innerText)
+                    this.updateInputValue()
                 }
                 const range = window.getSelection().getRangeAt(0)
                 this.lastEditRange = range
@@ -338,32 +340,69 @@
                     this.handleInputBlur()
                 }
             },
+            updateInputValue () {
+                const divInputDom = this.$el.querySelector('.div-input')
+                const childNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== 'TEXT')
+                const inputValue = childNodes.map(dom => {
+                    // 获取行内纯文本
+                    let domValue = dom.textContent || '\n'
+                    if (dom.childNodes.length) {
+                        domValue = Array.from(dom.childNodes).map(item => {
+                            return item.type === 'button' ? item.value : item.textContent
+                        }).join('')
+                    }
+                    return domValue
+                }).join('\n')
+                this.input.value = inputValue
+                this.updateForm(inputValue)
+            },
             // 文本框失焦
             handleInputBlur  (e) {
                 this.$emit('blur')
                 this.input.focus = false
+                // 如果表单项开启了变量免渲染，不以tag展示
+                if (!this.render) return
                 // 支持所有变量（系统变量，内置变量，自定义变量）
-                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
+                const varRegexp = /\${([^${}]+)}/g
                 const divInputDom = this.$el.querySelector('.div-input')
-                divInputDom.childNodes.forEach(dom => {
-                    const domValue = dom.textContent
-                    const innerHtml = domValue.replace(varRegexp, (match) => {
-                        if (this.constantArr.includes(match)) {
+                const childNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== 'TEXT')
+                childNodes.forEach(dom => {
+                    // 获取行内纯文本
+                    let domValue = dom.textContent
+                    if (dom.childNodes.length) {
+                        domValue = Array.from(dom.childNodes).map(item => {
+                            return item.type === 'button' ? item.value : item.textContent
+                        }).join('')
+                    }
+                    // 支持匹配变量内运算
+                    const innerHtml = domValue.replace(varRegexp, (match, $0) => {
+                        let isExistVar = false
+                        if ($0) {
+                            isExistVar = this.constantArr.some(item => {
+                                const varText = item.slice(2, -1)
+                                if ($0.indexOf(varText) > -1) {
+                                    const regexp = new RegExp(`^(.*\\W|\\W)?${varText}(\\W|\\W.*)?$`)
+                                    return regexp.test($0)
+                                }
+                            })
+                        }
+                        if (isExistVar) {
                             // 两边留空格保持间距
                             const randomId = Math.random().toString().slice(-6)
-                            return `<span class="var-tag" contenteditable="false" id="tag_${randomId}">${match}</span>`
+                            return `<input type="button" class="var-tag" id="tag_${randomId}" value=${match} />`
                         }
                         return match
                     })
+                    // div会将\n解析成<br>标签，需要手动把内容标签下的<br>标签清理掉
+                    if (dom.nodeName !== 'BR' && dom.nextElementSibling?.nodeName === 'BR') {
+                        divInputDom.removeChild(dom.nextElementSibling)
+                    }
                     if (dom.nodeName === '#text') {
                         const newDom = document.createElement('div')
                         newDom.innerHTML = innerHtml
                         divInputDom.replaceChild(newDom, dom)
                     } else if (dom.nodeName === 'DIV') {
                         dom.innerHTML = innerHtml
-                    } else {
-                        const newDom = document.createElement('text')
-                        divInputDom.replaceChild(newDom, dom)
                     }
                 })
             },
@@ -383,6 +422,9 @@
                             e.preventDefault()
                             this.handleDocumentKeydown(e)
                         }
+                        break
+                    case 'Backspace':
+                        this.handleDocumentBackspace(e)
                         break
                     default:
                         return false
@@ -412,6 +454,9 @@
                         }
                     }
                 }
+            },
+            handleDocumentBackspace (event) {
+                
             }
         }
     }
@@ -477,9 +522,11 @@
         overflow-y: auto;
         /deep/.var-tag {
             padding: 0px 4px;
+            margin-right: 1px;
             background: #f0f1f5;
             cursor: pointer;
             white-space: nowrap;
+            border: none;
             &:hover {
                 background: #eaebf0;
             }
@@ -488,6 +535,20 @@
             content: attr(data-placeholder);
             color: #c4c6cc;
         }
+    }
+    /deep/.div-input {
+        >div {
+            height: 18px;
+            width: 100%;
+        }
+    }
+    .text-view-mode {
+        padding-left: 0;
+        padding-right: 0;
+        border: none;
+        background: inherit !important;
+        color: inherit !important;
+        cursor: text !important;
     }
 }
 </style>

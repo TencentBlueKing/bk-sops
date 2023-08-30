@@ -1406,11 +1406,18 @@
                 } else {
                     marginLeft = 0
                 }
+                let subprocessStack
+                if (parentId) {
+                    subprocessStack = independentId ? parentId.split(independentId)[1] : parentId
+                    subprocessStack = subprocessStack?.split('-') || []
+                    subprocessStack = subprocessStack.filter(item => item)
+                }
                 const orderedData = [Object.assign({}, startNode, {
                     title: this.$t('开始节点'),
                     name: this.$t('开始节点'),
                     nodeLevel: 1,
                     parentId,
+                    subprocessStack,
                     expanded: false,
                     taskId,
                     style: `margin-left: ${marginLeft}px`
@@ -1420,6 +1427,7 @@
                     name: this.$t('结束节点'),
                     nodeLevel: 1,
                     parentId,
+                    subprocessStack,
                     expanded: false,
                     taskId,
                     style: `margin-left: ${marginLeft}px`
@@ -1548,7 +1556,7 @@
                                 const { name: branchName, evaluate } = nodeConfig.conditions[key]
                                 return {
                                     id: id + '-' + key,
-                                    name: branchName + '-' + key,
+                                    name: branchName,
                                     title: branchName,
                                     value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
@@ -1566,7 +1574,7 @@
                                 // 默认条件置顶
                                 conditions.unshift({
                                     id: id + '-' + flow_id,
-                                    name: branchName + '-' + flow_id,
+                                    name: branchName,
                                     title: branchName,
                                     value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
@@ -1772,6 +1780,7 @@
                 Object.assign(this.nodeTargetMaps, targetMap)
             },
             getGatewayConvergeNodes (id, parentId, convergeInfo = {}, index, isDeep) {
+                if (!id) return
                 if (!convergeInfo[parentId]) {
                     convergeInfo[parentId] = {
                         id: parentId,
@@ -2004,12 +2013,6 @@
                 this.updateNodeActived(id, true)
                 // 如果为子流程节点则需要重置pipelineData的constants
                 this.nodePipelineData = { ...this.nodeTreePipelineData }
-                // 兼容旧版本子流程节点输出数据
-                const selectLocation = this.canvasData.locations.find(item => item.id === id)
-                if (selectLocation?.type === 'subflow') {
-                    const { constants } = this.nodeTreePipelineData.activities[id].pipeline
-                    this.nodePipelineData['constants'] = constants
-                }
                 this.convergeInfo = {}
                 this.nodeIds = {}
                 this.nodeData = this.getOrderedTree(this.completePipelineData)
@@ -2018,8 +2021,8 @@
             onOpenConditionEdit (data, isCondition = true) {
                 if (isCondition && data) {
                     this.onNodeClick(data.nodeId)
-                    // 生成网关添加id 条件name + 分支条件outgoning
-                    this.defaultActiveId = data.name + '-' + data.id
+                    // 生成网关添加id 网关id + 分支条件outgoning + 特殊标识
+                    this.defaultActiveId = data.nodeId + '-' + data.id + '-condition'
                     this.isCondition = true
                     this.isShowConditionEdit = true
                     this.conditionData = { ...data }
@@ -2182,12 +2185,6 @@
                 }
                 // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
                 this.nodePipelineData = { ...pipelineData }
-                // 兼容旧版本子流程节点输出数据
-                const selectLocation = pipelineData.location.find(item => item.id === id)
-                if (selectLocation?.type === 'subflow') {
-                    const { constants } = pipelineData.activities[id].pipeline
-                    this.nodePipelineData['constants'] = constants
-                }
             },
             // 切换画布视图
             async switchCanvasView (nodeActivities, isRootNode = false) {

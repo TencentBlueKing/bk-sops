@@ -130,15 +130,9 @@
                 }
             },
             handleClickNode (node) {
-                const { conditionType, children } = node
-                if (conditionType) {
-                    if (conditionType === 'parallel') {
-                        node.expanded = true
-                        return
-                    }
-                    if (children.length === 0) {
-                        return
-                    }
+                if (node.conditionType === 'parallel') {
+                    node.expanded = true
+                    return
                 }
                 if (!node.expanded) {
                     node.expanded = true
