@@ -1780,6 +1780,7 @@
                 Object.assign(this.nodeTargetMaps, targetMap)
             },
             getGatewayConvergeNodes (id, parentId, convergeInfo = {}, index, isDeep) {
+                if (!id) return
                 if (!convergeInfo[parentId]) {
                     convergeInfo[parentId] = {
                         id: parentId,

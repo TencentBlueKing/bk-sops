@@ -30,7 +30,7 @@
                 </div>
                 <div :class="['scroll-box', { 'subprocess-scroll': subProcessPipeline }]">
                     <div
-                        :class="['sub-process', { 'canvas-expand': canvasExpand }]"
+                        :class="['sub-process']"
                         v-if="subProcessPipeline"
                         v-bkloading="{ isLoading: subprocessLoading, opacity: 1, zIndex: 100 }">
                         <TemplateCanvas
@@ -333,7 +333,6 @@
                 executeRecord: {},
                 subFlowData: {},
                 subCanvasData: {},
-                canvasExpand: false,
                 timer: null,
                 subprocessLoading: true,
                 subprocessTasks: [],
@@ -997,15 +996,11 @@
                 if (['record', 'log'].includes(name)) {
                     this.onSelectExecuteRecord(this.theExecuteRecord)
                 }
-                if (this.canvasExpand) {
-                    // 操作历史数据是动态加载的，需要延时才能准确的滚动到最底部
-                    const time = name === 'history' ? 300 : 0
-                    setTimeout(() => {
-                        const scrollBoxDom = document.querySelector('.scroll-box')
-                        const subProcessCanvasDom = document.querySelector('.sub-process')
-                        const { height = 0 } = subProcessCanvasDom.getBoundingClientRect()
-                        scrollBoxDom.scrollTo({ top: height, behavior: 'smooth' })
-                    }, time)
+                const { top } = document.querySelector('.execute-info').getBoundingClientRect()
+                const height = 700 + top - window.innerHeight
+                if (height > 0) {
+                    const scrollBoxDom = document.querySelector('.scroll-box')
+                    scrollBoxDom.scrollTo({ top: height, behavior: 'smooth' })
                 }
             },
             onSelectNode (node) {
@@ -1076,6 +1071,7 @@
             },
             // 画布初始化时缩放比偏移
             setCanvasZoomPosition (zoom) {
+                if (!this.canvasData.locations) return
                 // 获取画布上下左右最大坐标
                 const xList = this.canvasData.locations.map(node => node.x)
                 const yList = this.canvasData.locations.map(node => node.y)
@@ -1104,7 +1100,6 @@
                     jsFlowInstance && jsFlowInstance.zoomOut(ratio, 0, 0)
                 }
                 // 设置偏移量
-                console.log(netHeight - 60)
                 const offsetX = canvasWidth / 2 - (minX - 30 + netWidth / 2) * ratio
                 const offsetY = canvasHeight / 2 - (minY + netHeight / 2) * ratio
                 jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
@@ -1456,7 +1451,6 @@
             handleMousedown (event) {
                 this.updateResizeMaskStyle()
                 this.updateResizeProxyStyle()
-                this.canvasExpand = false
                 document.addEventListener('mousemove', this.handleMouseMove)
                 document.addEventListener('mouseup', this.handleMouseUp)
             },
@@ -1487,7 +1481,6 @@
                 resizeMask.style.display = 'none'
                 const subProcessDom = document.querySelector('.sub-process')
                 subProcessDom.style.height = resizeProxy.style.top
-                this.canvasExpand = true
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
             }
@@ -1667,16 +1660,10 @@
                 }
             }
         }
-        &.canvas-expand {
-            & + div {
-                .log-section {
-                    height: 768px;
-                }
-            }
-        }
     }
     .execute-info {
         height: 100%;
+        min-height: 700px;
         display: flex;
         flex-direction: column;
         padding-bottom: 0;
@@ -1704,7 +1691,6 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            min-height: 500px;
             padding: 16px 24px 18px 15px;
             @include scrollbar;
         }
@@ -1760,6 +1746,9 @@
         }
         /deep/ .primary-value.code-editor {
             height: 300px;
+        }
+        /deep/.log-section {
+            min-height: 758px;
         }
     }
     .scroll-box {
