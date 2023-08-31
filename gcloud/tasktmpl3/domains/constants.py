@@ -85,35 +85,23 @@ def preview_node_inputs(
     def get_need_render_context_keys():
         keys = set()
         # 如果遇到子流程，到最后一层才会实际去解析需要渲染的变量
-        if subprocess_stack:
-            subprocess = subprocess_stack[0]
-            param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
-            for value in param_data.values():
-                if isinstance(value, str):
-                    for value in var_pattern.findall(value):
-                        keys.add("${" + value + "}")
-            return keys
-
         node_info = pipeline["activities"][node_id]
+        inputs_values = node_info.get("component", {}).get("inputs", {}).values()
+        for item in inputs_values:
+            if not item["need_render"]:
+                continue
+            if isinstance(item["value"], str):
+                for value in var_pattern.findall(item["value"]):
+                    keys.add("${" + value + "}")
+        return keys
 
-        if node_info["type"] == "SubProcess":
-            inputs_values = node_info.get("pipeline", {}).get("data", {}).get("inputs").values()
-            for item in inputs_values:
-                if isinstance(item["value"], str):
-                    for value in var_pattern.findall(item["value"]):
-                        keys.add("${" + value + "}")
-            return keys
-        else:
-            inputs_values = node_info.get("component", {}).get("inputs", {}).values()
-            for item in inputs_values:
-                if not item["need_render"]:
-                    continue
-                if isinstance(item["value"], str):
-                    for value in var_pattern.findall(item["value"]):
-                        keys.add("${" + value + "}")
-            return keys
-
-    need_render_context_keys = get_need_render_context_keys()
+    node_type = pipeline["activities"][node_id]["type"]
+    node_code = pipeline["activities"][node_id].get("component", {}).get("code")
+    # 只优化普通节点的渲染过程
+    if node_type == NodeType.ServiceActivity.value and node_code != "subprocess_plugin":
+        need_render_context_keys = get_need_render_context_keys()
+    else:
+        need_render_context_keys = list(pipeline["data"].get("inputs", {}).keys()) + list(parent_params.keys())
 
     context_values = [
         ContextValue(key=key, type=VAR_CONTEXT_MAPPING[info["type"]], value=info["value"], code=info.get("custom_type"))
@@ -143,9 +131,14 @@ def preview_node_inputs(
             parent_params=formatted_param_data,
         )
 
-    node_type = pipeline["activities"][node_id]["type"]
     if node_type == NodeType.ServiceActivity.value:
-        raw_inputs = pipeline["activities"][node_id]["component"]["inputs"]
+        # 如果是独立子流程
+        if node_code == "subprocess_plugin":
+            raw_inputs = pipeline["activities"][node_id]["component"]["inputs"]["subprocess"]["value"]["pipeline"][
+                "constants"
+            ]
+        else:
+            raw_inputs = pipeline["activities"][node_id]["component"]["inputs"]
     elif node_type == NodeType.SubProcess.value:
         raw_inputs = pipeline["activities"][node_id]["params"]
     else:
