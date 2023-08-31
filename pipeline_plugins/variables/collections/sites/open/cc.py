@@ -225,7 +225,9 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
             FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}",
+                type=Type.STRING,
+                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",
@@ -304,7 +306,13 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         if not ip_list:
             return []
 
-        hosts_list = get_business_host(username, bk_biz_id, bk_supplier_account, host_fields, ip_list,)
+        hosts_list = get_business_host(
+            username,
+            bk_biz_id,
+            bk_supplier_account,
+            host_fields,
+            ip_list,
+        )
         return hosts_list
 
     @staticmethod
@@ -408,15 +416,7 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
 
         origin_ip_list = get_plat_ip_by_regex(origin_ips)
         filter_data = {**self.value, **self.pipeline_data}
-        if not settings.ENABLE_IPV6:
-            # 进行gse agent状态过滤
-            gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
-            match_result_ip = gse_agent_status_filter.get_match_ip()
-            if not ip_cloud:
-                return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
-
-            return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])
-        else:
+        if settings.ENABLE_IPV6:
             gse_agent_status_ipv6_filter = GseAgentStatusIpV6Filter(origin_ips, filter_data)
             match_result_ip = gse_agent_status_ipv6_filter.get_match_ip()
             if not ip_cloud:
@@ -430,3 +430,11 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
                 else:
                     result.append("{}:{}".format(host["bk_cloud_id"], host["ip"]))
             return ip_separator.join(result)
+        else:
+            # 进行gse agent状态过滤
+            gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
+            match_result_ip = gse_agent_status_filter.get_match_ip()
+            if not ip_cloud:
+                return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
+
+            return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])
