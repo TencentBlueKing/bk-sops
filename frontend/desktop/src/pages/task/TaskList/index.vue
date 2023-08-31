@@ -764,7 +764,8 @@
                 if (this.deletaLoading) return
                 this.deletaLoading = true
                 try {
-                    await this.deleteTask(taskId)
+                    const resp = await this.deleteTask(taskId)
+                    if (resp.result === false) return
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1

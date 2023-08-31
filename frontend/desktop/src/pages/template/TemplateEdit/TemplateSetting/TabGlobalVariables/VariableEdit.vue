@@ -68,7 +68,7 @@
                     <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
                 </div>
                 <!-- 验证规则 -->
-                <div v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal" class="form-item clearfix">
+                <div v-show="theEditingData.custom_type === 'input' && !isInternalVal" class="form-item clearfix">
                     <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -277,7 +277,7 @@
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
                 varTypeData: {},
-                inputRegexp: '', // input，textarea类型正则
+                inputRegexp: '', // input类型正则
                 atomConfigLoading: false,
                 atomTypeKey: '',
                 stringLength: STRING_LENGTH,
@@ -564,7 +564,7 @@
                 if (is_meta && source_type === 'component_inputs' && config.meta_transform) {
                     config = config.meta_transform(meta)
                 }
-                if (['input', 'textarea'].includes(custom_type)) {
+                if (custom_type === 'input') {
                     config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
@@ -628,13 +628,13 @@
 
                 // 隐藏状态下，默认值为必填项
                 // 输入框显示类型为隐藏时，按照正则规则校验，去掉必填项校验
-                if (show_type === 'show' || (show_type === 'hide' && ['input', 'textarea'].includes(custom_type))) {
+                if (show_type === 'show' || (show_type === 'hide' && custom_type === 'input')) {
                     return validateSet.slice(1)
                 } else {
                     return validateSet
                 }
             },
-            // input/textarea 表单默认校验规则
+            // input 表单默认校验规则
             getInputDefaultValueValidation () {
                 let validation = this.theEditingData.validation
                 if (this.theEditingData.show_type === 'show') {
@@ -649,8 +649,8 @@
                     ? { set_module_ip_selector: tools.deepClone(this.renderData['ip_selector']) }
                     : tools.deepClone(this.renderData)
                 Object.assign(this.varTypeData, valData)
-                // 将input textarea类型正则存起来
-                if (['input', 'textarea'].includes(oldValue)) {
+                // 将input类型正则存起来
+                if (oldValue === 'input') {
                     this.inputRegexp = this.theEditingData.validation
                 }
                 let data
@@ -667,8 +667,8 @@
                 } else {
                     this.renderData = {}
                 }
-                // input textarea类型需要正则校验
-                if (['input', 'textarea'].includes(val)) {
+                // input类型需要正则校验
+                if (val === 'input') {
                     this.theEditingData.validation = this.inputRegexp || '^.+$'
                 } else {
                     this.theEditingData.validation = ''
@@ -709,7 +709,7 @@
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
 
-                if (['input', 'textarea'].includes(this.theEditingData.custom_type)) {
+                if (this.theEditingData.custom_type === 'input') {
                     const config = tools.deepClone(this.renderConfig[0])
                     const regValidate = config.attrs.validation.find(item => item.type === 'regex')
                     regValidate.args = this.getInputDefaultValueValidation()

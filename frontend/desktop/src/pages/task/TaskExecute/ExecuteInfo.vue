@@ -996,12 +996,6 @@
                 if (['record', 'log'].includes(name)) {
                     this.onSelectExecuteRecord(this.theExecuteRecord)
                 }
-                const { top } = document.querySelector('.execute-info').getBoundingClientRect()
-                const scrollBoxDom = document.querySelector('.scroll-box')
-                const height = window.innerHeight - top
-                if (height < 700) {
-                    scrollBoxDom.scrollTo({ top: height, behavior: 'smooth' })
-                }
             },
             onSelectNode (node) {
                 this.loading = true
@@ -1663,7 +1657,6 @@
     }
     .execute-info {
         height: 100%;
-        min-height: 700px;
         display: flex;
         flex-direction: column;
         padding-bottom: 0;
