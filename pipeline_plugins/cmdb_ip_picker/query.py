@@ -16,24 +16,23 @@ import logging
 import ujson as json
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
-
-from api.utils.request import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
+from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.utils import cmdb
-from gcloud.utils.ip import format_sundry_ip
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import format_sundry_ip
 
+from .constants import ERROR_CODES, NO_ERROR
 from .utils import (
     get_cmdb_topo_tree,
-    get_objects_of_topo_tree,
-    get_modules_of_bk_obj,
-    get_modules_id,
     get_ges_agent_status_ipv6,
+    get_modules_id,
+    get_modules_of_bk_obj,
+    get_objects_of_topo_tree,
 )
-from .constants import NO_ERROR, ERROR_CODES
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -63,8 +62,8 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     @return:
     """
     default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip"]
-    if settings.ENABLE_IPV6:
-        # IPV6环境下才会尝试去拿agent主机
+    if settings.ENABLE_IPV6 or settings.ENABLE_GSE_V2:
+        # IPV6环境下或者开启了GSE 2.0 版本
         default_host_fields.append("bk_agent_id")
     fields = set(default_host_fields + json.loads(request.GET.get("fields", "[]")))
     client = get_client_by_user(request.user.username)
@@ -130,7 +129,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
             data.append(host_detail)
 
         if "agent" in fields:
-            if settings.ENABLE_IPV6:
+            if settings.ENABLE_IPV6 or settings.ENABLE_GSE_V2:
                 # 开启IPV6将会调用网关进行查询
                 bk_agent_id_list = []
                 for host in data:
@@ -156,6 +155,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                         if not host["bk_host_innerip"]:
                             # 如果既没有如果bk_agent_id，又没有ipv4地址，说明这个主机石台没有安装agent的ipv6主机，忽略，不再查询agent状态, 直接重置为未知
                             host["agent"] = -1
+                            continue
                         bk_agent_id = "{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"])
                     host["agent"] = agent_id_status_map.get(bk_agent_id, -1)
             else:

@@ -155,7 +155,9 @@ AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend
 
 ENABLE_IPV6 = env.ENABLE_IPV6
 # paasv3 和 开启了ipv6 才会尝试加载 BK_API_URL_TMPL 这个变量
-if env.IS_PAAS_V3 or ENABLE_IPV6:
+ENABLE_GSE_V2 = env.ENABLE_GSE_V2
+
+if env.IS_PAAS_V3 or ENABLE_IPV6 or ENABLE_GSE_V2:
     BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
 
 if env.IS_PAAS_V3:
@@ -672,6 +674,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
