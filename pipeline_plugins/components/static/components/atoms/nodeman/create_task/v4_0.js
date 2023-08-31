@@ -25,6 +25,18 @@
 
 
     function init_columns(self, node_type, op_type) {
+
+        // Proxy 仅支持 Linux
+        let os_type_options = [
+            {value: "LINUX", text: gettext("LINUX")}
+        ];
+        if (node_type === "AGENT") {
+            os_type_options.push(...[
+                {value: "WINDOWS", text: gettext("WINDOWS")},
+                {value: "AIX", text: gettext("AIX")}
+            ]);
+        }
+
         let common_columns = [
             {
                 tag_code: "nodeman_bk_cloud_id",
@@ -93,11 +105,7 @@
                 attrs: {
                     name: gettext("操作系统类型"),
                     width: "180px",
-                    items: [
-                        {value: "LINUX", text: gettext("LINUX")},
-                        {value: "WINDOWS", text: gettext("WINDOWS")},
-                        {value: "AIX", text: gettext("AIX")}
-                    ],
+                    items: os_type_options,
                     default: "LINUX",
                     validation: [
                         {
