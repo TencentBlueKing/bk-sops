@@ -24,7 +24,7 @@ from gcloud.utils import cmdb
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import IpRegexType, extract_ip_from_ip_str, get_ip_by_regex_type
 from pipeline_plugins.base.utils.inject import supplier_account_for_business, supplier_id_for_project
-from pipeline_plugins.cmdb_ip_picker.utils import get_ges_agent_status_ipv6
+from pipeline_plugins.cmdb_ip_picker.utils import get_gse_agent_status_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 
 logger = logging.getLogger("root")
@@ -67,7 +67,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
                 remote_hosts[bk_agent_id] = remote_host_value
 
         # 去查询agent状态
-        agent_map = get_ges_agent_status_ipv6(bk_agent_id_list=list(remote_hosts.keys()))
+        agent_map = get_gse_agent_status_ipv6(bk_agent_id_list=list(remote_hosts.keys()))
 
         agent_online_ip_list = []  # 在线的ip的列表
         agent_offline_ip_list = []  # 不在线的ip的列表
@@ -179,7 +179,7 @@ class GseAgentStatusIpV6Filter:
             bk_agent_id_list.append(bk_agent_id)
 
         try:
-            agent_id_status_map = get_ges_agent_status_ipv6(bk_agent_id_list)
+            agent_id_status_map = get_gse_agent_status_ipv6(bk_agent_id_list)
         except Exception as e:
             raise ApiRequestError(f"ERROR:{e}")
 
