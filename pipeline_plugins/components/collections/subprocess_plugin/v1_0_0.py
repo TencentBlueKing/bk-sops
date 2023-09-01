@@ -30,6 +30,9 @@ from pydantic import BaseModel
 
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
+from gcloud.contrib.operate_record.signal import operate_record_signal
+from gcloud.contrib.operate_record.utils import extract_extra_info
 from gcloud.core.models import EngineConfig, Project
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
@@ -192,10 +195,33 @@ class SubprocessPluginService(Service):
                 pipeline_tree=task.pipeline_instance.execution_data,
             )
 
+            # 记录操作流水
+            pipeline_constants = pipeline_instance.execution_data.get("constants")
+            extra_info = extract_extra_info(pipeline_constants)
+            operate_record_signal.send(
+                sender=RecordType.task.name,
+                operator="system",
+                operate_type=OperateType.create.name,
+                operate_source=OperateSource.parent.name,
+                instance_id=task.id,
+                project_id=task.project_id,
+                extra_info=extra_info,
+            )
+
         task.task_action("start", parent_task.executor)
         data.set_outputs("task_id", task.id)
         data.set_outputs("task_url", task.url)
         data.set_outputs("task_name", task.name)
+
+        # 记录操作流水
+        operate_record_signal.send(
+            sender=RecordType.task.name,
+            operator="system",
+            operate_type=OperateType.start.name,
+            operate_source=OperateSource.parent.name,
+            instance_id=task.id,
+            project_id=task.project_id,
+        )
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
