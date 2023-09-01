@@ -46,6 +46,7 @@ class OperateSource(Enum):
 
     app = _("app 页面")
     api = _("api 接口")
+    parent = _("父任务")
 
     # 模版来源
     project = _("项目流程")
