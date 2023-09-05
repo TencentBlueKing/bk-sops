@@ -201,7 +201,7 @@ class GseAgentStatusIpV6Filter:
                 agent_online_ip_list.append(match_result)
             # agent 状态为 0 或者 未知 则认为 该主机 不在线
             if agent_id_status_map.get(bk_agent_id, 0) in [0, -1]:
-                agent_online_ip_list.append(match_result)
+                agent_offline_ip_list.append(match_result)
         gse_agent_status = self.data.get("gse_agent_status", "")
         if gse_agent_status == GseAgentStatus.ONlINE.value:
             match_host = agent_online_ip_list
