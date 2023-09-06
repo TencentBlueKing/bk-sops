@@ -12,23 +12,23 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import logging
 import json
+import logging
 from typing import List
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from pipeline.core.data.var import LazyVariable, RegisterVariableMeta, SpliceVariable
+from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
+from gcloud.conf import settings as gcloud_settings
 from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import get_notify_receivers
-from gcloud.conf import settings as gcloud_settings
-from pipeline.core.data.var import SpliceVariable, LazyVariable, RegisterVariableMeta
-from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
@@ -159,10 +159,9 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
         ]
 
     def get_value(self):
+
         meta_values = json.loads(self.value["meta_data"])
-        info_values = (
-            [self.value["info_value"]] if isinstance(self.value["info_value"], str) else self.value["info_value"]
-        )
+        info_values = TextValueSelect.process_info_value(self.value["info_value"])
         text_values = [meta["text"] for meta in meta_values if meta["value"] in info_values]
         text_not_selected_values = [meta["text"] for meta in meta_values if meta["value"] not in info_values]
         info_not_selected_values = [meta["value"] for meta in meta_values if meta["value"] not in info_values]
@@ -173,6 +172,19 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
             "text_not_selected": ",".join(text_not_selected_values),
             "value_not_selected": ",".join(info_not_selected_values),
         }
+
+    @classmethod
+    def process_info_value(cls, info_value):
+        if isinstance(info_value, str):
+            return [info_value]
+
+        # 在 子流程 变量传递的过程中，会出现info_value = {"value": 1, "text": "xx", "text_not_selected": "xx"}的情况，
+        # 所以需要特殊处理一下
+        if isinstance(info_value, dict):
+            if set(info_value.keys()) == {"value", "text", "text_not_selected", "value_not_selected"}:
+                return [info_value["value"]]
+
+        return info_value
 
     @classmethod
     def process_meta_value(self, meta_data, info_value):
