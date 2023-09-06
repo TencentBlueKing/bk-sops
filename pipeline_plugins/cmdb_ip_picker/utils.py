@@ -709,27 +709,42 @@ def get_bk_cloud_id_for_host(host_info, cloud_key="cloud"):
 def get_gse_agent_status_ipv6(bk_agent_id_list):
     if not bk_agent_id_list:
         return {}
-    ENV_MAP = {"PRODUCT": "prod", "STAGING": "stag"}
+    ENV_MAP = {"PRODUCT": "prod", "STAGING": "stage"}
 
     gse_url = settings.BK_API_URL_TMPL.format(api_name="bk-gse")
     get_agent_status_url = "{}/{}/api/v2/cluster/list_agent_state".format(
-        gse_url, ENV_MAP.get(settings.RUN_MODE, "prod")
+        gse_url, ENV_MAP.get(settings.RUN_MODE, "stage")
     )
-    params = {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY, "agent_id_list": bk_agent_id_list}
 
-    resp = requests.post(url=get_agent_status_url, json=params)
+    def send_request(agent_ids):
+        params = {
+            "bk_app_code": settings.APP_CODE,
+            "bk_app_secret": settings.SECRET_KEY,
+            "agent_id_list": agent_ids,
+        }
 
-    if resp.status_code != 200:
-        raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
-    try:
-        data = resp.json()
-    except Exception as e:
-        raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非Json, err={}".format(e))
-    if data["code"] != 0:
-        raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非code非0")
+        resp = requests.post(url=get_agent_status_url, json=params)
+
+        if resp.status_code != 200:
+            raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
+        try:
+            resp_data = resp.json()
+        except Exception as e:
+            raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非Json, err={}".format(e))
+        if resp_data["code"] != 0:
+            raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非code非0, {}".format(data))
+
+        return resp_data.get("data", [])
+
+    # gse 请求最大支持1000个agent_id的同时查询，所以需要把agent_id分成1000份的单元
+    multi_agent_id_list = [bk_agent_id_list[i : i + 1000] for i in range(0, len(bk_agent_id_list), 1000)]
+
+    data = []
+    for agent_id_list in multi_agent_id_list:
+        data.extend(send_request(agent_id_list))
 
     agent_id_status_map = {}
-    for item in data.get("data", []):
+    for item in data:
         # esb agent 状态规则 : agent在线状态，0为不在线，1为在线
         # apigw agent 状态规则： Agent当前运行状态码, -1:未知 0:初始安装 1:启动中 2:运行中 3:有损状态 4:繁忙状态 5:升级中 6:停止中 7:解除安装
         # 为了前端的显示/与过滤保持一致，所有需要对状态进行转换
