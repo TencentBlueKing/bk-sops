@@ -11,12 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from bamboo_engine import states as bamboo_engine_states
 from django.test import TestCase
 
 from gcloud import err_code
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
-from bamboo_engine import states as bamboo_engine_states
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -87,7 +86,7 @@ class GetNodeDetailV2TestCase(TestCase):
         bamboo_api.get_node_histories = MagicMock(return_value=get_node_histories_return)
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
 
-        dispatcher._get_node_info = MagicMock()
+        dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
         format_pipeline_status = MagicMock()
 
         with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME, runtime_init):
@@ -103,7 +102,9 @@ class GetNodeDetailV2TestCase(TestCase):
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_node_histories.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id, loop=1)
-        dispatcher._get_node_info.assert_not_called()
+        dispatcher._get_node_info.assert_called_once_with(
+            node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
 
         self.assertEqual(
             node_detail,
@@ -149,7 +150,7 @@ class GetNodeDetailV2TestCase(TestCase):
         bamboo_api.get_node_histories = MagicMock(return_value=get_node_histories_return)
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
-        dispatcher._get_node_info = MagicMock()
+        dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
         format_pipeline_status = MagicMock()
 
         with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME, runtime_init):
@@ -165,7 +166,9 @@ class GetNodeDetailV2TestCase(TestCase):
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_node_histories.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id, loop=1)
-        dispatcher._get_node_info.assert_not_called()
+        dispatcher._get_node_info.assert_called_once_with(
+            node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
 
         self.assertEqual(
             node_detail,
@@ -213,7 +216,7 @@ class GetNodeDetailV2TestCase(TestCase):
         bamboo_api.get_node_histories = MagicMock(return_value=get_node_histories_return)
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
-        dispatcher._get_node_info = MagicMock()
+        dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
         dispatcher._assemble_histroy_detail = MagicMock()
         format_pipeline_status = MagicMock()
 
@@ -230,7 +233,9 @@ class GetNodeDetailV2TestCase(TestCase):
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_node_histories.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id, loop=1)
-        dispatcher._get_node_info.assert_not_called()
+        dispatcher._get_node_info.assert_called_once_with(
+            node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
         dispatcher._assemble_histroy_detail.assert_called_once()
 
         self.assertEqual(
