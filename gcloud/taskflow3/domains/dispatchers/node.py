@@ -727,6 +727,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             }
 
         detail = result.data
+        pipeline_instance = kwargs["pipeline_instance"]
+        node_info = self._get_node_info(
+            node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
+        node_code = node_info.get("component", {}).get("code")
         # 节点已经执行
         if detail:
             detail = detail[self.node_id]
@@ -764,19 +769,19 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
             for hist in detail["histories"]:
                 # 重试记录必然是因为失败才重试
+                if node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
+                    # 对于独立子流程节点要重新渲染输出
+                    raw_inputs = hist["inputs"]["subprocess"]["pipeline"]["constants"]
+                    hist["inputs"] = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 hist.setdefault("state", bamboo_engine_states.FAILED)
                 hist["history_id"] = hist["id"]
                 format_pipeline_status(hist)
         # 节点未执行
         else:
-            pipeline_instance = kwargs["pipeline_instance"]
-            node = self._get_node_info(
-                node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
-            )
             detail.update(
                 {
-                    "name": node["name"],
-                    "error_ignorable": node.get("error_ignorable", False),
+                    "name": node_info["name"],
+                    "error_ignorable": node_info.get("error_ignorable", False),
                     "state": bamboo_engine_states.READY,
                 }
             )
