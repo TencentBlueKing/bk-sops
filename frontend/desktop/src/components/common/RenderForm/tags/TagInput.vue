@@ -214,20 +214,29 @@
                 }
             },
             onSelectVal (val) {
-                // 替换内容
-                const { focusNode, anchorOffset, previousElementSibling } = this.selection
-                const divInputDom = this.$el.querySelector('.div-input')
-                const { outerHTML, id } = previousElementSibling || {}
-                const previousDomContent = outerHTML || ''
-                // 光标左边文本内容
-                let matchText = focusNode.data.slice(0, anchorOffset)
-                const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
-                matchText = matchText.split(varRegexp).pop()
-                // 拿到字段最后以$开头的部分
-                matchText = matchText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
-                const focusNodeContent = focusNode.data.slice(0, anchorOffset - matchText.length) + val + focusNode.data.slice(anchorOffset)
-                const replaceContent = previousDomContent + focusNodeContent
-                divInputDom.innerHTML = divInputDom.innerHTML.replace(previousDomContent + focusNode.data, replaceContent)
+                // 获取选定对象
+                const selection = getSelection()
+                // 如果保存的有上次的光标对象
+                if (this.lastEditRange) {
+                    // 清除所有选区
+                    selection.removeAllRanges()
+                    // 添加最后光标还原之前的状态
+                    selection.addRange(this.lastEditRange)
+                }
+                const range = selection.getRangeAt(0)
+                const textNode = range.startContainer
+                const rangeStartOffset = range.startOffset
+                // 匹配光标前内容最后面变量部分
+                const previousText = textNode.textContent.slice(0, rangeStartOffset)
+                const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
+                // 需要补全的变量
+                const addText = val.replace(matchText, '')
+                textNode.insertData(rangeStartOffset, addText)
+                range.setStart(textNode, rangeStartOffset + addText.length)
+                // 将选区折叠为一个光标
+                range.collapse(true)
+                selection.removeAllRanges()
+                selection.addRange(range)
                 // 更新表单
                 this.updateInputValue()
                 // 清空/关闭
@@ -235,20 +244,6 @@
                 this.hoverKey = ''
                 this.selection = {}
                 this.input.focus = true
-                // 设置光标在变量后面
-                this.$nextTick(() => {
-                    const selection = window.getSelection()
-                    let previousDom = null
-                    const textNode = Array.from(divInputDom.childNodes).find(item => {
-                        const previousDomMatch = id ? id === previousDom?.id : true
-                        if (previousDomMatch && item.nodeName === '#text' && item.textContent.indexOf(val) > -1) {
-                            return true
-                        }
-                        previousDom = item
-                        return false
-                    })
-                    selection.collapse(textNode, anchorOffset - matchText.length + val.length)
-                })
             },
             // 文本框点击
             handleInputMouseUp (e) {
@@ -311,6 +306,7 @@
                     this.isListOpen = false
                     return
                 }
+                this.lastEditRange = window.getSelection().getRangeAt(0)
                 const offsetText = focusNode.data.substring(0, anchorOffset)
                 const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
                 let matchText = offsetText.split(varRegexp).pop()
