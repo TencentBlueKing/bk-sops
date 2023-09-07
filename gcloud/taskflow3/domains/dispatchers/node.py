@@ -750,10 +750,6 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     }
                 for hist in hist_result.data:
                     hist["ex_data"] = hist.get("outputs", {}).get("ex_data", "")
-                    if node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
-                        # 对于独立子流程节点要重新渲染输出
-                        raw_inputs = hist["inputs"]["subprocess"]["pipeline"]["constants"]
-                        hist["inputs"] = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 detail["histories"] = hist_result.data
                 detail["history_id"] = -1
             # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数，则从历史数据获取结果
