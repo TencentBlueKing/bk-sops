@@ -363,13 +363,14 @@ const task = {
          */
         getNodeActDetail ({ commit }, data) {
             const { project_id } = store.state.project
-            const { instance_id, node_id, component_code, subprocess_stack, loop } = data
+            const { instance_id, node_id, component_code, subprocess_stack, subprocess_simple_inputs, loop } = data
             return axios.get(`taskflow/api/nodes/detail/${project_id}/`, {
                 params: {
                     instance_id,
                     node_id,
                     component_code,
                     subprocess_stack,
+                    subprocess_simple_inputs,
                     loop
                 }
             }).then(response => response.data)

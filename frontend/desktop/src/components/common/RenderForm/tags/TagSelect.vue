@@ -72,7 +72,7 @@
             </p>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
-        <span v-else class="rf-view-value">{{viewValue}}</span>
+        <span v-else class="rf-view-value">{{ value || '--' }}</span>
     </div>
 </template>
 <script>

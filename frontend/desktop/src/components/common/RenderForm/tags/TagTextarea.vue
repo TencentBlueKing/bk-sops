@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-textarea">
-        <div class="rf-form-wrapper" v-if="formMode">
+        <div class="rf-form-wrapper">
             <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled, 'text-view-mode': !formMode }">
                 <div
                     ref="input"
@@ -47,7 +47,6 @@
                 </div>
             </transition>
         </div>
-        <div v-else class="rf-view-value">{{ value || '--' }}</div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
@@ -119,7 +118,7 @@
                 }
             },
             isDisabled () {
-                return !this.editable || !this.formMode || this.disable
+                return !this.editable || !this.formMode || this.disable || this.scheme.attrs?.disabled
             }
         },
         watch: {
@@ -158,7 +157,7 @@
         mounted () {
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
-                divInputDom.innerText = this.value
+                divInputDom.innerText = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
                 if (this.render) {
                     this.handleInputBlur()
                     // 把用户手动换行变成div标签

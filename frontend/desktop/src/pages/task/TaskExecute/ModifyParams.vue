@@ -191,7 +191,7 @@
                     const { has_key = false, keys_in_constants_parameter = [] } = instanceData.constants_info || {}
                     Object.keys(pipelineData.constants).forEach(key => {
                         const cnt = pipelineData.constants[key]
-                        if (cnt.show_type === 'show' && !cnt.pre_render_mako) {
+                        if (cnt.show_type === 'show') {
                             if (!has_key || keys_in_constants_parameter.includes(key)) {
                                 // api调用时不做校验
                                 cnt.validation = ''
