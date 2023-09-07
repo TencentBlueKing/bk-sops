@@ -786,6 +786,7 @@
                         query = { task_id, node_id, subprocess_stack }
                         res = await this.taskflowNodeDetail(query)
                     } else {
+                        query.subprocess_simple_inputs = true // 标记独立子流程取{key: value}类型数据
                         res = await this.getNodeActDetail(query)
                     }
                     if (res.result) {
