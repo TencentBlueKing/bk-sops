@@ -14,6 +14,10 @@ import { checkDataType } from '@/utils/checkDataType.js'
 import i18n from '@/config/i18n/index.js'
 
 export const COMMON_ATTRS = {
+    scheme: {
+        type: Object,
+        default: () => ({})
+    },
     tagCode: {
         type: String,
         required: true,

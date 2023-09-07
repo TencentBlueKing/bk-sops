@@ -11,7 +11,8 @@
 */
 <template>
     <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 0.8, zIndex: 100 }">
-        <div v-if="formMode && typeof ipValue === 'object'" class="tag-ip-selector-wrap">
+        <span v-if="scheme.attrs.usedValue" class="rf-view-value">{{ value }}</span>
+        <div v-else-if="typeof ipValue === 'object'" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
                 :editable="editable && !disabled"
@@ -25,7 +26,6 @@
                 v-model="ipValue">
             </ip-selector>
         </div>
-        <span v-else class="rf-view-value">{{ constants.subflow_detail_var ? constants[tagCode] : viewValue }}</span>
     </div>
 </template>
 <script>
@@ -140,7 +140,9 @@
             }
         },
         mounted () {
-            this.getData()
+            if (!this.scheme.attrs.usedValue) {
+                this.getData()
+            }
         },
         methods: {
             ...mapActions([

@@ -228,6 +228,7 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
+    import { checkDataType, getDefaultValueFormat } from '@/utils/checkDataType.js'
     import NodeTree from './NodeTree'
     import NodeOperationFlow from './ExecuteInfo/NodeOperationFlow.vue'
     import ExecuteRecord from './ExecuteInfo/ExecuteRecord.vue'
@@ -667,7 +668,7 @@
                 }
                 let outputsInfo = []
                 const renderData = {}
-                let constants = {}
+                const constants = {}
                 let inputsInfo = inputs
                 let failInfo = ''
                 // 添加插件输出表单所需上下文
@@ -677,36 +678,32 @@
                 // 获取子流程配置详情
                 if (componentCode === 'subprocess_plugin' || this.isLegacySubProcess) {
                     const { constants } = this.isLegacySubProcess ? this.pipelineData : this.componentValue.pipeline
-                    this.renderConfig = await this.getSubflowInputsConfig(constants)
+                    const renderConfig = await this.getSubflowInputsConfig(constants)
+                    const keys = Object.keys(inputs)
+                    this.renderConfig = renderConfig.filter(item => keys.includes(item.tag_code))
                 } else if (componentCode) { // 任务节点需要加载标准插件
                     await this.getNodeConfig(componentCode, version, inputs.plugin_version)
                 }
-                if (this.isSubProcessNode) { // 新版子流程任务节点输入参数处理
-                    inputsInfo = Object.keys(inputs).reduce((acc, cur) => {
-                        const value = inputs[cur]
-                        if (cur === 'subprocess') {
-                            Object.keys(value.pipeline.constants).forEach(key => {
-                                const data = value.pipeline.constants[key]
-                                acc[key] = data.value
-                            })
-                        } else {
-                            acc[cur] = value
+                inputsInfo = Object.keys(inputs).reduce((acc, cur) => {
+                    const scheme = this.renderConfig.find(item => item.tag_code === cur)
+                    if (scheme) {
+                        const defaultValueFormat = getDefaultValueFormat(scheme)
+                        const valueType = checkDataType(inputs[cur])
+                        const isTypeValid = Array.isArray(defaultValueFormat.type)
+                            ? defaultValueFormat.type.indexOf(valueType) > -1
+                            : defaultValueFormat.type === valueType
+                        // 标记数据类型不同的表单项并原样展示数据
+                        if (!isTypeValid) {
+                            if ('attrs' in scheme) {
+                                scheme.attrs.usedValue = true
+                            } else {
+                                scheme.attrs = { usedValue: true }
+                            }
                         }
-                        return acc
-                    }, {})
-                } else if (this.isLegacySubProcess) {
-                    /**
-                     * 兼容旧版本子流程节点输入数据
-                     * 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
-                     */
-                    constants = { subflow_detail_var: true, ...inputsInfo }
-                    inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
-                        if (cur.show_type === 'show') {
-                            acc[cur.key] = cur.value
-                        }
-                        return acc
-                    }, {})
-                }
+                    }
+                    acc[cur] = inputs[cur]
+                    return acc
+                }, {})
                 for (const key in inputsInfo) {
                     renderData[key] = inputsInfo[key]
                 }
@@ -897,7 +894,7 @@
                     if (variable.custom_type === 'select') {
                         formItemConfig.attrs.allowCreate = true
                     }
-                    formItemConfig.tag_code = key
+                    formItemConfig.tag_code = key.slice(2, -1)
                     formItemConfig.attrs.name = variable.name
                     // 自定义输入框变量正则校验添加到插件配置项
                     if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
