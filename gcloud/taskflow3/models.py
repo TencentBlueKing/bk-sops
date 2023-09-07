@@ -958,6 +958,7 @@ class TaskFlowInstance(models.Model):
                 pipeline_instance=self.pipeline_instance,
                 subprocess_stack=subprocess_stack,
                 project_id=kwargs["project_id"],
+                retry=kwargs.get("retry", False),
             )
             if not node_data_result["result"]:
                 return node_data_result

@@ -200,6 +200,7 @@ def detail(request, project_id):
     task_id = request.query_params["instance_id"]
     node_id = request.query_params["node_id"]
     loop = request.query_params.get("loop")
+    retry = request.query_params.get("retry") == "true"
     component_code = request.query_params.get("component_code")
     include_data = int(request.query_params.get("include_data", 1))
 
@@ -207,7 +208,14 @@ def detail(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.get_node_detail(
-        node_id, request.user.username, component_code, subprocess_stack, loop, include_data, project_id=project_id
+        node_id,
+        request.user.username,
+        component_code,
+        subprocess_stack,
+        loop,
+        include_data,
+        project_id=project_id,
+        retry=retry,
     )
 
     return JsonResponse(ctx)

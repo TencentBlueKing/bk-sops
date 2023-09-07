@@ -504,7 +504,9 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 if node_info["type"] == "SubProcess":
                     # remove prefix '${' and subfix '}' in subprocess execution input
                     inputs = {k[2:-1]: v for k, v in data["inputs"].items()}
-                elif node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
+                elif (
+                    node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin" and kwargs.get("retry")
+                ):
                     raw_inputs = data["inputs"]["subprocess"]["pipeline"]["constants"]
                     inputs = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 else:
