@@ -95,8 +95,9 @@ def preview_node_inputs(
                     keys.add("${" + value + "}")
         return keys
 
-    node_type = pipeline["activities"][node_id]["type"]
-    node_code = pipeline["activities"][node_id].get("component", {}).get("code")
+    # 对于子流程内的节点，拿不到当前node_id的type和code
+    node_type = pipeline["activities"].get(node_id, {}).get("type")
+    node_code = pipeline["activities"].get(node_id, {}).get("component", {}).get("code")
     # 只优化普通节点的渲染过程
     if node_type == NodeType.ServiceActivity.value and node_code != "subprocess_plugin":
         need_render_context_keys = get_need_render_context_keys()
