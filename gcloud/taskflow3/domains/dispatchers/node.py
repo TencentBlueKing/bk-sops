@@ -504,7 +504,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 if node_info["type"] == "SubProcess":
                     # remove prefix '${' and subfix '}' in subprocess execution input
                     inputs = {k[2:-1]: v for k, v in data["inputs"].items()}
-                elif node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
+                elif (
+                    node_info["type"] == "ServiceActivity"
+                    and node_code == "subprocess_plugin"
+                    and kwargs.get("subprocess_simple_inputs")
+                ):
                     raw_inputs = data["inputs"]["subprocess"]["pipeline"]["constants"]
                     inputs = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 else:
@@ -567,6 +571,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                         subprocess_stack=subprocess_stack,
                         root_pipeline_data=root_pipeline_data,
                         parent_params=root_pipeline_context,
+                        subprocess_simple_inputs=kwargs.get("subprocess_simple_inputs"),
                     )
                 except Exception as e:
                     message = _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {e} | get_node_data_v2")
@@ -581,7 +586,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 if node_info["type"] == "SubProcess":
                     # remove prefix '${' and subfix '}' in subprocess execution input
                     inputs = {k[2:-1]: v for k, v in preview_inputs.items()}
-                elif node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
+                elif (
+                    node_info["type"] == "ServiceActivity"
+                    and node_code == "subprocess_plugin"
+                    and kwargs.get("subprocess_simple_inputs")
+                ):
                     inputs = {k[2:-1]: v for k, v in preview_inputs.items()}
                 else:
                     inputs = preview_inputs
@@ -769,7 +778,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
             for hist in detail["histories"]:
                 # 重试记录必然是因为失败才重试
-                if node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
+                if (
+                    node_info["type"] == "ServiceActivity"
+                    and node_code == "subprocess_plugin"
+                    and kwargs.get("subprocess_simple_inputs")
+                ):
                     # 对于独立子流程节点要重新渲染输出
                     raw_inputs = hist["inputs"]["subprocess"]["pipeline"]["constants"]
                     hist["inputs"] = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}

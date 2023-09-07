@@ -81,6 +81,7 @@ def preview_node_inputs(
     subprocess_stack: List[str] = [],
     root_pipeline_data: dict = {},
     parent_params: dict = {},
+    subprocess_simple_inputs: bool = False,
 ):
     def get_need_render_context_keys():
         keys = set()
@@ -130,11 +131,12 @@ def preview_node_inputs(
             subprocess_stack=subprocess_stack[1:],
             root_pipeline_data=root_pipeline_data,
             parent_params=formatted_param_data,
+            subprocess_simple_inputs=subprocess_simple_inputs,
         )
 
     if node_type == NodeType.ServiceActivity.value:
         # 如果是独立子流程
-        if node_code == "subprocess_plugin":
+        if node_code == "subprocess_plugin" and subprocess_simple_inputs:
             raw_inputs = pipeline["activities"][node_id]["component"]["inputs"]["subprocess"]["value"]["pipeline"][
                 "constants"
             ]

@@ -958,6 +958,7 @@ class TaskFlowInstance(models.Model):
                 pipeline_instance=self.pipeline_instance,
                 subprocess_stack=subprocess_stack,
                 project_id=kwargs["project_id"],
+                subprocess_simple_inputs=kwargs.get("subprocess_simple_inputs", False),
             )
             if not node_data_result["result"]:
                 return node_data_result
@@ -969,6 +970,7 @@ class TaskFlowInstance(models.Model):
             loop=loop,
             pipeline_instance=self.pipeline_instance,
             subprocess_stack=subprocess_stack,
+            subprocess_simple_inputs=kwargs.get("subprocess_simple_inputs", False),
         )
         if not node_detail_result["result"]:
             return node_detail_result
