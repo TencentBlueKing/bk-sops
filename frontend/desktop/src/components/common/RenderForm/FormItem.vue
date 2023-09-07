@@ -117,6 +117,7 @@
                 :hook="hook"
                 :render="render"
                 :constants="constants"
+                :scheme="scheme"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
                 :value="formValue"
@@ -162,7 +163,7 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import { checkDataType } from '@/utils/checkDataType.js'
+    import { checkDataType, getDefaultValueFormat } from '@/utils/checkDataType.js'
     import FormGroup from './FormGroup.vue'
 
     // 导入 tag 文件注册为组件
@@ -373,6 +374,10 @@
                 return { ...attrs }
             },
             getFormValue (val) {
+                // 不使用默认值
+                if (this.scheme.attrs.usedValue) {
+                    return tools.deepClone(val)
+                }
                 const valueType = checkDataType(val)
 
                 if (valueType === 'Undefined') {
@@ -388,7 +393,7 @@
                         value: ''
                     }
                 } else {
-                    defaultValueFormat = this.getDefaultValueFormat()
+                    defaultValueFormat = getDefaultValueFormat(this.scheme)
                 }
 
                 const isTypeValid = Array.isArray(defaultValueFormat.type)
@@ -403,118 +408,6 @@
                 }
 
                 return formValue
-            },
-            getDefaultValueFormat () {
-                let valueFormat
-                switch (this.scheme.type) {
-                    case 'input':
-                    case 'textarea':
-                    case 'radio':
-                    case 'text':
-                    case 'datetime':
-                    case 'password':
-                    case 'memberSelector':
-                    case 'logDisplay':
-                    case 'code_editor':
-                    case 'section':
-                        valueFormat = {
-                            type: ['String', 'Number', 'Boolean'],
-                            value: ''
-                        }
-                        break
-                    case 'checkbox':
-                    case 'datatable':
-                    case 'tree':
-                    case 'upload':
-                    case 'cascader':
-                        valueFormat = {
-                            type: 'Array',
-                            value: []
-                        }
-                        break
-                    case 'select':
-                        if (this.scheme.attrs.multiple) {
-                            valueFormat = {
-                                type: 'Array',
-                                value: []
-                            }
-                        } else {
-                            valueFormat = {
-                                type: ['String', 'Number', 'Boolean'],
-                                value: ''
-                            }
-                        }
-                        break
-                    case 'time':
-                        if (this.scheme.attrs.isRange) {
-                            valueFormat = {
-                                type: 'Array',
-                                value: ['00:00:00', '23:59:59']
-                            }
-                        } else {
-                            valueFormat = {
-                                type: 'String',
-                                value: ''
-                            }
-                        }
-                        break
-                    case 'int':
-                        valueFormat = {
-                            type: 'Number',
-                            value: 0
-                        }
-                        break
-                    case 'ip_selector':
-                        valueFormat = {
-                            type: 'Object',
-                            value: {
-                                static_ip_table_config: [],
-                                selectors: [],
-                                ip: [],
-                                topo: [],
-                                group: [],
-                                filters: [],
-                                excludes: []
-                            }
-                        }
-                        break
-                    case 'set_allocation':
-                        valueFormat = {
-                            type: 'Object',
-                            value: {
-                                config: {
-                                    set_count: 1,
-                                    set_template_id: '',
-                                    host_resources: [],
-                                    module_detail: []
-                                },
-                                data: [],
-                                separator: ','
-                            }
-                        }
-                        break
-                    case 'host_allocation':
-                        valueFormat = {
-                            type: 'Object',
-                            value: {
-                                config: {
-                                    host_count: 0,
-                                    host_screen_value: '',
-                                    host_resources: [],
-                                    host_filter_detail: []
-                                },
-                                data: [],
-                                separator: ','
-                            }
-                        }
-                        break
-                    default:
-                        valueFormat = {
-                            type: 'String',
-                            value: ''
-                        }
-                }
-                return valueFormat
             },
             isRequired () {
                 let required = false

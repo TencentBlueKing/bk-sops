@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-textarea">
-        <div class="rf-form-wrapper">
+        <div class="rf-form-wrapper" v-if="formMode">
             <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled, 'text-view-mode': !formMode }">
                 <div
                     ref="input"
@@ -47,6 +47,7 @@
                 </div>
             </transition>
         </div>
+        <div v-else class="rf-view-value">{{ value || '--' }}</div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
@@ -59,7 +60,7 @@
 
     export const attrs = {
         value: {
-            type: String,
+            type: [String, Object],
             required: false,
             default: ''
         },

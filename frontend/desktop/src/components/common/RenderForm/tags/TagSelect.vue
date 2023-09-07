@@ -83,7 +83,7 @@
 
     export const attrs = {
         value: {
-            type: [String, Array, Boolean, Number],
+            type: [String, Array, Object, Boolean, Number],
             required: false,
             default: '',
             desc: i18n.t('下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据')

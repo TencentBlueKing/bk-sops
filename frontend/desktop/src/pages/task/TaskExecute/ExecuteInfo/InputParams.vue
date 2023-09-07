@@ -23,7 +23,7 @@
                         :key="renderKey"
                         :scheme="renderConfig"
                         :form-option="renderOption"
-                        :constants="inputConstants"
+                        :constants="constants"
                         v-model="inputRenderData">
                     </RenderForm>
                     <NoData v-else></NoData>
@@ -98,7 +98,6 @@
                     formMode: false
                 },
                 renderKey: null,
-                inputConstants: {},
                 inputRenderData: {},
                 isExpand: true
             }
@@ -115,39 +114,10 @@
                 },
                 immediate: true
             },
-            constants: {
-                handler (val) {
-                    const constants = tools.deepClone(val)
-                    if (constants.subflow_detail_var) {
-                        // 兼容接口返回的key值和form配置的key不同
-                        Object.keys(this.inputs).forEach(key => {
-                            if (!(key in constants) && /^\${[^${}]+}$/.test(key)) {
-                                const varKey = key.split('').slice(2, -1).join('')
-                                if (varKey in constants) {
-                                    constants[key] = constants[varKey]
-                                    this.$delete(constants, varKey)
-                                }
-                            }
-                        })
-                    }
-                    this.inputConstants = constants
-                },
-                deep: true,
-                immediate: true
-            },
             renderData: {
                 handler (val) {
                     this.renderKey = new Date().getTime()
                     const renderData = tools.deepClone(val)
-                    // 兼容form配置的key为变量的情况
-                    if (this.constants.subflow_detail_var) {
-                        Object.keys(this.renderData).forEach(key => {
-                            const value = this.renderData[key]
-                            if (/^\${[^${}]+}$/.test(value) && key in this.inputConstants) {
-                                renderData[key] = this.inputConstants[key]
-                            }
-                        })
-                    }
                     this.inputRenderData = renderData
                 },
                 deep: true,
@@ -163,14 +133,9 @@
         methods: {
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {
-                    this.inputsInfo = this.constants.subflow_detail_var ? tools.deepClone(this.inputs) : JSON.parse(this.inputsInfo)
+                    this.inputsInfo = JSON.parse(this.inputsInfo)
                 } else {
-                    let info = this.inputs
-                    if (this.constants.subflow_detail_var) {
-                        info = tools.deepClone(this.constants)
-                        this.$delete(info, 'subflow_detail_var')
-                    }
-                    this.inputsInfo = JSON.stringify(info, null, 4)
+                    this.inputsInfo = JSON.stringify(this.inputs, null, 4)
                 }
             }
         }
@@ -198,7 +163,7 @@
             }
             .input-name {
                 line-height: 20px;
-                width: 40%;
+                width: 20%;
             }
         }
         /deep/.render-form {
@@ -209,7 +174,7 @@
                 width: 100% !important;
                 border-bottom: 1px solid #dcdee5;
                 label {
-                    width: 40%;
+                    width: 20%;
                     text-align: left;
                     padding-left: 13px;
                     color: #63656e;
@@ -218,7 +183,7 @@
                     }
                 }
                 >.rf-tag-form {
-                    margin-left: 40%;
+                    margin-left: 20%;
                     padding-left: 13px;
                     padding-right: 15px;
                 }
@@ -243,7 +208,7 @@
                 width: 100% !important;
                 border-bottom: 1px solid #dcdee5;
                 label {
-                    width: 40% !important;
+                    width: 20% !important;
                     text-align: left;
                     padding-left: 13px;
                     color: #63656e;
@@ -252,7 +217,7 @@
                     }
                 }
                 >.bk-form-content {
-                    margin-left: 40% !important;
+                    margin-left: 20% !important;
                     padding-left: 13px;
                     padding-right: 15px;
                 }
