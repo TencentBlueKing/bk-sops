@@ -727,6 +727,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             }
 
         detail = result.data
+        pipeline_instance = kwargs["pipeline_instance"]
+        node_info = self._get_node_info(
+            node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
+        node_code = node_info.get("component", {}).get("code")
         # 节点已经执行
         if detail:
             detail = detail[self.node_id]
@@ -745,6 +750,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     }
                 for hist in hist_result.data:
                     hist["ex_data"] = hist.get("outputs", {}).get("ex_data", "")
+                    if node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
+                        # 对于独立子流程节点要重新渲染输出
+                        raw_inputs = hist["inputs"]["subprocess"]["pipeline"]["constants"]
+                        hist["inputs"] = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 detail["histories"] = hist_result.data
                 detail["history_id"] = -1
             # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数，则从历史数据获取结果
@@ -764,6 +773,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
             for hist in detail["histories"]:
                 # 重试记录必然是因为失败才重试
+                if node_info["type"] == "ServiceActivity" and node_code == "subprocess_plugin":
+                    # 对于独立子流程节点要重新渲染输出
+                    raw_inputs = hist["inputs"]["subprocess"]["pipeline"]["constants"]
+                    hist["inputs"] = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 hist.setdefault("state", bamboo_engine_states.FAILED)
                 hist["history_id"] = hist["id"]
                 format_pipeline_status(hist)
