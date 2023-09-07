@@ -15,7 +15,6 @@ from django.test import TestCase
 
 from gcloud import err_code
 from gcloud.taskflow3.models import TaskFlowInstance
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -97,6 +96,7 @@ class GetNodeDetailTestCase(TestCase):
             subprocess_stack=subprocess_stack,
             pipeline_instance=taskflow.pipeline_instance,
             loop=loop,
+            subprocess_simple_inputs=False,
         )
         self.assertEqual(detail, {"code": 0, "data": {}, "message": "", "result": True})
 
@@ -138,6 +138,7 @@ class GetNodeDetailTestCase(TestCase):
             pipeline_instance=taskflow.pipeline_instance,
             loop=loop,
             project_id="project_id",
+            subprocess_simple_inputs=False,
         )
         dispatcher.get_node_detail.assert_called_once_with(
             username=username,
@@ -145,6 +146,7 @@ class GetNodeDetailTestCase(TestCase):
             subprocess_stack=subprocess_stack,
             pipeline_instance=taskflow.pipeline_instance,
             loop=loop,
+            subprocess_simple_inputs=False,
         )
         self.assertEqual(
             detail, {"code": 0, "data": {"data": "data", "detail": "detail"}, "message": "", "result": True}
