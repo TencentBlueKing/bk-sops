@@ -9,7 +9,7 @@
                 <span>{{$t('执行方案')}}</span>
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
-            <div class="scheme-active-wrapper">
+            <div class="scheme-active-wrapper" v-if="viewMode !== 'appmaker'">
                 <bk-button
                     :text="true"
                     :class="{ 'text-permission-disable': !hasOperateSchemeTpl }"
@@ -99,6 +99,14 @@
                 default: false
             },
             isSchemeShow: {
+                type: Boolean,
+                default: false
+            },
+            viewMode: {
+                type: String,
+                default: ''
+            },
+            isSchemeEditable: {
                 type: Boolean,
                 default: false
             },
@@ -320,8 +328,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding: 12px 0 16px;
-            margin: 0 24px;
+            margin: 12px 24px 0;
             font-size: 14px;
             /deep/.bk-button-text i {
                 font-size: 12px;
@@ -338,7 +345,7 @@
         }
         .scheme-content {
             max-height: calc(100% - 127px);
-            margin: 0 24px;
+            margin: 16px 24px 0;
             border: 1px solid #dee0e6;
             .scheme-title, .scheme-item {
                 position: relative;

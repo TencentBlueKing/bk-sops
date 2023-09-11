@@ -167,6 +167,8 @@ BKAPP_WEIXIN_APP_EXTERNAL_HOST = os.getenv("BKAPP_WEIXIN_APP_EXTERNAL_HOST", "")
 # RSA KEYS, 保存的是密钥的base64加密形式, 使用base64.b64encode(KEY.encode("utf-8"))进行处理后保存为环境变量
 RSA_PRIV_KEY = os.getenv("BKAPP_RSA_PRIV_KEY", None)
 RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
+SM2_PRIV_KEY = os.getenv("BKAPP_SM2_PRIV_KEY", None)
+SM2_PUB_KEY = os.getenv("BKAPP_SM2_PUB_KEY", None)
 
 # 单业务下最大周期任务数量
 PERIODIC_TASK_PROJECT_MAX_NUMBER = int(os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50))

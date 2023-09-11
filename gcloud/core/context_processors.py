@@ -13,9 +13,10 @@ specific language governing permissions and limitations under the License.
 context_processor for common(setting)
 ** 除setting外的其他context_processor内容，均采用组件的方式(string)
 """
-
+import json
 import logging
 
+from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
 from django.utils.translation import ugettext_lazy as _
 
 import env
@@ -23,6 +24,7 @@ from gcloud.conf import settings
 from gcloud.core.api_adapter import is_user_auditor, is_user_functor
 from gcloud.core.models import EnvironmentVariables
 from gcloud.core.project import get_default_project_for_user
+from gcloud.utils.crypto import get_default_asymmetric_key_config
 
 logger = logging.getLogger("root")
 
@@ -56,6 +58,9 @@ def mysetting(request):
     project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
     frontend_entry_url = "{}bk_sops".format(settings.STATIC_URL) if settings.RUN_VER == "open" else "/static/bk_sops"
+    default_asymmetric_key_config: AsymmetricKeyConfig = get_default_asymmetric_key_config(
+        settings.BKCRYPTO_ASYMMETRIC_CIPHER_TYPE
+    )
     ctx = {
         "MEDIA_URL": settings.MEDIA_URL,  # MEDIA_URL
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问
@@ -90,6 +95,10 @@ def mysetting(request):
         "NICK": request.user.username,  # 用户昵称
         "AVATAR": request.session.get("avatar", ""),  # 用户头像
         "CUR_POS": cur_pos,
+        "ASYMMETRIC_CIPHER_TYPE": settings.BKCRYPTO_ASYMMETRIC_CIPHER_TYPE,
+        "ASYMMETRIC_PUBLIC_KEY": json.dumps(default_asymmetric_key_config.public_key_string)[1:-1],
+        "ASYMMETRIC_PREFIX": f"{settings.BKCRYPTO_ASYMMETRIC_CIPHER_TYPE.lower()}_str:::",
+        # TODO 等待移除
         "RSA_PUB_KEY": settings.RSA_PUB_KEY,
         "STATIC_VER": settings.STATIC_VER[settings.RUN_MODE],
         "import_v1_flag": 1 if settings.IMPORT_V1_TEMPLATE_FLAG else 0,
