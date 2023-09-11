@@ -474,11 +474,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             original_query,
         )
         new_query = re.sub("ORDER BY (.*?) DESC", "ORDER BY `pipeline_pipelineinstance`.`id` DESC", new_query)
-        new_query = new_query.replace(username, f"'{username}'")
-        if create_method:
-            new_query = new_query.replace(create_method, f"'{create_method}'")
         new_query += f" LIMIT {limit} OFFSET {offset}"
-        return TaskFlowInstance.objects.raw(original_query, params)
+        return TaskFlowInstance.objects.raw(new_query, params)
 
     @swagger_auto_schema(
         method="GET",
