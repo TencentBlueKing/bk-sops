@@ -1701,7 +1701,7 @@
                         ordered.push(treeItem)
                         newOrdered = null
                     }
-                    
+
                     if (conditions.length) {
                         conditions.forEach(item => {
                             item.style = `margin-left: ${item.parentId ? 16 : marginLeft + 33}px`
@@ -1754,7 +1754,7 @@
                 })
                 return result
             },
-            
+
             getNodeSourceMaps (pipelineData) {
                 const sourceMap = pipelineData.line.reduce((acc, cur) => {
                     const { source, target } = cur

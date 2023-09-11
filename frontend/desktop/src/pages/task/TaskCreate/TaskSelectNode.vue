@@ -42,11 +42,11 @@
             <component
                 :is="schemeTemplate"
                 ref="taskScheme"
-                v-show="!isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
-                :is-scheme-show="isSchemeShow"
+                :is-scheme-show="true"
+                :view-mode="viewMode"
                 :is-scheme-editable="viewMode !== 'appmaker'"
                 :is-preview-mode="isPreviewMode"
                 :is-common-process="isCommonProcess"
@@ -71,6 +71,7 @@
                 {{ $t('下一步') }}
             </bk-button>
             <bk-button
+                v-if="viewMode !== 'appmaker'"
                 class="preview-button"
                 data-test-id="createTask_form_togglePreview"
                 @click="togglePreviewMode(!isPreviewMode)">
