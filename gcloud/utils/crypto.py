@@ -10,69 +10,72 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
+import typing
 import base64
 
-from Crypto.Cipher import PKCS1_v1_5 as PKCS1_v1_5_cipher
-from Crypto.PublicKey import RSA
-from Crypto import Util
+from bkcrypto import constants as crypto_constants
+from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
+from bkcrypto.constants import AsymmetricCipherType
+from bkcrypto.contrib.django.ciphers import asymmetric_cipher_manager
+from bkcrypto.contrib.django.selectors import AsymmetricCipherSelector
+from bkcrypto.symmetric.configs import KeyConfig as SymmetricKeyConfig
+from django.conf import settings
 
 
-def _get_block_size(key_obj, is_encrypt=True) -> int:
+def get_default_asymmetric_key_config(cipher_type: str) -> AsymmetricKeyConfig:
     """
-    获取加解密最大片长度，用于分割过长的文本，单位：bytes
-    :param key_obj:
-    :param is_encrypt:
+    获取项目默认非对称加密配置
+    :param cipher_type:
     :return:
     """
-    block_size = Util.number.size(key_obj.n) / 8
-    reserve_size = 11
-    if not is_encrypt:
-        reserve_size = 0
-    return int(block_size - reserve_size)
+
+    if cipher_type == crypto_constants.AsymmetricCipherType.SM2.value:
+        private_key_string: str = settings.SM2_PRIV_KEY
+        public_key_string: str = json.loads(f'"{settings.SM2_PUB_KEY}"')
+    elif cipher_type == crypto_constants.AsymmetricCipherType.RSA.value:
+        private_key_string: str = settings.RSA_PRIV_KEY
+        public_key_string: str = json.loads(f'"{settings.RSA_PUB_KEY}"')
+    else:
+        raise NotImplementedError(f"cipher_type -> {cipher_type}")
+
+    return AsymmetricKeyConfig(
+        private_key_string=private_key_string.strip("\n"), public_key_string=public_key_string.strip("\n")
+    )
 
 
-def _block_list(lst, block_size):
+def get_default_symmetric_key_config(cipher_type: str) -> SymmetricKeyConfig:
     """
-    序列切片
-    :param lst:
-    :param block_size:
+    获取项目默认对称加密配置
+    :param cipher_type:
     :return:
     """
-    for idx in range(0, len(lst), block_size):
-        yield lst[idx : idx + block_size]
+    # 统一使用 APP_SECRET 作为对称加密密钥，SDK 会截断，取符合预期的 key length
+    return SymmetricKeyConfig(key=settings.SECRET_KEY)
 
 
-def encrypt_auth_key(auth_key, public_key_name, public_key):
-    """
-    @summary: rsa分块加密
-    @param auth_key: 待加密的敏感信息
-    @param public_key_name: 公钥名称
-    @param public_key: 公钥
-    """
-    public_key_obj = RSA.importKey(public_key)
-    message_bytes = auth_key.encode(encoding="utf-8")
-    encrypt_message_bytes = b""
-    block_size = _get_block_size(public_key_obj)
-    cipher = PKCS1_v1_5_cipher.new(public_key_obj)
-    for block in _block_list(message_bytes, block_size):
-        encrypt_message_bytes += cipher.encrypt(block)
+def decrypt(ciphertext: str, using: typing.Optional[str] = None) -> str:
+    using = using or "default"
+    # 1. 尝试根据前缀解密
+    plaintext: str = AsymmetricCipherSelector(using=using).decrypt(ciphertext)
 
-    encrypt_message = base64.b64encode(public_key_name.encode("utf-8")) + base64.b64encode(encrypt_message_bytes)
-    return encrypt_message.decode(encoding="utf-8")
+    # 2. 尝试对明文二次 RSA 解密，用于兼容原逻辑
+    try:
+        # 该校验用于避免非 b64 串 decode 返回空的场景
+        # 尝试 base64 解密，如果解密结果是空串，说明 plaintext 为空或者字符非法，说明非密文，直接返回；
+        # 如果抛出异常，在外层被 catch 后返回
+        if not base64.b64decode(plaintext.encode(encoding="utf-8")):
+            return plaintext
+        plaintext = asymmetric_cipher_manager.cipher(using=using, cipher_type=AsymmetricCipherType.RSA.value).decrypt(
+            plaintext
+        )
+    except Exception:
+        # 已经是明文的情况下会抛出该异常
+        pass
+
+    return plaintext
 
 
-def decrypt_auth_key(encrypt_message, private_key):
-    """
-    @summary: rsa分块解密
-    @param encrypt_message: 密文
-    @param private_key: rsa私钥
-    @return: 解密后的信息
-    """
-    decrypt_message_bytes = b""
-    private_key_obj = RSA.importKey(private_key.strip("\n"))
-    encrypt_message_bytes = base64.b64decode(encrypt_message)
-    block_size = _get_block_size(private_key_obj, is_encrypt=False)
-    cipher = PKCS1_v1_5_cipher.new(private_key_obj)
-    for block in _block_list(encrypt_message_bytes, block_size):
-        decrypt_message_bytes += cipher.decrypt(block, "")
-    return decrypt_message_bytes.decode(encoding="utf-8")
+def encrypt(plaintext: str, using: typing.Optional[str] = None) -> str:
+    using = using or "default"
+    return AsymmetricCipherSelector(using=using).encrypt(plaintext)

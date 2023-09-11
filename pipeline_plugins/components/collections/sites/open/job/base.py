@@ -350,7 +350,7 @@ def get_job_tagged_ip_dict_complex(
 
     step_instance = result["data"]["step_instance_list"][-1]
 
-    step_ip_result_list = step_instance["step_ip_result_list"]
+    step_ip_result_list = step_instance.get("step_ip_result_list", [])
 
     success_tags_dict = {}
     success_ips = []

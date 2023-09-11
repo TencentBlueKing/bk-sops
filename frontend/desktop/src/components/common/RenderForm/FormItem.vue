@@ -396,11 +396,15 @@
                     defaultValueFormat = getDefaultValueFormat(this.scheme)
                 }
 
-                const isTypeValid = Array.isArray(defaultValueFormat.type)
-                    ? defaultValueFormat.type.indexOf(valueType) > -1
-                    : defaultValueFormat.type === valueType
+                const defaultValueType = Array.isArray(defaultValueFormat.type) ? defaultValueFormat.type : [defaultValueFormat.type]
 
-                if (isTypeValid) {
+                // 处理非密码框表单使用密码变量时，需要展示******的场景
+                // 非密码框且值类型包含string的表单，如果当前value为Object类型，且type值为password_value时，展示值为******
+                if (this.scheme.type !== 'password' && defaultValueType.includes('String') && checkDataType(val) === 'Object' && val.type === 'password_value') {
+                    return '******'
+                }
+
+                if (defaultValueType.includes(valueType)) {
                     formValue = tools.deepClone(val)
                 } else {
                     formValue = tools.deepClone(defaultValueFormat.value)
@@ -408,6 +412,127 @@
                 }
 
                 return formValue
+            },
+            getDefaultValueFormat () {
+                let valueFormat
+                switch (this.scheme.type) {
+                    case 'input':
+                    case 'textarea':
+                    case 'radio':
+                    case 'text':
+                    case 'datetime':
+                    case 'memberSelector':
+                    case 'logDisplay':
+                    case 'code_editor':
+                    case 'section':
+                        valueFormat = {
+                            type: ['String', 'Number', 'Boolean'],
+                            value: ''
+                        }
+                        break
+                    case 'checkbox':
+                    case 'datatable':
+                    case 'tree':
+                    case 'upload':
+                    case 'cascader':
+                        valueFormat = {
+                            type: 'Array',
+                            value: []
+                        }
+                        break
+                    case 'select':
+                        if (this.scheme.attrs.multiple) {
+                            valueFormat = {
+                                type: 'Array',
+                                value: []
+                            }
+                        } else {
+                            valueFormat = {
+                                type: ['String', 'Number', 'Boolean'],
+                                value: ''
+                            }
+                        }
+                        break
+                    case 'time':
+                        if (this.scheme.attrs.isRange) {
+                            valueFormat = {
+                                type: 'Array',
+                                value: ['00:00:00', '23:59:59']
+                            }
+                        } else {
+                            valueFormat = {
+                                type: 'String',
+                                value: ''
+                            }
+                        }
+                        break
+                    case 'int':
+                        valueFormat = {
+                            type: 'Number',
+                            value: 0
+                        }
+                        break
+                    case 'ip_selector':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                static_ip_table_config: [],
+                                selectors: [],
+                                ip: [],
+                                topo: [],
+                                group: [],
+                                filters: [],
+                                excludes: []
+                            }
+                        }
+                        break
+                    case 'set_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    set_count: 1,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: [],
+                                separator: ','
+                            }
+                        }
+                        break
+                    case 'host_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    host_count: 0,
+                                    host_screen_value: '',
+                                    host_resources: [],
+                                    host_filter_detail: []
+                                },
+                                data: [],
+                                separator: ','
+                            }
+                        }
+                        break
+                    case 'password':
+                        valueFormat = {
+                            type: ['String', 'Object'],
+                            value: {
+                                type: 'password_value',
+                                tag: 'value',
+                                value: ''
+                            }
+                        }
+                        break
+                    default:
+                        valueFormat = {
+                            type: 'String',
+                            value: ''
+                        }
+                }
+                return valueFormat
             },
             isRequired () {
                 let required = false

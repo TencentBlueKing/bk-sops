@@ -233,7 +233,6 @@
                         case 'radio':
                         case 'text':
                         case 'datetime':
-                        case 'password':
                         case 'member_selector':
                         case 'section':
                         case 'code_editor':
@@ -289,6 +288,13 @@
                                 },
                                 data: [],
                                 separator: ','
+                            }
+                            break
+                        case 'password':
+                            val = {
+                                type: 'password_value',
+                                tag: 'value',
+                                value: ''
                             }
                             break
                         default:

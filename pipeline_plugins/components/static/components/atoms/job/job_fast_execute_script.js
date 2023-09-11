@@ -99,7 +99,7 @@ REM 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳�
     exit 1
 `)
         } else if (language === "3") {
-            return gettext(#!/usr/bin/perl
+            return gettext(`#!/usr/bin/perl
 
 use strict;
 
@@ -131,7 +131,7 @@ job_start;
 ###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败
 ###### 可在此处开始编写您的脚本逻辑代码
 
-)
+`)
         } else if (language === "4") {
             return gettext(`#!/usr/bin/env python
 # -*- coding: utf8 -*-

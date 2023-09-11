@@ -16,6 +16,8 @@ import sys
 from urllib.parse import urlparse
 
 from bamboo_engine.config import Settings as BambooSettings
+from bkcrypto import constants as bkcrypto_constants
+from bkcrypto.asymmetric.options import RSAAsymmetricOptions
 from blueapps.conf.default_settings import *  # noqa
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.opentelemetry.utils import inject_logging_trace_info
@@ -155,7 +157,9 @@ AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend
 
 ENABLE_IPV6 = env.ENABLE_IPV6
 # paasv3 和 开启了ipv6 才会尝试加载 BK_API_URL_TMPL 这个变量
-if env.IS_PAAS_V3 or ENABLE_IPV6:
+ENABLE_GSE_V2 = env.ENABLE_GSE_V2
+
+if env.IS_PAAS_V3 or ENABLE_IPV6 or ENABLE_GSE_V2:
     BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
 
 if env.IS_PAAS_V3:
@@ -207,7 +211,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.29.0"
+STATIC_VERSION = "3.30.0"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -672,7 +676,6 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
-
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
@@ -786,6 +789,45 @@ def check_engine_admin_permission(request, *args, **kwargs):
 
 
 PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"
+
+
+BKCRYPTO = {
+    "ASYMMETRIC_CIPHERS": {
+        "default": {
+            "get_key_config": "gcloud.utils.crypto.get_default_asymmetric_key_config",
+            "cipher_options": {
+                bkcrypto_constants.AsymmetricCipherType.RSA.value: RSAAsymmetricOptions(
+                    padding=bkcrypto_constants.RSACipherPadding.PKCS1_v1_5
+                )
+            },
+        },
+    },
+    "SYMMETRIC_CIPHERS": {"default": {"get_key_config": "gcloud.utils.crypto.get_default_symmetric_key_config"}},
+}
+
+# 启用框架内置数据加密
+BLUEAPPS_ENABLE_DB_ENCRYPTION = True
+# 复用已有的 default 对称加密实例
+BKCRYPTO["SYMMETRIC_CIPHERS"]["blueapps"] = BKCRYPTO["SYMMETRIC_CIPHERS"]["default"]
+
+
+# 加密
+if env.BKPAAS_BK_CRYPTO_TYPE == "SHANGMI":
+    BKCRYPTO_ASYMMETRIC_CIPHER_TYPE = bkcrypto_constants.AsymmetricCipherType.SM2.value
+    BKCRYPTO.update(
+        {
+            "ASYMMETRIC_CIPHER_TYPE": BKCRYPTO_ASYMMETRIC_CIPHER_TYPE,
+            "SYMMETRIC_CIPHER_TYPE": bkcrypto_constants.SymmetricCipherType.SM4.value,
+        }
+    )
+else:
+    BKCRYPTO_ASYMMETRIC_CIPHER_TYPE = bkcrypto_constants.AsymmetricCipherType.RSA.value
+    BKCRYPTO.update(
+        {
+            "ASYMMETRIC_CIPHER_TYPE": BKCRYPTO_ASYMMETRIC_CIPHER_TYPE,
+            "SYMMETRIC_CIPHER_TYPE": bkcrypto_constants.SymmetricCipherType.AES.value,
+        }
+    )
 
 # 任务列表过滤失败任务最大天数
 TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS

@@ -10,7 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import base64
+
 import ujson as json
+from bkcrypto.asymmetric.ciphers import BaseAsymmetricCipher
+from bkcrypto.asymmetric.interceptors import BaseAsymmetricInterceptor
+from bkcrypto.constants import AsymmetricCipherType
+from bkcrypto.contrib.django.ciphers import get_asymmetric_cipher
 from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
@@ -23,6 +29,15 @@ __group_name__ = _("节点管理(Nodeman)")
 
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
 from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
+
+
+class NodeManAsymmetricInterceptor(BaseAsymmetricInterceptor):
+
+    PREFIX: str = base64.b64encode("DEFAULT".encode()).decode(encoding="utf-8")
+
+    @classmethod
+    def after_encrypt(cls, ciphertext: str, **kwargs) -> str:
+        return f"{cls.PREFIX}{ciphertext}"
 
 
 def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
@@ -71,19 +86,28 @@ def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int
     return {host["inner_ipv6"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
-def get_nodeman_rsa_public_key(executor, logger):
+def get_nodeman_public_key(executor, logger):
     """
     拉取节点管理rsa公钥
     """
     client = BKNodeManClient(username=executor)
-    get_rsa_result = client.get_rsa_public_key(executor)
-    if not get_rsa_result["result"]:
-        error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, get_rsa_result)
+    pub_key_response = client.get_rsa_public_key(executor)
+    if not pub_key_response["result"]:
+        error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, pub_key_response)
         logger.error(error)
         return False, None
-    content = get_rsa_result["data"][0]["content"]
-    name = get_rsa_result["data"][0]["name"]
-    return True, {"name": name, "content": content}
+    try:
+        public_key_info = pub_key_response["data"][0]
+    except (AssertionError, IndexError):
+        logger.error("fetch_public_keys return empty data")
+        return False, None
+
+    return True, {
+        "name": public_key_info["name"],
+        "content": public_key_info["content"],
+        # 如果没有返回 cipher_type，说明本环境节点管理还没更新为国密适配版本，此时设置 cipher_type 为 RSA，向前兼容节点管理的接口行为
+        "cipher_type": public_key_info.get("cipher_type") or AsymmetricCipherType.RSA.value,
+    }
 
 
 class NodeManBaseService(Service):
@@ -148,6 +172,20 @@ class NodeManBaseService(Service):
         ip_list = get_ip_by_regex(ip_str)
         bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
         return [bk_host_id for bk_host_id in bk_host_id_dict.values()]
+
+    def parse2nodeman_ciphertext(self, data, executor, plaintext) -> str:
+        success, public_key_info = get_nodeman_public_key(executor, self.logger)
+        if not success:
+            data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
+            raise ValueError
+
+        # 根据接口的 cipher type 和 publickey 创建 cipher
+        cipher: BaseAsymmetricCipher = get_asymmetric_cipher(
+            cipher_type=public_key_info["cipher_type"],
+            common={"public_key_string": public_key_info["content"], "interceptor": NodeManAsymmetricInterceptor},
+        )
+
+        return cipher.encrypt(plaintext)
 
     def outputs_format(self):
         return [

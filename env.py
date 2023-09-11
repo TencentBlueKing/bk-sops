@@ -98,6 +98,7 @@ CLEAN_EXPIRED_V2_TASK_INSTANCE = bool(os.getenv("BKAPP_CLEAN_EXPIRED_V2_TASK_INS
 ENABLE_SWAGGER_UI = os.getenv("BKAPP_ENABLE_SWAGGER_UI", False)
 
 ENABLE_IPV6 = False if os.getenv("BKAPP_ENABLE_IPV6") is None else True
+ENABLE_GSE_V2 = int(os.getenv("BKAPP_ENABLE_GSE_V2", 0)) == 1
 
 # 流程最高嵌套层数
 TEMPLATE_MAX_RECURSIVE_NUMBER = int(os.getenv("BKAPP_TEMPLATE_MAX_RECURSIVE_NUMBER", 200))
@@ -107,6 +108,15 @@ MAX_RECORDED_NODE_EXECUTION_TIMES = int(os.getenv("BKAPP_MAX_RECORDED_NODE_EXECU
 
 # 获取 PaaS 注入的蓝鲸域名
 BKPAAS_BK_DOMAIN = os.getenv("BKPAAS_BK_DOMAIN", "") or os.getenv("BK_DOMAIN", "")
+
+
+# 获取加密类型
+BKPAAS_BK_CRYPTO_TYPE = (
+    os.getenv("BKPAAS_BK_CRYPTO_TYPE", "")
+    or os.getenv("BKAPP_BK_CRYPTO_TYPE", "")
+    or os.getenv("BK_CRYPTO_TYPE")
+    or "CLASSIC"
+)
 
 # 默认六个月
 BKPAAS_TASK_LIST_STATUS_FILTER_DAYS = int(os.getenv("BKPAAS_TASK_LIST_STATUS_FILTER_DAYS", 180))

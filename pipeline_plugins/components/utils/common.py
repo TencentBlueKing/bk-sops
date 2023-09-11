@@ -11,15 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import random
 import re
 import time
-import random
+import typing
 from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.conf import settings
-from pipeline.utils.crypt import rsa_decrypt_password
 from api.utils.thread import ThreadPool
 
 logger = logging.getLogger("root")
@@ -41,18 +40,6 @@ def loose_strip(data):
         return str(data).strip()
     except Exception:
         return data
-
-
-def try_decrypt_password(password):
-    """
-    @summary: 尝试解密操作，成功返回明文密码，错误则说明用户使用明文的密码，返回
-    @param password:
-    @return:
-    """
-    try:
-        return rsa_decrypt_password(password, settings.RSA_PRIV_KEY)
-    except Exception:
-        return password
 
 
 def chunk_table_data(column_dict, break_line):
@@ -132,3 +119,13 @@ def convert_num_to_str(export_data: list):
             if isinstance(value, int) or isinstance(value, float):
                 data[key] = str(value)
     return export_data
+
+
+def parse_passwd_value(passwd_value: typing.Union[str, typing.Dict[str, str]]) -> str:
+    if isinstance(passwd_value, str):
+        return passwd_value
+    elif isinstance(passwd_value, dict):
+        return parse_passwd_value(passwd_value.get("value", ""))
+    else:
+        # 仅有两种合法结构，如果都不满足直接返回空串
+        return ""
