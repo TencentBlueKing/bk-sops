@@ -108,3 +108,12 @@ MAX_RECORDED_NODE_EXECUTION_TIMES = int(os.getenv("BKAPP_MAX_RECORDED_NODE_EXECU
 
 # 获取 PaaS 注入的蓝鲸域名
 BKPAAS_BK_DOMAIN = os.getenv("BKPAAS_BK_DOMAIN", "") or os.getenv("BK_DOMAIN", "")
+
+
+# 获取加密类型
+BKPAAS_BK_CRYPTO_TYPE = (
+    os.getenv("BKPAAS_BK_CRYPTO_TYPE", "")
+    or os.getenv("BKAPP_BK_CRYPTO_TYPE", "")
+    or os.getenv("BK_CRYPTO_TYPE")
+    or "CLASSIC"
+)

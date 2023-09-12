@@ -13,19 +13,21 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
+from gcloud.utils import crypto
 from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.v1_0 import (
     AllBizJobExecuteJobPlanComponent,
 )
+from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_PASSWORD
 
 
 class AllBizJobExecuteJobPlanComponentTest(TestCase, ComponentTestMixin):
@@ -228,7 +230,15 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT = MockClient(
         "data": {
             "job_instance_id": 10000,
             "step_instance_var_list": [
-                {"step_instance_id": 20000000577, "global_var_list": [{"type": 1, "name": "name", "value": "test"}]},
+                {
+                    "step_instance_id": 20000000577,
+                    "global_var_list": [
+                        # 已重新编辑，需要传递给 Job
+                        {"type": JOBV3_VAR_CATEGORY_PASSWORD, "name": "password_1", "value": "test"},
+                        # Job 侧脱敏，无需传递
+                        {"type": JOBV3_VAR_CATEGORY_PASSWORD, "name": "password", "value": "******"},
+                    ],
+                },
                 {"step_instance_id": 20000000578, "global_var_list": [{"type": 1, "name": "name", "value": "test"}]},
             ],
         },
@@ -700,6 +710,12 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
             "is_tagged_ip": True,
             "job_global_var": [
                 {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
+                {
+                    "id": 1000032,
+                    "type": JOBV3_VAR_CATEGORY_PASSWORD,
+                    "name": "password",
+                    "value": {"tag": "variable", "value": crypto.encrypt("123")},
+                },
                 {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
             ],
         }
@@ -741,6 +757,7 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
                         "job_plan_id": 1000010,
                         "global_var_list": [
                             {"id": 1000030, "value": "test"},
+                            {"id": 1000032, "value": "123"},
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",

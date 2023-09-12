@@ -10,10 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import base64
+
 import ujson as json
+from bkcrypto.asymmetric.ciphers import BaseAsymmetricCipher
+from bkcrypto.asymmetric.interceptors import BaseAsymmetricInterceptor
+from bkcrypto.constants import AsymmetricCipherType
+from bkcrypto.contrib.django.ciphers import get_asymmetric_cipher
 from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import IntItemSchema, StringItemSchema
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
@@ -23,6 +29,15 @@ __group_name__ = _("节点管理(Nodeman)")
 
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
 from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
+
+
+class NodeManAsymmetricInterceptor(BaseAsymmetricInterceptor):
+
+    PREFIX: str = base64.b64encode("DEFAULT".encode()).decode(encoding="utf-8")
+
+    @classmethod
+    def after_encrypt(cls, ciphertext: str, **kwargs) -> str:
+        return f"{cls.PREFIX}{ciphertext}"
 
 
 def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
@@ -71,19 +86,28 @@ def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int
     return {host["inner_ipv6"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
-def get_nodeman_rsa_public_key(executor, logger):
+def get_nodeman_public_key(executor, logger):
     """
     拉取节点管理rsa公钥
     """
     client = BKNodeManClient(username=executor)
-    get_rsa_result = client.get_rsa_public_key(executor)
-    if not get_rsa_result["result"]:
-        error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, get_rsa_result)
+    pub_key_response = client.get_rsa_public_key(executor)
+    if not pub_key_response["result"]:
+        error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, pub_key_response)
         logger.error(error)
         return False, None
-    content = get_rsa_result["data"][0]["content"]
-    name = get_rsa_result["data"][0]["name"]
-    return True, {"name": name, "content": content}
+    try:
+        public_key_info = pub_key_response["data"][0]
+    except (AssertionError, IndexError):
+        logger.error("fetch_public_keys return empty data")
+        return False, None
+
+    return True, {
+        "name": public_key_info["name"],
+        "content": public_key_info["content"],
+        # 如果没有返回 cipher_type，说明本环境节点管理还没更新为国密适配版本，此时设置 cipher_type 为 RSA，向前兼容节点管理的接口行为
+        "cipher_type": public_key_info.get("cipher_type") or AsymmetricCipherType.RSA.value,
+    }
 
 
 class NodeManBaseService(Service):
@@ -140,15 +164,28 @@ class NodeManBaseService(Service):
     def get_host_id_list(self, ip_str, executor, bk_cloud_id, bk_biz_id):
         # 如果开启了ipv6的逻辑，则执行
         if settings.ENABLE_IPV6:
-            ipv6_list, ipv4_list, _, _ = extract_ip_from_ip_str(ip_str)
-            ip_list = ipv4_list + ipv6_list
-            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
-
-            return list(bk_host_id_dict_ipv6.values())
+            ipv6_list, ipv4_list, *_ = extract_ip_from_ip_str(ip_str)
+            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ipv6_list)
+            bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ipv4_list)
+            return list(set(bk_host_id_dict_ipv6.values()) | set(bk_host_id_dict.values()))
 
         ip_list = get_ip_by_regex(ip_str)
         bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
         return [bk_host_id for bk_host_id in bk_host_id_dict.values()]
+
+    def parse2nodeman_ciphertext(self, data, executor, plaintext) -> str:
+        success, public_key_info = get_nodeman_public_key(executor, self.logger)
+        if not success:
+            data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
+            raise ValueError
+
+        # 根据接口的 cipher type 和 publickey 创建 cipher
+        cipher: BaseAsymmetricCipher = get_asymmetric_cipher(
+            cipher_type=public_key_info["cipher_type"],
+            common={"public_key_string": public_key_info["content"], "interceptor": NodeManAsymmetricInterceptor},
+        )
+
+        return cipher.encrypt(plaintext)
 
     def outputs_format(self):
         return [
@@ -282,3 +319,66 @@ class NodeManBaseService(Service):
             data.set_outputs("ex_data", error_log)
             self.finish_schedule()
             return False
+
+
+class NodeManNewBaseService(NodeManBaseService):
+    def inputs_format(self):
+        return [
+            self.InputItem(
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_("节点类型"),
+                key="nodeman_node_type",
+                type="string",
+                schema=StringItemSchema(description=_("AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）")),
+            ),
+            self.InputItem(
+                name=_("操作详情"),
+                key="nodeman_op_info",
+                type="object",
+                schema=ObjectItemSchema(
+                    description=_("操作内容信息"),
+                    property_schemas={
+                        "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
+                        "nodeman_op_type": StringItemSchema(
+                            description=_(
+                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
+                            )
+                        ),
+                        "nodeman_hosts": ArrayItemSchema(
+                            description=_("需要被操作的主机信息(安装与重装时需要)"),
+                            item_schema=ObjectItemSchema(
+                                description=_("主机相关信息"),
+                                property_schemas={
+                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
+                                    "nodeman_ap_id": StringItemSchema(description=_("接入点")),
+                                    "inner_ip": StringItemSchema(description=_("内网 IP")),
+                                    "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
+                                    "data_ip": StringItemSchema(description=_("主机数据 IP，可以为空，适配复杂网络时填写")),
+                                    "outer_ip": StringItemSchema(description=_("外网 IP, 可以为空")),
+                                    "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
+                                    "port": StringItemSchema(description=_("端口号")),
+                                    "account": StringItemSchema(description=_("登录帐号")),
+                                    "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
+                                    "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
+                                },
+                            ),
+                        ),
+                        "nodeman_other_hosts": ArrayItemSchema(
+                            description=_("需要被操作的主机信息(升级，卸载，移除时需要)"),
+                            item_schema=ObjectItemSchema(
+                                description=_("主机相关信息"),
+                                property_schemas={
+                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
+                                    "nodeman_ip_str": StringItemSchema(description=_("IP")),
+                                },
+                            ),
+                        ),
+                    },
+                ),
+            ),
+        ]

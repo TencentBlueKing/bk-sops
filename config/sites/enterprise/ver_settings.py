@@ -37,7 +37,6 @@ bRygzYs0+XLTESzyPE0TOdV7Kl5yPcph9WjZD+Goye4tgLhv/qpWlwlxzNYK5n9T
 T8ow3nMSbvx5X28wOjbk04tmfM/kVqcVhFWhDHjHZzlt
 -----END RSA PRIVATE KEY-----
 """
-RSA_PRIV_KEY = base64.b64decode(env.RSA_PRIV_KEY).decode("utf-8") if env.RSA_PRIV_KEY else DEFAULT_RSA_PRIV_KEY
 
 # PUB_KEY for frontend, which can not use three quotes
 DEFAULT_RSA_PUB_KEY = (
@@ -48,7 +47,31 @@ DEFAULT_RSA_PUB_KEY = (
     + "iymoAVK67gfTOTvckQIDAQAB\\n"
     + "-----END PUBLIC KEY-----"
 )
+
 RSA_PUB_KEY = base64.b64decode(env.RSA_PUB_KEY).decode("utf-8") if env.RSA_PUB_KEY else DEFAULT_RSA_PUB_KEY
+RSA_PRIV_KEY = base64.b64decode(env.RSA_PRIV_KEY).decode("utf-8") if env.RSA_PRIV_KEY else DEFAULT_RSA_PRIV_KEY
+
+
+DEFAULT_SM2_PRIV_KEY = """
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIIn5SYKHr3+m/XyC/ECzDJYuwUoTQHDUkIueKFXTjhSBoAoGCCqBHM9V
+AYItoUQDQgAEYxBE08d8yEEK2+DZ7F5RsNrUvCZ578lkYsXFDC1fW2IcRecNz8LG
+ZWSZGFfgYMeK1f3fIuYBAJVuna/V3FP4tA==
+-----END EC PRIVATE KEY-----
+"""
+
+
+DEFAULT_SM2_PUB_KEY = (
+    "-----BEGIN PUBLIC KEY-----\\n"
+    + "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEYxBE08d8yEEK2+DZ7F5RsNrUvCZ5\\n"
+    + "78lkYsXFDC1fW2IcRecNz8LGZWSZGFfgYMeK1f3fIuYBAJVuna/V3FP4tA==\\n"
+    + "-----END PUBLIC KEY-----"
+)
+
+
+SM2_PRIV_KEY = base64.b64decode(env.SM2_PRIV_KEY).decode("utf-8") if env.SM2_PRIV_KEY else DEFAULT_SM2_PRIV_KEY
+SM2_PUB_KEY = base64.b64decode(env.SM2_PUB_KEY).decode("utf-8") if env.SM2_PUB_KEY else DEFAULT_SM2_PUB_KEY
+
 
 # APIGW Auth
 APIGW_APP_CODE_KEY = "bk_app_code"

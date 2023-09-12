@@ -14,19 +14,20 @@ import itertools
 
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
-from gcloud.utils.crypto import decrypt_auth_key, encrypt_auth_key
+from gcloud.utils import crypto
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
-    NodeManBaseService,
+    NodeManNewBaseService,
     get_host_id_by_inner_ip,
     get_host_id_by_inner_ipv6,
-    get_nodeman_rsa_public_key,
 )
 
 __group_name__ = _("节点管理(Nodeman)")
+
+from pipeline_plugins.components.utils import parse_passwd_value
+
 VERSION = "v3.0"
 
 # 安装类任务(job_install)
@@ -45,22 +46,13 @@ HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip", "inner_ipv6", "outer_ipv
 HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 
 
-class NodemanCreateTaskService(NodeManBaseService):
+class NodemanCreateTaskService(NodeManNewBaseService):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
         bk_biz_id = data.inputs.bk_biz_id
 
         node_type = data.inputs.nodeman_node_type
-
-        nodeman_ticket = data.get_one_of_inputs("nodeman_ticket", {})
-        nodeman_tjj_ticket = nodeman_ticket.get("nodeman_tjj_ticket", "")
-        if nodeman_tjj_ticket:
-            try:
-                nodeman_tjj_ticket = decrypt_auth_key(nodeman_tjj_ticket, settings.RSA_PRIV_KEY)
-            except Exception:
-                # password is not encrypted
-                pass
 
         nodeman_op_info = data.inputs.nodeman_op_info
         op_type = nodeman_op_info.get("nodeman_op_type", "")
@@ -108,7 +100,6 @@ class NodemanCreateTaskService(NodeManBaseService):
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
                 ap_id = host["nodeman_ap_id"]
                 auth_type = host["auth_type"]
-                auth_key = host["auth_key"]
                 use_inner_ip = True if host.get("inner_ip") else False
                 # use_inner_ip 判定用户输入的的是ipv4还是ipv6
                 inner_ip_list = self.get_ip_list(
@@ -122,17 +113,12 @@ class NodemanCreateTaskService(NodeManBaseService):
                     return False
 
                 # 处理表格中每行的key/psw
+                auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
                 try:
-                    auth_key = decrypt_auth_key(auth_key, settings.RSA_PRIV_KEY)
-                except Exception:
-                    # password is not encrypted
-                    pass
-                # auth_key加密
-                success, ras_public_key = get_nodeman_rsa_public_key(executor, self.logger)
-                if not success:
-                    data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
+                    auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                except ValueError:
                     return False
-                auth_key = encrypt_auth_key(auth_key, ras_public_key["name"], ras_public_key["content"])
+
                 # 表格每行基础参数
                 base_params = {
                     "bk_biz_id": bk_biz_id,
@@ -190,8 +176,6 @@ class NodemanCreateTaskService(NodeManBaseService):
 
             kwargs = {"job_type": job_name, "hosts": all_hosts, "action": "job_install"}
 
-            if nodeman_tjj_ticket:
-                kwargs.update({"tcoa_ticket": nodeman_tjj_ticket})
         else:
             data.set_outputs("ex_data", _("无效的操作请求:{}".format(job_name)))
             return False
@@ -200,64 +184,6 @@ class NodemanCreateTaskService(NodeManBaseService):
         result = getattr(client, action)(**kwargs)
 
         return self.get_job_result(result, data, action, kwargs)
-
-    def inputs_format(self):
-        return [
-            self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
-            ),
-            self.InputItem(
-                name=_("节点类型"),
-                key="nodeman_node_type",
-                type="string",
-                schema=StringItemSchema(description=_("AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）")),
-            ),
-            self.InputItem(
-                name=_("操作详情"),
-                key="nodeman_op_info",
-                type="object",
-                schema=ObjectItemSchema(
-                    description=_("操作内容信息"),
-                    property_schemas={
-                        "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
-                        "nodeman_op_type": StringItemSchema(
-                            description=_(
-                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
-                            )
-                        ),
-                        "nodeman_hosts": ArrayItemSchema(
-                            description=_("需要被操作的主机信息(安装与重装时需要)"),
-                            item_schema=ObjectItemSchema(
-                                description=_("主机相关信息"),
-                                property_schemas={
-                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
-                                    "nodeman_ap_id": StringItemSchema(description=_("接入点")),
-                                    "inner_ip": StringItemSchema(description=_("内网 IP")),
-                                    "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
-                                    "data_ip": StringItemSchema(description=_("主机数据 IP，可以为空，适配复杂网络时填写")),
-                                    "outer_ip": StringItemSchema(description=_("外网 IP, 可以为空")),
-                                    "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
-                                    "port": StringItemSchema(description=_("端口号")),
-                                    "account": StringItemSchema(description=_("登录帐号")),
-                                    "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
-                                    "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
-                                },
-                            ),
-                        ),
-                        "nodeman_other_hosts": ArrayItemSchema(
-                            description=_("需要被操作的主机信息(升级，卸载，移除时需要)"),
-                            item_schema=ObjectItemSchema(
-                                description=_("主机相关信息"),
-                                property_schemas={
-                                    "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
-                                    "nodeman_ip_str": StringItemSchema(description=_("IP")),
-                                },
-                            ),
-                        ),
-                    },
-                ),
-            ),
-        ]
 
 
 class NodemanCreateTaskComponent(Component):

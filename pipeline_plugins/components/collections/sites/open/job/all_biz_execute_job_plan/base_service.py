@@ -5,26 +5,24 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
+
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
+from gcloud.utils import crypto
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    IntItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-)
+from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP, JOBV3_VAR_CATEGORY_PASSWORD
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
-    loose_strip,
-    plat_ip_reg,
     has_biz_set,
+    loose_strip,
+    parse_passwd_value,
+    plat_ip_reg,
 )
-from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -126,8 +124,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         for _value in original_global_var:
-            # 3-IP
-            val = loose_strip(_value["value"])
+            val = loose_strip(crypto.decrypt(parse_passwd_value(_value["value"])))
             if _value["type"] == JOBV3_VAR_CATEGORY_IP:
 
                 ip_list = self.get_ip_list(val)
@@ -141,6 +138,9 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
 
                 if result:
                     global_var_list.append({"id": _value["id"], "server": server})
+            # 密文变量在没有修改的情况下不加入全局变量，避免脱敏字符串作为正式值进行作业执行逻辑
+            elif _value.get("category") == JOBV3_VAR_CATEGORY_PASSWORD and val == "******":
+                continue
             else:
                 global_var_list.append({"id": _value["id"], "value": val})
 
