@@ -22,7 +22,6 @@ export const getDefaultValueFormat = (scheme) => {
         case 'radio':
         case 'text':
         case 'datetime':
-        case 'password':
         case 'memberSelector':
         case 'logDisplay':
         case 'code_editor':
@@ -115,6 +114,16 @@ export const getDefaultValueFormat = (scheme) => {
                     },
                     data: [],
                     separator: ','
+                }
+            }
+            break
+        case 'password':
+            valueFormat = {
+                type: ['String', 'Object'],
+                value: {
+                    type: 'password_value',
+                    tag: 'value',
+                    value: ''
                 }
             }
             break

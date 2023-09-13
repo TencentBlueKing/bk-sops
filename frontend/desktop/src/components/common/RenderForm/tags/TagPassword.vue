@@ -130,6 +130,7 @@
                         this.localVal = { ...val }
                     } else {
                         this.localVal = {
+                            type: 'password_value',
                             tag: 'value',
                             value: val
                         }
