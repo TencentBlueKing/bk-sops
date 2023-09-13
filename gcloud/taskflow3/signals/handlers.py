@@ -14,22 +14,10 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
+from bamboo_engine import states as bamboo_engine_states
 from bk_monitor_report.reporter import MonitorReporter
 from django.conf import settings
 from django.dispatch import receiver
-
-import env
-from bamboo_engine import states as bamboo_engine_states
-from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
-from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
-from gcloud.taskflow3.models import (
-    AutoRetryNodeStrategy,
-    EngineConfig,
-    TaskCallBackRecord,
-    TaskFlowInstance,
-    TimeoutNodeConfig,
-)
-from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from pipeline.core.pipeline import Pipeline
 from pipeline.engine.signals import activity_failed, pipeline_end, pipeline_revoke
 from pipeline.eri.signals import (
@@ -41,6 +29,18 @@ from pipeline.eri.signals import (
 )
 from pipeline.models import PipelineInstance
 from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
+
+import env
+from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
+from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
+from gcloud.taskflow3.models import (
+    AutoRetryNodeStrategy,
+    EngineConfig,
+    TaskCallBackRecord,
+    TaskFlowInstance,
+    TimeoutNodeConfig,
+)
+from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 
 logger = logging.getLogger("celery")
 
@@ -90,7 +90,9 @@ def _check_and_callback(taskflow_id, *args, **kwargs):
         return
     try:
         task_callback.apply_async(
-            kwargs=dict(task_id=taskflow_id, **kwargs), queue="task_callback", routing_key="task_callback",
+            kwargs=dict(task_id=taskflow_id, **kwargs),
+            queue="task_callback",
+            routing_key="task_callback",
         )
     except Exception as e:
         logger.exception(f"[_check_and_callback] task_callback delay error: {e}")
@@ -188,6 +190,13 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
             logger.exception("pipeline_end send error")
 
         _finish_taskflow_and_send_signal(root_id, taskflow_finished, True)
+
+    elif to_state == bamboo_engine_states.SUSPENDED and node_id == root_id:
+        # TODO 发送通知，向上找到根流程，发送通知
+        # 问题1：独立子流程场景，暂停后应该是由父流程决定是否通知，如何将消息通知给 Root Taskflow？
+        # 问题2：等待确认 / 等待审批场景也需要通知到父流程 -> 向上找到根流程
+        # 问题3：子流程、父流程都有通知，以哪一方为准？（继承父流程配置？）
+        pass
 
     try:
         _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)

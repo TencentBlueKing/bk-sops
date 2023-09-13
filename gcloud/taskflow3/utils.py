@@ -13,14 +13,16 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from typing import Any, Dict, List, Optional
+import typing
+from collections import defaultdict
 
-from bamboo_engine import states as bamboo_engine_states
 from django.apps import apps
 from django.utils.translation import ugettext_lazy as _
 from pipeline.core import constants as pipeline_constants
 from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
 
+from gcloud.constants import TaskExtraStatus
 from gcloud.utils.dates import format_datetime
 
 logger = logging.getLogger("root")
@@ -59,29 +61,44 @@ def format_pipeline_status(status_tree):
             status_tree["state"] = pipeline_states.RUNNING
         elif pipeline_states.FAILED in child_status:
             status_tree["state"] = pipeline_states.FAILED
-        elif pipeline_states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
-            status_tree["state"] = "NODE_SUSPENDED"
+        elif pipeline_states.SUSPENDED in child_status or TaskExtraStatus.NODE_SUSPENDED.value in child_status:
+            status_tree["state"] = TaskExtraStatus.NODE_SUSPENDED.value
         # 子流程 BLOCKED 状态表示子节点失败
         elif not child_status:
             status_tree["state"] = pipeline_states.FAILED
 
 
-def format_bamboo_engine_status(status_tree):
+def find_nodes_from_pipeline_tree(
+    pipeline_tree: typing.Dict[str, typing.Any], codes: typing.Iterable[str]
+) -> typing.Dict[str, typing.List[typing.Dict[str, typing.Any]]]:
     """
-    @summary: 转换通过 bamboo engine api 获取的任务状态格式
-    @return:
+    在 pipeline tree 查找指定的 Component codes
+    :param pipeline_tree:
+    :param codes:
+    :return:
     """
-    _format_status_time(status_tree)
-    child_status = set()
-    for identifier_code, child_tree in list(status_tree["children"].items()):
-        format_bamboo_engine_status(child_tree)
-        child_status.add(child_tree["state"])
-
-    if status_tree["state"] == bamboo_engine_states.RUNNING:
-        if bamboo_engine_states.FAILED in child_status:
-            status_tree["state"] = bamboo_engine_states.FAILED
-        elif bamboo_engine_states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
-            status_tree["state"] = "NODE_SUSPENDED"
+    # 转 set 去重，提高 in 查找效率
+    codes: typing.Set[str] = set(codes)
+    node_infos_gby_code: typing.Dict[str, typing.List[typing.Dict[str, typing.Any]]] = defaultdict(list)
+    if not codes:
+        raise ValueError("Empty codes")
+    for act_id, act in pipeline_tree[pipeline_constants.PE.activities].items():
+        if act["type"] == pipeline_constants.PE.SubProcess:
+            # 非独立子流程继续递归查找
+            child_node_infos_gby_code: typing.Dict[
+                str, typing.List[typing.Dict[str, typing.Any]]
+            ] = find_nodes_from_pipeline_tree(act[pipeline_constants.PE.pipeline], codes)
+            # 子树查找结果同父流程合并
+            for code in codes:
+                node_infos_gby_code[code].extend(child_node_infos_gby_code.get(code) or [])
+        elif act["type"] == pipeline_constants.PE.ServiceActivity:
+            code_or_none: typing.Optional[str] = act.get(pipeline_constants.PE.component, {}).get(
+                pipeline_constants.PE.code
+            )
+            if code_or_none and code_or_none in codes:
+                # 使用 Dict 结构，便于后续扩展更多需要的字段
+                node_infos_gby_code[code_or_none].append({"act_id": act_id})
+    return node_infos_gby_code
 
 
 def add_node_name_to_status_tree(pipeline_tree, status_tree_children):

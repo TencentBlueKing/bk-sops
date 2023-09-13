@@ -12,12 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 import re
+import typing
 from datetime import datetime, timedelta
 
 from bamboo_engine import states
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
@@ -32,7 +33,7 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod
+from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
@@ -67,8 +68,10 @@ from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
+from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils import concurrent
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 
 logger = logging.getLogger("root")
@@ -80,6 +83,7 @@ class TaskFLowStatusFilterHandler:
     FAILED = "failed"
     PAUSE = "pause"
     RUNNING = "running"
+    PENDING_PROCESSING = "pending_processing"
 
     def __init__(self, status, queryset):
         """
@@ -102,6 +106,8 @@ class TaskFLowStatusFilterHandler:
             return self._filter_pipeline_pause()
         elif self.status == self.RUNNING:
             return self._filter_running()
+        elif self.status == self.PENDING_PROCESSING:
+            return self._filter_pending_process()
         else:
             return self.queryset
 
@@ -118,42 +124,62 @@ class TaskFLowStatusFilterHandler:
 
         return pipeline_id_list
 
+    def _fetch_pipeline_instance_ids(self, statuses: typing.List[str], by_root: bool = True) -> QuerySet:
+        pipeline_id_list = self._get_pipeline_id_list()
+        # 暂停是针对于流程的暂停
+        query_kwargs: typing.Dict[str, typing.Any] = {"name__in": statuses}
+        if by_root:
+            query_kwargs["root_id__in"] = pipeline_id_list
+        else:
+            query_kwargs["node_id__in"] = pipeline_id_list
+        pipeline_pause_root_id_list = State.objects.filter(**query_kwargs).values("root_id").distinct()
+        return PipelineInstance.objects.filter(instance_id__in=pipeline_pause_root_id_list).values_list("id", flat=True)
+
+    def _fetch_pending_process_taskflow_ids(
+        self, taskflow_instances: typing.List[TaskFlowInstance]
+    ) -> typing.List[int]:
+        def _get_task_status(taskflow_instance: TaskFlowInstance) -> typing.Dict[str, typing.Any]:
+            dispatcher = TaskCommandDispatcher(
+                engine_ver=taskflow_instance.engine_ver,
+                taskflow_id=taskflow_instance.id,
+                pipeline_instance=taskflow_instance.pipeline_instance,
+                project_id=taskflow_instance.project_id,
+            )
+            get_task_status_result: typing.Dict[str, typing.Any] = dispatcher.get_task_status(with_ex_data=False)
+            if get_task_status_result.get("result"):
+                return {"id": taskflow_instance.id, "state": get_task_status_result["data"]["state"]}
+            else:
+                return {"id": taskflow_instance.id, "state": None}
+
+        task_status_infos: typing.List[typing.Dict[str, typing.Any]] = concurrent.batch_call(
+            _get_task_status,
+            params_list=[{"taskflow_instance": taskflow_instance} for taskflow_instance in taskflow_instances],
+        )
+
+        pending_process_taskflow_ids: typing.List[int] = []
+        for task_status_info in task_status_infos:
+            if task_status_info["state"] == TaskExtraStatus.PENDING_PROCESSING.value:
+                pending_process_taskflow_ids.append(task_status_info["id"])
+        return pending_process_taskflow_ids
+
     def _filter_failed(self):
         """
         获取所有失败的任务，当任务失败时，任务的State的name会为Failed，去重可以获得当前存在失败节点的pipeline instance
         @return:
         """
-        pipeline_id_list = self._get_pipeline_id_list()
-        # 获取存在异常任务状态的pipline task
-        pipeline_failed_root_id_list = (
-            State.objects.filter(name=states.FAILED, root_id__in=pipeline_id_list).values("root_id").distinct()
+        # root_id
+        return self.queryset.filter(
+            pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.FAILED])
         )
-        failed_pipeline_instance_id_list = PipelineInstance.objects.filter(
-            instance_id__in=pipeline_failed_root_id_list
-        ).values_list("id", flat=True)
-        queryset = self.queryset.filter(pipeline_instance_id__in=failed_pipeline_instance_id_list)
-
-        return queryset
 
     def _filter_pipeline_pause(self):
         """
         获取所有暂停的任务，当任务暂停时，pipeline 的状态会变成暂停，
         return:
         """
-        # 获取正在暂停的pipeline任务
-        pipeline_id_list = self._get_pipeline_id_list()
-        # 暂停是针对于流程的暂停
-        pipeline_pause_root_id_list = (
-            State.objects.filter(name=states.SUSPENDED, node_id__in=pipeline_id_list).values("root_id").distinct()
+        return self.queryset.filter(
+            pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.SUSPENDED], by_root=False)
         )
-        # 获取
-        pause_pipeline_instance_id_list = PipelineInstance.objects.filter(
-            instance_id__in=pipeline_pause_root_id_list
-        ).values_list("id", flat=True)
-
-        queryset = self.queryset.filter(pipeline_instance_id__in=pause_pipeline_instance_id_list)
-
-        return queryset
 
     def _filter_running(self):
         """
@@ -161,21 +187,29 @@ class TaskFLowStatusFilterHandler:
 
         @return:
         """
-        pipeline_id_list = self._get_pipeline_id_list()
-
-        # 这里统一使用 root_id 进行查询，可以避免进行失败和暂停两次查询
-        pipeline_failed_and_pause_root_id_list = (
-            State.objects.filter(name__in=[states.SUSPENDED, states.FAILED], root_id__in=pipeline_id_list)
-            .values("root_id")
-            .distinct()
+        return self.queryset.exclude(
+            pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.FAILED, states.SUSPENDED])
         )
-        pipeline_failed_and_pause_id_list = PipelineInstance.objects.filter(
-            instance_id__in=pipeline_failed_and_pause_root_id_list
-        ).values_list("id", flat=True)
 
-        queryset = self.queryset.exclude(pipeline_instance_id__in=pipeline_failed_and_pause_id_list)
-
-        return queryset
+    def _filter_pending_process(self):
+        """
+        过滤出等待处理的流程
+        :return:
+        """
+        # 找到所有正在执行中的流程
+        # selected_related 只能在 objects 最前面加，此处先查处 ID 列表
+        taskflow_instance_ids: typing.List[int] = list(
+            self.queryset.exclude(
+                pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.FAILED])
+            ).values_list("id", flat=True)
+        )
+        # selected_related 提前查取刚需的关联数据，避免 n+1 查询
+        taskflow_instances: typing.List[TaskFlowInstance] = TaskFlowInstance.objects.select_related(
+            "pipeline_instance"
+        ).filter(id__in=taskflow_instance_ids)
+        # 并行找到全部的等待执行任务
+        pending_process_taskflow_ids: typing.List[int] = self._fetch_pending_process_taskflow_ids(taskflow_instances)
+        return self.queryset.filter(id__in=pending_process_taskflow_ids)
 
 
 class TaskFlowFilterSet(FilterSet):

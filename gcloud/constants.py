@@ -257,3 +257,16 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 class GseAgentStatus(Enum):
     OFFLINE = 0
     ONlINE = 1
+
+
+class TaskExtraStatus(Enum):
+    """独立于 Bamboo 的额外业务级别任务状态"""
+
+    # 节点暂停
+    NODE_SUSPENDED = "NODE_SUSPENDED"
+    # 等待审批
+    PENDING_APPROVAL = "PENDING_APPROVAL"
+    # 等待确认
+    PENDING_CONFIRMATION = "PENDING_CONFIRMATION"
+    # 等待处理
+    PENDING_PROCESSING = "PENDING_PROCESSING"
