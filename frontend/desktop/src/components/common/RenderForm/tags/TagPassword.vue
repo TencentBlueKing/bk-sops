@@ -52,9 +52,9 @@
             <bk-select v-else class="select-var" :value="localVal.value" @selected="handleSelectVariable">
                 <bk-option v-for="item in variables" :key="item.id" :id="item.id" :name="item.id"></bk-option>
             </bk-select>
-            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{(value.password === 'undefined' || value.password === '') ? '--' : '******'}}</span>
+        <div v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</div>
     </div>
 </template>
 <script>
@@ -130,6 +130,7 @@
                         this.localVal = { ...val }
                     } else {
                         this.localVal = {
+                            type: 'password_value',
                             tag: 'value',
                             value: val
                         }
