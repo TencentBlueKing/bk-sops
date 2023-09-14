@@ -383,7 +383,8 @@ def get_ip_result_by_input_method(
         select_method[module_input_method],
     )
     if isinstance(selected_set_names, str):
-        selected_set_names = selected_set_names.split(",")
+        # 去除两端的空格
+        selected_set_names = [selected_set_name.strip() for selected_set_name in selected_set_names.split(",")]
     if isinstance(selected_service_template_names, str):
         selected_service_template_names = selected_service_template_names.split(",")
 
