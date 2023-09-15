@@ -1802,7 +1802,11 @@ const en = {
     '确定重试节点【n】 ？': 'Retry this node [ {n} ] ？',
     '非根节点仅支持以原参数进行重试': 'Non-root nodes only support retrying with the original parameters.',
     'password_手动输入': 'custom input',
-    'password_使用密码变量': 'use password var.'
+    'password_使用密码变量': 'use password var.',
+    '复制所有IP': 'Copy all IPs',
+    '复制异常IP': 'Copy abnormal IP',
+    '清除所有IP': 'Clear all IPs',
+    '清除异常IP': 'Clear abnormal IP'
 }
 
 export default en
