@@ -428,9 +428,6 @@
             nodeActivity () {
                 return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             },
-            componentValue () {
-                return this.isSubProcessNode ? this.nodeActivity.component.data.subprocess.value : {}
-            },
             isExecuteTimeShow () {
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             },
@@ -677,7 +674,7 @@
                 $.context.output_form.state = state
                 // 获取子流程配置详情
                 if (componentCode === 'subprocess_plugin' || this.isLegacySubProcess) {
-                    const { constants } = this.isLegacySubProcess ? this.pipelineData : this.componentValue.pipeline
+                    const { constants } = this.subProcessPipeline
                     const renderConfig = await this.getSubflowInputsConfig(constants)
                     const keys = Object.keys(inputs)
                     this.renderConfig = renderConfig.filter(item => keys.includes(item.tag_code))
