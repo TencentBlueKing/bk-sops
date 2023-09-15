@@ -183,6 +183,17 @@
                 } else {
                     this.handleInputBlur()
                 }
+            },
+            formMode (val) {
+                if (val) {
+                    this.$nextTick(() => {
+                        const divInputDom = this.$el.querySelector('.div-input')
+                        divInputDom.innerHTML = this.value
+                        this.handleInputBlur()
+                    })
+                } else {
+                    this.validate()
+                }
             }
         },
         created () {
