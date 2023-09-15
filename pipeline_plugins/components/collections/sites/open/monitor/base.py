@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import ipaddress
 from functools import partial
 
 from django.conf import settings
@@ -37,21 +38,46 @@ class MonitorBaseService(Service):
     def get_ip_dimension_config(self, scope_value, bk_biz_id, username):
         ip_list = scope_value.split(",")
         if settings.ENABLE_IPV6:
-            hosts = cmdb.get_business_host_ipv6(
+            # 开启了IPV6 要同时查ipv6和ipv4
+            ipv4_list = []
+            ipv6_list = []
+
+            for ip in ip_list:
+                p_address = ipaddress.ip_address(ip)
+                if p_address.version == 6:
+                    ipv6_list.append(ip)
+                else:
+                    ipv4_list.append(ip)
+
+            ip_v6_hosts = cmdb.get_business_host_ipv6(
                 username=username,
                 bk_biz_id=bk_biz_id,
                 supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
                 host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip", "bk_host_innerip_v6"],
-                ip_list=ip_list,
+                ip_list=ipv6_list,
             )
             # 监控接口不支持 host_id, 进支持 ip
-            host_without_innerip = [host for host in hosts if host["bk_host_innerip"] == ""]
+            host_without_innerip = [host for host in ip_v6_hosts if host["bk_host_innerip"] == ""]
             if host_without_innerip:
                 raise Exception(
                     _("主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参").format(
                         ",".join([str(host["bk_host_id"]) for host in host_without_innerip])
                     )
                 )
+
+            ip_v4_hosts = cmdb.get_business_host(
+                username=username,
+                bk_biz_id=bk_biz_id,
+                supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
+                host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
+                ip_list=ipv4_list,
+            )
+
+            if not ip_v4_hosts:
+                raise Exception(_("当前业务下未查询到ip信息, 请检查ip地址是否填写正确:{}").format(ipv4_list))
+
+            hosts = ip_v4_hosts + ip_v6_hosts
+
         else:
             hosts = cmdb.get_business_host(
                 username=username,
