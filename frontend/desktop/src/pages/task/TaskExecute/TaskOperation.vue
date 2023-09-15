@@ -1299,8 +1299,9 @@
                     }
                 })
             },
-            onApprovalClick (id) {
+            onApprovalClick (id, taskId) {
                 this.approval.id = id
+                this.subProcessTaskId = taskId
                 this.approval.dialogShow = true
             },
             onApprovalConfirm () {
@@ -1316,17 +1317,16 @@
                             is_passed,
                             message,
                             project_id: this.project_id,
-                            task_id: this.instance_id,
+                            task_id: this.subProcessTaskId || this.instance_id,
                             node_id: id
                         }
-                        if (!this.isTopTask) {
-                            const selectedFlowIds = this.selectedFlowPath.reduce((acc, cur) => {
-                                if (cur.type !== 'root') {
-                                    acc = acc ? acc + ',' + cur.id : cur.id
-                                }
-                                return acc
-                            }, '')
-                            params.subprocess_id = selectedFlowIds
+                        // 如果存在子流程任务节点时则不需要传subprocess_id
+                        if (!this.subProcessTaskId) {
+                            let { subprocess_stack: stack } = this.nodeDetailConfig
+                            if (stack) {
+                                stack = JSON.parse(stack)
+                                params.subprocess_id = stack.join(',')
+                            }
                         }
                         await this.itsmTransition(params)
                         this.approval.id = ''

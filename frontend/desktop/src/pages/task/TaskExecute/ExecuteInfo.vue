@@ -177,7 +177,7 @@
                             v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
                             theme="primary"
                             data-test-id="taskExecute_form_approvalBtn"
-                            @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
+                            @click="onApprovalClick">
                             {{ $t('审批') }}
                         </bk-button>
                         <bk-button
@@ -1427,6 +1427,9 @@
             },
             onResumeClick () {
                 this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+            },
+            onApprovalClick () {
+                this.$emit('onApprovalClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             onModifyTimeClick () {
                 this.$emit('onModifyTimeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
