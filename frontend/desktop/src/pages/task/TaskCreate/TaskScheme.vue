@@ -166,7 +166,8 @@
             async initLoad () {
                 try {
                     await this.loadDefaultSchemeList()
-                    this.loadSchemeList()
+                    await this.loadSchemeList()
+                    this.showPanel = !!this.schemeList.length
                 } catch (error) {
                     console.warn(error)
                 }
