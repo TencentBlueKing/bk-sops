@@ -72,7 +72,7 @@
             </p>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
-        <span v-else class="rf-view-value">{{ value || '--' }}</span>
+        <span v-else class="rf-view-value">{{ viewValue || '--' }}</span>
     </div>
 </template>
 <script>
@@ -252,6 +252,9 @@
                 }
             },
             viewValue () {
+                if (Object.prototype.toString.call(this.value) === '[object object]') {
+                    return this.value
+                }
                 if (Array.isArray(this.seletedValue)) { // 多选
                     if (!this.seletedValue.length) {
                         return '--'

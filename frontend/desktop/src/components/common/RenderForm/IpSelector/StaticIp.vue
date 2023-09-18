@@ -62,7 +62,7 @@
                         <span class="total-ip">{{staticIps.length}}</span>
                         {{$t('个静态IP，')}}
                         {{$t('其中')}}
-                        <span class="total-not-installed">{{failedAgentLength}}</span>
+                        <span class="total-not-installed">{{abnormalLength}}</span>
                         {{$t('个')}}{{$t('异常')}}
                     </div>
                     <div class="table-pagination" v-if="isPaginationShow">
@@ -138,27 +138,27 @@
                 operations: [
                     {
                         type: 'copyIp',
-                        name: this.$t('复制IP')
+                        name: this.$t('复制所有IP')
                     },
                     {
                         type: 'copyAgentIp',
-                        name: this.$t('复制Agent异常IP')
+                        name: this.$t('复制异常IP')
                     },
                     {
                         type: 'clearIp',
-                        name: this.$t('清空IP')
+                        name: this.$t('清除所有IP')
                     },
                     {
                         type: 'clearFailedAgentIp',
-                        name: this.$t('清空Agent异常IP')
+                        name: this.$t('清除异常IP')
                     }
                 ],
                 isUnfold: false
             }
         },
         computed: {
-            failedAgentLength () {
-                return this.staticIps.filter(item => item.agent !== 1).length
+            abnormalLength () {
+                return this.staticIps.filter(item => item.agent !== 1 || item.diff).length
             },
             isShowQuantity () {
                 return this.staticIps.length
@@ -224,14 +224,14 @@
                 this.handleIpCopy(ipStr)
             },
             copyAgentIp () {
-                const ipStr = this.staticIps.filter(item => item.agent !== 1).map(d => d.bk_host_innerip).join(',')
+                const ipStr = this.staticIps.filter(item => item.agent !== 1 || item.diff).map(d => d.bk_host_innerip).join(',')
                 this.handleIpCopy(ipStr)
             },
             clearIp () {
                 this.$emit('change', [])
             },
             clearFailedAgentIp () {
-                const staticIps = this.staticIps.filter(item => item.agent === 1)
+                const staticIps = this.staticIps.filter(item => item.agent === 1 && !item.diff)
                 this.$emit('change', staticIps)
             },
             onDropdownShow () {

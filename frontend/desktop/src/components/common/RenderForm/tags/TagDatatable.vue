@@ -693,4 +693,7 @@
         white-space: nowrap;
         cursor: pointer;
     }
+    /deep/.rf-tag-form {
+        margin-left: 0 !important;
+    }
 </style>

@@ -1281,11 +1281,18 @@
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
                     if (citedNum <= 1) {
-                        // 直接删除引用量为1变量
-                        this.deleteUnhookingVar()
+                        // 切换插件/切换版本/更新子流程时直接删除引用量为1变量
+                        if (this.isUpdateConstants) {
+                            this.deleteUnhookingVar()
+                        } else {
+                            this.isCancelGloVarDialogShow = true
+                        }
                     } else {
+                        // 当变量来源为0时，自动删除变量
                         if (sourceInfo[id].length <= 1) {
                             this.$delete(sourceInfo, id)
+                            this.deleteUnhookingVar()
+                            return
                         } else {
                             let atomIndex
                             sourceInfo[id].some((item, index) => {

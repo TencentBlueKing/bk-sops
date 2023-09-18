@@ -534,7 +534,6 @@
     }
     /deep/.div-input {
         >div {
-            height: 18px;
             width: 100%;
         }
     }

@@ -177,7 +177,7 @@
                             v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
                             theme="primary"
                             data-test-id="taskExecute_form_approvalBtn"
-                            @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
+                            @click="onApprovalClick">
                             {{ $t('审批') }}
                         </bk-button>
                         <bk-button
@@ -428,9 +428,6 @@
             nodeActivity () {
                 return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             },
-            componentValue () {
-                return this.isSubProcessNode ? this.nodeActivity.component.data.subprocess.value : {}
-            },
             isExecuteTimeShow () {
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             },
@@ -677,7 +674,7 @@
                 $.context.output_form.state = state
                 // 获取子流程配置详情
                 if (componentCode === 'subprocess_plugin' || this.isLegacySubProcess) {
-                    const { constants } = this.isLegacySubProcess ? this.pipelineData : this.componentValue.pipeline
+                    const { constants } = this.subProcessPipeline
                     const renderConfig = await this.getSubflowInputsConfig(constants)
                     const keys = Object.keys(inputs)
                     this.renderConfig = renderConfig.filter(item => keys.includes(item.tag_code))
@@ -1427,6 +1424,9 @@
             },
             onResumeClick () {
                 this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+            },
+            onApprovalClick () {
+                this.$emit('onApprovalClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             onModifyTimeClick () {
                 this.$emit('onModifyTimeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
