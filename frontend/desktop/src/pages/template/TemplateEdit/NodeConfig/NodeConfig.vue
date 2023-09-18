@@ -1291,8 +1291,6 @@
                         // 当变量来源为0时，自动删除变量
                         if (sourceInfo[id].length <= 1) {
                             this.$delete(sourceInfo, id)
-                            this.deleteUnhookingVar()
-                            return
                         } else {
                             let atomIndex
                             sourceInfo[id].some((item, index) => {
@@ -1302,6 +1300,9 @@
                                 }
                             })
                             sourceInfo[id].splice(atomIndex, 1)
+                        }
+                        if (Object.keys(sourceInfo).length === 0) {
+                            this.$delete(this.localConstants, key)
                         }
                         const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
                         refDom && refDom.setFormData({ ...this.unhookingVarForm })
