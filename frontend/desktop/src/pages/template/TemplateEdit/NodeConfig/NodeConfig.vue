@@ -202,12 +202,13 @@
                                         </i>
                                     </h3>
                                     <p class="citations-waivers-guide">
-                                        <bk-popover placement="top-end" theme="light" width="258" :ext-cls="'citations-waivers-guide-tip'">
+                                        <bk-popover placement="top-end" theme="light" width="350" :ext-cls="'citations-waivers-guide-tip'">
                                             <i class="bk-icon icon-info-circle-shape"></i>
-                                            {{ $t('设置为变量&变量免渲染使用指引') }}
+                                            {{ $t('转换为变量和恢复为非变量使用说明') }}
                                             <div slot="content">
-                                                <p>{{ $t('设置为变量：将节点的输入或输出设置为全局变量，可供其他节点使用') }}</p><br>
-                                                <p>{{ $t('变量免渲染：忽略参数中的全局变量，将${}视为普通字符串') }}</p>
+                                                <p>{{ $t('利用节点的参数创建一个对应组件类型的变量，如已存在该类型变量则可直接使用') }}</p><br>
+                                                <p>{{ $t('使用这种转换，可将多个节点的同一配置项统一起来，利用变量集中维护') }}</p><br>
+                                                <p>{{ $t('当所有使用该变量的参数恢复为节点内维护，则自动删除变量') }}</p>
                                             </div>
                                         </bk-popover>
                                     </p>
@@ -250,6 +251,17 @@
                                 <!-- 输出参数 -->
                                 <section class="config-section" data-test-id="templateEdit_form_outputParamsInfo">
                                     <h3>{{$t('输出参数')}}</h3>
+                                    <p class="citations-waivers-guide">
+                                        <bk-popover placement="top-end" theme="light" width="350" :ext-cls="'citations-waivers-guide-tip'">
+                                            <i class="bk-icon icon-info-circle-shape"></i>
+                                            {{ $t('接收输出和取消接收使用说明') }}
+                                            <div slot="content">
+                                                <p>{{ $t('自动创建一个节点输出类型变量来接收任务执行时节点的输出') }}</p><br>
+                                                <p>{{ $t('后续节点可引用变量来获取该节点的输出') }}</p><br>
+                                                <p>{{ $t('取消接收输出则自动删除变量') }}</p>
+                                            </div>
+                                        </bk-popover>
+                                    </p>
                                     <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
                                         <template v-if="!outputLoading">
                                             <output-params
