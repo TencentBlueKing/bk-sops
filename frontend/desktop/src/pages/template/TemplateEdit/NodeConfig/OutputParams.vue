@@ -48,7 +48,7 @@
             :mask-close="false"
             :render-directive="'if'"
             :header-position="'left'"
-            :title="$t('新建变量')"
+            :title="$t('使用变量接收输出')"
             :auto-close="false"
             :value="isShow"
             width="600"
