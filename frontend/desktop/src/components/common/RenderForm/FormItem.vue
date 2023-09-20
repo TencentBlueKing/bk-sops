@@ -120,6 +120,7 @@
                 :value="formValue"
                 :parent-value="parentValue"
                 @init="$emit('init', $event)"
+                @blur="$emit('blur', $event)"
                 @change="updateForm"
                 @onShow="onShowForm"
                 @onHide="onHideForm">

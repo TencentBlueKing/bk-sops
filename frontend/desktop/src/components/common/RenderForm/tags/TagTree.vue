@@ -21,6 +21,7 @@
                 :default-expand-all="default_expand_all"
                 :default-checked-nodes="value"
                 :default-expanded-nodes="expanded_keys"
+                :check-strictly="check_strictly"
                 :height="570"
                 :data="items"
                 @check-change="nodeCheckChange">
@@ -68,6 +69,11 @@
             required: false,
             default: true,
             desc: 'whether to expand all nodes by default'
+        },
+        check_strictly: {
+            type: Boolean,
+            required: false,
+            default: true
         },
         remote: {
             type: Boolean,
