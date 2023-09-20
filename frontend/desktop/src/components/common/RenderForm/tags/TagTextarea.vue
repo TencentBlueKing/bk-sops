@@ -19,7 +19,8 @@
             :disabled="!editable || !formMode || disabled"
             :autosize="formMode ? { minRows: 2 } : true"
             resize="none"
-            :placeholder="placeholder">
+            :placeholder="placeholder"
+            @blur="handleBlur">
         </el-input>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
@@ -73,6 +74,12 @@
                 this.$nextTick(() => {
                     this.$refs.tagTextarea.resizeTextarea()
                 })
+            }
+        },
+        methods: {
+            handleBlur () {
+                this.emit_event(this.tagCode, 'blur', this.value)
+                this.$emit('blur', this.value)
             }
         }
     }

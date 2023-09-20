@@ -18,7 +18,8 @@
                 :controls="false"
                 :disabled="!editable || disabled"
                 :placeholder="placeholder"
-                v-model="intValue">
+                v-model="intValue"
+                @blur="handleBlur">
             </el-input-number>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
@@ -73,6 +74,12 @@
                     val = val || 0
                     this.updateForm(val)
                 }
+            }
+        },
+        methods: {
+            handleBlur () {
+                this.emit_event(this.tagCode, 'blur', this.value)
+                this.$emit('blur', this.value)
             }
         }
     }

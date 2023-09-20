@@ -113,8 +113,8 @@
                     const constants = tools.deepClone(val)
                     if (constants.subflow_detail_var) {
                         // 兼容接口返回的key值和form配置的key不同
-                        Object.keys(this.inputs).forEach(key => {
-                            if (!(key in constants) && /^\${[^${}]+}$/.test(key)) {
+                        Object.keys(constants).forEach(key => {
+                            if (!(key in this.inputs) && /^\${[^${}]+}$/.test(key)) {
                                 const varKey = key.split('').slice(2, -1).join('')
                                 if (varKey in constants) {
                                     constants[key] = constants[varKey]

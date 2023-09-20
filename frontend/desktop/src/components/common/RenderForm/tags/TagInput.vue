@@ -19,7 +19,8 @@
                     :disabled="!editable || disabled"
                     :show-password="showPassword"
                     :placeholder="placeholder"
-                    @input="onInput">
+                    @input="onInput"
+                    @blur="handleBlur">
                 </el-input>
                 <transition>
                     <div class="rf-select-list" v-show="showVarList && isListOpen">
@@ -157,6 +158,10 @@
                 const replacedValue = this.value.replace(VAR_REG, val)
                 this.updateForm(replacedValue)
                 this.isListOpen = false
+            },
+            handleBlur () {
+                this.emit_event(this.tagCode, 'blur', this.value)
+                this.$emit('blur', this.value)
             }
         }
     }
