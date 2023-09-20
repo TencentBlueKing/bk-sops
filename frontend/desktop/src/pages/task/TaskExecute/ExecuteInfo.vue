@@ -517,7 +517,7 @@
                      * 兼容旧版本子流程节点输入数据
                      * 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
                      */
-                     inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
+                    inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
                         if (cur.show_type === 'show') {
                             acc[cur.key] = cur.value
                         }
