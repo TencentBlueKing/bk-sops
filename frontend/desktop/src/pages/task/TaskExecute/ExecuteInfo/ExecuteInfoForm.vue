@@ -710,7 +710,7 @@
             }
         }
         .rf-tag-label {
-            width: 130px;
+            width: 20%;
             padding-right: 24px;
             .label {
                 white-space: initial;
@@ -726,7 +726,7 @@
         .rf-form-group {
             .rf-group-name {
                 display: block;
-                width: 130px;
+                width: 20%;
                 padding-right: 24px;
                 text-align: right;
                 .scheme-name {
@@ -747,7 +747,7 @@
                 float: left;
             }
             .form-item-group {
-                margin-left: 130px;
+                margin-left: 20%;
             }
         }
         .form-item-group {
