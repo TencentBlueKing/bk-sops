@@ -206,7 +206,7 @@ const atomForm = {
          * 加载第三方插件日志
          */
         loadPluginServiceLog ({ commit }, params) {
-            return axios.get('/plugin_service/logs/', { params }).then(response => response.data)
+            return axios.post('/plugin_service/logs/', params).then(response => response.data)
         },
         /**
          * 加载第三方插件元信息
