@@ -40,7 +40,7 @@
                 {{ scheme.attrs.used_tip }}
             </span> -->
         </div>
-        
+
         <!-- 参数被使用占位popover -->
         <bk-popover
             v-if="scheme.attrs.html_used_tip"
@@ -94,8 +94,8 @@
                 :option="groupOption"
                 :value="value[form.tag_code]"
                 :parent-value="value"
-                @blur="$emit('blur')"
                 @init="$emit('init', $event)"
+                @blur="$emit('blur', $event)"
                 @change="updateForm">
             </component>
         </div>

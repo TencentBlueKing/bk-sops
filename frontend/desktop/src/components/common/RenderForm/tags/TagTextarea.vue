@@ -25,7 +25,8 @@
                     @mouseup="handleInputMouseUp"
                     @focus="handleInputFocus"
                     @keydown="handleInputKeyDown"
-                    @input="handleInputChange">
+                    @input="handleInputChange"
+                    @blur="handleBlur">
                 </div>
             </div>
             <transition>
@@ -452,7 +453,11 @@
                 }
             },
             handleDocumentBackspace (event) {
-                
+
+            },
+            handleBlur () {
+                this.emit_event(this.tagCode, 'blur', this.value)
+                this.$emit('blur', this.value)
             }
         }
     }

@@ -20,8 +20,8 @@
                     :disabled="isDisabled"
                     :show-password="showPassword"
                     :placeholder="placeholder"
-                    @blur="$emit('blur')"
-                    @input="handleInputChange">
+                    @input="handleInputChange"
+                    @blur="handleBlur">
                 </el-input>
                 <div v-else class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
                     <div
@@ -466,6 +466,10 @@
                         }
                     }
                 }
+            },
+            handleBlur () {
+                this.emit_event(this.tagCode, 'blur', this.value)
+                this.$emit('blur', this.value)
             }
         }
     }
