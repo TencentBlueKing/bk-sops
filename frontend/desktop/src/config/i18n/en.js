@@ -1822,7 +1822,7 @@ const en = {
     '清除所有IP': 'Clear all IPs',
     '清除异常IP': 'Clear abnormal IP',
     '节点输入型变量仅支持从节点"取消使用变量"来删除': 'Node input variables can only be deleted by the node "Cancel Using variable"',
-    '节点输出型变量仅支持从节点"取消接收输出"来删除   ': 'Node output variables can only be deleted by the node "Cancel Receiving Output"'
+    '节点输出型变量仅支持从节点"取消接收输出"来删除': 'Node output variables can only be deleted by the node "Cancel Receiving Output"'
 }
 
 export default en
