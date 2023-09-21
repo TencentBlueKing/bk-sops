@@ -2919,7 +2919,13 @@ msgstr "Remove"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:230
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:254
 msgid "升级"
-msgstr "Upgrate"
+msgstr "Upgrade"
+
+msgid "配置重载"
+msgstr "Reload"
+
+msgid "重启"
+msgstr "Restart"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:103
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:330
