@@ -204,11 +204,11 @@
                                     <p class="citations-waivers-guide">
                                         <bk-popover placement="top-end" theme="light" width="350" :ext-cls="'citations-waivers-guide-tip'">
                                             <i class="bk-icon icon-info-circle-shape"></i>
-                                            {{ $t('转换为变量和恢复为非变量使用说明') }}
+                                            {{ $t('转换为变量和取消使用变量说明') }}
                                             <div slot="content">
                                                 <p>{{ $t('如何工作：利用节点的参数创建一个对应组件类型的变量。例如某个参数是下拉框组件，则创建一个下拉框变量') }}</p><br>
                                                 <p>{{ $t('如何使用：转换时自动引用创建的变量，或复用其它节点已创建的同组件类型变量，实现将多个节点的同一配置项统一变量集中维护') }}</p><br>
-                                                <p>{{ $t('如何删除：当所有使用该变量的参数恢复为节点内维护，则自动删除变量') }}</p>
+                                                <p>{{ $t('如何删除：当所有复用该变量的参数被取消使用，则自动删除变量') }}</p>
                                             </div>
                                         </bk-popover>
                                     </p>

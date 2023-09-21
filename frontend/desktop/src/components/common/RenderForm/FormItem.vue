@@ -132,7 +132,7 @@
                 <i
                     :class="['common-icon-variable-hook hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
-                        content: hook ? $t('恢复为非变量节点内维护') : $t('转换为变量集中维护'),
+                        content: hook ? $t('取消使用变量，节点内维护') : $t('转换为变量，集中维护'),
                         placement: 'bottom',
                         zIndex: 3000
                     }"
