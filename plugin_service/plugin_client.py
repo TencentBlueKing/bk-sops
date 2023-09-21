@@ -18,11 +18,7 @@ import requests
 from django.core.files.uploadedfile import UploadedFile
 
 from . import env
-from .client_decorators import (
-    check_use_plugin_service,
-    data_parser,
-    json_response_decoder,
-)
+from .client_decorators import check_use_plugin_service, data_parser, json_response_decoder
 from .conf import PLUGIN_CLIENT_LOGGER
 from .exceptions import PluginServiceException, PluginServiceNotUse
 
@@ -232,8 +228,12 @@ class PluginServiceApiClient:
     def get_paas_logs(plugin_code, trace_id, scroll_id=None, environment=None):
         """通过PaaS平台查询插件服务日志"""
         url, data = PluginServiceApiClient._prepare_paas_api_request(
-            path_params=["system/bk_plugins", plugin_code, "logs"], environment=environment
+            path_params=["system/bk_plugins", plugin_code, "logs"], environment=environment, force_add_app_info=True
         )
+
+        if env.PAASV3_APIGW_API_TOKEN:
+            url = "{}?private_token={}".format(url, env.PAASV3_APIGW_API_TOKEN)
+
         data.update({"trace_id": trace_id})
         if scroll_id:
             data.update({"scroll_id": scroll_id})
@@ -278,6 +278,7 @@ class PluginServiceApiClient:
             environment or env.APIGW_ENVIRONMENT,
             *path_params,
         )
+
         params = (
             {"private_token": env.PAASV3_APIGW_API_TOKEN}
             if env.PAASV3_APIGW_API_TOKEN
