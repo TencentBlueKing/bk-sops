@@ -228,7 +228,7 @@ class PluginServiceApiClient:
     def get_paas_logs(plugin_code, trace_id, scroll_id=None, environment=None):
         """通过PaaS平台查询插件服务日志"""
         url, data = PluginServiceApiClient._prepare_paas_api_request(
-            path_params=["system/bk_plugins", plugin_code, "logs"], environment=environment, force_add_app_info=True
+            path_params=["system/bk_plugins", plugin_code, "logs"], environment=environment
         )
 
         if env.PAASV3_APIGW_API_TOKEN:
