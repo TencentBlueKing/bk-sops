@@ -1415,7 +1415,7 @@ const en = {
     '返回编辑': 'Back To Edit',
     '周期任务根据创建时的流程和执行方案数据生成快照保存，流程变更后不影响周期任务，可手动更新到使用流程最新数据。': 'Cron tasks generate snapshots and save according to the flow and node-group data at the time of creation. After the flow is changed, it does not affect the cron tasks, and can be manually updated to use the latest version of the flow.',
     '不使用执行方案': 'Don\'t use node-group',
-    '当前流程非最新，执行方案不可更改，请先更新流程': 'The current flow is not the latest version and the step-group  cannot be modified. Please update the flow first.',
+    '当前流程非最新，执行方案不可更改，请先更新流程': 'The current flow is not the latest version and the node-group  can not be modified. Please update the flow first.',
     '执行代理人在任务开始执行时确定，未执行任务不展示': 'The agent is determined when the task starts to execute, and the unexecuted task will not be displayed',
     '计划任务在执行时获取最新的流程和执行方案数据创建任务，流程和方案变更将影响未执行的计划任务，如增加参数可能导致计划任务启动失败。': 'When a scheduled task is executed, it get the latest version from the flow and node-group  to create a task. Changes to the flow and plan will affect the unexecuted scheduled task. For example, adding parameters may cause the scheduled task to fail to start.',
     '未能重用': 'Failed to reuse',
@@ -1805,7 +1805,7 @@ const en = {
     '仅支持查询最近x天任务记录': 'You can only query the tasks for the last {x} days.',
     '失效': 'Invalid',
     '该类型仅支持从节点配置生成变量': 'The type only supports "Set as A Variable" from node settings.',
-    '该类型仅支持从节点配置取消引用': 'The type only supports "Unlink Variable "  from  node settings.',
+    '该类型仅支持从节点配置取消引用': 'The type only supports "Unlink Variable " from node settings.',
     '重试子流程': 'Retry Subflow',
     '跳过子流程': 'Skip  Subflow',
     '确定跳过子流程【n】 ？': 'Skip this subflow [ {n} ] ?',
@@ -1820,7 +1820,9 @@ const en = {
     '复制所有IP': 'Copy all IPs',
     '复制异常IP': 'Copy abnormal IP',
     '清除所有IP': 'Clear all IPs',
-    '清除异常IP': 'Clear abnormal IP'
+    '清除异常IP': 'Clear abnormal IP',
+    '节点输入型变量仅支持从节点"取消使用变量"来删除': 'Node input variables can only be deleted by the node "Cancel Using variable"',
+    '节点输出型变量仅支持从节点"取消接收输出"来删除   ': 'Node output variables can only be deleted by the node "Cancel Receiving Output"'
 }
 
 export default en

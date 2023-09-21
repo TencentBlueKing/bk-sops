@@ -17,7 +17,7 @@
                 <bk-checkbox
                     :disabled="isComponentVar"
                     :value="variableChecked"
-                    v-bk-tooltips="{ content: $t('该类型仅支持从节点配置取消引用'), disabled: !isComponentVar }"
+                    v-bk-tooltips="{ content: componentVarDisabledTip, disabled: !isComponentVar }"
                     @change="onChooseVariable">
                 </bk-checkbox>
             </span>
@@ -181,6 +181,11 @@
             },
             isComponentVar () {
                 return ['component_outputs', 'component_inputs'].includes(this.variableData.source_type)
+            },
+            componentVarDisabledTip () {
+                return this.variableData.source_type === 'component_inputs'
+                    ? i18n.t('节点输入型变量仅支持从节点"取消使用变量"来删除')
+                    : i18n.t('节点输出型变量仅支持从节点"取消接收输出"来删除')
             },
             citedList () {
                 const defaultCiteData = {
