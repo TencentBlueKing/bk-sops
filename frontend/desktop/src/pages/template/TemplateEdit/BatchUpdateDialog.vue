@@ -472,7 +472,7 @@
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
                     if (citedNum <= 1) {
-                        this.isCancelGloVarDialogShow = true
+                        this.varReferenceDialogClick(true)
                     } else {
                         if (sourceInfo[id].length <= 1) {
                             this.$delete(sourceInfo, id)
@@ -485,6 +485,9 @@
                                 }
                             })
                             sourceInfo[id].splice(atomIndex, 1)
+                        }
+                        if (Object.keys(sourceInfo).length === 0) {
+                            this.$delete(this.localConstants, key)
                         }
                         const index = this.subflowForms.findIndex(item => item.id === id)
                         const refDoms = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
