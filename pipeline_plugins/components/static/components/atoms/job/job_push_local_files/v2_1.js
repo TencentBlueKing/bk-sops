@@ -349,7 +349,7 @@
             attrs: {
                 name: gettext("执行账号"),
                 placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
-                allowCreate: true,
+                allowCreate: false,
                 hookable: true,
                 remote_url: function () {
                     let url = $.context.get('site_url') + 'pipeline/get_job_account_list/' + $.context.getBkBizId() + '/'
