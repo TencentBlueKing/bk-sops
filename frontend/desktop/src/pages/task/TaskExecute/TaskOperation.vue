@@ -527,6 +527,7 @@
                 'getNodeExecutionRecord',
                 'getNodeActInfo',
                 'instanceRetry',
+                'getNodeActDetail',
                 'subflowNodeRetry',
                 'taskFlowConvertCommonTask'
             ]),
@@ -740,21 +741,30 @@
                     this.pending.task = false
                 }
             },
-            async taskPause (subflowPause, nodeId, taskId) {
+            /**
+             * nodeId 子流程节点id
+             * taskId 子流程任务id, 不传则是最外层任务暂停
+             * independent 是否为独立子流程节点
+             */
+            async taskPause (nodeId, taskId, independent) {
                 let res, state, message
                 try {
-                    if (!this.isTopTask || subflowPause) { // 子流程画布暂停或子流程节点暂停
+                    const instanceId = taskId || this.instance_id
+                    if (nodeId && !independent) { // 非独立子流程节点暂停
                         const data = {
-                            instance_id: taskId || this.instance_id,
-                            node_id: nodeId || this.taskId
+                            instance_id: instanceId,
+                            node_id: nodeId
                         }
                         res = await this.subInstancePause(data)
+                    } else { // 任务暂停/独立子流程任务暂停
+                        res = await this.instancePause(instanceId)
+                    }
+                    if (nodeId || taskId) {
                         state = 'NODE_SUSPENDED'
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId]
+                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已暂停执行')
                     } else {
-                        res = await this.instancePause(this.instance_id)
                         state = 'SUSPENDED'
                         message = i18n.t('任务已暂停执行')
                     }
@@ -772,20 +782,24 @@
                     this.pending.task = false
                 }
             },
-            async taskResume (subflowResume, nodeId, taskId) {
+            async taskResume (nodeId, taskId, independent) {
                 let res, message
                 try {
-                    if (!this.isTopTask || subflowResume) {
+                    const instanceId = taskId || this.instance_id
+                    if (nodeId && !independent) { // 非独立子流程节点继续执行
                         const data = {
-                            instance_id: taskId || this.instance_id,
-                            node_id: nodeId || this.taskId
+                            instance_id: instanceId,
+                            node_id: nodeId
                         }
                         res = await this.subInstanceResume(data)
+                    } else { // 任务继续执行/独立子流程任务继续执行
+                        res = await this.instanceResume(this.instance_id)
+                    }
+                    if (nodeId || taskId) {
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId]
+                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已继续执行')
                     } else {
-                        res = await this.instanceResume(this.instance_id)
                         message = i18n.t('任务已继续执行')
                     }
                     if (res.result) {
@@ -857,11 +871,31 @@
                 }
                 this.pending.forceFail = true
                 try {
-                    const params = {
-                        node_id: id,
-                        task_id: Number(taskId || this.instance_id)
+                    let res = {}
+                    // 强制终止独立子流程任务节点
+                    const nodeConfig = this.activities[id]
+                    const isSubProcessNode = nodeConfig.component?.code === 'subprocess_plugin'
+                    if (isSubProcessNode) {
+                        if (!taskId) {
+                            const resp = await this.getNodeActDetail({
+                                instance_id: this.instance_id,
+                                node_id: id,
+                                component_code: 'subprocess_plugin',
+                                subprocess_simple_inputs: true
+                            })
+                            if (!resp.result) return
+                            const { outputs = [] } = resp.data
+                            const data = outputs.find(item => item.key === 'task_id') || {}
+                            taskId = data.value
+                        }
+                        res = await this.instanceRevoke(taskId)
+                    } else {
+                        const params = {
+                            node_id: id,
+                            task_id: Number(taskId || this.instance_id)
+                        }
+                        res = await this.forceFail(params)
                     }
-                    const res = await this.forceFail(params)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('强制终止执行成功'),
@@ -1346,16 +1380,16 @@
                 this.approval.message = ''
                 this.approval.dialogShow = false
             },
-            onPauseClick (id, taskId) {
-                this.taskPause(true, id, taskId)
+            onPauseClick (id, taskId, independent) {
+                this.taskPause(id, taskId, independent)
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
                 setTimeout(() => {
                     this.setTaskStatusTimer()
                 }, 1000)
             },
-            onContinueClick (id, taskId) {
-                this.taskResume(true, id, taskId)
+            onContinueClick (id, taskId, independent) {
+                this.taskResume(id, taskId, independent)
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
                 setTimeout(() => {
@@ -1365,9 +1399,28 @@
             onCloseConfigPanel () {
                 this.isShowConditionEdit = false
             },
-            onSubflowPauseResumeClick (id, value) {
+            async onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
-                value === 'pause' ? this.taskPause(true, id) : this.taskResume(true, id)
+                try {
+                    const nodeConfig = this.activities[id]
+                    const isSubProcessNode = nodeConfig.component?.code === 'subprocess_plugin'
+                    if (isSubProcessNode) {
+                        const resp = await this.getNodeActDetail({
+                            instance_id: this.instance_id,
+                            node_id: id,
+                            component_code: 'subprocess_plugin',
+                            subprocess_simple_inputs: true
+                        })
+                        if (!resp.result) return
+                        const { outputs = [] } = resp.data
+                        const taskId = outputs.find(item => item.key === 'task_id') || {}
+                        value === 'pause' ? this.taskPause(id, taskId.value, true) : this.taskResume(id, taskId.value, true)
+                    } else {
+                        value === 'pause' ? this.taskPause(id) : this.taskResume(id)
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             // 设置画布数据，更新页面
             setCanvasData () {
