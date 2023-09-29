@@ -44,6 +44,7 @@
                         :data="functorList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :max-height="tableMaxHeight"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
@@ -518,7 +519,8 @@
                 isLoadCommonTpl: false,
                 onTplSearch: null,
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                tableMaxHeight: window.innerHeight - 144
             }
         },
         computed: {

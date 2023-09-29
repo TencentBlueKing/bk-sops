@@ -74,6 +74,7 @@
                         class="tab-data-table"
                         v-bkloading="{ isLoading: appmakerDataLoading, opacity: 1, zIndex: 100 }"
                         :data="appmakerData"
+                        :max-height="708"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
                         @page-change="handlePageChange"
