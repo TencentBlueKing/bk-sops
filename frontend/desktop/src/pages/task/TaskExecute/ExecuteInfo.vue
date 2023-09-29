@@ -166,7 +166,7 @@
                     </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
+                    <template v-if="executeInfo.state === 'RUNNING'">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
@@ -188,7 +188,7 @@
                             {{ $t('强制终止') }}
                         </bk-button>
                         <bk-button
-                            v-if="isLegacySubProcess"
+                            v-if="isLegacySubProcess || isSubProcessNode"
                             data-test-id="taskExecute_form_pauseBtn"
                             @click="onPauseClick">
                             {{ $t('暂停') }}
@@ -439,7 +439,7 @@
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
-                return (this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode)
+                return this.realTimeState.state === 'RUNNING'
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
                     || this.isShowContinueBtn
@@ -1425,7 +1425,12 @@
                 this.$emit('onSkipClick', this.nodeDetailConfig.node_id, info)
             },
             onResumeClick () {
-                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                if (this.isSubProcessNode) {
+                    const taskId = this.executeInfo.outputs.find(item => item.key === 'task_id') || {}
+                    this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, taskId.value, true)
+                } else {
+                    this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                }
             },
             onApprovalClick () {
                 this.$emit('onApprovalClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
@@ -1437,7 +1442,12 @@
                 this.$emit('onForceFail', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             onPauseClick () {
-                this.$emit('onPauseClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                if (this.isSubProcessNode) {
+                    const taskId = this.executeInfo.outputs.find(item => item.key === 'task_id') || {}
+                    this.$emit('onPauseClick', this.nodeDetailConfig.node_id, taskId.value, true)
+                } else {
+                    this.$emit('onPauseClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                }
             },
             onContinueClick () {
                 this.$emit('onContinueClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
