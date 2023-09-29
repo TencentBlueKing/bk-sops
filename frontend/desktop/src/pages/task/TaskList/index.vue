@@ -39,6 +39,7 @@
                             :data="taskList"
                             :pagination="pagination"
                             :size="setting.size"
+                            :max-height="tableMaxHeight"
                             :row-class-name="getRowClassName"
                             :key="listLoading"
                             v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: !firstLoading && taskList.length ? 0.6 : 1, zIndex: 100 }"
@@ -107,7 +108,7 @@
                                     </template>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('操作')" width="150" :fixed="taskList.length ? 'right' : false">
+                            <bk-table-column :label="$t('操作')" width="150" :fixed="taskList.length ? 'right' : false" :resizable="false">
                                 <template slot-scope="props">
                                     <div v-if="props.row.is_child_taskflow" class="task-operation">
                                         <span class="default">{{ '--' }}</span>
@@ -411,7 +412,8 @@
                 isInitCreateMethod: false,
                 deletaLoading: false,
                 initOpenTask: [],
-                selectedTaskId: ''
+                selectedTaskId: '',
+                tableMaxHeight: window.innerHeight - 180
             }
         },
         computed: {

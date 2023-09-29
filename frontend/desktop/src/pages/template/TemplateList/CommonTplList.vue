@@ -36,6 +36,7 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :max-height="tableMaxHeight"
                         :default-sort="getDefaultSortConfig"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
@@ -88,7 +89,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="190" class="operation-cell" :fixed="templateList.length ? 'right' : false">
+                        <bk-table-column :label="$t('操作')" width="190" class="operation-cell" :fixed="templateList.length ? 'right' : false" :resizable="false">
                             <template slot-scope="props">
                                 <div class="template-operation" :template-name="props.row.name">
                                     <template>
@@ -287,7 +288,8 @@
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                tableMaxHeight: window.innerHeight - 186
             }
         },
         computed: {

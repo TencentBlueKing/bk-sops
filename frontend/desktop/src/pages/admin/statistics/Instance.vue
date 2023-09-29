@@ -100,6 +100,7 @@
                         class="tab-data-table"
                         v-bkloading="{ isLoading: instanceDataLoading, opacity: 1, zIndex: 100 }"
                         :data="instanceData"
+                        :max-height="768"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
                         @page-change="handlePageChange"

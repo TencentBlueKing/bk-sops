@@ -38,6 +38,7 @@
                         :data="periodicList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :max-height="tableMaxHeight"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }">
@@ -136,7 +137,7 @@
                                 </template>
                             </bk-table-column>
                         </template>
-                        <bk-table-column :label="$t('操作')" width="220" :fixed="periodicList.length ? 'right' : false">
+                        <bk-table-column :label="$t('操作')" width="220" :fixed="periodicList.length ? 'right' : false" :resizable="false">
                             <template slot-scope="props">
                                 <div class="periodic-operation" :periodic-task-name="props.row.name">
                                     <template v-if="!adminView">
@@ -435,7 +436,8 @@
                 editTask: true, // 编辑/创建周期任务
                 curRow: {}, // 当前选中行的数据
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                tableMaxHeight: window.innerHeight - (this.admin ? 198 : 148)
             }
         },
         computed: {
