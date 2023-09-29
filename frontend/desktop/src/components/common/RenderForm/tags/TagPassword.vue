@@ -23,12 +23,12 @@
                 <bk-option id="value" :name="$t('password_手动输入')"></bk-option>
                 <bk-option id="variable" :name="$t('password_使用密码变量')"></bk-option>
             </bk-select>
-            <template v-if="localVal.tag === 'value'">
+            <div v-if="localVal.tag === 'value'" class="value-edit-input">
                 <input
                     v-if="!textareaMode"
                     class="value-input"
-                    type="password"
-                    :value="inputText"
+                    :type="showInputVal ? 'input' : 'password'"
+                    :value="inputDisplayText"
                     :placeholder="inputPlaceholder"
                     :disabled="!editable || !formMode || disabled"
                     @input="handleInput"
@@ -39,7 +39,7 @@
                     class="value-textarea"
                     type="textarea"
                     rows="4"
-                    :value="inputText"
+                    :value="inputDisplayText"
                     :placeholder="inputPlaceholder"
                     :disabled="!editable || !formMode || disabled"
                     @keydown="handleTextareaKeyDown"
@@ -48,7 +48,11 @@
                     @focus="handleFocus"
                     @blur="handleBlur">
                 </textarea>
-            </template>
+                <i
+                    v-if="inputDisplayText.length > 0"
+                    :class="['bk-icon toggle-eye-icon', showInputVal ? 'icon-eye' : 'icon-eye-slash']"
+                    @click="showInputVal = !showInputVal" />
+            </div>
             <bk-select v-else class="select-var" :value="localVal.value" @selected="handleSelectVariable">
                 <bk-option v-for="item in variables" :key="item.id" :id="item.id" :name="item.id"></bk-option>
             </bk-select>
@@ -104,8 +108,9 @@
                     value: ''
                 },
                 cursorPos: 0,
-                inputText: '',
+                inputDisplayText: '', // 输入框展示的值
                 inputPlaceholder: '',
+                showInputVal: false,
                 ASYMMETRIC_CIPHER_TYPE: window.ASYMMETRIC_CIPHER_TYPE,
                 ASYMMETRIC_PUBLIC_KEY: window.ASYMMETRIC_PUBLIC_KEY,
                 ASYMMETRIC_PREFIX: window.ASYMMETRIC_PREFIX
@@ -140,7 +145,7 @@
         },
         mounted () {
             if (this.localVal?.tag === 'value') {
-                this.inputText = this.localVal.value ? '******' : ''
+                this.inputDisplayText = this.localVal.value ? '******' : ''
             }
         },
         methods: {
@@ -149,9 +154,10 @@
                     tag: val,
                     value: ''
                 }
-                this.inputText = ''
+                this.inputDisplayText = ''
                 this.change()
             },
+            // 单行文本框输入
             handleInput (e) {
                 this.localVal.value = e.target.value
                 this.inputPlaceholder = ''
@@ -159,6 +165,7 @@
             handleTextareaKeyDown (e) {
                 this.cursorPos = e.target.selectionStart
             },
+            // 多行文本框输入
             handleTextareaInput (e) {
                 const value = e.target.value
                 const start = this.cursorPos > e.target.selectionStart ? e.target.selectionStart : this.cursorPos
@@ -173,22 +180,26 @@
             },
             handleTextareaKeyUp (e) {
                 this.inputPlaceholder = ''
-                this.inputText = e.target.value.replace(/[^\n]/g, '·')
+                this.inputDisplayText = e.target.value.replace(/[^\n]/g, '·')
             },
+            // 获取焦点后清空密码
             handleFocus () {
                 if (this.localVal.value.length > 0) {
                     this.inputPlaceholder = i18n.t('要修改密码请点击后重新输入密码')
                 }
                 this.localVal.value = ''
-                this.inputText = ''
+                this.inputDisplayText = ''
                 this.change()
             },
             // 输入框失焦后执行加密逻辑
             handleBlur () {
-                this.inputText = this.textareaMode ? this.localVal.value.replace(/[^\n]/g, '·') : this.localVal.value
+                this.inputDisplayText = this.textareaMode ? this.localVal.value.replace(/[^\n]/g, '·') : this.localVal.value
                 const encryptedVal = this.encryptPassword()
                 this.localVal.value = encryptedVal
                 this.change()
+            },
+            handleToggleEye () {
+                this.showInputVal = !this.showInputVal
             },
             handleSelectVariable (val) {
                 this.localVal.value = val
@@ -228,6 +239,12 @@
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
+        .value-edit-input {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
         .value-input {
             flex: 1;
             padding: 0 10px;
@@ -266,6 +283,18 @@
             &:focus {
                 border-color: #3a84ff;
                 background-color: #ffffff;
+            }
+        }
+        .toggle-eye-icon {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            font-size: 14px;
+            color: #979ba5;
+            transform: translateY(-50%);
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
             }
         }
         .select-var {
