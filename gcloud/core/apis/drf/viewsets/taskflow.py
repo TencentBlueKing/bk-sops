@@ -15,7 +15,7 @@ import re
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Value
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
@@ -32,11 +32,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.function.models import FunctionTask
-from gcloud.contrib.operate_record.constants import (
-    OperateSource,
-    OperateType,
-    RecordType,
-)
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.utils import extract_extra_info
 from gcloud.core.apis.drf.exceptions import ValidationException
@@ -66,17 +62,9 @@ from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.models import EngineConfig
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
-from gcloud.iam_auth.utils import (
-    get_common_flow_allowed_actions_for_user,
-    get_flow_allowed_actions_for_user,
-)
+from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.taskflow3.models import (
-    TaskConfig,
-    TaskFlowInstance,
-    TaskFlowRelation,
-    TimeoutNodeConfig,
-)
+from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 
@@ -174,7 +162,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = TaskFlowInstanceSerializer
     queryset = TaskFlowInstance.objects.filter(
-        pipeline_instance__isnull=False, is_deleted=False, pipeline_instance__is_expired=False
+        pipeline_instance__isnull=False, is_deleted=Value(0), pipeline_instance__is_expired=False
     ).order_by("-id")
     iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
@@ -389,7 +377,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         children_task_ids = [info["task_id"] for info in children_task_info]
         queryset = TaskFlowInstance.objects.filter(
-            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=False
+            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=Value(0)
         )
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)

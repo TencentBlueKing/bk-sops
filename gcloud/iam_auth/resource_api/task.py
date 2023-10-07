@@ -10,17 +10,17 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.core.cache import cache
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.core.cache import cache
+from django.db.models import Q, Value
 from django.utils.translation import ugettext_lazy as _
+from iam.resource.provider import ListResult, ResourceProvider
 
+from gcloud.core.models import Project
 from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
+from gcloud.taskflow3.models import TaskFlowInstance
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
-from iam.resource.provider import ListResult, ResourceProvider
-from gcloud.core.models import Project
-from gcloud.taskflow3.models import TaskFlowInstance
 
 attr_names = {
     "en": {"type": "Task type", "iam_resource_owner": "Resource owner"},
@@ -65,7 +65,7 @@ class TaskResourceProvider(ResourceProvider):
         if results is None:
             queryset = (
                 TaskFlowInstance.objects.select_related("pipeline_instance")
-                .filter(pipeline_instance__name__icontains=keyword, is_deleted=False)
+                .filter(pipeline_instance__name__icontains=keyword, is_deleted=Value(0))
                 .only("pipeline_instance__name")
             )
             if project_id:
@@ -114,13 +114,13 @@ class TaskResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = TaskFlowInstance.objects.filter(is_deleted=False)
+            queryset = TaskFlowInstance.objects.filter(is_deleted=Value(0))
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
-                queryset = TaskFlowInstance.objects.filter(project_id=str(parent_id), is_deleted=False)
+                queryset = TaskFlowInstance.objects.filter(project_id=str(parent_id), is_deleted=Value(0))
             else:
-                queryset = TaskFlowInstance.objects.filter(is_deleted=False)
+                queryset = TaskFlowInstance.objects.filter(is_deleted=Value(0))
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -129,7 +129,7 @@ class TaskResourceProvider(ResourceProvider):
             task_keywords = filter.search.get("task", [])
 
             project_filter = Q()
-            task_filter = Q(is_deleted=False)
+            task_filter = Q(is_deleted=Value(0))
 
             for keyword in project_keywords:
                 project_filter |= Q(name__icontains=keyword)
