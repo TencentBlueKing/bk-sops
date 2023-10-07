@@ -13,23 +13,15 @@
     <bk-sideslider
         :is-show="true"
         :width="800"
-        title="Code"
+        :title="$t('模板数据')"
         :quick-close="true"
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">
             <div class="code-wrapper">
                 <full-code-editor
                     :value="template"
-                    :options="{ readOnly: (isViewMode || !hasAdminPerm), language: 'json' }"
-                    @input="onDataChange">
+                    :options="{ readOnly: true, language: 'json' }">
                 </full-code-editor>
-            </div>
-            <div class="btn-wrap">
-                <template v-if="hasAdminPerm">
-                    <bk-button v-if="!isViewMode" class="save-btn" theme="primary" @click="onConfirm">{{ $t('确定') }}</bk-button>
-                    <bk-button theme="default" @click="closeTab">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
-                </template>
-                <bk-button v-else theme="primary" @click="closeTab">{{ $t('关闭') }}</bk-button>
             </div>
         </div>
     </bk-sideslider>
@@ -37,26 +29,16 @@
 
 <script>
     import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
-    import { mapState, mapGetters } from 'vuex'
-    import validatePipeline from '@/utils/validatePipeline.js'
+    import { mapGetters } from 'vuex'
     export default {
         name: 'TabPipelineTreeEdit',
         components: {
             FullCodeEditor
         },
-        props: ['isShow', 'isViewMode'],
         data () {
             return {
-                template: this.transPipelineTreeStr(),
-                errorMessage: '',
-                isDataChange: false
+                template: this.transPipelineTreeStr()
             }
-        },
-        computed: {
-            ...mapState({
-                hasAdminPerm: state => state.hasAdminPerm,
-                infoBasicConfig: state => state.infoBasicConfig
-            })
         },
         methods: {
             ...mapGetters('template/', [
@@ -66,67 +48,20 @@
                 const templateData = this.getLocalTemplateData()
                 return JSON.stringify(templateData, null, 4)
             },
-            onDataChange (value) {
-                if (value !== this.template) {
-                    this.template = value
-                    this.isDataChange = true
-                }
-            },
-            onConfirm () {
-                let pipelineData = {}
-                try {
-                    pipelineData = JSON.parse(this.template)
-                } catch (error) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        ellipsisLine: 0,
-                        message: error,
-                        delay: 10000
-                    })
-                    return
-                }
-                const validateResult = validatePipeline.isPipelineDataValid(pipelineData)
-                if (!validateResult.result) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        ellipsisLine: 0,
-                        message: validateResult.message,
-                        delay: 10000
-                    })
-                    return
-                }
-                this.$emit('modifyTemplateData', pipelineData)
-                this.$emit('closeTab')
-            },
             closeTab () {
-                if (this.isDataChange) {
-                    this.$bkInfo({
-                        ...this.infoBasicConfig,
-                        confirmFn: () => {
-                            this.$emit('closeTab')
-                        }
-                    })
-                } else {
-                    this.$emit('closeTab')
-                }
+                this.$emit('closeTab')
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-    @import '@/scss/config.scss';
-    @import '@/scss/mixins/scrollbar.scss';
     .pipeline-tree-wrap {
         height: calc(100vh - 60px);
     }
     .code-wrapper {
         position: relative;
         padding: 20px;
-        height: calc(100% - 49px);
-    }
-    .btn-wrap {
-        padding: 8px 20px;
-        border-top: 1px solid #cacedb;
+        height: calc(100% - 10px);
     }
 </style>

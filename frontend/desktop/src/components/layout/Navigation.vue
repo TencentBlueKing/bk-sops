@@ -3,7 +3,10 @@
         navigation-type="left-right"
         :side-title="$t('标准运维')"
         :need-menu="true"
-        :class="$route.name === 'taskList' ? 'hide-header-border' : ''"
+        :class="[
+            $route.name === 'taskList' ? 'hide-header-border' : '',
+            hideNavHeader ? 'hide-header' : ''
+        ]"
         :default-open="sideNavOpen"
         @toggle="toggleSideNav">
         <div slot="side-icon" class="logo-area">
@@ -142,6 +145,10 @@
                     return this.$t('拥有流程管理权限的人员，通过设置“执行代理人”功能，将流程任务的执行操作交由第三方人员（如：外包、外聘人员），帮助流程管理人员从繁重的执行工作中解放。')
                 }
                 return ''
+            },
+            hideNavHeader () {
+                const { name, params = {} } = this.$route
+                return name === 'templatePanel' && params.type === 'edit'
             }
         },
         watch: {
@@ -303,6 +310,14 @@
             & >>> .container-header {
                 border-color: transparent;
                 box-shadow: 0;
+            }
+        }
+        &.hide-header {
+            & >>> .container-header {
+                display: none;
+            }
+            & >>> .container-content {
+                max-height: 100vh !important;
             }
         }
         & >>> {

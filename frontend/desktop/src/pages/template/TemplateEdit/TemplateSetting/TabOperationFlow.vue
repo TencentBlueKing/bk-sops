@@ -3,15 +3,16 @@
         :is-show="true"
         :width="800"
         ext-cls="operate-flow"
-        :title="$t('操作记录')"
+        :title="$t('操作流水')"
         :quick-close="true"
         :before-close="closeTab">
         <template slot="content">
             <bk-table
                 ext-cls="operate-flow-table"
-                :data="operateFlowData">
+                :data="operateFlowData"
+                v-bkloading="{ isLoading: isLoading }">
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
-                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作类型')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作人')" prop="operator"></bk-table-column>
                 <div class="static-ip-empty" slot="empty">
@@ -32,7 +33,8 @@
         },
         data () {
             return {
-                operateFlowData: []
+                operateFlowData: [],
+                isLoading: false
             }
         },
         mounted () {
@@ -46,6 +48,7 @@
                 const { params, query } = this.$route
                 try {
                     if (!query.template_id) return
+                    this.isLoading = true
                     const resp = await this.getOperationRecordTemplate({
                         project_id: params.project_id,
                         instance_id: query.template_id
@@ -56,6 +59,8 @@
                     })
                 } catch (error) {
                     console.warn(error)
+                } finally {
+                    this.isLoading = false
                 }
             },
             renderTableHeader (h, { column, $index }) {
@@ -79,7 +84,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .operate-flow {
     /deep/ .bk-sideslider-content {
-        padding: 20px 30px;
+        padding: 20px 24px;
     }
     /deep/ .operate-flow-table {
         .bk-table-body-wrapper {

@@ -12,37 +12,16 @@
 <template>
     <div class="setting-panel">
         <TabOperationFlow
-            v-if="activeTab === 'operationFlowTab'"
+            v-if="activeTab === 'operateFlowTab'"
             @closeTab="closeTab">
         </TabOperationFlow>
-        <TabGlobalVariables
-            v-if="activeTab === 'globalVariableTab'"
+        <TabExecuteSetting
+            v-if="activeTab === 'executeSettingTab'"
             :common="common"
             :is-view-mode="isViewMode"
-            @viewClick="$emit('viewClick', $event)"
             @templateDataChanged="$emit('templateDataChanged')"
-            @onCitedNodeClick="$emit('onCitedNodeClick', $event)"
             @closeTab="closeTab">
-        </TabGlobalVariables>
-        <TabTemplateConfig
-            v-if="activeTab === 'templateConfigTab'"
-            :common="common"
-            :is-view-mode="isViewMode"
-            :project-info-loading="projectInfoLoading"
-            :template-label-loading="templateLabelLoading"
-            :template-labels="templateLabels"
-            @templateDataChanged="$emit('templateDataChanged')"
-            @updateTemplateLabelList="$emit('updateTemplateLabelList')"
-            @closeTab="closeTab">
-        </TabTemplateConfig>
-        <TabTemplateSnapshoot
-            v-if="activeTab === 'tplSnapshootTab'"
-            :snapshoots="snapshoots"
-            @createSnapshoot="$emit('createSnapshoot')"
-            @useSnapshoot="$emit('useSnapshoot', arguments)"
-            @updateSnapshoot="$emit('updateSnapshoot', $event)"
-            @closeTab="closeTab">
-        </TabTemplateSnapshoot>
+        </TabExecuteSetting>
         <TabPipelineTreeEdit
             v-if="activeTab === 'templateDataEditTab'"
             :is-view-mode="isViewMode"
@@ -52,28 +31,20 @@
     </div>
 </template>
 <script>
-    import TabGlobalVariables from './TabGlobalVariables/index.vue'
-    import TabTemplateConfig from './TabTemplateConfig.vue'
-    import TabTemplateSnapshoot from './TabTemplateSnapshoot.vue'
     import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
     import TabOperationFlow from './TabOperationFlow.vue'
+    import TabExecuteSetting from './TabExecuteSetting.vue'
 
     export default {
         name: 'TemplateSetting',
         components: {
-            TabGlobalVariables,
-            TabTemplateConfig,
-            TabTemplateSnapshoot,
             TabPipelineTreeEdit,
-            TabOperationFlow
+            TabOperationFlow,
+            TabExecuteSetting
         },
         props: {
             isViewMode: Boolean,
-            projectInfoLoading: Boolean,
-            templateLabelLoading: Boolean,
-            templateLabels: Array,
             activeTab: String,
-            snapshoots: Array,
             common: [String, Number]
         },
         methods: {
