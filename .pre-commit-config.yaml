@@ -5,13 +5,12 @@ repos:
     hooks:
     - id: check-merge-conflict
   - repo: https://github.com/psf/black
-    rev: 22.3.0
+    rev: stable
     hooks:
     - id: black
-      name: black
-      language: python
+      language_version: python3.6
   - repo: https://github.com/pycqa/isort
-    rev: 5.11.5
+    rev: 5.6.4
     hooks:
       - id: isort
         args: ["--profile", "black", "--filter-files"]
