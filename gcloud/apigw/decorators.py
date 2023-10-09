@@ -37,6 +37,8 @@ def check_white_apps(request):
 
 
 def check_allowed_limited_api_apps(request):
+    if getattr(request, "app", None) is None:
+        return False
     app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
     return app_code in getattr(settings, "ALLOWED_LIMITED_API_APPS", [])
 
