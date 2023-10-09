@@ -36,6 +36,11 @@ def check_white_apps(request):
     return app_whitelist.has(app_code)
 
 
+def check_allowed_limited_api_apps(request):
+    app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
+    return app_code in getattr(settings, "ALLOWED_LIMITED_API_APPS", [])
+
+
 def inject_user(request):
     user_model = get_user_model()
 
@@ -57,6 +62,7 @@ def mark_request_whether_is_trust(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         setattr(request, "is_trust", check_white_apps(request))
+        setattr(request, "allow_limited_apis", check_allowed_limited_api_apps(request))
 
         try:
             inject_user(request)

@@ -120,3 +120,6 @@ BKPAAS_BK_CRYPTO_TYPE = (
 
 # 默认六个月
 BKPAAS_TASK_LIST_STATUS_FILTER_DAYS = int(os.getenv("BKPAAS_TASK_LIST_STATUS_FILTER_DAYS", 180))
+
+# 支持限制接口的 app
+ALLOWED_LIMITED_API_APPS = [app for app in os.getenv("BKAPP_ALLOWED_LIMITED_API_APPS", "").split(",") if app]
