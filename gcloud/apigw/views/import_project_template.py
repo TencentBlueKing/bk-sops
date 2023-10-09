@@ -10,8 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
 import ujson as json
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
@@ -19,17 +17,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from gcloud import err_code
-from gcloud.apigw.decorators import (
-    mark_request_whether_is_trust,
-    project_inject,
-    return_json_response,
-)
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.template_base.utils import (
-    format_import_result_to_response_data,
-    read_encoded_template_data,
-)
+from gcloud.template_base.utils import format_import_result_to_response_data, read_encoded_template_data
+from iam import Action, Request, Subject
 
 
 @login_exempt
@@ -40,12 +33,27 @@ from gcloud.template_base.utils import (
 @project_inject
 @mark_request_whether_is_trust
 def import_project_template(request, project_id):
-    if not request.is_trust:
+    if not request.is_trust and not request.allow_limited_apis:
         return {
             "result": False,
             "message": "you have no permission to call this api.",
             "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
         }
+
+    # 针对非trust请求，校验用户是否有权限
+    if not request.is_trust and request.allow_limited_apis:
+        iam = get_iam_client()
+        subject = Subject("user", request.user.username)
+        create_action = Action(IAMMeta.FLOW_CREATE_ACTION)
+        project_resources = res_factory.resources_for_project(request.project.id)
+        create_request = Request(IAMMeta.SYSTEM_ID, subject, create_action, project_resources, {})
+        allowed = iam.is_allowed(create_request)
+        if not allowed:
+            return {
+                "result": False,
+                "message": f"user {request.user.username} have no permission to call this api.",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
 
     try:
         req_data = json.loads(request.body)
@@ -71,7 +79,7 @@ def import_project_template(request, project_id):
             operator=request.user.username,
         )
     except Exception as e:
-        logger.exception("[API] import common tempalte error: {}".format(e))
+        logger.exception("[API] import template error: {}".format(e))
         return {
             "result": False,
             "message": "invalid flow data or error occur, please contact administrator",
