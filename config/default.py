@@ -211,7 +211,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.30.1"
+STATIC_VERSION = "3.30.2"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -803,9 +803,7 @@ BKCRYPTO = {
             },
         },
     },
-    "SYMMETRIC_CIPHERS": {
-        "default": {"get_key_config": "gcloud.utils.crypto.get_default_symmetric_key_config"},
-    },
+    "SYMMETRIC_CIPHERS": {"default": {"get_key_config": "gcloud.utils.crypto.get_default_symmetric_key_config"}},
 }
 
 # 启用框架内置数据加密
