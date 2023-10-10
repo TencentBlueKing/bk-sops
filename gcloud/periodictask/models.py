@@ -293,7 +293,11 @@ class PeriodicTask(models.Model):
 
     def get_notify_type(self):
         notify_type = json.loads(self.template.notify_type)
-        return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+        return (
+            notify_type
+            if isinstance(notify_type, dict)
+            else {"success": notify_type, "fail": notify_type, "pending_processing": notify_type}
+        )
 
 
 class PeriodicTaskHistoryManager(models.Manager):

@@ -25,11 +25,15 @@ class BaseTemplateSerializer(serializers.ModelSerializer):
     notify_type = ReadWriteSerializerMethodField(help_text="通知类型")
 
     def get_notify_type(self, obj):
-        default_notify_type = {"success": [], "fail": []}
+        default_notify_type = {"success": [], "fail": [], "pending_processing": []}
         try:
             notify_type = json.loads(obj.notify_type)
             # 对于旧数据中解析出来为[]的情况，返回默认格式
-            return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+            return (
+                notify_type
+                if isinstance(notify_type, dict)
+                else {"success": notify_type, "fail": notify_type, "pending_processing": []}
+            )
         except Exception as e:
             logger.exception(f"[get_notify_type] error: {e}")
             return default_notify_type

@@ -42,6 +42,20 @@ def title_and_content_for_flow_finished(taskflow, pipeline_inst, node_name, exec
     return title, content, email_content
 
 
+def title_and_content_for_pending_processing(taskflow, pipeline_inst, node_name, executor):
+    title = _("【标准运维APP通知】等待处理")
+    base_content = _("您在【{cc_name}】业务中的任务【{task_name}】等待处理中，操作员是【{executor}】，" "请前往标准运维APP{url}查看详情！").format(
+        cc_name=taskflow.project.name,
+        task_name=pipeline_inst.name,
+        executor=executor,
+        url="{url}",
+    )
+
+    content = base_content.format(url="( {} )".format(taskflow.url))
+    email_content = base_content.format(url="<a href={}>( {} )</a>".format(taskflow.url, taskflow.url))
+    return title, content, email_content
+
+
 def title_and_content_for_periodic_task_start_fail(periodic_task, history):
     title = _("【标准运维APP通知】周期任务启动失败")
     content = _("您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，" "错误信息：【{ex_data}】").format(

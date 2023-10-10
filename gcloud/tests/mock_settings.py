@@ -52,6 +52,11 @@ TASKFLOW_MODEL_NODE_CMD_DISPATCHER = "gcloud.taskflow3.models.NodeCommandDispatc
 TASKFLOW_CONTEXT_PROJECT_CONFIG = "gcloud.taskflow3.domains.context.ProjectConfig"
 
 TASKFLOW_TASKS_TASKFLOW_INSTANCE = "gcloud.taskflow3.celery.tasks.TaskFlowInstance"
+TASKFLOW_TASKS_TASKFLOW_RELATION = "gcloud.taskflow3.celery.tasks.TaskFlowRelation"
+TASKFLOW_TASKS_TASK_COMMAND_DISPATCHER_GET_STATUS = (
+    "gcloud.taskflow3.celery.tasks.TaskCommandDispatcher." "get_task_status"
+)
+TASKFLOW_TASKS_SEND_TASK_FLOW_MESSAGE = "gcloud.taskflow3.celery.tasks.send_task_flow_message"
 
 TASKFLOW_DISPATCHERS_NODE_PIPELINE_API = "gcloud.taskflow3.domains.dispatchers.node.pipeline_api"
 TASKFLOW_DISPATCHERS_NODE_BAMBOO_API = "gcloud.taskflow3.domains.dispatchers.node.bamboo_engine_api"

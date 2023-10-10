@@ -15,14 +15,16 @@ import logging
 import traceback
 
 from django.utils.translation import ugettext_lazy as _
-
-from api.collections.itsm import BKItsmClient
+from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
-from pipeline.component_framework.component import Component
 
-from gcloud.utils.handlers import handle_api_error
+from api.collections.itsm import BKItsmClient
 from gcloud.conf import settings
+from gcloud.constants import TaskExtraStatus
+from gcloud.shortcuts.message import PENDING_PROCESSING
+from gcloud.taskflow3.celery.tasks import send_taskflow_message
+from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.utils import get_node_callback_url
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -83,6 +85,15 @@ class ApproveService(Service):
             return False
 
         data.outputs.sn = result["data"]["sn"]
+
+        task_id: int = parent_data.get_one_of_inputs("task_id")
+        send_taskflow_message.delay(
+            task_id=task_id,
+            msg_type=PENDING_PROCESSING,
+            skip_if_not_status=TaskExtraStatus.PENDING_PROCESSING.value,
+            use_root=True,
+        )
+
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
