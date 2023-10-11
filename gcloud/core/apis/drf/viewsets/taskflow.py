@@ -275,9 +275,14 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        start_time = datetime.now() - timedelta(days=settings.TASK_LIST_STATUS_FILTER_DAYS)
-        queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
         task_instance_status = request.query_params.get("task_instance_status")
+
+        user_type = request.query_params.get("user_type")
+
+        # 对于非审计页面才需要增加查询时间限制
+        if user_type != "auditor":
+            start_time = datetime.now() - timedelta(days=settings.TASK_LIST_STATUS_FILTER_DAYS)
+            queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
         if task_instance_status:
             # 状态查询的范围为最近TASK_LIST_STATUS_FILTER_DAYS天内，已经开始的v2引擎的任务
             queryset = queryset.filter(
