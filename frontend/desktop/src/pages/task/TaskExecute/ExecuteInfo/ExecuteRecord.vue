@@ -1,10 +1,15 @@
 <template>
     <div class="execute-record">
         <template v-if="Object.keys(executeInfo).length && !notPerformedSubNode">
-            <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.ex_data">
-                <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
-                <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
-                <span class="expand-btn" v-if="isExpandTextShow" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('显示全部') }}</span>
+            <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.state === 'FAILED'">
+                <template v-if="!executeInfo.ex_data">
+                    <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
+                    <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
+                    <span class="expand-btn" v-if="isExpandTextShow" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('显示全部') }}</span>
+                </template>
+                <i18n v-else tag="div" path="exFailedText" class="show-html-text">
+                    <a href="javascript:void(0);" class="link" @click="$emit('onTabChange', 'log')">{{ $t('exFailedText_调用日志') }}</a>
+                </i18n>
             </section>
             <section class="info-section" data-test-id="taskExecute_form_executeInfo">
                 <ul class="operation-table" v-if="isReadyStatus">
@@ -173,11 +178,6 @@
         a {
             color: #3a84ff;
         }
-    }
-    .not-fail {
-        color: #979ba5;
-        font-size: 12px;
-        padding-left: 15px;
     }
     .operation-table {
         display: flex;

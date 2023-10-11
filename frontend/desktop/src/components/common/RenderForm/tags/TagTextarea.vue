@@ -38,11 +38,11 @@
                         <li
                             class="rf-select-item"
                             v-for="item in varList"
-                            v-bk-overflow-tips
-                            :key="item"
-                            :class="{ 'is-hover': hoverKey === item }"
-                            @click.stop="onSelectVal(item)">
-                            {{ item }}
+                            :key="item.key"
+                            :class="{ 'is-hover': hoverKey === item.key }"
+                            @click.stop="onSelectVal(item.key)">
+                            <span class="key">{{ item.key }}</span>
+                            <span class="name" v-bk-overflow-tips>{{ item.name }}</span>
                         </li>
                     </ul>
                 </div>
@@ -107,10 +107,10 @@
                 get () {
                     let KeyList = []
                     if (this.constants) {
-                        KeyList = [...Object.keys(this.constants)]
+                        KeyList = [...Object.values(this.constants)]
                     }
                     if (this.internalVariable) {
-                        KeyList = [...KeyList, ...Object.keys(this.internalVariable)]
+                        KeyList = [...KeyList, ...Object.values(this.internalVariable)]
                     }
                     return KeyList
                 },
@@ -277,7 +277,7 @@
                 }
                 // 判断是否为变量格式
                 if (matchText === '$' || /^\${[a-zA-Z_]*[\w|.]*/.test(matchText)) {
-                    this.varList = this.constantArr.filter(item => item.indexOf(matchText) > -1)
+                    this.varList = this.constantArr.filter(item => item.key.indexOf(matchText) > -1)
                     // 计算变量下拉列表的坐标
                     this.isListOpen = false
                     if (this.varList.length) {
@@ -307,13 +307,13 @@
                         const focusValueWidth = newDom.offsetWidth || 0
                         const focusValueHeight = newDom.offsetHeight || 0
                         this.$el.removeChild(newDom)
-                        let popLeft = previousDomLeft + previousDomWidth + focusValueWidth
-                        if (popLeft > inputWidth - 238) {
-                            popLeft = inputWidth - 238
-                        }
-                        let popTop = textNodeTop - inputTop + focusValueHeight + 2 // 2px是为了使光标和联想列表隔开
                         this.$nextTick(() => {
-                            const { height: varListHeight } = document.querySelector('.rf-select-list').getBoundingClientRect()
+                            const { height: varListHeight, width: varListWidth } = document.querySelector('.rf-select-list').getBoundingClientRect()
+                            let popLeft = previousDomLeft + previousDomWidth + focusValueWidth
+                            if (popLeft > inputWidth - varListWidth) {
+                                popLeft = inputWidth - varListWidth
+                            }
+                            let popTop = textNodeTop - inputTop + focusValueHeight + 2 // 2px是为了使光标和联想列表隔开
                             if (window.innerHeight < textNodeTop + focusValueHeight + varListHeight + 50) {
                                 popTop = textNodeTop - inputTop - varListHeight - 2
                             }
@@ -345,7 +345,11 @@
                     let domValue = dom.textContent || '\n'
                     if (dom.childNodes.length) {
                         domValue = Array.from(dom.childNodes).map(item => {
-                            return item.type === 'button' ? item.value : item.textContent
+                            return item.type === 'button'
+                                ? item.value
+                                : item.textContent.trim() === ''
+                                    ? ' '
+                                    : item.textContent.replace(/&nbsp;/g, ' ')
                         }).join('')
                     }
                     return domValue
@@ -376,7 +380,7 @@
                         let isExistVar = false
                         if ($0) {
                             isExistVar = this.constantArr.some(item => {
-                                const varText = item.slice(2, -1)
+                                const varText = item.key.slice(2, -1)
                                 if ($0.indexOf(varText) > -1) {
                                     const regexp = new RegExp(`^(.*\\W|\\W)?${varText}(\\W|\\W.*)?$`)
                                     return regexp.test($0)
@@ -436,12 +440,12 @@
                 if (len) {
                     event.preventDefault()
                     event.stopPropagation()
-                    let curIndex = this.varList.findIndex(item => item === this.hoverKey)
+                    let curIndex = this.varList.findIndex(item => item.key === this.hoverKey)
                     curIndex = event.code === 'ArrowDown' ? curIndex + 1 : curIndex - 1
                     curIndex = curIndex > len - 1 ? 0 : (curIndex < 0 ? len - 1 : curIndex)
                     const option = this.varList[curIndex]
                     if (option) {
-                        this.hoverKey = option
+                        this.hoverKey = option.key
                         const selectDom = this.$el.querySelector('.rf-select-content')
                         const hoverItemDom = selectDom.querySelector('.is-hover')
                         if (hoverItemDom) {
@@ -471,12 +475,17 @@
             position: absolute;
             top: 40px;
             right: 0;
-            width: 238px;
+            max-width: 600px;
             background: #ffffff;
+            border: 1px solid #dcdee5;
             border-radius: 2px;
-            box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 3px 9px 0 rgba(0,0,0,.1);
             overflow-y: hidden;
             z-index: 100;
+            .name {
+                color: #c4c6cc;
+                margin-left: 16px;
+            }
         }
         .rf-select-content {
             max-height: 100px;
@@ -485,12 +494,21 @@
             @include scrollbar;
         }
         .rf-select-item {
+            display: flex;
+            align-items: center;
             padding: 0 10px;
             line-height: 32px;
             font-size: 12px;
             cursor: pointer;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            > span {
+                flex-shrink: 0;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            .name {
+                max-width: 250px;
+            }
             &.is-hover,
             &:hover {
                 background: #f5f7fa;
