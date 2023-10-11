@@ -45,7 +45,10 @@ def clean_expired_v2_task_data():
 
         ids = (
             TaskFlowInstance.objects.filter(
-                pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=False
+                pipeline_instance__create_time__lt=expire_time,
+                engine_ver=2,
+                pipeline_instance__is_expired=False,
+                create_method__in=settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS,
             )
             .order_by("id")
             .values("id", "pipeline_instance__instance_id")[:batch_num]
