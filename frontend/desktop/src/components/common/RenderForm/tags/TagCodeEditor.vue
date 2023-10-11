@@ -213,12 +213,14 @@
                             }
                         })
                     })
-                } else if (this.decorationsMap[lineNumber]) {
-                    this.decorationsMap[lineNumber].forEach(decorations => {
-                        monacoInstance.deltaDecorations(
-                            [...decorations],
-                            []
-                        )
+                } else {
+                    Object.keys(this.decorationsMap).forEach(key => {
+                        this.decorationsMap[key].forEach(decorations => {
+                            monacoInstance.deltaDecorations(
+                                [...decorations],
+                                []
+                            )
+                        })
                     })
                     this.decorationsMap = {}
                 }

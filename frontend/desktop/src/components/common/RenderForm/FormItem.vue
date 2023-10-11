@@ -477,12 +477,15 @@
     }
     &.rf-has-hook {
         & > .rf-tag-form {
-            margin-right: 45px;
+            margin-right: 40px;
         }
     }
     &.show-render {
         > .rf-tag-form {
-            margin-right: 64px;
+            margin-right: 58px;
+        }
+        .hook-icon {
+            padding-right: 3px !important;
         }
     }
     &.rf-col-layout {
@@ -548,16 +551,17 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 8px;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
         z-index: 1;
+        cursor: pointer;
         .hook-icon,
         .render-skip-icon {
-            font-size: 14px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
             color: #979ba5;
-            cursor: pointer;
             &.disabled {
                 color: #c4c6cc;
                 cursor: not-allowed;
@@ -567,10 +571,12 @@
             }
         }
         .hook-icon {
+            line-height: 31px;
+            padding: 0 8px;
             font-size: 16px;
         }
         .render-skip-icon {
-            margin-left: 7px;
+            padding: 0 8px 0 3px;
         }
         .icon-angle-up-fill {
             font-size: 12px;
