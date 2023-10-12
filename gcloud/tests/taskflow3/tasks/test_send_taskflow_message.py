@@ -36,7 +36,6 @@ class SendTaskflowMessageTaskTestCase(TestCase):
 
     def test_send_taskflow_message(self):
 
-        get_task_status = MagicMock()
         taskflow = MagicMock()
         taskflow.id = 1
         taskflow_model = MagicMock()
@@ -44,12 +43,10 @@ class SendTaskflowMessageTaskTestCase(TestCase):
 
         send_task_flow_message = MagicMock()
         with patch(TASKFLOW_TASKS_TASKFLOW_INSTANCE, taskflow_model):
-            with patch(TASKFLOW_TASKS_TASK_COMMAND_DISPATCHER_GET_STATUS, get_task_status):
-                with patch(TASKFLOW_TASKS_SEND_TASK_FLOW_MESSAGE, send_task_flow_message):
-                    send_taskflow_message(taskflow.id, ATOM_FAILED, node_name="test")
+            with patch(TASKFLOW_TASKS_SEND_TASK_FLOW_MESSAGE, send_task_flow_message):
+                send_taskflow_message(taskflow.id, ATOM_FAILED, node_name="test")
 
         send_task_flow_message.assert_called_once_with(taskflow, ATOM_FAILED, "test")
-        get_task_status.assert_not_called()
         taskflow_model.objects.get.assert_called_once_with(id=taskflow.id)
 
     def test_send_taskflow_message__use_root(self):
