@@ -21,7 +21,6 @@ from pipeline.core.flow.io import StringItemSchema
 
 from api.collections.itsm import BKItsmClient
 from gcloud.conf import settings
-from gcloud.constants import TaskExtraStatus
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
@@ -90,7 +89,6 @@ class ApproveService(Service):
         send_taskflow_message.delay(
             task_id=task_id,
             msg_type=PENDING_PROCESSING,
-            skip_if_not_status=TaskExtraStatus.PENDING_PROCESSING.value,
             use_root=True,
         )
 

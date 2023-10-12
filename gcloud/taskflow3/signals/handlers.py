@@ -191,13 +191,6 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
 
         _finish_taskflow_and_send_signal(root_id, taskflow_finished, True)
 
-    elif to_state == bamboo_engine_states.SUSPENDED and node_id == root_id:
-        # TODO 发送通知，向上找到根流程，发送通知
-        # 问题1：独立子流程场景，暂停后应该是由父流程决定是否通知，如何将消息通知给 Root Taskflow？
-        # 问题2：等待确认 / 等待审批场景也需要通知到父流程 -> 向上找到根流程
-        # 问题3：子流程、父流程都有通知，以哪一方为准？（继承父流程配置？）
-        pass
-
     try:
         _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)
     except Exception:

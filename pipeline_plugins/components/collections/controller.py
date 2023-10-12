@@ -23,7 +23,6 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
-from gcloud.constants import TaskExtraStatus
 from gcloud.core.models import Project
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
@@ -41,7 +40,6 @@ class PauseService(Service):
         send_taskflow_message.delay(
             task_id=task_id,
             msg_type=PENDING_PROCESSING,
-            skip_if_not_status=TaskExtraStatus.PENDING_PROCESSING.value,
             use_root=True,
         )
         return True

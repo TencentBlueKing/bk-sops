@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 from mock import MagicMock, call, patch
 
-from gcloud.constants import TaskExtraStatus
 from gcloud.shortcuts.message import ATOM_FAILED
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.tests.mock_settings import *  # noqa
@@ -64,50 +63,15 @@ class SendTaskflowMessageTaskTestCase(TestCase):
         taskflow_relation_model = MagicMock()
         taskflow_relation_model.objects.get = MagicMock(return_value=taskflow_relation)
         send_task_flow_message = MagicMock()
-        get_task_status = MagicMock(
-            return_value={"result": True, "data": {"state": TaskExtraStatus.PENDING_PROCESSING.value}}
-        )
         with patch(TASKFLOW_TASKS_TASKFLOW_RELATION, taskflow_relation_model):
             with patch(TASKFLOW_TASKS_TASKFLOW_INSTANCE, taskflow_model):
-                with patch(TASKFLOW_TASKS_TASK_COMMAND_DISPATCHER_GET_STATUS, get_task_status):
-                    with patch(TASKFLOW_TASKS_SEND_TASK_FLOW_MESSAGE, send_task_flow_message):
-                        send_taskflow_message(
-                            child_taskflow.id,
-                            ATOM_FAILED,
-                            node_name="test",
-                            skip_if_not_status=TaskExtraStatus.PENDING_PROCESSING.value,
-                            use_root=True,
-                        )
+                with patch(TASKFLOW_TASKS_SEND_TASK_FLOW_MESSAGE, send_task_flow_message):
+                    send_taskflow_message(
+                        child_taskflow.id,
+                        ATOM_FAILED,
+                        node_name="test",
+                        use_root=True,
+                    )
 
-        get_task_status.assert_called_once()
         send_task_flow_message.assert_called_once_with(root_taskflow, ATOM_FAILED, "test")
-        taskflow_model.objects.get.assert_has_calls(calls=[call(id=child_taskflow.id), call(id=root_taskflow.id)])
-
-    def test_send_taskflow_message__skip_if_status(self):
-
-        root_taskflow, child_taskflow = self.generate_taskflow()
-        taskflow_model = MagicMock()
-        taskflow_model.objects.get = MagicMock(side_effect=lambda id: {1: root_taskflow, 2: child_taskflow}[id])
-
-        taskflow_relation = MagicMock()
-        taskflow_relation.root_task_id = root_taskflow.id
-        taskflow_relation_model = MagicMock()
-        taskflow_relation_model.objects.get = MagicMock(return_value=taskflow_relation)
-        send_task_flow_message = MagicMock()
-        # 实际状态是 FAILD
-        get_task_status = MagicMock(return_value={"result": True, "data": {"state": "FAILED"}})
-        with patch(TASKFLOW_TASKS_TASKFLOW_RELATION, taskflow_relation_model):
-            with patch(TASKFLOW_TASKS_TASKFLOW_INSTANCE, taskflow_model):
-                with patch(TASKFLOW_TASKS_TASK_COMMAND_DISPATCHER_GET_STATUS, get_task_status):
-                    with patch(TASKFLOW_TASKS_SEND_TASK_FLOW_MESSAGE, send_task_flow_message):
-                        send_taskflow_message(
-                            child_taskflow.id,
-                            ATOM_FAILED,
-                            node_name="test",
-                            skip_if_not_status=TaskExtraStatus.PENDING_PROCESSING.value,
-                            use_root=True,
-                        )
-
-        get_task_status.assert_called_once()
-        send_task_flow_message.assert_not_called()
         taskflow_model.objects.get.assert_has_calls(calls=[call(id=child_taskflow.id), call(id=root_taskflow.id)])

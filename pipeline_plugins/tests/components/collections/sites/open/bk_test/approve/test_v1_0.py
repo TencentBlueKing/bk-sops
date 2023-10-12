@@ -23,7 +23,6 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
-from gcloud.constants import TaskExtraStatus
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from pipeline_plugins.components.collections.sites.open.bk.approve.v1_0 import ApproveComponent
 
@@ -95,7 +94,6 @@ CREAT_TICKET_CALL = {
 SEND_TASKFLOW_MESSAGE_CALL = {
     "task_id": COMMON_PARENT["task_id"],
     "msg_type": PENDING_PROCESSING,
-    "skip_if_not_status": TaskExtraStatus.PENDING_PROCESSING.value,
     "use_root": True,
 }
 INPUTS = {

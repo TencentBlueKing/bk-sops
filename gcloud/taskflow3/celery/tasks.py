@@ -26,7 +26,6 @@ import metrics
 from gcloud.constants import CallbackStatus
 from gcloud.shortcuts.message import send_task_flow_message
 from gcloud.taskflow3.domains.callback import TaskCallBacker
-from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.taskflow3.domains.node_timeout_strategy import node_timeout_handler
 from gcloud.taskflow3.models import (
@@ -44,7 +43,7 @@ HOST_NAME = socket.gethostname()
 
 
 @task
-def send_taskflow_message(task_id, msg_type, node_name="", skip_if_not_status="", use_root=False):
+def send_taskflow_message(task_id, msg_type, node_name="", use_root=False):
     try:
         taskflow = TaskFlowInstance.objects.get(id=task_id)
         if use_root and taskflow.is_child_taskflow:
@@ -54,28 +53,6 @@ def send_taskflow_message(task_id, msg_type, node_name="", skip_if_not_status=""
             logger.info(
                 "send_task_flow_message[taskflow_id=%s] use root taskflow[id=%s] to send message", task_id, root_task_id
             )
-
-        if skip_if_not_status:
-            # 满足某个具体状态才发通知
-            dispatcher = TaskCommandDispatcher(
-                engine_ver=taskflow.engine_ver,
-                taskflow_id=taskflow.id,
-                pipeline_instance=taskflow.pipeline_instance,
-                project_id=taskflow.project_id,
-            )
-            get_task_status_result = dispatcher.get_task_status(with_ex_data=False)
-            if get_task_status_result.get("result") and get_task_status_result["data"]["state"] == skip_if_not_status:
-                logger.info(
-                    "send_task_flow_message[taskflow_id=%s] taskflow[id=%s] check status -> %s success.",
-                    task_id,
-                    taskflow.id,
-                    skip_if_not_status,
-                )
-            else:
-                raise ValueError(
-                    f"taskflow[id={taskflow.id}] status not match: actual -> {get_task_status_result}, "
-                    f"expect -> {skip_if_not_status}",
-                )
 
         send_task_flow_message(taskflow, msg_type, node_name)
     except Exception as e:

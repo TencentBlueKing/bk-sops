@@ -32,7 +32,7 @@ class BaseTemplateSerializer(serializers.ModelSerializer):
             return (
                 notify_type
                 if isinstance(notify_type, dict)
-                else {"success": notify_type, "fail": notify_type, "pending_processing": []}
+                else {"success": notify_type, "fail": notify_type, "pending_processing": notify_type}
             )
         except Exception as e:
             logger.exception(f"[get_notify_type] error: {e}")
