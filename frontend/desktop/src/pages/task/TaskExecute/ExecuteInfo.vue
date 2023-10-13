@@ -11,7 +11,7 @@
 */
 <template>
     <div class="parameter-details">
-        <bk-resize-layout class="details-wrapper" placement="left" :max="500" :initial-divide="403" :min="400">
+        <bk-resize-layout class="details-wrapper" placement="left" :max="sidebarWidth - 600" :initial-divide="243" :min="240">
             <NodeTree
                 slot="aside"
                 :tree-data="nodeData"
@@ -304,7 +304,8 @@
             smallMapImg: {
                 type: String,
                 default: ''
-            }
+            },
+            sidebarWidth: Number
         },
         data () {
             return {

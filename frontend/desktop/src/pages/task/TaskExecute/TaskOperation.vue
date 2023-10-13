@@ -65,7 +65,7 @@
         </div>
         <bk-sideslider
             :is-show.sync="isNodeInfoPanelShow"
-            :width="['viewNodeDetails', 'executeInfo'].includes(nodeInfoType) ? 1300 : 960"
+            :width="sidebarWidth"
             :quick-close="true"
             :before-close="onBeforeClose"
             @hidden="onHiddenSideslider">
@@ -107,6 +107,7 @@
                     :constants="pipelineData.constants"
                     :gateways="pipelineData.gateways"
                     :condition-data="conditionData"
+                    :sidebar-width="sidebarWidth"
                     @close="onCloseConfigPanel"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
@@ -488,6 +489,12 @@
             },
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
+            },
+            sidebarWidth () {
+                if (['viewNodeDetails', 'executeInfo'].includes(this.nodeInfoType)) {
+                    return window.innerWidth - 340
+                }
+                return 960
             }
         },
         mounted () {

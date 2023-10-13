@@ -21,6 +21,7 @@
                     }"
                     :contenteditable="!isDisabled"
                     :data-placeholder="placeholder"
+                    data-test-name="formTag_textarea_divInput"
                     v-bk-clickoutside="handleClickOutSide"
                     @mouseup="handleInputMouseUp"
                     @focus="handleInputFocus"

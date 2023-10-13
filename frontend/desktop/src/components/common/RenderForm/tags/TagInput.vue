@@ -32,6 +32,7 @@
                         }"
                         :contenteditable="!isDisabled"
                         :data-placeholder="placeholder"
+                        data-test-name="formTag_input_divInput"
                         v-bk-clickoutside="handleClickOutSide"
                         @mouseup="handleInputMouseUp"
                         @focus="handleInputFocus"
