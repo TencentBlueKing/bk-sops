@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from bamboo_engine import states
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Value
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
@@ -267,7 +267,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = TaskFlowInstanceSerializer
     queryset = TaskFlowInstance.objects.filter(
-        pipeline_instance__isnull=False, is_deleted=False, pipeline_instance__is_expired=False
+        pipeline_instance__isnull=False, is_deleted=Value(0), pipeline_instance__is_expired=False
     ).order_by("-id")
     iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
@@ -491,7 +491,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         children_task_ids = [info["task_id"] for info in children_task_info]
         queryset = TaskFlowInstance.objects.filter(
-            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=False
+            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=Value(0)
         )
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)
