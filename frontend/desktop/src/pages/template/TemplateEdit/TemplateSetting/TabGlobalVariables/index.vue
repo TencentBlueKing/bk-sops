@@ -704,8 +704,10 @@
                 document.addEventListener('mouseup', this.handleMouseUp)
             },
             handleMouseMove (event) {
+                const maxWidth = window.innerWidth - 300
                 let width = window.innerWidth - event.clientX
-                width = width > 800 ? width : 800
+                width = width < 800 ? 800 : width
+                width = width > maxWidth ? maxWidth : width
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.right = `${width}px`
             },
@@ -724,7 +726,8 @@
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.visibility = 'hidden'
                 resizeMask.style.display = 'none'
-                this.sideWidth = resizeProxy.style.right
+                const right = resizeProxy.style.right.slice(0, -2)
+                this.sideWidth = Number(right)
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
             }

@@ -309,7 +309,7 @@
                         const focusValueHeight = newDom.offsetHeight || 0
                         this.$el.removeChild(newDom)
                         this.$nextTick(() => {
-                            const { height: varListHeight, width: varListWidth } = document.querySelector('.rf-select-list').getBoundingClientRect()
+                            const { height: varListHeight, width: varListWidth } = this.$el.querySelector('.rf-select-list').getBoundingClientRect()
                             let popLeft = previousDomLeft + previousDomWidth + focusValueWidth
                             if (popLeft > inputWidth - varListWidth) {
                                 popLeft = inputWidth - varListWidth
@@ -407,6 +407,7 @@
                         dom.innerHTML = innerHtml
                     }
                 })
+                this.updateInputValue()
             },
             // 文本框按键事件
             handleInputKeyDown (e) {
