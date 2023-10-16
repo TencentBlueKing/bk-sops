@@ -54,7 +54,7 @@ from gcloud.project_constants.domains.context import get_project_constants_conte
 from gcloud.shortcuts.cmdb import get_business_attrinfo, get_business_group_members
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
-from gcloud.taskflow3.utils import parse_node_timeout_configs
+from gcloud.taskflow3.utils import fetch_node_id__auto_retry_info_map, parse_node_timeout_configs
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import inject_original_template_info, inject_template_node_id, replace_template_id
 from gcloud.utils.components import format_component_name_with_remote, get_remote_plugin_name
@@ -977,6 +977,15 @@ class TaskFlowInstance(models.Model):
 
         detail = node_detail_result["data"]
         detail.update(node_data)
+
+        if not detail.get("id"):
+            # 没有 ID 说明流程尚未创建完成，直接返回，无需补充额外的配置信息
+            return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
+
+        # # 补充重试信息
+        detail["auto_retry_info"] = (
+            fetch_node_id__auto_retry_info_map(detail["parent_id"], [detail["id"]]).get(detail["id"]) or {}
+        )
 
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
 
