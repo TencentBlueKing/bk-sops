@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from apigw_manager.apigw.decorators import apigw_require
+from bamboo_engine import states as bamboo_engine_states
 from blueapps.account.decorators import login_exempt
 from cachetools import TTLCache
 from django.views.decorators.http import require_GET
@@ -23,7 +24,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.utils import add_node_name_to_status_tree, extract_failed_nodes, get_failed_nodes_info
+from gcloud.taskflow3.utils import add_node_name_to_status_tree, extract_nodes_by_statuses, get_failed_nodes_info
 
 
 def cache_decisioner(key, value):
@@ -91,7 +92,7 @@ def get_task_status(request, task_id, project_id):
     if with_failed_node_info or with_auto_retry_status:
         try:
             status_tree, root_pipeline_id = result["data"], result["data"]["id"]
-            failed_node_ids = extract_failed_nodes(status_tree)
+            failed_node_ids = extract_nodes_by_statuses(status_tree, statuses=[bamboo_engine_states.FAILED])
             failed_node_info = get_failed_nodes_info(root_pipeline_id, failed_node_ids)
             if with_failed_node_info:
                 result["data"]["failed_node_info"] = failed_node_info
