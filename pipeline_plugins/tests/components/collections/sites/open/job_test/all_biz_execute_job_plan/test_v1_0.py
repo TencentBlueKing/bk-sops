@@ -714,7 +714,29 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
                     "id": 1000032,
                     "type": JOBV3_VAR_CATEGORY_PASSWORD,
                     "name": "password",
+                    # 密文变量
                     "value": {"tag": "variable", "value": crypto.encrypt("123")},
+                },
+                {
+                    "id": 1000033,
+                    "type": 1,
+                    "name": "dict",
+                    # 结构化数据
+                    "value": {"value": 1, "test": True},
+                },
+                {
+                    "id": 1000034,
+                    "type": 1,
+                    "name": "int from page",
+                    # 页面输入的整型
+                    "value": 0,
+                },
+                {
+                    "id": 1000035,
+                    "type": 1,
+                    "name": "int from page",
+                    # 页面输入的整型
+                    "value": 1232314345,
                 },
                 {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
             ],
@@ -758,6 +780,9 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
                         "global_var_list": [
                             {"id": 1000030, "value": "test"},
                             {"id": 1000032, "value": "123"},
+                            {"id": 1000033, "value": "{'value': 1, 'test': True}"},
+                            {"id": 1000034, "value": "0"},
+                            {"id": 1000035, "value": "1232314345"},
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",

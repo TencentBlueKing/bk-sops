@@ -13,18 +13,17 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 @login_exempt
@@ -42,7 +41,7 @@ def node_callback(request, task_id, project_id):
         return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     project = request.project
-
+    logger.info("[apigw][node_callback] receive a node callback request, task_id={}, params={}".format(task_id, params))
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
@@ -59,4 +58,7 @@ def node_callback(request, task_id, project_id):
     callback_data = params.get("callback_data")
     version = params.get("version")
 
-    return task.callback(node_id, callback_data, version)
+    logger.info("[apigw][node_callback] node_callback start, task_id={}".format(task_id))
+    result = task.callback(node_id, callback_data, version)
+    logger.info("[apigw][node_callback] node_callback finished, task_id={}".format(task_id))
+    return result
