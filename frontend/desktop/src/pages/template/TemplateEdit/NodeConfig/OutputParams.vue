@@ -343,7 +343,7 @@
     .hook-icon-wrap {
         position: absolute;
         right: 22px;
-        top: 9px;
+        top: 5px;
         display: inline-block;
         width: 32px;
         height: 32px;

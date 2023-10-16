@@ -2,7 +2,7 @@
     <div class="execute-record">
         <template v-if="Object.keys(executeInfo).length && !notPerformedSubNode">
             <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.state === 'FAILED'">
-                <template v-if="!executeInfo.ex_data">
+                <template v-if="executeInfo.ex_data">
                     <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
                     <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
                     <span class="expand-btn" v-if="isExpandTextShow" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('显示全部') }}</span>

@@ -78,6 +78,12 @@
                 </div>
             </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
+                <!--可拖拽-->
+                <template v-if="['viewNodeDetails', 'executeInfo'].includes(nodeInfoType)">
+                    <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                    <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
+                    <div class="resize-mask" ref="resizeMask"></div>
+                </template>
                 <ModifyParams
                     ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
@@ -317,6 +323,7 @@
                 sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
+                sidebarWidth: 960,
                 nodeInfoType: '',
                 state: '', // 当前流程状态，画布切换时会更新
                 rootState: '', // 根流程状态
@@ -489,12 +496,6 @@
             },
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
-            },
-            sidebarWidth () {
-                if (['viewNodeDetails', 'executeInfo'].includes(this.nodeInfoType)) {
-                    return window.innerWidth - 340
-                }
-                return 960
             }
         },
         mounted () {
@@ -1905,6 +1906,7 @@
             openNodeInfoPanel (type, name, isCondition = false) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
+                this.sidebarWidth = 960
                 this.nodeInfoType = type
                 this.isCondition = isCondition
             },
@@ -2396,6 +2398,47 @@
                         && this.pipelineData.activities[key].component.code === 'pause_node'))
                         ? 'SUSPENDED'
                         : ''
+            },
+            handleMousedown (event) {
+                this.updateResizeMaskStyle()
+                this.updateResizeProxyStyle()
+                document.addEventListener('mousemove', this.handleMouseMove)
+                document.addEventListener('mouseup', this.handleMouseUp)
+            },
+            handleMouseMove (event) {
+                const maxWidth = window.innerWidth - 340
+                let width = window.innerWidth - event.clientX
+                width = width < 960 ? 960 : width
+                width = width > maxWidth ? maxWidth : width
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.right = `${width}px`
+            },
+            updateResizeMaskStyle () {
+                const resizeMask = this.$refs.resizeMask
+                resizeMask.style.display = 'block'
+                resizeMask.style.cursor = 'col-resize'
+            },
+            updateResizeProxyStyle () {
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'visible'
+                resizeProxy.style.right = `${this.sidebarWidth}px`
+            },
+            handleMouseUp () {
+                const resizeMask = this.$refs.resizeMask
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'hidden'
+                resizeMask.style.display = 'none'
+                let right = resizeProxy.style.right.slice(0, -2)
+                right = Number(right)
+                const widthDiff = right - this.sidebarWidth
+                this.sidebarWidth = right
+                const layoutAsideDom = document.querySelector('.bk-resize-layout-aside')
+                if (layoutAsideDom) {
+                    const { width } = layoutAsideDom.getBoundingClientRect() || {}
+                    layoutAsideDom.style.width = `${width + widthDiff}px`
+                }
+                document.removeEventListener('mousemove', this.handleMouseMove)
+                document.removeEventListener('mouseup', this.handleMouseUp)
             }
         }
     }
@@ -2503,6 +2546,59 @@
     height: 100%;
     .operation-flow {
         padding: 20px 30px;
+    }
+    >.resize-trigger {
+        width: 5px;
+        height: calc(100vh - 60px);
+        position: absolute;
+        left: 0;
+        top: 0;
+        cursor: col-resize;
+        z-index: 2500;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: transparent;
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -1px;
+            width: 2px;
+            height: 2px;
+            color: #979ba5;
+            transform: translate3d(0,-50%,0);
+            background: currentColor;
+            box-shadow: 0 4px 0 0 currentColor,0 8px 0 0 currentColor,0 -4px 0 0 currentColor,0 -8px 0 0 currentColor;
+        }
+        &:hover::before {
+            background-color: #3a84ff;
+        }
+    }
+    >.resize-proxy {
+        visibility: hidden;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9998;
+        &.left {
+            top: 0;
+            height: 100%;
+            border-left: 1px dashed #3a84ff;
+        }
+    }
+    >.resize-mask {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
     }
 }
 .approval-dialog-content {
