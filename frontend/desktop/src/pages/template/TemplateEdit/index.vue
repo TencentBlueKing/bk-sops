@@ -65,6 +65,9 @@
                 @onTogglePerspective="onTogglePerspective"
                 @updateCondition="setBranchCondition($event)">
             </TemplateCanvas>
+            <TemplateSidebar
+                :is-view-mode="isViewMode">
+            </TemplateSidebar>
             <div class="side-content">
                 <node-config
                     ref="nodeConfig"
@@ -97,14 +100,15 @@
                     @updataCanvasCondition="updataCanvasCondition"
                     @close="onCloseConfigPanel">
                 </condition-edit>
-                <template-setting
-                    :is-view-mode="isViewMode"
-                    :active-tab.sync="activeSettingTab"
-                    :common="common"
-                    @templateDataChanged="templateDataChanged"
-                    @modifyTemplateData="modifyTemplateData">
-                </template-setting>
             </div>
+            <template-setting
+                v-if="activeSettingTab"
+                :is-view-mode="isViewMode"
+                :active-tab.sync="activeSettingTab"
+                :common="common"
+                @templateDataChanged="templateDataChanged"
+                @modifyTemplateData="modifyTemplateData">
+            </template-setting>
             <bk-dialog
                 class="batch-update-dialog"
                 v-model="isBatchUpdateDialogShow"
@@ -152,6 +156,7 @@
     import atomFilter from '@/utils/atomFilter.js'
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader/index.vue'
+    import TemplateSidebar from './TemplateSidebar/index.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/index.vue'
     import NodeConfig from './NodeConfig/NodeConfig.vue'
@@ -170,6 +175,7 @@
         name: 'TemplateEdit',
         components: {
             TemplateHeader,
+            TemplateSidebar,
             TemplateCanvas,
             NodeConfig,
             ConditionEdit,
@@ -1753,6 +1759,10 @@
                     border-right: none;
                 }
             }
+        }
+        /deep/.template-side {
+            top: 60px;
+            height: calc(100% - 60px);
         }
     }
     .update-tips {

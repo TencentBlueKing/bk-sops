@@ -1825,7 +1825,21 @@ const en = {
     '节点输出型变量仅支持从节点"取消接收输出"来删除': 'Node output variables can only be deleted by the node "Cancel Receiving Output"',
     '刷新': 'Refresh',
     'exFailedText': 'Node execution failed. Please go to the {0} to check the error reason.',
-    'exFailedText_调用日志': 'call log'
+    'exFailedText_调用日志': 'call log',
+    'varDeleteTxtTips': '已选择 {0} 个变量',
+    '修改基本信息': '',
+    '流程描述': '',
+    '保存草稿': '',
+    '发布': '',
+    '简洁模式': '',
+    '详细模式': '',
+    '新增变量': '',
+    '新建自定义变量': '',
+    '从项目变量添加': '',
+    '入参': '',
+    '非入参': '',
+    '批量删除': '',
+    '作为输出参数': ''
 }
 
 export default en
