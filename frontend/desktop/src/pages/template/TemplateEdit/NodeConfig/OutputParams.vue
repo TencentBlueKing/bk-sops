@@ -25,17 +25,18 @@
             <bk-table-column label="Key" class-name="param-key" :width="260">
                 <template slot-scope="props">
                     <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
-                    <span class="hook-icon-wrap">
+                    <span
+                        class="hook-icon-wrap"
+                        v-bk-tooltips="{
+                            content: props.row.hooked ? $t('取消接收输出') : $t('使用变量接收输出'),
+                            placement: 'bottom',
+                            zIndex: 3000
+                        }">
                         <i
                             :class="['common-icon-variable-hook hook-icon', {
                                 actived: props.row.hooked,
                                 disabled: isViewMode || !hook
                             }]"
-                            v-bk-tooltips="{
-                                content: props.row.hooked ? $t('取消接收输出') : $t('使用变量接收输出'),
-                                placement: 'bottom',
-                                zIndex: 3000
-                            }"
                             @click="onHookChange(props)">
                         </i>
                     </span>
