@@ -13,45 +13,43 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
-from django.db.models import BooleanField, ExpressionWrapper, Q
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.exceptions import ErrorDetail
-from rest_framework import status, permissions
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import BooleanField, ExpressionWrapper, Q
+from django.utils.translation import ugettext_lazy as _
 from django_filters import CharFilter
+from drf_yasg.utils import swagger_auto_schema
+from pipeline.models import TemplateRelationship, TemplateScheme
+from rest_framework import permissions, status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ErrorDetail
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 from gcloud import err_code
-from pipeline.models import TemplateRelationship, TemplateScheme
-
 from gcloud.contrib.collection.models import Collection
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.label.models import TemplateLabelRelation, Label
-from gcloud.tasktmpl3.signals import post_template_save_commit
-from gcloud.taskflow3.models import TaskTemplate, TaskConfig
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
+from gcloud.contrib.operate_record.signal import operate_record_signal
+from gcloud.core.apis.drf.filters import BooleanPropertyFilter
+from gcloud.core.apis.drf.filtersets import PropertyFilterSet
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.task_template import (
+    CreateTaskTemplateSerializer,
+    ProjectFilterQuerySerializer,
+    ProjectInfoQuerySerializer,
     TaskTemplateListSerializer,
     TaskTemplateSerializer,
-    CreateTaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
-    ProjectInfoQuerySerializer,
-    ProjectFilterQuerySerializer,
+    UpdateDraftPipelineTreeSerializer,
 )
-from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import IAMMeta
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.label.models import Label, TemplateLabelRelation
+from gcloud.taskflow3.models import TaskConfig, TaskTemplate
+from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
-from gcloud.core.apis.drf.filtersets import PropertyFilterSet
-from gcloud.core.apis.drf.filters import BooleanPropertyFilter
-from gcloud.contrib.operate_record.signal import operate_record_signal
-from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
-from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
-from django.utils.translation import ugettext_lazy as _
-
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -68,8 +66,15 @@ class TaskTemplatePermission(IamPermission):
         "retrieve": IamPermissionInfo(
             IAMMeta.FLOW_VIEW_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        "draft": IamPermissionInfo(IAMMeta.FLOW_VIEW_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION),
         "destroy": IamPermissionInfo(
             IAMMeta.FLOW_DELETE_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "update_draft": IamPermissionInfo(
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "publish_draft": IamPermissionInfo(
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "update": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
@@ -339,3 +344,60 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})
+
+    @swagger_auto_schema(method="GET", operation_summary="获取流程的草稿信息")
+    @action(methods=["GET"], detail=True)
+    def draft(self, request, *args, **kwargs):
+        """
+        获取草稿内容
+        """
+        task_template = self.get_object()
+        # 说明该模板还没有生成快照
+        if task_template.draft_template_id is None:
+            manager.create_draft(template=task_template, editor=request.user.username)
+        return Response(
+            {
+                "editor": task_template.draft_template.editor,
+                "pipeline_tree": task_template.draft_pipeline_tree,
+                "edit_time": task_template.draft_template.edit_time,
+            }
+        )
+
+    @swagger_auto_schema(method="post", operation_summary="更新流程草稿信息", request_body=UpdateDraftPipelineTreeSerializer)
+    @action(methods=["POST"], detail=True)
+    def update_draft(self, request, *args, **kwargs):
+        """
+        更新草稿
+        """
+        task_template = self.get_object()
+        serializer = UpdateDraftPipelineTreeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pipeline_tree = serializer.validated_data["pipeline_tree"]
+
+        result = manager.update_draft_pipeline(task_template.draft_template, request.user.username, pipeline_tree)
+        if not result["result"]:
+            message = result["message"]
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        return Response(
+            {
+                "editor": task_template.draft_template.editor,
+                "pipeline_tree": task_template.draft_pipeline_tree,
+                "edit_time": task_template.draft_template.edit_time,
+            }
+        )
+
+    @swagger_auto_schema(method="post", operation_summary="发布该流程")
+    @action(methods=["POST"], detail=True)
+    def publish_draft(self, request, *args, **kwargs):
+        """
+        发布草稿
+        """
+        task_template = self.get_object()
+        result = manager.publish_draft_pipeline(template=task_template, editor=request.user.username)
+        if not result["result"]:
+            message = result["message"]
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        return Response()

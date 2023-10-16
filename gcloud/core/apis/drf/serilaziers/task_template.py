@@ -57,8 +57,11 @@ class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
     collection_id = serializers.IntegerField(read_only=True, help_text="收藏ID")
 
 
-class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
+class UpdateDraftPipelineTreeSerializer(serializers.Serializer):
+    pipeline_tree = serializers.JSONField(required=True)
 
+
+class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     name = serializers.CharField(help_text="流程模板名称")
     category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
     time_out = serializers.IntegerField(help_text="超时时间", required=False)
