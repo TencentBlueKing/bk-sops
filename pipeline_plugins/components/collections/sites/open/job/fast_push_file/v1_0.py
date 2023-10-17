@@ -65,7 +65,10 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -127,8 +130,8 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             "bk_biz_id": biz_cc_id,
             "file_source_list": file_source,
             "target_server": target_server,
-            "account_alias": data.get_one_of_inputs("job_account"),
-            "file_target_path": data.get_one_of_inputs("job_target_path"),
+            "account_alias": data.get_one_of_inputs("job_account").strip(),
+            "file_target_path": data.get_one_of_inputs("job_target_path").strip(),
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
