@@ -15,18 +15,17 @@ import traceback
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.core.flow.activity import StaticIntervalGenerator
+from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
-from pipeline_plugins.components.utils.common import batch_execute_func
-from pipeline_plugins.components.utils import get_job_instance_url
 from files.factory import ManagerFactory
 from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
 from gcloud.core.models import EnvironmentVariables
+from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url
+from pipeline_plugins.components.utils.common import batch_execute_func
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -144,9 +143,9 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
                     for _file in push_files_info["file_info"]
                     if _file["response"]["result"] is True
                 ],
-                "target_path": push_files_info["target_path"],
+                "target_path": push_files_info["target_path"].strip(),
                 "ips": None,
-                "account": target_account,
+                "account": target_account.strip(),
                 "target_server": target_server,
             }
             for push_files_info in local_files_and_target_path

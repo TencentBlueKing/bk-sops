@@ -60,7 +60,10 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"),
+                key="upload_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -75,7 +78,10 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -153,8 +159,8 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                     "bk_biz_id": biz_cc_id,
                     "file_source_list": [source],
                     "target_server": target_server,
-                    "account_alias": attr["job_account"],
-                    "file_target_path": attr["job_target_path"],
+                    "account_alias": attr["job_account"].strip(),
+                    "file_target_path": attr["job_target_path"].strip(),
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
