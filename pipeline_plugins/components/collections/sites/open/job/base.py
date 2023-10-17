@@ -83,6 +83,7 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
 
         sops_key_val_list = re.findall(reg, log_text, re.DOTALL)
         sops_key_val_list.extend(re.findall(excape_reg, log_text, re.DOTALL))
+        service_logger.info(f"search log var with sops key val list: {sops_key_val_list}")
         if len(sops_key_val_list) == 0:
             continue
         for sops_key_val in sops_key_val_list:
@@ -93,6 +94,7 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
             if len(sops_key) == 0:
                 continue
             sops_var_dict.update({sops_key: sops_val})
+    service_logger.info(f"search log var result: {sops_var_dict}")
     return sops_var_dict
 
 
