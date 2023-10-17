@@ -1590,12 +1590,12 @@
         height: 320px;
         margin: 0 25px 8px 15px;
         position: relative;
-        background: #f5f7fb;
+        background: #f5f7fa;
         .sub-flow {
             height: 100%;
             border: 0;
             /deep/.canvas-wrapper {
-                background: #f5f7fb;
+                background: #f5f7fa;
             }
             /deep/.canvas-flow {
                 .active {

@@ -704,7 +704,7 @@
                 document.addEventListener('mouseup', this.handleMouseUp)
             },
             handleMouseMove (event) {
-                const maxWidth = window.innerWidth - 300
+                const maxWidth = window.innerWidth - 400
                 let width = window.innerWidth - event.clientX
                 width = width < 800 ? 800 : width
                 width = width > maxWidth ? maxWidth : width

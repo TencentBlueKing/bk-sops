@@ -204,7 +204,7 @@
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
                 divInputDom.innerHTML = this.value
-                if (this.render) {
+                if (this.render && this.value) {
                     this.handleInputBlur()
                 }
             }

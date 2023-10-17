@@ -159,8 +159,9 @@
         mounted () {
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
-                divInputDom.innerText = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
-                if (this.render) {
+                const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
+                divInputDom.innerText = value
+                if (this.render && value) {
                     this.handleInputBlur()
                     // 把用户手动换行变成div标签
                     divInputDom.innerHTML = divInputDom.innerHTML.replace(/<br>/g, '<div><br></div>')

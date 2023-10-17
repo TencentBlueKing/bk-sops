@@ -2406,7 +2406,7 @@
                 document.addEventListener('mouseup', this.handleMouseUp)
             },
             handleMouseMove (event) {
-                const maxWidth = window.innerWidth - 340
+                const maxWidth = window.innerWidth - 400
                 let width = window.innerWidth - event.clientX
                 width = width < 960 ? 960 : width
                 width = width > maxWidth ? maxWidth : width
@@ -2485,6 +2485,22 @@
                 background: #f5f7fa;
                 .jtk-endpoint {
                     z-index: 2 !important;
+                }
+                .actived {
+                    box-shadow: none;
+                    &::after {
+                        content: '';
+                        display: block;
+                        height: calc(100% + 16px);
+                        width: calc(100% + 16px);
+                        position: absolute;
+                        top: -9px;
+                        left: -9px;
+                        z-index: -1;
+                        background: #e1ecff;
+                        border: 1px solid #1768ef;
+                        border-radius: 2px;
+                    }
                 }
             }
         }
