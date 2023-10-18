@@ -57,7 +57,7 @@
                                 this.$set(this.headers, "APP-ProjectId", $.context.getProjectId())
                                 // 文件名不允许包含空格
                                 if(file.name.includes(" ")){
-                                    show_msg('上传失败: 文件名不允许包含空格', 'error');
+                                    return show_msg('上传失败: 文件名不允许包含空格', 'error');
                                 }
                                 var $this = this
                                 $.ajax({
