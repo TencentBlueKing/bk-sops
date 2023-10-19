@@ -66,7 +66,7 @@ class GetNodeDetailTestCase(TestCase):
         taskflow.has_node = MagicMock(return_value=True)
         dispatcher = MagicMock()
         get_node_data_return = {"result": True, "data": {}}
-        get_node_detail_return = {"result": True, "data": {}}
+        get_node_detail_return = {"result": True, "data": {"id": "id", "parent_id": "parent_id"}}
         dispatcher.get_node_data = MagicMock(return_value=get_node_data_return)
         dispatcher.get_node_detail = MagicMock(return_value=get_node_detail_return)
         dispatcher_init = MagicMock(return_value=dispatcher)
@@ -98,7 +98,15 @@ class GetNodeDetailTestCase(TestCase):
             loop=loop,
             subprocess_simple_inputs=False,
         )
-        self.assertEqual(detail, {"code": 0, "data": {}, "message": "", "result": True})
+        self.assertEqual(
+            detail,
+            {
+                "code": 0,
+                "data": {"auto_retry_info": {}, "id": "id", "parent_id": "parent_id"},
+                "message": "",
+                "result": True,
+            },
+        )
 
     def test_success(self):
         taskflow = TaskFlowInstance()
