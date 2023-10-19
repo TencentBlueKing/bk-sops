@@ -20,12 +20,11 @@
             { 'actived': node.isActived }
         ]">
         <div class="node-status-block">
-            <i class="node-icon-font common-icon-subflow-mark"></i>
+            <i class="node-icon-font common-icon-sub-process"></i>
             <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
         </div>
         <div class="node-name" :title="node.name">
             <div class="name-text">{{ node.name }}</div>
-            <div class="subflow-mark"></div>
         </div>
         <div class="node-options-icon">
             <template v-if="node.optional">
@@ -44,16 +43,16 @@
         <!-- 节点右上角执行相关的icon区域 -->
         <node-right-icon-status :node="node"></node-right-icon-status>
         <!-- tooltip提示（任务终止时禁止节点操作） -->
-        <div class="state-icon">
+        <div class="state-icon" :class="{ 'subprocess-operate': isSubProcessNode }">
             <template v-if="node.task_state !== 'REVOKED'">
                 <template v-if="node.status === 'FAILED' && node.type === 'tasknode'">
                     <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
                         <i class="common-icon-retry"></i>
-                        {{ $t('重试') }}
+                        {{ $t('重试子流程') }}
                     </span>
                     <span v-if="isShowSkipBtn" @click.stop="$emit('onSkipClick', node.id)">
                         <i class="common-icon-skip"></i>
-                        {{ $t('跳过') }}
+                        {{ $t('跳过子流程') }}
                     </span>
                 </template>
                 <template v-if="!isSubProcessNode && node.status === 'RUNNING'">
@@ -71,10 +70,6 @@
                     {{ $t('继续') }}
                 </span>
             </template>
-            <span v-if="!isSubProcessNode" @click.stop="$emit('onSubflowDetailClick', node.id)">
-                <i class="common-icon-bkflow-setting"></i>
-                {{ $t('节点参数') }}
-            </span>
         </div>
     </div>
 </template>
@@ -137,23 +132,18 @@
     }
 </script>
 <style lang="scss" scoped>
-    .node-name {
-        position: relative;
-        .subflow-mark {
-            &::before {
-                content: '';
-                position: absolute;
-                bottom: -1px;
-                right: -1px;
-                background: linear-gradient(to left top,
-                    #a2a5ad, #9fa3aa 40%, #82848a 50%, #ffffff 60%, #ffffff) 100% 0 no-repeat;
-                width: 11px;
-                height: 11px;
-                border-top: 1px solid #e5e5e5;
-                border-left: 1px solid #e5e5e5;
-                border-bottom-right-radius: 4px;
-                box-shadow: -1px -1px 2px -2px rgba(0, 0, 0, .5);
-            }
+    .task-node {
+        &::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 100%;
+            height: 100%;
+            background: #b5c0d599;
+            border: 1px solid #B5C0D5;
+            border-radius: 4px;
+            z-index: -1;
         }
     }
     .updated-dot {
@@ -183,5 +173,8 @@
             width: 200%;
             height: 200%;
         }
+    }
+    .subprocess-operate {
+        right: -18px !important;
     }
 </style>

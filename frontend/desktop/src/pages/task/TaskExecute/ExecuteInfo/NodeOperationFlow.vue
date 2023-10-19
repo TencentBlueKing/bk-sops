@@ -27,6 +27,13 @@
             nodeId: {
                 type: String,
                 default: ''
+            },
+            notPerformedSubNode: {
+                type: Boolean,
+                default: false
+            },
+            subProcessTaskId: {
+                type: [String, Number]
             }
         },
         data () {
@@ -50,6 +57,7 @@
             async getOperationTaskData () {
                 const { params, query } = this.$route
                 try {
+                    if (this.notPerformedSubNode) return
                     this.isFlowLoading = true
                     if (!this.nodeId) { // 未执行的任务节点操作历史为空
                         this.operateFlowData = []
@@ -57,7 +65,7 @@
                     }
                     const resp = await this.getOperationRecordTask({
                         project_id: params.project_id,
-                        instance_id: query.instance_id,
+                        instance_id: this.subProcessTaskId || query.instance_id,
                         node_id: this.nodeId || undefined
                     })
                     this.operateFlowData = resp.data.map(item => {

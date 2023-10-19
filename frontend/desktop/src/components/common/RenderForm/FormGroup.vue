@@ -10,11 +10,21 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="rf-form-group" :key="randomKey" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
+    <div
+        class="rf-form-group"
+        :key="randomKey"
+        :class="[
+            {
+                'rf-has-hook': option.showHook,
+                'show-render': isShowRenderIcon
+            },
+            scheme.status || ''
+        ]"
+        v-show="showForm">
         <!-- 分组名称和提示 -->
         <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
             <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
-            <span class="scheme-code">{{ scheme.tag_code }}</span>
+            <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
             <i
                 v-if="showNotReuseTitle || showPreMakoTip"
                 v-bk-tooltips="{
@@ -90,17 +100,18 @@
             </component>
         </div>
         <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="showHook">
+        <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
             <i
-                :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                :class="['common-icon-variable-hook hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
-                    content: hook ? $t('取消变量引用') : $t('设置为变量'),
+                    content: hook ? $t('取消使用变量，节点内维护') : $t('转换为变量，集中维护'),
                     placement: 'bottom',
                     zIndex: 3000
                 }"
                 @click="onHookForm(!hook)">
             </i>
             <i
+                v-if="isShowRenderIcon"
                 :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                 v-bk-tooltips="{
                     content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
@@ -190,12 +201,13 @@
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
                 isDescTipsShow: false,
-                isExpand: false
+                isExpand: false,
+                isShowRenderIcon: false
             }
         },
         computed: {
             showFormTitle () {
-                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+                return this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
@@ -234,6 +246,42 @@
                         this[item] = scheme.methods[item]
                     }
                 })
+            }
+            // 移除「变量免渲染」的功能开关
+            const { type, attrs } = this.scheme
+            if (type === 'code_editor') {
+                if (attrs.variable_render === false) { // variable_render 开启变量渲染
+                    /**
+                     * need_render:
+                        1. false
+                            之前已勾选，现在去掉免渲染icon
+                        2.true，判断value
+                            a. 不包含${}，需要把need_render置为false，去掉免渲染icon
+                            b. 包含${}，保留免渲染icon
+                     */
+                    if (this.render) {
+                        const regex = /\${[a-zA-Z_]\w*}/g
+                        const matchList = this.value.match(regex)
+                        const isMatch = matchList && matchList.some(item => {
+                            return !!this.constants[item]
+                        })
+                        if (isMatch) {
+                            this.isShowRenderIcon = true
+                        } else {
+                            this.showHook = false
+                            this.$nextTick(() => {
+                                this.onRenderChange()
+                            })
+                        }
+                    }
+                } else {
+                    this.showHook = false
+                    if (!this.render) {
+                        this.isShowRenderIcon = true
+                    }
+                }
+            } else if (!this.render) { // 如果开启了免渲染则展示按钮
+                this.isShowRenderIcon = true
             }
         },
         beforeDestroy () {
@@ -369,6 +417,7 @@
 <style lang="scss">
 .rf-form-group {
     position: relative;
+    margin-top: 15px;
     &.added {
         background: rgba(220,255,226,0.30);
     }
@@ -376,7 +425,15 @@
         background: #ffeeec;
     }
     &.rf-has-hook .rf-tag-form {
-        margin-right: 64px;
+        margin-right: 40px;
+    }
+    &.show-render {
+        > .rf-tag-form {
+            margin-right: 58px;
+        }
+        .hook-icon {
+            padding-right: 3px !important;
+        }
     }
     .rf-group-name {
         display: block
@@ -392,22 +449,22 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 0;
+        top: 30px;
         right: 0;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 0 8px;
-        width: 56px;
+        justify-content: center;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
+        cursor: pointer;
         z-index: 1;
         .hook-icon,
         .render-skip-icon {
-            font-size: 16px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
             color: #979ba5;
-            cursor: pointer;
             &.disabled {
                 color: #c4c6cc;
                 cursor: not-allowed;
@@ -417,7 +474,20 @@
             }
         }
         .hook-icon {
-            font-size: 19px;
+            line-height: 33px;
+            padding: 0 8px;
+            font-size: 16px;
+        }
+        .render-skip-icon {
+            padding: 0 8px 0 3px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin: 3px 0 0 6px;
+        }
+        &.hide-render-icon {
+            justify-content: center;
         }
     }
     .tag-label-tips {

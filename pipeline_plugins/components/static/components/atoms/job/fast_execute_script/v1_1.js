@@ -337,6 +337,7 @@ job_start
             attrs: {
                 name: gettext("脚本内容"),
                 hookable: true,
+                variable_render: false,
                 placeholder: gettext("填写执行脚本内容"),
                 language: "shell",
                 default: getScriptContent("1"),
@@ -742,7 +743,7 @@ job_start
             attrs: {
                 hookable: false,
                 type: "primary",
-                title: '刷新',
+                title: gettext('刷新'),
                 size: "normal",
                 cols: 1,
                 formViewHidden: true

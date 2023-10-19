@@ -18,7 +18,7 @@
                 :placeholder="placeholder">
             </member-select>
         </div>
-        <span v-else class="rf-view-value">{{ constants.subflow_detail_var ? constants[tagCode] : viewValue }}</span>
+        <span v-else class="rf-view-value">{{ viewValue }}</span>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>

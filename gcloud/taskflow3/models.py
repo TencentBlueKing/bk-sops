@@ -23,6 +23,8 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.models import ComponentModel
 from pipeline.core.constants import PE
 from pipeline.engine import states
+from pipeline.eri.models import Schedule as DBSchedule
+from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.models import PipelineInstance
 
 from gcloud import err_code
@@ -46,7 +48,7 @@ from gcloud.constants import (
     TaskCreateMethod,
 )
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.core.models import EngineConfig, Project, StaffGroupSet
+from gcloud.core.models import EngineConfig, Project, ProjectConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.shortcuts.cmdb import get_business_attrinfo, get_business_group_members
@@ -956,6 +958,7 @@ class TaskFlowInstance(models.Model):
                 pipeline_instance=self.pipeline_instance,
                 subprocess_stack=subprocess_stack,
                 project_id=kwargs["project_id"],
+                subprocess_simple_inputs=kwargs.get("subprocess_simple_inputs", False),
             )
             if not node_data_result["result"]:
                 return node_data_result
@@ -967,6 +970,7 @@ class TaskFlowInstance(models.Model):
             loop=loop,
             pipeline_instance=self.pipeline_instance,
             subprocess_stack=subprocess_stack,
+            subprocess_simple_inputs=kwargs.get("subprocess_simple_inputs", False),
         )
         if not node_detail_result["result"]:
             return node_detail_result
@@ -1016,6 +1020,37 @@ class TaskFlowInstance(models.Model):
             queue = settings.API_TASK_QUEUE_NAME_V2
         return queue
 
+    def change_parent_task_node_state_to_running(self):
+        if not self.is_child_taskflow:
+            logger.info("taskflow[id=%s] is not child taskflow, cannot change parent task node state to running")
+            return
+
+        with transaction.atomic():
+            record = TaskCallBackRecord.objects.filter(task_id=self.id).first()
+            if not record:
+                return
+            info = json.loads(record.extra_info)
+            parent_node_id, parent_node_version = info["node_id"], info["node_version"]
+            runtime = BambooDjangoRuntime()
+            node_state = runtime.get_state(parent_node_id)
+            if node_state.name != states.FAILED or node_state.version != parent_node_version:
+                return
+            schedule = runtime.get_schedule_with_node_and_version(parent_node_id, parent_node_version)
+            DBSchedule.objects.filter(id=schedule.id).update(expired=False)
+            # FAILED 状态需要转换为 READY 之后才能转换为 RUNNING
+            runtime.set_state(
+                node_id=parent_node_id, version=parent_node_version, to_state=states.READY, clear_archived_time=True
+            )
+            runtime.set_state(node_id=parent_node_id, version=parent_node_version, to_state=states.RUNNING)
+            data_outputs = runtime.get_execution_data_outputs(parent_node_id)
+            data_outputs.pop("ex_data", None)
+            runtime.set_execution_data_outputs(parent_node_id, data_outputs)
+
+            # 仅当父流程的节点状态为失败时，才需要唤醒父流程的节点
+            parent_task_id = TaskFlowRelation.objects.filter(task_id=self.id).first().parent_task_id
+            parent_task = TaskFlowInstance.objects.get(id=parent_task_id)
+            parent_task.change_parent_task_node_state_to_running()
+
     def task_action(self, action, username):
         if self.current_flow != "execute_task":
             return {
@@ -1046,10 +1081,14 @@ class TaskFlowInstance(models.Model):
             logger.error(message)
             return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
-
         try:
-            return dispatcher.dispatch(action, username, **kwargs)
+            with transaction.atomic():
+                # 如果当前节点属于独立子任务，则先唤醒父任务
+                if self.is_child_taskflow and action in ["skip", "retry"]:
+                    self.change_parent_task_node_state_to_running()
+
+                dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
+                return dispatcher.dispatch(action, username, **kwargs)
         except Exception as e:
             logger.exception(traceback.format_exc())
             message = _(f"节点操作失败: 节点[ID: {node_id}], 任务[ID: {self.id}]操作失败: {e}, 请重试. 如持续失败可联系管理员处理 | nodes_action")
@@ -1206,9 +1245,11 @@ class TaskFlowInstance(models.Model):
         notify_type = json.loads(self.template.notify_type)
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
 
-    def record_and_get_executor_proxy(self, executor_proxy):
+    def record_and_get_executor_proxy(self, operator):
         if self.recorded_executor_proxy is None:
-            self.recorded_executor_proxy = executor_proxy
+            self.recorded_executor_proxy = self.executor_proxy or ProjectConfig.objects.task_executor_for_project(
+                self.project_id, operator
+            )
             self.save(update_fields=["recorded_executor_proxy"])
         return self.recorded_executor_proxy
 

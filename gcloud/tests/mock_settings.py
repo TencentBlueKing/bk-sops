@@ -59,6 +59,7 @@ TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME = "gcloud.taskflow3.domains.dispatchers
 TASKFLOW_DISPATCHERS_NODE_FORMAT_PIPELINE_STATUS = "gcloud.taskflow3.domains.dispatchers.node.format_pipeline_status"
 TASKFLOW_DISPATCHERS_NODE_GET_PIPELINE_CONTEXT = "gcloud.taskflow3.domains.dispatchers.node.get_pipeline_context"
 TASKFLOW_DISPATCHERS_NODE_SYSTEM_OBJ = "gcloud.taskflow3.domains.dispatchers.node.SystemObject"
+TASKFLOW_CUSTOM_PREVIEW_NODE_INPUTS = "gcloud.tasktmpl3.domains.constants.preview_node_inputs"
 
 TASKFLOW_DISPATCHERS_TASK_PIPELINE_MODEL = "gcloud.taskflow3.domains.dispatchers.task.PipelineModel"
 TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME = "gcloud.taskflow3.domains.dispatchers.task.BambooDjangoRuntime"

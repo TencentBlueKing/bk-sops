@@ -14,9 +14,9 @@ specific language governing permissions and limitations under the License.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.signals import taskflow_started, taskflow_finished, taskflow_revoked
 from gcloud.contrib.function.models import FunctionTask
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_finished, taskflow_revoked, taskflow_started
 
 
 @receiver(post_save, sender=TaskFlowInstance)
@@ -25,6 +25,13 @@ def function_task_create_handler(instance, created, **kwargs):
         FunctionTask.objects.create(
             task=instance, creator=instance.creator,
         )
+
+
+@receiver(pre_taskflow_start)
+def pre_taskflow_start_handler(task_id, executor, **kwargs):
+    taskflow = TaskFlowInstance.objects.filter(id=task_id).first()
+    if taskflow:
+        taskflow.record_and_get_executor_proxy(taskflow.executor or executor)
 
 
 @receiver(taskflow_started)

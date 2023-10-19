@@ -12,15 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import abc
+
 import ujson as json
+from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
-from iam import Action, Subject, Request
-from iam.exceptions import AuthFailedException
-
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.iam_auth import res_factory
+from iam import Action, Request, Subject
 
 iam = get_iam_client()
 
@@ -95,3 +93,32 @@ class GetNodeLogInterceptor(TaskSingleActionGetInterceptor):
 
 class StatusViewInterceptor(TaskSingleActionGetInterceptor):
     action = IAMMeta.TASK_VIEW_ACTION
+
+
+class BatchStatusViewInterceptor(ViewInterceptor):
+    def process(self, request, *args, **kwargs):
+        task_ids = json.loads(request.body).get("task_ids") or []
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.TASK_VIEW_ACTION)
+        resources_list = res_factory.resources_list_for_tasks(task_ids)
+
+        if not resources_list:
+            return
+
+        resources_map = {}
+        for resources in resources_list:
+            resources_map[resources[0].id] = resources
+
+        request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
+        result = iam.batch_is_allowed(request, resources_list)
+
+        if not result:
+            raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources_list)
+
+        not_allowed_list = []
+        for tid, allow in result.items():
+            if not allow:
+                not_allowed_list.append(resources_map[tid])
+
+        if not_allowed_list:
+            raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)

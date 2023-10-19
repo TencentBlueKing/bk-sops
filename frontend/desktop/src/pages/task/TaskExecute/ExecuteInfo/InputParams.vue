@@ -1,11 +1,17 @@
 <template>
     <section class="info-section input-section" data-test-id="taskExecute_form_inputParams">
-        <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-        <div class="origin-value" v-if="!adminView">
-            <bk-switcher size="small" @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
-            {{ 'Code' }}
+        <div class="section-title-wrap">
+            <i
+                class="trigger common-icon-next-triangle-shape"
+                :class="{ 'is-expand': isExpand }"
+                @click="isExpand = !isExpand"></i>
+            {{ $t('输入参数') }}
+            <div class="origin-value" v-if="!adminView">
+                <bk-switcher size="small" @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
+                {{ 'Code' }}
+            </div>
         </div>
-        <template v-if="!adminView">
+        <template v-if="!adminView && isExpand">
             <div class="input-table" v-if="!isShowInputOrigin">
                 <div class="table-header">
                     <span class="input-name">{{ $t('参数名') }}</span>
@@ -17,23 +23,23 @@
                         :key="renderKey"
                         :scheme="renderConfig"
                         :form-option="renderOption"
-                        :constants="inputConstants"
-                        v-model="inputRenderDate">
+                        :constants="constants"
+                        v-model="inputRenderData">
                     </RenderForm>
                     <NoData v-else></NoData>
                 </template>
                 <template v-else>
                     <jsonschema-form
-                        v-if="renderConfig.properties && Object.keys(renderConfig.properties).length > 0"
+                        v-if="renderConfig && renderConfig.properties && Object.keys(renderConfig.properties).length > 0"
                         :schema="renderConfig"
-                        :value="inputRenderDate">
+                        :value="inputRenderData">
                     </jsonschema-form>
                     <no-data v-else></no-data>
                 </template>
             </div>
             <full-code-editor v-else :value="inputsInfo"></full-code-editor>
         </template>
-        <div class="code-block-wrap" v-else>
+        <div class="code-block-wrap" v-else-if="isExpand">
             <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
         </div>
     </section>
@@ -92,8 +98,8 @@
                     formMode: false
                 },
                 renderKey: null,
-                inputConstants: {},
-                inputRenderDate: {}
+                inputRenderData: {},
+                isExpand: true
             }
         },
         computed: {
@@ -108,39 +114,11 @@
                 },
                 immediate: true
             },
-            constants: {
-                handler (val) {
-                    const constants = tools.deepClone(val)
-                    if (constants.subflow_detail_var) {
-                        // 兼容接口返回的key值和form配置的key不同
-                        Object.keys(constants).forEach(key => {
-                            if (!(key in this.inputs) && /^\${[^${}]+}$/.test(key)) {
-                                const varKey = key.split('').slice(2, -1).join('')
-                                if (varKey in constants) {
-                                    constants[key] = constants[varKey]
-                                    this.$delete(constants, varKey)
-                                }
-                            }
-                        })
-                    }
-                    this.inputConstants = constants
-                },
-                deep: true
-            },
             renderData: {
                 handler (val) {
                     this.renderKey = new Date().getTime()
                     const renderData = tools.deepClone(val)
-                    // 兼容form配置的key为变量的情况
-                    if (this.constants.subflow_detail_var) {
-                        Object.keys(this.renderData).forEach(key => {
-                            const value = this.renderData[key]
-                            if (/^\${[^${}]+}$/.test(value) && key in this.inputConstants) {
-                                this.renderData[key] = this.inputConstants[key]
-                            }
-                        })
-                    }
-                    this.inputRenderDate = renderData
+                    this.inputRenderData = renderData
                 },
                 deep: true,
                 immediate: true
@@ -155,14 +133,9 @@
         methods: {
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {
-                    this.inputsInfo = this.constants.subflow_detail_var ? tools.deepClone(this.inputs) : JSON.parse(this.inputsInfo)
+                    this.inputsInfo = JSON.parse(this.inputsInfo)
                 } else {
-                    let info = this.inputs
-                    if (this.constants.subflow_detail_var) {
-                        info = tools.deepClone(this.constants)
-                        this.$delete(info, 'subflow_detail_var')
-                    }
-                    this.inputsInfo = JSON.stringify(info, null, 4)
+                    this.inputsInfo = JSON.stringify(this.inputs, null, 4)
                 }
             }
         }
@@ -174,10 +147,10 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        max-width: 682px;
         border: 1px solid #dcdee5;
         border-bottom: none;
         border-radius: 2px;
+        margin: 13px 12px 0;
         .table-header {
             display: flex;
             align-items: center;
@@ -190,7 +163,7 @@
             }
             .input-name {
                 line-height: 20px;
-                width: 30%;
+                width: 20%;
             }
         }
         /deep/.render-form {
@@ -201,7 +174,7 @@
                 width: 100% !important;
                 border-bottom: 1px solid #dcdee5;
                 label {
-                    width: 30%;
+                    width: 20%;
                     text-align: left;
                     padding-left: 13px;
                     color: #63656e;
@@ -210,7 +183,7 @@
                     }
                 }
                 >.rf-tag-form {
-                    margin-left: 30%;
+                    margin-left: 20%;
                     padding-left: 13px;
                     padding-right: 15px;
                 }
@@ -235,7 +208,7 @@
                 width: 100% !important;
                 border-bottom: 1px solid #dcdee5;
                 label {
-                    width: 30% !important;
+                    width: 20% !important;
                     text-align: left;
                     padding-left: 13px;
                     color: #63656e;
@@ -244,7 +217,7 @@
                     }
                 }
                 >.bk-form-content {
-                    margin-left: 30% !important;
+                    margin-left: 20% !important;
                     padding-left: 13px;
                     padding-right: 15px;
                 }
@@ -269,5 +242,6 @@
     }
     .input-section .full-code-editor {
         height: 400px;
+        margin: 13px 12px 0;
     }
 </style>

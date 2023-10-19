@@ -17,13 +17,8 @@ import traceback
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
-from pipeline.contrib.periodic_task.models import (
-    PeriodicTaskHistory as PipelinePeriodicTaskHistory,
-)
-from pipeline.contrib.periodic_task.signals import (
-    periodic_task_start_failed,
-    pre_periodic_task_start,
-)
+from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
+from pipeline.contrib.periodic_task.signals import periodic_task_start_failed, pre_periodic_task_start
 
 from gcloud.constants import PROJECT, TaskCreateMethod
 from gcloud.core.models import EngineConfig
@@ -49,6 +44,8 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         current_flow="execute_task",
         engine_ver=periodic_task.extra_info.get("engine_ver", EngineConfig.ENGINE_VER_V1),
     )
+
+    task.record_and_get_executor_proxy(task.executor or periodic_task.creator)
 
     # crete auto retry strategy
     arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=pipeline_instance.instance_id)

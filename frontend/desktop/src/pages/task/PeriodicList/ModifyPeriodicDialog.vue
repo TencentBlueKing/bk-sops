@@ -149,7 +149,12 @@
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
                         <bk-form-item :label="$t('任务名称')" :required="true" property="taskName" data-test-id="periodicEdit_form_taskName">
-                            <bk-input :clearable="true" v-model="formData.name"></bk-input>
+                            <bk-input
+                                :clearable="true"
+                                v-model="formData.name"
+                                :maxlength="stringLength.TASK_NAME_MAX_LENGTH"
+                                :show-word-limit="true">
+                            </bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('周期表达式')" :required="true" property="loop" data-test-id="periodicEdit_form_loop">
                             <CronRuleSelect
@@ -296,6 +301,7 @@
                     required: true,
                     regex: PERIODIC_REG
                 },
+                stringLength: STRING_LENGTH,
                 rules: {
                     taskName: [
                         {
@@ -315,7 +321,7 @@
                         },
                         {
                             validator: (val) => {
-                                return STRING_LENGTH.TASK_NAME_MAX_LENGTH > this.formData.name.length
+                                return STRING_LENGTH.TASK_NAME_MAX_LENGTH >= this.formData.name.length
                             },
                             message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'change'

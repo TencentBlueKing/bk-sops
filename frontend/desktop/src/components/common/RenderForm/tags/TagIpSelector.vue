@@ -11,7 +11,8 @@
 */
 <template>
     <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 0.8, zIndex: 100 }">
-        <div v-if="formMode && typeof ipValue === 'object'" class="tag-ip-selector-wrap">
+        <span v-if="scheme.attrs.usedValue" class="rf-view-value">{{ value }}</span>
+        <div v-else-if="typeof ipValue === 'object'" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
                 :editable="editable && !disabled"
@@ -25,7 +26,6 @@
                 v-model="ipValue">
             </ip-selector>
         </div>
-        <span v-else class="rf-view-value">{{ constants.subflow_detail_var ? constants[tagCode] : viewValue }}</span>
     </div>
 </template>
 <script>
@@ -75,20 +75,17 @@
         {
             type: 'staticIp',
             id: 'ip',
-            name: i18n.t('静态 IP'),
-            hasDiff: false
+            name: i18n.t('静态 IP')
         },
         {
             type: 'dynamicIp',
             id: 'topo',
-            name: i18n.t('动态拓扑'),
-            hasDiff: false
+            name: i18n.t('动态拓扑')
         },
         {
             type: 'dynamicGroup',
             id: 'group',
-            name: i18n.t('动态分组'),
-            hasDiff: false
+            name: i18n.t('动态分组')
         },
         {
             type: 'manualInput',
@@ -143,7 +140,9 @@
             }
         },
         mounted () {
-            this.getData()
+            if (!this.scheme.attrs.usedValue) {
+                this.getData()
+            }
         },
         methods: {
             ...mapActions([
@@ -176,27 +175,21 @@
                 ]).then(values => {
                     if (Array.isArray(values)) {
                         let hasDiff = false
-                        const value = tools.deepClone(this.value)
-                        const { ip, topo, group } = value
+                        const { ip, group } = this.value
                         values.forEach((v, index) => {
                             switch (index) {
                                 case 0:
                                     this.staticIpList = v.data
                                     if (!this.hook) { // 表单没有被勾选
-                                        hasDiff = ip.some(value => {
+                                        ip.forEach(value => {
                                             // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则提示用户手动更新
-                                            return this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
+                                            hasDiff = this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
+                                            this.$set(value, 'diff', hasDiff)
                                         })
-                                        this.selectorTabs[0].hasDiff = hasDiff
                                     }
                                     break
                                 case 1:
                                     this.dynamicIpList = v.data
-                                    // 判断动态IP数据与最新的CMDB动态IP配置是否存在差异
-                                    hasDiff = topo.every(item => {
-                                        return this.loopDynamicIpList(this.dynamicIpList, item.bk_obj_id, item.bk_inst_id)
-                                    })
-                                    this.selectorTabs[1].hasDiff = !hasDiff
                                     break
                                 case 2:
                                     this.topoModelList = v.data
@@ -205,10 +198,10 @@
                                     this.dynamicGroupList = v.data.info
                                     // 判断动态分组数据与最新的CMDB动态分组配置是否存在差异
                                     const dynamicGroups = group || []
-                                    hasDiff = dynamicGroups.some(value => {
-                                        return this.dynamicGroupList.every(item => item.id !== value.id)
+                                    dynamicGroups.some(value => {
+                                        hasDiff = this.dynamicGroupList.every(item => item.id !== value.id)
+                                        this.$set(value, 'diff', hasDiff)
                                     })
-                                    this.selectorTabs[2].hasDiff = hasDiff
                                     break
                             }
                         })

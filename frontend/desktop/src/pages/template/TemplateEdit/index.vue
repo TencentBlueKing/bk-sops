@@ -211,6 +211,7 @@
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
     import BatchUpdateDialog from './BatchUpdateDialog.vue'
     import DealVarDirtyData from '@/utils/dealVarDirtyData.js'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'TemplateEdit',
@@ -1938,6 +1939,9 @@
                 this.leaveToPath = to.fullPath
                 this.$bkInfo({
                     ...this.infoBasicConfig,
+                    cancelFn: () => {
+                        bus.$emit('cancelRoute')
+                    },
                     confirmFn: () => {
                         this.allowLeave = true
                         this.$router.push({ path: this.leaveToPath })

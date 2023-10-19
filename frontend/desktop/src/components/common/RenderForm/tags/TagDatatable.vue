@@ -51,7 +51,7 @@
                 </el-upload>
             </template>
         </div>
-        <span v-if="constants.subflow_detail_var" class="rf-view-value">{{ constants[tagCode] }}</span>
+        <span v-if="scheme.attrs.usedValue" class="rf-view-value">{{ value }}</span>
         <template v-else-if="Array.isArray(value) && !loading">
             <el-table
                 ref="tableEl"
@@ -696,5 +696,8 @@
         color: $blueDefault;
         white-space: nowrap;
         cursor: pointer;
+    }
+    /deep/.rf-tag-form {
+        margin-left: 0 !important;
     }
 </style>

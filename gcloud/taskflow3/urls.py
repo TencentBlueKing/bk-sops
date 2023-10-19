@@ -11,19 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf.urls import include, url
 from django.urls import path
-from django.conf.urls import url, include
 
 from gcloud.taskflow3.apis.django import api
 from gcloud.taskflow3.apis.django.v4.urls import v4_urlpatterns
-from gcloud.taskflow3.apis.drf.viewsets.render_current_constants import RenderCurrentConstantsView
 from gcloud.taskflow3.apis.drf.viewsets.engine_v2_node_log import EngineV2NodeLogView
 from gcloud.taskflow3.apis.drf.viewsets.preview_task_tree import PreviewTaskTreeWithSchemesView
+from gcloud.taskflow3.apis.drf.viewsets.render_current_constants import RenderCurrentConstantsView
 from gcloud.taskflow3.apis.drf.viewsets.update_task_constants import UpdateTaskConstantsView
 
 urlpatterns = [
     url(r"^api/context/$", api.context),
     url(r"^api/status/(?P<project_id>\d+)/$", api.status),
+    url(r"^api/batch_status/(?P<project_id>\d+)/$", api.batch_status),
     url(r"^api/clone/(?P<project_id>\d+)/$", api.task_clone),
     url(r"^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.task_action),
     url(r"^api/flow/claim/(?P<project_id>\d+)/$", api.task_func_claim),

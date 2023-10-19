@@ -1,33 +1,33 @@
 <template>
     <div class="execute-record">
-        <template v-if="Object.keys(executeInfo).length">
-            <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo">
-                <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
-                <div class="fail-text" v-if="executeInfo.ex_data">
+        <template v-if="Object.keys(executeInfo).length && !notPerformedSubNode">
+            <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.state === 'FAILED'">
+                <template v-if="executeInfo.ex_data">
                     <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
                     <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
                     <span class="expand-btn" v-if="isExpandTextShow" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('显示全部') }}</span>
-                </div>
-                <p class="not-fail" v-else>{{ $t('暂无异常') }}</p>
+                </template>
+                <i18n v-else tag="div" path="exFailedText" class="show-html-text">
+                    <a href="javascript:void(0);" class="link" @click="$emit('onTabChange', 'log')">{{ $t('exFailedText_调用日志') }}</a>
+                </i18n>
             </section>
-            <section class="info-section" data-test-id="taskExcute_form_excuteInfo">
-                <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
-                <div class="subprocee-link" v-if="isReadyStatus && isSubProcessNode" @click="onSkipSubProcess">
-                    <i class="common-icon-box-top-right-corner"></i>
-                    {{ $t('子流程详情') }}
-                </div>
+            <section class="info-section" data-test-id="taskExecute_form_executeInfo">
                 <ul class="operation-table" v-if="isReadyStatus">
                     <li>
-                        <span class="th">{{ $t('开始时间') }}</span>
-                        <span class="td">{{ executeInfo.start_time || '--' }}</span>
+                        <p class="th">{{ $t('执行结果') }}</p>
+                        <p class="td">{{ nodeState || '--' }}</p>
                     </li>
                     <li>
-                        <span class="th">{{ $t('结束时间') }}</span>
-                        <span class="td">{{ executeInfo.finish_time || '--' }}</span>
+                        <p class="th">{{ $t('开始时间') }}</p>
+                        <p class="td">{{ executeInfo.start_time || '--' }}</p>
                     </li>
                     <li>
-                        <span class="th">{{ $t('耗时') }}</span>
-                        <span class="td">{{ getLastTime(executeInfo.elapsed_time) || '--' }}</span>
+                        <p class="th">{{ $t('结束时间') }}</p>
+                        <p class="td">{{ executeInfo.finish_time || '--' }}</p>
+                    </li>
+                    <li>
+                        <p class="th">{{ $t('耗时') }}</p>
+                        <p class="td">{{ executeInfo.finish_time && getLastTime(executeInfo.elapsed_time) || '--' }}</p>
                     </li>
                 </ul>
                 <NoData v-else :message="$t('暂无执行信息')"></NoData>
@@ -58,6 +58,7 @@
     import InputParams from './InputParams.vue'
     import OutputParams from './OutputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import { TASK_STATE_DICT } from '@/constants/index.js'
     export default {
         name: 'executeRecord',
         components: {
@@ -90,6 +91,10 @@
                 type: Object,
                 default: () => ({})
             },
+            notPerformedSubNode: {
+                type: Boolean,
+                default: false
+            },
             isSubProcessNode: {
                 type: Boolean,
                 default: false
@@ -99,6 +104,16 @@
             return {
                 isExpand: false,
                 isExpandTextShow: false
+            }
+        },
+        computed: {
+            nodeState () {
+                const { state, skip, error_ignored } = this.executeInfo
+                // 如果整体任务未执行的话不展示描述
+                if (state === 'CREATED') return this.$t('未执行')
+                // 如果整体任务执行完毕但有的节点没执行的话不展示描述
+                if (['FAILED', 'FINISHED'].includes(state) && state === 'READY') return this.$t('未执行')
+                return skip || error_ignored ? this.$t.t('失败后跳过') : state && TASK_STATE_DICT[state]
             }
         },
         mounted () {
@@ -126,9 +141,10 @@
 
 <style lang="scss" scoped>
 .execute-record {
-    /deep/.fail-text {
+    /deep/.abnormal-section {
         position: relative;
         font-size: 12px;
+        margin-bottom: 8px !important;
         color: #313238;
         background: #fff3e1;
         border: 1px solid #ffb848;
@@ -163,31 +179,30 @@
             color: #3a84ff;
         }
     }
-    .not-fail {
-        color: #979ba5;
-        font-size: 12px;
-        padding-left: 15px;
-    }
     .operation-table {
-        font-size: 12px;
-        border: 1px solid #dcdee5;
-        border-bottom: none;
+        display: flex;
+        align-items: center;
+        padding: 12px 24px;
+        margin-bottom: 24px;
+        border: none;
+        border-radius: 2px;
+        background: #fafbfd;
         li {
-            display: flex;
-            height: 42px;
-            line-height: 41px;
-            color: #63656e;
-            border-bottom: 1px solid #dcdee5;
+            width: 30%;
+            font-size: 12px;
+            line-height: 26px;
             .th {
-                width: 140px;
                 font-weight: 400;
-                color: #313238;
-                padding-left: 12px;
-                border-right: 1px solid #dcdee5;
+                color: #979ba5;
+                margin-bottom: 2px;
                 background: #fafbfd;
             }
             .td {
-                padding-left: 12px;
+                color: #313238;
+            }
+            &:first-child,
+            &:last-child {
+                width: 20%;
             }
         }
     }
@@ -253,7 +268,33 @@
         margin-bottom: 32px;
     }
     .no-data-wrapper {
+        height: 150px;
         margin-top: 32px;
+    }
+    /deep/.section-title-wrap {
+        display: flex;
+        align-items: center;
+        position: relative;
+        color: #313238;
+        height: 24px;
+        font-weight: 600;
+        line-height: 18px;
+        padding: 0 8px;
+        background: #eaebf0;
+        .trigger {
+            margin-right: 10px;
+            color: #979ba5;
+            translate: all .2s;
+            cursor: pointer;
+        }
+        .is-expand {
+            transform: rotate(90deg);
+        }
+        .origin-value {
+            font-weight: normal;
+            top: 2px !important;
+            right: 12px !important;
+        }
     }
 }
 </style>

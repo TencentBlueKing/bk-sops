@@ -15,62 +15,61 @@ import time
 import traceback
 
 import ujson as json
+from blueapps.account.decorators import login_exempt
 from cryptography.fernet import Fernet
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
-from django.utils.translation import ugettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+from iam.exceptions import RawAuthFailedException
 from rest_framework.decorators import api_view
 
 import env
-from blueapps.account.decorators import login_exempt
-from gcloud.utils.throttle import check_task_operation_throttle, get_task_operation_frequence
-
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
-
 from gcloud import err_code
-from gcloud.core.models import EngineConfig
-from gcloud.utils.decorators import request_validate
 from gcloud.conf import settings
-from gcloud.constants import TASK_CREATE_METHOD, PROJECT, JobBizScopeType
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
-from gcloud.taskflow3.domains.context import TaskContext
+from gcloud.constants import PROJECT, TASK_CREATE_METHOD, JobBizScopeType
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
+from gcloud.contrib.operate_record.constants import OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType
+from gcloud.core.models import EngineConfig
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.taskflow import (
+    BatchStatusViewInterceptor,
+    DataViewInterceptor,
+    DetailViewInterceptor,
+    GetNodeLogInterceptor,
+    NodesActionInterceptor,
+    SpecNodesTimerResetInpterceptor,
+    StatusViewInterceptor,
+    TaskActionInterceptor,
+    TaskCloneInpterceptor,
+    TaskFuncClaimInterceptor,
+)
+from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.taskflow3.apis.django.validators import (
-    StatusValidator,
+    BatchStatusValidator,
     DataValidator,
     DetailValidator,
     GetJobInstanceLogValidator,
-    TaskActionValidator,
+    GetNodeLogValidator,
     NodesActionValidator,
-    SpecNodesTimerResetValidator,
-    TaskCloneValidator,
-    TaskFuncClaimValidator,
     PreviewTaskTreeValidator,
     QueryTaskCountValidator,
-    GetNodeLogValidator,
+    SpecNodesTimerResetValidator,
+    StatusValidator,
+    TaskActionValidator,
+    TaskCloneValidator,
+    TaskFuncClaimValidator,
 )
-from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.taskflow import (
-    DataViewInterceptor,
-    DetailViewInterceptor,
-    TaskActionInterceptor,
-    NodesActionInterceptor,
-    SpecNodesTimerResetInpterceptor,
-    TaskCloneInpterceptor,
-    TaskFuncClaimInterceptor,
-    GetNodeLogInterceptor,
-    StatusViewInterceptor,
-)
-from gcloud.openapi.schema import AnnotationAutoSchema
-
+from gcloud.taskflow3.domains.context import TaskContext
+from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
+from gcloud.utils.decorators import request_validate
+from gcloud.utils.throttle import check_task_operation_throttle, get_task_operation_frequence
 from pipeline_web.preview import preview_template_tree
 
 logger = logging.getLogger("root")
@@ -102,12 +101,7 @@ def status(request, project_id):
         message = _(f"任务查询失败: 任务[ID: {instance_id}]不存在, 请检查 | status")
         logger.error(message)
         return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "data": None,
-                "code": err_code.CONTENT_NOT_EXIST.code,
-            }
+            {"result": False, "message": message, "data": None, "code": err_code.CONTENT_NOT_EXIST.code}
         )
 
     dispatcher = TaskCommandDispatcher(
@@ -115,6 +109,27 @@ def status(request, project_id):
     )
     result = dispatcher.get_task_status(subprocess_id=subprocess_id)
     return JsonResponse(result)
+
+
+@require_POST
+@request_validate(BatchStatusValidator)
+@iam_intercept(BatchStatusViewInterceptor())
+def batch_status(request, project_id):
+    """用于批量获取独立子流程状态"""
+    body = json.loads(request.body)
+    task_ids = body.get("task_ids") or []
+    tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project_id=project_id)
+    total_result = {"result": True, "data": {}, "code": err_code.SUCCESS.code, "message": ""}
+    for task in set(tasks):
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=task.engine_ver,
+            taskflow_id=task.id,
+            pipeline_instance=task.pipeline_instance,
+            project_id=project_id,
+        )
+        total_result["data"][task.id] = dispatcher.get_task_status()
+
+    return JsonResponse(total_result)
 
 
 @require_GET
@@ -185,6 +200,7 @@ def detail(request, project_id):
     task_id = request.query_params["instance_id"]
     node_id = request.query_params["node_id"]
     loop = request.query_params.get("loop")
+    subprocess_simple_inputs = request.query_params.get("subprocess_simple_inputs") == "true"
     component_code = request.query_params.get("component_code")
     include_data = int(request.query_params.get("include_data", 1))
 
@@ -192,7 +208,14 @@ def detail(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.get_node_detail(
-        node_id, request.user.username, component_code, subprocess_stack, loop, include_data, project_id=project_id
+        node_id,
+        request.user.username,
+        component_code,
+        subprocess_stack,
+        loop,
+        include_data,
+        project_id=project_id,
+        subprocess_simple_inputs=subprocess_simple_inputs,
     )
 
     return JsonResponse(ctx)
@@ -241,13 +264,7 @@ def task_action(request, action, project_id):
             allowed_times, scope_seconds = frequence_data
             message = _(f"任务操作失败: 项目[ID: {project_id}]启动任务的极限: {allowed_times}/{scope_seconds}(单位:秒)")
         logger.error(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "code": err_code.INVALID_OPERATION.code,
-            }
-        )
+        return JsonResponse({"result": False, "message": message, "code": err_code.INVALID_OPERATION.code})
 
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
@@ -437,17 +454,9 @@ def get_node_log(request, project_id, node_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if not task.has_node(node_id):
-        message = _(
-            f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log"
-        )
+        message = _(f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log")
         logger.error(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "data": None,
-                "message": message,
-            }
-        )
+        return JsonResponse({"result": False, "data": None, "message": message})
 
     dispatcher = NodeCommandDispatcher(engine_ver=task.engine_ver, node_id=node_id, taskflow_id=task_id)
     return JsonResponse(dispatcher.get_node_log(history_id))
@@ -480,9 +489,7 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        message = _(
-            f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback"
-        )
+        message = _(f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback")
         logger.error(message)
         return JsonResponse({"result": False, "message": message}, status=400)
 

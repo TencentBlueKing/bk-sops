@@ -14,7 +14,7 @@
         <bk-sideslider
             ref="nodeConfigPanel"
             ext-cls="node-config-panel"
-            :width="800"
+            :width="sideWidth"
             :is-show="isShow"
             :quick-close="true"
             :before-close="beforeClose">
@@ -76,6 +76,7 @@
                                                 <i
                                                     :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
                                                     v-bk-tooltips="{
+                                                        allowHTML: false,
                                                         content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
                                                         placements: ['bottom']
                                                     }">
@@ -83,6 +84,7 @@
                                                 <i
                                                     :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
                                                     v-bk-tooltips="{
+                                                        allowHTML: false,
                                                         content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
                                                         placements: ['bottom']
                                                     }">
@@ -151,6 +153,11 @@
                 </div>
                 <!-- 插件/子流程表单面板 -->
                 <template v-else>
+                    <!--可拖拽-->
+                    <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                    <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
+                    <div class="resize-mask" ref="resizeMask"></div>
+
                     <div class="node-config" v-bkloading="{ isLoading: isSubflow && subflowListLoading, opacity: 1 }">
                         <template v-if="!isSubflow || !subflowListLoading">
                             <div class="config-form">
@@ -195,12 +202,13 @@
                                         </i>
                                     </h3>
                                     <p class="citations-waivers-guide">
-                                        <bk-popover placement="top-end" theme="light" width="258" :ext-cls="'citations-waivers-guide-tip'">
+                                        <bk-popover placement="top-end" theme="light" width="350" :ext-cls="'citations-waivers-guide-tip'">
                                             <i class="bk-icon icon-info-circle-shape"></i>
-                                            {{ $t('设置为变量&变量免渲染使用指引') }}
+                                            {{ $t('转换为变量和取消使用变量说明') }}
                                             <div slot="content">
-                                                <p>{{ $t('设置为变量：将节点的输入或输出设置为全局变量，可供其他节点使用') }}</p><br>
-                                                <p>{{ $t('变量免渲染：忽略参数中的全局变量，将${}视为普通字符串') }}</p>
+                                                <p>{{ $t('如何工作：利用节点的参数创建一个对应组件类型的变量。例如某个参数是下拉框组件，则创建一个下拉框变量') }}</p><br>
+                                                <p>{{ $t('如何使用：转换时自动引用创建的变量，或复用其它节点已创建的同组件类型变量，实现将多个节点的同一配置项统一变量集中维护') }}</p><br>
+                                                <p>{{ $t('如何删除：当所有复用该变量的参数被取消使用，则自动删除变量') }}</p>
                                             </div>
                                         </bk-popover>
                                     </p>
@@ -243,6 +251,17 @@
                                 <!-- 输出参数 -->
                                 <section class="config-section" data-test-id="templateEdit_form_outputParamsInfo">
                                     <h3>{{$t('输出参数')}}</h3>
+                                    <p class="citations-waivers-guide">
+                                        <bk-popover placement="top-end" theme="light" width="350" :ext-cls="'citations-waivers-guide-tip'">
+                                            <i class="bk-icon icon-info-circle-shape"></i>
+                                            {{ $t('接收输出和取消接收使用说明') }}
+                                            <div slot="content">
+                                                <p>{{ $t('如何工作：自动创建一个节点输出类型变量来接收任务执行时节点的输出') }}</p><br>
+                                                <p>{{ $t('如何使用：在当前节点后执行的节点可引用变量来获取该节点的输出') }}</p><br>
+                                                <p>{{ $t('如何删除：取消接收输出则自动删除变量') }}</p>
+                                            </div>
+                                        </bk-popover>
+                                    </p>
                                     <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
                                         <template v-if="!outputLoading">
                                             <output-params
@@ -347,6 +366,7 @@
         },
         data () {
             return {
+                sideWidth: 800, // 侧栏宽度
                 subflowUpdated: false, // 子流程是否更新
                 taskNodeLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
@@ -1016,7 +1036,7 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = true
+                        acc[crt.tag_code] = crt.type !== 'code_editor'
                         return acc
                     }, {})
                 }
@@ -1043,7 +1063,7 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = true
+                        acc[crt.tag_code] = crt.type !== 'code_editor'
                         return acc
                     }, {})
                 }
@@ -1273,13 +1293,9 @@
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
                     if (citedNum <= 1) {
-                        // 切换插件/切换版本/更新子流程时直接删除引用量为1变量
-                        if (this.isUpdateConstants) {
-                            this.deleteUnhookingVar()
-                        } else {
-                            this.isCancelGloVarDialogShow = true
-                        }
+                        this.deleteUnhookingVar()
                     } else {
+                        // 当变量来源为0时，自动删除变量
                         if (sourceInfo[id].length <= 1) {
                             this.$delete(sourceInfo, id)
                         } else {
@@ -1291,6 +1307,9 @@
                                 }
                             })
                             sourceInfo[id].splice(atomIndex, 1)
+                        }
+                        if (Object.keys(sourceInfo).length === 0) {
+                            this.$delete(this.localConstants, key)
                         }
                         const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
                         refDom && refDom.setFormData({ ...this.unhookingVarForm })
@@ -1627,6 +1646,40 @@
             onClosePanel (openVariablePanel) {
                 this.$emit('updateNodeInfo', this.nodeId, { isActived: false })
                 this.$emit('close', openVariablePanel)
+            },
+            handleMousedown (event) {
+                this.updateResizeMaskStyle()
+                this.updateResizeProxyStyle()
+                document.addEventListener('mousemove', this.handleMouseMove)
+                document.addEventListener('mouseup', this.handleMouseUp)
+            },
+            handleMouseMove (event) {
+                const maxWidth = window.innerWidth - 400
+                let width = window.innerWidth - event.clientX
+                width = width < 800 ? 800 : width
+                width = width > maxWidth ? maxWidth : width
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.right = `${width}px`
+            },
+            updateResizeMaskStyle () {
+                const resizeMask = this.$refs.resizeMask
+                resizeMask.style.display = 'block'
+                resizeMask.style.cursor = 'col-resize'
+            },
+            updateResizeProxyStyle () {
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'visible'
+                resizeProxy.style.right = `${this.sideWidth}px`
+            },
+            handleMouseUp () {
+                const resizeMask = this.$refs.resizeMask
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'hidden'
+                resizeMask.style.display = 'none'
+                const right = resizeProxy.style.right.slice(0, -2)
+                this.sideWidth = Number(right)
+                document.removeEventListener('mousemove', this.handleMouseMove)
+                document.removeEventListener('mouseup', this.handleMouseUp)
             }
         }
     }
@@ -1730,8 +1783,64 @@
             }
         }
     }
+    .bk-sideslider-wrapper {
+        overflow: initial;
+    }
     .bk-sideslider-content {
         overflow: initial;
+    }
+    .resize-trigger {
+        width: 5px;
+        height: calc(100vh - 109px);
+        position: absolute;
+        left: 0;
+        top: 60px;
+        cursor: col-resize;
+        z-index: 3;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: #dcdee5;
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -1px;
+            width: 2px;
+            height: 2px;
+            color: #979ba5;
+            transform: translate3d(0,-50%,0);
+            background: currentColor;
+            box-shadow: 0 4px 0 0 currentColor,0 8px 0 0 currentColor,0 -4px 0 0 currentColor,0 -8px 0 0 currentColor;
+        }
+        &:hover::before {
+            background-color: #3a84ff;
+        }
+    }
+    .resize-proxy {
+        visibility: hidden;
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999;
+        &.left {
+            top: 0;
+            height: 100%;
+            border-left: 1px dashed #3a84ff;
+        }
+    }
+    .resize-mask {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
     }
     .variable-edit-panel {
         height: calc(100vh - 60px);

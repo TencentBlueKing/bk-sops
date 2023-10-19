@@ -21,6 +21,8 @@
         </div>
         <bk-select
             v-else
+            ref="projectSelect"
+            :key="randomKey"
             class="project-select"
             ext-popover-cls="project-select-comp-list"
             :value="crtProject"
@@ -51,6 +53,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'ProjectSelector',
@@ -69,7 +72,8 @@
             return {
                 crtProject: isNaN(id) ? '' : id,
                 showList: false,
-                searchStr: ''
+                searchStr: '',
+                randomKey: null
             }
         },
         computed: {
@@ -109,7 +113,26 @@
                 return projects
             }
         },
+        watch: {
+            '$route' (val) {
+                this.updateSelected()
+            }
+        },
+        created () {
+            bus.$on('cancelRoute', (val) => {
+                this.updateSelected()
+            })
+        },
         methods: {
+            updateSelected () {
+                let { project_id: projectId } = this.$route.params
+                projectId = Number(projectId)
+                const { selected } = this.$refs.projectSelect
+                if (Number(projectId) !== selected) {
+                    this.crtProject = projectId
+                    this.randomKey = new Date().getTime()
+                }
+            },
             async onProjectChange (id) {
                 if (this.project_id === id) {
                     return false

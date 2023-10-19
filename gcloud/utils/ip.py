@@ -127,7 +127,7 @@ def get_ip_by_regex_type(regex_type, ip_str):
     if regex_type == IpRegexType.HOST_ID.value:
         ip_list = [int(host_id) for host_id in ip_list]
 
-    return ip_list, new_ip_str
+    return list(set(ip_list)), new_ip_str
 
 
 def extract_ip_from_ip_str(ip_str):

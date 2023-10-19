@@ -11,38 +11,36 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
 import datetime
+import logging
 
+from bk_monitor_report.reporter import MonitorReporter
 from django.conf import settings
 from django.dispatch import receiver
 
-from bamboo_engine import states as bamboo_engine_states
-from pipeline.engine.signals import activity_failed
-from pipeline.core.pipeline import Pipeline
-from pipeline.models import PipelineInstance
-from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
-from pipeline.eri.signals import (
-    post_set_state,
-    execute_interrupt,
-    schedule_interrupt,
-    pre_service_execute,
-    pre_service_schedule,
-)
-from pipeline.engine.signals import pipeline_end, pipeline_revoke
-from bk_monitor_report.reporter import MonitorReporter
-
 import env
+from bamboo_engine import states as bamboo_engine_states
+from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
+from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
 from gcloud.taskflow3.models import (
-    TaskFlowInstance,
     AutoRetryNodeStrategy,
     EngineConfig,
-    TimeoutNodeConfig,
     TaskCallBackRecord,
+    TaskFlowInstance,
+    TimeoutNodeConfig,
 )
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
-from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node, task_callback
-from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
+from pipeline.core.pipeline import Pipeline
+from pipeline.engine.signals import activity_failed, pipeline_end, pipeline_revoke
+from pipeline.eri.signals import (
+    execute_interrupt,
+    post_set_state,
+    pre_service_execute,
+    pre_service_schedule,
+    schedule_interrupt,
+)
+from pipeline.models import PipelineInstance
+from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 
 logger = logging.getLogger("celery")
 
@@ -65,6 +63,9 @@ def _finish_taskflow_and_send_signal(instance_id, sig, task_success=False):
         except Exception as e:
             logger.exception("send_taskflow_message[taskflow_id=%s] task delay error: %s" % (task_id, e))
 
+    if sig is taskflow_revoked:
+        _check_and_callback(task_id, task_success=False)
+
 
 def _send_node_fail_message(node_id, pipeline_id):
     try:
@@ -75,12 +76,13 @@ def _send_node_fail_message(node_id, pipeline_id):
 
     _check_and_callback(taskflow.id, task_success=False)
 
-    try:
-        activity = taskflow.get_act_web_info(node_id)
-        node_name = activity["name"] if activity else node_id
-        send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=node_name)
-    except Exception as e:
-        logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
+    if taskflow.is_child_taskflow is False:
+        try:
+            activity = taskflow.get_act_web_info(node_id)
+            node_name = activity["name"] if activity else node_id
+            send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=node_name)
+        except Exception as e:
+            logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
 
 
 def _check_and_callback(taskflow_id, *args, **kwargs):

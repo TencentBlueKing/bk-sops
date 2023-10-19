@@ -142,6 +142,15 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
+            "ex_data": "调用监控平台(Monitor)接口monitor.create_shield返回失败, error=create shield fail, "
+            'params={"begin_time":"2020-09-28 11:18:58",'
+            '"bk_biz_id":2,"category":"scope","cycle_config":{"begin_time":"","end_time":"","day_list":[],'
+            '"week_list":[],"type":1},"description":"shield by bk_sops","dimension_config":'
+            '{"scope_type":"node","target":[{"bk_obj_id":"module","bk_inst_id":1},{"bk_obj_id":"module",'
+            '"bk_inst_id":2},{"bk_obj_id":"module","bk_inst_id":3},{"bk_obj_id":"module","bk_inst_id":4},'
+            '{"bk_obj_id":"module","bk_inst_id":5}],"metric_id":["bk_monitor.system.load.load5",'
+            '"bk_monitor.system.cpu_summary.usage"]},"end_time":"2020-09-28 11:18:58","notice_config":{},'
+            '"shield_notice":false}',
             "shield_id": "",
             "message": "调用监控平台(Monitor)接口monitor.create_shield返回失败, error=create shield fail, "
             'params={"begin_time":"2020-09-28 11:18:58",'

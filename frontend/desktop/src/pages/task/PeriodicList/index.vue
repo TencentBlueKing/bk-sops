@@ -49,7 +49,7 @@
                                 :prop="item.id"
                                 :width="item.width"
                                 :render-header="renderTableHeader"
-                                show-overflow-tooltip
+                                :show-overflow-tooltip="item.id !== 'name'"
                                 :min-width="item.min_width">
                                 <template slot-scope="{ row }">
                                     <!--任务-->
@@ -65,9 +65,10 @@
                                                 'disable': collectingId === row.id,
                                                 'text-permission-disable': !hasPermission(['periodic_task_edit'], row.auth_actions)
                                             }"
+                                            :title="row.name"
                                             @click="onCollectTask(row)">
                                         </a>
-                                        <span class="name" :title="row.name">{{row.name || '--'}}</span>
+                                        <span class="name" :title="row.name" v-bk-overflow-tips>{{row.name || '--'}}</span>
                                         <span
                                             class="label"
                                             v-if="row.is_latest === null"

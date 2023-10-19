@@ -73,3 +73,9 @@ class TaskCallBackRecordAdmin(admin.ModelAdmin):
 class TaskConfigAdmin(admin.ModelAdmin):
     list_display = ["id", "scope_id", "scope", "config_type", "config_value"]
     search_fields = ["scope", "scope_id"]
+
+
+@admin.register(models.TaskFlowRelation)
+class TaskFlowRelationAdmin(admin.ModelAdmin):
+    list_display = ["id", "task_id", "parent_task_id", "root_task_id", "create_time"]
+    search_fields = ["task_id", "parent_task_id", "root_task_id"]

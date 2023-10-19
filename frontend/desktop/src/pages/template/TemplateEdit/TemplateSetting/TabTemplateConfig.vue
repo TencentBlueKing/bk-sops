@@ -26,7 +26,14 @@
                 <section class="form-section">
                     <h4>{{ $t('基础') }}</h4>
                     <bk-form-item :property="'name'" :label="$t('流程名称')" :required="true" data-test-id="tabTemplateConfig_form_name">
-                        <bk-input :readonly="isViewMode" ref="nameInput" v-model.trim="formData.name" :placeholder="$t('请输入流程模板名称')"></bk-input>
+                        <bk-input
+                            :readonly="isViewMode"
+                            ref="nameInput"
+                            v-model.trim="formData.name"
+                            :placeholder="$t('请输入流程模板名称')"
+                            :maxlength="stringLength.TEMPLATE_NAME_MAX_LENGTH"
+                            :show-word-limit="true">
+                        </bk-input>
                     </bk-form-item>
                     <bk-form-item v-if="!common" :label="$t('标签')" data-test-id="tabTemplateConfig_form_label">
                         <bk-select
@@ -253,6 +260,7 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
+                stringLength: STRING_LENGTH,
                 rules: {
                     name: [
                         {

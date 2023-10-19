@@ -11,7 +11,9 @@
                             name="variableName"
                             v-model="theEditingData.name"
                             v-validate="variableNameRule"
-                            :readonly="isViewMode || isInternalVal">
+                            :readonly="isViewMode || isInternalVal"
+                            :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
+                            :show-word-limit="true">
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
@@ -275,9 +277,13 @@
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
                 varTypeData: {},
-                inputRegexp: '', // input，textarea类型正则
+                varRegexpData: { // input，textarea类型正则
+                    input: '^.+$',
+                    textarea: '^[\\s\\S]+$'
+                },
                 atomConfigLoading: false,
                 atomTypeKey: '',
+                stringLength: STRING_LENGTH,
                 // 变量名称校验规则
                 variableNameRule: {
                     required: true,
@@ -631,7 +637,7 @@
                     return validateSet
                 }
             },
-            // input/textarea 表单默认校验规则
+            // input 表单默认校验规则
             getInputDefaultValueValidation () {
                 let validation = this.theEditingData.validation
                 if (this.theEditingData.show_type === 'show') {
@@ -648,7 +654,7 @@
                 Object.assign(this.varTypeData, valData)
                 // 将input textarea类型正则存起来
                 if (['input', 'textarea'].includes(oldValue)) {
-                    this.inputRegexp = this.theEditingData.validation
+                    this.varRegexpData[oldValue] = this.theEditingData.validation
                 }
                 let data
                 this.varTypeList.some(group => {
@@ -666,7 +672,7 @@
                 }
                 // input textarea类型需要正则校验
                 if (['input', 'textarea'].includes(val)) {
-                    this.theEditingData.validation = this.inputRegexp || '^.+$'
+                    this.theEditingData.validation = this.varRegexpData[val]
                 } else {
                     this.theEditingData.validation = ''
                 }

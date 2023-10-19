@@ -1,12 +1,18 @@
 <template>
     <section class="info-section outputs-section" data-test-id="taskExecute_form_outputParams">
-        <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-        <div class="origin-value" v-if="isReadyStatus && !adminView">
-            <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-            {{ 'Code' }}
+        <div class="section-title-wrap">
+            <i
+                class="trigger common-icon-next-triangle-shape"
+                :class="{ 'is-expand': isExpand }"
+                @click="isExpand = !isExpand"></i>
+            {{ $t('输出参数') }}
+            <div class="origin-value" v-if="isReadyStatus && !adminView">
+                <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
+                {{ 'Code' }}
+            </div>
         </div>
-        <NoData v-if="!isReadyStatus" :message="$t('暂无输出')"></NoData>
-        <template v-else-if="!adminView">
+        <NoData v-if="!isReadyStatus && isExpand" :message="$t('暂无输出')"></NoData>
+        <template v-else-if="!adminView && isExpand">
             <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
                 <thead>
                     <tr>
@@ -34,7 +40,7 @@
             </table>
             <full-code-editor v-else :value="outputsInfo"></full-code-editor>
         </template>
-        <div class="code-block-wrap" v-else>
+        <div class="code-block-wrap" v-else-if="isExpand">
             <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
             <NoData v-else></NoData>
         </div>
@@ -74,7 +80,8 @@
         data () {
             return {
                 isShowOutputOrigin: false,
-                outputsInfo: null
+                outputsInfo: null,
+                isExpand: true
             }
         },
         watch: {
@@ -132,6 +139,8 @@
     .outputs-section .operation-table {
         flex: 1;
         table-layout: fixed;
+        width: calc(100% - 24px);
+        margin: 13px 12px 0;
         th, td {
             width: 30%;
             padding: 16px 13px;
@@ -155,6 +164,7 @@
     }
     .outputs-section .full-code-editor {
         height: 400px;
+        margin: 13px 12px 0;
     }
     .no-data-wrapper {
         margin-top: 32px;

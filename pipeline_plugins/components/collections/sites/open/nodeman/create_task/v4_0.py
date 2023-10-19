@@ -37,12 +37,7 @@ NOT_NEED_EXTRA_CONFIG_JOB = ["UNINSTALL_AGENT"]
 
 # 依赖节点管理 job/install 接口的操作
 INSTALL_JOB = (
-    [
-        "INSTALL_PROXY",
-        "INSTALL_AGENT",
-        "REINSTALL_PROXY",
-        "REINSTALL_AGENT",
-    ]
+    ["INSTALL_PROXY", "INSTALL_AGENT", "REINSTALL_PROXY", "REINSTALL_AGENT"]
     + NOT_NEED_EXTRA_CONFIG_JOB
     + NOT_NEED_AUTH_JOB
 )
@@ -110,11 +105,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
 
                     # 认证信息
                     auth_params.update(
-                        {
-                            "port": host["port"],
-                            "auth_type": host["auth_type"],
-                            "account": host["account"],
-                        }
+                        {"port": host["port"], "auth_type": host["auth_type"], "account": host["account"]}
                     )
 
                     # 处理表格中每行的key/psw

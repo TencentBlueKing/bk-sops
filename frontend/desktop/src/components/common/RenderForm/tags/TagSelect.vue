@@ -72,7 +72,7 @@
             </p>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
-        <span v-else class="rf-view-value">{{viewValue}}</span>
+        <span v-else class="rf-view-value">{{ viewValue || '--' }}</span>
     </div>
 </template>
 <script>
@@ -83,7 +83,7 @@
 
     export const attrs = {
         value: {
-            type: [String, Array, Boolean, Number],
+            type: [String, Array, Object, Boolean, Number],
             required: false,
             default: '',
             desc: i18n.t('下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据')
@@ -252,6 +252,9 @@
                 }
             },
             viewValue () {
+                if (Object.prototype.toString.call(this.value) === '[object object]') {
+                    return this.value
+                }
                 if (Array.isArray(this.seletedValue)) { // 多选
                     if (!this.seletedValue.length) {
                         return '--'

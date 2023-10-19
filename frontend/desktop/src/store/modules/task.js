@@ -282,6 +282,16 @@ const task = {
             }).then(response => response.data)
         },
         /**
+         * 批量获取任务实例状态信息(包含子流程状态)
+         * @param {String} data 实例数据
+         */
+        getBatchInstanceStatus ({ commit }, data) {
+            const { task_ids, project_id, cancelToken } = data
+            return axios.post(`taskflow/api/batch_status/${project_id}/`, {
+                task_ids
+            }, { cancelToken }).then(response => response.data)
+        },
+        /**
          * 开始执行任务实例
          * @param {String} instance_id 实例id
          */
@@ -353,13 +363,14 @@ const task = {
          */
         getNodeActDetail ({ commit }, data) {
             const { project_id } = store.state.project
-            const { instance_id, node_id, component_code, subprocess_stack, loop } = data
+            const { instance_id, node_id, component_code, subprocess_stack, subprocess_simple_inputs, loop } = data
             return axios.get(`taskflow/api/nodes/detail/${project_id}/`, {
                 params: {
                     instance_id,
                     node_id,
                     component_code,
                     subprocess_stack,
+                    subprocess_simple_inputs,
                     loop
                 }
             }).then(response => response.data)
@@ -527,7 +538,7 @@ const task = {
         getInstanceRetryParams ({ commit }, data) {
             return axios.get(`api/v3/taskflow/${data.id}/enable_fill_retry_params/`).then(response => response.data)
         },
-        // 节点执行记录
+        // 节点执行详情
         getNodeExecutionRecord ({ commit }, data) {
             return axios.get(`api/v3/taskflow/${data.taskId}/node_execution_record/`, {
                 params: {

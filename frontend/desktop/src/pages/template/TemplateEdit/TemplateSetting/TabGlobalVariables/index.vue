@@ -12,7 +12,7 @@
 <template>
     <bk-sideslider
         :is-show="true"
-        :width="800"
+        :width="sideWidth"
         :quick-close="true"
         :before-close="closeTab">
         <div class="setting-header" slot="header">
@@ -71,6 +71,13 @@
             </div>
         </div>
         <div class="global-variable-panel" slot="content">
+            <!--可拖拽-->
+            <template v-if="variableData">
+                <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
+                <div class="resize-mask" ref="resizeMask"></div>
+            </template>
+
             <div v-show="!variableData" :class="{ 'is-hidden': variableData }">
                 <div class="add-variable">
                     <bk-button
@@ -280,6 +287,7 @@
                 }
             ]
             return {
+                sideWidth: 800, // 侧栏宽度
                 isHideSystemVar: false,
                 variableList: [], // 变量列表，包含系统内置变量和用户变量
                 cloneVariableList: [],
@@ -312,7 +320,9 @@
                 return this.deleteVarList.length
             },
             editVarList () {
-                return this.variableList.filter(item => item.source_type !== 'system' && item.source_type !== 'project')
+                return this.variableList.filter(item => {
+                    return !['system', 'project', 'component_outputs', 'component_inputs'].includes(item.source_type)
+                })
             }
         },
         watch: {
@@ -610,7 +620,7 @@
             onDeleteVarList () {
                 let title = ''
                 if (this.deleteVarListLen === 1) {
-                    title = i18n.t('确认删除') + i18n.t('全局变量') + `"${this.deleteVarList[0].key}"?`
+                    title = i18n.t('确认删除') + i18n.t('全局变量') + `【${this.deleteVarList[0].key}】?`
                 } else {
                     title = i18n.t('确认删除所选的x个变量？', { num: this.deleteVarListLen })
                 }
@@ -628,7 +638,7 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('若该变量被节点引用，请及时检查并更新节点配置')])
+                        }, [i18n.t('删除变量将导致所有变量引用失效，请及时检查并更新节点配置')])
                     ]),
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
@@ -654,6 +664,7 @@
             // 关闭变量编辑面板
             closeEditingPanel () {
                 this.variableData = null
+                this.sideWidth = 800
             },
             // 关闭全局变量侧滑
             closeTab () {
@@ -685,6 +696,40 @@
             },
             setNewCloneKeys (key) {
                 this.newCloneKeys = [key]
+            },
+            handleMousedown (event) {
+                this.updateResizeMaskStyle()
+                this.updateResizeProxyStyle()
+                document.addEventListener('mousemove', this.handleMouseMove)
+                document.addEventListener('mouseup', this.handleMouseUp)
+            },
+            handleMouseMove (event) {
+                const maxWidth = window.innerWidth - 400
+                let width = window.innerWidth - event.clientX
+                width = width < 800 ? 800 : width
+                width = width > maxWidth ? maxWidth : width
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.right = `${width}px`
+            },
+            updateResizeMaskStyle () {
+                const resizeMask = this.$refs.resizeMask
+                resizeMask.style.display = 'block'
+                resizeMask.style.cursor = 'col-resize'
+            },
+            updateResizeProxyStyle () {
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'visible'
+                resizeProxy.style.right = `${this.sideWidth}px`
+            },
+            handleMouseUp () {
+                const resizeMask = this.$refs.resizeMask
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'hidden'
+                resizeMask.style.display = 'none'
+                const right = resizeProxy.style.right.slice(0, -2)
+                this.sideWidth = Number(right)
+                document.removeEventListener('mousemove', this.handleMouseMove)
+                document.removeEventListener('mouseup', this.handleMouseUp)
             }
         }
     }
@@ -737,8 +782,69 @@
         }
     }
 }
+/deep/.bk-sideslider-content {
+    height: calc(100% - 60px);
+}
+
+/deep/.bk-sideslider-wrapper {
+    overflow: initial;
+}
 .global-variable-panel {
-    height: calc(100vh - 60px);
+    height: 100%;
+    
+    .resize-trigger {
+        width: 5px;
+        height: calc(100vh - 109px);
+        position: absolute;
+        left: 0;
+        top: 60px;
+        cursor: col-resize;
+        z-index: 3;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: #dcdee5;
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -1px;
+            width: 2px;
+            height: 2px;
+            color: #979ba5;
+            transform: translate3d(0,-50%,0);
+            background: currentColor;
+            box-shadow: 0 4px 0 0 currentColor,0 8px 0 0 currentColor,0 -4px 0 0 currentColor,0 -8px 0 0 currentColor;
+        }
+        &:hover::before {
+            background-color: #3a84ff;
+        }
+    }
+    .resize-proxy {
+        visibility: hidden;
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999;
+        &.left {
+            top: 0;
+            height: 100%;
+            border-left: 1px dashed #3a84ff;
+        }
+    }
+    .resize-mask {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
+    }
     .is-hidden {
         transform: scale(0)
     }

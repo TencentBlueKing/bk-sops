@@ -13,35 +13,35 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from copy import deepcopy
-from typing import Optional, List
+from typing import List, Optional
 
-from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import api as bamboo_engine_api
+from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.eri import ContextValueType
-
-from engine_pickle_obj.context import SystemObject
-from gcloud.project_constants.domains.context import get_project_constants_context
-from pipeline.engine import states as pipeline_states
+from django.utils.translation import ugettext_lazy as _
+from opentelemetry import trace
+from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import api as pipeline_api
-from pipeline.service import task_service
-from pipeline.models import PipelineInstance
+from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.engine import models as pipeline_engine_models
-from pipeline.parser.context import get_pipeline_context
+from pipeline.engine import states as pipeline_states
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.log.models import LogEntry
-from pipeline.component_framework.library import ComponentLibrary
-from pipeline.engine import exceptions as pipeline_exceptions
-from opentelemetry import trace
+from pipeline.models import PipelineInstance
+from pipeline.parser.context import get_pipeline_context
+from pipeline.service import task_service
 
+from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
-from gcloud.utils.handlers import handle_plain_log
+from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.utils import format_pipeline_status
+from gcloud.tasktmpl3.domains.constants import preview_node_inputs
+from gcloud.utils.handlers import handle_plain_log
 from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.parser.format import format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -475,6 +475,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
         )
 
+        node_code = node_info.get("component", {}).get("code")
+
         if state:
             # 获取最新的执行数据
             if loop is None or int(loop) >= state[self.node_id]["loop"]:
@@ -502,6 +504,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 if node_info["type"] == "SubProcess":
                     # remove prefix '${' and subfix '}' in subprocess execution input
                     inputs = {k[2:-1]: v for k, v in data["inputs"].items()}
+                elif (
+                    node_info["type"] == "ServiceActivity"
+                    and node_code == "subprocess_plugin"
+                    and kwargs.get("subprocess_simple_inputs")
+                ):
+                    raw_inputs = data["inputs"]["subprocess"]["pipeline"]["constants"]
+                    inputs = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 else:
                     inputs = data["inputs"]
                 outputs = data["outputs"]
@@ -554,18 +563,19 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 )
 
                 formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
-                preview_result = bamboo_engine_api.preview_node_inputs(
-                    runtime=runtime,
-                    pipeline=formatted_pipeline,
-                    node_id=self.node_id,
-                    subprocess_stack=subprocess_stack,
-                    root_pipeline_data=root_pipeline_data,
-                    parent_params=root_pipeline_context,
-                )
-
-                if not preview_result.result:
-                    message = _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {preview_result.exc} | get_node_data_v2")
-                    logger.error(message)
+                try:
+                    preview_inputs = preview_node_inputs(
+                        runtime=runtime,
+                        pipeline=formatted_pipeline,
+                        node_id=self.node_id,
+                        subprocess_stack=subprocess_stack,
+                        root_pipeline_data=root_pipeline_data,
+                        parent_params=root_pipeline_context,
+                        subprocess_simple_inputs=kwargs.get("subprocess_simple_inputs"),
+                    )
+                except Exception as e:
+                    message = _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {e} | get_node_data_v2")
+                    logger.exception(message)
                     return {
                         "result": False,
                         "data": {},
@@ -575,9 +585,15 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
                 if node_info["type"] == "SubProcess":
                     # remove prefix '${' and subfix '}' in subprocess execution input
-                    inputs = {k[2:-1]: v for k, v in preview_result.data.items()}
+                    inputs = {k[2:-1]: v for k, v in preview_inputs.items()}
+                elif (
+                    node_info["type"] == "ServiceActivity"
+                    and node_code == "subprocess_plugin"
+                    and kwargs.get("subprocess_simple_inputs")
+                ):
+                    inputs = {k[2:-1]: v for k, v in preview_inputs.items()}
                 else:
-                    inputs = preview_result.data
+                    inputs = preview_inputs
 
             except Exception as err:
                 return {
@@ -720,6 +736,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             }
 
         detail = result.data
+        pipeline_instance = kwargs["pipeline_instance"]
+        node_info = self._get_node_info(
+            node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
+        node_code = node_info.get("component", {}).get("code")
         # 节点已经执行
         if detail:
             detail = detail[self.node_id]
@@ -757,19 +778,23 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
             for hist in detail["histories"]:
                 # 重试记录必然是因为失败才重试
+                if (
+                    node_info["type"] == "ServiceActivity"
+                    and node_code == "subprocess_plugin"
+                    and kwargs.get("subprocess_simple_inputs")
+                ):
+                    # 对于独立子流程节点要重新渲染输出
+                    raw_inputs = hist["inputs"]["subprocess"]["pipeline"]["constants"]
+                    hist["inputs"] = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
                 hist.setdefault("state", bamboo_engine_states.FAILED)
                 hist["history_id"] = hist["id"]
                 format_pipeline_status(hist)
         # 节点未执行
         else:
-            pipeline_instance = kwargs["pipeline_instance"]
-            node = self._get_node_info(
-                node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
-            )
             detail.update(
                 {
-                    "name": node["name"],
-                    "error_ignorable": node.get("error_ignorable", False),
+                    "name": node_info["name"],
+                    "error_ignorable": node_info.get("error_ignorable", False),
                     "state": bamboo_engine_states.READY,
                 }
             )

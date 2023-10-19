@@ -51,7 +51,7 @@
                     </template>
                     <template v-if="templateConfig.auto_retry && templateConfig.auto_retry.enable">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('在') + $tc('秒', templateConfig.auto_retry.interval) + $t('后') + $t('，') + $t('自动重试') + ' ' + templateConfig.auto_retry.times + ' ' + $t('次') }}
+                        {{ $t('自动重试') + ' ' + templateConfig.auto_retry.times + ' ' + $t('次') + $t('，') + $t('间隔') + ' ' + templateConfig.auto_retry.interval + ' ' + $t('error_handle_秒') }}
                     </template>
                 </span>
                 <span v-else class="td">{{ '--' }}</span>
@@ -76,6 +76,7 @@
                     <render-form
                         v-if="inputs.length > 0"
                         ref="renderForm"
+                        :class="{ 'subflow-form': isLegacySubProcess }"
                         :scheme="inputs"
                         :hooked="hooked"
                         :constants="isSubProcessNode ? subflowForms : constants"
@@ -187,7 +188,7 @@
                 outputs: [],
                 hooked: {},
                 option: {
-                    showGroup: false,
+                    showGroup: true,
                     showHook: true,
                     showLabel: true,
                     showVarList: true,
@@ -444,7 +445,7 @@
                         // 获取参数
                         const { outputs: respsOutputs, forms, inputs } = resp.data
                         if (forms.renderform) {
-                            if (!this.isSubflow) {
+                            if (!this.isLegacySubProcess) {
                                 // 获取第三方插件公共输出参数
                                 if (!this.pluginOutput['remote_plugin']) {
                                     await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
@@ -611,7 +612,7 @@
             color: #63656e;
             border-bottom: 1px solid #dcdee5;
             .th {
-                width: 140px;
+                width: 20%;
                 font-weight: 400;
                 color: #313238;
                 padding-left: 12px;
@@ -673,6 +674,127 @@
     }
     .no-data-wrapper {
         padding-top: 20px;
+    }
+    /deep/.render-form {
+        >.rf-form-item {
+            .rf-group-name {
+                display: none;
+            }
+            .rf-tag-label {
+                width: 20%;
+            }
+            .rf-tag-form {
+                margin-left: 20%;
+            }
+            
+            .hide-render-icon {
+                top: 0;
+            }
+        }
+        .rf-form-group {
+            .rf-group-name {
+                display: none;
+            }
+            .rf-tag-hook {
+                top: 0;
+            }
+        }
+        >.rf-form-group {
+            .form-item-group >.rf-form-item {
+                .rf-tag-label {
+                    width: 20%;
+                }
+                .rf-tag-form {
+                    margin-left: 20%;
+                }
+            }
+        }
+        .rf-tag-label {
+            width: 20%;
+            padding-right: 24px;
+            .label {
+                white-space: initial;
+            }
+            .required {
+                position: absolute;
+                top: 2px;
+                right: 15px;
+            }
+        }
+    }
+    /deep/.subflow-form {
+        .rf-form-group {
+            .rf-group-name {
+                display: block;
+                width: 20%;
+                padding-right: 24px;
+                text-align: right;
+                .scheme-name {
+                    font-size: 12px;
+                }
+            }
+            .rf-has-hook {
+                .rf-tag-label {
+                    display: none;
+                }
+            }
+            .rf-tag-hook {
+                top: 0;
+            }
+        }
+        >.rf-form-group {
+            .rf-group-name {
+                float: left;
+            }
+            .form-item-group {
+                margin-left: 20%;
+            }
+        }
+        .form-item-group {
+            padding: 16px;
+            margin-right: 40px;
+            background: #f5f7fa;
+            .rf-tag-form {
+                margin-right: 0;
+            }
+            .rf-form-item {
+                .rf-tag-label {
+                    display: flex;
+                    text-align: left;
+                    color: #63656e;
+                    width: 100px;
+                    line-height: 20px;
+                    padding-right: 10px;
+                    margin-top: 6px;
+                    .label {
+                        white-space: initial;
+                    }
+                    .required {
+                        position: initial;
+                    }
+                }
+                .rf-tag-form {
+                    margin-left: 100px;
+                }
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+            .form-item-group {
+                padding: 0;
+                margin-right: 0;
+            }
+            .tag-ip-selector-wrap,
+            .resource-allocation {
+                border: none;
+                padding: 0;
+            }
+        }
+        .show-render {
+            .form-item-group {
+                margin-right: 64px;
+            }
+        }
     }
     
 </style>

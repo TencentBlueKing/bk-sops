@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 import logging
 from collections import Counter
 
@@ -24,8 +25,12 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework.response import Response
 
 from gcloud import err_code
+from gcloud.clocked_task.models import ClockedTask
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import CLOCKED_TASK_NOT_STARTED
+from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
+from gcloud.periodictask.models import PeriodicTask
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.apis.drf.permission import SchemeEditPermission
 from gcloud.template_base.apis.drf.serilaziers.template_scheme import (
@@ -89,6 +94,75 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
         return Counter(total_scheme_id_list)
 
+    @staticmethod
+    def get_app_maker_names_scheme_quote(template_id, remove_scheme_ids_set):
+        """
+        获取该模板作为轻应用时，各执行方案的引用数
+        @return:
+        """
+        app_maker_queryset = AppMaker.objects.filter(task_template__id=template_id, is_deleted=False)
+
+        return list(
+            {
+                app_maker.name
+                for app_maker in app_maker_queryset
+                if app_maker.template_scheme_id and int(app_maker.template_scheme_id) in remove_scheme_ids_set
+            }
+        )
+
+    @staticmethod
+    def get_periodic_task_names_scheme_quote(template_id, remove_scheme_ids_set):
+        periodic_task_queryset = PeriodicTask.objects.filter(template_id=template_id)
+        periodic_names = []
+
+        for periodic_task in periodic_task_queryset:
+            template_scheme_ids = json.loads(periodic_task.template_scheme_ids)
+            if set(template_scheme_ids) & remove_scheme_ids_set:
+                periodic_names.append(periodic_task.name)
+
+        return periodic_names
+
+    @staticmethod
+    def get_clocked_task_names_scheme_quote(template_id, remove_scheme_ids_set):
+        clocked_task_queryset = ClockedTask.objects.filter(template_id=template_id, state=CLOCKED_TASK_NOT_STARTED)
+        clocked_task_names = []
+
+        for clocked_task in clocked_task_queryset:
+            template_scheme_ids = json.loads(clocked_task.task_params).get("template_schemes_id", [])
+            if set(template_scheme_ids) & remove_scheme_ids_set:
+                clocked_task_names.append(clocked_task.task_name)
+
+        return clocked_task_names
+
+    def validate_batch_delete_scheme(self, pipeline_template_template_id, template_id, remove_scheme_ids_set):
+
+        template_quote_scheme_ids_set = set(self.get_scheme_quote_count_dict(pipeline_template_template_id).keys())
+
+        if remove_scheme_ids_set & template_quote_scheme_ids_set:
+            message = _(f"执行方案删除失败: 待删除的[执行方案]已被引用[{template_quote_scheme_ids_set}], 请处理后重试 | batch_operate")
+            logger.error(message)
+            return message
+
+        app_maker_names = self.get_app_maker_names_scheme_quote(template_id, remove_scheme_ids_set)
+        if app_maker_names:
+            message = _(f"执行方案删除失败: 待删除的[执行方案]已被这些轻应用所引用{app_maker_names}, 请处理后重试 | batch_operate")
+            logger.error(message)
+            return message
+
+        periodic_names = self.get_periodic_task_names_scheme_quote(template_id, remove_scheme_ids_set)
+        if periodic_names:
+            message = _(f"执行方案删除失败: 待删除的[执行方案]已被这些周期任务所引用{periodic_names}, 请处理后重试 | batch_operate")
+            logger.error(message)
+            return message
+
+        clocked_names = self.get_clocked_task_names_scheme_quote(template_id, remove_scheme_ids_set)
+        if clocked_names:
+            message = _(f"执行方案删除失败: 待删除的[执行方案]已被这些计划任务所引用{clocked_names}, 请处理后重试 | batch_operate")
+            logger.error(message)
+            return message
+
+        return None
+
     def get_serializer_data(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -130,6 +204,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
                 scheme_obj.unique_id = f'{template_id}-{scheme["name"]}'
                 scheme_obj.name = scheme["name"]
                 scheme_obj.data = scheme["data"]
+                scheme_obj.unique_id = "{}-{}".format(template_id, scheme["name"])
                 update_schemes.append(scheme_obj)
             else:
                 scheme.update(
@@ -139,13 +214,13 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
         remove_scheme_ids_set = set(scheme_mappings.keys()) - set(update_scheme_ids)
 
-        quote_scheme_ids_set = set(self.get_scheme_quote_count_dict(pipeline_template_template_id).keys())
-        if remove_scheme_ids_set & quote_scheme_ids_set:
-            message = _(f"执行方案删除失败: 待删除的[执行方案]已被引用[{quote_scheme_ids_set}], 请处理后重试 | batch_operate")
-            logger.error(message)
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-
         remove_scheme_ids = list(remove_scheme_ids_set)
+
+        error_message = self.validate_batch_delete_scheme(
+            pipeline_template_template_id, template_id, remove_scheme_ids_set
+        )
+        if error_message:
+            return Response({"detail": ErrorDetail(error_message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         try:
             with transaction.atomic():
@@ -192,12 +267,25 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, *args, **kwargs):
-        scheme_quote_num = TemplateRelationship.objects.filter(templatescheme__id=kwargs["pk"]).count()
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        template_id = instance.unique_id.split("-")[0]
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        # 防止用户不传name
+        instance.unique_id = "{}-{}".format(template_id, serializer.validated_data.get("name") or instance.name)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
-        if scheme_quote_num != 0:
-            message = _(f"执行方案删除失败: 该执行方案被[{scheme_quote_num}]个子流程节点引用, 禁止删除. 请处理后重试 | destroy")
-            logger.error(message)
+    def destroy(self, request, *args, **kwargs):
+
+        scheme = self.get_object()
+        # 获取流程所关联的模版id
+        template_id = scheme.unique_id.split("-")[0]
+        message = self.validate_batch_delete_scheme(scheme.template.template_id, template_id, {scheme.id})
+
+        if message:
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         return super(TemplateSchemeViewSet, self).destroy(request, *args, **kwargs)

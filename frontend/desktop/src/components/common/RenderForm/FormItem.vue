@@ -20,6 +20,7 @@
             {
                 'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
+                'show-render': isShowRenderIcon,
                 'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols,
                 'rf-section-item': scheme.type === 'section'
@@ -39,8 +40,8 @@
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle, 'scheme-select-name': scheme.type === 'select' && !scheme.attrs.remote }]">
                 <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
-                <span class="required" v-if="isRequired()" style="display: none">*</span>
-                <span class="scheme-code">{{ scheme.tag_code }}</span>
+                <span class="required" v-if="isRequired()">*</span>
+                <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
                 <i
                     v-if="showNotReuseTitle || showPreMakoTip"
                     v-bk-tooltips="{
@@ -114,7 +115,9 @@
                 v-bind="getDefaultAttrs()"
                 :tag-code="scheme.tag_code"
                 :hook="hook"
+                :render="render"
                 :constants="constants"
+                :scheme="scheme"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
                 :value="formValue"
@@ -126,17 +129,18 @@
                 @onHide="onHideForm">
             </component>
             <!-- 变量勾选checkbox -->
-            <div class="rf-tag-hook" v-if="showHook">
+            <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
                 <i
-                    :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
+                    :class="['common-icon-variable-hook hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
-                        content: hook ? $t('取消变量引用') : $t('设置为变量'),
+                        content: hook ? $t('取消使用变量，节点内维护') : $t('转换为变量，集中维护'),
                         placement: 'bottom',
                         zIndex: 3000
                     }"
                     @click="onHookForm(!hook)">
                 </i>
                 <i
+                    v-if="isShowRenderIcon"
                     :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                     v-bk-tooltips="{
                         content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
@@ -160,7 +164,7 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import { checkDataType } from '@/utils/checkDataType.js'
+    import { checkDataType, getDefaultValueFormat } from '@/utils/checkDataType.js'
     import FormGroup from './FormGroup.vue'
 
     // 导入 tag 文件注册为组件
@@ -261,12 +265,13 @@
                 showHook,
                 formValue,
                 isDescTipsShow: false,
-                isExpand: false
+                isExpand: false,
+                isShowRenderIcon: false // 是否展示免渲染icon
             }
         },
         computed: {
             showFormTitle () {
-                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+                return this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
@@ -306,6 +311,45 @@
                 this.$options.components[item] = tagComponent[item]
             })
         },
+        created () {
+            // 移除「变量免渲染」的功能开关
+            const { type, attrs } = this.scheme
+            if (type === 'code_editor') {
+                if (attrs.variable_render === false) { // variable_render 开启变量渲染
+                    /**
+                     * need_render:
+                        1. false
+                            之前已勾选，现在去掉免渲染icon
+                        2.true，判断value
+                            a. 不包含${}，需要把need_render置为false，去掉免渲染icon
+                            b. 包含${}，保留免渲染icon
+                     */
+                    if (this.render) {
+                        const regex = /\${[a-zA-Z_]\w*}/g
+                        const matchList = this.value.match(regex)
+                        const isMatch = matchList && matchList.some(item => {
+                            return !!this.constants[item]
+                        })
+                        if (isMatch) {
+                            this.isShowRenderIcon = true
+                        } else {
+                            this.showHook = false
+                            this.$nextTick(() => {
+                                this.onRenderChange()
+                            })
+                        }
+                    } else {
+                        this.showHook = false
+                    }
+                } else {
+                    if (!this.render) {
+                        this.isShowRenderIcon = true
+                    }
+                }
+            } else if (!this.render) { // 如果开启了免渲染则展示按钮
+                this.isShowRenderIcon = true
+            }
+        },
         mounted () {
             const showDom = this.$el.querySelector('.rf-group-desc')
             const hideDom = this.$el.querySelector('.hide-html-text')
@@ -331,6 +375,10 @@
                 return { ...attrs }
             },
             getFormValue (val) {
+                // 不使用默认值
+                if (this.scheme.attrs.usedValue) {
+                    return tools.deepClone(val)
+                }
                 const valueType = checkDataType(val)
 
                 if (valueType === 'Undefined') {
@@ -346,7 +394,7 @@
                         value: ''
                     }
                 } else {
-                    defaultValueFormat = this.getDefaultValueFormat()
+                    defaultValueFormat = getDefaultValueFormat(this.scheme)
                 }
 
                 const defaultValueType = Array.isArray(defaultValueFormat.type) ? defaultValueFormat.type : [defaultValueFormat.type]
@@ -365,127 +413,6 @@
                 }
 
                 return formValue
-            },
-            getDefaultValueFormat () {
-                let valueFormat
-                switch (this.scheme.type) {
-                    case 'input':
-                    case 'textarea':
-                    case 'radio':
-                    case 'text':
-                    case 'datetime':
-                    case 'memberSelector':
-                    case 'logDisplay':
-                    case 'code_editor':
-                    case 'section':
-                        valueFormat = {
-                            type: ['String', 'Number', 'Boolean'],
-                            value: ''
-                        }
-                        break
-                    case 'checkbox':
-                    case 'datatable':
-                    case 'tree':
-                    case 'upload':
-                    case 'cascader':
-                        valueFormat = {
-                            type: 'Array',
-                            value: []
-                        }
-                        break
-                    case 'select':
-                        if (this.scheme.attrs.multiple) {
-                            valueFormat = {
-                                type: 'Array',
-                                value: []
-                            }
-                        } else {
-                            valueFormat = {
-                                type: ['String', 'Number', 'Boolean'],
-                                value: ''
-                            }
-                        }
-                        break
-                    case 'time':
-                        if (this.scheme.attrs.isRange) {
-                            valueFormat = {
-                                type: 'Array',
-                                value: ['00:00:00', '23:59:59']
-                            }
-                        } else {
-                            valueFormat = {
-                                type: 'String',
-                                value: ''
-                            }
-                        }
-                        break
-                    case 'int':
-                        valueFormat = {
-                            type: 'Number',
-                            value: 0
-                        }
-                        break
-                    case 'ip_selector':
-                        valueFormat = {
-                            type: 'Object',
-                            value: {
-                                static_ip_table_config: [],
-                                selectors: [],
-                                ip: [],
-                                topo: [],
-                                group: [],
-                                filters: [],
-                                excludes: []
-                            }
-                        }
-                        break
-                    case 'set_allocation':
-                        valueFormat = {
-                            type: 'Object',
-                            value: {
-                                config: {
-                                    set_count: 1,
-                                    set_template_id: '',
-                                    host_resources: [],
-                                    module_detail: []
-                                },
-                                data: [],
-                                separator: ','
-                            }
-                        }
-                        break
-                    case 'host_allocation':
-                        valueFormat = {
-                            type: 'Object',
-                            value: {
-                                config: {
-                                    host_count: 0,
-                                    host_screen_value: '',
-                                    host_resources: [],
-                                    host_filter_detail: []
-                                },
-                                data: [],
-                                separator: ','
-                            }
-                        }
-                        break
-                    case 'password':
-                        valueFormat = {
-                            type: ['String', 'Object'],
-                            value: {
-                                type: 'password_value',
-                                tag: 'value',
-                                value: ''
-                            }
-                        }
-                        break
-                    default:
-                        valueFormat = {
-                            type: 'String',
-                            value: ''
-                        }
-                }
-                return valueFormat
             },
             isRequired () {
                 let required = false
@@ -538,7 +465,7 @@
 <style lang="scss">
 .rf-form-item {
     position: relative;
-    margin: 15px 0;
+    margin-top: 15px;
     min-height: 32px;
     font-size: 12px;
     color: #63656e;
@@ -550,14 +477,21 @@
     }
     &.rf-has-hook {
         & > .rf-tag-form {
-            margin-right: 64px;
+            margin-right: 40px;
+        }
+    }
+    &.show-render {
+        > .rf-tag-form {
+            margin-right: 58px;
+        }
+        .hook-icon {
+            padding-right: 3px !important;
         }
     }
     &.rf-col-layout {
         display: inline-block;
-        margin: 0;
         padding-right: 10px;
-        vertical-align: top;
+        vertical-align: text-bottom;
     }
     &.rf-view-mode {
         margin: 8px 0;
@@ -571,6 +505,11 @@
     &.deleted {
         background: #ffeeec;
     }
+    .required {
+        color: #F00;
+        margin-left: 5px;
+        font-family: "SimSun";
+    }
     .rf-tag-label {
         float: left;
         position: relative;
@@ -581,14 +520,6 @@
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
-        .required {
-            position: absolute;
-            top: 2px;
-            right: -10px;
-            color: #F00;
-            margin-left: 5px;
-            font-family: "SimSun";
-        }
         .tag-label-tips {
             position: relative;
             &::after {
@@ -620,17 +551,17 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 8px;
-        width: 56px;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
         z-index: 1;
+        cursor: pointer;
         .hook-icon,
         .render-skip-icon {
-            font-size: 14px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
             color: #979ba5;
-            cursor: pointer;
             &.disabled {
                 color: #c4c6cc;
                 cursor: not-allowed;
@@ -640,7 +571,20 @@
             }
         }
         .hook-icon {
-            font-size: 19px;
+            line-height: 31px;
+            padding: 0 8px;
+            font-size: 16px;
+        }
+        .render-skip-icon {
+            padding: 0 8px 0 3px;
+        }
+        .icon-angle-up-fill {
+            font-size: 12px;
+            color: #c4c6cc;
+            margin: 3px 0 0 6px;
+        }
+        &.hide-render-icon {
+            justify-content: center;
         }
     }
     .rf-view-value {

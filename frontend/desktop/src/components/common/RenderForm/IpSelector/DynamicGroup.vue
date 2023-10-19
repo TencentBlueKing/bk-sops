@@ -44,7 +44,8 @@
                         :class="['selected-item', { 'disabled': !editable }]"
                         v-for="item in selectedGroups"
                         :key="item.id">
-                        {{ item.name }}
+                        <div class="group-name" v-bk-overflow-tips>{{ item.name }}</div>
+                        <span class="invalid" v-if="item.diff">{{ $t('失效') }}</span>
                         <i v-if="editable" class="common-icon-dark-circle-close" @click="onGroupSelectChange(item)"></i>
                     </div>
                 </div>
@@ -179,6 +180,25 @@
         position: relative;
         padding: 0 28px 0 8px;
         line-height: 32px;
+        display: flex;
+        align-items: center;
+        .group-name {
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .invalid {
+            flex-shrink: 0;
+            height: 20px;
+            line-height: 15px;
+            padding: 2px 5px;
+            margin-left: 5px;
+            transform: scale(0.8);
+            color: #63656e;
+            background: #f0f1f5;
+            border: 1px solid #c4c6cc;
+            border-radius: 2px;
+        }
         &.disabled {
             color: #ccc;
             cursor: not-allowed;
@@ -187,6 +207,11 @@
                 &:hover {
                     color: #dcdee6;
                 }
+            }
+            .invalid {
+                color: #ccc;
+                background-color: #fafbfd;
+                border-color: #dcdee5;
             }
         }
     }

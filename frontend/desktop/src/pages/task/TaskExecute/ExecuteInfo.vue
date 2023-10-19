@@ -11,176 +11,234 @@
 */
 <template>
     <div class="parameter-details">
-        <div class="details-wrapper">
+        <bk-resize-layout class="details-wrapper" placement="left" :max="sidebarWidth - 600" :initial-divide="243" :min="240">
             <NodeTree
-                class="nodeTree"
-                :data="nodeData"
-                :node-nav="nodeNav"
-                :node-display-status="nodeDisplayStatus"
-                :selected-flow-path="selectedFlowPath"
+                slot="aside"
+                :tree-data="nodeData"
                 :default-active-id="defaultActiveId"
-                :is-condition="isCondition"
-                @onOpenGatewayInfo="onOpenGatewayInfo"
-                @onNodeClick="onNodeClick"
+                @dynamicLoad="handleDynamicLoad"
                 @onSelectNode="onSelectNode">
             </NodeTree>
-            <div
-                v-if="location"
-                :class="['execute-info', { 'loading': loading }]"
-                v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
+            <div slot="main" class="execute-content">
                 <div class="execute-head">
                     <span class="node-name">{{isCondition ? conditionData.name : executeInfo.name}}</span>
+                    <bk-divider direction="vertical"></bk-divider>
                     <div class="node-state">
                         <span :class="displayStatus"></span>
                         <span class="status-text-messages">{{nodeState}}</span>
                     </div>
                 </div>
-                <bk-tab
-                    :key="nodeDetailConfig.node_id"
-                    :active.sync="curActiveTab"
-                    type="unborder-card"
-                    ext-cls="execute-info-tab"
-                    @tab-change="onTabChange">
-                    <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" v-if="isCondition || (['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
-                    <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
-                    <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
-                </bk-tab>
-                <div class="scroll-area" :key="randomKey">
-                    <task-condition
-                        v-if="isCondition"
-                        ref="conditionEdit"
-                        :is-readonly="true"
-                        :is-show.sync="isShow"
-                        :gateways="gateways"
-                        :condition-data="conditionData"
-                        @close="close">
-                    </task-condition>
-                    <template v-else>
-                        <section class="execute-time-section" v-if="isExecuteTimeShow">
-                            <div class="cycle-wrap" v-if="loop > 1">
-                                <span>{{$t('第')}}</span>
-                                <bk-select
-                                    :clearable="false"
-                                    :value="theExecuteTime"
-                                    @selected="onSelectExecuteTime">
-                                    <bk-option
-                                        v-for="index in loop"
-                                        :key="index"
-                                        :id="index"
-                                        :name="index">
-                                    </bk-option>
-                                </bk-select>
-                                <span>{{$t('次循环')}}</span>
-                            </div>
-                            <span class="divid-line" v-if="loop > 1 && historyInfo.length > 1"></span>
-                            <div class="time-wrap" v-if="historyInfo.length > 1">
-                                <span>{{$t('第')}}</span>
-                                <bk-select
-                                    :clearable="false"
-                                    :value="theExecuteRecord"
-                                    @selected="onSelectExecuteRecord">
-                                    <bk-option
-                                        v-for="index in historyInfo.length"
-                                        :key="index"
-                                        :id="index"
-                                        :name="index">
-                                    </bk-option>
-                                </bk-select>
-                                <span>{{$t('次执行')}}</span>
-                            </div>
-                        </section>
-                        <ExecuteRecord
-                            v-if="curActiveTab === 'record'"
-                            :admin-view="adminView"
-                            :loading="loading"
-                            :location="location"
-                            :is-ready-status="isReadyStatus"
-                            :node-activity="nodeActivity"
-                            :execute-info="executeRecord"
-                            :node-detail-config="nodeDetailConfig"
-                            :is-sub-process-node="isSubProcessNode">
-                        </ExecuteRecord>
-                        <ExecuteInfoForm
-                            v-else-if="curActiveTab === 'config'"
-                            :node-activity="nodeActivity"
-                            :execute-info="executeInfo"
-                            :node-detail-config="nodeDetailConfig"
-                            :constants="constants"
-                            :is-third-party-node="isThirdPartyNode"
-                            :third-party-node-code="thirdPartyNodeCode"
-                            :is-sub-process-node="isSubProcessNode">
-                        </ExecuteInfoForm>
-                        <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
-                            <NodeOperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></NodeOperationFlow>
-                        </section>
-                        <NodeLog
-                            v-else-if="curActiveTab === 'log'"
-                            ref="nodeLog"
-                            :admin-view="adminView"
-                            :node-detail-config="nodeDetailConfig"
-                            :execute-info="executeRecord"
-                            :third-party-node-code="thirdPartyNodeCode"
-                            :engine-ver="engineVer">
-                        </NodeLog>
-                    </template>
+                <div :class="['scroll-box', { 'subprocess-scroll': subProcessPipeline }]">
+                    <div
+                        :class="['sub-process']"
+                        v-if="subProcessPipeline"
+                        v-bkloading="{ isLoading: subprocessLoading, opacity: 1, zIndex: 100 }">
+                        <TemplateCanvas
+                            ref="subProcessCanvas"
+                            :key="canvasRandomKey"
+                            class="sub-flow"
+                            :show-palette="false"
+                            :show-tool="false"
+                            :editable="false"
+                            :canvas-data="canvasData"
+                            @onNodeClick="onNodeClick">
+                        </TemplateCanvas>
+                        <div class="flow-option">
+                            <i
+                                class="bk-icon icon-narrow-line"
+                                v-bk-tooltips.top="$t('缩小')"
+                                @click="onZoomOut">
+                            </i>
+                            <i
+                                class="bk-icon icon-enlarge-line"
+                                v-bk-tooltips.top="$t('放大')"
+                                @click="onZoomIn">
+                            </i>
+                        </div>
+                        <!--可拖拽-->
+                        <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                        <i :class="['resize-proxy', 'top']" ref="resizeProxy"></i>
+                        <div class="resize-mask" ref="resizeMask"></div>
+                    </div>
+                    <div
+                        v-if="location"
+                        :key="randomKey"
+                        :class="['execute-info', { 'loading': loading }]"
+                        v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
+                        <bk-tab
+                            :active.sync="curActiveTab"
+                            type="unborder-card"
+                            ext-cls="execute-info-tab"
+                            @tab-change="onTabChange">
+                            <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行详情')"></bk-tab-panel>
+                            <bk-tab-panel name="config" v-if="isCondition || (!loading && ['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
+                            <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
+                            <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
+                        </bk-tab>
+                        <div class="scroll-area">
+                            <task-condition
+                                v-if="isCondition"
+                                ref="conditionEdit"
+                                :is-readonly="true"
+                                :is-show.sync="isShow"
+                                :gateways="gateways"
+                                :condition-data="conditionData"
+                                @close="close">
+                            </task-condition>
+                            <template v-else>
+                                <section class="execute-time-section" v-if="isExecuteTimeShow">
+                                    <div class="cycle-wrap" v-if="loop > 1">
+                                        <span>{{$t('第')}}</span>
+                                        <bk-select
+                                            :clearable="false"
+                                            :value="theExecuteTime"
+                                            @selected="onSelectExecuteTime">
+                                            <bk-option
+                                                v-for="index in loop"
+                                                :key="index"
+                                                :id="index"
+                                                :name="index">
+                                            </bk-option>
+                                        </bk-select>
+                                        <span>{{$t('次循环')}}</span>
+                                    </div>
+                                    <span class="divid-line" v-if="loop > 1 && historyInfo.length > 1"></span>
+                                    <div class="time-wrap" v-if="historyInfo.length > 1">
+                                        <span>{{$t('第')}}</span>
+                                        <bk-select
+                                            :clearable="false"
+                                            :value="theExecuteRecord"
+                                            @selected="onSelectExecuteRecord">
+                                            <bk-option
+                                                v-for="index in historyInfo.length"
+                                                :key="index"
+                                                :id="index"
+                                                :name="index">
+                                            </bk-option>
+                                        </bk-select>
+                                        <span>{{$t('次执行')}}</span>
+                                    </div>
+                                </section>
+                                <ExecuteRecord
+                                    v-if="curActiveTab === 'record'"
+                                    :admin-view="adminView"
+                                    :loading="loading"
+                                    :location="location"
+                                    :is-ready-status="isReadyStatus"
+                                    :node-state="nodeState"
+                                    :node-activity="nodeActivity"
+                                    :execute-info="executeRecord"
+                                    :node-detail-config="nodeDetailConfig"
+                                    :not-performed-sub-node="notPerformedSubNode"
+                                    :is-sub-process-node="isSubProcessNode"
+                                    @onTabChange="onTabChange">
+                                </ExecuteRecord>
+                                <ExecuteInfoForm
+                                    v-else-if="curActiveTab === 'config'"
+                                    :node-activity="nodeActivity"
+                                    :execute-info="executeInfo"
+                                    :node-detail-config="nodeDetailConfig"
+                                    :constants="pipelineData.constants"
+                                    :is-third-party-node="isThirdPartyNode"
+                                    :third-party-node-code="thirdPartyNodeCode"
+                                    :not-performed-sub-node="notPerformedSubNode"
+                                    :is-sub-process-node="isSubProcessNode">
+                                </ExecuteInfoForm>
+                                <section class="info-section" data-test-id="taskExecute_form_operatFlow" v-else-if="curActiveTab === 'history'">
+                                    <NodeOperationFlow
+                                        :locations="pipelineData.location"
+                                        :node-id="executeInfo.id"
+                                        :sub-process-task-id="subProcessTaskId"
+                                        :not-performed-sub-node="notPerformedSubNode">
+                                    </NodeOperationFlow>
+                                </section>
+                                <NodeLog
+                                    v-else-if="curActiveTab === 'log'"
+                                    ref="nodeLog"
+                                    :admin-view="adminView"
+                                    :node-detail-config="nodeDetailConfig"
+                                    :execute-info="executeRecord"
+                                    :third-party-node-code="thirdPartyNodeCode"
+                                    :engine-ver="engineVer">
+                                </NodeLog>
+                            </template>
+                        </div>
+                    </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="realTimeState.state === 'RUNNING' && !isSubProcessNode">
+                    <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
-                            data-test-id="taskExcute_form_resumeBtn"
+                            data-test-id="taskExecute_form_resumeBtn"
                             @click="onResumeClick">
                             {{ $t('继续执行') }}
                         </bk-button>
                         <bk-button
                             v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
                             theme="primary"
-                            data-test-id="taskExcute_form_approvalBtn"
-                            @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
+                            data-test-id="taskExecute_form_approvalBtn"
+                            @click="onApprovalClick">
                             {{ $t('审批') }}
                         </bk-button>
                         <bk-button
-                            v-else
-                            data-test-id="taskExcute_form_mandatoryFailBtn"
+                            v-else-if="!isLegacySubProcess"
+                            data-test-id="taskExecute_form_mandatoryFailBtn"
                             @click="mandatoryFailure">
                             {{ $t('强制终止') }}
+                        </bk-button>
+                        <bk-button
+                            v-if="isLegacySubProcess"
+                            data-test-id="taskExecute_form_pauseBtn"
+                            @click="onPauseClick">
+                            {{ $t('暂停') }}
                         </bk-button>
                     </template>
                     <template v-if="isShowRetryBtn || isShowSkipBtn">
                         <bk-button
                             theme="primary"
                             v-if="isShowRetryBtn"
-                            data-test-id="taskExcute_form_retryBtn"
+                            data-test-id="taskExecute_form_retryBtn"
                             @click="onRetryClick">
-                            {{ $t('重试') }}
+                            {{ isSubProcessNode ? $t('重试子流程') : $t('重试') }}
                         </bk-button>
                         <bk-button
                             theme="default"
                             v-if="isShowSkipBtn"
-                            data-test-id="taskExcute_form_skipBtn"
+                            data-test-id="taskExecute_form_skipBtn"
                             @click="onSkipClick">
-                            {{ $t('跳过') }}
+                            {{ isSubProcessNode ? $t('跳过子流程') : $t('跳过') }}
                         </bk-button>
                     </template>
+                    <bk-button
+                        v-if="isShowContinueBtn"
+                        data-test-id="taskExecute_form_continueBtn"
+                        @click="onContinueClick">
+                        {{ $t('继续') }}
+                    </bk-button>
                 </div>
             </div>
-        </div>
+        </bk-resize-layout>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapActions } from 'vuex'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import axios from 'axios'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
+    import { checkDataType, getDefaultValueFormat } from '@/utils/checkDataType.js'
     import NodeTree from './NodeTree'
     import NodeOperationFlow from './ExecuteInfo/NodeOperationFlow.vue'
     import ExecuteRecord from './ExecuteInfo/ExecuteRecord.vue'
     import NodeLog from './ExecuteInfo/NodeLog.vue'
     import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
     import taskCondition from './taskCondition.vue'
+
+    const CancelToken = axios.CancelToken
+    let source = CancelToken.source()
 
     export default {
         name: 'ExecuteInfo',
@@ -190,7 +248,8 @@
             ExecuteRecord,
             NodeLog,
             ExecuteInfoForm,
-            taskCondition
+            taskCondition,
+            TemplateCanvas
         },
         props: {
             adminView: {
@@ -202,18 +261,6 @@
                 required: true
             },
             nodeData: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            selectedFlowPath: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            nodeNav: {
                 type: Array,
                 default () {
                     return []
@@ -253,11 +300,17 @@
             isReadonly: {
                 type: Boolean,
                 default: false
-            }
+            },
+            smallMapImg: {
+                type: String,
+                default: ''
+            },
+            sidebarWidth: Number
         },
         data () {
             return {
                 randomKey: '',
+                canvasRandomKey: null,
                 loading: true,
                 isRenderOutputForm: false,
                 executeInfo: {},
@@ -280,10 +333,21 @@
                 isShowRetryBtn: false,
                 curActiveTab: 'record',
                 theExecuteRecord: 0,
-                executeRecord: {}
+                executeRecord: {},
+                subFlowData: {},
+                subCanvasData: {},
+                timer: null,
+                subprocessLoading: true,
+                subprocessTasks: [],
+                subprocessNodeStatus: {},
+                subNodesExpanded: [], // 节点树展开的独立子流程节点
+                notPerformedSubNode: false // 是否为未执行的独立子流程节点
             }
         },
         computed: {
+            ...mapMutations('template/', [
+                'setLine'
+            ]),
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'atomOutputConfig': state => state.atomForm.outputConfig,
@@ -295,8 +359,22 @@
             }),
             // 节点实时状态
             realTimeState () {
-                const nodeStateMap = this.nodeDisplayStatus.children || {}
-                return nodeStateMap[this.nodeDetailConfig.node_id] || { state: 'READY' }
+                const { root_node, node_id, taskId } = this.nodeDetailConfig
+                let nodes = this.nodeDisplayStatus.children || {}
+                // 独立子流程节点状态特殊处理
+                if (taskId && Object.keys(this.subprocessNodeStatus).length) {
+                    nodes = this.subprocessNodeStatus[taskId]
+                    nodes = nodes && nodes.data.children
+                }
+                if (this.subProcessPipeline) {
+                    const parentId = root_node?.split('-') || []
+                    parentId.forEach(id => {
+                        if (nodes[id]) {
+                            nodes = nodes[id].children
+                        }
+                    })
+                }
+                return nodes[node_id] || { state: 'READY' }
             },
             displayStatus () {
                 let state = ''
@@ -352,36 +430,123 @@
             nodeActivity () {
                 return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             },
-            componentValue () {
-                return this.isSubProcessNode ? this.nodeActivity.component.data.subprocess.value : {}
-            },
             isExecuteTimeShow () {
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             },
+            isShowContinueBtn () {
+                return this.isLegacySubProcess && this.executeInfo.state === 'SUSPENDED'
+            },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                return this.state !== 'REVOKED' && ((this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode) || this.isShowRetryBtn || this.isShowSkipBtn)
+                if (this.state === 'REVOKED') return false
+                return (this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode)
+                    || this.isShowRetryBtn
+                    || this.isShowSkipBtn
+                    || this.isShowContinueBtn
+            },
+            isLegacySubProcess () { // 是否为旧版子流程
+                return !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
+            },
+            subProcessTaskId () { // 独立子流程节点的任务id
+                return this.nodeDetailConfig.taskId
+            },
+            subProcessPipeline () {
+                let pipelineData
+                if (this.isSubProcessNode || this.isLegacySubProcess) {
+                    if (this.nodeActivity.pipeline) {
+                        pipelineData = this.nodeActivity.pipeline
+                    } else {
+                        let { data: componentData } = this.nodeActivity.component
+                        componentData = componentData && componentData.subprocess
+                        componentData = componentData && componentData.value
+                        componentData = componentData && componentData.pipeline
+                        pipelineData = componentData || pipelineData
+                    }
+                } else if (this.nodeDetailConfig.root_node) {
+                    pipelineData = this.pipelineData
+                }
+                return pipelineData
+            },
+            canvasData () {
+                if (!this.subProcessPipeline) return {}
+                const { line, location, gateways, activities } = this.subProcessPipeline
+                const branchConditions = {}
+                for (const gKey in gateways) {
+                    const item = gateways[gKey]
+                    if (item.conditions) {
+                        branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
+                    }
+                }
+                return {
+                    lines: line,
+                    locations: location.map(item => {
+                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+                        return { ...item, mode: 'execute', checked: true, code, ready: true }
+                    }),
+                    branchConditions
+                }
             }
         },
         watch: {
-            'nodeDetailConfig.node_id': {
+            nodeDetailConfig: {
                 handler (val) {
-                    if (val !== undefined) {
+                    if (val.node_id !== undefined) {
                         this.loop = 1
                         this.theExecuteTime = undefined
                         this.curActiveTab = 'record'
-                        this.loadNodeInfo()
+                        // 未执行的独立子流程节点
+                        if (this.notPerformedSubNode) {
+                            this.loading = false
+                            this.subprocessLoading = false
+                            this.randomKey = new Date().getTime()
+                        } else {
+                            this.loadNodeInfo()
+                        }
+                    }
+                    if (val.component_code === 'subprocess_plugin') {
+                        this.subCanvasData = val.componentData.subprocess.value.pipeline
+                        const { lines, locations: nodes } = this.subCanvasData
+                        this.subFlowData = {
+                            lines,
+                            nodes
+                        }
                     }
                 },
                 deep: true
+            },
+            nodeDisplayStatus: {
+                handler (val) {
+                    // 设置节点树状态
+                    this.nodeAddStatus(this.nodeData, val.children)
+                    this.updateNodeInfo()
+                },
+                deep: true,
+                immediate: true
             }
         },
         mounted () {
             this.loadNodeInfo()
+            if (this.subProcessPipeline) {
+                this.$nextTick(() => {
+                    this.setCanvasZoomPosition()
+                })
+            }
+        },
+        beforeDestroy () {
+            if (source) {
+                source.cancel('cancelled')
+            }
+            this.cancelTaskStatusTimer()
         },
         methods: {
             ...mapActions('task/', [
-                'getNodeActDetail'
+                'getNodeActDetail',
+                'getTaskInstanceData',
+                'getBatchInstanceStatus'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -412,6 +577,31 @@
                         this.theExecuteTime = respData.loop
                     }
                     this.executeInfo = respData
+                    // 独立子流程任务特殊处理
+                    if (this.isSubProcessNode) {
+                        const taskInfo = respData.outputsInfo.find(item => item.key === 'task_id') || {}
+                        const taskId = taskInfo.value
+                        const { root_node, node_id } = this.nodeDetailConfig
+                        this.subprocessLoading = true
+                        const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
+                        if (taskId) { // 子流程任务已执行才可以查详情和状态
+                            // 获取子流程任务详情
+                            await this.getSubprocessData(taskId, nodeInfo)
+                            this.subprocessTasks[taskId] = {
+                                root_node,
+                                node_id
+                            }
+                            // 获取独立子流程任务状态
+                            this.loadSubprocessStatus()
+                        } else {
+                            nodeInfo.dynamicLoad = false
+                            this.subprocessLoading = false
+                            // 记录子流程展开收起
+                            this.setSubNodeExpanded(nodeInfo)
+                        }
+                    } else if (this.subProcessPipeline) {
+                        this.subprocessLoading = false
+                    }
                     this.historyInfo = respData.skip ? [] : [respData]
                     if (respData.histories) {
                         this.historyInfo.unshift(...respData.histories)
@@ -449,12 +639,6 @@
                     this.loading = false
                 }
             },
-            onNodeClick (id, type, event) {
-                this.$emit('onNodeClick', id, type)
-            },
-            onOpenGatewayInfo (data, isCondition) {
-                this.$emit('onOpenGatewayInfo', data, isCondition)
-            },
             close () {
                 this.$emit('close')
             },
@@ -483,48 +667,42 @@
                 }
                 let outputsInfo = []
                 const renderData = {}
-                let constants = {}
+                const constants = {}
                 let inputsInfo = inputs
                 let failInfo = ''
-                // 判断是否为旧版子流程
-                const islegacySubProcess = !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
                 // 添加插件输出表单所需上下文
                 $.context.input_form.inputs = inputs
                 $.context.output_form.outputs = outputs
                 $.context.output_form.state = state
                 // 获取子流程配置详情
-                if (componentCode === 'subprocess_plugin' || islegacySubProcess) {
-                    const { constants } = islegacySubProcess ? this.pipelineData : this.componentValue.pipeline
-                    this.renderConfig = await this.getSubflowInputsConfig(constants)
+                if (componentCode === 'subprocess_plugin' || this.isLegacySubProcess) {
+                    const { constants } = this.subProcessPipeline
+                    const renderConfig = await this.getSubflowInputsConfig(constants)
+                    const keys = Object.keys(inputs)
+                    this.renderConfig = renderConfig.filter(item => keys.includes(item.tag_code))
                 } else if (componentCode) { // 任务节点需要加载标准插件
                     await this.getNodeConfig(componentCode, version, inputs.plugin_version)
                 }
-                if (this.isSubProcessNode) { // 新版子流程任务节点输入参数处理
-                    inputsInfo = Object.keys(inputs).reduce((acc, cur) => {
-                        const value = inputs[cur]
-                        if (cur === 'subprocess') {
-                            Object.keys(value.pipeline.constants).forEach(key => {
-                                const data = value.pipeline.constants[key]
-                                acc[key] = data.value
-                            })
-                        } else {
-                            acc[cur] = value
+                inputsInfo = Object.keys(inputs).reduce((acc, cur) => {
+                    const scheme = this.renderConfig.find(item => item.tag_code === cur)
+                    if (scheme) {
+                        const defaultValueFormat = getDefaultValueFormat(scheme)
+                        const valueType = checkDataType(inputs[cur])
+                        const isTypeValid = Array.isArray(defaultValueFormat.type)
+                            ? defaultValueFormat.type.indexOf(valueType) > -1
+                            : defaultValueFormat.type === valueType
+                        // 标记数据类型不同的表单项并原样展示数据
+                        if (!isTypeValid) {
+                            if ('attrs' in scheme) {
+                                scheme.attrs.usedValue = true
+                            } else {
+                                scheme.attrs = { usedValue: true }
+                            }
                         }
-                        return acc
-                    }, {})
-                } else if (islegacySubProcess) {
-                    /**
-                     * 兼容旧版本子流程节点输入数据
-                     * 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
-                     */
-                    inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
-                        if (cur.show_type === 'show') {
-                            acc[cur.key] = cur.value
-                        }
-                        return acc
-                    }, {})
-                    constants = { subflow_detail_var: true, ...inputsInfo }
-                }
+                    }
+                    acc[cur] = inputs[cur]
+                    return acc
+                }, {})
                 for (const key in inputsInfo) {
                     renderData[key] = inputsInfo[key]
                 }
@@ -560,7 +738,7 @@
                                 outputsInfo.push(info)
                             }
                         })
-                    } else if (islegacySubProcess) {
+                    } else if (this.isLegacySubProcess) {
                         // 兼容旧版本子流程节点输出数据
                         outputsInfo = outputs.reduce((acc, cur) => {
                             const { value, key } = cur
@@ -592,26 +770,28 @@
                 this.$set(record, 'last_time', tools.timeTransform(record.elapsed_time))
                 this.$set(record, 'isExpand', true)
             },
-            async getTaskNodeDetail () {
+            async getTaskNodeDetail (nodeConfig = this.nodeDetailConfig) {
                 try {
-                    if (this.nodeDetailConfig.root_node) return
-                    let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                    let query = Object.assign({}, nodeConfig, { loop: this.theExecuteTime })
                     let res
 
                     // 非任务节点请求参数不传 component_code
-                    if (!this.nodeDetailConfig.component_code) {
+                    if (!nodeConfig.component_code) {
                         delete query.component_code
                     }
 
                     if (this.adminView && this.engineVer === 1) {
-                        const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
+                        const { instance_id: task_id, node_id, subprocess_stack } = nodeConfig
                         query = { task_id, node_id, subprocess_stack }
                         res = await this.taskflowNodeDetail(query)
                     } else {
+                        query.subprocess_simple_inputs = true // 标记独立子流程取{key: value}类型数据
                         res = await this.getNodeActDetail(query)
                     }
                     if (res.result) {
                         return res.data
+                    } else {
+                        this.subprocessLoading = false
                     }
                 } catch (e) {
                     console.log(e)
@@ -714,7 +894,7 @@
                     if (variable.custom_type === 'select') {
                         formItemConfig.attrs.allowCreate = true
                     }
-                    formItemConfig.tag_code = key
+                    formItemConfig.tag_code = key.slice(2, -1)
                     formItemConfig.attrs.name = variable.name
                     // 自定义输入框变量正则校验添加到插件配置项
                     if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
@@ -784,30 +964,519 @@
                 }
                 this.randomKey = new Date().getTime()
             },
+            onNodeClick (node) {
+                const nodeInfo = this.getNodeInfo(this.nodeData, '', node)
+                if (nodeInfo) {
+                    nodeInfo && this.onSelectNode(nodeInfo)
+                    const parentInstance = this.$parent.$parent
+                    parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId
+                }
+            },
+            onZoomOut () {
+                let jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                jsFlowInstance.zoomOut(0.8)
+                this.$nextTick(() => {
+                    this.setCanvasZoomPosition(true)
+                })
+            },
+            onZoomIn () {
+                let jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                jsFlowInstance.zoomIn(1.2)
+                this.$nextTick(() => {
+                    this.setCanvasZoomPosition(true)
+                })
+            },
             onTabChange (name) {
                 this.curActiveTab = name
                 if (['record', 'log'].includes(name)) {
                     this.onSelectExecuteRecord(this.theExecuteRecord)
                 }
             },
-            onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+            onSelectNode (node) {
                 this.loading = true
-                this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
+                // 如果子节点的父流程为独立任务且未执行时不调接口，默认数据为空
+                this.notPerformedSubNode = false
+                if (node.parentId && !node.state) {
+                    const ids = node.parentId.split('-')
+                    const rootId = ids.slice(0, -1).join('-')
+                    const parentInfo = this.getNodeInfo(this.nodeData, rootId, ids.pop())
+                    if (parentInfo && !parentInfo.state && 'dynamicLoad' in parentInfo) {
+                        this.notPerformedSubNode = true
+                    }
+                }
+                if (this.subProcessPipeline) {
+                    this.toggleNodeActive(this.nodeDetailConfig.node_id, false)
+                }
+                // 如果点击的是子流程节点或者是不属于当前所选中节点树的节点，需要重新刷新子流程画布
+                const updateCanvas = node.parentId && (!this.subProcessPipeline || !this.subProcessPipeline.location.find(item => item.id === node.id))
+                if (node.isSubProcess || updateCanvas) {
+                    this.canvasRandomKey = new Date().getTime()
+                    this.$nextTick(() => {
+                        this.setCanvasZoomPosition()
+                    })
+                }
+                this.$emit('onClickTreeNode', node)
+                this.$nextTick(() => {
+                    if (node.parentId) {
+                        this.toggleNodeActive(node.id, true)
+                    }
+                    let nodeStatus
+                    if (node.taskId && Object.keys(this.subprocessNodeStatus).length) {
+                        nodeStatus = this.subprocessNodeStatus[node.taskId]
+                        nodeStatus = nodeStatus.data.children
+                    }
+                    this.updateNodeInfo(nodeStatus)
+                    if (node.parentId && !node.isSubProcess) { // 只有子流程下的节点在画布上才能找到
+                        this.moveNodeToView(node.id)
+                    }
+                })
+            },
+            // 移动画布，将节点放到画布中央
+            moveNodeToView (id) {
+                // 判断dom是否存在当前视图中
+                const nodeEl = document.querySelector(`#${id} .canvas-node-item`)
+                if (!nodeEl) return
+                const isInViewPort = this.judgeInViewPort(nodeEl)
+                // 如果不存在需要将节点挪到画布中间
+                if (!isInViewPort) {
+                    const { width, height } = this.$el.querySelector('#canvasContainer').getBoundingClientRect()
+                    const { x, y } = this.canvasData.locations.find(item => item.id === id)
+                    const { width: nodeWidth, height: nodeHeight } = nodeEl.getBoundingClientRect()
+                    let jsFlowInstance = this.$refs.subProcessCanvas
+                    jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                    let offsetX = (width - nodeWidth) / 2 - x
+                    offsetX = offsetX * jsFlowInstance.zoom
+                    let offsetY = (height - nodeHeight) / 2 - y
+                    offsetY = offsetY * jsFlowInstance.zoom
+                    jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
+                }
+            },
+            // dom是否存在当前视图中
+            judgeInViewPort (element) {
+                if (!element) return false
+                const { width, height, top: canvasTop, left: canvasLeft } = this.$el.querySelector('.sub-flow').getBoundingClientRect()
+                const { top, left } = element.getBoundingClientRect()
+                return top > canvasTop && top < canvasTop + height && left > canvasLeft && left < canvasLeft + width
+            },
+            // 画布初始化时缩放比偏移
+            setCanvasZoomPosition (zoom) {
+                if (!this.canvasData.locations) return
+                // 获取画布上下左右最大坐标
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const maxX = Math.max(...xList)
+                const minY = Math.min(...yList)
+                const maxY = Math.max(...yList)
+                const maxXNodeId = this.canvasData.locations.find(node => node.x === maxX).id
+                const maxYNodeId = this.canvasData.locations.find(node => node.y === maxY).id
+                const { width } = this.$el.querySelector(`#${maxXNodeId}`).getBoundingClientRect()
+                const { height } = this.$el.querySelector(`#${maxYNodeId}`).getBoundingClientRect()
+                const netHeight = maxY - minY + height + 60
+                const netWidth = maxX - minX + width + 80
+                const subprocessDom = this.$el.querySelector('.sub-process')
+                const { height: canvasHeight, width: canvasWidth } = subprocessDom.getBoundingClientRect()
+                // 画布实例
+                let jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                let ratio
+                if (zoom) {
+                    ratio = jsFlowInstance.zoom
+                } else {
+                    // 最大比例0.75
+                    ratio = Math.min(canvasHeight / netHeight, canvasWidth / netWidth)
+                    ratio = ratio > 0.75 ? 0.75 : ratio
+                    jsFlowInstance && jsFlowInstance.zoomOut(ratio, 0, 0)
+                }
+                // 设置偏移量
+                const offsetX = canvasWidth / 2 - (minX - 30 + netWidth / 2) * ratio
+                const offsetY = canvasHeight / 2 - (minY + netHeight / 2) * ratio
+                jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
+            },
+            
+            toggleNodeActive (id, isActive) {
+                const node = document.getElementById(id)
+                if (!id || !node) return
+                if (!isActive) {
+                    node.classList.remove('active')
+                } else {
+                    node.classList.add('active')
+                }
+            },
+            // 设置节点树状态
+            nodeAddStatus (treeData = [], states) {
+                treeData.forEach(node => {
+                    const { id, conditionType, isSubProcess, children } = node
+                    if (conditionType) {
+                        if (children?.length) {
+                            this.nodeAddStatus(children, states)
+                        }
+                        return
+                    }
+                    if (!states[id]) return
+                    const nodeState = states[id].skip ? 'SKIP' : states[id].state
+                    this.$set(node, 'state', nodeState)
+                    if (this.subNodesExpanded.includes(node.id)) {
+                        const index = this.subNodesExpanded.findIndex(item => item === node.id)
+                        if (index > -1) {
+                            this.subNodesExpanded.splice(index, 1)
+                        }
+                        this.handleDynamicLoad(node, true)
+                    }
+                    // 实时更新执行详情中的状态
+                    if (this.executeRecord.id === node.id) {
+                        this.executeRecord.state = nodeState
+                    }
+                    if (this.nodeDetailConfig.node_id === id && !this.executeRecord.finish_time) {
+                        this.executeRecord.finish_time = states[id].finish_time
+                        this.executeRecord.elapsed_time = states[id].elapsed_time
+                    }
+                    if (children) {
+                        const newStates = isSubProcess ? Object.assign({}, states, states[id].children) : states
+                        this.nodeAddStatus(children, newStates)
+                    }
+                })
+            },
+            /**
+             * 更新子流程画布
+             * nodeStatus 独立子流程任务状态
+            */
+            updateNodeInfo (nodeStatus) {
+                if (!this.subProcessPipeline) return
+                const { root_node, node_id } = this.nodeDetailConfig
+                const parentId = root_node?.split('-') || []
+                if (this.isSubProcessNode || this.isLegacySubProcess) {
+                    parentId.push(node_id)
+                }
+                let nodes = nodeStatus || this.nodeDisplayStatus.children
+                parentId.forEach(id => {
+                    if (nodes[id]) {
+                        nodes = nodes[id].children
+                    }
+                })
+                for (const id in nodes) {
+                    let code, skippable, retryable, errorIgnorable, autoRetry
+                    const currentNode = nodes[id]
+                    const nodeActivity = this.subProcessPipeline.activities[id]
+                    // 独立子流程节点特殊处理
+                    if (this.subProcessTaskId && !nodeStatus) {
+                        return
+                    }
+
+                    if (nodeActivity) {
+                        code = nodeActivity.component ? nodeActivity.component.code : ''
+                        skippable = nodeActivity.isSkipped || nodeActivity.skippable
+                        retryable = nodeActivity.can_retry || nodeActivity.retryable
+                        errorIgnorable = nodeActivity.error_ignorable
+                        autoRetry = nodeActivity.auto_retry
+                    }
+                    const data = {
+                        code,
+                        skippable,
+                        retryable,
+                        loop: currentNode.loop,
+                        status: currentNode.state,
+                        skip: currentNode.skip,
+                        retry: currentNode.retry,
+                        error_ignored: currentNode.error_ignored,
+                        error_ignorable: errorIgnorable,
+                        auto_retry: autoRetry,
+                        ready: false,
+                        task_state: this.state // 任务状态
+                    }
+
+                    this.$nextTick(() => {
+                        this.onUpdateNodeInfo(id, data)
+                    })
+                }
+            },
+            onUpdateNodeInfo (id, info) {
+                this.$refs.subProcessCanvas && this.$refs.subProcessCanvas.onUpdateNodeInfo(id, info)
+            },
+            // 只点击子流程展开/收起
+            async handleDynamicLoad (node, updateState) {
+                try {
+                    if (!updateState) {
+                        // 独立子流程任务节点
+                        if (!node.dynamicLoad) return
+                        // 记录子流程展开收起
+                        this.setSubNodeExpanded(node)
+                        // 节点收起
+                        if (!node.expanded) return
+                        // 子流程任务未执行时，节点树从父流程取
+                        if (!node.state) {
+                            node.dynamicLoad = false
+                            this.subprocessLoading = false
+                            return
+                        }
+                    }
+                    const { id, parentId } = node
+                    const { instance_id } = this.$route.query
+                    // 该独立子流程节点的父流程也可能为独立子流程
+                    const nodeDetailConfig = this.getNodeDetailConfig(node, node.taskId || instance_id)
+                    const nodeConfig = await this.getTaskNodeDetail(nodeDetailConfig)
+                    if (!nodeConfig) return
+                    // 获取子流程任务id
+                    const taskInfo = nodeConfig.outputs.find(item => item.key === 'task_id') || {}
+                    const taskId = taskInfo.value
+                    this.subprocessLoading = false
+                    if (taskId) { // 子流程任务已执行才可以查详情和状态
+                        await this.getSubprocessData(taskId, node, updateState)
+                        this.subprocessTasks[taskId] = {
+                            root_node: parentId,
+                            node_id: id
+                        }
+                        this.loadSubprocessStatus()
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            // 获取节点配置
+            getNodeDetailConfig (node, instance_id) {
+                const { id, parentId, taskId } = node
+                let pipelineData = this.pipelineData
+                if (parentId) {
+                    const parentIdList = parentId.split('-')
+                    parentIdList.forEach(item => {
+                        const nodeData = pipelineData.activities[item]
+                        if (nodeData.pipeline) {
+                            pipelineData = nodeData.pipeline
+                        } else {
+                            let { data: componentData } = nodeData.component
+                            componentData = componentData && componentData.subprocess
+                            componentData = componentData && componentData.value
+                            componentData = componentData && componentData.pipeline
+                            pipelineData = componentData || pipelineData
+                        }
+                    })
+                }
+                let code, version, componentData
+                const nodeInfo = pipelineData.activities[id]
+                if (nodeInfo) {
+                    componentData = nodeInfo.component.data
+                    code = nodeInfo.component.code
+                    version = nodeInfo.component.version || 'legacy'
+                }
+                this.isCondition = false
+                const subprocessStack = parentId && !taskId ? parentId.split('-') : []
+                return {
+                    component_code: code,
+                    version: version,
+                    node_id: id,
+                    instance_id,
+                    root_node: parentId,
+                    subprocess_stack: JSON.stringify(subprocessStack),
+                    componentData
+                }
+            },
+            // 获取独立子流程节点详情
+            async getSubprocessData (taskId, nodeInfo, updateState) {
+                try {
+                    const parentId = nodeInfo.parentId?.split('-') || []
+                    if (nodeInfo.dynamicLoad || updateState) {
+                        const resp = await this.getTaskInstanceData(taskId)
+                        const pipelineTree = JSON.parse(resp.pipeline_tree)
+                        const parentInfo = {
+                            parentId: nodeInfo.parentId ? nodeInfo.parentId + '-' + nodeInfo.id : nodeInfo.id,
+                            independentId: nodeInfo.id,
+                            parentLevel: nodeInfo.nodeLevel,
+                            lastLevelStyle: 'margin-left: 0px',
+                            taskId
+                        }
+                        const parentInstance = this.$parent.$parent
+                        parentInstance.nodeIds[pipelineTree.id] = []
+                        nodeInfo.children = parentInstance.getOrderedTree(pipelineTree, parentInfo)
+                        nodeInfo.dynamicLoad = false
+                        nodeInfo.expanded = true
+
+                        let pipelineData = parentInstance.nodeTreePipelineData
+                        if (parentId) {
+                            parentId.forEach(item => {
+                                const nodeData = pipelineData.activities[item]
+                                if (nodeData.pipeline) {
+                                    pipelineData = nodeData.pipeline
+                                } else {
+                                    let { data: componentData } = nodeData.component
+                                    componentData = componentData && componentData.subprocess
+                                    componentData = componentData && componentData.value
+                                    componentData = componentData && componentData.pipeline
+                                    pipelineData = componentData || pipelineData
+                                }
+                            })
+                        }
+                        const nodeActivity = pipelineData.activities[nodeInfo.id]
+                        this.$set(nodeActivity, 'pipeline', { ...pipelineTree, taskId })
+                        this.canvasRandomKey = new Date().getTime()
+                        this.$nextTick(() => {
+                            this.setCanvasZoomPosition()
+                        })
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.subprocessLoading = false
+                }
+            },
+            // 记录独立子流程展开收起
+            setSubNodeExpanded (node) {
+                // 子任务展开收起
+                if (node.expanded) { // 记录展开的子流程id
+                    if (!this.subNodesExpanded.includes(node.id)) {
+                        this.subNodesExpanded.push(node.id)
+                    }
+                } else {
+                    const index = this.subNodesExpanded.findIndex(item => item === node.id)
+                    if (index > -1) {
+                        this.subNodesExpanded.splice(index, 1)
+                    }
+                }
+            },
+            getNodeInfo (data, rootId, nodeId) {
+                let nodes = data
+                if (rootId) {
+                    const parentId = rootId.split('-') || []
+                    parentId.forEach(id => {
+                        nodes.some(item => {
+                            if (item.id === id) {
+                                nodes = item.children
+                                return true
+                            }
+                        })
+                    })
+                }
+                let nodeInfo
+                nodes.some(item => {
+                    const { id, children } = item
+                    if (id === nodeId) {
+                        nodeInfo = item
+                        return true
+                    } else if (children && children.length) {
+                        nodeInfo = this.getNodeInfo(item.children, '', nodeId)
+                        return !!nodeInfo
+                    }
+                })
+                return nodeInfo
+            },
+            async loadSubprocessStatus () {
+                try {
+                    if (source) {
+                        source.cancel('cancelled') // 取消定时器里已经执行的请求
+                        this.timer = null
+                    }
+                    source = CancelToken.source()
+                    const taskIds = Object.keys(this.subprocessTasks)
+                    if (!taskIds.length) return
+                    const data = {
+                        task_ids: taskIds,
+                        project_id: this.project_id,
+                        cancelToken: source.token
+                    }
+                    const resp = await this.getBatchInstanceStatus(data)
+                    if (!resp.result) return
+                    Object.assign(this.subprocessNodeStatus, resp.data)
+                    for (const [key, value] of Object.entries(resp.data)) {
+                        const { root_node, node_id } = this.subprocessTasks[key]
+                        const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
+                        this.nodeAddStatus(nodeInfo.children, value.data.children)
+                        this.updateNodeInfo(value.data.children)
+                        if (!['CREATED', 'RUNNING'].includes(value.data.state)) {
+                            delete this.subprocessTasks[key]
+                        }
+                    }
+                    if (Object.keys(this.subprocessTasks).length) {
+                        this.setTaskStatusTimer()
+                    }
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    source = null
+                    this.subprocessLoading = false
+                }
+            },
+            setTaskStatusTimer (time = 3000) {
+                this.cancelTaskStatusTimer()
+                this.timer = setTimeout(() => {
+                    this.loadSubprocessStatus()
+                }, time)
+            },
+            cancelTaskStatusTimer () {
+                if (this.timer) {
+                    clearTimeout(this.timer)
+                    this.timer = null
+                }
             },
             onRetryClick () {
-                this.$emit('onRetryClick', this.nodeDetailConfig.node_id)
+                const info = {
+                    name: this.executeInfo.name,
+                    taskId: this.subProcessTaskId,
+                    isSubProcessNode: this.isSubProcessNode,
+                    isSubNode: !!this.nodeDetailConfig.root_node
+                }
+                this.$emit('onRetryClick', this.nodeDetailConfig.node_id, info)
             },
             onSkipClick () {
-                this.$emit('onSkipClick', this.nodeDetailConfig.node_id)
+                const info = {
+                    name: this.executeInfo.name,
+                    taskId: this.subProcessTaskId,
+                    isSubProcessNode: this.isSubProcessNode
+                }
+                this.$emit('onSkipClick', this.nodeDetailConfig.node_id, info)
             },
             onResumeClick () {
-                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id)
+                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+            },
+            onApprovalClick () {
+                this.$emit('onApprovalClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             onModifyTimeClick () {
-                this.$emit('onModifyTimeClick', this.nodeDetailConfig.node_id)
+                this.$emit('onModifyTimeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             mandatoryFailure () {
-                this.$emit('onForceFail', this.nodeDetailConfig.node_id)
+                this.$emit('onForceFail', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+            },
+            onPauseClick () {
+                this.$emit('onPauseClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+            },
+            onContinueClick () {
+                this.$emit('onContinueClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+            },
+            handleMousedown (event) {
+                this.updateResizeMaskStyle()
+                this.updateResizeProxyStyle()
+                document.addEventListener('mousemove', this.handleMouseMove)
+                document.addEventListener('mouseup', this.handleMouseUp)
+            },
+            handleMouseMove (event) {
+                const flowDom = this.$el.querySelector('.sub-flow')
+                const { top: flowTop } = flowDom.getBoundingClientRect()
+                let top = event.clientY - flowTop
+                let maxHeight = window.innerHeight - 180
+                maxHeight = maxHeight - (this.isShowActionWrap ? 48 : 0)
+                top = top > maxHeight ? maxHeight : top
+                top = top < 160 ? 160 : top
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.top = `${top}px`
+            },
+            updateResizeMaskStyle () {
+                const resizeMask = this.$refs.resizeMask
+                resizeMask.style.display = 'block'
+                resizeMask.style.cursor = 'row-resize'
+            },
+            updateResizeProxyStyle () {
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'visible'
+            },
+            handleMouseUp () {
+                const resizeMask = this.$refs.resizeMask
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'hidden'
+                resizeMask.style.display = 'none'
+                const subProcessDom = document.querySelector('.sub-process')
+                subProcessDom.style.height = resizeProxy.style.top
+                document.removeEventListener('mousemove', this.handleMouseMove)
+                document.removeEventListener('mouseup', this.handleMouseUp)
             }
         }
     }
@@ -835,16 +1504,17 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    .nodeTree{
-        border-right: 1px solid #DCDEE5;
-    }
     .details-wrapper {
         display: flex;
         flex: 1;
         height: calc(100% - 48px);
         border-bottom: 1px solid $commonBorderColor;
     }
+    .bk-resize-layout-border {
+        border: none;
+    }
     .action-wrapper {
+        width: 100%;
         padding-left: 20px;
         height: 48px;
         line-height: 48px;
@@ -857,38 +1527,19 @@
         }
     }
 }
-.execute-info {
-    flex: 1;
+.execute-content {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    padding-bottom: 0;
-    width: 500px;
-    height: 100%;
-    color: #313238;
-    &.loading {
-        overflow: hidden;
-    }
-    &.admin-view {
-        .code-block-wrap {
-            background: #313238;
-            padding: 10px;
-            /deep/ .vjs-tree {
-                color: #ffffff;
-            }
-        }
-    }
-    /deep/ .vjs-tree {
-        font-size: 12px;
-    }
     .execute-head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         line-height: 20px;
         font-size: 14px;
-        padding: 15px 16px 16px;
+        padding: 15px 24px 16px 15px;
         .node-name {
             font-weight: 600;
+            padding-right: 4px;
             word-break: break-all;
         }
         .node-state {
@@ -898,105 +1549,275 @@
                 margin: 2px 5px 0;
             }
         }
+        .common-icon-dark-circle-ellipsis {
+            font-size: 14px;
+            color: #3a84ff;
+        }
+        .common-icon-dark-circle-pause {
+            font-size: 14px;
+            color: #f8B53f;
+        }
+        .icon-check-circle-shape {
+            font-size: 14px;
+            color: #30d878;
+        }
+        .common-icon-dark-circle-close {
+            font-size: 14px;
+            color: #ff5757;
+        }
+        .common-icon-waitting {
+            font-size: 16px;
+            color: #dcdee5;
+        }
+        .common-icon-fail-skip {
+            font-size: 14px;
+            color: #f7b6b6;
+        }
+        .icon-circle-shape {
+            display: inline-block;
+            height: 14px;
+            width: 14px;
+            background: #f0f1f5;
+            border: 1px solid #c4c6cc;
+            border-radius: 50%;
+            &::before {
+                content: initial;
+            }
+        }
     }
-    /deep/.execute-info-tab .bk-tab-section{
-        padding: 0;
+    .sub-process {
+        flex-shrink: 0;
+        height: 320px;
+        margin: 0 25px 8px 15px;
+        position: relative;
+        background: #f5f7fa;
+        .sub-flow {
+            height: 100%;
+            border: 0;
+            /deep/.canvas-wrapper {
+                background: #f5f7fa;
+            }
+            /deep/.canvas-flow {
+                .active {
+                    box-shadow: none;
+                    &::before {
+                        content: '';
+                        display: block;
+                        height: calc(100% + 16px);
+                        width: calc(100% + 16px);
+                        position: absolute;
+                        top: -9px;
+                        left: -9px;
+                        z-index: -1;
+                        background: #e1ecff;
+                        border: 1px solid #1768ef;
+                        border-radius: 2px;
+                    }
+                }
+                .state-icon {
+                    display: none;
+                }
+                .task-node {
+                    box-shadow: none !important;
+                    &.actived {
+                        .node-name {
+                            border-color: #b4becd !important;
+                            background-color: #fff !important;
+                        }
+                    }
+                }
+            }
+            /deep/.node-tips-content {
+                display: none;
+            }
+        }
+        .flow-option {
+            width: 68px;
+            height: 32px;
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #979ba5;
+            background: #fff;
+            box-shadow: 0 2px 4px 0 #0000001a;
+            border-radius: 2px;
+            i {
+                cursor: pointer;
+                &:last-child {
+                    margin-left: 14px;
+                }
+                &:hover {
+                    color: #3a84ff;
+                }
+            }
+        }
     }
-    .scroll-area {
+    .execute-info {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0;
+        color: #313238;
+        &.loading {
+            overflow: hidden;
+        }
+        &.admin-view {
+            .code-block-wrap {
+                background: #313238;
+                padding: 10px;
+                /deep/ .vjs-tree {
+                    color: #ffffff;
+                }
+            }
+        }
+        /deep/ .vjs-tree {
+            font-size: 12px;
+        }
+        /deep/.execute-info-tab .bk-tab-section{
+            padding: 0;
+        }
+        .scroll-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 16px 24px 18px 15px;
+            @include scrollbar;
+        }
+        .execute-time-section {
+            display: flex;
+            align-items: center;
+            height: 40px;
+            font-size: 12px;
+            padding: 8px 16px;
+            background: #f5f7fa;
+            margin-bottom: 24px;
+            .cycle-wrap,
+            .time-wrap {
+                display: flex;
+                align-items: center;
+                /deep/.bk-select {
+                    width: 64px;
+                    height: 24px;
+                    line-height: 22px !important;
+                    margin: 0 8px;
+                    .bk-select-angle {
+                        top: 0;
+                    }
+                    .bk-select-name {
+                        height: 24px;
+                    }
+                }
+            }
+            .divid-line {
+                display: inline-block;
+                width: 1px;
+                height: 16px;
+                margin: 0 16px;
+                background: #dcdee5;
+            }
+        }
+        .panel-title {
+            margin: 0;
+            color: #313238;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        /deep/.common-section-title {
+            color: #313238;
+            font-weight: 600;
+            line-height: 18px;
+            font-size: 12px;
+            margin-bottom: 16px;
+            &::before {
+                height: 18px;
+                top: 0;
+            }
+        }
+        /deep/ .primary-value.code-editor {
+            height: 300px;
+        }
+        /deep/.log-section {
+            min-height: 758px;
+        }
+    }
+    .scroll-box {
         flex: 1;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
-        padding: 16px 24px 16px 16px;
-        @include scrollbar;
-    }
-    .execute-time-section {
-        display: flex;
-        align-items: center;
-        height: 40px;
-        font-size: 12px;
-        padding: 8px 16px;
-        background: #f5f7fa;
-        margin-bottom: 24px;
-        .cycle-wrap,
-        .time-wrap {
-            display: flex;
-            align-items: center;
-            /deep/.bk-select {
-                width: 64px;
-                height: 24px;
-                line-height: 22px !important;
-                margin: 0 8px;
-                .bk-select-angle {
-                    top: 0;
-                }
-                .bk-select-name {
-                    height: 24px;
-                }
+        &::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+            &-thumb {
+                border-radius: 20px;
+                background: #dcdee5;
+                box-shadow: inset 0 0 6px hsla(0,0%,80%,.3);
             }
         }
-        .divid-line {
-            display: inline-block;
-            width: 1px;
-            height: 16px;
-            margin: 0 16px;
-            background: #dcdee5;
+        &.subprocess-scroll {
+            .scroll-area {
+                overflow-y: initial;
+            }
         }
     }
-    .panel-title {
-        margin: 0;
-        color: #313238;
-        font-size: 14px;
-        font-weight: 600;
-    }
-    /deep/.common-section-title {
-        color: #313238;
-        font-weight: 600;
-        line-height: 18px;
-        font-size: 12px;
-        margin-bottom: 16px;
+    .resize-trigger {
+        height: 5px;
+        width: calc(100% + 40px);
+        position: absolute;
+        left: -15px;
+        bottom: -5px;
+        cursor: row-resize;
+        z-index: 3;
         &::before {
-            height: 18px;
+            content: '';
+            position: absolute;
             top: 0;
+            left: 0;
+            height: 1px;
+            width: 100%;
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            right: 50%;
+            width: 2px;
+            height: 2px;
+            color: #979ba5;
+            transform: translate3d(0,-50%,0);
+            background: currentColor;
+            box-shadow: 4px 0 0 0 currentColor,8px 0 0 0 currentColor,-4px 0 0 0 currentColor,-8px 0 0 0 currentColor;
+        }
+        &:hover::before {
+            background-color: #3a84ff;
         }
     }
-    .common-icon-dark-circle-ellipsis {
-        font-size: 14px;
-        color: #3a84ff;
-    }
-    .common-icon-dark-circle-pause {
-        font-size: 14px;
-        color: #f8B53f;
-    }
-    .icon-check-circle-shape {
-        font-size: 14px;
-        color: #30d878;
-    }
-    .common-icon-dark-circle-close {
-        font-size: 14px;
-        color: #ff5757;
-    }
-    .common-icon-waitting {
-        font-size: 16px;
-        color: #dcdee5;
-    }
-    .common-icon-fail-skip {
-        font-size: 14px;
-        color: #f7b6b6;
-    }
-    .icon-circle-shape {
-        display: inline-block;
-        height: 14px;
-        width: 14px;
-        background: #f0f1f5;
-        border: 1px solid #c4c6cc;
-        border-radius: 50%;
-        &::before {
-            content: initial;
+    .resize-proxy {
+        visibility: hidden;
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999;
+        &.top {
+            top: 320px;
+            left: -15px;
+            width: calc(100% + 40px);
+            border-top: 1px dashed #3a84ff;
         }
     }
-    /deep/ .primary-value.code-editor {
-        height: 300px;
+    .resize-mask {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
     }
 }
 </style>

@@ -44,10 +44,10 @@
                     <div
                         :class="['ip-item', { 'disabled': !editable }]"
                         v-for="item in selectedIpsPath"
-                        v-bk-overflow-tips
                         :key="item.key">
-                        {{ item.namePath }}
-                        <i v-if="editable" class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key)"></i>
+                        <div class="ip-path" v-bk-overflow-tips>{{ item.namePath }}</div>
+                        <span class="invalid" v-if="item.diff">{{ $t('失效') }}</span>
+                        <i v-if="editable" class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key, item.diff)"></i>
                     </div>
                 </div>
             </div>
@@ -90,8 +90,12 @@
                         this.$refs.topoTree.setChecked(item, { checked: false })
                         this.getCheckedNodeInfo(this.topoList, item)
                         if (this.checkedNode) {
-                            this.checkedNode.id = this.checkedNode.uniqueId
-                            this.onNodeCheckClick(this.selectedIps, this.checkedNode, false)
+                            if (this.checkedNode.id !== this.checkedNode.uniqueId) {
+                                this.checkedNode.id = this.checkedNode.uniqueId
+                                this.onNodeCheckClick(this.selectedIps, this.checkedNode, false)
+                            } else {
+                                this.selectedNodeList.push(item)
+                            }
                         }
                     })
                 })
@@ -157,6 +161,8 @@
                             if (selectedNode) {
                                 const namePath = this.getNodeNamePath(selectedNode)
                                 selectedIpsPath.push({ key, namePath })
+                            } else {
+                                selectedIpsPath.push({ key, namePath: key.split('_').join('/'), diff: true })
                             }
                         })
                         this.selectedIpsPath = selectedIpsPath
@@ -333,9 +339,25 @@
         position: relative;
         padding: 0 28px 0 8px;
         line-height: 32px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        .ip-path {
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .invalid {
+            flex-shrink: 0;
+            height: 20px;
+            line-height: 15px;
+            padding: 2px 5px;
+            margin-left: 5px;
+            transform: scale(0.8);
+            color: #63656e;
+            background: #f0f1f5;
+            border: 1px solid #c4c6cc;
+            border-radius: 2px;
+        }
         &.disabled {
             color: #ccc;
             cursor: not-allowed;
@@ -344,6 +366,11 @@
                 &:hover {
                     color: #dcdee6;
                 }
+            }
+            .invalid {
+                color: #ccc;
+                background-color: #fafbfd;
+                border-color: #dcdee5;
             }
         }
     }

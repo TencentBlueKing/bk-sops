@@ -16,7 +16,7 @@
         :mask-close="false"
         :render-directive="'if'"
         :header-position="'left'"
-        :title="$t('变量配置')"
+        :title="$t('转换为变量')"
         :auto-close="false"
         :value="isShow"
         width="600"
@@ -34,17 +34,17 @@
                 ref="form"
                 :model="formData"
                 :rules="rules">
-                <bk-form-item :label="$t('创建方式')">
+                <bk-form-item :label="$t('转换方式')">
                     <bk-select
                         v-model="createMethod"
                         :clearable="false"
                         @selected="handleCreateMethodChange">
                         <bk-option v-if="!sameKeyExist" id="autoCreate" :name="$t('自动创建')"></bk-option>
-                        <bk-option v-if="variables.length > 0" id="reuse" :name="$t('变量复用')"></bk-option>
-                        <bk-option id="manualCreate" :name="$t('手动创建')"></bk-option>
+                        <bk-option v-if="variables.length > 0" id="reuse" :name="$t('使用已有变量')"></bk-option>
+                        <bk-option id="manualCreate" :name="$t('varDialog_新建变量')"></bk-option>
                     </bk-select>
                 </bk-form-item>
-                <bk-form-item v-if="createMethod === 'reuse'" :label="$t('复用变量')" property="reused">
+                <bk-form-item v-if="createMethod === 'reuse'" :label="$t('varDialog_选择变量')" property="reused">
                     <bk-select
                         v-model="formData.reused"
                         :popover-options="{ appendTo: 'parent' }"
@@ -62,13 +62,25 @@
                         property="name"
                         :label="$t('变量名称')"
                         :required="true">
-                        <bk-input name="variableName" :disabled="createMethod === 'autoCreate'" v-model="formData.name"></bk-input>
+                        <bk-input
+                            name="variableName"
+                            :disabled="createMethod === 'autoCreate'"
+                            v-model="formData.name"
+                            :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
+                            :show-word-limit="true">
+                        </bk-input>
                     </bk-form-item>
                     <bk-form-item
                         property="key"
                         :label="$t('变量KEY')"
                         :required="true">
-                        <bk-input name="variableKey" :disabled="createMethod === 'autoCreate'" v-model="formData.key"></bk-input>
+                        <bk-input
+                            name="variableKey"
+                            :disabled="createMethod === 'autoCreate'"
+                            v-model="formData.key"
+                            :maxlength="stringLength.VARIABLE_KEY_MAX_LENGTH"
+                            :show-word-limit="true">
+                        </bk-input>
                     </bk-form-item>
                 </template>
             </bk-form>
@@ -113,6 +125,7 @@
                     name: this.newVarKeyName.name,
                     key: this.newVarKeyName.key
                 },
+                stringLength: STRING_LENGTH,
                 rules: {
                     name: [
                         {

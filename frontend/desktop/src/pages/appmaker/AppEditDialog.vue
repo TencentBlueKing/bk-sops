@@ -65,7 +65,9 @@
                         v-validate.disable="appNameRule"
                         name="appName"
                         class="ui-form-item"
-                        :clearable="true">
+                        :clearable="true"
+                        :maxlength="stringLength.APP_NAME_MAX_LENGTH"
+                        :show-word-limit="true">
                     </bk-input>
                     <span v-show="veeErrors.has('appName')" class="common-error-tip error-msg">{{ veeErrors.first('appName') }}</span>
                 </div>
@@ -186,7 +188,9 @@
                         name="appDesc"
                         type="textarea"
                         v-model="appData.appDesc"
-                        v-validate="appDescRule">
+                        v-validate="appDescRule"
+                        :maxlength="stringLength.APP_DESCRIPTION_MAX_LENGTH"
+                        :show-word-limit="true">
                     </bk-input>
                     <span v-show="veeErrors.has('appDesc')" class="common-error-tip error-msg">{{ veeErrors.first('appDesc') }}</span>
                 </div>
@@ -261,6 +265,7 @@
                 logoUrl: '',
                 isLogoLoadingError: false,
                 isLogoEmpty: !!this.isCreateNewApp,
+                stringLength: STRING_LENGTH,
                 appNameRule: {
                     required: true,
                     max: STRING_LENGTH.APP_NAME_MAX_LENGTH,

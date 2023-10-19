@@ -12,17 +12,21 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import re
+from typing import List
 
 from bamboo_engine.context import Context
-from bamboo_engine.eri import ContextValue
+from bamboo_engine.eri import ContextValue, NodeType
+from bamboo_engine.template import Template
 from bamboo_engine.utils.constants import VAR_CONTEXT_MAPPING
+from pipeline.core.data import var
+from pipeline.core.data.expression import ConstantTemplate
+from pipeline.core.data.library import VariableLibrary
 from pipeline.eri.runtime import BambooDjangoRuntime
 
-from pipeline.core.data.expression import ConstantTemplate
-
-from pipeline.core.data import var
-from pipeline.core.data.library import VariableLibrary
 from pipeline_web.parser.format import format_data_to_pipeline_inputs
+
+var_pattern = re.compile(r"\${(\w+)}")
 
 logger = logging.getLogger("root")
 
@@ -68,6 +72,84 @@ def get_constant_values(constants, extra_data):
     context = Context(runtime, context_values, extra_data)
     hydrated_context = context.hydrate(mute_error=True)
     return {**constant_values, **hydrated_context}
+
+
+def preview_node_inputs(
+    runtime: BambooDjangoRuntime,
+    pipeline: dict,
+    node_id: str,
+    subprocess_stack: List[str] = [],
+    root_pipeline_data: dict = {},
+    parent_params: dict = {},
+    subprocess_simple_inputs: bool = False,
+):
+    def get_need_render_context_keys():
+        keys = set()
+        # 如果遇到子流程，到最后一层才会实际去解析需要渲染的变量
+        node_info = pipeline["activities"][node_id]
+        inputs_values = node_info.get("component", {}).get("inputs", {}).values()
+        for item in inputs_values:
+            if not item["need_render"]:
+                continue
+            if isinstance(item["value"], str):
+                for value in var_pattern.findall(item["value"]):
+                    keys.add("${" + value + "}")
+        return keys
+
+    # 对于子流程内的节点，拿不到当前node_id的type和code
+    node_type = pipeline["activities"].get(node_id, {}).get("type")
+    node_code = pipeline["activities"].get(node_id, {}).get("component", {}).get("code")
+    # 只优化普通节点的渲染过程
+    if node_type == NodeType.ServiceActivity.value and node_code != "subprocess_plugin":
+        need_render_context_keys = get_need_render_context_keys()
+    else:
+        need_render_context_keys = list(pipeline["data"].get("inputs", {}).keys()) + list(parent_params.keys())
+
+    context_values = [
+        ContextValue(key=key, type=VAR_CONTEXT_MAPPING[info["type"]], value=info["value"], code=info.get("custom_type"))
+        for key, info in list(pipeline["data"].get("inputs", {}).items()) + list(parent_params.items())
+        if key in need_render_context_keys
+    ]
+
+    context = Context(runtime, context_values, root_pipeline_data)
+
+    if subprocess_stack:
+        # 如果子流程依赖了父流程的变量，那么需要把父流程的变量传递到下一层子流程中
+        subprocess = subprocess_stack[0]
+        child_pipeline = pipeline["activities"][subprocess]["pipeline"]
+        parent_hydrated_context = context.hydrate(deformat=True)
+        # 子流程需要有选择的渲染父流程的变量
+        param_data = {key: info["value"] for key, info in pipeline["activities"][subprocess]["params"].items()}
+        # 获取子流程的参数
+        hydrated_param_data = Template(param_data).render(parent_hydrated_context)
+        formatted_param_data = {key: {"value": value, "type": "plain"} for key, value in hydrated_param_data.items()}
+
+        return preview_node_inputs(
+            runtime=runtime,
+            pipeline=child_pipeline,
+            node_id=node_id,
+            subprocess_stack=subprocess_stack[1:],
+            root_pipeline_data=root_pipeline_data,
+            parent_params=formatted_param_data,
+            subprocess_simple_inputs=subprocess_simple_inputs,
+        )
+
+    if node_type == NodeType.ServiceActivity.value:
+        # 如果是独立子流程
+        if node_code == "subprocess_plugin" and subprocess_simple_inputs:
+            raw_inputs = pipeline["activities"][node_id]["component"]["inputs"]["subprocess"]["value"]["pipeline"][
+                "constants"
+            ]
+        else:
+            raw_inputs = pipeline["activities"][node_id]["component"]["inputs"]
+    elif node_type == NodeType.SubProcess.value:
+        raw_inputs = pipeline["activities"][node_id]["params"]
+    else:
+        raise Exception(f"can not preview inputs for node type: {node_type}")
+    raw_inputs = {key: info["value"] for key, info in raw_inputs.items()}
+    hydrated_context = context.hydrate(deformat=True)
+    inputs = Template(raw_inputs).render(hydrated_context)
+    return inputs
 
 
 def _system_constants_to_mako_str(value):

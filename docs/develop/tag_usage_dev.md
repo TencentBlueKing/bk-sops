@@ -526,6 +526,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
  - `showMiniMap`: 显示小地图，默认 false
  - `showLanguageSwitch`: 显示语言切换，默认 true
  - `readOnly`: 只读模式，默认 false
+ - `variable_render`: 是否开启变量渲染，默认 false
 
 **方法**
 

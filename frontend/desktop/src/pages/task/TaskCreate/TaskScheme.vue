@@ -166,7 +166,8 @@
             async initLoad () {
                 try {
                     await this.loadDefaultSchemeList()
-                    this.loadSchemeList()
+                    await this.loadSchemeList()
+                    this.showPanel = !!this.schemeList.length
                 } catch (error) {
                     console.warn(error)
                 }
@@ -179,14 +180,17 @@
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
+                    const { task_id: reuseTaskId } = this.$route.query
                     let selectNodes = []
                     this.schemeList.forEach(scheme => {
                         this.$set(scheme, 'isChecked', false)
                         this.$set(scheme, 'isDefault', false)
                         if (this.defaultSchemeList.includes(scheme.id)) {
                             scheme.isDefault = true
-                            scheme.isChecked = true
-                            selectNodes.push(...JSON.parse(scheme.data))
+                            if (!reuseTaskId) { // 优先复用变量的勾选
+                                scheme.isChecked = true
+                                selectNodes.push(...JSON.parse(scheme.data))
+                            }
                         }
                     })
                     selectNodes = Array.from(new Set(selectNodes)) || []

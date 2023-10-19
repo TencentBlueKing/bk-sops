@@ -105,7 +105,11 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """
 
     host_list = cmdb.get_business_host(
-        executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip"], ip_list,
+        executor,
+        bk_biz_id,
+        supplier_account,
+        ["bk_host_id", "bk_host_innerip"],
+        ip_list,
     )
 
     if not host_list:
@@ -243,6 +247,23 @@ def cc_format_tree_mode_id(front_id_list):
     if front_id_list is None:
         return []
     return [int(str(x).split("_")[1]) if len(str(x).split("_")) == 2 else int(x) for x in front_id_list]
+
+
+def cc_format_tree_set_id(front_id_list):
+    """
+    从一棵树中获取setID
+    @param front_id_list:
+    @return:
+    """
+    if front_id_list is None:
+        return []
+
+    set_ids = []
+    for x in front_id_list:
+        if x.startswith("set_") and len(str(x).split("_")) == 2:
+            set_ids.append(int(str(x).split("_")[1]))
+
+    return set_ids
 
 
 def cc_get_name_id_from_combine_value(combine_value):

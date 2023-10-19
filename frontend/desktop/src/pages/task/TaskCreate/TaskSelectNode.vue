@@ -202,7 +202,8 @@
             ]),
             ...mapActions('task/', [
                 'getSchemeDetail',
-                'loadPreviewNodeData'
+                'loadPreviewNodeData',
+                'getTaskInstanceData'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -484,16 +485,39 @@
             /**
              * 设置默认勾选值
              */
-            setCanvasSelected (selectNodes = []) {
+            async setCanvasSelected (selectNodes = []) {
                 if (selectNodes.length) {
                     // 使用传进来的选中节点，取消画布默认全选
                     this.selectedNodes = selectNodes
                     this.isAllSelected = !this.isEditProcessPage
                 } else {
-                    this.selectedNodes = Object.keys(this.activities)
+                    const defaultSelected = await this.getDefaultSelected()
+                    this.selectedNodes = defaultSelected
                 }
                 if (!this.isPreviewMode) {
                     this.updateDataAndCanvas()
+                }
+            },
+            async getDefaultSelected () {
+                try {
+                    let selectedNodes = []
+                    const { task_id: reuseTaskId } = this.$route.query
+                    if (reuseTaskId) { // 优先复用变量的勾选
+                        const instanceData = await this.getTaskInstanceData(reuseTaskId)
+                        const pipelineTree = JSON.parse(instanceData.pipeline_tree)
+                        selectedNodes = Object.values(pipelineTree.activities).map(item => item.template_node_id)
+                    } else if (this.excludeNode.length) { // 其次使用勾选记录
+                        Object.keys(this.activities).forEach(key => {
+                            if (!this.excludeNode.includes(key)) {
+                                selectedNodes.push(key)
+                            }
+                        })
+                    } else {
+                        selectedNodes = Object.keys(this.activities) // 默认全选
+                    }
+                    return selectedNodes
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             /**

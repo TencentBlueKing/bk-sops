@@ -25,17 +25,18 @@
             <bk-table-column label="Key" class-name="param-key" :width="260">
                 <template slot-scope="props">
                     <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
-                    <span class="hook-icon-wrap">
+                    <span
+                        class="hook-icon-wrap"
+                        v-bk-tooltips="{
+                            content: props.row.hooked ? $t('取消接收输出') : $t('使用变量接收输出'),
+                            placement: 'bottom',
+                            zIndex: 3000
+                        }">
                         <i
-                            :class="['common-icon-variable-cite hook-icon', {
+                            :class="['common-icon-variable-hook hook-icon', {
                                 actived: props.row.hooked,
                                 disabled: isViewMode || !hook
                             }]"
-                            v-bk-tooltips="{
-                                content: props.row.hooked ? $t('取消变量引用') : $t('设置为变量'),
-                                placement: 'bottom',
-                                zIndex: 3000
-                            }"
                             @click="onHookChange(props)">
                         </i>
                     </span>
@@ -48,7 +49,7 @@
             :mask-close="false"
             :render-directive="'if'"
             :header-position="'left'"
-            :title="$t('新建变量')"
+            :title="$t('使用变量接收输出')"
             :auto-close="false"
             :value="isShow"
             width="600"
@@ -67,10 +68,20 @@
                     :rules="rules">
                     <template>
                         <bk-form-item :label="$t('变量名称')" property="name" :required="true">
-                            <bk-input name="variableName" v-model="formData.name"></bk-input>
+                            <bk-input
+                                name="variableName"
+                                v-model="formData.name"
+                                :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
+                                :show-word-limit="true">
+                            </bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('变量KEY')" property="key" :required="true">
-                            <bk-input name="variableKey" v-model="formData.key"></bk-input>
+                            <bk-input
+                                name="variableKey"
+                                v-model="formData.key"
+                                :maxlength="stringLength.VARIABLE_KEY_MAX_LENGTH"
+                                :show-word-limit="true">
+                            </bk-input>
                         </bk-form-item>
                     </template>
                 </bk-form>
@@ -105,6 +116,7 @@
                 isShow: false,
                 formData: {},
                 selectIndex: '',
+                stringLength: STRING_LENGTH,
                 rules: {
                     name: [
                         {
@@ -331,16 +343,16 @@
     .hook-icon-wrap {
         position: absolute;
         right: 22px;
-        top: 9px;
+        top: 5px;
         display: inline-block;
-        width: 24px;
-        height: 24px;
-        line-height: 24px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
         background: #f0f1f5;
         text-align: center;
         border-radius: 2px;
         .hook-icon {
-            font-size: 18px;
+            font-size: 16px;
             color: #979ba5;
             cursor: pointer;
             &.disabled {
