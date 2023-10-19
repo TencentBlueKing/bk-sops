@@ -66,10 +66,21 @@
                 @updateCondition="setBranchCondition($event)">
             </TemplateCanvas>
             <TemplateSidebar
-                :is-view-mode="isViewMode">
+                :is-view-mode="isViewMode"
+                :is-node-config-panel-show="isNodeConfigPanelShow"
+                :atom-list="atomList"
+                :atom-type-list="atomTypeList"
+                :template-labels="templateLabels"
+                :common="common"
+                :project_id="project_id"
+                :node-id="idOfNodeInConfigPanel"
+                :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
+                :isolation-atom-config="isolationAtomConfig"
+                @updateNodeInfo="onUpdateNodeInfo"
+                @close="closeConfigPanel">
             </TemplateSidebar>
             <div class="side-content">
-                <node-config
+                <!-- <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
                     :is-view-mode="isViewMode"
@@ -87,7 +98,7 @@
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
                     @close="closeConfigPanel">
-                </node-config>
+                </node-config> -->
                 <condition-edit
                     v-if="isShowConditionEdit"
                     ref="conditionEdit"
@@ -159,7 +170,7 @@
     import TemplateSidebar from './TemplateSidebar/index.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/index.vue'
-    import NodeConfig from './NodeConfig/NodeConfig.vue'
+    // import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import tplTabCount from '@/utils/tplTabCount.js'
@@ -177,7 +188,7 @@
             TemplateHeader,
             TemplateSidebar,
             TemplateCanvas,
-            NodeConfig,
+            // NodeConfig,
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips,

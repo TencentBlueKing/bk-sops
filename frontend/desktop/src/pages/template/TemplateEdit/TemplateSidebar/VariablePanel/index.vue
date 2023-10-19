@@ -70,37 +70,39 @@
                 </i18n>
                 <bk-button :text="true" class="f12" @click="onDeleteVarList">{{ $t('批量删除' )}}</bk-button>
             </div>
-            <bk-collapse class="variable-collapse" v-model="activeCollapse" v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
-                <bk-collapse-item
-                    v-for="key in Object.keys(variableMap)"
-                    :key="key"
-                    :name="key"
-                    :hide-arrow="true">
-                    <i class="common-icon-next-triangle-shape"></i>
-                    {{ key === 'system' ? $t('系统变量') : key === 'show' ? $t('入参') : $t('非入参') }}
-                    <span class="count">{{ $t('（') + variableMap[key].length + $t('）') }}</span>
-                    <ul slot="content" class="var-list">
-                        <li
-                            v-for="variable in variableMap[key]"
-                            :key="variable.id"
-                            class="var-item"
-                            @click="onEditVariable(variable)">
-                            <VariableItem
-                                :variable-data="variable"
-                                :panel-type="panelType"
-                                :is-view-mode="isViewMode"
-                                :new-clone-keys="newCloneKeys"
-                                :variable-cited="variableCited"
-                                :variable-checked="deleteVarList.some(item => item.key === variable.key)"
-                                :internal-variable="internalVariable"
-                                @onChooseVariable="onChooseVariable"
-                                @onCloneVariable="onCloneVariable"
-                                @onDeleteVariable="onDeleteVariable">
-                            </VariableItem>
-                        </li>
-                    </ul>
-                </bk-collapse-item>
-            </bk-collapse>
+            <div class="variable-collapse-wrap">
+                <bk-collapse class="variable-collapse" v-model="activeCollapse" v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
+                    <bk-collapse-item
+                        v-for="key in Object.keys(variableMap)"
+                        :key="key"
+                        :name="key"
+                        :hide-arrow="true">
+                        <i class="common-icon-next-triangle-shape"></i>
+                        {{ key === 'system' ? $t('系统变量') : key === 'show' ? $t('入参') : $t('非入参') }}
+                        <span class="count">{{ $t('（') + variableMap[key].length + $t('）') }}</span>
+                        <ul slot="content" class="var-list">
+                            <li
+                                v-for="variable in variableMap[key]"
+                                :key="variable.id"
+                                class="var-item"
+                                @click="onEditVariable(variable)">
+                                <VariableItem
+                                    :variable-data="variable"
+                                    :panel-type="panelType"
+                                    :is-view-mode="isViewMode"
+                                    :new-clone-keys="newCloneKeys"
+                                    :variable-cited="variableCited"
+                                    :variable-checked="deleteVarList.some(item => item.key === variable.key)"
+                                    :internal-variable="internalVariable"
+                                    @onChooseVariable="onChooseVariable"
+                                    @onCloneVariable="onCloneVariable"
+                                    @onDeleteVariable="onDeleteVariable">
+                                </VariableItem>
+                            </li>
+                        </ul>
+                    </bk-collapse-item>
+                </bk-collapse>
+            </div>
         </template>
         <!--可拖拽-->
         <template>
@@ -270,8 +272,10 @@
                 document.addEventListener('mouseup', this.handleMouseUp)
             },
             handleMouseMove (event) {
+                const nodeConfigDom = document.querySelector('.node-config-panel')
+                const maxWith = window.innerWidth - 400 - (nodeConfigDom ? 600 : 0)
                 let width = window.innerWidth - event.clientX
-                width = width > 400 ? 400 : width // 最大宽度400
+                width = width > maxWith ? maxWith : width
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.right = `${width}px`
             },
@@ -290,14 +294,21 @@
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.visibility = 'hidden'
                 resizeMask.style.display = 'none'
+                const tplSideDom = document.querySelector('.template-side')
                 this.sideWidth = resizeProxy.style.right.slice(0, -2)
                 const right = Number(this.sideWidth)
                 if (right >= 280) { // 详细模式
                     this.panelType = 'detail'
                 } else if (right < 180) { // 收起模式
                     this.isPanelShow = false
+                    this.sideWidth = 24
                 } else { // 简洁模式
                     this.panelType = 'simple'
+                }
+                const nodeConfigDom = document.querySelector('.node-config-panel')
+                if (nodeConfigDom) {
+                    const { width: tplSideWidth } = tplSideDom.getBoundingClientRect()
+                    nodeConfigDom.style.width = `${tplSideWidth - right}px`
                 }
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
@@ -425,7 +436,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 18px 16px;
+    position: relative;
+    padding: 18px 0;
     background: #fafbfd;
     border-left: 1px solid #dcdee5;
     .variable-nav {
@@ -453,7 +465,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 16px;
+        margin: 0 16px 16px;
         h4 {
             font-size: 14px;
             margin: 0;
@@ -476,7 +488,7 @@
     }
     /deep/.manger-variable-dropdown {
         width: 108px;
-        margin-bottom: 16px;
+        margin: 0 0 16px 16px;
         .bk-button {
             width: 108px;
         }
@@ -507,7 +519,7 @@
         display: flex;
         align-items: center;
         padding: 4px 8px;
-        margin-bottom: 5px;
+        margin: 0 0 5px 16px;
         background: #eaebf0;
         .line {
             flex-shrink: 0;
@@ -537,9 +549,12 @@
             }
         }
     }
-    /deep/.variable-collapse {
+    .variable-collapse-wrap {
+        padding: 0 16px;
         overflow-y: auto;
         @include scrollbar;
+    }
+    /deep/.variable-collapse {
         .bk-collapse-item-header {
             display: flex;
             align-items: center;

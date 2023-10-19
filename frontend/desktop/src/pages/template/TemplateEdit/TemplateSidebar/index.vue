@@ -1,43 +1,48 @@
 <template>
     <div class="template-side">
-        <VariablePanel
-            :is-view-mode="isViewMode"
-            :common="common">
-        </VariablePanel>
-        <!-- <node-config
-            ref="nodeConfig"
+        <NodeConfig
             v-if="isNodeConfigPanelShow"
+            :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
+            :node-id="nodeId"
             :is-view-mode="isViewMode"
-            :is-show="isNodeConfigPanelShow"
+            :project_id="project_id"
             :atom-list="atomList"
             :atom-type-list="atomTypeList"
             :template-labels="templateLabels"
             :common="common"
-            :project_id="project_id"
-            :node-id="idOfNodeInConfigPanel"
-            :back-to-variable-panel="backToVariablePanel"
-            :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
             :isolation-atom-config="isolationAtomConfig"
-            @globalVariableUpdate="globalVariableUpdate"
-            @updateNodeInfo="onUpdateNodeInfo"
-            @templateDataChanged="templateDataChanged"
-            @close="closeConfigPanel">
-        </node-config> -->
+            @close="$emit('close')"
+            @updateNodeInfo="updateNodeInfo">
+        </NodeConfig>
+        <VariablePanel
+            :is-view-mode="isViewMode"
+            :common="common">
+        </VariablePanel>
     </div>
 </template>
 
 <script>
     // import NodeConfig from './NodeConfig/NodeConfig.vue'
     import VariablePanel from './VariablePanel/index.vue'
+    import NodeConfig from './NodeConfigPanel//index.vue'
     export default {
         name: 'TemplateSidebar',
         components: {
-            VariablePanel
+            VariablePanel,
+            NodeConfig
             // NodeConfig
         },
         props: {
+            isNodeConfigPanelShow: Boolean,
+            isNotExistAtomOrVersion: Boolean,
+            nodeId: String,
+            project_id: [String, Number],
+            atomList: Array,
+            atomTypeList: Object,
+            templateLabels: Array,
+            common: [String, Number],
             isViewMode: Boolean,
-            common: Boolean
+            isolationAtomConfig: Object
         },
         data () {
             return {
@@ -51,7 +56,9 @@
             
         },
         methods: {
-            
+            updateNodeInfo (id, data) {
+                this.$emit('updateNodeInfo', id, data)
+            }
         }
     }
 </script>
@@ -61,6 +68,7 @@
     position: absolute;
     right: 0;
     top: 48px;
+    display: flex;
     height: calc(100% - 48px);
     z-index: 10;
     /deep/.resize-trigger {
@@ -78,7 +86,7 @@
             left: 0;
             bottom: 0;
             width: 1px;
-            background-color: #dcdee5;
+            background-color: transparent;
         }
         &::after {
             content: "";
