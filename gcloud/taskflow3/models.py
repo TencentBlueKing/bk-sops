@@ -978,11 +978,7 @@ class TaskFlowInstance(models.Model):
         detail = node_detail_result["data"]
         detail.update(node_data)
 
-        if not detail.get("id"):
-            # 没有 ID 说明流程尚未创建完成，直接返回，无需补充额外的配置信息
-            return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
-
-        # # 补充重试信息
+        # 补充重试信息
         detail["auto_retry_info"] = (
             fetch_node_id__auto_retry_info_map(detail["parent_id"], [detail["id"]]).get(detail["id"]) or {}
         )
