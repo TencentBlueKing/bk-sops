@@ -173,7 +173,7 @@
         },
         beforeDestroy () {
             const listWrapEl = document.querySelector('.third-party-list')
-            listWrapEl.removeEventListener('scroll', this.handleThirdParPluginScroll, false)
+            listWrapEl && listWrapEl.removeEventListener('scroll', this.handleThirdParPluginScroll, false)
         },
         methods: {
             // 获取内置插件默认展开的分组，没有选择展开第一组，已选择展开选中的那组
@@ -418,6 +418,7 @@
                     const data = {
                         code,
                         name: plugin.name,
+                        plugin_contact: plugin.contact,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
@@ -435,7 +436,7 @@
 .select-panel {
     position: absolute;
     top: -54px;
-    left: -620px;
+    left: -615px;
     width: 600px;
     height: 790px;
     background: #fff;
@@ -536,7 +537,7 @@
     }
     .right-wrap {
         flex: 1;
-        margin: 0 20px 0 8px;
+        margin-left: 8px;
         .plugin-dev-doc {
             position: absolute;
             right: 15px;
@@ -581,7 +582,7 @@
                 position: relative;
                 height: 78px;
                 line-height: 18px;
-                padding: 10px 24px 10px 12px;
+                padding: 10px 18px 10px 12px;
                 color: #63656e;
                 font-size: 12px;
                 cursor: pointer;
@@ -648,12 +649,12 @@
         border-width: 1px;
         content: "";
         display: block;
-        height: 10px;
+        height: 6px;
         position: absolute;
-        right: -6px;
-        top: 136px;
+        right: -4px;
+        top: 140px;
         transform: rotate(45deg);
-        width: 10px;
+        width: 6px;
     }
 }
 </style>

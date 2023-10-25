@@ -24,7 +24,7 @@
             <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
         </div>
         <div class="node-name" :title="node.name">
-            <div class="name-text">{{ node.name }}</div>
+            <div class="name-text" :class="{ 'default-name': isShowDefaultNodeName }">{{ isShowDefaultNodeName ? node.name : $t('请选择子流程') }}</div>
         </div>
         <div class="node-options-icon">
             <template v-if="node.optional">
@@ -116,6 +116,9 @@
             },
             isSubProcessNode () {
                 return this.node.code === 'subprocess_plugin'
+            },
+            isShowDefaultNodeName () {
+                return this.node.mode === 'edit' && !this.node.name
             }
         },
         methods: {

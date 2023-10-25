@@ -125,7 +125,18 @@
                     v-if="theEditingData.show_type === 'show' && !isInternalVal"
                     :property="'isConditionHide'"
                     label="入参隐藏条件"
+                    class="condition-hide-switch-item"
                     :desc="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')">
+                    <bk-checkbox
+                        :value="theEditingData.is_condition_hide"
+                        :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
+                        @change="onToggleHideCond">
+                    </bk-checkbox>
+                </bk-form-item>
+                <bk-form-item
+                    v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide"
+                    :property="'conditionHide'"
+                    class="trigger-condition-item">
                     <div class="trigger-condition" @click="isShowErrorMsg = false">
                         <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
                             <bk-select
@@ -142,6 +153,7 @@
                             <bk-select
                                 ext-cls="select-operator"
                                 v-model="item.operator"
+                                :clearable="false"
                                 :disabled="isViewMode">
                                 <bk-option id="=" name="="></bk-option>
                                 <bk-option id="!=" name="!="></bk-option>
@@ -217,7 +229,8 @@
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
-            const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
+            const { source_type, custom_type, hide_condition: hideCondition, is_condition_hide: isConditionHide } = theEditingData
+            theEditingData.is_condition_hide = Boolean(isConditionHide)
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? source_type : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '=', value: '' }]
@@ -378,6 +391,7 @@
                     { code: 'component_inputs', name: i18n.t('节点输入') },
                     { code: 'component_outputs', name: i18n.t('节点输出') }
                 ]
+                this.selectedGroup.type = 'component'
                 this.renderOption.showLabel = true
             } else {
                 await this.getVarTypeList()
@@ -425,7 +439,8 @@
             ]),
             // 获取触发条件数据
             setTriggerCondInfo () {
-                if (!this.theEditingData.is_condition_hide) return
+                const { is_condition_hide: isConditionHide } = this.theEditingData
+                if (!isConditionHide && isConditionHide !== false) return
                 const variableList = Object.values(this.constants).filter(item => {
                     return this.variableData.key !== item.key && item.source_type !== 'component_outputs'
                 })
@@ -736,7 +751,7 @@
              * 变量自动显示/隐藏切换
              */
             onToggleHideCond (val) {
-                if (val === 'true' && !this.errorMsgText) {
+                if (val && !this.errorMsgText) {
                     this.setTriggerCondInfo()
                 }
                 this.theEditingData.is_condition_hide = val
@@ -811,7 +826,7 @@
                     variable.name = variable.name.trim()
 
                     // 触发条件
-                    if (variable.show_type === 'show' && variable.is_condition_hide === 'true') {
+                    if (variable.show_type === 'show' && variable.is_condition_hide) {
                         const isTrue = this.hideConditionList.every(condition => {
                             return Object.values(condition).every(val => val)
                         })
@@ -950,6 +965,7 @@
         margin-right: 24px;
     }
 }
+.component-variable-section,
 .dynamic-variable-section,
 .meta-variable-section {
     /deep/.rf-form-group {
@@ -975,8 +991,12 @@
         .ip-search-input {
             width: 100%;
         }
+        &:last-child {
+            padding-bottom: 0 !important;
+        }
     }
 }
+.component-variable-section,
 .dynamic-variable-section {
     position: relative;
     padding: 16px 16px 0;
@@ -1029,6 +1049,16 @@
             padding: 0;
         }
     }
+}
+.condition-hide-switch-item {
+    display: flex;
+    /deep/.bk-label {
+        width: auto !important;
+        padding-right: 22px;
+    }
+}
+.trigger-condition-item {
+    margin-top: -25px !important;
 }
 .trigger-condition {
     min-height: 36px;

@@ -70,7 +70,7 @@
                 :is-node-config-panel-show="isNodeConfigPanelShow"
                 :atom-list="atomList"
                 :atom-type-list="atomTypeList"
-                :template-labels="templateLabels"
+                :third-party-list="thirdPartyList"
                 :common="common"
                 :project_id="project_id"
                 :node-id="idOfNodeInConfigPanel"

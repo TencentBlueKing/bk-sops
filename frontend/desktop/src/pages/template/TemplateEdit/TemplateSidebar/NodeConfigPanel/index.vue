@@ -15,7 +15,7 @@
             :project_id="project_id"
             :atom-list="atomList"
             :atom-type-list="atomTypeList"
-            :template-labels="templateLabels"
+            :third-party-list="thirdPartyList"
             :common="common"
             :isolation-atom-config="isolationAtomConfig"
             @updateNodeInfo="updateNodeInfo"
@@ -45,7 +45,7 @@
             nodeId: String,
             atomList: Array,
             atomTypeList: Object,
-            templateLabels: Array,
+            thirdPartyList: Object,
             common: [String, Number],
             isViewMode: Boolean,
             isolationAtomConfig: Object

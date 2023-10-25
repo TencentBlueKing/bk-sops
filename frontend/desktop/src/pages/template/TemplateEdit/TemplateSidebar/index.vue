@@ -8,7 +8,7 @@
             :project_id="project_id"
             :atom-list="atomList"
             :atom-type-list="atomTypeList"
-            :template-labels="templateLabels"
+            :third-party-list="thirdPartyList"
             :common="common"
             :isolation-atom-config="isolationAtomConfig"
             @close="$emit('close')"
@@ -22,7 +22,6 @@
 </template>
 
 <script>
-    // import NodeConfig from './NodeConfig/NodeConfig.vue'
     import VariablePanel from './VariablePanel/index.vue'
     import NodeConfig from './NodeConfigPanel//index.vue'
     export default {
@@ -30,7 +29,6 @@
         components: {
             VariablePanel,
             NodeConfig
-            // NodeConfig
         },
         props: {
             isNodeConfigPanelShow: Boolean,
@@ -39,21 +37,10 @@
             project_id: [String, Number],
             atomList: Array,
             atomTypeList: Object,
-            templateLabels: Array,
+            thirdPartyList: Object,
             common: [String, Number],
             isViewMode: Boolean,
             isolationAtomConfig: Object
-        },
-        data () {
-            return {
-                
-            }
-        },
-        computed: {
-
-        },
-        watch: {
-            
         },
         methods: {
             updateNodeInfo (id, data) {

@@ -401,6 +401,9 @@
         .el-input-number {
             line-height: 32px;
         }
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
     .rf-form-group {
         margin-bottom: 24px;

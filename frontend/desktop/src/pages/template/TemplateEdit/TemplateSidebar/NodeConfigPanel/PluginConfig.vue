@@ -10,6 +10,7 @@
                     :basic-info="basicInfo"
                     :is-view-mode="isViewMode"
                     :is-sub-flow="isSubFlow"
+                    :is-third-party="isThirdParty"
                     :common="common"
                     :project_id="project_id"
                     :version-list="versionList"
@@ -22,66 +23,66 @@
                     @update="updateBasicInfo"
                     @versionChange="versionChange"
                     @selectScheme="onSelectSubFlowScheme"
+                    @select="onPluginOrTplChange"
                     @updateSubFlowVersion="updateSubFlowVersion">
                 </BasicInfo>
             </bk-collapse-item>
-            <bk-collapse-item :hide-arrow="true" name="inputParams">
-                <i class="common-icon-next-triangle-shape"></i>
-                {{ $t('输入参数') }}
-                <div slot="content" v-if="!inputLoading" class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
-                    <template v-if="Array.isArray(inputs)">
-                        <input-params
-                            v-if="inputs.length > 0"
-                            ref="inputParams"
-                            :node-id="nodeId"
-                            :scheme="inputs"
-                            :plugin="basicInfo.plugin"
-                            :version="basicInfo.version"
-                            :sub-flow-forms="subFlowForms"
-                            :forms-not-referred="formsNotReferred"
-                            :value="inputsParamValue"
-                            :render-config="inputsRenderConfig"
-                            :is-sub-flow="isSubFlow"
-                            :is-view-mode="isViewMode"
-                            :constants="localConstants"
-                            :third-party-code="isThirdParty ? basicInfo.plugin : ''"
-                            @hookChange="onHookChange"
-                            @renderConfigChange="onRenderConfigChange"
-                            @update="updateInputsValue">
-                        </input-params>
-                        <no-data v-else :message="$t('暂无参数')"></no-data>
-                    </template>
-                    <template v-else>
-                        <jsonschema-input-params
-                            v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
-                            :inputs="inputs"
-                            :value="inputsParamValue"
-                            @update="updateInputsValue">
-                        </jsonschema-input-params>
-                        <no-data v-else :message="$t('暂无参数')"></no-data>
-                    </template>
-                </div>
-            </bk-collapse-item>
-            <bk-collapse-item :hide-arrow="true" name="outputParams">
-                <i class="common-icon-next-triangle-shape"></i>
-                {{ $t('输出参数') }}
-                <div slot="content" class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
-                    <template v-if="!outputLoading">
-                        <output-params
-                            v-if="outputs.length"
-                            ref="outputParams"
-                            :constants="localConstants"
-                            :params="outputs"
-                            :version="basicInfo.version"
-                            :node-id="nodeId"
-                            :is-third-party="isThirdParty"
-                            :is-view-mode="isViewMode"
-                            @hookChange="onHookChange">
-                        </output-params>
-                        <no-data v-else :message="$t('暂无参数')"></no-data>
-                    </template>
-                </div>
-            </bk-collapse-item>
+            <template v-if="isSubFlow ? basicInfo.tpl : basicInfo.plugin">
+                <bk-collapse-item :hide-arrow="true" name="inputParams">
+                    <i class="common-icon-next-triangle-shape"></i>
+                    {{ $t('输入参数') }}
+                    <div slot="content" class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
+                        <template v-if="!inputLoading">
+                            <input-params
+                                v-if="Array.isArray(inputs) && inputs.length > 0"
+                                ref="inputParams"
+                                :node-id="nodeId"
+                                :scheme="inputs"
+                                :plugin="basicInfo.plugin"
+                                :version="basicInfo.version"
+                                :sub-flow-forms="subFlowForms"
+                                :forms-not-referred="formsNotReferred"
+                                :value="inputsParamValue"
+                                :render-config="inputsRenderConfig"
+                                :is-sub-flow="isSubFlow"
+                                :is-view-mode="isViewMode"
+                                :constants="localConstants"
+                                :third-party-code="isThirdParty ? basicInfo.plugin : ''"
+                                @hookChange="onHookChange"
+                                @renderConfigChange="onRenderConfigChange"
+                                @update="updateInputsValue">
+                            </input-params>
+                            <jsonschema-input-params
+                                v-else-if="inputs.properties && Object.keys(inputs.properties).length > 0"
+                                :inputs="inputs"
+                                :value="inputsParamValue"
+                                @update="updateInputsValue">
+                            </jsonschema-input-params>
+                            <no-data v-else :message="$t('暂无参数')"></no-data>
+                        </template>
+                    </div>
+                </bk-collapse-item>
+                <bk-collapse-item :hide-arrow="true" name="outputParams">
+                    <i class="common-icon-next-triangle-shape"></i>
+                    {{ $t('输出参数') }}
+                    <div slot="content" class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
+                        <template v-if="!outputLoading">
+                            <output-params
+                                v-if="outputs.length"
+                                ref="outputParams"
+                                :constants="localConstants"
+                                :params="outputs"
+                                :version="basicInfo.version"
+                                :node-id="nodeId"
+                                :is-third-party="isThirdParty"
+                                :is-view-mode="isViewMode"
+                                @hookChange="onHookChange">
+                            </output-params>
+                            <no-data v-else :message="$t('暂无参数')"></no-data>
+                        </template>
+                    </div>
+                </bk-collapse-item>
+            </template>
         </bk-collapse>
         <!-- 流程控制选项 -->
         <ControlOption
@@ -103,7 +104,7 @@
             <bk-button
                 v-if="!isViewMode"
                 theme="primary"
-                :disabled="inputLoading || (isSubFlow && subFlowListLoading)"
+                :disabled="inputLoading"
                 data-test-id="templateEdit_form_saveNodeConfig"
                 @click="onSaveConfig">
                 {{ $t('确定') }}
@@ -127,7 +128,6 @@
     import JsonschemaInputParams from './JsonschemaInputParams.vue'
     import OutputParams from './OutputParams.vue'
     import SelectPanel from './SelectPanel.vue'
-    // import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
     // import QuickOperateVariable from '../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
@@ -142,8 +142,6 @@
             InputParams,
             JsonschemaInputParams,
             OutputParams,
-            // SelectPanel,
-            // VariableEdit,
             NoData,
             ControlOption,
             SelectPanel
@@ -153,18 +151,15 @@
         props: {
             project_id: [String, Number],
             nodeId: String,
-            isShow: Boolean,
             activeTab: String,
-            isShowSelect: Boolean,
             atomList: Array,
-            subflowList: Array,
             atomTypeList: Object,
-            templateLabels: Array,
+            thirdPartyList: {
+                type: Object,
+                default: () => ({})
+            },
             common: [String, Number],
-            subFlowListLoading: Boolean,
-            backToVariablePanel: Boolean,
             isNotExistAtomOrVersion: Boolean,
-            pluginLoading: Boolean,
             isViewMode: Boolean,
             isolationAtomConfig: Object
         },
@@ -241,14 +236,6 @@
         watch: {
             constants (val) {
                 this.localConstants = tools.deepClone(val)
-            },
-            subFlowListLoading (val) {
-                if (!val) {
-                    // 获取子流程模板的名称
-                    Promise.resolve(this.getNodeBasic(this.nodeConfig)).then(res => {
-                        this.basicInfo = res
-                    })
-                }
             }
         },
         created () {
@@ -333,8 +320,12 @@
                 if (nodeConfig.type === 'ServiceActivity') {
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
                 } else {
-                    this.isSelectorPanelShow = !nodeConfig.template_id
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
+                }
+                // 第三方插件-插件提供者
+                if (isThirdParty) {
+                    const atom = this.thirdPartyList[this.nodeId]
+                    this.basicInfo.plugin_contact = atom.plugin_contact
                 }
                 this.$nextTick(() => {
                     this.isBaseInfoLoading = false
@@ -345,13 +336,11 @@
                     const code = isThirdParty ? nodeConfig.name : nodeConfig.component.code
                     versionList = this.getAtomVersions(code, isThirdParty)
                 }
-                const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
                 return {
                     nodeConfig,
                     isThirdParty,
                     basicInfo,
-                    versionList,
-                    isSelectorPanelShow
+                    versionList
                 }
             },
             // 初始化节点数据
@@ -595,7 +584,7 @@
                     // 节点已选择标准插件
                     if (component.code && !this.isNotExistAtomOrVersion) { // 节点插件存在
                         if (component.code === 'remote_plugin') {
-                            const atom = this.$parent.thirdPartyList[this.nodeId]
+                            const atom = this.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
                             const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
                             basicInfoName = resp.data.name
@@ -687,7 +676,7 @@
                 }
                 let atom
                 if (isThirdParty) {
-                    atom = this.$parent.thirdPartyList[this.nodeId]
+                    atom = this.thirdPartyList[this.nodeId]
                     return atom && atom.list
                 } else {
                     atom = this.atomList.find(item => item.code === code)
@@ -785,7 +774,7 @@
              * - 校验基础信息
              */
             async pluginChange (atomGroup) {
-                const { code, group_name, name, list } = atomGroup
+                const { code, group_name, name, list, plugin_contact } = atomGroup
                 this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
                 // 获取不同版本的描述
                 let desc = atomGroup.desc || ''
@@ -812,6 +801,10 @@
                     skippable: true,
                     retryable: true,
                     selectable: true
+                }
+                // 第三方插件-插件提供者
+                if (plugin_contact) {
+                    config.plugin_contact = plugin_contact
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
@@ -998,28 +991,6 @@
             handleReselectPlugin () {
                 this.$parent.isNotExistAtomOrVersion = false
                 this.isSelectorPanelShow = true
-            },
-            // 查看子流程模板
-            onViewSubFlow (id) {
-                const { name } = this.$route
-                const routerName = name === 'commonTemplatePanel'
-                    ? 'commonTemplatePanel'
-                    : this.isCommonTpl
-                        ? 'projectCommonTemplatePanel'
-                        : 'templatePanel'
-                const pathData = {
-                    name: routerName,
-                    params: {
-                        type: 'view',
-                        project_id: name === 'commonTemplatePanel' ? undefined : this.project_id
-                    },
-                    query: {
-                        template_id: id,
-                        common: name === 'templatePanel' ? undefined : '1'
-                    }
-                }
-                const { href } = this.$router.resolve(pathData)
-                window.open(href, '_blank')
             },
             // 切换子流程执行方案，需要重新请求输入、输出参数
             async onSelectSubFlowScheme () {
@@ -1358,7 +1329,7 @@
                             this.basicInfo[item] = this.basicInfo[item].trim()
                         })
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
-                                desc, nodeName, autoRetry, timeoutConfig, executor_proxy, ignorable
+                                desc, nodeName, autoRetry, timeoutConfig, executor_proxy, ignorable, plugin_contact
                         } = this.basicInfo
                         const nodeData = {
                             status: '',
@@ -1414,9 +1385,10 @@
                                 desc,
                                 nodeName,
                                 version,
+                                plugin_contact,
                                 list: tools.deepClone(this.versionList)
                             }
-                            this.$parent.thirdPartyList[this.nodeId] = params
+                            this.thirdPartyList[this.nodeId] = params
                         }
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
                         this.$emit('updateNodeInfo', this.nodeId, nodeData)
@@ -1466,6 +1438,10 @@
                 transform: rotate(90deg);
             }
         }
+    }
+    .inputs-wrapper,
+    .outputs-wrapper {
+        min-height: 80px;
     }
     .btn-footer {
         position: absolute;
