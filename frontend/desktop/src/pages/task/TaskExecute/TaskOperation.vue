@@ -2494,13 +2494,11 @@
                 const line = this.canvasData.lines.find(item => item.id === lineId)
                 // 分支添加暂停icon
                 if (isExecuted) {
-                    // 如果当前连线存在暂停icon，则删除旧的连线再生成新的
-                    const pauseDoms = document.querySelectorAll(`.suspend-${lineId}`)
-                    if (pauseDoms.length) {
+                    // 删除label
+                    const pauseDom = document.querySelector(`.suspend-${lineId}`)
+                    if (pauseDom) {
                         tplInstance.setPaintStyle(lineId, '#a9adb6')
-                        pauseDoms.forEach(dom => {
-                            dom.style.display = 'none'
-                        })
+                        tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
                     }
                 } else if (location > 0) {
                     // 设置连线颜色
@@ -2509,31 +2507,28 @@
                         type: 'Label',
                         location,
                         name: `<i class="common-icon-pause"></i>`,
-                        cls: `suspend-line suspend-${lineId}`
+                        cls: `suspend-line suspend-${lineId}`,
+                        id: `suspend-${lineId}`
                     }
                     tplInstance.$refs.jsFlow.addLineOverlay(line, labelData)
                     // 根据暂停icon所在线段的方向设置平移
                     this.$nextTick(() => {
-                        const pauseDoms = document.querySelectorAll(`.suspend-${lineId}`)
-                        const pauseDom = Array.from(pauseDoms).filter(dom => dom.style.display !== 'none')[0]
-                        const direction = this.judgeIntersectSegmentDirection(tplInstance, line, nodeId, pauseDom)
-                        if (!pauseDom) return
+                        const direction = this.judgeIntersectSegmentDirection(tplInstance, line, nodeId)
                         if (direction === 'vertical') { // 垂直
-                            const pauseIconDom = pauseDom.querySelector('i')
-                            pauseIconDom.style.display = 'inline-block'
-                            pauseIconDom.style.transform = 'rotate(90deg)'
+                            const pauseDom = document.querySelector(`.suspend-${lineId}`)
+                            pauseDom.style.transform = 'rotate(90deg)'
                         } else if (!direction) { // icon正在停在弯曲线段上
-                            pauseDom.style.display = 'none'
                             // 给曲线上的icon添加偏移计算量太大，改为删除旧的label生成一条偏移量location - 0.1的label
+                            tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
                             this.setLineSuspendState(nodeId, lineId, isExecuted, location - 0.1)
                         }
                     })
                 }
             },
             // 计算与暂停图标相交的线段方向
-            judgeIntersectSegmentDirection (tplInstance, line, nodeId, pauseDom) {
+            judgeIntersectSegmentDirection (tplInstance, line, nodeId) {
                 // 节点尺寸坐标
-                if (!pauseDom) return
+                const pauseDom = document.querySelector(`.suspend-${line.id}`)
                 const iconPos = this.getDomPos(pauseDom)
                 const { width: iWidth, height: iHeight } = pauseDom.getBoundingClientRect()
                 // 存在偏移，所以真实坐标需要减去高/宽的一半
@@ -2738,9 +2733,11 @@
     }
 }
 /deep/.suspend-line {
+    display: flex;
     font-size: 12px;
     color: #ffb946;
-    margin-top: -1px;
+    background: #f5f7fa;
+    transform-origin: top;
 }
 </style>
 <style lang="scss">
