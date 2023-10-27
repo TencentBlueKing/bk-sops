@@ -17,6 +17,9 @@ const TASK_STATE_DICT = {
     'READY': i18n.t('排队中'),
     'SUSPENDED': i18n.t('已暂停'),
     'NODE_SUSPENDED': i18n.t('节点暂停'),
+    'PENDING_PROCESSING': i18n.t('等待处理'),
+    'PENDING_APPROVAL': i18n.t('等待审批'),
+    'PENDING_CONFIRMATION': i18n.t('等待确认'),
     'FAILED': i18n.t('失败'),
     'FINISHED': i18n.t('完成'),
     'REVOKED': i18n.t('终止')

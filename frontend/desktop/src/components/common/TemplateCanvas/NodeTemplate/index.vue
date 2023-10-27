@@ -366,6 +366,14 @@
                     @include nodeClick ($blueDark);
                 }
             }
+            &.pending_processing,
+            &.pending_approval,
+            &.pending_confirmation {
+                @include taskNodeStyle (#ffb848);
+                &.actived {
+                    @include nodeClick (#ffb848);
+                }
+            }
             &.running {
                 .node-name {
                     border-color: $blueDark;
@@ -447,7 +455,6 @@
                 position: absolute;
                 top: -20px;
                 left: 0;
-                overflow: hidden;
                 .bk-form-checkbox,
                 .dark-circle {
                     float: left;
@@ -456,17 +463,29 @@
                     color: #979ba5;
                 }
                 .error-handle-icon {
-                    float: left;
-                    margin-right: 2px;
-                    padding: 0 3px;
+                    display: flex;
+                    align-items: center;
+                    margin: 4px 0 -4px;
                     line-height: 12px;
-                    color: #ffffff;
-                    background: #979ba5;
-                    border-radius: 2px;
+                    font-size: 12px;
+                    transform: scale(0.75);
                     .text {
-                        display: inline-block;
-                        font-size: 12px;
-                        transform: scale(0.8);
+                        padding: 2px 3px;
+                        color: #ffffff;
+                        background: #979ba5;
+                        border-radius: 1px 0 0 1px;
+                    }
+                    .count {
+                        padding: 2px 3px;
+                        color: #636568;
+                        background: #dcdee5;
+                        border-radius: 0px 1px 1px 0;
+                    }
+                    &:last-child {
+                        margin-left: -5px;
+                    }
+                    &:first-child {
+                        margin-left: -4px;
                     }
                 }
             }
@@ -541,6 +560,12 @@
             .common-icon-clock {
                 display: inline-block;
             }
+            .common-icon-clock,
+            .common-icon-pending-approval,
+            .common-icon-pending-confirm {
+                font-size: 12px;
+                color: #fff;
+            }
             .common-icon-loading {
                 display: inline-block;
                 animation: loading 1.4s infinite linear;
@@ -551,19 +576,27 @@
             .retry-times {
                 font-size: 12px;
             }
+            &.node-pending {
+                height: 20px;
+                width: 20px;
+                box-shadow: none;
+            }
             &.task-node-loop {
                 position: relative;
+                top: 2px;
                 height: 16px;
                 width: 16px;
+                margin-left: 0;
                 color: #3a84ff;
                 background: #fff !important;
                 > i {
                     position: absolute;
-                    font-size: 14px;
+                    font-size: 16px;
                 }
                 > span {
                     position: relative;
                     top: -0.5px;
+                    left: -0.5px;
                     font-weight: 700;
                     font-size: 18px;
                     transform: scale(.5);

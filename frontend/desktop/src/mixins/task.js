@@ -69,6 +69,10 @@ const task = {
                             status.cls = 'failed common-icon-dark-circle-close'
                             status.text = i18n.t('失败')
                             break
+                        case 'PENDING_PROCESSING':
+                            status.cls = 'running common-icon-dark-circle-ellipsis'
+                            status.text = i18n.t('等待处理')
+                            break
                         default:
                             status.text = i18n.t('未知')
                     }

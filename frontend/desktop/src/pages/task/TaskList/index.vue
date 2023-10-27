@@ -191,6 +191,7 @@
     const TASK_STATUS_LIST = [
         { id: 'nonExecution', name: i18n.t('未执行') },
         { id: 'running', name: i18n.t('执行中') },
+        { id: 'pending_processing', name: i18n.t('等待处理') },
         { id: 'failed', name: i18n.t('失败') },
         { id: 'pause', name: i18n.t('暂停') },
         { id: 'finished', name: i18n.t('完成') },
@@ -477,6 +478,9 @@
                             break
                         case 'finished':
                             pipeline_instance__is_finished = true
+                            break
+                        case 'pending_processing':
+                            task_instance_status = 'pending_processing'
                             break
                     }
 
