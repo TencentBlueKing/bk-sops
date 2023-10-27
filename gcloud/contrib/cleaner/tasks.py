@@ -43,16 +43,15 @@ def clean_expired_v2_task_data():
 
         batch_num = settings.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
 
-        ids = (
-            TaskFlowInstance.objects.filter(
-                pipeline_instance__create_time__lt=expire_time,
-                engine_ver=2,
-                pipeline_instance__is_expired=False,
-                create_method__in=settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS,
-            )
-            .order_by("id")
-            .values("id", "pipeline_instance__instance_id")[:batch_num]
+        qs = TaskFlowInstance.objects.filter(
+            pipeline_instance__create_time__lt=expire_time,
+            engine_ver=2,
+            pipeline_instance__is_expired=False,
+            create_method__in=settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS,
         )
+        if settings.BKAPP_CLEAN_EXPIRED_V2_TASK_PROJECTS:
+            qs.filter(project_id__in=settings.BKAPP_CLEAN_EXPIRED_V2_TASK_PROJECTS)
+        ids = qs.order_by("id").values("id", "pipeline_instance__instance_id")[:batch_num]
         task_ids = [item["id"] for item in ids]
         logger.info(f"Clean expired task data, task_ids: {task_ids}")
         pipeline_instance_ids = [item["pipeline_instance__instance_id"] for item in ids]
