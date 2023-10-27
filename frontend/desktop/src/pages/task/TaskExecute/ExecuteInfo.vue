@@ -118,6 +118,9 @@
                                         </bk-select>
                                         <span>{{$t('次执行')}}</span>
                                     </div>
+                                    <p class="retry-details-tips" v-if="realTimeState.state === 'FAILED' && realTimeState.retry">
+                                        {{ $t('已自动重试 m 次 (最多 10 次)，手动重试 n 次', { m: 1, n: 2 }) }}
+                                    </p>
                                 </section>
                                 <ExecuteRecord
                                     v-if="curActiveTab === 'record'"
@@ -376,19 +379,27 @@
             },
             displayStatus () {
                 let state = ''
-                if (this.realTimeState.state === 'RUNNING') {
-                    state = 'common-icon-dark-circle-ellipsis'
-                } else if (this.realTimeState.state === 'SUSPENDED') {
-                    state = 'common-icon-dark-circle-pause'
-                } else if (this.realTimeState.state === 'FINISHED') {
-                    const { skip, error_ignored } = this.realTimeState
-                    state = skip || error_ignored ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
-                } else if (this.realTimeState.state === 'FAILED') {
-                    state = 'common-icon-dark-circle-close'
-                } else if (this.realTimeState.state === 'CREATED') {
-                    state = 'common-icon-waitting'
-                } else if (this.realTimeState.state === 'READY') {
-                    state = 'common-icon-waitting'
+                switch (this.realTimeState.state) {
+                    case 'RUNNING':
+                        state = 'common-icon-dark-circle-ellipsis'
+                        break
+                    case 'SUSPENDED':
+                    case 'PENDING_PROCESSING':
+                    case 'PENDING_APPROVAL':
+                    case 'PENDING_CONFIRMATION':
+                        state = 'common-icon-dark-circle-pause'
+                        break
+                    case 'FINISHED':
+                        const { skip, error_ignored } = this.realTimeState
+                        state = skip || error_ignored ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
+                        break
+                    case 'FAILED':
+                        state = 'common-icon-dark-circle-close'
+                        break
+                    case 'CREATED':
+                    case 'READY':
+                        state = 'common-icon-waitting'
+                        break
                 }
                 return state
             },
@@ -1716,6 +1727,10 @@
                 height: 16px;
                 margin: 0 16px;
                 background: #dcdee5;
+            }
+            .retry-details-tips {
+                color: #979ba5;
+                margin-left: 16px;
             }
         }
         .panel-title {

@@ -41,10 +41,28 @@
                     @change="onNodeCheckClick">
                 </bk-checkbox>
             </template>
-            <span v-if="node.error_ignorable" class="error-handle-icon"><span class="text">AS</span></span>
-            <span v-if="node.isSkipped || node.skippable" class="error-handle-icon"><span class="text">MS</span></span>
-            <span v-if="node.can_retry || node.retryable" class="error-handle-icon"><span class="text">MR</span></span>
-            <span v-if="node.auto_retry && node.auto_retry.enable" class="error-handle-icon"><span class="text">AR</span></span>
+            <!-- 节点循环次数 -->
+            <div v-if="node.loop > 1" :class="['task-status-icon task-node-loop', { 'loop-plural': node.loop > 9 }]">
+                <i :class="`common-icon-loading-${ node.loop > 9 ? 'oval' : 'round' }`"></i>
+                <span>{{ node.loop > 99 ? '99+' : node.loop }}</span>
+            </div>
+            <!-- 任务节点自动重试/手动重试 -->
+            <template v-if="node.mode === 'execute'">
+                <span v-if="node.retry" class="error-handle-icon">
+                    <span class="text">MR</span>
+                    <span class="count">1</span>
+                </span>
+                <span v-if="node.retry" class="error-handle-icon">
+                    <span class="text">AR</span>
+                    <span class="count">2</span>
+                </span>
+            </template>
+            <template v-else>
+                <span v-if="node.error_ignorable" class="error-handle-icon"><span class="text">AS</span></span>
+                <span v-if="node.isSkipped || node.skippable" class="error-handle-icon"><span class="text">MS</span></span>
+                <span v-if="node.can_retry || node.retryable" class="error-handle-icon"><span class="text">MR</span></span>
+                <span v-if="node.auto_retry && node.auto_retry.enable" class="error-handle-icon"><span class="text">AR</span></span>
+            </template>
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
         <node-right-icon-status :node="node"></node-right-icon-status>

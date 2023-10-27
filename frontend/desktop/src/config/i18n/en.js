@@ -1822,7 +1822,15 @@ const en = {
     '清除所有IP': 'Clear all IPs',
     '清除异常IP': 'Clear abnormal IP',
     '节点输入型变量仅支持从节点"取消使用变量"来删除': 'Node input variables can only be deleted by the node "Cancel Using variable"',
-    '节点输出型变量仅支持从节点"取消接收输出"来删除': 'Node output variables can only be deleted by the node "Cancel Receiving Output"'
+    '节点输出型变量仅支持从节点"取消接收输出"来删除': 'Node output variables can only be deleted by the node "Cancel Receiving Output"',
+    '等待处理': 'Pending Processing',
+    '等待审批': 'Pending Approval',
+    '等待确认': 'Pending Confirmation',
+    '再次执行': 'Redo',
+    '暂停执行': 'Pause',
+    '终止执行': 'Terminate',
+    '状态明细': 'Detail',
+    '已自动重试 m 次 (最多 10 次)，手动重试 n 次': ''
 }
 
 export default en
