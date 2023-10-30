@@ -24,7 +24,7 @@
                         @click.stop="onCitedNodeClick(group.key, item.id)">
                         {{ item.name }}
                     </span>
-                    <i class="common-icon-box-top-right-corner"></i>
+                    <i class="common-icon-box-top-right-corner" @click.stop="onCitedNodeClick(group.key, item.id)"></i>
                 </div>
             </div>
         </template>

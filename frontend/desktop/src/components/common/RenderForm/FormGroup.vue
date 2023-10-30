@@ -104,7 +104,7 @@
             <i
                 :class="['common-icon-variable-hook hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
-                    content: hook ? $t('恢复为非变量节点内维护') : $t('转换为变量集中维护'),
+                    content: hook ? $t('取消使用变量，节点内维护') : $t('转换为变量，集中维护'),
                     placement: 'bottom',
                     zIndex: 3000
                 }"
@@ -425,7 +425,15 @@
         background: #ffeeec;
     }
     &.rf-has-hook .rf-tag-form {
-        margin-right: 45px;
+        margin-right: 40px;
+    }
+    &.show-render {
+        > .rf-tag-form {
+            margin-right: 58px;
+        }
+        .hook-icon {
+            padding-right: 3px !important;
+        }
     }
     .rf-group-name {
         display: block
@@ -446,15 +454,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0 8px;
         height: 32px;
         background: #f0f1f5;
         border-radius: 2px;
+        cursor: pointer;
         z-index: 1;
-        .hook-icon {
-            font-size: 16px;
+        .hook-icon,
+        .render-skip-icon {
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
             color: #979ba5;
-            cursor: pointer;
             &.disabled {
                 color: #c4c6cc;
                 cursor: not-allowed;
@@ -464,7 +474,12 @@
             }
         }
         .hook-icon {
+            line-height: 33px;
+            padding: 0 8px;
             font-size: 16px;
+        }
+        .render-skip-icon {
+            padding: 0 8px 0 3px;
         }
         .icon-angle-up-fill {
             font-size: 12px;

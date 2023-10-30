@@ -39,10 +39,16 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("生成文件名[后缀]"), key="local_name", type="string", schema=StringItemSchema(description=_("生成文件名")),
+                name=_("生成文件名[后缀]"),
+                key="local_name",
+                type="string",
+                schema=StringItemSchema(description=_("生成文件名")),
             ),
             self.InputItem(
-                name=_("文本内容"), key="local_content", type="string", schema=StringItemSchema(description=_("文本内容")),
+                name=_("文本内容"),
+                key="local_content",
+                type="string",
+                schema=StringItemSchema(description=_("文本内容")),
             ),
             self.InputItem(
                 name=_("目标IP"),
@@ -59,7 +65,10 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("请输入在蓝鲸作业平台上注册的账户名")),
             ),
             self.InputItem(
-                name=_("目标路径"), key="file_path", type="string", schema=StringItemSchema(description=_("目标路径")),
+                name=_("目标路径"),
+                key="file_path",
+                type="string",
+                schema=StringItemSchema(description=_("目标路径")),
             ),
             self.InputItem(
                 name=_("是否允许跨业务"),
@@ -113,7 +122,7 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "account_alias": data.get_one_of_inputs("file_account"),
+            "account_alias": data.get_one_of_inputs("file_account").strip(),
             "file_target_path": data.get_one_of_inputs("file_path"),
             "file_list": [
                 {

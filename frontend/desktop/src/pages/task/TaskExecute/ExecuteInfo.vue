@@ -11,7 +11,7 @@
 */
 <template>
     <div class="parameter-details">
-        <bk-resize-layout class="details-wrapper" placement="left" :max="500" :initial-divide="403" :min="400">
+        <bk-resize-layout class="details-wrapper" placement="left" :max="sidebarWidth - 600" :initial-divide="243" :min="240">
             <NodeTree
                 slot="aside"
                 :tree-data="nodeData"
@@ -130,7 +130,8 @@
                                     :execute-info="executeRecord"
                                     :node-detail-config="nodeDetailConfig"
                                     :not-performed-sub-node="notPerformedSubNode"
-                                    :is-sub-process-node="isSubProcessNode">
+                                    :is-sub-process-node="isSubProcessNode"
+                                    @onTabChange="onTabChange">
                                 </ExecuteRecord>
                                 <ExecuteInfoForm
                                     v-else-if="curActiveTab === 'config'"
@@ -303,7 +304,8 @@
             smallMapImg: {
                 type: String,
                 default: ''
-            }
+            },
+            sidebarWidth: Number
         },
         data () {
             return {
@@ -1588,25 +1590,27 @@
         height: 320px;
         margin: 0 25px 8px 15px;
         position: relative;
-        background: #e1e4e8;
+        background: #f5f7fa;
         .sub-flow {
             height: 100%;
             border: 0;
-            background: #e1e4e8;
+            /deep/.canvas-wrapper {
+                background: #f5f7fa;
+            }
             /deep/.canvas-flow {
                 .active {
                     box-shadow: none;
                     &::before {
                         content: '';
                         display: block;
-                        height: calc(100% + 8px);
-                        width: calc(100% + 8px);
+                        height: calc(100% + 16px);
+                        width: calc(100% + 16px);
                         position: absolute;
-                        top: -4.5px;
-                        left: -5px;
+                        top: -9px;
+                        left: -9px;
                         z-index: -1;
                         background: #e1ecff;
-                        border: 1px solid #699df4;
+                        border: 1px solid #1768ef;
                         border-radius: 2px;
                     }
                 }

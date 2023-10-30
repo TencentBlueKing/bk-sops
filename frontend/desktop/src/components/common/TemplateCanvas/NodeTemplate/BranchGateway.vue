@@ -16,6 +16,7 @@
             'branch-gateway',
             { 'fail-skip': node.status === 'FINISHED' && node.skip },
             { 'ready': node.ready },
+            { 'actived': node.isActived },
             node.status ? node.status.toLowerCase() : ''
         ]">
         <div class="node-type-icon common-icon-node-branchgateway"></div>

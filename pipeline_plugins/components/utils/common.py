@@ -121,6 +121,16 @@ def convert_num_to_str(export_data: list):
     return export_data
 
 
+def is_cipher_structure(value: typing.Any) -> bool:
+    """检测一个变量是否具备密码变量结构"""
+    if isinstance(value, str):
+        return True
+    # 密码变量格式：{"tag": "xxx", "value": "xxx"}
+    if isinstance(value, dict) and "tag" in value and "value" in value:
+        return True
+    return False
+
+
 def parse_passwd_value(passwd_value: typing.Union[str, typing.Dict[str, str]]) -> str:
     if isinstance(passwd_value, str):
         return passwd_value

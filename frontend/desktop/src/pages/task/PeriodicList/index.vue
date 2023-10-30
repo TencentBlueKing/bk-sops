@@ -65,9 +65,10 @@
                                                 'disable': collectingId === row.id,
                                                 'text-permission-disable': !hasPermission(['periodic_task_edit'], row.auth_actions)
                                             }"
+                                            :title="row.name"
                                             @click="onCollectTask(row)">
                                         </a>
-                                        <span class="name" v-bk-overflow-tips>{{row.name || '--'}}</span>
+                                        <span class="name" :title="row.name" v-bk-overflow-tips>{{row.name || '--'}}</span>
                                         <span
                                             class="label"
                                             v-if="row.is_latest === null"
