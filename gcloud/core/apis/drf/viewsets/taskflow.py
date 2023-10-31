@@ -22,6 +22,7 @@ from django.db.models import Q, QuerySet
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
+from pipeline.contrib.node_timer_event.api import batch_create_node_timer_event_config
 from pipeline.eri.models import State
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance, Snapshot
@@ -69,7 +70,8 @@ from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
-from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
+from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance, TaskFlowRelation
+from gcloud.taskflow3.utils import convert_to_timer_events_config
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils import concurrent
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
@@ -441,6 +443,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             "func_claim" if serializer.validated_data["flow_type"] == "common_func" else "execute_task"
         )
         serializer.validated_data["template_id"] = template.id
+
+        # convert timeout_config to timer_events
+        convert_to_timer_events_config(pipeline_instance.execution_data)
+        pipeline_instance.execution_snapshot.save()
+
         # create taskflow
         serializer.save()
         # crete auto retry strategy
@@ -449,9 +456,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         arn_creator.batch_create_strategy(pipeline_instance.execution_data)
 
-        # create timeout config
-        TimeoutNodeConfig.objects.batch_create_node_timeout_config(
-            taskflow_id=serializer.instance.id,
+        batch_create_node_timer_event_config(
             root_pipeline_id=pipeline_instance.instance_id,
             pipeline_tree=pipeline_instance.execution_data,
         )

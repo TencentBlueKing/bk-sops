@@ -12,12 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 import typing
 from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 from django.apps import apps
 from django.utils.translation import ugettext_lazy as _
+from pipeline.contrib.node_timer_event.constants import TimerType
 from pipeline.core import constants as pipeline_constants
 from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
@@ -173,3 +174,29 @@ def parse_node_timeout_configs(pipeline_tree: dict) -> list:
                 continue
             configs.append({"action": action, "node_id": act_id, "timeout": timeout_seconds})
     return {"result": True, "data": configs, "message": ""}
+
+
+def convert_to_timer_events_config(pipeline_tree: dict):
+    """将标准运维原来的节点超时配置，转为计时器边界事件，用于测试增强服务功能"""
+    for act_id, act in pipeline_tree[pipeline_constants.PE.activities].items():
+        if act["type"] == pipeline_constants.PE.SubProcess:
+            convert_to_timer_events_config(act[pipeline_constants.PE.pipeline])
+
+        elif act["type"] == pipeline_constants.PE.ServiceActivity:
+            timeout_config = act.get("timeout_config", {})
+            enable = timeout_config.get("enable")
+            if not enable:
+                continue
+            action = timeout_config.get("action")
+            timeout_seconds = timeout_config.get("seconds")
+            if action == "forced_fail_and_skip":
+                defined = f"R1000/PT{timeout_seconds}S"
+                timer_type = TimerType.TIME_CYCLE.value
+            else:
+                defined = f"PT{timeout_seconds}S"
+                timer_type = TimerType.TIME_DURATION.value
+
+            act["events"] = {}
+            act["events"]["timer_events"] = [
+                {"enable": True, "action": action, "timer_type": timer_type, "defined": defined}
+            ]
