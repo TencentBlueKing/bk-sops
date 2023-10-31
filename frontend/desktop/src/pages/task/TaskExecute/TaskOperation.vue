@@ -1328,8 +1328,8 @@
                             task_id: this.subProcessTaskId || this.instance_id,
                             node_id: id
                         }
-                        // 如果存在子流程任务节点时则不需要传subprocess_id
-                        if (!this.subProcessTaskId) {
+                        // 如果存在子流程任务节点时则需要传subprocess_id
+                        if (this.subProcessTaskId) {
                             let { subprocess_stack: stack } = this.nodeDetailConfig
                             if (stack) {
                                 stack = JSON.parse(stack)
