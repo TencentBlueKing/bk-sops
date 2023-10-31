@@ -12,14 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 
+from gcloud.conf import settings
 from pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service import (
     BaseJobPushLocalFilesService,
 )
-from gcloud.conf import settings
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -67,7 +66,7 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
             job_rolling_mode = job_rolling_config.get("job_rolling_mode")
             rolling_config = {"expression": job_rolling_expression, "mode": job_rolling_mode}
 
-        target_account = data.inputs.job_target_account
+        target_account = data.inputs.job_target_account.strip()
         params_list = [
             {
                 "esb_client": client,

@@ -83,6 +83,7 @@
                         class="tab-data-table"
                         v-bkloading="{ isLoading: tableDataLoading, opacity: 1, zIndex: 100 }"
                         :data="tableData"
+                        :max-height="751"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
                         @page-change="handlePageChange"

@@ -30,6 +30,7 @@
                         :data="projectList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :max-height="tableMaxHeight"
                         v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1, zIndex: 100 }"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange">
@@ -307,7 +308,8 @@
                     creator
                 },
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                tableMaxHeight: window.innerHeight - 130
             }
         },
         computed: {

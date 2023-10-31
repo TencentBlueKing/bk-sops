@@ -68,6 +68,7 @@ from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
+from gcloud.taskflow3.utils import extract_nodes_by_statuses, fetch_node_id__auto_retry_info_map
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.throttle import check_task_operation_throttle, get_task_operation_frequence
 from pipeline_web.preview import preview_template_tree
@@ -108,6 +109,20 @@ def status(request, project_id):
         engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance, project_id=project_id
     )
     result = dispatcher.get_task_status(subprocess_id=subprocess_id)
+
+    # 解析状态树失败或者任务尚未被调度，此时直接返回解析结果
+    if not result["result"] or not result["data"].get("id"):
+        return JsonResponse(result)
+
+    try:
+        status_tree, root_pipeline_id = result["data"], result["data"]["id"]
+        all_node_ids = extract_nodes_by_statuses(status_tree)
+        status_tree["auto_retry_infos"] = fetch_node_id__auto_retry_info_map(root_pipeline_id, all_node_ids)
+    except Exception as e:
+        message = "task[id={task_id}] extract failed node info error: {error}".format(task_id=task.id, error=e)
+        logger.exception(message)
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+
     return JsonResponse(result)
 
 
@@ -190,6 +205,7 @@ def detail(request, project_id):
                     "ex_data": "节点错误信息(string)"
                 }
             ],
+            "auto_retry_info": {"node_id": "act1", "auto_retry_times": 3, "max_auto_retry_times": 10},
             "inputs": "节点输入数据, include_data 为 1 时返回(object or null)",
             "outputs": "节点输出数据, include_data 为 1 时返回(list)",
             "ex_data": "节点错误信息, include_data 为 1 时返回(string)"

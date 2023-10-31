@@ -55,7 +55,10 @@
                             beforeUpload(file, fileList) {
                                 this.$set(this.headers, "X-CSRFToken", getCookie(window.APP_CODE + "_csrftoken"))
                                 this.$set(this.headers, "APP-ProjectId", $.context.getProjectId())
-
+                                // 文件名不允许包含空格
+                                if(file.name.includes(" ")){
+                                    return show_msg('上传失败: 文件名不允许包含空格', 'error');
+                                }
                                 var $this = this
                                 $.ajax({
                                     url: $.context.get('site_url') + 'pipeline/apply_upload_ticket/',

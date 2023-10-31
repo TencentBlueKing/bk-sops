@@ -13,15 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0 import (
     CCTransferHostModuleComponent,
 )
@@ -53,7 +53,7 @@ class MockClient(object):
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".get_client_by_user"
 )
-CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_ips_info_by_str"
 CC_LIST_MATCH_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".cc_list_match_node_inst_id"
 )
@@ -184,7 +184,7 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("admin", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
         CallAssertion(
             func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.transfer_host_module,
             calls=[
@@ -203,7 +203,9 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
-        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+        ),
     ],
 )
 
@@ -231,7 +233,7 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("admin", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
         CallAssertion(
             func=SELECT_BY_TOPO_SUCCESS_CLIENT.cc.transfer_host_module,
             calls=[
@@ -250,7 +252,9 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
-        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+        ),
     ],
 )
 
@@ -280,12 +284,14 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("admin", 2, ["1.1.1.1", "2.2.2.2"], 0)])
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
-        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+        ),
     ],
 )
 
@@ -312,11 +318,13 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "输入文本路径[蓝鲸>Yun>module]与业务拓扑层级不匹配"}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("admin", 2, ["1.1.1.1", "2.2.2.2"], 0)])
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
-        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+        ),
     ],
 )

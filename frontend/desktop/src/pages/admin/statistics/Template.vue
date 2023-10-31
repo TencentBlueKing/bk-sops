@@ -94,6 +94,7 @@
                         class="tab-data-table"
                         v-bkloading="{ isLoading: tplDataLoading, opacity: 1, zIndex: 100 }"
                         :data="tplData"
+                        :max-height="768"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
                         @page-change="handlePageChange"

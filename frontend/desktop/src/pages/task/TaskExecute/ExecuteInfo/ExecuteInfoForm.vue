@@ -752,7 +752,7 @@
         }
         .form-item-group {
             padding: 16px;
-            margin-right: 45px;
+            margin-right: 40px;
             background: #f5f7fa;
             .rf-tag-form {
                 margin-right: 0;

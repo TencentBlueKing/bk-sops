@@ -15,22 +15,20 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
-
-from pipeline_plugins.components.collections.sites.open.cc.base import (
-    BkObjType,
-    SelectMethod,
-    cc_format_tree_mode_id,
-    cc_list_select_node_inst_id,
-    CCPluginIPMixin,
-)
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.base import (
+    BkObjType,
+    CCPluginIPMixin,
+    SelectMethod,
+    cc_format_tree_mode_id,
+    cc_list_select_node_inst_id,
+)
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -101,7 +99,7 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
         # 查询主机id
         ip_str = data.get_one_of_inputs("cc_host_ip")
         # 获取主机id列表
-        host_result = self.get_host_list(executor, biz_cc_id, ip_str, supplier_account)
+        host_result = self.get_ip_info_list(executor, biz_cc_id, ip_str, supplier_account)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False
@@ -128,7 +126,7 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,
             "bk_supplier_account": supplier_account,
-            "bk_host_id": [int(host_id) for host_id in host_result["data"]],
+            "bk_host_id": [int(host["HostID"]) for host in host_result["ip_result"]],
             "bk_module_id": cc_module_select,
             "is_increment": True if cc_is_increment == "true" else False,
         }

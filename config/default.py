@@ -211,7 +211,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.31.0-alpha2"
+STATIC_VERSION = "3.31.0"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -831,3 +831,6 @@ else:
 
 # 任务列表过滤失败任务最大天数
 TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS
+
+# 支持限制接口的 app
+ALLOWED_LIMITED_API_APPS = env.ALLOWED_LIMITED_API_APPS

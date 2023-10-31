@@ -11,7 +11,7 @@
 */
 <template>
     <div class="parameter-details">
-        <bk-resize-layout class="details-wrapper" placement="left" :max="500" :initial-divide="403" :min="400">
+        <bk-resize-layout class="details-wrapper" placement="left" :max="sidebarWidth - 600" :initial-divide="243" :min="240">
             <NodeTree
                 slot="aside"
                 :tree-data="nodeData"
@@ -130,7 +130,8 @@
                                     :execute-info="executeRecord"
                                     :node-detail-config="nodeDetailConfig"
                                     :not-performed-sub-node="notPerformedSubNode"
-                                    :is-sub-process-node="isSubProcessNode">
+                                    :is-sub-process-node="isSubProcessNode"
+                                    @onTabChange="onTabChange">
                                 </ExecuteRecord>
                                 <ExecuteInfoForm
                                     v-else-if="curActiveTab === 'config'"
@@ -165,7 +166,7 @@
                     </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
+                    <template v-if="executeInfo.state === 'RUNNING'">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
@@ -187,7 +188,7 @@
                             {{ $t('强制终止') }}
                         </bk-button>
                         <bk-button
-                            v-if="isLegacySubProcess"
+                            v-if="isLegacySubProcess || isSubProcessNode"
                             data-test-id="taskExecute_form_pauseBtn"
                             @click="onPauseClick">
                             {{ $t('暂停') }}
@@ -303,7 +304,8 @@
             smallMapImg: {
                 type: String,
                 default: ''
-            }
+            },
+            sidebarWidth: Number
         },
         data () {
             return {
@@ -437,7 +439,7 @@
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
-                return (this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode)
+                return this.realTimeState.state === 'RUNNING'
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
                     || this.isShowContinueBtn
@@ -1423,7 +1425,12 @@
                 this.$emit('onSkipClick', this.nodeDetailConfig.node_id, info)
             },
             onResumeClick () {
-                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                if (this.isSubProcessNode) {
+                    const taskId = this.executeInfo.outputs.find(item => item.key === 'task_id') || {}
+                    this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, taskId.value, true)
+                } else {
+                    this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                }
             },
             onApprovalClick () {
                 this.$emit('onApprovalClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
@@ -1435,7 +1442,12 @@
                 this.$emit('onForceFail', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             onPauseClick () {
-                this.$emit('onPauseClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                if (this.isSubProcessNode) {
+                    const taskId = this.executeInfo.outputs.find(item => item.key === 'task_id') || {}
+                    this.$emit('onPauseClick', this.nodeDetailConfig.node_id, taskId.value, true)
+                } else {
+                    this.$emit('onPauseClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                }
             },
             onContinueClick () {
                 this.$emit('onContinueClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
@@ -1588,25 +1600,27 @@
         height: 320px;
         margin: 0 25px 8px 15px;
         position: relative;
-        background: #e1e4e8;
+        background: #f5f7fa;
         .sub-flow {
             height: 100%;
             border: 0;
-            background: #e1e4e8;
+            /deep/.canvas-wrapper {
+                background: #f5f7fa;
+            }
             /deep/.canvas-flow {
                 .active {
                     box-shadow: none;
                     &::before {
                         content: '';
                         display: block;
-                        height: calc(100% + 8px);
-                        width: calc(100% + 8px);
+                        height: calc(100% + 16px);
+                        width: calc(100% + 16px);
                         position: absolute;
-                        top: -4.5px;
-                        left: -5px;
+                        top: -9px;
+                        left: -9px;
                         z-index: -1;
                         background: #e1ecff;
-                        border: 1px solid #699df4;
+                        border: 1px solid #1768ef;
                         border-radius: 2px;
                     }
                 }

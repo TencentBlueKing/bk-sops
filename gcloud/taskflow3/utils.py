@@ -12,12 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from typing import Any, Dict, List, Optional
 
+from bamboo_engine import states as bamboo_engine_states
+from django.apps import apps
+from django.utils.translation import ugettext_lazy as _
+from pipeline.core import constants as pipeline_constants
 from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
-from pipeline.core import constants as pipeline_constants
-from bamboo_engine import states as bamboo_engine_states
-from django.utils.translation import ugettext_lazy as _
 
 from gcloud.utils.dates import format_datetime
 
@@ -87,6 +89,47 @@ def add_node_name_to_status_tree(pipeline_tree, status_tree_children):
         status["name"] = pipeline_tree.get("activities", {}).get(node_id, {}).get("name", "")
         children = status.get("children", {})
         add_node_name_to_status_tree(pipeline_tree.get("activities", {}).get(node_id, {}).get("pipeline", {}), children)
+
+
+def extract_nodes_by_statuses(status_tree: Dict, statuses: Optional[List[str]] = None) -> List[str]:
+    """
+    在状态树中获取指定状态的节点 ID 列表
+    :param status_tree:
+    :param statuses: 为空取任意状态
+    :return:
+    """
+    nodes: List[str] = []
+    for node_id, status in status_tree["children"].items():
+        if not statuses or status["state"] in statuses:
+            nodes.append(node_id)
+            nodes += extract_nodes_by_statuses(status, statuses)
+    return nodes
+
+
+def get_failed_nodes_info(root_pipeline_id, failed_node_ids):
+    info = {failed_node_id: {} for failed_node_id in failed_node_ids}
+
+    for node_id, auto_retry_info in fetch_node_id__auto_retry_info_map(root_pipeline_id, failed_node_ids).items():
+        info[node_id].update(auto_retry_info)
+
+    return info
+
+
+def fetch_node_id__auto_retry_info_map(root_pipeline_id, node_ids: List[str]) -> Dict[str, Dict[str, Any]]:
+    """获取指定节点ID列表的自动重试配置信息"""
+    node_id__auto_retry_info_map: Dict[str, Dict[str, Any]] = {}
+    AutoRetryNodeStrategy = apps.get_model("taskflow3", "AutoRetryNodeStrategy")
+    strategy_info = AutoRetryNodeStrategy.objects.filter(
+        root_pipeline_id=root_pipeline_id, node_id__in=node_ids
+    ).values("node_id", "retry_times", "max_retry_times")
+
+    for strategy in strategy_info:
+        node_id__auto_retry_info_map[strategy["node_id"]] = {
+            "node_id": strategy["node_id"],
+            "auto_retry_times": strategy["retry_times"],
+            "max_auto_retry_times": strategy["max_retry_times"],
+        }
+    return node_id__auto_retry_info_map
 
 
 def parse_node_timeout_configs(pipeline_tree: dict) -> list:
