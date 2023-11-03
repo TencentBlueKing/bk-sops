@@ -291,7 +291,10 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
 
 class DraftTemplate(models.Model):
-    snapshot_id = models.IntegerField(_("对应的快照id"))
+    name = models.CharField(_("模板名称"), max_length=128, default="default_template", db_index=True)
+    snapshot_id = models.IntegerField(_("对应的快照id"), db_index=True)
+    labels = models.JSONField(_("流程的tag信息"), default=[])
+    description = models.TextField(_("描述"), null=True, blank=True)
     editor = models.CharField(_("修改者"), max_length=32, null=True, blank=True)
     edit_time = models.DateTimeField(_("修改时间"), auto_now=True, db_index=True)
 

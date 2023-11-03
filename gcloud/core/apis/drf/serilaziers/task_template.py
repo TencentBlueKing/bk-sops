@@ -58,6 +58,9 @@ class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
 
 
 class UpdateDraftPipelineTreeSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True)
+    labels = serializers.ListField(required=False)
+    description = serializers.CharField(required=False, allow_null=True)
     pipeline_tree = serializers.JSONField(required=True)
 
 
@@ -95,6 +98,17 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "project",
             "template_id",
         ]
+
+
+class UpdateTaskTemplateSerializer(BaseTemplateSerializer):
+    category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
+    time_out = serializers.IntegerField(help_text="超时时间", required=False)
+    executor_proxy = serializers.CharField(help_text="执行代理", allow_blank=True, required=False)
+    default_flow_type = serializers.CharField(help_text="默认流程类型")
+
+    class Meta:
+        model = TaskTemplate
+        fields = "__all__"
 
 
 class ProjectInfoQuerySerializer(serializers.Serializer):

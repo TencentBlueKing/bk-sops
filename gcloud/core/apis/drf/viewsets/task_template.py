@@ -42,14 +42,16 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     TaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
     UpdateDraftPipelineTreeSerializer,
+    UpdateTaskTemplateSerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.core.apis.drf.viewsets.draft_template import DraftTemplateViewSetMixin
 from gcloud.iam_auth import IAMMeta, res_factory
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.taskflow3.models import TaskConfig, TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
-from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
+from gcloud.user_custom_config.constants import DEFAULT_PIPELINE_TREE, TASKTMPL_ORDERBY_OPTIONS
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -74,7 +76,7 @@ class TaskTemplatePermission(IamPermission):
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "publish_draft": IamPermissionInfo(
-            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+            IAMMeta.FLOW_PUBLISH_DRAFT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "update": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
@@ -104,6 +106,7 @@ class TaskTemplateFilter(PropertyFilterSet):
             "pipeline_template__edit_time": ["gte", "lte"],
             "pipeline_template__create_time": ["gte", "lte"],
             "project__id": ["exact"],
+            "published": ["exact"],
         }
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
 
@@ -116,7 +119,7 @@ class TaskTemplateFilter(PropertyFilterSet):
         return query.filter(**condition)
 
 
-class TaskTemplateViewSet(GcloudModelViewSet):
+class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
     filterset_class = TaskTemplateFilter
@@ -213,13 +216,14 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = CreateTaskTemplateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        name = serializer.validated_data.pop("name")
         creator = request.user.username
-        pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
-        description = serializer.validated_data.pop("description", "")
         with transaction.atomic():
+            description = serializer.validated_data.pop("description", "")
+            name = serializer.validated_data.pop("name", "")
+            labels = serializer.validated_data.pop("template_labels", [])
+            # 创建一份模板，该模板不会被使用，未发布
             result = manager.create_pipeline(
-                name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
+                name=name, creator=creator, pipeline_tree=DEFAULT_PIPELINE_TREE, description=description
             )
 
             if not result["result"]:
@@ -228,14 +232,22 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
             serializer.validated_data["pipeline_template_id"] = result["data"].template_id
-            template_labels = serializer.validated_data.pop("template_labels")
+
+            # 创建快照
+            pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
+            draft_template_id = manager.create_draft_without_template(
+                pipeline_tree, request.user.username, name, description, labels
+            )
+
+            serializer.validated_data["published"] = False
+            serializer.validated_data["draft_template_id"] = draft_template_id
             self.perform_create(serializer)
-            self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
+
         # 发送信号
         post_template_save_commit.send(
             sender=TaskTemplate,
-            project_id=serializer.instance.project_id,
+            project_id=serializer.instance.project.id,
             template_id=serializer.instance.id,
             is_deleted=False,
         )
@@ -255,31 +267,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         template = self.get_object()
-        serializer = CreateTaskTemplateSerializer(template, data=request.data, partial=partial)
+        serializer = UpdateTaskTemplateSerializer(template, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        # update pipeline_template
-        name = serializer.validated_data.pop("name")
+        # 更新时将只允许更新流程的通知等全局信息
         editor = request.user.username
-        pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
-        description = serializer.validated_data.pop("description", "")
         with transaction.atomic():
-            result = manager.update_pipeline(
-                pipeline_template=template.pipeline_template,
-                editor=editor,
-                name=name,
-                pipeline_tree=pipeline_tree,
-                description=description,
-            )
-
-            if not result["result"]:
-                message = result["message"]
-                logger.error(message)
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-
-            serializer.validated_data["pipeline_template"] = template.pipeline_template
-            template_labels = serializer.validated_data.pop("template_labels")
             self.perform_update(serializer)
-            self._sync_template_lables(serializer.instance.id, template_labels)
         # 发送信号
         post_template_save_commit.send(
             sender=TaskTemplate,
@@ -351,17 +344,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         """
         获取草稿内容
         """
-        task_template = self.get_object()
-        # 说明该模板还没有生成快照
-        if task_template.draft_template_id is None:
-            manager.create_draft(template=task_template, editor=request.user.username)
-        return Response(
-            {
-                "editor": task_template.draft_template.editor,
-                "pipeline_tree": task_template.draft_pipeline_tree,
-                "edit_time": task_template.draft_template.edit_time,
-            }
-        )
+        return Response(self.get_draft(manager, self.get_object(), request.user.username))
 
     @swagger_auto_schema(method="post", operation_summary="更新流程草稿信息", request_body=UpdateDraftPipelineTreeSerializer)
     @action(methods=["POST"], detail=True)
@@ -370,11 +353,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         更新草稿
         """
         task_template = self.get_object()
-        serializer = UpdateDraftPipelineTreeSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        pipeline_tree = serializer.validated_data["pipeline_tree"]
-
-        result = manager.update_draft_pipeline(task_template.draft_template, request.user.username, pipeline_tree)
+        result = self.update_template_draft(manager, task_template, request)
         if not result["result"]:
             message = result["message"]
             logger.error(message)
@@ -382,6 +361,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
 
         return Response(
             {
+                "name": task_template.draft_template.name,
+                "labels": task_template.draft_template.labels,
+                "description": task_template.draft_template.description,
                 "editor": task_template.draft_template.editor,
                 "pipeline_tree": task_template.draft_pipeline_tree,
                 "edit_time": task_template.draft_template.edit_time,
@@ -395,9 +377,10 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         发布草稿
         """
         task_template = self.get_object()
-        result = manager.publish_draft_pipeline(template=task_template, editor=request.user.username)
+        result = self.publish_template_draft(manager, task_template, request.user.username)
         if not result["result"]:
             message = result["message"]
             logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        self._sync_template_lables(task_template.id, task_template.draft_template.labels)
         return Response()

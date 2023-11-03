@@ -86,6 +86,7 @@ INSTALLED_APPS += (
     "pipeline.engine",
     "pipeline.log",
     "pipeline.contrib.statistics",
+    "pipeline.contrib.rollback",
     "pipeline.contrib.periodic_task",
     "pipeline.contrib.external_plugins",
     "pipeline.contrib.engine_admin",
@@ -676,6 +677,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(

@@ -166,6 +166,10 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
             template = model_cls.objects.get(id=value)
         except model_cls.DoesNotExist:
             raise serializers.ValidationError(f"id={value}的模板不存在")
+
+        # 如果该模板没有发布，则不允许创建任务
+        if not template.published:
+            raise serializers.ValidationError(f"id={value}的模板处于草稿态，不允许发布任务")
         return template
 
     def validate_create_method(self, value):
