@@ -33,7 +33,7 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
+from gcloud.constants import COMMON, PROJECT, TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
@@ -145,7 +145,9 @@ class TaskFLowStatusFilterHandler:
                 pipeline_instance=taskflow_instance.pipeline_instance,
                 project_id=taskflow_instance.project_id,
             )
-            get_task_status_result: typing.Dict[str, typing.Any] = dispatcher.get_task_status(with_ex_data=False)
+            get_task_status_result: typing.Dict[str, typing.Any] = dispatcher.get_task_status(
+                with_ex_data=False, with_new_status=True
+            )
             if get_task_status_result.get("result"):
                 return {"id": taskflow_instance.id, "state": get_task_status_result["data"]["state"]}
             else:
@@ -407,6 +409,26 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer = self.get_serializer(instance)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, instance)
+
+        template_id__allowed_actions_map = {}
+
+        if data["template_source"] == COMMON:
+            template_id__allowed_actions_map = get_common_flow_allowed_actions_for_user(
+                request.user.username,
+                [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_ACTION],
+                [data["template_id"]],
+            )
+        elif data["template_source"] == PROJECT:
+            template_id__allowed_actions_map = get_flow_allowed_actions_for_user(
+                request.user.username,
+                [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION],
+                [data["template_id"]],
+            )
+
+        for act, allowed in (template_id__allowed_actions_map.get(str(data["template_id"])) or {}).items():
+            if allowed:
+                data["auth_actions"].append(act)
+
         return Response(data)
 
     @staticmethod

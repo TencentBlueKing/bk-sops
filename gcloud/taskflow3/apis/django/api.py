@@ -108,7 +108,7 @@ def status(request, project_id):
     dispatcher = TaskCommandDispatcher(
         engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance, project_id=project_id
     )
-    result = dispatcher.get_task_status(subprocess_id=subprocess_id)
+    result = dispatcher.get_task_status(subprocess_id=subprocess_id, with_new_status=True)
 
     # 解析状态树失败或者任务尚未被调度，此时直接返回解析结果
     if not result["result"] or not result["data"].get("id"):
@@ -142,7 +142,7 @@ def batch_status(request, project_id):
             pipeline_instance=task.pipeline_instance,
             project_id=project_id,
         )
-        total_result["data"][task.id] = dispatcher.get_task_status()
+        total_result["data"][task.id] = dispatcher.get_task_status(with_new_status=True)
 
     return JsonResponse(total_result)
 
