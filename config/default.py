@@ -86,7 +86,6 @@ INSTALLED_APPS += (
     "pipeline.engine",
     "pipeline.log",
     "pipeline.contrib.statistics",
-    "pipeline.contrib.rollback",
     "pipeline.contrib.periodic_task",
     "pipeline.contrib.external_plugins",
     "pipeline.contrib.engine_admin",
