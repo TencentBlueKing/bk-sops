@@ -304,6 +304,7 @@
             instanceFlow: String,
             instanceName: String,
             template_id: [Number, String],
+            templateName: [Number, String],
             primitiveTplId: [Number, String],
             primitiveTplSource: String,
             templateSource: String,
@@ -511,7 +512,7 @@
             },
             pendingNodes () {
                 const { children = {} } = this.instanceStatus
-                const pendingStatus = ['PENDING_APPROVAL', 'PENDING_CONFIRMATION', 'PENDING_PROCESSING']
+                const pendingStatus = ['PENDING_APPROVAL', 'PENDING_CONFIRMATION', 'PENDING_CONTINUE']
                 return Object.values(children).reduce((acc, cur) => {
                     if (pendingStatus.includes(cur.state)) {
                         acc.push({
@@ -529,9 +530,8 @@
             instanceStatus: {
                 handler (val) {
                     const { state, children = {} } = val
-                    const pendingStatus = ['PENDING_APPROVAL', 'PENDING_CONFIRMATION', 'PENDING_PROCESSING', 'SUSPENDED']
                     const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
-                    if (pendingStatus.includes(state)) {
+                    if (state === 'SUSPENDED') {
                         Object.values(children).forEach(node => {
                             // 非任务节点/网关节点
                             if ([start_event.id, end_event.id].includes(node.id)) return
@@ -901,6 +901,20 @@
                     this.pending.task = false
                 }
             },
+            // 任务重新执行
+            taskReExecute () {
+                const url = {
+                    name: 'taskCreate',
+                    query: { template_id: this.template_id, task_id: this.instance_id, entrance: 'taskflow' },
+                    params: { project_id: this.projectId, step: 'selectnode' }
+                }
+                if (this.templateSource === 'common') {
+                    url.query.common = 1
+                }
+                const { href } = this.$router.resolve(url)
+                window.open(href, '_blank')
+                this.pending.task = false
+            },
             async nodeTaskSkip (id, taskId) {
                 if (this.pending.skip) {
                     return
@@ -1050,7 +1064,7 @@
             },
             // 更新节点状态
             updateNodeInfo () {
-                const nodes = this.instanceStatus.children
+                const { auto_retry_infos: retryInfo, children: nodes } = this.instanceStatus
                 for (const id in nodes) {
                     let code, skippable, retryable, errorIgnorable, autoRetry
                     const currentNode = nodes[id]
@@ -1070,6 +1084,7 @@
                         loop: currentNode.loop,
                         status: currentNode.state,
                         skip: currentNode.skip,
+                        auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
@@ -2056,7 +2071,7 @@
                             name: this.templateName
                         }]
                     }
-                    this.applyForPermission(['task_operate'], this.instanceActions, resourceData)
+                    this.applyForPermission([requestPerm], this.instanceActions, resourceData)
                     return
                 }
 

@@ -1833,7 +1833,8 @@ const en = {
     '暂停执行': 'Pause',
     '终止执行': 'Terminate',
     '状态明细': 'Detail',
-    '已自动重试 m 次 (最多 10 次)，手动重试 n 次': ''
+    '已自动重试 m 次 (最多 c 次)，手动重试 n 次': 'Automatically retried {m} times (up to {c} times), manual retry {n} times',
+    '等待继续': 'Pending continue'
 }
 
 export default en

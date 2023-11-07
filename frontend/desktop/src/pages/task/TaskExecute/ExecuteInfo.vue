@@ -119,7 +119,7 @@
                                         <span>{{$t('次执行')}}</span>
                                     </div>
                                     <p class="retry-details-tips" v-if="realTimeState.state === 'FAILED' && realTimeState.retry">
-                                        {{ $t('已自动重试 m 次 (最多 10 次)，手动重试 n 次', { m: 1, n: 2 }) }}
+                                        {{ $t('已自动重试 m 次 (最多 c 次)，手动重试 n 次', autoRetryInfo)}}
                                     </p>
                                 </section>
                                 <ExecuteRecord
@@ -360,6 +360,15 @@
             ...mapState('project', {
                 project_id: state => state.project_id
             }),
+            autoRetryInfo () {
+                const { auto_retry_infos: retryInfos } = this.nodeDisplayStatus
+                const retryInfo = retryInfos[this.nodeDetailConfig.node_id]
+                return {
+                    m: retryInfo.auto_retry_times || 0,
+                    c: retryInfo.max_auto_retry_times || 10,
+                    n: this.realTimeState.retry - retryInfo.auto_retry_times || 0
+                }
+            },
             // 节点实时状态
             realTimeState () {
                 const { root_node, node_id, taskId } = this.nodeDetailConfig
@@ -386,9 +395,9 @@
                         state = 'common-icon-dark-circle-ellipsis'
                         break
                     case 'SUSPENDED':
-                    case 'PENDING_PROCESSING':
                     case 'PENDING_APPROVAL':
                     case 'PENDING_CONFIRMATION':
+                    case 'PENDING_CONTINUE':
                         state = 'common-icon-dark-circle-pause'
                         break
                     case 'FINISHED':
@@ -1183,6 +1192,7 @@
                         errorIgnorable = nodeActivity.error_ignorable
                         autoRetry = nodeActivity.auto_retry
                     }
+                    const { auto_retry_infos: retryInfo } = this.nodeDisplayStatus
                     const data = {
                         code,
                         skippable,
@@ -1190,6 +1200,7 @@
                         loop: currentNode.loop,
                         status: currentNode.state,
                         skip: currentNode.skip,
+                        auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,

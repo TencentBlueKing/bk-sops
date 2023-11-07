@@ -48,13 +48,13 @@
             </div>
             <!-- 任务节点自动重试/手动重试 -->
             <template v-if="node.mode === 'execute'">
-                <span v-if="node.retry" class="error-handle-icon">
+                <span v-if="node.retry - node.auto_skip > 0" class="error-handle-icon">
                     <span class="text">MR</span>
-                    <span class="count">1</span>
+                    <span class="count">{{ node.retry - node.auto_skip }}</span>
                 </span>
-                <span v-if="node.retry" class="error-handle-icon">
+                <span v-if="node.auto_skip" class="error-handle-icon">
                     <span class="text">AR</span>
-                    <span class="count">2</span>
+                    <span class="count">{{ node.auto_skip }}</span>
                 </span>
             </template>
             <template v-else>

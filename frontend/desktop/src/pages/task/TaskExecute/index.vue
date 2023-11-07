@@ -31,6 +31,7 @@
                 :engine-ver="engineVer"
                 :instance-flow="instanceFlow"
                 :template_id="templateId"
+                :template_name="templateName"
                 :primitive-tpl-id="primitiveTplId"
                 :primitive-tpl-source="primitiveTplSource"
                 :template-source="templateSource"
@@ -72,6 +73,7 @@
                 templateSource: '',
                 instanceActions: [],
                 templateId: '',
+                templateName: '',
                 primitiveTplId: '', // 任务原始模板id
                 primitiveTplSource: '', // 任务原始模板来源
                 isChildTaskFlow: false, // 是否为独立子流程任务
@@ -102,7 +104,7 @@
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
                     const {
-                        flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions,
+                        flow_type, current_flow, pipeline_tree, name, template_id, template_name, template_source, auth_actions,
                         engine_ver, primitive_template_id, primitive_template_source, is_child_taskflow, creator_name
                     } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
@@ -115,6 +117,7 @@
                     this.instanceFlow = pipeline_tree
                     this.instanceName = name
                     this.templateId = template_id
+                    this.templateName = template_name
                     this.primitiveTplId = primitive_template_id
                     this.primitiveTplSource = primitive_template_source
                     this.templateSource = template_source
