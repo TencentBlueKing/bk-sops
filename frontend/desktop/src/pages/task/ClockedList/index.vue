@@ -128,7 +128,7 @@
                                         {{ $t('执行历史') }}
                                     </router-link>
                                 </template>
-                                <span v-else class="empty-text">{{ '--' }}</span>
+                                <span v-else class="empty-text">{{ $t('执行历史') }}</span>
                             </div>
                         </bk-table-column>
                         <bk-table-column type="setting">
@@ -745,6 +745,8 @@
     }
     .empty-text {
         padding: 5px;
+        color: #ccc;
+        cursor: not-allowed;
     }
 }
 </style>
