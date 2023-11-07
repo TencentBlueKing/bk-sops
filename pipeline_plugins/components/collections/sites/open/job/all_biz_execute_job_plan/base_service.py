@@ -19,6 +19,7 @@ from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     has_biz_set,
+    is_cipher_structure,
     loose_strip,
     parse_passwd_value,
     plat_ip_reg,
@@ -124,7 +125,21 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         for _value in original_global_var:
-            val = loose_strip(crypto.decrypt(parse_passwd_value(_value["value"])))
+
+            if is_cipher_structure(_value["value"]):
+                # 只有当变量值符合密码结构，才需要尝试解析密码变量
+                try:
+                    val = loose_strip(crypto.decrypt(parse_passwd_value(_value["value"])))
+                except Exception:
+                    self.logger.exception(
+                        "[job_execute_task_base] failed to decrypt value -> {value}, use plaintext".format(
+                            value=_value["value"]
+                        )
+                    )
+                    val = loose_strip(_value["value"])
+            else:
+                val = loose_strip(_value["value"])
+
             if _value["type"] == JOBV3_VAR_CATEGORY_IP:
 
                 ip_list = self.get_ip_list(val)

@@ -67,7 +67,7 @@
         </div>
         <bk-sideslider
             :is-show.sync="isNodeInfoPanelShow"
-            :width="['viewNodeDetails', 'executeInfo'].includes(nodeInfoType) ? 1300 : 960"
+            :width="sidebarWidth"
             :quick-close="true"
             :before-close="onBeforeClose"
             @hidden="onHiddenSideslider">
@@ -80,6 +80,12 @@
                 </div>
             </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
+                <!--可拖拽-->
+                <template v-if="['viewNodeDetails', 'executeInfo'].includes(nodeInfoType)">
+                    <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                    <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
+                    <div class="resize-mask" ref="resizeMask"></div>
+                </template>
                 <ModifyParams
                     ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
@@ -109,6 +115,7 @@
                     :constants="pipelineData.constants"
                     :gateways="pipelineData.gateways"
                     :condition-data="conditionData"
+                    :sidebar-width="sidebarWidth"
                     @close="onCloseConfigPanel"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
@@ -326,6 +333,7 @@
                 sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
+                sidebarWidth: 960,
                 nodeInfoType: '',
                 state: '', // 当前流程状态，画布切换时会更新
                 rootState: '', // 根流程状态
@@ -584,6 +592,7 @@
                 'getNodeExecutionRecord',
                 'getNodeActInfo',
                 'instanceRetry',
+                'getNodeActDetail',
                 'subflowNodeRetry',
                 'taskFlowConvertCommonTask'
             ]),
@@ -797,21 +806,30 @@
                     this.pending.task = false
                 }
             },
-            async taskPause (subflowPause, nodeId, taskId) {
+            /**
+             * nodeId 子流程节点id
+             * taskId 子流程任务id, 不传则是最外层任务暂停
+             * independent 是否为独立子流程节点
+             */
+            async taskPause (nodeId, taskId, independent) {
                 let res, state, message
                 try {
-                    if (!this.isTopTask || subflowPause) { // 子流程画布暂停或子流程节点暂停
+                    const instanceId = taskId || this.instance_id
+                    if (nodeId && !independent) { // 非独立子流程节点暂停
                         const data = {
-                            instance_id: taskId || this.instance_id,
-                            node_id: nodeId || this.taskId
+                            instance_id: instanceId,
+                            node_id: nodeId
                         }
                         res = await this.subInstancePause(data)
+                    } else { // 任务暂停/独立子流程任务暂停
+                        res = await this.instancePause(instanceId)
+                    }
+                    if (nodeId || taskId) {
                         state = 'NODE_SUSPENDED'
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId]
+                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已暂停执行')
                     } else {
-                        res = await this.instancePause(this.instance_id)
                         state = 'SUSPENDED'
                         message = i18n.t('任务已暂停执行')
                     }
@@ -829,20 +847,24 @@
                     this.pending.task = false
                 }
             },
-            async taskResume (subflowResume, nodeId, taskId) {
+            async taskResume (nodeId, taskId, independent) {
                 let res, message
                 try {
-                    if (!this.isTopTask || subflowResume) {
+                    const instanceId = taskId || this.instance_id
+                    if (nodeId && !independent) { // 非独立子流程节点继续执行
                         const data = {
-                            instance_id: taskId || this.instance_id,
-                            node_id: nodeId || this.taskId
+                            instance_id: instanceId,
+                            node_id: nodeId
                         }
                         res = await this.subInstanceResume(data)
+                    } else { // 任务继续执行/独立子流程任务继续执行
+                        res = await this.instanceResume(this.instance_id)
+                    }
+                    if (nodeId || taskId) {
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId]
+                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已继续执行')
                     } else {
-                        res = await this.instanceResume(this.instance_id)
                         message = i18n.t('任务已继续执行')
                     }
                     if (res.result) {
@@ -914,11 +936,31 @@
                 }
                 this.pending.forceFail = true
                 try {
-                    const params = {
-                        node_id: id,
-                        task_id: Number(taskId || this.instance_id)
+                    let res = {}
+                    // 强制终止独立子流程任务节点
+                    const nodeConfig = this.activities[id]
+                    const isSubProcessNode = nodeConfig.component?.code === 'subprocess_plugin'
+                    if (isSubProcessNode) {
+                        if (!taskId) {
+                            const resp = await this.getNodeActDetail({
+                                instance_id: this.instance_id,
+                                node_id: id,
+                                component_code: 'subprocess_plugin',
+                                subprocess_simple_inputs: true
+                            })
+                            if (!resp.result) return
+                            const { outputs = [] } = resp.data
+                            const data = outputs.find(item => item.key === 'task_id') || {}
+                            taskId = data.value
+                        }
+                        res = await this.instanceRevoke(taskId)
+                    } else {
+                        const params = {
+                            node_id: id,
+                            task_id: Number(taskId || this.instance_id)
+                        }
+                        res = await this.forceFail(params)
                     }
-                    const res = await this.forceFail(params)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('强制终止执行成功'),
@@ -1403,16 +1445,16 @@
                 this.approval.message = ''
                 this.approval.dialogShow = false
             },
-            onPauseClick (id, taskId) {
-                this.taskPause(true, id, taskId)
+            onPauseClick (id, taskId, independent) {
+                this.taskPause(id, taskId, independent)
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
                 setTimeout(() => {
                     this.setTaskStatusTimer()
                 }, 1000)
             },
-            onContinueClick (id, taskId) {
-                this.taskResume(true, id, taskId)
+            onContinueClick (id, taskId, independent) {
+                this.taskResume(id, taskId, independent)
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
                 setTimeout(() => {
@@ -1422,9 +1464,28 @@
             onCloseConfigPanel () {
                 this.isShowConditionEdit = false
             },
-            onSubflowPauseResumeClick (id, value) {
+            async onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
-                value === 'pause' ? this.taskPause(true, id) : this.taskResume(true, id)
+                try {
+                    const nodeConfig = this.activities[id]
+                    const isSubProcessNode = nodeConfig.component?.code === 'subprocess_plugin'
+                    if (isSubProcessNode) {
+                        const resp = await this.getNodeActDetail({
+                            instance_id: this.instance_id,
+                            node_id: id,
+                            component_code: 'subprocess_plugin',
+                            subprocess_simple_inputs: true
+                        })
+                        if (!resp.result) return
+                        const { outputs = [] } = resp.data
+                        const taskId = outputs.find(item => item.key === 'task_id') || {}
+                        value === 'pause' ? this.taskPause(id, taskId.value, true) : this.taskResume(id, taskId.value, true)
+                    } else {
+                        value === 'pause' ? this.taskPause(id) : this.taskResume(id)
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             // 设置画布数据，更新页面
             setCanvasData () {
@@ -1957,6 +2018,7 @@
             openNodeInfoPanel (type, name, isCondition = false) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
+                this.sidebarWidth = 960
                 this.nodeInfoType = type
                 this.isCondition = isCondition
             },
@@ -2615,6 +2677,47 @@
                 top = top ? /:.((\-)?[0-9.]+)px/.exec(top)[1] : 0
                 top = Number(top)
                 return { left, top }
+            },
+            handleMousedown (event) {
+                this.updateResizeMaskStyle()
+                this.updateResizeProxyStyle()
+                document.addEventListener('mousemove', this.handleMouseMove)
+                document.addEventListener('mouseup', this.handleMouseUp)
+            },
+            handleMouseMove (event) {
+                const maxWidth = window.innerWidth - 400
+                let width = window.innerWidth - event.clientX
+                width = width < 960 ? 960 : width
+                width = width > maxWidth ? maxWidth : width
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.right = `${width}px`
+            },
+            updateResizeMaskStyle () {
+                const resizeMask = this.$refs.resizeMask
+                resizeMask.style.display = 'block'
+                resizeMask.style.cursor = 'col-resize'
+            },
+            updateResizeProxyStyle () {
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'visible'
+                resizeProxy.style.right = `${this.sidebarWidth}px`
+            },
+            handleMouseUp () {
+                const resizeMask = this.$refs.resizeMask
+                const resizeProxy = this.$refs.resizeProxy
+                resizeProxy.style.visibility = 'hidden'
+                resizeMask.style.display = 'none'
+                let right = resizeProxy.style.right.slice(0, -2)
+                right = Number(right)
+                const widthDiff = right - this.sidebarWidth
+                this.sidebarWidth = right
+                const layoutAsideDom = document.querySelector('.bk-resize-layout-aside')
+                if (layoutAsideDom) {
+                    const { width } = layoutAsideDom.getBoundingClientRect() || {}
+                    layoutAsideDom.style.width = `${width + widthDiff}px`
+                }
+                document.removeEventListener('mousemove', this.handleMouseMove)
+                document.removeEventListener('mouseup', this.handleMouseUp)
             }
         }
     }
@@ -2661,6 +2764,22 @@
                 background: #f5f7fa;
                 .jtk-endpoint {
                     z-index: 2 !important;
+                }
+                .actived {
+                    box-shadow: none;
+                    &::after {
+                        content: '';
+                        display: block;
+                        height: calc(100% + 16px);
+                        width: calc(100% + 16px);
+                        position: absolute;
+                        top: -9px;
+                        left: -9px;
+                        z-index: -1;
+                        background: #e1ecff;
+                        border: 1px solid #1768ef;
+                        border-radius: 2px;
+                    }
                 }
             }
         }
@@ -2722,6 +2841,59 @@
     height: 100%;
     .operation-flow {
         padding: 20px 30px;
+    }
+    >.resize-trigger {
+        width: 5px;
+        height: calc(100vh - 60px);
+        position: absolute;
+        left: 0;
+        top: 0;
+        cursor: col-resize;
+        z-index: 2500;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: transparent;
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -1px;
+            width: 2px;
+            height: 2px;
+            color: #979ba5;
+            transform: translate3d(0,-50%,0);
+            background: currentColor;
+            box-shadow: 0 4px 0 0 currentColor,0 8px 0 0 currentColor,0 -4px 0 0 currentColor,0 -8px 0 0 currentColor;
+        }
+        &:hover::before {
+            background-color: #3a84ff;
+        }
+    }
+    >.resize-proxy {
+        visibility: hidden;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9998;
+        &.left {
+            top: 0;
+            height: 100%;
+            border-left: 1px dashed #3a84ff;
+        }
+    }
+    >.resize-mask {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
     }
 }
 .approval-dialog-content {

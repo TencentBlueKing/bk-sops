@@ -10,19 +10,20 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
+from django.db.models import Value
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject, project_inject, return_json_response
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.apigw.views.utils import format_task_list_data, paginate_list_data
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from gcloud.iam_auth.utils import get_task_allowed_actions_for_user
-from gcloud.iam_auth.conf import TASK_ACTIONS
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response, timezone_inject
 from gcloud.apigw.forms import GetTaskListForm
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.apigw.views.utils import format_task_list_data, paginate_list_data
+from gcloud.iam_auth.conf import TASK_ACTIONS
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.utils import get_task_allowed_actions_for_user
+from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 @login_exempt
@@ -44,7 +45,7 @@ def get_task_list(request, project_id):
         "is_finished": "pipeline_instance__is_finished",
         "executor": "pipeline_instance__executor",
     }
-    filter_kwargs = dict(is_deleted=False, project_id=project.id)
+    filter_kwargs = dict(is_deleted=Value(0), project_id=project.id)
     for param, filter_key in param_mappings.items():
         if param in request.GET:
             filter_kwargs[filter_key] = params_validator.cleaned_data[param]

@@ -141,6 +141,7 @@ def dispatch_timeout_nodes(record_id: int):
     nodes = json.loads(record.timeout_nodes)
     metrics.TASKFLOW_TIMEOUT_NODES_NUMBER.labels(hostname=HOST_NAME).set(len(nodes))
     for node in nodes:
+        # TODO 支持 node 自解析
         node_id, version = node.split("_")
         execute_node_timeout_strategy.apply_async(
             kwargs={"node_id": node_id, "version": version},

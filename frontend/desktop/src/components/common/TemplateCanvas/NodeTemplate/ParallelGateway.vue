@@ -10,7 +10,15 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['gateway-node', 'parallel-gateway', node.status ? node.status.toLowerCase() : '', { 'ready': node.ready }]">
+    <div :class="[
+        'gateway-node',
+        'parallel-gateway',
+        node.status ? node.status.toLowerCase() : '',
+        {
+            'ready': node.ready,
+            'actived': node.isActived
+        }
+    ]">
         <div class="node-type-icon common-icon-node-parallelgateway"></div>
     </div>
 </template>

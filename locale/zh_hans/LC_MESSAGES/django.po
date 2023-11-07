@@ -3566,7 +3566,7 @@ msgstr " | get_job_instance_log"
 #: pipeline_plugins/components/collections/sites/open/job/base.py:801
 #, fuzzy
 msgid "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-msgstr "任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
+msgstr "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
 
 #: pipeline_plugins/components/collections/sites/open/job/base.py:537
 #: pipeline_plugins/components/collections/sites/open/job/base.py:778
