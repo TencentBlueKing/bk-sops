@@ -366,9 +366,9 @@
                     @include nodeClick ($blueDark);
                 }
             }
-            &.pending_processing,
             &.pending_approval,
-            &.pending_confirmation {
+            &.pending_confirmation,
+            &.pending_continue {
                 @include taskNodeStyle (#ffb848);
                 &.actived {
                     @include nodeClick (#ffb848);
@@ -457,8 +457,7 @@
                 left: 0;
                 .bk-form-checkbox,
                 .dark-circle {
-                    float: left;
-                    margin-right: 2px;
+                    margin-bottom: -3px;
                     font-size: 14px;
                     color: #979ba5;
                 }
@@ -595,8 +594,8 @@
                 }
                 > span {
                     position: relative;
-                    top: -0.5px;
-                    left: -0.5px;
+                    top: -1px;
+                    left: 0px;
                     font-weight: 700;
                     font-size: 18px;
                     transform: scale(.5);

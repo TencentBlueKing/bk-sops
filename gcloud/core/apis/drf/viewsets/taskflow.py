@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from bamboo_engine import states
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Value
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
@@ -34,7 +34,7 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
+from gcloud.constants import COMMON, PROJECT, TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
@@ -147,7 +147,9 @@ class TaskFLowStatusFilterHandler:
                 pipeline_instance=taskflow_instance.pipeline_instance,
                 project_id=taskflow_instance.project_id,
             )
-            get_task_status_result: typing.Dict[str, typing.Any] = dispatcher.get_task_status(with_ex_data=False)
+            get_task_status_result: typing.Dict[str, typing.Any] = dispatcher.get_task_status(
+                with_ex_data=False, with_new_status=True
+            )
             if get_task_status_result.get("result"):
                 return {"id": taskflow_instance.id, "state": get_task_status_result["data"]["state"]}
             else:
@@ -303,7 +305,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = TaskFlowInstanceSerializer
     queryset = TaskFlowInstance.objects.filter(
-        pipeline_instance__isnull=False, is_deleted=False, pipeline_instance__is_expired=False
+        pipeline_instance__isnull=False, is_deleted=Value(0), pipeline_instance__is_expired=False
     ).order_by("-id")
     iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
@@ -409,6 +411,26 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer = self.get_serializer(instance)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, instance)
+
+        template_id__allowed_actions_map = {}
+
+        if data["template_source"] == COMMON:
+            template_id__allowed_actions_map = get_common_flow_allowed_actions_for_user(
+                request.user.username,
+                [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_ACTION],
+                [data["template_id"]],
+            )
+        elif data["template_source"] == PROJECT:
+            template_id__allowed_actions_map = get_flow_allowed_actions_for_user(
+                request.user.username,
+                [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION],
+                [data["template_id"]],
+            )
+
+        for act, allowed in (template_id__allowed_actions_map.get(str(data["template_id"])) or {}).items():
+            if allowed:
+                data["auth_actions"].append(act)
+
         return Response(data)
 
     @staticmethod
@@ -530,7 +552,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         children_task_ids = [info["task_id"] for info in children_task_info]
         queryset = TaskFlowInstance.objects.filter(
-            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=False
+            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=Value(0)
         )
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)

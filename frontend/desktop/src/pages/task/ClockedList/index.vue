@@ -27,6 +27,7 @@
                         :data="clockedList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :max-height="tableMaxHeight"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }">
@@ -68,7 +69,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" :width="adminView ? 120 : 230" :fixed="clockedList.length ? 'right' : false">
+                        <bk-table-column :label="$t('操作')" :width="adminView ? 120 : 230" :fixed="clockedList.length ? 'right' : false" :resizable="false">
                             <div class="clocked-operation" slot-scope="props" :clocked-task-name="props.row.name">
                                 <template v-if="!adminView">
                                     <a
@@ -342,7 +343,8 @@
                 sideSliderType: '',
                 isShowSideslider: false,
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                tableMaxHeight: window.innerHeight - (this.admin ? 198 : 148)
             }
         },
         computed: {

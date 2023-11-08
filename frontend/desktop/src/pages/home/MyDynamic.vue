@@ -35,6 +35,7 @@
             class="tab-data-table"
             v-bkloading="{ isLoading: isTableLoading, opacity: 1, zIndex: 100 }"
             :data="dynamicData"
+            :max-height="689"
             :pagination="pagination">
             <bk-table-column
                 v-for="item in tableColumn"

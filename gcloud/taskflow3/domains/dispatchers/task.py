@@ -430,12 +430,14 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             "code": err_code.SUCCESS.code,
         }
 
-    def get_task_status(self, subprocess_id: Optional[str] = None, with_ex_data: bool = False) -> dict:
+    def get_task_status(
+        self, subprocess_id: Optional[str] = None, with_ex_data: bool = False, with_new_status: bool = False
+    ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
         return getattr(self, "get_task_status_v{}".format(self.engine_ver))(
-            subprocess_id=subprocess_id, with_ex_data=with_ex_data
+            subprocess_id=subprocess_id, with_ex_data=with_ex_data, with_new_status=with_new_status
         )
 
     def _collect_fail_nodes(self, task_status: dict) -> list:
@@ -452,7 +454,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     failed_nodes.append(node_id)
         return failed_nodes
 
-    def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+    def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool, *args, **kwargs) -> dict:
         if self.pipeline_instance.is_expired:
             return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
@@ -511,7 +513,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}
 
-    def get_task_status_v2(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+    def get_task_status_v2(
+        self, subprocess_id: Optional[str], with_ex_data: bool, with_new_status: bool, *args, **kwargs
+    ) -> dict:
         if self.pipeline_instance.is_expired:
             return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
@@ -560,23 +564,26 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         # subprocess not been executed
         task_status = task_status or self.CREATED_STATUS
 
-        # 遍历树，获取需要进行状态优化的节点，标记哪些节点具有独立子流程
-        # 遍历状态树，hit -> 状态优化，独立子流程 -> 递归
-        node_infos_gby_code: typing.Dict[
-            str, typing.List[typing.Dict[str, typing.Any]]
-        ] = find_nodes_from_pipeline_tree(
-            self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
-        )
+        if with_new_status:
+            # 遍历树，获取需要进行状态优化的节点，标记哪些节点具有独立子流程
+            # 遍历状态树，hit -> 状态优化，独立子流程 -> 递归
+            node_infos_gby_code: typing.Dict[
+                str, typing.List[typing.Dict[str, typing.Any]]
+            ] = find_nodes_from_pipeline_tree(
+                self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
+            )
 
-        node_ids_gby_code: typing.Dict[str, typing.Set[str]] = {}
-        for code, node_infos in node_infos_gby_code.items():
-            node_ids_gby_code[code] = {node_info["act_id"] for node_info in node_infos}
+            node_ids_gby_code: typing.Dict[str, typing.Set[str]] = {}
+            for code, node_infos in node_infos_gby_code.items():
+                node_ids_gby_code[code] = {node_info["act_id"] for node_info in node_infos}
 
-        code__status_map: typing.Dict[str, str] = {
-            "pause_node": TaskExtraStatus.PENDING_CONFIRMATION.value,
-            "bk_approve": TaskExtraStatus.PENDING_APPROVAL.value,
-        }
-        self.format_bamboo_engine_status(task_status, node_ids_gby_code, code__status_map)
+            code__status_map: typing.Dict[str, str] = {
+                "pause_node": TaskExtraStatus.PENDING_CONFIRMATION.value,
+                "bk_approve": TaskExtraStatus.PENDING_APPROVAL.value,
+            }
+            self.format_bamboo_engine_status(task_status, node_ids_gby_code, code__status_map)
+        else:
+            format_bamboo_engine_status_legacy(task_status)
 
         # 返回失败节点和对应调试信息
         if with_ex_data and task_status["state"] == bamboo_engine_states.FAILED:
@@ -671,9 +678,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         status_tree: typing.Dict[str, typing.Any],
         node_ids_gby_code: typing.Dict[str, typing.Set[str]],
         code__status_map: typing.Dict[str, str],
+        is_child: bool = False,
     ):
         """
         格式化 bamboo 状态树
+        :param is_child:
         :param status_tree: 状态树
         :param node_ids_gby_code: 按组件 Code 聚合节点 ID
         :param code__status_map: 状态映射关系
@@ -684,9 +693,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         _format_status_time(status_tree)
 
+        if status_tree["state"] == bamboo_engine_states.SUSPENDED and is_child:
+            status_tree["state"] = TaskExtraStatus.PENDING_CONTINUE.value
         # 处理状态映射
-        if status_tree["state"] in [bamboo_engine_states.SUSPENDED, TaskExtraStatus.NODE_SUSPENDED.value]:
-            status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
+        elif status_tree["state"] == TaskExtraStatus.NODE_SUSPENDED.value:
+            status_tree["state"] = (TaskExtraStatus.PENDING_CONTINUE.value,)
         elif status_tree["state"] == bamboo_engine_states.RUNNING:
             # 独立子流程下钻
             if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
@@ -720,10 +731,16 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         project_id=self.project_id,
                     )
                     get_task_status_result: typing.Dict[str, typing.Any] = dispatcher.get_task_status(
-                        with_ex_data=False
+                        with_ex_data=False, with_new_status=True
                     )
                     if get_task_status_result.get("result"):
                         status_tree["state"] = get_task_status_result["data"]["state"]
+                        # 已暂停 -> 等待继续
+                        if status_tree["state"] in {
+                            bamboo_engine_states.SUSPENDED,
+                            TaskExtraStatus.NODE_SUSPENDED.value,
+                        }:
+                            status_tree["state"] = TaskExtraStatus.PENDING_CONTINUE.value
 
             else:
                 # 状态转换
@@ -734,17 +751,38 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         child_status: typing.Set[str] = set()
         for identifier_code, child_tree in list(status_tree["children"].items()):
-            self.format_bamboo_engine_status(child_tree, node_ids_gby_code, code__status_map)
+            self.format_bamboo_engine_status(child_tree, node_ids_gby_code, code__status_map, is_child=True)
             child_status.add(child_tree["state"])
 
-        if status_tree["state"] == bamboo_engine_states.RUNNING:
+        if status_tree["state"] in [bamboo_engine_states.RUNNING, bamboo_engine_states.SUSPENDED]:
             if bamboo_engine_states.FAILED in child_status:
                 # 失败优先级最高
                 status_tree["state"] = bamboo_engine_states.FAILED
-            elif {
+
+        if status_tree["state"] == bamboo_engine_states.RUNNING:
+            if {
                 TaskExtraStatus.PENDING_APPROVAL.value,
                 TaskExtraStatus.PENDING_CONFIRMATION.value,
                 TaskExtraStatus.PENDING_PROCESSING.value,
+                TaskExtraStatus.PENDING_CONTINUE.value,
             } & child_status:
                 # 存在其中一个状态，父级状态扭转为等待处理（PENDING_PROCESSING）
                 status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
+
+
+def format_bamboo_engine_status_legacy(status_tree):
+    """
+    @summary: 转换通过 bamboo engine api 获取的任务状态格式
+    @return:
+    """
+    _format_status_time(status_tree)
+    child_status = set()
+    for identifier_code, child_tree in list(status_tree["children"].items()):
+        format_bamboo_engine_status_legacy(child_tree)
+        child_status.add(child_tree["state"])
+
+    if status_tree["state"] == bamboo_engine_states.RUNNING:
+        if bamboo_engine_states.FAILED in child_status:
+            status_tree["state"] = bamboo_engine_states.FAILED
+        elif bamboo_engine_states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
+            status_tree["state"] = "NODE_SUSPENDED"

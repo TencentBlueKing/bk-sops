@@ -4,11 +4,11 @@
         <div v-if="node.status === 'RUNNING'" class="task-status-icon">
             <i class="common-icon-loading"></i>
         </div>
-        <!--节点等待处理/等待审批/等待确认-->
-        <div v-else-if="['PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(node.status)" class="task-status-icon node-pending">
-            <i v-if="node.status === 'PENDING_PROCESSING'" v-bk-tooltips="$t('等待处理')" class="common-icon-clock"></i>
+        <!--节点等待处理/等待审批/等待确认/等待继续-->
+        <div v-else-if="isPendingState" class="task-status-icon node-pending">
             <i v-if="node.status === 'PENDING_APPROVAL'" v-bk-tooltips="$t('等待审批')" class="common-icon-pending-approval"></i>
             <i v-if="node.status === 'PENDING_CONFIRMATION'" v-bk-tooltips="$t('等待确认')" class="common-icon-pending-confirm"></i>
+            <i v-if="node.status === 'PENDING_CONTINUE'" v-bk-tooltips="$t('等待继续')" class="common-icon-clock"></i>
         </div>
         <!-- 节点失败后自动忽略icon -->
         <div v-else-if="node.status === 'FINISHED' && node.skip" class="task-status-icon">
@@ -39,6 +39,11 @@
         name: 'NodeRightIconStatus',
         props: {
             node: Object
+        },
+        computed: {
+            isPendingState () {
+                return ['PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION', 'PENDING_CONTINUE'].includes(this.node.status)
+            }
         }
     }
 </script>

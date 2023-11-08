@@ -27,6 +27,7 @@ from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
+    is_cipher_structure,
     loose_strip,
     parse_passwd_value,
 )
@@ -156,7 +157,21 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
         biz_across = data.get_one_of_inputs("biz_across")
 
         for _value in original_global_var:
-            val = loose_strip(crypto.decrypt(parse_passwd_value(_value["value"])))
+
+            if is_cipher_structure(_value["value"]):
+                # 只有当变量值符合密码结构，才需要尝试解析密码变量
+                try:
+                    val = loose_strip(crypto.decrypt(parse_passwd_value(_value["value"])))
+                except Exception:
+                    self.logger.exception(
+                        "[job_execute_task_base] failed to decrypt value -> {value}, use plaintext".format(
+                            value=_value["value"]
+                        )
+                    )
+                    val = loose_strip(_value["value"])
+            else:
+                val = loose_strip(_value["value"])
+
             # category为3,表示变量类型为IP
             if _value["category"] == JOBV3_VAR_CATEGORY_IP:
                 self.logger.info("[job_execute_task_base] start find ip, var={}".format(val))

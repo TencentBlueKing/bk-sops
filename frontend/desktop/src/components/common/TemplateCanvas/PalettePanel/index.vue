@@ -33,13 +33,13 @@
                 <div :class="`node-type-icon common-icon-node-endpoint-${langSuffix}`"></div>
             </div>
             <div
-                :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: menuType === 'plugin' }]"
+                :class="['palette-item', 'entry-item', 'palette-with-menu']"
                 data-type="tasknode"
                 @mousedown="onNodeMouseDown('plugin', $event)">
                 <div class="node-type-icon common-icon-node-tasknode"></div>
             </div>
             <div
-                :class="['palette-item','entry-item', 'palette-with-menu', { actived: menuType === 'subflow' }]"
+                :class="['palette-item','entry-item', 'palette-with-menu']"
                 data-type="subflow"
                 @mousedown="onNodeMouseDown('subflow', $event)">
                 <div class="node-type-icon common-icon-node-subflow"></div>
@@ -57,29 +57,14 @@
                 <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
             </div>
         </div>
-        <transition name="slideLeft">
-            <node-menu
-                v-if="menuType !== ''"
-                :menu-type="menuType"
-                :template-labels="templateLabels"
-                :built-in-plugins="atomTypeList.tasknode"
-                :common="common"
-                @change="menuType = $event === 'tasknode' ? 'plugin' : 'subflow'"
-                @close="menuType = ''">
-            </node-menu>
-        </transition>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import NodeMenu from './NodeMenu/NodeMenu.vue'
     import Guide from '@/utils/guide.js'
 
     export default {
         name: 'PalattePanel',
-        components: {
-            NodeMenu
-        },
         props: {
             templateLabels: Array,
             atomTypeList: {
@@ -104,12 +89,6 @@
         },
         data () {
             return {
-                menuType: '',
-                nodeMouse: {
-                    type: '',
-                    startX: null,
-                    startY: null
-                },
                 moveFlag: {
                     x: 0,
                     y: 0
@@ -131,30 +110,6 @@
                     x: e.pageX,
                     y: e.pageY
                 }
-            },
-            onOpenNodeMenu () {
-                this.menuType = this.nodeMouse.type
-            },
-            /**
-             * 节点点击，区分是 展开菜单 还是 拖拽
-             * @param {String} type -node type
-             * @param {Object} e -event
-             */
-            onNodeMouseDown (type, e) {
-                this.nodeMouse.startX = e.pageX
-                this.nodeMouse.startY = e.pageY
-                this.nodeMouse.type = type
-                document.addEventListener('mouseup', this.mouseUpHandler)
-            },
-            mouseUpHandler (e) {
-                const endX = e.pageX
-                const endY = e.pageY
-                const max = Math.max(endX - this.nodeMouse.startX, endY - this.nodeMouse.startY)
-                // 移动距离小于 3 像素，认为是点击事件
-                if (max < 3) {
-                    this.menuType = this.nodeMouse.type
-                }
-                document.removeEventListener('mouseup', this.mouseUpHandler)
             },
             renderGuide () {
                 const nodesGuide = [

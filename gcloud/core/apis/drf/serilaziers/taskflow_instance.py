@@ -88,12 +88,19 @@ class TaskFlowInstanceListSerializer(serializers.ModelSerializer):
 
 class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
     pipeline_tree = serializers.SerializerMethodField()
+    template_name = serializers.SerializerMethodField()
     primitive_template_id = serializers.SerializerMethodField()
     primitive_template_source = serializers.SerializerMethodField()
     constants_info = serializers.SerializerMethodField()
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
+
+    def get_template_name(self, obj):
+        try:
+            return obj.template.pipeline_template.name
+        except Exception:
+            return None
 
     def get_primitive_template_id(self, obj):
         primitive_template_id = obj.template_id

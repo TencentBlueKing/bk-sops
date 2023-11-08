@@ -111,7 +111,7 @@
             attrs: {
                 hookable: false,
                 type: "primary",
-                title: '刷新',
+                title: gettext('刷新'),
                 size: "normal",
                 cols: 1,
                 formViewHidden: true

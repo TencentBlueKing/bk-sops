@@ -3422,7 +3422,7 @@ msgstr " | get_job_instance_log"
 #: pipeline_plugins/components/collections/sites/open/job/base.py:714
 #: pipeline_plugins/components/collections/sites/open/job/base.py:801
 msgid "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-msgstr "JOB task failed，<a href='%s' target='_blank'>GOTO(JOB)</a>"
+msgstr "JOB task failed，<a href='{job_inst_url}' target='_blank'>GOTO(JOB)</a>"
 
 #: pipeline_plugins/components/collections/sites/open/job/base.py:537
 #: pipeline_plugins/components/collections/sites/open/job/base.py:778

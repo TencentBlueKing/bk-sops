@@ -1823,6 +1823,9 @@ const en = {
     '清除异常IP': 'Clear abnormal IP',
     '节点输入型变量仅支持从节点"取消使用变量"来删除': 'Node input variables can only be deleted by the node "Cancel Using variable"',
     '节点输出型变量仅支持从节点"取消接收输出"来删除': 'Node output variables can only be deleted by the node "Cancel Receiving Output"',
+    '刷新': 'Refresh',
+    'exFailedText': 'Node execution failed. Please go to the {0} to check the error reason.',
+    'exFailedText_调用日志': 'call log',
     '等待处理': 'Pending Processing',
     '等待审批': 'Pending Approval',
     '等待确认': 'Pending Confirmation',
@@ -1830,7 +1833,8 @@ const en = {
     '暂停执行': 'Pause',
     '终止执行': 'Terminate',
     '状态明细': 'Detail',
-    '已自动重试 m 次 (最多 10 次)，手动重试 n 次': ''
+    '已自动重试 m 次 (最多 c 次)，手动重试 n 次': 'Automatically retried {m} times (up to {c} times), manual retry {n} times',
+    '等待继续': 'Pending continue'
 }
 
 export default en

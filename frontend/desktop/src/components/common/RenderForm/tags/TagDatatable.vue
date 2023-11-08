@@ -81,7 +81,7 @@
                                 :parent-value="scope.row"
                                 @init="onInitColumn(scope.$index, cIndex, ...arguments)"
                                 @change="onEditColumn(scope.$index, cIndex, ...arguments)"
-                                @blur="onColumnInputBlur(scope.$index, ...arguments)">
+                                @blur="onColumnInputBlur(scope.$index, cIndex, ...arguments)">
                             </component>
                         </template>
                     </el-table-column>
@@ -570,8 +570,8 @@
                 this.$set(this.tableValue[this.editRowNumber], field, val)
                 this.triggerSameRowEvent('change', row, col, val)
             },
-            onColumnInputBlur (scope, val) {
-                this.triggerSameRowEvent('blur', scope.$index, scope.column.index, val)
+            onColumnInputBlur (row, col, val) {
+                this.triggerSameRowEvent('blur', row, col, val)
             },
             onDelete (index, row) {
                 if (this.pagination) {

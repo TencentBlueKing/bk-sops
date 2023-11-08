@@ -110,7 +110,10 @@
                 READY: 'ready',
                 RUNNING: 'running',
                 SKIP: 'skip',
-                SUSPENDED: 'running'
+                SUSPENDED: 'running',
+                PENDING_APPROVAL: 'pending',
+                PENDING_CONFIRMATION: 'pending',
+                PENDING_CONTINUE: 'pending'
             }
             return {
                 nodeType,
@@ -222,6 +225,9 @@
                     }
                     &.skip {
                         color: #da635f;
+                    }
+                    &.pending {
+                        color: #ffb848;
                     }
                 }
                 .common-icon-converge-node {

@@ -111,7 +111,7 @@
                         </p>
                         <p
                             :class="['operate-item', { 'disabled': isComponentVar }]"
-                            v-bk-tooltips="{ content: $t('该类型仅支持从节点配置取消引用'), disabled: !isComponentVar }"
+                            v-bk-tooltips="{ content: componentVarDisabledTip, disabled: !isComponentVar }"
                             @click.stop="onDeleteVariable">{{ $t('删除') }}
                         </p>
                     </template>

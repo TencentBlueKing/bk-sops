@@ -33,23 +33,18 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    ObjectItemSchema,
-    BooleanItemSchema,
-)
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.utils.request import batch_request
-from gcloud.exceptions import ApiRequestError
-from pipeline_plugins.components.collections.sites.open.job import JobService, GetJobTargetServerMixin
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
-from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
-
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job import GetJobTargetServerMixin, JobService
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
+
+from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -119,7 +114,10 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("滚动执行"),
@@ -217,7 +215,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "timeout": data.get_one_of_inputs("job_script_timeout"),
-            "account_alias": data.get_one_of_inputs("job_account"),
+            "account_alias": data.get_one_of_inputs("job_account").strip(),
             "target_server": target_server,
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
