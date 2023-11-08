@@ -345,7 +345,7 @@
                 const childNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== 'TEXT')
                 const inputValue = childNodes.map(dom => {
                     // 获取行内纯文本
-                    let domValue = dom.textContent || '\n'
+                    let domValue = dom.textContent
                     if (dom.childNodes.length) {
                         domValue = Array.from(dom.childNodes).map(item => {
                             return item.type === 'button'
@@ -397,8 +397,8 @@
                         }
                         return match
                     })
-                    // div会将\n解析成<br>标签，需要手动把内容标签下的<br>标签清理掉
-                    if (dom.nodeName !== 'BR' && dom.nextElementSibling?.nodeName === 'BR') {
+                    // 初始化时文本标签为text，如果下一行标签为br时需要删除掉br，后面会将文本text标签转为div标签
+                    if (dom.nodeName === '#text' && dom.nextElementSibling?.nodeName === 'BR') {
                         divInputDom.removeChild(dom.nextElementSibling)
                     }
                     if (dom.nodeName === '#text') {
