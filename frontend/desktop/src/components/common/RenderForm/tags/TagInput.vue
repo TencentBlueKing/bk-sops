@@ -484,6 +484,7 @@
                 const clp = (e.originalEvent || e).clipboardData
                 if (clp === undefined || clp === null) {
                     text = window.clipboardData.getData('text') || ''
+                    text = text.split('\n').join('')
                     if (text !== '') {
                         if (window.getSelection) {
                             const newNode = document.createElement('span')
@@ -495,6 +496,7 @@
                     }
                 } else {
                     text = clp.getData('text/plain') || ''
+                    text = text.split('\n').join('')
                     text && document.execCommand('insertText', false, text)
                 }
             }
