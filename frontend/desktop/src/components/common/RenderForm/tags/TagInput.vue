@@ -208,6 +208,7 @@
                     this.handleInputBlur()
                 }
             }
+            divInputDom.addEventListener('paste', this.handlePaste)
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
@@ -476,6 +477,28 @@
             handleBlur () {
                 this.emit_event(this.tagCode, 'blur', this.value)
                 this.$emit('blur', this.value)
+            },
+            handlePaste (e) {
+                event.preventDefault()
+                let text = ''
+                const clp = (e.originalEvent || e).clipboardData
+                if (clp === undefined || clp === null) {
+                    text = window.clipboardData.getData('text') || ''
+                    text = text.split('\n').join('')
+                    if (text !== '') {
+                        if (window.getSelection) {
+                            const newNode = document.createElement('span')
+                            newNode.innerHTML = text
+                            window.getSelection().getRangeAt(0).insertNode(newNode)
+                        } else {
+                            document.selection.createRange().pasteHTML(text)
+                        }
+                    }
+                } else {
+                    text = clp.getData('text/plain') || ''
+                    text = text.split('\n').join('')
+                    text && document.execCommand('insertText', false, text)
+                }
             }
         }
     }
