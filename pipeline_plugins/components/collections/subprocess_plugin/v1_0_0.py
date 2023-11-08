@@ -113,7 +113,11 @@ class SubprocessPluginService(Service):
                 and self.id in parent_constants[raw_constant_value]["source_info"]
                 and key in parent_constants[raw_constant_value]["source_info"][self.id]
             ):
-                constant["value"] = context_mappings[raw_subprocess_inputs[key]].value
+                variable = context_mappings[raw_subprocess_inputs[key]]
+                # 需要针对文本值下拉框进行特殊处理
+                constant["value"] = (
+                    variable.value["info_value"] if variable.code == "text_value_select" else variable.value
+                )
             elif constant.get("need_render", True) and key in parsed_subprocess_inputs:
                 constant["value"] = parsed_subprocess_inputs[key]
         self.logger.info(f'subprocess parsed constants: {pipeline_tree.get("constants", {})}')
