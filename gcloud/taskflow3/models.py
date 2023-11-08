@@ -1082,13 +1082,12 @@ class TaskFlowInstance(models.Model):
             return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         try:
-            with transaction.atomic():
-                # 如果当前节点属于独立子任务，则先唤醒父任务
-                if self.is_child_taskflow and action in ["skip", "retry"]:
-                    self.change_parent_task_node_state_to_running()
+            # 如果当前节点属于独立子任务，则先唤醒父任务
+            if self.is_child_taskflow and action in ["skip", "retry"]:
+                self.change_parent_task_node_state_to_running()
 
-                dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
-                return dispatcher.dispatch(action, username, **kwargs)
+            dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
+            return dispatcher.dispatch(action, username, **kwargs)
         except Exception as e:
             logger.exception(traceback.format_exc())
             message = _(f"节点操作失败: 节点[ID: {node_id}], 任务[ID: {self.id}]操作失败: {e}, 请重试. 如持续失败可联系管理员处理 | nodes_action")
