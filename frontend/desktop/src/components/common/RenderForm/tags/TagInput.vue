@@ -170,7 +170,7 @@
                     this.$nextTick(() => {
                         const divInputDom = this.$el.querySelector('.div-input')
                         if (divInputDom) {
-                            divInputDom.innerHTML = this.value
+                            divInputDom.innerText = this.value
                             this.handleInputBlur()
                         }
                     })
@@ -180,7 +180,7 @@
                 // 如果表单项开启了变量免渲染，不以tag展示
                 if (!val) {
                     const divInputDom = this.$el.querySelector('.div-input')
-                    divInputDom.innerHTML = this.value
+                    divInputDom.innerText = this.value
                 } else {
                     this.handleInputBlur()
                 }
@@ -189,7 +189,7 @@
                 if (val) {
                     this.$nextTick(() => {
                         const divInputDom = this.$el.querySelector('.div-input')
-                        divInputDom.innerHTML = this.value
+                        divInputDom.innerText = this.value
                         this.handleInputBlur()
                     })
                 } else {
@@ -203,15 +203,19 @@
         mounted () {
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
-                divInputDom.innerHTML = this.value
+                divInputDom.innerText = this.value
                 if (this.render && this.value) {
                     this.handleInputBlur()
                 }
+                divInputDom.addEventListener('paste', this.handlePaste)
             }
-            divInputDom.addEventListener('paste', this.handlePaste)
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
+            const divInputDom = this.$el.querySelector('.div-input')
+            if (divInputDom) {
+                divInputDom.removeEventListener('paste', this.handlePaste)
+            }
         },
         methods: {
             handleListShow (e) {
@@ -390,8 +394,10 @@
                             ? item.value
                             : item.textContent.trim() === ''
                                 ? ' '
-                                : item.textContent.replace(/&nbsp;/g, ' ')
+                                : item.textContent.replace(/\u00A0/g, ' ')
                     }).join('')
+                } else {
+                    inputValue = divInputDom.textContent.replace(/\u00A0/g, ' ')
                 }
                 this.input.value = inputValue
                 this.updateForm(inputValue)
@@ -412,6 +418,11 @@
                         return item.type === 'button' ? item.value : item.textContent
                     }).join('')
                 }
+                // 用户手动输入&nbsp;渲染时需要切开展示
+                domValue = domValue.replace(/&nbsp;/g, '<span>&</span><span>nbsp</span><span>;</span>')
+
+                // 初始化时是通过innerText进行复制的，如果有多个连续空格则只会显示一个，所以需手动将转为&nbsp;
+                domValue = domValue.replace(/( )/g, '&nbsp;')
                 const innerHtml = domValue.replace(varRegexp, (match, $0) => {
                     let isExistVar = false
                     if ($0) {
@@ -484,7 +495,7 @@
                 const clp = (e.originalEvent || e).clipboardData
                 if (clp === undefined || clp === null) {
                     text = window.clipboardData.getData('text') || ''
-                    text = text.split('\n').join('')
+                    text = text.replace(/(\n|\r|\r\n)/g, '')
                     if (text !== '') {
                         if (window.getSelection) {
                             const newNode = document.createElement('span')
@@ -496,7 +507,7 @@
                     }
                 } else {
                     text = clp.getData('text/plain') || ''
-                    text = text.split('\n').join('')
+                    text = text.replace(/(\n|\r|\r\n)/g, '')
                     text && document.execCommand('insertText', false, text)
                 }
             }

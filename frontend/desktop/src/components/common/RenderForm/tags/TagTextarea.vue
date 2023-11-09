@@ -163,14 +163,16 @@
                 divInputDom.innerText = value
                 if (this.render && value) {
                     this.handleInputBlur()
-                    // 把用户手动换行变成div标签
-                    divInputDom.innerHTML = divInputDom.innerHTML.replace(/<br>/g, '<div><br></div>')
                 }
+                divInputDom.addEventListener('paste', this.handlePaste)
             }
-            divInputDom.addEventListener('paste', this.handlePaste)
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
+            const divInputDom = this.$el.querySelector('.div-input')
+            if (divInputDom) {
+                divInputDom.removeEventListener('paste', this.handlePaste)
+            }
         },
         methods: {
             handleListShow (e) {
@@ -350,10 +352,12 @@
                         domValue = Array.from(dom.childNodes).map(item => {
                             return item.type === 'button'
                                 ? item.value
-                                : item.textContent.trim() === ''
-                                    ? ' '
-                                    : item.textContent.replace(/&nbsp;/g, ' ')
+                                : item.nodeName === 'BR'
+                                    ? ''
+                                    : item.textContent.replace(/\u00A0/g, ' ')
                         }).join('')
+                    } else {
+                        domValue = dom.textContent.replace(/\u00A0/g, ' ')
                     }
                     return domValue
                 }).join('\n')
@@ -370,7 +374,13 @@
                 const varRegexp = /\${([^${}]+)}/g
                 const divInputDom = this.$el.querySelector('.div-input')
                 const childNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== 'TEXT')
-                childNodes.forEach(dom => {
+                const deleteMap = {} // 需要删除的br下标
+                childNodes.forEach((dom, index) => {
+                    // 删除多余的br标签
+                    if (deleteMap[index]) {
+                        divInputDom.removeChild(dom)
+                        return
+                    }
                     // 获取行内纯文本
                     let domValue = dom.textContent
                     if (dom.childNodes.length) {
@@ -378,6 +388,11 @@
                             return item.type === 'button' ? item.value : item.textContent
                         }).join('')
                     }
+                    // 用户手动输入&nbsp;渲染时需要切开展示
+                    domValue = domValue.replace(/&nbsp;/g, '<span>&</span><span>nbsp</span><span>;</span>')
+
+                    // 初始化时是通过innerText进行复制的，如果有多个连续空格则只会显示一个，所以需手动将转为&nbsp;
+                    domValue = domValue.replace(/( )/g, '&nbsp;')
                     // 支持匹配变量内运算
                     const innerHtml = domValue.replace(varRegexp, (match, $0) => {
                         let isExistVar = false
@@ -397,16 +412,27 @@
                         }
                         return match
                     })
-                    // 初始化时文本标签为text，如果下一行标签为br时需要删除掉br，后面会将文本text标签转为div标签
-                    if (dom.nodeName === '#text' && dom.nextElementSibling?.nodeName === 'BR') {
-                        divInputDom.removeChild(dom.nextElementSibling)
-                    }
+                    // 初始化时\n会转化为【独占一行】的<br>标签，导致渲染异常。当我们手动把text标签转为div标签时需要删除【紧挨】着的<br>标签
                     if (dom.nodeName === '#text') {
+                        // 记录需要被删除的br标签下标
+                        if (dom.nextSibling?.nodeName === 'BR') {
+                            deleteMap[index + 1] = true
+                        }
                         const newDom = document.createElement('div')
                         newDom.innerHTML = innerHtml
                         divInputDom.replaceChild(newDom, dom)
-                    } else if (dom.nodeName === 'DIV') {
+                    } else if (dom.nodeName === 'DIV' && innerHtml) {
                         dom.innerHTML = innerHtml
+                    } else if (dom.nodeName === 'BR') {
+                        // br标签实际上是初始化时\n转化的，\n表示当前行换行了，那么br标签必定会有下一行!!!
+                        if (!dom.nextSibling) {
+                            const appendDom = document.createElement('div')
+                            appendDom.innerHTML = '<br>'
+                            divInputDom.appendChild(appendDom)
+                        }
+                        const newDom = document.createElement('div')
+                        newDom.innerHTML = '<br>'
+                        divInputDom.replaceChild(newDom, dom)
                     }
                 })
                 this.updateInputValue()
@@ -473,6 +499,7 @@
                 const clp = (e.originalEvent || e).clipboardData
                 if (clp === undefined || clp === null) {
                     text = window.clipboardData.getData('text') || ''
+                    text = text.replace(/(\r|\r\n)/g, '')
                     if (text !== '') {
                         if (window.getSelection) {
                             const newNode = document.createElement('span')
@@ -484,6 +511,7 @@
                     }
                 } else {
                     text = clp.getData('text/plain') || ''
+                    text = text.replace(/(\r|\r\n)/g, '')
                     text && document.execCommand('insertText', false, text)
                 }
             }
