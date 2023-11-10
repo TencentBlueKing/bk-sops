@@ -394,11 +394,10 @@
                             ? item.value
                             : item.textContent.trim() === ''
                                 ? ' '
-                                : item.textContent.replace(/\u00A0/g, ' ')
+                                : item.textContent
                     }).join('')
-                } else {
-                    inputValue = divInputDom.textContent.replace(/\u00A0/g, ' ')
                 }
+                inputValue = inputValue.replace(/\u00A0/g, ' ')
                 this.input.value = inputValue
                 this.updateForm(inputValue)
             },
