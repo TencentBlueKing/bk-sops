@@ -354,12 +354,10 @@
                                 ? item.value
                                 : item.nodeName === 'BR'
                                     ? ''
-                                    : item.textContent.replace(/\u00A0/g, ' ')
+                                    : item.textContent
                         }).join('')
-                    } else {
-                        domValue = dom.textContent.replace(/\u00A0/g, ' ')
                     }
-                    return domValue
+                    return domValue.replace(/\u00A0/g, ' ')
                 }).join('\n')
                 this.input.value = inputValue
                 this.updateForm(inputValue)
