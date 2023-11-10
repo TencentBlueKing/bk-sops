@@ -202,6 +202,7 @@
                         <template v-if="!atomConfigLoading && renderConfig.length">
                             <RenderForm
                                 ref="renderForm"
+                                :constants="constants"
                                 :scheme="renderConfig"
                                 :form-option="renderOption"
                                 v-model="renderData">
