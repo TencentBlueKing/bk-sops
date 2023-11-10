@@ -387,12 +387,9 @@
                         }).join('')
                     }
                     // 用户手动输入的空格编码渲染时需要切开展示
-                    domValue = domValue.replace(/&nbsp;/g, '<span>&</span><span>nbsp</span><span>;</span>')
-                    domValue = domValue.replace(/&ensp;/g, '<span>&</span><span>ensp</span><span>;</span>')
-                    domValue = domValue.replace(/&emsp;/g, '<span>&</span><span>emsp</span><span>;</span>')
-                    domValue = domValue.replace(/&thinsp;/g, '<span>&</span><span>thinsp</span><span>;</span>')
-                    domValue = domValue.replace(/&zwnj;/g, '<span>&</span><span>zwnj</span><span>;</span>')
-                    domValue = domValue.replace(/&zwj;/g, '<span>&</span><span>zwj</span><span>;</span>')
+                    domValue = domValue.replace(/&(nbsp|ensp|emsp|thinsp|zwnj|zwj);/g, ($0, $1) => {
+                        return `<span>&</span><span>${$1}</span><span>;</span>`
+                    })
 
                     // 初始化时是通过innerText进行复制的，如果有多个连续空格则只会显示一个，所以需手动将转为&nbsp;
                     domValue = domValue.replace(/( )/g, '&nbsp;')
