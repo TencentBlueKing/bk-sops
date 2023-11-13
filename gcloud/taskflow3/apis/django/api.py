@@ -142,7 +142,23 @@ def batch_status(request, project_id):
             pipeline_instance=task.pipeline_instance,
             project_id=project_id,
         )
-        total_result["data"][task.id] = dispatcher.get_task_status(with_new_status=True)
+
+        get_task_status_result = dispatcher.get_task_status(with_new_status=True)
+
+        # 解析状态树失败或者任务尚未被调度，提前返回，不解析节点自动重试逻辑
+        if not get_task_status_result["result"] or not get_task_status_result["data"].get("id"):
+            total_result["data"][task.id] = get_task_status_result
+            continue
+
+        try:
+            status_tree, root_pipeline_id = get_task_status_result["data"], get_task_status_result["data"]["id"]
+            all_node_ids = extract_nodes_by_statuses(status_tree)
+            status_tree["auto_retry_infos"] = fetch_node_id__auto_retry_info_map(root_pipeline_id, all_node_ids)
+        except Exception as e:
+            message = "task[id={task_id}] extract failed node info error: {error}".format(task_id=task.id, error=e)
+            logger.exception(message)
+
+        total_result["data"][task.id] = get_task_status_result
 
     return JsonResponse(total_result)
 

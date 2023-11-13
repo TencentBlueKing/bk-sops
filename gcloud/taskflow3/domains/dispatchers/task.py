@@ -694,10 +694,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         _format_status_time(status_tree)
 
         if status_tree["state"] == bamboo_engine_states.SUSPENDED and is_child:
-            status_tree["state"] = TaskExtraStatus.PENDING_CONTINUE.value
+            status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
         # 处理状态映射
         elif status_tree["state"] == TaskExtraStatus.NODE_SUSPENDED.value:
-            status_tree["state"] = (TaskExtraStatus.PENDING_CONTINUE.value,)
+            status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
         elif status_tree["state"] == bamboo_engine_states.RUNNING:
             # 独立子流程下钻
             if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
@@ -735,12 +735,12 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     )
                     if get_task_status_result.get("result"):
                         status_tree["state"] = get_task_status_result["data"]["state"]
-                        # 已暂停 -> 等待继续
+                        # 已暂停 -> 等待处理
                         if status_tree["state"] in {
                             bamboo_engine_states.SUSPENDED,
                             TaskExtraStatus.NODE_SUSPENDED.value,
                         }:
-                            status_tree["state"] = TaskExtraStatus.PENDING_CONTINUE.value
+                            status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
 
             else:
                 # 状态转换
@@ -764,7 +764,6 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 TaskExtraStatus.PENDING_APPROVAL.value,
                 TaskExtraStatus.PENDING_CONFIRMATION.value,
                 TaskExtraStatus.PENDING_PROCESSING.value,
-                TaskExtraStatus.PENDING_CONTINUE.value,
             } & child_status:
                 # 存在其中一个状态，父级状态扭转为等待处理（PENDING_PROCESSING）
                 status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
