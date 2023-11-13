@@ -417,13 +417,13 @@
                         return item.type === 'button' ? item.value : item.textContent
                     }).join('')
                 }
-                // 用户手动输入的空格编码渲染时需要切开展示
-                domValue = domValue.replace(/&(nbsp|ensp|emsp|thinsp|zwnj|zwj);/g, ($0, $1) => {
+                // 将html标签拆成文本形式
+                domValue = domValue.replace(/(<|>)/g, ($0, $1) => `<span>${$1}</span>`)
+                // 用户手动输入的实体字符渲染时需要切开展示
+                domValue = domValue.replace(/&(nbsp|ensp|emsp|thinsp|zwnj|zwj|quot|apos|lt|gt|amp|cent|pound|yen|euro|sect|copy|reg|trade|times|divide);/g, ($0, $1) => {
                     return `<span>&</span><span>${$1}</span><span>;</span>`
                 })
 
-                // 初始化时是通过innerText进行复制的，如果有多个连续空格则只会显示一个，所以需手动将转为&nbsp;
-                domValue = domValue.replace(/( )/g, '&nbsp;')
                 const innerHtml = domValue.replace(varRegexp, (match, $0) => {
                     let isExistVar = false
                     if ($0) {
@@ -437,7 +437,11 @@
                     }
                     if (isExistVar) {
                         const randomId = Math.random().toString().slice(-6)
-                        return `<input type="button" class="var-tag" id="${randomId}" value=${match} />` // 两边留空格保持间距
+                        // 将装转的尖括号恢复原样
+                        let value = match.replace(/<span>(<|>)<\/span>/g, ($0, $1) => $1)
+                        // 将双引号转为实体字符
+                        value = value.replace(/"/g, '&quot;')
+                        return `<input type="button" class="var-tag" id="${randomId}" value="${value}" />`
                     }
                     return match
                 })
@@ -593,7 +597,7 @@
         line-height: 18px;
         padding: 7px 0;
         color: #63656e;
-        white-space: nowrap;
+        white-space: pre;
         overflow: hidden;
         /deep/.var-tag {
             margin-right: 1px;
