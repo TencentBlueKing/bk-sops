@@ -17,15 +17,16 @@
             @search="onIpSearch">
         </ip-search-input>
         <div class="ip-list-wrap">
-            <template v-if="type === 'select'">
+            <template v-if="type === 'select' || isManualParse">
                 <IpSelectorTable
                     :selection="true"
                     :editable="true"
                     :operate="false"
                     :is-search-mode="isSearchMode"
                     :default-selected="selectedIp"
-                    :static-ip-list="staticIpList"
-                    :list-in-page="listInPage"
+                    :static-ip-list="isManualParse ? searchResult : staticIpList"
+                    :search-result="searchResult"
+                    :list-in-page="isManualParse ? searchResult : listInPage"
                     :static-ip-table-config="staticIpTableConfig"
                     @onIpSort="onIpSort"
                     @onHostNameSort="onHostNameSort"
@@ -62,7 +63,7 @@
         </div>
         <div class="adding-footer">
             <div class="ip-list-btns">
-                <bk-button theme="primary" size="small" @click.stop="onAddIpConfirm">{{$t('添加')}}</bk-button>
+                <bk-button theme="primary" size="small" @click.stop="onAddIpConfirm">{{type === 'select' || isManualParse ? $t('添加') : $t('解析')}}</bk-button>
                 <bk-button theme="default" size="small" @click.stop="onAddIpCancel">{{$t('取消')}}</bk-button>
             </div>
             <div class="message-wrap">
@@ -122,7 +123,8 @@
                     content: '#error-ips-content',
                     placement: 'top'
                 },
-                isSearchInputFocus: false
+                isSearchInputFocus: false,
+                isManualParse: false
             }
         },
         watch: {
@@ -233,14 +235,19 @@
             onAddIpConfirm () {
                 const selectedIp = this.selectedIp.slice(0)
 
-                if (this.type === 'manual') {
+                if (this.type === 'manual' && !this.isManualParse) {
                     const ipInvalidList = []
                     const ipNotExistList = []
                     const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
                     const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
                     const arr = this.ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
                     arr.forEach(item => {
-                        const str = item.trim()
+                        let str = item.trim()
+                        let cloud = ''
+                        if (str.indexOf(':') > -1) { // 云区域:IP
+                            cloud = str.split(':')[0]
+                            str = str.split(':')[1]
+                        }
                         if (str) {
                             if (!ipPattern.test(str) && !ipv6Regexp.test(str)) { // 字符串不是合法 ip 地址
                                 ipInvalidList.push(str)
@@ -249,14 +256,22 @@
                                 if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
                                     text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
                                 }
-                                const ipInList = this.list.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
-                                if (!ipInList) { // ip 地址/ipv6地址不在可选列表里
+                                const ipInList = this.list.filter(i => { // 过滤出所有符合的可选列表
+                                    const cloudMatch = cloud ? i.bk_cloud_id === Number(cloud) : true
+                                    return cloudMatch && [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text)
+                                })
+                                if (!ipInList.length) { // ip 地址/ipv6地址不在可选列表里
                                     ipNotExistList.push(str)
                                 } else {
-                                    const ipInSelected = this.selectedIp.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
-                                    if (!ipInSelected) { // ip 地址/ipv6地址在可选列表并且不在已选列表
-                                        selectedIp.push(ipInList)
-                                    }
+                                    ipInList.forEach(item => {
+                                        const ipInSelected = this.selectedIp.find(i => {
+                                            const cloudMatch = cloud ? i.bk_cloud_id === Number(cloud) : true
+                                            return cloudMatch && [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text)
+                                        })
+                                        if (!ipInSelected) { // ip 地址/ipv6地址在可选列表并且不在已选列表
+                                            selectedIp.push(item)
+                                        }
+                                    })
                                 }
                             }
                         }
@@ -271,11 +286,19 @@
                         this.errorIpList = ipNotExistList
                         return
                     }
+                    this.errorIpList = []
+                    this.selectedIp = selectedIp
+                    this.searchResult = selectedIp
+                    this.setPanigation(selectedIp)
+                    this.isManualParse = true
+                    return
                 }
 
+                this.isManualParse = false
                 this.$emit('onAddIpConfirm', selectedIp)
             },
             onAddIpCancel () {
+                this.isManualParse = false
                 this.$emit('onAddIpCancel')
             }
         }
