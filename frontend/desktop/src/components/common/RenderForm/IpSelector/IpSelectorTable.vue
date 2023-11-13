@@ -107,6 +107,10 @@
                 type: Array,
                 default: () => ([])
             },
+            searchResult: {
+                type: Array,
+                default: () => ([])
+            },
             listInPage: {
                 type: Array,
                 default: () => ([])
@@ -180,6 +184,12 @@
                     this.$emit('handleSelectionChange', val)
                 },
                 deep: true
+            },
+            isSearchMode (val) {
+                // 如果在搜索情况下全选，取消时则需要重新判断是否为全选
+                if (!val && this.listAllSelected) {
+                    this.listAllSelected = this.selectedIp.length === this.staticIpList.length
+                }
             }
         },
         created () {
@@ -188,6 +198,7 @@
                     item.checked = this.staticIpTableConfig.includes(item.id)
                 })
             }
+            this.listAllSelected = this.selectedIp.length === this.staticIpList.length
         },
         methods: {
             handleSelectionChange (data) {
@@ -206,7 +217,7 @@
                 return h('div', [
                     h('bk-checkbox', {
                         props: {
-                            indeterminate: this.judegeIndeterminate(),
+                            indeterminate: this.judgeIndeterminate(),
                             value: this.listAllSelected
                         },
                         on: {
@@ -217,7 +228,7 @@
                     })
                 ])
             },
-            judegeIndeterminate () {
+            judgeIndeterminate () {
                 let selectedIp = tools.deepClone(this.selectedIp)
                 if (selectedIp.length === 0) {
                     return false
@@ -233,7 +244,8 @@
                     this.selectedIp = []
                     this.listAllSelected = false
                 } else {
-                    this.selectedIp = [...this.staticIpList]
+                    const list = this.isSearchMode ? this.searchResult : this.staticIpList
+                    this.selectedIp = [...list]
                     this.listAllSelected = true
                 }
             },
@@ -322,7 +334,6 @@
         text-align: center;
         color: #c4c6cc;
         .add-ip-btn {
-            margin: 0 -2px 0 -2px;
             color: #3a84ff;
             cursor: pointer;
         }
