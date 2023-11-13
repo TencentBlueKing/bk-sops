@@ -419,8 +419,8 @@
                 }
                 // 将html标签拆成文本形式
                 domValue = domValue.replace(/(<|>)/g, ($0, $1) => `<span>${$1}</span>`)
-                // 用户手动输入的空格编码渲染时需要切开展示
-                domValue = domValue.replace(/&(nbsp|ensp|emsp|thinsp|zwnj|zwj);/g, ($0, $1) => {
+                // 用户手动输入的实体字符渲染时需要切开展示
+                domValue = domValue.replace(/&(nbsp|ensp|emsp|thinsp|zwnj|zwj|quot|apos|lt|gt|amp|cent|pound|yen|euro|sect|copy|reg|trade|times|divide);/g, ($0, $1) => {
                     return `<span>&</span><span>${$1}</span><span>;</span>`
                 })
 
@@ -441,7 +441,7 @@
                         let value = match.replace(/<span>(<|>)<\/span>/g, ($0, $1) => $1)
                         // 将双引号转为实体字符
                         value = value.replace(/"/g, '&quot;')
-                        return `<input type="button" class="var-tag" id="${randomId}" value="${value}" />` // 两边留空格保持间距
+                        return `<input type="button" class="var-tag" id="${randomId}" value="${value}" />`
                     }
                     return match
                 })
