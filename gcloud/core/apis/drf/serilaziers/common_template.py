@@ -11,10 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+
 from rest_framework import serializers
 
-from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 
 
@@ -92,3 +93,13 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "version",
             "pipeline_template",
         ]
+
+
+class UpdateCommonTemplateSerializer(BaseTemplateSerializer):
+    category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
+    time_out = serializers.IntegerField(help_text="超时时间", required=False)
+    executor_proxy = serializers.CharField(help_text="执行代理", allow_blank=True, required=False)
+
+    class Meta:
+        model = CommonTemplate
+        fields = "__all__"

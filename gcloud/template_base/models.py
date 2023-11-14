@@ -18,22 +18,12 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from pipeline.exceptions import SubprocessExpiredError
-from pipeline.models import (
-    PipelineTemplate,
-    TemplateCurrentVersion,
-    TemplateRelationship,
-)
+from pipeline.models import PipelineTemplate, Snapshot, TemplateCurrentVersion, TemplateRelationship
 
 from gcloud import err_code
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.conf import settings
-from gcloud.constants import (
-    CLOCKED_TASK_NOT_STARTED,
-    COMMON,
-    PROJECT,
-    TASK_CATEGORY,
-    TEMPLATE_EXPORTER_VERSION,
-)
+from gcloud.constants import CLOCKED_TASK_NOT_STARTED, COMMON, PROJECT, TASK_CATEGORY, TEMPLATE_EXPORTER_VERSION
 from gcloud.core.utils import convert_readable_username
 from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
@@ -300,6 +290,15 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         return [tmpl_id_map[pid] for pid in subproc_expired_templ]
 
 
+class DraftTemplate(models.Model):
+    name = models.CharField(_("模板名称"), max_length=128, default="default_template", db_index=True)
+    snapshot_id = models.IntegerField(_("对应的快照id"), db_index=True)
+    labels = models.JSONField(_("流程的tag信息"), default=[])
+    description = models.TextField(_("描述"), null=True, blank=True)
+    editor = models.CharField(_("修改者"), max_length=32, null=True, blank=True)
+    edit_time = models.DateTimeField(_("修改时间"), auto_now=True, db_index=True)
+
+
 class BaseTemplate(models.Model):
     """
     @summary: base abstract template，without containing business info
@@ -309,6 +308,9 @@ class BaseTemplate(models.Model):
     pipeline_template = models.ForeignKey(
         PipelineTemplate, blank=True, null=True, on_delete=models.SET_NULL, to_field="template_id"
     )
+    # 草稿对应的快照ID
+    draft_template_id = models.IntegerField(_("草稿对应的模板id"), null=True)
+    published = models.BooleanField(_("是否是已发布状态"), default=True)
     collector = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_("收藏模板的人"), blank=True)
     notify_type = models.CharField(_("流程事件通知方式"), max_length=128, default="[]")
     # 形如 json.dumps({'receiver_group': ['Maintainers'], 'more_receiver': 'username1,username2'})
@@ -361,6 +363,27 @@ class BaseTemplate(models.Model):
     @property
     def pipeline_tree(self):
         tree = self.pipeline_template.data
+        replace_template_id(self.__class__, tree, reverse=True)
+        # add nodes attr
+        pipeline_web_clean = PipelineWebTreeCleaner(tree)
+        nodes = NodeInTemplate.objects.filter(template_id=self.pipeline_template.template_id, version=self.version)
+        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
+        pipeline_web_clean.to_web(nodes_attr)
+        return tree
+
+    @property
+    def draft_template(self):
+        if self.draft_template_id:
+            return DraftTemplate.objects.get(id=self.draft_template_id)
+
+    @property
+    def draft_pipeline_tree(self):
+        if self.draft_template_id is None:
+            return {}
+
+        draft_template = DraftTemplate.objects.get(id=self.draft_template_id)
+        draft_snapshot_id = draft_template.snapshot_id
+        tree = Snapshot.objects.get(id=draft_snapshot_id).data
         replace_template_id(self.__class__, tree, reverse=True)
         # add nodes attr
         pipeline_web_clean = PipelineWebTreeCleaner(tree)

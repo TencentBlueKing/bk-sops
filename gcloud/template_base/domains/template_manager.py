@@ -10,20 +10,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+import hashlib
+import json
+import logging
 import traceback
 
+from django.db import transaction
+from django.utils.translation import ugettext_lazy as _
 from pipeline.exceptions import PipelineException
+from pipeline.models import PipelineTemplate, Snapshot, TemplateRelationship
 
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
+from gcloud.label.models import TemplateLabelRelation
+from gcloud.template_base.models import DraftTemplate
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
-
-from pipeline.models import PipelineTemplate, TemplateRelationship
 from pipeline_web.core.models import NodeInTemplate
-from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
-from django.utils.translation import ugettext_lazy as _
-import logging
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 logger = logging.getLogger("root")
 
@@ -32,7 +36,13 @@ class TemplateManager:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def create_pipeline(self, name: str, creator: str, pipeline_tree: dict, description: str = "",) -> dict:
+    def create_pipeline(
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        description: str = "",
+    ) -> dict:
         """
         创建 pipeline 层模板
 
@@ -86,7 +96,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def create(
-        self, name: str, creator: str, pipeline_tree: dict, template_kwargs: dict, description: str = "",
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        template_kwargs: dict,
+        description: str = "",
     ) -> dict:
         """
         创建 template 层模板
@@ -203,8 +218,86 @@ class TemplateManager:
 
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
+    def create_draft_without_template(self, pipeline_tree, editor, name, description, labels):
+
+        snapshot_id = Snapshot.objects.create_snapshot(pipeline_tree).id
+        draft_template = DraftTemplate.objects.create(
+            editor=editor, snapshot_id=snapshot_id, name=name, description=description, labels=list(labels)
+        )
+
+        return draft_template.id
+
+    def create_draft(self, template, editor):
+        """
+        创建一个草稿
+        @param template: 模板
+        @param editor: 编辑人
+        @return:
+        """
+        snapshot_id = Snapshot.objects.create_snapshot(template.pipeline_template.data).id
+        labels = TemplateLabelRelation.objects.filter(template_id=template.id).values_list("label_id", flat=True)
+        draft_template = DraftTemplate.objects.create(
+            editor=editor,
+            snapshot_id=snapshot_id,
+            name=template.pipeline_template.name,
+            description=template.pipeline_template.description,
+            labels=list(labels),
+        )
+        template.draft_template_id = draft_template.id
+        template.save(update_fields=["draft_template_id"])
+
+    @transaction.atomic()
+    def update_draft_pipeline(self, draft_template, editor, data):
+
+        pipeline_tree = data.pop("pipeline_tree")
+        # 草稿更新不会触发流程合法性校验
+        standardize_pipeline_node_name(pipeline_tree)
+        replace_template_id(self.template_model_cls, pipeline_tree)
+        pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
+        pipeline_web_tree.clean()
+
+        for key, value in data.items():
+            # 更新值
+            setattr(draft_template, key, value)
+
+        draft_template.editor = editor
+        draft_template.save()
+
+        # 更新快照
+        snapshot = Snapshot.objects.get(id=draft_template.snapshot_id)
+        h = hashlib.md5()
+        h.update(json.dumps(pipeline_tree).encode("utf-8"))
+        snapshot.md5sum = h.hexdigest()
+        snapshot.data = pipeline_tree
+        snapshot.save()
+
+        return {"result": True, "data": None, "message": "success", "verbose_message": "success"}
+
+    def publish_draft_pipeline(self, template, editor):
+
+        draft_template = template.draft_template
+        # 如果模板处于已发布状态, 此时应该更新
+        result = self.update_pipeline(
+            pipeline_template=template.pipeline_template,
+            editor=editor,
+            name=draft_template.name,
+            description=draft_template.description,
+            pipeline_tree=template.draft_pipeline_tree,
+        )
+        if result["result"] and not template.published:
+            template.published = True
+            template.save(update_fields=["published"])
+
+        result["data"] = None
+        return result
+
     def update(
-        self, template: object, editor: str, name: str = "", pipeline_tree: str = None, description: str = "",
+        self,
+        template: object,
+        editor: str,
+        name: str = "",
+        pipeline_tree: str = None,
+        description: str = "",
     ) -> dict:
         """
         更新 template 层模板

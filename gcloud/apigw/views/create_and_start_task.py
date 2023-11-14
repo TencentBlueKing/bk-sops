@@ -20,22 +20,14 @@ from django.views.decorators.http import require_POST
 
 import env
 from gcloud import err_code
-from gcloud.apigw.decorators import (
-    mark_request_whether_is_trust,
-    project_inject,
-    return_json_response,
-)
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import BUSINESS, COMMON, TaskCreateMethod
-from gcloud.contrib.operate_record.constants import (
-    OperateSource,
-    OperateType,
-    RecordType,
-)
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
 from gcloud.iam_auth.intercept import iam_intercept
@@ -101,6 +93,14 @@ def create_and_start_task(request, template_id, project_id):
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
+
+    if not tmpl.published:
+        result = {
+            "result": False,
+            "message": "the template is not published",
+            "code": err_code.CONTENT_NOT_EXIST.code,
+        }
+        return result
 
     # 检查app_code是否存在
     app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
