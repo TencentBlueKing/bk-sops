@@ -500,7 +500,7 @@
                 const clp = (e.originalEvent || e).clipboardData
                 if (clp === undefined || clp === null) {
                     text = window.clipboardData.getData('text') || ''
-                    text = text.replace(/(\n|\r|\r\n)/g, '')
+                    text = text.replace(/(\n|\r|\r\n)/g, ' ')
                     if (text !== '') {
                         if (window.getSelection) {
                             const newNode = document.createElement('span')
@@ -512,7 +512,7 @@
                     }
                 } else {
                     text = clp.getData('text/plain') || ''
-                    text = text.replace(/(\n|\r|\r\n)/g, '')
+                    text = text.replace(/(\n|\r|\r\n)/g, ' ')
                     text && document.execCommand('insertText', false, text)
                 }
             }
