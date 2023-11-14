@@ -366,9 +366,9 @@
                     @include nodeClick ($blueDark);
                 }
             }
+            &.pending_processing,
             &.pending_approval,
-            &.pending_confirmation,
-            &.pending_continue {
+            &.pending_confirmation {
                 @include taskNodeStyle (#ffb848);
                 &.actived {
                     @include nodeClick (#ffb848);

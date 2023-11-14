@@ -111,9 +111,9 @@
                 RUNNING: 'running',
                 SKIP: 'skip',
                 SUSPENDED: 'running',
+                PENDING_PROCESSING: 'pending',
                 PENDING_APPROVAL: 'pending',
-                PENDING_CONFIRMATION: 'pending',
-                PENDING_CONTINUE: 'pending'
+                PENDING_CONFIRMATION: 'pending'
             }
             return {
                 nodeType,
@@ -260,6 +260,10 @@
                     &.skip {
                         background: #f8c4c1;
                         border-color: #da635f;
+                    }
+                    &.pending {
+                        background: #fff;
+                        border-color: #ffb848;
                     }
                 }
                 &.expanded {

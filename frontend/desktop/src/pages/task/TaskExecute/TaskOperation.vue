@@ -512,7 +512,7 @@
             },
             pendingNodes () {
                 const { children = {} } = this.instanceStatus
-                const pendingStatus = ['PENDING_APPROVAL', 'PENDING_CONFIRMATION', 'PENDING_CONTINUE']
+                const pendingStatus = ['PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
                 return Object.values(children).reduce((acc, cur) => {
                     if (pendingStatus.includes(cur.state)) {
                         acc.push({
