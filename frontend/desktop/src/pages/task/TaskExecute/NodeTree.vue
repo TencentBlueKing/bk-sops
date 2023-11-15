@@ -84,7 +84,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .node-tree-wrapper {
     width: 100%;
-    padding: 16px 16px 0 8px;
+    padding: 16px 16px 16px 8px;
     height: 100%;
     overflow-x: auto;
     @include scrollbar;

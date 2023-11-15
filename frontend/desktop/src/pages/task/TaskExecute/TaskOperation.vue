@@ -1787,6 +1787,18 @@
                 }, {})
                 Object.assign(this.nodeTargetMaps, targetMap)
             },
+            /**
+             * id: 当前查找的id
+             * parentId: 最外层的网关id
+             * convergeInfo: { 汇聚详情
+             *    id: '', 网关节点
+             *    checkedNodes: [], 已经查找过的节点
+             *    convergeNode: '', 最终汇聚的节点
+             *    branchCount: 1 总共有多少条分支
+             * }
+             * index: 当前节点属于哪条分支下的
+             * isDeep: 是否递归
+            */
             getGatewayConvergeNodes (id, parentId, convergeInfo = {}, index, isDeep) {
                 if (!id) return
                 if (!convergeInfo[parentId]) {
@@ -1794,54 +1806,80 @@
                         id: parentId,
                         checkedNodes: [],
                         convergeNode: '',
-                        branchCount: 1
+                        branchCount: 1 // 默认是一条分支
                     }
                 }
                 const targetNodes = this.nodeTargetMaps[id] || []
+                // 多条输出分支
                 if (targetNodes.length > 1) {
+                    // 非递归时，将节点分支添加到总分支，删除旧分支。
                     if (!isDeep) {
                         convergeInfo[parentId].branchCount += targetNodes.length - 1
                     }
                     targetNodes.forEach((targetId, branchIndex) => {
                         let newIndex = branchIndex
+                        // 当前节点属于存在分支下时，向下查找时采用新的分支数
                         if (index !== 0) {
                             const branches = Object.keys(convergeInfo[parentId]).filter(item => /^branch[0-9]*$/.test(item))
                             newIndex = branches.length
                         }
+                        // 非递归时使用传入的分支数
                         newIndex = isDeep ? index : newIndex
                         this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, newIndex, isDeep)
                     })
                 } else {
+                    // 单条输出分支
                     const { checkedNodes, branchCount = 0 } = convergeInfo[parentId]
                     const countArr = [...Array(branchCount).keys()]
                     const { end_event } = this.pipelineData
+                    // 已查找过的节点、结束节点、汇聚节点
                     if ([...checkedNodes, end_event.id].includes(id) || this.nodeSourceMaps[id].length > 1) {
+                        // 记录分支下的汇聚节点
                         const branchConvergeNode = convergeInfo[parentId][`branch${index}`]
                         if (!branchConvergeNode) {
                             convergeInfo[parentId][`branch${index}`] = [id]
                         } else if (!branchConvergeNode.includes(id)) {
                             branchConvergeNode.push(id)
                         }
+                        // 记录查找过的节点
                         if (!checkedNodes.includes(id)) {
                             checkedNodes.push(id)
                         }
+                        // 所有分支下的汇聚节点
                         const convergeNodes = countArr.map(item => {
                             const data = convergeInfo[parentId][`branch${item}`] || []
                             return [...new Set(data)]
                         }).flat()
-                        if (this.findMost(convergeNodes) === branchCount) {
-                            convergeInfo[parentId].convergeNode = id
-                        } else if (index === branchCount - 1) {
-                            countArr.forEach(item => {
-                                if (!convergeInfo[parentId].convergeNode) {
-                                    const data = convergeInfo[parentId][`branch${item}`] || []
+                        // 如果重复出现汇聚节点的最大次数等于分支数则表示已经找到最终的汇聚节点了
+                        const countMap = this.getCountMap(convergeNodes)
+                        const matchNode = Object.keys(countMap).filter(key => countMap[key] === branchCount)
+                        if (matchNode[0]) {
+                            convergeInfo[parentId].convergeNode = matchNode[0]
+                        } else if (index === branchCount - 1) { // 最后一条分支
+                            // 没找到汇聚节点则继续向下递归
+                            if (!convergeInfo[parentId].convergeNode) {
+                                const executedNodes = []
+                                countArr.forEach(idx => {
+                                    // 根据各条分支最后的汇聚节点继续查找
+                                    const data = convergeInfo[parentId][`branch${idx}`] || []
                                     const [lastId] = data.slice(-1)
+                                    // 合并有相同汇聚节点的分支
+                                    const existed = executedNodes.find(item => item.id === lastId)
+                                    if (existed && lastId !== end_event.id) {
+                                        const samePreBranch = convergeInfo[parentId][`branch${existed.index}`]
+                                        convergeInfo[parentId][`branch${idx}`] = [...samePreBranch]
+                                        const [preLastId] = samePreBranch.slice(-1)
+                                        this.getGatewayConvergeNodes(preLastId, parentId, convergeInfo, idx, true)
+                                        return
+                                    }
+                                    executedNodes.push({ id: lastId, index: idx })
                                     const targetIds = this.nodeTargetMaps[lastId] || [lastId]
+                                    // 向下递归
                                     targetIds.forEach(targetId => {
-                                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, item, true)
+                                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, idx, true)
                                     })
-                                }
-                            })
+                                })
+                            }
                         }
                     } else {
                         checkedNodes.push(id)
@@ -1850,18 +1888,13 @@
                     }
                 }
             },
-            findMost (arr) {
-                if (!arr.length) return
-                if (arr.length === 1) return 1
-                let maxNum = 0
-                arr.reduce((acc, cur) => {
+            getCountMap (arr) {
+                if (!arr.length) return {}
+                const countMap = arr.reduce((acc, cur) => {
                     acc[cur] ? acc[cur] += 1 : acc[cur] = 1
-                    if (acc[cur] > maxNum) {
-                        maxNum = acc[cur]
-                    }
                     return acc
                 }, {})
-                return maxNum
+                return countMap
             },
             judgeNodeBack (id, backId, checked) {
                 if (checked.includes(id)) return id === backId
