@@ -10,12 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import json
 import logging
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.core.data.var import LazyVariable
 from pipeline.core.flow.io import StringItemSchema
 
@@ -24,6 +23,14 @@ logger = logging.getLogger("root")
 
 class DataTableValue(object):
     def __init__(self, data):
+        try:
+            # data 为 字符串的情况下表示可能使用了默认值，
+            # 尝试序列化，不然下面也会报错
+            if isinstance(data, str):
+                data = json.loads(data)
+        except Exception as e:
+            logger.exception("[datatable] value error, value = {}, error={}".format(data, e))
+
         self._value = data
         item_values = {}
         for item in data:
