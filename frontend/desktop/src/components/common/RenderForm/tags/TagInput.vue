@@ -315,6 +315,7 @@
             // 文本框输入
             handleInputChange (e, selection) {
                 if (!selection) {
+                    // 实时更新
                     this.updateInputValue()
                 }
                 let matchResult = []
@@ -323,10 +324,22 @@
                     this.isListOpen = false
                     return
                 }
+                // 获取文本
                 this.lastEditRange = window.getSelection().getRangeAt(0)
                 const offsetText = focusNode.data.substring(0, anchorOffset)
+                let matchText = offsetText
+
+                // 如果不包含$则不进行后续计算
+                if (matchText.indexOf('$') === -1) {
+                    this.isListOpen = false
+                    return
+                }
+
+                // 过滤掉完整的变量格式文本
                 const varRegexp = /\s?\${[a-zA-Z_][\w|.]*}\s?/g
-                let matchText = offsetText.split(varRegexp).pop()
+                if (varRegexp.test(matchText)) {
+                    matchText = offsetText.split(varRegexp).pop()
+                }
                 // 拿到字段最后以$开头的部分
                 matchText = matchText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
                 // 判断是否为变量格式
@@ -399,12 +412,18 @@
                 }
                 inputValue = inputValue.replace(/\u00A0/g, ' ')
                 this.input.value = inputValue
-                this.updateForm(inputValue)
             },
             // 文本框失焦
             handleInputBlur  (e) {
                 this.$emit('blur')
                 this.input.focus = false
+                // 更新文本框结构，生成tag标签
+                this.updateInputHtml()
+                // 向上更新表单
+                this.updateForm(this.input.value)
+            },
+            // 更新文本框结构，生成tag标签
+            updateInputHtml () {
                 // 如果表单项开启了变量免渲染，不以tag展示
                 if (!this.render) return
                 // 支持所有变量（系统变量，内置变量，自定义变量）
@@ -446,7 +465,6 @@
                     return match
                 })
                 divInputDom.innerHTML = innerHtml
-                this.updateInputValue()
             },
             // 文本框按键事件
             handleInputKeyDown (e) {

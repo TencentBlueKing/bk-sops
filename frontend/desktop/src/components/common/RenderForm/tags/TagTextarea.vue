@@ -259,6 +259,7 @@
             // 文本框输入
             handleInputChange (e, updateForm = true) {
                 if (updateForm) {
+                    // 实时更新
                     this.updateInputValue()
                 }
                 const range = window.getSelection().getRangeAt(0)
@@ -274,12 +275,12 @@
                     const lastNode = textNode.childNodes[startOffset - 1]
                     previousText = lastNode.textContent
                 }
-                const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
-                // 如果是完整全局变量则不进行后续操作
-                if (/^\$\{\w+\}$/.test(matchText)) {
+                // 如果不包含$则不进行后续计算、 如果是完整全局变量则不进行后续操作
+                if (previousText.indexOf('$') === -1 || /\${[a-zA-Z_][\w|.]*}/.test(previousText)) {
                     this.isListOpen = false
                     return
                 }
+                const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
                 // 判断是否为变量格式
                 if (matchText === '$' || /^\${[a-zA-Z_]*[\w|.]*/.test(matchText)) {
                     this.varList = this.constantArr.filter(item => item.key.indexOf(matchText) > -1)
@@ -360,12 +361,18 @@
                     return domValue.replace(/\u00A0/g, ' ')
                 }).join('\n')
                 this.input.value = inputValue
-                this.updateForm(inputValue)
             },
             // 文本框失焦
             handleInputBlur  (e) {
                 this.$emit('blur')
                 this.input.focus = false
+                // 更新文本框结构，生成tag标签
+                this.updateInputHtml()
+                // 向上更新表单
+                this.updateForm(this.input.value)
+            },
+            // 更新文本框结构，生成tag标签
+            updateInputHtml () {
                 // 如果表单项开启了变量免渲染，不以tag展示
                 if (!this.render) return
                 // 支持所有变量（系统变量，内置变量，自定义变量）
@@ -440,7 +447,6 @@
                         divInputDom.replaceChild(newDom, dom)
                     }
                 })
-                this.updateInputValue()
             },
             // 文本框按键事件
             handleInputKeyDown (e) {
