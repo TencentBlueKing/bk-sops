@@ -38,9 +38,12 @@
                     <span
                         v-else-if="node.conditionType && (node.isCallback ? node.children.length : true)"
                         class="branch-condition-box"
-                        :class="{ 'default-condition': node.conditionType === 'default' }"
+                        :class="{
+                            'default-condition': node.conditionType === 'default',
+                            'empty-condition': !node.children || !node.children.length
+                        }"
                         @click.stop="toggleExpanded(node)">
-                        <i v-if="node.children && node.children.length" class="common-icon-next-triangle-shape"></i>
+                        <i class="common-icon-next-triangle-shape"></i>
                     </span>
                     <!--空的占位符-->
                     <span v-else-if="node.isCallback || node.isLevelUp ? false : !node.parentId" class="empty-div"></span>
@@ -62,7 +65,12 @@
                     <span v-else-if="!node.conditionType" class="default-node" :class="nodeStateMap[node.state]"></span>
                 </div>
                 <!-- 节点名称 -->
-                <span v-bk-overflow-tips class="node-name">{{ node.title }}</span>
+                <span v-bk-overflow-tips class="node-name">
+                    <span>{{ node.title }}</span>
+                    <span v-if="node.conditionType && (!node.children || !node.children.length)" class="empty-branch">
+                        {{ $t('（') + $t('空分支') + $t('）') }}
+                    </span>
+                </span>
             </div>
             <div
                 v-if="node.expanded && node.dynamicLoad"
@@ -201,6 +209,11 @@
                         background: #f0f1f5;
                         border-color: #c4c6cc;
                     }
+                    &.empty-condition {
+                        color: #63656e;
+                        background: #f5f7fa;
+                        border-color: #dcdee5;
+                    }
 
                 }
                 .common-icon-converge-node,
@@ -258,6 +271,7 @@
                 }
                 &.expanded {
                     .common-icon-next-triangle-shape {
+                        top: -3px;
                         transform: rotate(90deg);
                         transition: transform .2s;
                     }
@@ -266,9 +280,15 @@
 
             .node-name {
                 flex: 1;
+                display: flex;
+                align-items: center;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                .empty-branch {
+                    font-size: 12px;
+                    color: #979ba5;
+                }
             }
         }
         .node-active {
