@@ -30,7 +30,8 @@
                 </div>
                 <div :class="['scroll-box', { 'subprocess-scroll': subProcessPipeline }]">
                     <div
-                        :class="['sub-process']"
+                        class="sub-process"
+                        :style="{ height: `${subProcessHeight}px` }"
                         v-if="subProcessPipeline"
                         v-bkloading="{ isLoading: subprocessLoading, opacity: 1, zIndex: 100 }">
                         <TemplateCanvas
@@ -46,11 +47,13 @@
                         <div class="flow-option">
                             <i
                                 class="bk-icon icon-narrow-line"
+                                :class="{ 'is-disabled': zoom === 0 }"
                                 v-bk-tooltips.top="$t('缩小')"
                                 @click="onZoomOut">
                             </i>
                             <i
                                 class="bk-icon icon-enlarge-line"
+                                :class="{ 'is-disabled': zoom === 1 }"
                                 v-bk-tooltips.top="$t('放大')"
                                 @click="onZoomIn">
                             </i>
@@ -341,6 +344,8 @@
                 subprocessTasks: [],
                 subprocessNodeStatus: {},
                 subNodesExpanded: [], // 节点树展开的独立子流程节点
+                subProcessHeight: 160,
+                zoom: 0.75,
                 notPerformedSubNode: false // 是否为未执行的独立子流程节点
             }
         },
@@ -973,20 +978,14 @@
                 }
             },
             onZoomOut () {
-                let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                jsFlowInstance.zoomOut(0.8)
-                this.$nextTick(() => {
-                    this.setCanvasZoomPosition(true)
-                })
+                let zoom = this.zoom - 0.25
+                zoom = zoom >= 0 ? zoom : 0
+                this.setZoom(zoom)
             },
             onZoomIn () {
-                let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                jsFlowInstance.zoomIn(1.2)
-                this.$nextTick(() => {
-                    this.setCanvasZoomPosition(true)
-                })
+                let zoom = this.zoom + 0.25
+                zoom = zoom >= 1 ? 1 : zoom
+                this.setZoom(zoom)
             },
             onTabChange (name) {
                 this.curActiveTab = name
@@ -1060,40 +1059,34 @@
                 const { top, left } = element.getBoundingClientRect()
                 return top > canvasTop && top < canvasTop + height && left > canvasLeft && left < canvasLeft + width
             },
-            // 画布初始化时缩放比偏移
-            setCanvasZoomPosition (zoom) {
-                if (!this.canvasData.locations) return
-                // 获取画布上下左右最大坐标
-                const xList = this.canvasData.locations.map(node => node.x)
-                const yList = this.canvasData.locations.map(node => node.y)
-                const minX = Math.min(...xList)
-                const maxX = Math.max(...xList)
-                const minY = Math.min(...yList)
-                const maxY = Math.max(...yList)
-                const maxXNodeId = this.canvasData.locations.find(node => node.x === maxX).id
-                const maxYNodeId = this.canvasData.locations.find(node => node.y === maxY).id
-                const { width } = this.$el.querySelector(`#${maxXNodeId}`).getBoundingClientRect()
-                const { height } = this.$el.querySelector(`#${maxYNodeId}`).getBoundingClientRect()
-                const netHeight = maxY - minY + height + 60
-                const netWidth = maxX - minX + width + 80
-                const subprocessDom = this.$el.querySelector('.sub-process')
-                const { height: canvasHeight, width: canvasWidth } = subprocessDom.getBoundingClientRect()
-                // 画布实例
+            setZoom (zoom = 0.75) {
                 let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                let ratio
-                if (zoom) {
-                    ratio = jsFlowInstance.zoom
-                } else {
-                    // 最大比例0.75
-                    ratio = Math.min(canvasHeight / netHeight, canvasWidth / netWidth)
-                    ratio = ratio > 0.75 ? 0.75 : ratio
-                    jsFlowInstance && jsFlowInstance.zoomOut(ratio, 0, 0)
-                }
+                jsFlowInstance = jsFlowInstance && jsFlowInstance.$refs.jsFlow
+                jsFlowInstance && jsFlowInstance.setZoom(zoom, 0, 0)
+                this.zoom = zoom
+            },
+            // 画布初始化时缩放比偏移
+            setCanvasZoomPosition () {
+                if (!this.canvasData.locations) return
+                // 设置默认高度
+                const subprocessDom = this.$el.querySelector('.sub-process')
+                const { top } = subprocessDom.getBoundingClientRect()
+                this.subProcessHeight = window.innerHeight - top - 320
+                // 设置缩放比例
+                this.setZoom()
                 // 设置偏移量
-                const offsetX = canvasWidth / 2 - (minX - 30 + netWidth / 2) * ratio
-                const offsetY = canvasHeight / 2 - (minY + netHeight / 2) * ratio
-                jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
+                const startNode = this.canvasData.locations.find(item => item.type === 'startpoint')
+                // 判断dom是否存在当前视图中
+                const nodeEl = document.querySelector(`#${startNode.id} .canvas-node-item`)
+                if (!nodeEl) return
+                const isInViewPort = this.judgeInViewPort(nodeEl)
+                if (!isInViewPort) {
+                    let jsFlowInstance = this.$refs.subProcessCanvas
+                    jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                    const offsetX = (20 - startNode.x) * this.zoom
+                    const offsetY = (160 - startNode.y) * this.zoom
+                    jsFlowInstance && jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
+                }
             },
             
             toggleNodeActive (id, isActive) {
@@ -1473,8 +1466,7 @@
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.visibility = 'hidden'
                 resizeMask.style.display = 'none'
-                const subProcessDom = document.querySelector('.sub-process')
-                subProcessDom.style.height = resizeProxy.style.top
+                this.subProcessHeight = resizeProxy.style.top.slice(0, -2)
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
             }
@@ -1618,7 +1610,6 @@
                     display: none;
                 }
                 .task-node {
-                    box-shadow: none !important;
                     &.actived {
                         .node-name {
                             border-color: #b4becd !important;
@@ -1654,6 +1645,10 @@
                 &:hover {
                     color: #3a84ff;
                 }
+            }
+            .is-disabled {
+                color: #ccc !important;
+                cursor: not-allowed !important;
             }
         }
     }

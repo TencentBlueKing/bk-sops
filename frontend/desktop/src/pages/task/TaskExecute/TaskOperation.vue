@@ -68,7 +68,7 @@
             :width="sidebarWidth"
             :quick-close="true"
             :before-close="onBeforeClose"
-            @hidden="onHiddenSideslider">
+            @hidden="onHiddenSideSlider">
             <div slot="header">
                 <div class="header">
                     <span>{{sideSliderTitle}}</span>
@@ -496,6 +496,12 @@
             },
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
+            },
+            // 父流程是否存在子流程节点
+            hasSubprocessNode () {
+                return Object.values(this.pipelineData.activities).some(item => {
+                    return item.type !== 'ServiceActivity' || item.component?.code === 'subprocess_plugin'
+                })
             }
         },
         mounted () {
@@ -1939,7 +1945,6 @@
             openNodeInfoPanel (type, name, isCondition = false) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
-                this.sidebarWidth = 960
                 this.nodeInfoType = type
                 this.isCondition = isCondition
             },
@@ -2058,6 +2063,10 @@
                 this.convergeInfo = {}
                 this.nodeIds = {}
                 this.nodeData = this.getOrderedTree(this.completePipelineData)
+                // 如果选中节点为子流程节点则侧栏宽度默认为最大值
+                if (this.hasSubprocessNode) {
+                    this.sidebarWidth = window.innerWidth - 400
+                }
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
             onOpenConditionEdit (data, isCondition = true) {
@@ -2416,10 +2425,11 @@
                     }
                 }
             },
-            onHiddenSideslider () {
+            onHiddenSideSlider () {
                 this.subProcessTaskId = null
                 this.nodeInfoType = ''
                 this.retryNodeName = ''
+                this.sidebarWidth = 960
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             },
             // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态
