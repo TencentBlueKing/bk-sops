@@ -310,11 +310,11 @@ class CommonTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         return Response(
             {
                 "name": common_template.draft_template.name,
-                "labels": common_template.draft_template.labels,
+                "template_labels": common_template.draft_template.labels,
                 "description": common_template.draft_template.description,
                 "editor": common_template.draft_template.editor,
-                "pipeline_tree": common_template.draft_pipeline_tree,
-                "edit_time": common_template.draft_template.edit_time,
+                "pipeline_tree": json.dumps(common_template.draft_pipeline_tree),
+                "edit_time": common_template.draft_template.edit_time.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
 

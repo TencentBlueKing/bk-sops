@@ -59,7 +59,7 @@ class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
 
 class UpdateDraftPipelineTreeSerializer(serializers.Serializer):
     name = serializers.CharField(required=True)
-    labels = serializers.ListField(required=False)
+    template_labels = serializers.ListField(required=False)
     description = serializers.CharField(required=False, allow_null=True)
     pipeline_tree = serializers.JSONField(required=True)
 

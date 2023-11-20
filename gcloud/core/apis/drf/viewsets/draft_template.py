@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import logging
 
 from gcloud.core.apis.drf.serilaziers import UpdateDraftPipelineTreeSerializer
@@ -13,16 +14,18 @@ class DraftTemplateViewSetMixin:
             manager.create_draft(template=template, editor=username)
         return {
             "name": template.draft_template.name,
-            "labels": template.draft_template.labels,
+            "template_labels": template.draft_template.labels,
             "description": template.draft_template.description,
             "editor": template.draft_template.editor,
-            "pipeline_tree": template.draft_pipeline_tree,
-            "edit_time": template.draft_template.edit_time,
+            "pipeline_tree": json.dumps(template.draft_pipeline_tree),
+            "edit_time": template.draft_template.edit_time.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
     def update_template_draft(self, manager, template, request):
         serializer = UpdateDraftPipelineTreeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        serializer.validated_data["labels"] = serializer.validated_data.pop("template_labels", [])
         result = manager.update_draft_pipeline(
             template.draft_template, request.user.username, serializer.validated_data
         )

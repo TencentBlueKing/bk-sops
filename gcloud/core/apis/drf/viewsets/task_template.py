@@ -362,11 +362,11 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         return Response(
             {
                 "name": task_template.draft_template.name,
-                "labels": task_template.draft_template.labels,
+                "template_labels": task_template.draft_template.labels,
                 "description": task_template.draft_template.description,
                 "editor": task_template.draft_template.editor,
-                "pipeline_tree": task_template.draft_pipeline_tree,
-                "edit_time": task_template.draft_template.edit_time,
+                "pipeline_tree": json.dumps(task_template.draft_pipeline_tree),
+                "edit_time": task_template.draft_template.edit_time.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
 
