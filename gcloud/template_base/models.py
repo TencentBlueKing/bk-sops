@@ -291,10 +291,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
 
 class DraftTemplate(models.Model):
-    name = models.CharField(_("模板名称"), max_length=128, default="default_template", db_index=True)
     snapshot_id = models.IntegerField(_("对应的快照id"), db_index=True)
-    labels = models.JSONField(_("流程的tag信息"), default=[])
-    description = models.TextField(_("描述"), null=True, blank=True)
     editor = models.CharField(_("修改者"), max_length=32, null=True, blank=True)
     edit_time = models.DateTimeField(_("修改时间"), auto_now=True, db_index=True)
 
@@ -385,11 +382,6 @@ class BaseTemplate(models.Model):
         draft_snapshot_id = draft_template.snapshot_id
         tree = Snapshot.objects.get(id=draft_snapshot_id).data
         replace_template_id(self.__class__, tree, reverse=True)
-        # add nodes attr
-        pipeline_web_clean = PipelineWebTreeCleaner(tree)
-        nodes = NodeInTemplate.objects.filter(template_id=self.pipeline_template.template_id, version=self.version)
-        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
-        pipeline_web_clean.to_web(nodes_attr)
         return tree
 
     @property

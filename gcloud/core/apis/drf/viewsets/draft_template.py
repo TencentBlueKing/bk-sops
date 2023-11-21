@@ -13,9 +13,6 @@ class DraftTemplateViewSetMixin:
         if template.draft_template_id is None:
             manager.create_draft(template=template, editor=username)
         return {
-            "name": template.draft_template.name,
-            "template_labels": template.draft_template.labels,
-            "description": template.draft_template.description,
             "editor": template.draft_template.editor,
             "pipeline_tree": json.dumps(template.draft_pipeline_tree),
             "edit_time": template.draft_template.edit_time.strftime("%Y-%m-%d %H:%M:%S"),

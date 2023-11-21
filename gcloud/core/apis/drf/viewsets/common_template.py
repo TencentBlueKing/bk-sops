@@ -211,9 +211,7 @@ class CommonTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
 
             serializer.validated_data["pipeline_template"] = result["data"]
             # 创建快照
-            draft_template_id = manager.create_draft_without_template(
-                pipeline_tree, request.user.username, name, description, []
-            )
+            draft_template_id = manager.create_draft_without_template(pipeline_tree, request.user.username)
 
             serializer.validated_data["published"] = False
             serializer.validated_data["draft_template_id"] = draft_template_id
@@ -239,8 +237,25 @@ class CommonTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         serializer = UpdateCommonTemplateSerializer(template, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         # update pipeline_template
+        name = serializer.validated_data.pop("name")
         editor = request.user.username
+        description = serializer.validated_data.pop("description", "")
+        serializer.validated_data.pop("pipeline_tree")
         with transaction.atomic():
+            result = manager.update_pipeline(
+                pipeline_template=template.pipeline_template,
+                editor=editor,
+                name=name,
+                pipeline_tree=None,
+                description=description,
+            )
+
+            if not result["result"]:
+                message = result["message"]
+                logger.error(message)
+                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+            serializer.validated_data["pipeline_template"] = template.pipeline_template
             self.perform_update(serializer)
         # 发送信号
         post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
@@ -314,9 +329,6 @@ class CommonTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
 
         return Response(
             {
-                "name": common_template.draft_template.name,
-                "template_labels": common_template.draft_template.labels,
-                "description": common_template.draft_template.description,
                 "editor": common_template.draft_template.editor,
                 "pipeline_tree": json.dumps(common_template.draft_pipeline_tree),
                 "edit_time": common_template.draft_template.edit_time.strftime("%Y-%m-%d %H:%M:%S"),
