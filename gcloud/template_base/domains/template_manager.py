@@ -21,7 +21,6 @@ from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate, Snapshot, TemplateRelationship
 
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
-from gcloud.label.models import TemplateLabelRelation
 from gcloud.template_base.models import DraftTemplate
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
@@ -218,12 +217,10 @@ class TemplateManager:
 
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
-    def create_draft_without_template(self, pipeline_tree, editor, name, description, labels):
+    def create_draft_without_template(self, pipeline_tree, editor):
 
         snapshot_id = Snapshot.objects.create_snapshot(pipeline_tree).id
-        draft_template = DraftTemplate.objects.create(
-            editor=editor, snapshot_id=snapshot_id, name=name, description=description, labels=list(labels)
-        )
+        draft_template = DraftTemplate.objects.create(editor=editor, snapshot_id=snapshot_id)
 
         return draft_template.id
 
@@ -235,14 +232,7 @@ class TemplateManager:
         @return:
         """
         snapshot_id = Snapshot.objects.create_snapshot(template.pipeline_template.data).id
-        labels = TemplateLabelRelation.objects.filter(template_id=template.id).values_list("label_id", flat=True)
-        draft_template = DraftTemplate.objects.create(
-            editor=editor,
-            snapshot_id=snapshot_id,
-            name=template.pipeline_template.name,
-            description=template.pipeline_template.description,
-            labels=list(labels),
-        )
+        draft_template = DraftTemplate.objects.create(editor=editor, snapshot_id=snapshot_id)
         template.draft_template_id = draft_template.id
         template.save(update_fields=["draft_template_id"])
 
@@ -255,11 +245,6 @@ class TemplateManager:
         replace_template_id(self.template_model_cls, pipeline_tree)
         pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
         pipeline_web_tree.clean()
-
-        for key, value in data.items():
-            # 更新值
-            setattr(draft_template, key, value)
-
         draft_template.editor = editor
         draft_template.save()
 
@@ -274,14 +259,10 @@ class TemplateManager:
         return {"result": True, "data": None, "message": "success", "verbose_message": "success"}
 
     def publish_draft_pipeline(self, template, editor):
-
-        draft_template = template.draft_template
         # 如果模板处于已发布状态, 此时应该更新
         result = self.update_pipeline(
             pipeline_template=template.pipeline_template,
             editor=editor,
-            name=draft_template.name,
-            description=draft_template.description,
             pipeline_tree=template.draft_pipeline_tree,
         )
         if result["result"] and not template.published:

@@ -14,13 +14,7 @@ class Migration(migrations.Migration):
             name="DraftTemplate",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                (
-                    "name",
-                    models.CharField(db_index=True, default="default_template", max_length=128, verbose_name="模板名称"),
-                ),
                 ("snapshot_id", models.IntegerField(db_index=True, verbose_name="对应的快照id")),
-                ("labels", models.JSONField(default=[], verbose_name="流程的tag信息")),
-                ("description", models.TextField(blank=True, null=True, verbose_name="描述")),
                 ("editor", models.CharField(blank=True, max_length=32, null=True, verbose_name="修改者")),
                 ("edit_time", models.DateTimeField(auto_now=True, db_index=True, verbose_name="修改时间")),
             ],

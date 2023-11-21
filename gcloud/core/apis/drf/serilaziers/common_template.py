@@ -95,11 +95,5 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
         ]
 
 
-class UpdateCommonTemplateSerializer(BaseTemplateSerializer):
-    category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
-    time_out = serializers.IntegerField(help_text="超时时间", required=False)
-    executor_proxy = serializers.CharField(help_text="执行代理", allow_blank=True, required=False)
-
-    class Meta:
-        model = CommonTemplate
-        fields = "__all__"
+class UpdateCommonTemplateSerializer(CreateCommonTemplateSerializer):
+    pipeline_tree = serializers.CharField(required=False, allow_null=True)
