@@ -508,6 +508,8 @@
                             this.loading = false
                             this.subprocessLoading = false
                             this.randomKey = new Date().getTime()
+                            const nodeInfo = this.getNodeInfo(this.nodeData, val.root_node, val.node_id)
+                            nodeInfo.dynamicLoad = false
                         } else {
                             this.loadNodeInfo()
                         }
@@ -970,7 +972,14 @@
                 this.randomKey = new Date().getTime()
             },
             onNodeClick (node) {
-                const nodeInfo = this.getNodeInfo(this.nodeData, '', node)
+                let parentId = ''
+                const { node_id: nodeId, root_node: rootNode } = this.nodeDetailConfig
+                if (nodeId === this.subProcessPipeline.id) {
+                    parentId = rootNode ? `${rootNode}-${nodeId}` : nodeId
+                } else {
+                    parentId = rootNode
+                }
+                const nodeInfo = this.getNodeInfo(this.nodeData, parentId, node)
                 if (nodeInfo) {
                     nodeInfo && this.onSelectNode(nodeInfo)
                     const parentInstance = this.$parent.$parent

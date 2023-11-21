@@ -55,7 +55,20 @@
                         nodeId = val.split('-').slice(0, -1).join('-')
                         this.activeId = nodeId
                     }
-                    this.setDefaultActiveId(this.treeData, nodeId)
+                    // 根据父节点过滤节点树
+                    let nodes = this.treeData
+                    const parentId = val.split('-').slice(1)
+                    if (parentId.length) {
+                        parentId.forEach(id => {
+                            nodes.some(item => {
+                                if (item.id === id) {
+                                    nodes = item.children
+                                    return true
+                                }
+                            })
+                        })
+                    }
+                    this.setDefaultActiveId(nodes, nodeId)
                 },
                 deep: true,
                 immediate: true
