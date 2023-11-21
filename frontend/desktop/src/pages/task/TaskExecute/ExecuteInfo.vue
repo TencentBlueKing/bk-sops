@@ -47,13 +47,13 @@
                         <div class="flow-option">
                             <i
                                 class="bk-icon icon-narrow-line"
-                                :class="{ 'is-disabled': zoom === 0 }"
+                                :class="{ 'disabled': zoom === 0.25 }"
                                 v-bk-tooltips.top="$t('缩小')"
                                 @click="onZoomOut">
                             </i>
                             <i
                                 class="bk-icon icon-enlarge-line"
-                                :class="{ 'is-disabled': zoom === 1 }"
+                                :class="{ 'disabled': zoom === 1.5 }"
                                 v-bk-tooltips.top="$t('放大')"
                                 @click="onZoomIn">
                             </i>
@@ -978,14 +978,14 @@
                 }
             },
             onZoomOut () {
-                let zoom = this.zoom - 0.25
-                zoom = zoom >= 0 ? zoom : 0
-                this.setZoom(zoom)
+                const jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance.onZoomOut()
+                this.zoom = jsFlowInstance.zoomRatio / 100
             },
             onZoomIn () {
-                let zoom = this.zoom + 0.25
-                zoom = zoom >= 1 ? 1 : zoom
-                this.setZoom(zoom)
+                const jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance.onZoomIn()
+                this.zoom = jsFlowInstance.zoomRatio / 100
             },
             onTabChange (name) {
                 this.curActiveTab = name
@@ -1059,12 +1059,6 @@
                 const { top, left } = element.getBoundingClientRect()
                 return top > canvasTop && top < canvasTop + height && left > canvasLeft && left < canvasLeft + width
             },
-            setZoom (zoom = 0.75) {
-                let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance && jsFlowInstance.$refs.jsFlow
-                jsFlowInstance && jsFlowInstance.setZoom(zoom, 0, 0)
-                this.zoom = zoom
-            },
             // 画布初始化时缩放比偏移
             setCanvasZoomPosition () {
                 if (!this.canvasData.locations) return
@@ -1073,7 +1067,9 @@
                 const { top } = subprocessDom.getBoundingClientRect()
                 this.subProcessHeight = window.innerHeight - top - 320
                 // 设置缩放比例
-                this.setZoom()
+                let jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance = jsFlowInstance && jsFlowInstance.$refs.jsFlow
+                jsFlowInstance && jsFlowInstance.setZoom(this.zoom, 0, 0)
                 // 设置偏移量
                 const startNode = this.canvasData.locations.find(item => item.type === 'startpoint')
                 // 判断dom是否存在当前视图中
@@ -1645,10 +1641,10 @@
                 &:hover {
                     color: #3a84ff;
                 }
-            }
-            .is-disabled {
-                color: #ccc !important;
-                cursor: not-allowed !important;
+                &.disabled {
+                    color: #ccc;
+                    cursor: not-allowed;
+                }
             }
         }
     }
