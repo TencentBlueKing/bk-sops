@@ -221,7 +221,6 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         with transaction.atomic():
             description = serializer.validated_data.pop("description", "")
             name = serializer.validated_data.pop("name", "")
-            labels = serializer.validated_data.pop("template_labels", [])
             # 创建一份模板，该模板不会被使用，未发布
             result = manager.create_pipeline(
                 name=name, creator=creator, pipeline_tree=DEFAULT_PIPELINE_TREE, description=description
@@ -236,10 +235,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
 
             # 创建快照
             pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
-            draft_template_id = manager.create_draft_without_template(
-                pipeline_tree, request.user.username, name, description, labels
-            )
-
+            draft_template_id = manager.create_draft_without_template(pipeline_tree, request.user.username)
             serializer.validated_data["published"] = False
             serializer.validated_data["draft_template_id"] = draft_template_id
             self.perform_create(serializer)
@@ -270,10 +266,29 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         template = self.get_object()
         serializer = UpdateTaskTemplateSerializer(template, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        # 更新时将只允许更新流程的通知等全局信息
+        # update pipeline_template
+        name = serializer.validated_data.pop("name")
         editor = request.user.username
+        description = serializer.validated_data.pop("description", "")
+        serializer.validated_data.pop("pipeline_tree")
         with transaction.atomic():
+            result = manager.update_pipeline(
+                pipeline_template=template.pipeline_template,
+                editor=editor,
+                name=name,
+                pipeline_tree=None,
+                description=description,
+            )
+
+            if not result["result"]:
+                message = result["message"]
+                logger.error(message)
+                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+            serializer.validated_data["pipeline_template"] = template.pipeline_template
+            template_labels = serializer.validated_data.pop("template_labels")
             self.perform_update(serializer)
+            self._sync_template_lables(serializer.instance.id, template_labels)
         # 发送信号
         post_template_save_commit.send(
             sender=TaskTemplate,
@@ -362,9 +377,6 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
 
         return Response(
             {
-                "name": task_template.draft_template.name,
-                "template_labels": task_template.draft_template.labels,
-                "description": task_template.draft_template.description,
                 "editor": task_template.draft_template.editor,
                 "pipeline_tree": json.dumps(task_template.draft_pipeline_tree),
                 "edit_time": task_template.draft_template.edit_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -383,5 +395,4 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
             message = result["message"]
             logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-        self._sync_template_lables(task_template.id, task_template.draft_template.labels)
         return Response()
