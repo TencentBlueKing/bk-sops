@@ -27,6 +27,7 @@
             <div class="zoom-wrapper">
                 <i
                     class="common-icon-zoom-add"
+                    :class="{ 'disabled': zoomRatio === 150 }"
                     v-bk-tooltips="{
                         content: $t('放大'),
                         delay: 300,
@@ -37,6 +38,7 @@
                 <p class="zoom-ratio">{{ zoomRatio + '%' }}</p>
                 <i
                     class="common-icon-zoom-minus"
+                    :class="{ 'disabled': zoomRatio === 25 }"
                     v-bk-tooltips="{
                         content: $t('缩小'),
                         delay: 300,
@@ -270,6 +272,10 @@
             cursor: pointer;
             &:hover {
                 color: #3a84ff;
+            }
+            &.disabled {
+                color: #ccc;
+                cursor: not-allowed;
             }
         }
         .zoom-ratio {
