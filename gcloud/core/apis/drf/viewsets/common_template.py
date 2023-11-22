@@ -94,6 +94,7 @@ class CommonTemplateFilter(PropertyFilterSet):
             "pipeline_template__has_subprocess": ["exact"],
             "pipeline_template__edit_time": ["gte", "lte"],
             "pipeline_template__create_time": ["gte", "lte"],
+            "published": ["exact"],
         }
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
 

@@ -238,7 +238,9 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
             draft_template_id = manager.create_draft_without_template(pipeline_tree, request.user.username)
             serializer.validated_data["published"] = False
             serializer.validated_data["draft_template_id"] = draft_template_id
+            template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
+            self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
 
         # 发送信号
