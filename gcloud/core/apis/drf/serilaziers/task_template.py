@@ -98,6 +98,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
 
 
 class UpdateTaskTemplateSerializer(CreateTaskTemplateSerializer):
+    # pipeline_tree 再更新时非必填
     pipeline_tree = serializers.CharField(required=False, allow_null=True)
 
 
