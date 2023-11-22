@@ -241,6 +241,7 @@ class TemplateManager:
 
         pipeline_tree = data.pop("pipeline_tree")
         # 草稿更新不会触发流程合法性校验
+
         standardize_pipeline_node_name(pipeline_tree)
         replace_template_id(self.template_model_cls, pipeline_tree)
         pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
