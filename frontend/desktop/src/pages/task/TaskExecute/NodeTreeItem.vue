@@ -65,8 +65,8 @@
                     <span v-else-if="!node.conditionType" class="default-node" :class="nodeStateMap[node.state]"></span>
                 </div>
                 <!-- 节点名称 -->
-                <span v-bk-overflow-tips class="node-name">
-                    <span>{{ node.title }}</span>
+                <span class="node-name">
+                    <span class="name" v-bk-overflow-tips>{{ node.title }}</span>
                     <span v-if="node.conditionType && (!node.children || !node.children.length)" class="empty-branch">
                         {{ $t('（') + $t('空分支') + $t('）') }}
                     </span>
@@ -283,9 +283,13 @@
                 display: flex;
                 align-items: center;
                 overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                .name {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
                 .empty-branch {
+                    flex-shrink: 0;
                     font-size: 12px;
                     color: #979ba5;
                 }

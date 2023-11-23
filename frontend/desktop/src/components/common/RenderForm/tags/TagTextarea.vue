@@ -138,7 +138,7 @@
                         const divInputDom = this.$el.querySelector('.div-input')
                         if (divInputDom) {
                             divInputDom.innerText = this.value
-                            this.handleInputBlur()
+                            this.updateInputHtml()
                         }
                     })
                 }
@@ -149,7 +149,7 @@
                     const divInputDom = this.$el.querySelector('.div-input')
                     divInputDom.innerText = this.value
                 } else {
-                    this.handleInputBlur()
+                    this.updateInputHtml()
                 }
             }
         },
@@ -162,7 +162,7 @@
                 const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
                 divInputDom.innerText = value
                 if (this.render && value) {
-                    this.handleInputBlur()
+                    this.updateInputHtml()
                 }
                 divInputDom.addEventListener('paste', this.handlePaste)
             }

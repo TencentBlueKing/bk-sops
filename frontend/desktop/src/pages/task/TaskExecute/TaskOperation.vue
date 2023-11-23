@@ -79,7 +79,7 @@
             </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <!--可拖拽-->
-                <template v-if="['viewNodeDetails', 'executeInfo'].includes(nodeInfoType)">
+                <template v-if="nodeInfoType === 'executeInfo'">
                     <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
                     <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
                     <div class="resize-mask" ref="resizeMask"></div>
@@ -98,7 +98,8 @@
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
-                    v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
+                    v-if="nodeInfoType === 'executeInfo'"
+                    ref="executeInfo"
                     :state="state"
                     :node-data="nodeData"
                     :engine-ver="engineVer"
@@ -395,7 +396,8 @@
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
-                retryNodeName: ''
+                retryNodeName: '',
+                isSourceDetailSideBar: false // 节点重试侧栏是否从节点详情打开
             }
         },
         computed: {
@@ -513,12 +515,14 @@
                     this.onOperationClick('execute')
                 })
             }
+            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             if (source) {
                 source.cancel('cancelled')
             }
             this.cancelTaskStatusTimer()
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('task/', [
@@ -849,15 +853,12 @@
                     }
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
                             theme: 'success'
                         })
-                        setTimeout(() => {
-                            this.setTaskStatusTimer()
-                        }, 1000)
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     }
                 } catch (e) {
                     console.log(e)
@@ -881,11 +882,8 @@
                             message: i18n.t('强制终止执行成功'),
                             theme: 'success'
                         })
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
-                        setTimeout(() => {
-                            this.setTaskStatusTimer()
-                        }, 1000)
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     }
                 } catch (e) {
                     console.log(e)
@@ -934,11 +932,8 @@
                             message: i18n.t('继续成功'),
                             theme: 'success'
                         })
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
-                        setTimeout(() => {
-                            this.setTaskStatusTimer()
-                        }, 1000)
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     }
                 } catch (e) {
                     console.log(e)
@@ -1075,6 +1070,8 @@
                         this.openNodeInfoPanel('modifyParams', isSubProcessNode ? i18n.t('重试子流程') : i18n.t('重试节点'))
                         this.retryNodeId = id
                     }
+                    // 记录是否由【节点详情侧栏】打开的【重试侧栏】
+                    this.isSourceDetailSideBar = !!info
                 } catch (error) {
                     console.warn(error)
                 }
@@ -1235,11 +1232,21 @@
                         data.node_id = node_id
                     }
                     await this.onRetryTask(data)
-                    this.isNodeInfoPanelShow = false
-                    this.retryNodeId = undefined
-                    // 重新轮询任务状态
-                    this.setTaskStatusTimer()
                     this.updateNodeActived(this.nodeDetailConfig.id, false)
+                    // 重新打开详情面板
+                    if (this.isSourceDetailSideBar) {
+                        setTimeout(() => {
+                            // 重新轮询任务状态
+                            Promise.resolve(this.loadTaskStatus()).then(() => {
+                                this.onNodeClick(data.node_id)
+                                this.retryNodeId = undefined
+                            })
+                        }, 1000)
+                    } else {
+                        this.retryNodeId = undefined
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
+                    }
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -1323,9 +1330,9 @@
                     return
                 }
 
+                this.approval.pending = true
                 this.$refs.approvalForm.validate().then(async () => {
                     try {
-                        this.approval.pending = true
                         const { id, is_passed, message } = this.approval
                         const params = {
                             is_passed,
@@ -1347,11 +1354,19 @@
                         this.approval.is_passed = true
                         this.approval.message = ''
                         this.approval.dialogShow = false
+                        this.$bkMessage({
+                            message: i18n.t('节点审批成功'),
+                            theme: 'success'
+                        })
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     } catch (e) {
                         console.error(e)
                     } finally {
                         this.approval.pending = false
                     }
+                }, () => {
+                    this.approval.pending = false
                 })
             },
             onApprovalCancel () {
@@ -1360,21 +1375,23 @@
                 this.approval.message = ''
                 this.approval.dialogShow = false
             },
-            onPauseClick (id, taskId) {
-                this.taskPause(true, id, taskId)
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
-                setTimeout(() => {
-                    this.setTaskStatusTimer()
-                }, 1000)
+            async onPauseClick (id, taskId) {
+                try {
+                    await this.taskPause(true, id, taskId)
+                    // 更新节点执行信息
+                    this.updateNodeExecuteInfo()
+                } catch (error) {
+                    console.warn(error)
+                }
             },
-            onContinueClick (id, taskId) {
-                this.taskResume(true, id, taskId)
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
-                setTimeout(() => {
-                    this.setTaskStatusTimer()
-                }, 1000)
+            async onContinueClick (id, taskId) {
+                try {
+                    await this.taskResume(true, id, taskId)
+                    // 更新节点执行信息
+                    this.updateNodeExecuteInfo()
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             onCloseConfigPanel () {
                 this.isShowConditionEdit = false
@@ -2329,9 +2346,20 @@
                 try {
                     this.pending.retry = true
                     await this.onRetryTask(data)
-                    this.isNodeInfoPanelShow = false
-                    this.setTaskStatusTimer()
-                    this.updateNodeActived(this.nodeDetailConfig.id, false)
+                    // 重新打开详情面板
+                    if (this.isSourceDetailSideBar) {
+                        setTimeout(() => {
+                            // 重新轮询任务状态
+                            Promise.resolve(this.loadTaskStatus()).then(() => {
+                                this.onNodeClick(data.node_id)
+                                this.retryNodeId = undefined
+                            })
+                        }, 1000)
+                    } else {
+                        this.isNodeInfoPanelShow = false
+                        this.setTaskStatusTimer()
+                        this.updateNodeActived(this.nodeDetailConfig.id, false)
+                    }
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -2342,6 +2370,10 @@
                 this.isNodeInfoPanelShow = false
                 this.retryNodeId = undefined
                 this.updateNodeActived(id, false)
+                // 重新打开详情面板
+                if (this.isSourceDetailSideBar) {
+                    this.onNodeClick(id)
+                }
             },
             onModifyTimeSuccess (id) {
                 this.isNodeInfoPanelShow = false
@@ -2399,6 +2431,10 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
+                // 重新打开详情面板
+                if (this.isSourceDetailSideBar) {
+                    this.onNodeClick(this.retryNodeId)
+                }
                 this.retryNodeId = undefined
             },
             onshutDown () {
@@ -2482,6 +2518,35 @@
                 }
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
+            },
+            onWindowResize () {
+                const maxWidth = window.innerWidth - 400
+                let width = this.sidebarWidth
+                width = width > maxWidth ? maxWidth : width
+                width = width < 960 ? 960 : width
+                this.sidebarWidth = width
+            },
+            updateNodeExecuteInfo () {
+                if (this.isNodeInfoPanelShow && this.nodeInfoType === 'executeInfo') {
+                    this.updateNodeActived(this.nodeDetailConfig.id, true)
+                    const execInfoInstance = this.$refs.executeInfo
+                    execInfoInstance.loading = true
+                    execInfoInstance.subprocessLoading = !!execInfoInstance.subProcessPipeline
+                    setTimeout(() => {
+                        Promise.resolve(this.loadTaskStatus()).then(() => {
+                            execInfoInstance.loadNodeInfo()
+                        }).catch(() => {
+                            execInfoInstance.loading = false
+                            execInfoInstance.subprocessLoading = false
+                        })
+                    }, 1000)
+                } else {
+                    this.isNodeInfoPanelShow = false
+                    this.nodeInfoType = ''
+                    setTimeout(() => {
+                        this.setTaskStatusTimer()
+                    }, 1000)
+                }
             }
         }
     }
@@ -2549,8 +2614,11 @@
         }
     }
 }
-/deep/.bk-sideslider-content {
-    height: calc(100% - 60px);
+/deep/.bk-sideslider {
+    min-width: 1360px;
+    .bk-sideslider-content {
+        height: calc(100% - 60px);
+    }
 }
 .header {
     display: flex;

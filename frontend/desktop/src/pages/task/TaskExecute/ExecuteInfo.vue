@@ -168,7 +168,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="action-wrapper" v-if="isShowActionWrap">
+                <div class="action-wrapper" v-if="isShowActionWrap && !loading">
                     <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
@@ -227,7 +227,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
@@ -332,8 +332,6 @@
                 loop: 1,
                 theExecuteTime: undefined,
                 isReadyStatus: true,
-                isShowSkipBtn: false,
-                isShowRetryBtn: false,
                 curActiveTab: 'record',
                 theExecuteRecord: 0,
                 executeRecord: {},
@@ -350,9 +348,6 @@
             }
         },
         computed: {
-            ...mapMutations('template/', [
-                'setLine'
-            ]),
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'atomOutputConfig': state => state.atomForm.outputConfig,
@@ -441,6 +436,22 @@
             isShowContinueBtn () {
                 return this.isLegacySubProcess && this.executeInfo.state === 'SUSPENDED'
             },
+            isShowSkipBtn () {
+                let isShow = false
+                if (this.realTimeState.state === 'FAILED') {
+                    const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                    isShow = this.location.type === 'tasknode' && activity.skippable
+                }
+                return isShow
+            },
+            isShowRetryBtn () {
+                let isShow = false
+                if (this.realTimeState.state === 'FAILED') {
+                    const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                    isShow = this.location.type === 'tasknode' ? activity.retryable : false
+                }
+                return isShow
+            },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
@@ -508,7 +519,10 @@
                             this.loading = false
                             this.subprocessLoading = false
                             this.randomKey = new Date().getTime()
+                            const nodeInfo = this.getNodeInfo(this.nodeData, val.root_node, val.node_id)
+                            nodeInfo.dynamicLoad = false
                         } else {
+                            this.executeInfo.state = ''
                             this.loadNodeInfo()
                         }
                     }
@@ -624,15 +638,6 @@
                     } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
-                    }
-                    // 获取执行失败节点是否允许跳过，重试状态
-                    if (this.realTimeState.state === 'FAILED') {
-                        const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
-                        this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
-                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : false
-                    } else {
-                        this.isShowSkipBtn = false
-                        this.isShowRetryBtn = false
                     }
                 } catch (e) {
                     this.theExecuteTime = undefined
@@ -970,7 +975,14 @@
                 this.randomKey = new Date().getTime()
             },
             onNodeClick (node) {
-                const nodeInfo = this.getNodeInfo(this.nodeData, '', node)
+                let parentId = ''
+                const { node_id: nodeId, root_node: rootNode } = this.nodeDetailConfig
+                if (nodeId === this.subProcessPipeline.id) {
+                    parentId = rootNode ? `${rootNode}-${nodeId}` : nodeId
+                } else {
+                    parentId = rootNode
+                }
+                const nodeInfo = this.getNodeInfo(this.nodeData, parentId, node)
                 if (nodeInfo) {
                     nodeInfo && this.onSelectNode(nodeInfo)
                     const parentInstance = this.$parent.$parent
@@ -1500,6 +1512,9 @@
     }
     .bk-resize-layout-border {
         border: none;
+        .bk-resize-layout-aside {
+            overflow: hidden;
+        }
     }
     .action-wrapper {
         width: 100%;

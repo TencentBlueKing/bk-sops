@@ -171,7 +171,7 @@
                         const divInputDom = this.$el.querySelector('.div-input')
                         if (divInputDom) {
                             divInputDom.innerText = this.value
-                            this.handleInputBlur()
+                            this.updateInputHtml()
                         }
                     })
                 }
@@ -182,7 +182,7 @@
                     const divInputDom = this.$el.querySelector('.div-input')
                     divInputDom.innerText = this.value
                 } else {
-                    this.handleInputBlur()
+                    this.updateInputHtml()
                 }
             },
             formMode (val) {
@@ -190,7 +190,7 @@
                     this.$nextTick(() => {
                         const divInputDom = this.$el.querySelector('.div-input')
                         divInputDom.innerText = this.value
-                        this.handleInputBlur()
+                        this.updateInputHtml()
                     })
                 } else {
                     this.validate()
@@ -205,7 +205,7 @@
             if (divInputDom) {
                 divInputDom.innerText = this.value
                 if (this.render && this.value) {
-                    this.handleInputBlur()
+                    this.updateInputHtml()
                 }
                 divInputDom.addEventListener('paste', this.handlePaste)
             }

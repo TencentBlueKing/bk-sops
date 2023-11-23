@@ -44,7 +44,7 @@
                         {{ confirmBtnText }}
                     </bk-button>
                 </span>
-                <bk-button theme="default" data-test-id="taskExecute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+                <bk-button theme="default" :disabled="pending" data-test-id="taskExecute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
             </div>
 
             <bk-button v-else theme="default" data-test-id="taskExecute_form_closeBtn" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
