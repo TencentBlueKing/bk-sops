@@ -241,7 +241,7 @@ class CommonTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         name = serializer.validated_data.pop("name")
         editor = request.user.username
         description = serializer.validated_data.pop("description", "")
-        serializer.validated_data.pop("pipeline_tree")
+        serializer.validated_data.pop("pipeline_tree", None)
         with transaction.atomic():
             result = manager.update_pipeline(
                 pipeline_template=template.pipeline_template,
