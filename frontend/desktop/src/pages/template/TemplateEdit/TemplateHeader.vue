@@ -87,7 +87,7 @@
             </div>
         </div>
         <SelectProjectModal
-            :title="$t('创建任务')"
+            :title="$t('新建任务')"
             :show="isSelectProjectShow"
             :confirm-loading="commonTplCreateTaskPermLoading || templateSaving"
             :confirm-cursor="['new', 'clone'].includes(type) ? false : !hasCommonTplCreateTaskPerm"
@@ -255,6 +255,13 @@
 
                 if (saveAndCreate) {
                     if (this.createTaskBtnActive) {
+                        // 通过项目下公共流程创建任务时，不需要弹出选择项目弹框
+                        const { project_id } = this.$route.params
+                        if (project_id) {
+                            this.selectedProject = {
+                                id: project_id
+                            }
+                        }
                         // 普通任务直接走模板校验、保存逻辑，公共流程先走模板校验、保存逻辑，然后显示项目选择弹窗
                         this.saveTemplate(saveAndCreate)
                     } else {

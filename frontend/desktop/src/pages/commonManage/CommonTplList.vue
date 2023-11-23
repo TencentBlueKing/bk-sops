@@ -251,7 +251,7 @@
             :type="exportType">
         </ExportTemplateDialog>
         <SelectProjectModal
-            :title="$t('创建任务')"
+            :title="$t('新建任务')"
             :show="isSelectProjectShow"
             :confirm-loading="permissionLoading"
             :confirm-cursor="!hasCreateTaskPerm"
