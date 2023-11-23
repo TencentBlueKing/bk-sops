@@ -1748,7 +1748,8 @@
                                     parentId,
                                     independentId,
                                     gatewayId: id,
-                                    lastId: item.id
+                                    lastId: item.id,
+                                    taskId
                                 },
                                 ordered,
                                 item.children

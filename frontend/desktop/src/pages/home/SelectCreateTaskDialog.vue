@@ -14,7 +14,7 @@
         width="600"
         :render-directive="'if'"
         :ext-cls="'common-dialog'"
-        :title="$t('创建任务')"
+        :title="$t('新建任务')"
         :mask-close="false"
         :value="isCreateTaskDialogShow"
         :header-position="'left'"
