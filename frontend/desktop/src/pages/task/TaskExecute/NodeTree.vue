@@ -50,14 +50,18 @@
                 handler (val) {
                     this.activeId = val
                     let nodeId = val.split('-')[0]
+                    let parentId = []
                     // 分支条件默认选中特殊处理
-                    if (val.split('-').pop() === 'condition') {
-                        nodeId = val.split('-').slice(0, -1).join('-')
-                        this.activeId = nodeId
+                    if (val.match('condition')) {
+                        // 小画布默认id会携带parentId
+                        const nodes = val.split('-').slice(0, -1)
+                        nodeId = nodes.slice(0, 2).join('-')
+                        this.activeId = nodes.join('-')
+                        parentId = nodes.slice(2)
                     }
                     // 根据父节点过滤节点树
                     let nodes = this.treeData
-                    const parentId = val.split('-').slice(1)
+                    parentId = parentId.length ? parentId : val.split('-').slice(1)
                     if (parentId.length) {
                         parentId.forEach(id => {
                             nodes.some(item => {
@@ -82,9 +86,12 @@
             setDefaultActiveId (treeData = [], id) {
                 return treeData.some(item => {
                     if (item.id === id) {
-                        item.expanded = !!item.isSubProcess
+                        item.expanded = !!item.isSubProcess || !!item.conditionType
                         return true
                     } else if (item.children?.length) {
+                        if (item.expanded) {
+                            return this.setDefaultActiveId(item.children, id)
+                        }
                         item.expanded = this.setDefaultActiveId(item.children, id)
                         return item.expanded
                     }

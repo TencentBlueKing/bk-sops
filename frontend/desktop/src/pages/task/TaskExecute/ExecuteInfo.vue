@@ -42,6 +42,7 @@
                             :show-tool="false"
                             :editable="false"
                             :canvas-data="canvasData"
+                            @onConditionClick="onOpenConditionEdit"
                             @onNodeClick="onNodeClick">
                         </TemplateCanvas>
                         <div class="flow-option">
@@ -986,8 +987,15 @@
                 if (nodeInfo) {
                     nodeInfo && this.onSelectNode(nodeInfo)
                     const parentInstance = this.$parent.$parent
-                    parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId
+                    if (nodeInfo.conditionType) {
+                        parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId + '-condition'
+                    } else {
+                        parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId
+                    }
                 }
+            },
+            onOpenConditionEdit (data) {
+                this.onNodeClick(`${data.nodeId}-${data.id}`)
             },
             onZoomOut () {
                 const jsFlowInstance = this.$refs.subProcessCanvas
