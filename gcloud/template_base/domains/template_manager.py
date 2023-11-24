@@ -272,6 +272,30 @@ class TemplateManager:
         result["data"] = None
         return result
 
+    @transaction.atomic()
+    def discard_draft(self, template, editor):
+
+        if not template.published:
+            message = _("草稿废弃失败，当前流程处于未发布状态!")
+            return {"result": False, "data": None, "message": message, "verbose_message": message}
+
+        # 废弃草稿
+        pipeline_tree = template.pipeline_template.data
+        draft_template = template.draft_template
+
+        draft_template.editor = editor
+        draft_template.save()
+
+        # 更新快照, 回退到当前正在发布的最后一个正式版本
+        snapshot = Snapshot.objects.get(id=draft_template.snapshot_id)
+        h = hashlib.md5()
+        h.update(json.dumps(pipeline_tree).encode("utf-8"))
+        snapshot.md5sum = h.hexdigest()
+        snapshot.data = pipeline_tree
+        snapshot.save()
+
+        return {"result": True, "data": None, "message": "success", "verbose_message": "success"}
+
     def update(
         self,
         template: object,

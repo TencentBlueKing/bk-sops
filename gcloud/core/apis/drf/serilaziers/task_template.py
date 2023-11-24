@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
+from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.core.models import Project
@@ -50,6 +51,17 @@ class TaskTemplateSerializer(TaskTemplateListSerializer):
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        request = self.context.get("request", None)
+        if request:
+            collected = Collection.objects.filter(
+                username=request.user.username, category="flow", instance_id=instance.id
+            ).exists()
+            data["collected"] = collected
+        return data
 
 
 class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):

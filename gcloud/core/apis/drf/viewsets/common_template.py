@@ -73,6 +73,9 @@ class CommonTemplatePermission(IamPermission):
         "publish_draft": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        "discard_draft": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
         "update": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
@@ -119,6 +122,12 @@ class CommonTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         if self.action in ["list", "list_with_top_collection"]:
             return CommonTemplateListSerializer
         return CommonTemplateSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, context={"request": request})
+        data = self.injection_auth_actions(request, serializer.data, instance)
+        return Response(data)
 
     @swagger_auto_schema(
         method="GET", operation_summary="带收藏指定的流程列表", responses={200: TopCollectionCommonTemplateSerializer}
@@ -344,6 +353,20 @@ class CommonTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         """
         common_template = self.get_object()
         result = self.publish_template_draft(manager, common_template, request.user.username)
+        if not result["result"]:
+            message = result["message"]
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        return Response()
+
+    @swagger_auto_schema(method="post", operation_summary="废除草稿")
+    @action(methods=["POST"], detail=True)
+    def discard_draft(self, request, *args, **kwargs):
+        """
+        废除草稿
+        """
+        task_template = self.get_object()
+        result = self.discard_template_draft(manager, task_template, request.user.username)
         if not result["result"]:
             message = result["message"]
             logger.error(message)
