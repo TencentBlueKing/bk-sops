@@ -78,6 +78,9 @@ class TaskTemplatePermission(IamPermission):
         "publish_draft": IamPermissionInfo(
             IAMMeta.FLOW_PUBLISH_DRAFT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        "discard_draft": IamPermissionInfo(
+            IAMMeta.FLOW_PUBLISH_DRAFT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
         "update": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
@@ -208,7 +211,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance)
+        serializer = self.get_serializer(instance, context={"request": request})
         data = self.injection_auth_actions(request, serializer.data, instance)
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
@@ -393,6 +396,20 @@ class TaskTemplateViewSet(GcloudModelViewSet, DraftTemplateViewSetMixin):
         """
         task_template = self.get_object()
         result = self.publish_template_draft(manager, task_template, request.user.username)
+        if not result["result"]:
+            message = result["message"]
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        return Response()
+
+    @swagger_auto_schema(method="post", operation_summary="废除草稿")
+    @action(methods=["POST"], detail=True)
+    def discard_draft(self, request, *args, **kwargs):
+        """
+        废除草稿
+        """
+        task_template = self.get_object()
+        result = self.discard_template_draft(manager, task_template, request.user.username)
         if not result["result"]:
             message = result["message"]
             logger.error(message)

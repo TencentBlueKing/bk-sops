@@ -29,5 +29,7 @@ class DraftTemplateViewSetMixin:
         return result
 
     def publish_template_draft(self, manager, template, username):
-        result = manager.publish_draft_pipeline(template=template, editor=username)
-        return result
+        return manager.publish_draft_pipeline(template=template, editor=username)
+
+    def discard_template_draft(self, manager, template, username):
+        return manager.discard_draft(template, username)
