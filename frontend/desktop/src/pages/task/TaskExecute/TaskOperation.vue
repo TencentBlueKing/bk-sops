@@ -1240,6 +1240,7 @@
                             Promise.resolve(this.loadTaskStatus()).then(() => {
                                 this.onNodeClick(data.node_id)
                                 this.retryNodeId = undefined
+                                this.isSourceDetailSideBar = false
                             })
                         }, 1000)
                     } else {
@@ -1596,7 +1597,8 @@
                                     expanded: false,
                                     target: flows[key].target,
                                     gatewayId: id,
-                                    children: []
+                                    children: [],
+                                    taskId
                                 }
                             })
                             // 添加条件分支默认节点
@@ -1614,7 +1616,8 @@
                                     expanded: false,
                                     target: flows[flow_id].target,
                                     gatewayId: id,
-                                    children: []
+                                    children: [],
+                                    taskId
                                 })
                             }
                         } else if (nodeConfig.type === 'ParallelGateway') {
@@ -1633,7 +1636,8 @@
                                     conditionType: 'parallel',
                                     target: flows[key].target,
                                     gatewayId: id,
-                                    children: []
+                                    children: [],
+                                    taskId
                                 }
                             })
                             if (this.nodeIds[flowId]) {
@@ -2354,6 +2358,7 @@
                             Promise.resolve(this.loadTaskStatus()).then(() => {
                                 this.onNodeClick(data.node_id)
                                 this.retryNodeId = undefined
+                                this.isSourceDetailSideBar = false
                             })
                         }, 1000)
                     } else {
@@ -2374,6 +2379,7 @@
                 // 重新打开详情面板
                 if (this.isSourceDetailSideBar) {
                     this.onNodeClick(id)
+                    this.isSourceDetailSideBar = false
                 }
             },
             onModifyTimeSuccess (id) {
@@ -2435,6 +2441,7 @@
                 // 重新打开详情面板
                 if (this.isSourceDetailSideBar) {
                     this.onNodeClick(this.retryNodeId)
+                    this.isSourceDetailSideBar = false
                 }
                 this.retryNodeId = undefined
             },
@@ -2533,13 +2540,27 @@
                     const execInfoInstance = this.$refs.executeInfo
                     execInfoInstance.loading = true
                     execInfoInstance.subprocessLoading = !!execInfoInstance.subProcessPipeline
-                    setTimeout(() => {
-                        Promise.resolve(this.loadTaskStatus()).then(() => {
-                            execInfoInstance.loadNodeInfo()
-                        }).catch(() => {
+                    setTimeout(async () => {
+                        try {
+                            const { root_node, component_code, taskId } = this.nodeDetailConfig
+                            // 重新拉取父流程状态
+                            await this.loadTaskStatus()
+                            // 更新节点详情
+                            await execInfoInstance.loadNodeInfo()
+                            // 拉取独立子流程状态
+                            if (taskId && component_code !== 'subprocess_plugin') {
+                                const nodes = root_node.split('-')
+                                execInfoInstance.subprocessTasks[taskId] = {
+                                    root_node: nodes.slice(0, -1).join('-'),
+                                    node_id: nodes.slice(-1)[0]
+                                }
+                                // 获取独立子流程任务状态
+                                execInfoInstance.loadSubprocessStatus()
+                            }
+                        } catch (error) {
                             execInfoInstance.loading = false
                             execInfoInstance.subprocessLoading = false
-                        })
+                        }
                     }, 1000)
                 } else {
                     this.isNodeInfoPanelShow = false

@@ -340,7 +340,7 @@
                 subCanvasData: {},
                 timer: null,
                 subprocessLoading: true,
-                subprocessTasks: [],
+                subprocessTasks: {},
                 subprocessNodeStatus: {},
                 subNodesExpanded: [], // 节点树展开的独立子流程节点
                 subProcessHeight: 160,
@@ -363,9 +363,9 @@
                 const { root_node, node_id, taskId } = this.nodeDetailConfig
                 let nodes = this.nodeDisplayStatus.children || {}
                 // 独立子流程节点状态特殊处理
-                if (taskId && Object.keys(this.subprocessNodeStatus).length) {
+                if (taskId) {
                     nodes = this.subprocessNodeStatus[taskId]
-                    nodes = nodes && nodes.data.children
+                    nodes = nodes ? nodes.data.children : {}
                 }
                 if (this.subProcessPipeline) {
                     const parentId = root_node?.split('-') || []
@@ -622,7 +622,7 @@
                     } else if (this.subProcessPipeline) {
                         this.subprocessLoading = false
                     }
-                    this.historyInfo = respData.skip ? [] : [respData]
+                    this.historyInfo = [respData]
                     if (respData.histories) {
                         this.historyInfo.unshift(...respData.histories)
                     }
@@ -1029,8 +1029,15 @@
                     this.toggleNodeActive(this.nodeDetailConfig.node_id, false)
                 }
                 // 如果点击的是子流程节点或者是不属于当前所选中节点树的节点，需要重新刷新子流程画布
-                const updateCanvas = node.parentId && (!this.subProcessPipeline || !this.subProcessPipeline.location.find(item => item.id === node.id))
-                if (node.isSubProcess || updateCanvas) {
+                let updateCanvas = false
+                if (node.isSubProcess) {
+                    updateCanvas = node.id !== this.nodeDetailConfig.node_id
+                }
+                if (!updateCanvas && node.parentId) {
+                    const nodeId = node.conditionType ? node.id.split('-')[0] : node.id
+                    updateCanvas = !this.subProcessPipeline?.location.find(item => item.id === nodeId)
+                }
+                if (updateCanvas) {
                     this.canvasRandomKey = new Date().getTime()
                     this.$nextTick(() => {
                         this.setCanvasZoomPosition()
@@ -1384,7 +1391,7 @@
                     }
                     const resp = await this.getBatchInstanceStatus(data)
                     if (!resp.result) return
-                    Object.assign(this.subprocessNodeStatus, resp.data)
+                    this.subprocessNodeStatus = resp.data
                     for (const [key, value] of Object.entries(resp.data)) {
                         const { root_node, node_id } = this.subprocessTasks[key]
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)

@@ -83,7 +83,7 @@
                 :active-id="activeId"
                 :node-list="node.children"
                 @dynamicLoad="$emit('dynamicLoad', $event)"
-                @click="handleClickNode">
+                @click="$emit('click', $event)">
             </NodeTreeItem>
         </li>
     </ul>
@@ -142,7 +142,10 @@
                     node.expanded = true
                     return
                 }
-                if (!node.expanded) {
+                if (node.expanded) {
+                    const activeId = node.parentId ? node.id + '-' + node.parentId : node.id
+                    node.expanded = activeId !== this.activeId
+                } else {
                     node.expanded = true
                 }
                 this.$emit('click', node)
