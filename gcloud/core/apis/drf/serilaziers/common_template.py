@@ -50,10 +50,19 @@ class CommonTemplateSerializer(CommonTemplateListSerializer):
         data = super().to_representation(instance)
         request = self.context.get("request", None)
         if request:
-            collected = Collection.objects.filter(
-                username=request.user.username, category="common_flow", instance_id=instance.id
-            ).exists()
+            collected = False
+            collection_id = None
+            try:
+                collection = Collection.objects.get(
+                    username=request.user.username, category="flow", instance_id=instance.id
+                )
+                collected = True
+                collection_id = collection.id
+            except Collection.DoesNotExist:
+                pass
+
             data["collected"] = collected
+            data["collection_id"] = collection_id
 
         return data
 
