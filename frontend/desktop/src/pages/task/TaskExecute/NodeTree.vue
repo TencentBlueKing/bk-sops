@@ -86,7 +86,7 @@
             setDefaultActiveId (treeData = [], id) {
                 return treeData.some(item => {
                     if (item.id === id) {
-                        item.expanded = !!item.isSubProcess || !!item.conditionType
+                        item.expanded = !!item.isSubProcess || !!item.conditionType || item.isGateway
                         return true
                     } else if (item.children?.length) {
                         if (item.expanded) {
