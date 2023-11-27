@@ -84,6 +84,13 @@ ACTIONS = [
         "resource_topo": ["project", "flow"],
     },
     {
+        "id": "flow_publish_draft",
+        "name": _("流程发布草稿"),
+        "relate_resources": ["flow"],
+        "relate_actions": ["flow_view"],
+        "resource_topo": ["project", "flow"],
+    },
+    {
         "id": "flow_delete",
         "name": _("删除流程"),
         "relate_resources": ["flow"],
@@ -177,6 +184,13 @@ ACTIONS = [
     {
         "id": "common_flow_edit",
         "name": _("编辑公共流程"),
+        "relate_resources": ["common_flow"],
+        "relate_actions": ["common_flow_view"],
+        "resource_topo": ["common_flow"],
+    },
+    {
+        "id": "common_flow_publish_draft",
+        "name": _("公共流程发布草稿"),
         "relate_resources": ["common_flow"],
         "relate_actions": ["common_flow_view"],
         "resource_topo": ["common_flow"],
