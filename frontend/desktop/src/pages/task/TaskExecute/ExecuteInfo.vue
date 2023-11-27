@@ -456,6 +456,28 @@
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
+                // 判断父级节点是否存在失败后跳过
+                if (this.nodeDetailConfig.taskId) {
+                    const allNodeStatus = {
+                        ...this.nodeDisplayStatus.children,
+                        ...Object.values(this.subprocessNodeStatus).reduce((acc, item) => {
+                            return {
+                                ...acc,
+                                ...item.data.children
+                            }
+                        }, {})
+                    }
+
+                    const parentIds = this.nodeDetailConfig.root_node.split('-')
+                    const isFailedSkip = parentIds.some(id => {
+                        const { state, skip } = allNodeStatus[id] || {}
+                        return state === 'FINISHED' && skip
+                    })
+
+                    if (isFailedSkip) {
+                        return false
+                    }
+                }
                 return (this.realTimeState.state === 'RUNNING' && !this.isSubProcessNode)
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
@@ -1391,7 +1413,9 @@
                     }
                     const resp = await this.getBatchInstanceStatus(data)
                     if (!resp.result) return
-                    this.subprocessNodeStatus = resp.data
+                    Object.keys(resp.data).forEach(key => {
+                        this.$set(this.subprocessNodeStatus, key, resp.data[key])
+                    })
                     for (const [key, value] of Object.entries(resp.data)) {
                         const { root_node, node_id } = this.subprocessTasks[key]
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
