@@ -11,12 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
-
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
-ver_settings = importlib.import_module('gcloud.conf.sites.%s.ver_settings' % settings.OPEN_VER)
+import env
+from packages.blueking.component.shortcuts import get_client_by_request, get_client_by_user
 
-for _setting in dir(ver_settings):
-    if _setting.upper() == _setting:
-        locals()[_setting] = getattr(ver_settings, _setting)
+RUN_VER_NAME = _("腾讯蓝鲸智云")
+
+ESB_GET_CLIENT_BY_REQUEST = get_client_by_request
+ESB_GET_CLIENT_BY_USER = get_client_by_user
+
+ESB_GET_OLD_CLIENT_BY_REQUEST = get_client_by_request
+ESB_GET_OLD_CLIENT_BY_USER = get_client_by_user
+
+APP_HOST = env.BK_SOPS_HOST
+ESB_GET_ALL_USER = "{}/api/c/compapi/v2/usermanage/fe_list_users/".format(settings.BK_PAAS_ESB_HOST)
+BK_DOC_URL = "{}/markdown/SOPS/UserGuide/Overview/README.md".format(env.BK_DOC_CENTER_HOST)
+FEEDBACK_URL = "https://bk.tencent.com/s-mart/community"
+APP_MAKER_UPLOAD_LOGO_USER_UIN = "bk_token"
+APP_MAKER_UPLOAD_LOGO_USER_KEY = "bk_token_null"
+
+IMPORT_V1_TEMPLATE_FLAG = False
+WHETHER_PREPARE_BIZ_IN_API_CALL = True
