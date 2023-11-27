@@ -194,10 +194,17 @@
                     </div>
                 </div>
             </section>
-            <section v-if="theEditingData.source_type !== 'component_outputs' && !isInternalVal" class="form-section">
+            <section v-if="!['component_outputs', 'system'].includes(theEditingData.source_type)" class="form-section">
                 <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
+                <!-- 项目变量 -->
+                <div class="form-item clearfix" v-if="theEditingData.source_type === 'project'">
+                    <label>{{ $t('输入框') }}</label>
+                    <div class="form-content">
+                        <bk-input v-model="theEditingData.value" :readonly="true"></bk-input>
+                    </div>
+                </div>
                 <!-- 默认值 -->
-                <div class="form-item value-form clearfix">
+                <div class="form-item value-form clearfix" v-else>
                     <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
                         <template v-if="!atomConfigLoading && renderConfig.length">
                             <RenderForm
