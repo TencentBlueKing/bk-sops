@@ -27,7 +27,6 @@
             :state="state"
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
-            :is-task-operation-btns-show="isTaskOperationBtnsShow"
             :params-can-be-modify="paramsCanBeModify"
             :pending-nodes="pendingNodes"
             @moveNodeToView="moveNodeToView"
@@ -465,9 +464,6 @@
             // 当前画布是否为最外层
             isTopTask () {
                 return this.nodeNav.length === 1
-            },
-            isTaskOperationBtnsShow () {
-                return this.state !== 'REVOKED' && this.state !== 'FINISHED'
             },
             taskOperationBtns () {
                 const operationBtns = []

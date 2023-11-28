@@ -459,7 +459,8 @@
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
-                return this.realTimeState.state === 'RUNNING'
+                const executeState = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(this.realTimeState.state)
+                return executeState
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
                     || this.isShowContinueBtn
@@ -1578,7 +1579,7 @@
             display: flex;
             align-items: center;
             :first-child {
-                margin: 2px 5px 0;
+                margin: 0 5px;
             }
         }
         .common-icon-dark-circle-ellipsis {

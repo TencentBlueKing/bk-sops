@@ -76,7 +76,7 @@
                 <i class="common-icon-skip"></i>
                 {{ $t('跳过') }}
             </span>
-            <template v-if="node.status === 'RUNNING'">
+            <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(node.status)">
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
                     <i class="common-icon-play"></i>
                     {{ $t('继续') }}
