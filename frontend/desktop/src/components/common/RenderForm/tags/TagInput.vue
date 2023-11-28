@@ -476,6 +476,17 @@
             handleBlur () {
                 this.emit_event(this.tagCode, 'blur', this.value)
                 this.$emit('blur', this.value)
+            },
+            focus () {
+                const divInputDom = this.$el.querySelector('.div-input')
+                const focusDom = divInputDom.lastChild
+                const range = document.createRange()
+                range.selectNodeContents(focusDom)
+                range.collapse(false)
+                const selection = window.getSelection()
+                selection.removeAllRanges()
+                selection.addRange(range)
+                this.lastEditRange = selection.getRangeAt(0)
             }
         }
     }
@@ -546,7 +557,7 @@
             background-color: #fafbfd;
             border-color: #dcdee5;
             .div-input {
-                height: 32px;
+                height: 30px;
             }
             /deep/.var-tag {
                 cursor: not-allowed;
@@ -554,9 +565,9 @@
         }
     }
     .div-input {
-        height: 32px;
+        height: 30px;
         line-height: 18px;
-        padding: 7px 0;
+        padding: 6px 0;
         color: #63656e;
         white-space: nowrap;
         overflow: hidden;

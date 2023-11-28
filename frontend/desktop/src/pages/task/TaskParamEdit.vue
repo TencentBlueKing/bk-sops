@@ -382,24 +382,15 @@
         /deep/ .render-form {
             .rf-form-item {
                 margin: 0 0 24px;
-                .rf-group-name .required {
-                    display: inline-block !important;
-                    color: #F00;
-                    margin-left: 3px;
-                    font-family: "SimSun";
-                }
-                .rf-tag-label {
-                    display: none;
-                }
-                .rf-tag-form {
-                    margin-left: 0;
-                }
                 .el-input-number {
                     line-height: 32px;
                 }
             }
             .rf-form-group {
                 margin-bottom: 24px;
+                .rf-tag-label {
+                    display: block;
+                }
                 .common-icon-dark-circle-warning {
                     right: 16px;
                     top: 39px;
@@ -409,22 +400,15 @@
                 padding: 16px;
                 background: #f5f7fa;
                 .rf-form-item {
-                    .rf-tag-label {
-                        display: block;
-                        float: initial;
-                        margin: 0 0 6px;
-                        text-align: left;
-                        color: #63656e;
-                        line-height: 20px;
-                        .required {
-                            position: relative;
-                            top: 0;
-                            right: 0;
-                        }
+                    .scheme-name {
+                        font-size: 12px;
                     }
                     &:last-child {
                         margin-bottom: 0;
                     }
+                }
+                .rf-form-group >.rf-tag-label {
+                    display: none;
                 }
                 .form-item-group {
                     padding: 0;

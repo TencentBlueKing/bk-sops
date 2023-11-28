@@ -1,15 +1,17 @@
 <template>
     <bk-select
         ref="tplSelect"
-        v-model="value"
+        :value="value"
         class="bk-select-inline"
+        ext-popover-cls="tpl-select-popover"
         :searchable="true"
         :placeholder="$t('请选择')"
         :clearable="true"
         :disabled="isViewMode"
         enable-scroll-load
-        :scroll-loading="{ isLoading: template.loading }"
+        :scroll-loading="{ isLoading: template.scrollLoading }"
         :show-empty="false"
+        :loading="template.loading"
         :remote-method="onTplSearch"
         @selected="onSelectedTemplate"
         @clear="onClearTemplate"
@@ -17,11 +19,15 @@
         <bk-option-group
             v-for="(group, index) in template.list"
             :name="group.name"
-            :key="index">
-            <p slot="group-name">
+            :key="index"
+            :show-collapse="group.showCollapse"
+            :is-collapse="group.isCollapse"
+            @collapse="group.isCollapse = $event">
+            <span slot="group-name">
+                <i class="common-icon-next-triangle-shape" :class="{ 'triangle-down': !group.isCollapse }"></i>
                 {{ group.name }}
                 ({{ group.count }})
-            </p>
+            </span>
             <bk-option v-for="childOption in group.children"
                 :key="childOption.id"
                 :id="childOption.id"
@@ -37,32 +43,41 @@
 <script>
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import CancelRequest from '@/api/cancelRequest.js'
     export default {
         name: 'TplSelect',
+        mixins: [permission],
         props: {
-            value: [String, Array],
+            value: [String, Number],
             isViewMode: Boolean,
-            project_id: [String, Number]
+            project_id: [String, Number],
+            common: [String, Number],
+            nodeConfig: Object
         },
         data () {
             return {
-                isInit: true,
+                defaultTpl: null,
                 subFlowLoading: false,
                 template: {
                     list: [
                         {
                             name: this.$t('项目流程'),
                             count: 0,
+                            showCollapse: true,
+                            isCollapse: false,
                             children: []
                         },
                         {
                             name: this.$t('公共流程'),
                             count: 0,
+                            showCollapse: true,
+                            isCollapse: false,
                             children: []
                         }
                     ],
-                    loading: false,
+                    loading: true,
+                    scrollLoading: false,
                     disabled: false
                 },
                 totalPage: 1,
@@ -79,8 +94,19 @@
         async created () {
             await this.getTemplateList()
             // 初始化时选中的模板是否存在已被拿到
+            const isMatch = this.template.list.some(group => {
+                return group.children.some(item => item.id === this.value)
+            })
+            if (!isMatch) {
+                this.defaultTpl = this.value
+                await this.addDefaultTemplate()
+            }
+            this.template.loading = false
         },
         methods: {
+            ...mapActions('template/', [
+                'loadTemplateData'
+            ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
@@ -91,6 +117,7 @@
                     const params = {
                         limit: 15,
                         offset,
+                        published: true,
                         pipeline_template__name__icontains: this.flowName || undefined
                     }
                     const source = new CancelRequest()
@@ -113,13 +140,18 @@
                                 tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${this.flowName}</span>`)
                             }
                         }
-                        result.push(tplCopy)
+                        // 只记录非默认流程
+                        if (this.defaultTpl !== tpl.id) {
+                            result.push(tplCopy)
+                        }
                     })
 
                     // 当项目列表为空或轮到公共流程加载时, 添加公共流程分组
                     if (isCommon && !this.template.list[1]) {
                         this.template.list.push({
                             name: this.$t('公共流程'),
+                            showCollapse: true,
+                            isCollapse: false,
                             children: result
                         })
                     } else if (!isCommon && !tplListData.count) {
@@ -152,7 +184,38 @@
                     }
                 } catch (e) {
                     console.log(e)
+                    this.template.loading = false
                 } finally {
+                    this.template.scrollLoading = false
+                }
+            },
+            // 添加初始化时默认选中模板
+            async addDefaultTemplate () {
+                try {
+                    const isCommon = this.common || this.nodeConfig.template_source === 'common'
+                    const resp = await this.loadTemplateData({
+                        templateId: this.defaultTpl,
+                        common: isCommon,
+                        checkPermission: true
+                    })
+                    if (this.isCommon) {
+                        if (this.template.list[1]) {
+                            const { children } = this.template.list[1]
+                            children.unshift(resp)
+                        } else {
+                            this.template.list[1] = {
+                                name: this.$t('公共流程'),
+                                showCollapse: true,
+                                isCollapse: false,
+                                children: [resp]
+                            }
+                        }
+                    } else {
+                        const { children } = this.template.list[0]
+                        children.unshift(resp)
+                    }
+                } catch (error) {
+                    console.warn(error)
                     this.template.loading = false
                 }
             },
@@ -190,7 +253,7 @@
             onSelectScrollLoad () {
                 if (this.totalPage !== this.tplPagination.current) {
                     this.tplPagination.current += 1
-                    this.template.loading = true
+                    this.template.scrollLoading = true
                     this.getTemplateList(true)
                 }
             },
@@ -279,6 +342,53 @@
     }
 </script>
 
-<style>
+<style lang="scss" scoped>
+.tpl-select-popover {
+    .bk-option-group {
+        margin-bottom: 8px;
 
+        /deep/.bk-option-group-name {
+            border-bottom: none;
+            .bk-option-group-prefix {
+                display: none;
+            }
+            i {
+                position: relative;
+                top: -2px;
+            }
+            .triangle-down {
+                display: inline-block;
+                transform: rotate(90deg);
+            }
+        }
+        .bk-group-options {
+            .bk-option {
+                padding: 0 18px 0 24px;
+                /deep/.bk-option-content {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding-right: 0;
+                }
+                &:hover {
+                    color: #63656e;
+                    background: #f5f7fa;
+                }
+                &.is-selected {
+                    color: #3a84ff;
+                    background: #e1ecff;
+                }
+                &:first-child {
+                    margin-top: 0;
+                }
+                .common-icon-box-top-right-corner {
+                    color: #63656e;
+                    &:hover {
+                        color: #3a84ff;
+                    }
+                }
+            }
+        }
+    }
+}
 </style>

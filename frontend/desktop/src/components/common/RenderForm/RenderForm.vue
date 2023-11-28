@@ -21,9 +21,11 @@
             :hook="hooked[atom.tag_code]"
             :render="renderConfig[atom.tag_code]"
             :constants="constants"
-            @change="updateForm"
-            @onHook="updateHook"
-            @onRenderChange="updateRender">
+            @change="updateForm">
+            <template v-slot:hook="props">
+                {{ props.compInstance }}
+                <slot name="hook" :params="props" />
+            </template>
         </component>
     </div>
 </template>
@@ -39,6 +41,7 @@
     import tools from '@/utils/tools.js'
     import FormGroup from './FormGroup.vue'
     import FormItem from './FormItem.vue'
+    import Template from '../../../pages/admin/statistics/Template.vue'
 
     const DEFAUTL_OPTION = {
         showRequired: true, // 是否展示必填icon
@@ -54,7 +57,8 @@
         name: 'RenderForm',
         components: {
             FormGroup,
-            FormItem
+            FormItem,
+            Template
         },
         model: {
             prop: 'formData',
@@ -105,9 +109,7 @@
         },
         data () {
             return {
-                value: tools.deepClone(this.formData),
-                watchVarInfo: {}, // 监听的变量
-                changeVarInfo: {} // 隐藏的变量
+                value: tools.deepClone(this.formData)
             }
         },
         computed: {
@@ -131,40 +133,6 @@
         },
         created () {
             this.checkValue(this.scheme, this.value)
-            // 设置变量自动隐藏对象
-            const watchVarInfo = {}
-            const changeVarInfo = {}
-            Object.values(this.constants).forEach(item => {
-                if (!item.hide_condition || !item.hide_condition.length) return
-                item.hide_condition.forEach(val => {
-                    const { constant_key: key, operator, value } = val
-                    // 隐藏的变量和对应的监听变量
-                    if (!(item.key in changeVarInfo)) {
-                        changeVarInfo[item.key] = {}
-                    }
-                    changeVarInfo[item.key][key] = false
-                    // 监听的变量和对应的隐藏变量
-                    const params = {
-                        target_key: item.key,
-                        operator,
-                        value,
-                        isOr: true // 与逻辑或或逻辑 默认或逻辑
-                    }
-                    if (key in watchVarInfo) {
-                        watchVarInfo[key].push(params)
-                    } else {
-                        watchVarInfo[key] = [params]
-                    }
-                })
-            })
-            this.watchVarInfo = watchVarInfo
-            this.changeVarInfo = changeVarInfo
-        },
-        mounted () {
-            if (!Object.keys(this.watchVarInfo).length) return
-            for (const [key, value] of Object.entries(this.formData)) {
-                this.setVariableHideLogic(key, value)
-            }
         },
         methods: {
             /**
@@ -324,45 +292,6 @@
                 }, fieldDataObj)
                 this.value = tools.deepClone(fieldDataObj) // 更新 value，通过下面触发 change 更新父组件 formData 后，watch 具有滞后性，导致 value 值不是最新的
                 this.$emit('change', fieldDataObj)
-                // 变量隐藏逻辑
-                if (!Object.keys(this.watchVarInfo).length) return
-                const key = fieldArr[0]
-                this.setVariableHideLogic(key, val)
-            },
-            updateHook (field, val) {
-                this.$emit('onHookChange', field, val)
-            },
-            updateRender (field, val) {
-                this.$emit('onRenderChange', field, val)
-            },
-            // 设置变量隐藏逻辑
-            setVariableHideLogic (key, val) {
-                if (key in this.watchVarInfo) {
-                    const values = this.watchVarInfo[key]
-                    values.forEach(item => {
-                        let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
-                        const index = this.scheme.findIndex(config => config.tag_code === item.target_key)
-                        const targetTag = this.$children[index]
-                        const relatedVarInfo = this.changeVarInfo[item.target_key]
-                        // 计算输入值是否匹配
-                        isEqual = (item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)
-                        relatedVarInfo[key] = isEqual
-                        // 相关运算逻辑
-                        let isMatch = false
-                        const relatedVarValues = Object.values(relatedVarInfo)
-                        if (item.isOr) {
-                            isMatch = relatedVarValues.some(option => option)
-                        } else {
-                            isMatch = relatedVarValues.every(option => option)
-                        }
-                        // 显示隐藏
-                        if (isMatch) {
-                            targetTag.onHideForm()
-                        } else {
-                            targetTag.onShowForm()
-                        }
-                    })
-                }
             },
             /**
              * 获取 combine 类型组件的子组件实例
@@ -423,38 +352,10 @@
         border-color: #ff5656;
     }
 }
-.html-used-tippy-popper {
-    .tippy-tooltip {
-        font-style: 12px;
-        padding: 8px 12px;
-        border: 1px solid #dcdee5;
-        box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
-        .bk-tooltip-content {
-            .tip-title {
-                color: #63656e;
-                font-size: 12px;
-                margin-bottom: 9px;
-                i {
-                    font-size: 14px;
-                    color: #ff9c01;
-                }
-            }
-            .tip-content {
-                color: #979ba5;
-                margin: 0 0 8px 18px;
-            }
-            .tip-btn {
-                text-align: right;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
-    }
-}
 </style>
 <style lang="scss" scoped>
 .render-form {
-    /deep/ .rf-group-name {
+    /deep/ .rf-tag-label {
         margin-bottom: 8px;
         .scheme-name,
         .scheme-code {
@@ -478,6 +379,14 @@
             z-index: 2;
             font-size: 14px;
             color: #ff9c01;
+        }
+    }
+    /deep/.form-item-content {
+        display: flex;
+        width: 100%;
+        .rf-tag-form {
+            flex: 1;
+            min-width: 100px;
         }
     }
     /deep/ .scheme-desc-wrap {
@@ -508,6 +417,40 @@
             background: #fff;
             cursor: pointer;
             font-size: 12px;
+        }
+    }
+}
+</style>
+<style lang="scss">
+.tag-hook-pop-content {
+    .tippy-tooltip {
+        padding: 4px 0;
+        border: 1px solid #dcdee5;
+        box-shadow: 0 2px 6px 0 #0000001a;
+        border-radius: 2px;
+    }
+    .operate-item {
+        position: relative;
+        width: 178px;
+        padding: 5px 12px 7px;
+        line-height: 20px;
+        color: #63656e;
+        cursor: pointer;
+        &:hover {
+            background: #f5f7fa;
+        }
+        &:last-child {
+            margin-top: 9px;
+            &::before {
+                content: '';
+                display: block;
+                height: 1px;
+                width: calc(100% - 22px);
+                position: absolute;
+                top: -5px;
+                left: 11px;
+                background: #dcdee5;
+            }
         }
     }
 }

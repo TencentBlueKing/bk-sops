@@ -10,7 +10,7 @@
 */
 <template>
     <div class="output-params">
-        <bk-table :data="list" :col-border="false" :row-class-name="getRowClassName">
+        <bk-table :data="outputsList" :col-border="false" :row-class-name="getRowClassName">
             <bk-table-column :label="$t('名称')" :width="150" prop="name">
                 <p
                     slot-scope="props"
@@ -19,76 +19,37 @@
                     {{ props.row.name }}
                 </p>
             </bk-table-column>
-            <bk-table-column label="Key" class-name="param-key">
-                <template slot-scope="props">
-                    <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
-                    <span class="hook-icon-wrap">
-                        <i
-                            :class="['common-icon-variable-hook hook-icon', {
-                                actived: props.row.hooked,
-                                disabled: isViewMode || !hook
-                            }]"
-                            v-bk-tooltips="{
-                                content: props.row.hooked ? $t('取消接收输出') : $t('使用变量接收输出'),
-                                placement: 'bottom',
-                                zIndex: 3000
-                            }"
-                            @click="onHookChange(props)">
-                        </i>
-                    </span>
-                </template>
+            <bk-table-column label="Key">
+                <div slot-scope="props" class="output-key">
+                    <div v-bk-overflow-tips class="key">{{ props.row.key }}</div>
+                    <div
+                        v-if="props.row.hooked"
+                        class="hooked-input"
+                        :class="{ 'disabled': isViewMode, 'active': isHookingVariable === props.row.key }">
+                        <span class="key" v-bk-overflow-tips>{{ props.row.varKey }}</span>
+                        <i class="bk-icon icon-edit-line" @click="handleVariableHook(props.row.key)"></i>
+                    </div>
+                    <i
+                        :class="['common-icon-variable-hook hook-icon', {
+                            actived: props.row.hooked,
+                            disabled: isViewMode
+                        }]"
+                        v-bk-tooltips="{
+                            content: props.row.hooked ? $t('取消接收输出') : $t('使用变量接收输出'),
+                            placement: 'top',
+                            zIndex: 3000
+                        }"
+                        @click="onHookChange(props)">
+                    </i>
+                </div>
             </bk-table-column>
         </bk-table>
-        <bk-dialog
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :render-directive="'if'"
-            :header-position="'left'"
-            :title="$t('使用变量接收输出')"
-            :auto-close="false"
-            :value="isShow"
-            width="600"
-            :cancel-text="$t('取消')"
-            @confirm="onConfirm"
-            @cancel="onCancel">
-            <div class="variable-dialog">
-                <bk-alert
-                    style="margin-bottom: 14px;"
-                    type="warning"
-                    :title="$t('已存在相同KEY的变量，请新建变量')">
-                </bk-alert>
-                <bk-form
-                    ref="form"
-                    :model="formData"
-                    :rules="rules">
-                    <template>
-                        <bk-form-item :label="$t('变量名称')" property="name" :required="true">
-                            <bk-input
-                                name="variableName"
-                                v-model="formData.name"
-                                :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
-                                :show-word-limit="true">
-                            </bk-input>
-                        </bk-form-item>
-                        <bk-form-item :label="$t('变量KEY')" property="key" :required="true">
-                            <bk-input
-                                name="variableKey"
-                                v-model="formData.key"
-                                :maxlength="stringLength.VARIABLE_KEY_MAX_LENGTH"
-                                :show-word-limit="true">
-                            </bk-input>
-                        </bk-form-item>
-                    </template>
-                </bk-form>
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
-    import tools from '@/utils/tools.js'
-    import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
+    import { random4 } from '@/utils/uuid.js'
+    import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
     export default {
         name: 'OutputParams',
         props: {
@@ -97,96 +58,42 @@
                 type: Boolean,
                 default: true
             },
+            basicInfo: Object,
             constants: Object,
             thirdPartyCode: String,
-            isSubflow: Boolean,
+            isSubFlow: Boolean,
             isViewMode: Boolean,
             nodeId: String,
             version: String // 标准插件版本或子流程版本
         },
         data () {
-            const list = this.getOutputsList(this.params)
-            const $this = this
             return {
-                list,
-                isShow: false,
-                formData: {},
-                selectIndex: '',
-                stringLength: STRING_LENGTH,
-                rules: {
-                    name: [
-                        {
-                            required: true,
-                            message: i18n.t('必填项'),
-                            trigger: 'blur'
-                        },
-                        {
-                            max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                            message: i18n.t('变量名称长度不能超过') + STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH + i18n.t('个字符'),
-                            trigger: 'blur'
-                        },
-                        {
-                            regex: NAME_REG,
-                            message: i18n.t('变量名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
-                            trigger: 'blur'
-                        }
-                    ],
-                    key: [
-                        {
-                            required: true,
-                            message: i18n.t('必填项'),
-                            trigger: 'blur'
-                        },
-                        {
-                            max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
-                            message: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
-                            trigger: 'blur'
-                        },
-                        {
-                            // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
-                            regex: /(^\${(?!_env_|_system\.)[a-zA-Z_]\w*}$)|(^(?!_env_|_system\.)[a-zA-Z_]\w*$)/,
-                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，不允许使用系统变量及业务环境变量命名规则，且不能以数字开头'),
-                            trigger: 'blur'
-                        },
-                        {
-                            validator (val) {
-                                const value = /^\$\{\w+\}$/.test(val) ? val : `\${${val}}`
-                                if (value in $this.constants) {
-                                    return false
-                                }
-                                return true
-                            },
-                            message: i18n.t('变量KEY值已存在'),
-                            trigger: 'blur'
-                        }
-                    ]
-                },
+                isHookingVariable: '',
                 unhookingVarIndex: 0 // 正被取消勾选的表单下标
             }
         },
-        watch: {
-            params (val) {
-                this.list = this.getOutputsList(val)
-            }
-        },
-        methods: {
-            getOutputsList () {
+        computed: {
+            ...mapState({
+                'varPanelActivated': state => state.template.varPanelActivated
+            }),
+            outputsList () {
                 const list = []
                 const varKeys = Object.keys(this.constants)
                 this.params.forEach(param => {
-                    let key = param.key
+                    let { key: varKey } = param
                     const isHooked = varKeys.some(item => {
                         const varItem = this.constants[item]
                         if (varItem.source_type === 'component_outputs') {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
-                                key = item
+                                varKey = item
                                 return true
                             }
                         }
                     })
                     list.push({
-                        key,
+                        key: param.key,
+                        varKey,
                         name: param.name,
                         description: param.schema ? param.schema.description : '--',
                         version: param.version,
@@ -195,7 +102,28 @@
                     })
                 })
                 return list
-            },
+            }
+        },
+        watch: {
+            varPanelActivated (val) {
+                if (!val) {
+                    this.isHookingVariable = ''
+                }
+            }
+        },
+        created () {
+            // 表单项使用变量
+            bus.$on('useVariable', (data) => {
+                const { variable = {} } = data
+                if (variable.cited_info?.source !== 'output') return
+
+                this.$emit('updateConstants', 'edit', data.variable)
+            })
+        },
+        beforeDestroy () {
+            bus.$off('useVariable')
+        },
+        methods: {
             getRowClassName ({ row }) {
                 return row.status || ''
             },
@@ -208,83 +136,60 @@
                 this.unhookingVarIndex = index
                 if (!props.row.hooked) {
                     props.row.hooked = true
-                    // 输出选中默认新建不弹窗，直接生成变量。 如果有冲突则如下弹窗
+                    // 输出选中默认新建不弹窗，直接生成变量。 如果有冲突则key+随机数
                     const { key, version, plugin_code } = props.row
                     const value = /^\$\{\w+\}$/.test(key) ? key : `\${${key}}`
-                    if (value in this.constants) {
-                        this.isShow = true
-                        this.formData = tools.deepClone(props.row)
-                        this.formData.key = ''
-                        this.selectIndex = index
+                    const isExist = value in this.constants
+                    let setKey = ''
+                    if ((/^\$\{((?!\{).)*\}$/).test(key)) {
+                        setKey = isExist ? key.slice(0, -1) + `_${random4()}}` : key
+                        props.row.varKey = setKey
                     } else {
-                        let setKey = ''
-                        if ((/^\$\{((?!\{).)*\}$/).test(key)) {
-                            props.row.key = key
-                            setKey = key
-                        } else {
-                            props.row.key = `\$\{${key}\}`
-                            setKey = `\$\{${key}\}`
-                        }
-                        const config = {
-                            name: props.row.name,
-                            key: setKey,
-                            source_info: {
-                                [this.nodeId]: [this.params[index].key]
-                            },
-                            version,
-                            plugin_code: this.isSubflow ? plugin_code : (this.thirdPartyCode || '')
-                        }
-                        this.createVariable(config)
+                        setKey = isExist ? `\$\{${key + '_' + random4()}\}` : `\$\{${key}\}`
+                        props.row.varKey = setKey
                     }
+                    const config = {
+                        name: props.row.name,
+                        key: setKey,
+                        source_info: {
+                            [this.nodeId]: [this.params[index].key]
+                        },
+                        version,
+                        plugin_code: this.isSubFlow ? plugin_code : (this.thirdPartyCode || '')
+                    }
+                    this.createVariable(config)
                 } else {
                     const config = ({
-                        type: 'delete',
                         id: this.nodeId,
-                        key: props.row.key,
-                        tagCode: props.row.key,
+                        key: props.row.varKey,
+                        tagCode: props.row.varKey,
                         source: 'output'
                     })
-                    this.$emit('hookChange', 'delete', config)
+                    this.$emit('updateConstants', 'delete', config)
                 }
             },
-            // 变量勾选/取消勾选后，需重新对form进行赋值
-            setFormData () {
-                const index = this.unhookingVarIndex
-                this.list[index].key = this.params[index].key
-                this.list[index].name = this.params[index].name
-                this.list[index].hooked = false
-            },
-            onConfirm ($event) {
-                this.$refs.form.validate().then(result => {
-                    if (result) {
-                        const { name, key } = this.formData
-                        this.isShow = false
-                        const selectInfo = this.list[this.selectIndex]
-                        const version = this.isSubflow ? selectInfo.version : this.version
-                        let setKey = ''
-                        if ((/^\$\{((?!\{).)*\}$/).test(key)) {
-                            selectInfo.key = key
-                            setKey = key
-                        } else {
-                            selectInfo.key = `\$\{${key}\}`
-                            setKey = `\$\{${key}\}`
-                        }
-                        const config = {
-                            name: name,
-                            key: setKey,
-                            source_info: {
-                                [this.nodeId]: [this.params[this.selectIndex].key]
-                            },
-                            version,
-                            plugin_code: this.isSubflow ? selectInfo.plugin_code : (this.thirdPartyCode || '')
-                        }
-                        this.createVariable(config)
+            handleVariableHook (key) {
+                if (this.isViewMode) return
+                this.isHookingVariable = key
+                const config = Object.values(this.constants).find(item => {
+                    const { source_type: sourceType, source_info: sourceInfo = {} } = item
+                    return sourceType === 'component_outputs' && sourceInfo[this.nodeId]?.includes(key)
+                })
+                const scheme = this.outputsList.find(item => item.key === key)
+                bus.$emit('variableHook', {
+                    ...config,
+                    cited_info: {
+                        key: scheme.varKey,
+                        type: 'edit',
+                        source: 'output',
+                        plugin: this.basicInfo.name,
+                        field: scheme.name,
+                        tagCode: scheme.key,
+                        nodeId: this.nodeId,
+                        nodeName: this.basicInfo.nodeName,
+                        isSubFlow: this.isSubFlow
                     }
                 })
-            },
-            onCancel () {
-                this.isShow = false
-                this.list[this.selectIndex].hooked = false
             },
             createVariable (variableOpts) {
                 const len = Object.keys(this.constants).length
@@ -304,7 +209,7 @@
                     plugin_code: ''
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
-                this.$emit('hookChange', 'create', variable)
+                this.$emit('updateConstants', 'create', variable)
             }
         }
     }
@@ -312,19 +217,6 @@
 <style lang="scss" scoped>
     .output-params {
         padding: 16px 30px 32px;
-    }
-    .variable-dialog {
-        padding: 30px;
-        .new-var-notice {
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #ea3636;
-        }
-        .bk-form:not(.bk-form-vertical) {
-            /deep/ .bk-form-content {
-                margin-right: 30px;
-            }
-        }
     }
     .bk-table {
         /deep/ .bk-table-row {
@@ -348,28 +240,76 @@
         white-space: nowrap;
         text-overflow: ellipsis;
     }
-    .hook-icon-wrap {
-        position: absolute;
-        right: 22px;
-        top: 9px;
+    .output-key {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      .key {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .hooked-input {
+        flex: 1;
+        height: 32px;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
+        margin: 0 15px;
+        background: #fafbfd;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+        &.disabled {
+            cursor: not-allowed;
+            .icon-edit-line {
+                color: #c4c6cc;
+                &:hover {
+                    background: #f0f1f5;
+                    cursor: not-allowed;
+                }
+            }
+        }
+        &.active {
+            border-color: #3a84ff;
+        }
+      }
+      .icon-edit-line {
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+        text-align: center;
+        line-height: 24px;
+        font-size: 16px;
+        color: #979ba5;
+        background: #f0f1f5;
+        border-radius: 2px;
+        cursor: pointer;
+        &:hover {
+          color: #3a84ff;
+          background: #e1ecff;
+        }
+      }
+    }
+    .hook-icon {
+        flex-shrink: 0;
         display: inline-block;
         width: 32px;
         height: 32px;
         line-height: 32px;
+        font-size: 16px;
+        color: #979ba5;
         background: #f0f1f5;
         text-align: center;
         border-radius: 2px;
-        .hook-icon {
-            font-size: 16px;
-            color: #979ba5;
-            cursor: pointer;
-            &.disabled {
-                color: #c4c6cc;
-                cursor: not-allowed;
-            }
-            &.actived {
-                color: #3a84ff;
-            }
+        cursor: pointer;
+        &.disabled {
+            color: #c4c6cc;
+            cursor: not-allowed;
+        }
+        &.actived {
+            color: #3a84ff;
         }
     }
 </style>

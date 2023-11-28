@@ -148,7 +148,7 @@
             },
             hideNavHeader () {
                 const { name, params = {} } = this.$route
-                return name === 'templatePanel' && params.type === 'edit'
+                return ['templatePanel', 'commonTemplatePanel'].includes(name) && ['edit', 'new', 'clone'].includes(params.type)
             }
         },
         watch: {

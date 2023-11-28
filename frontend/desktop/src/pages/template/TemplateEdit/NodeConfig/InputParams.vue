@@ -424,48 +424,7 @@
             top: 0;
         }
     }
-    >.rf-form-group {
-        .rf-group-name {
-            float: left;
-        }
-        .form-item-group {
-            margin-left: 130px;
-        }
-    }
     .form-item-group {
-        padding: 16px;
-        margin-right: 40px;
-        background: #f5f7fa;
-        .rf-tag-form {
-            margin-right: 0;
-        }
-        .rf-form-item {
-            .rf-tag-label {
-                display: flex;
-                text-align: left;
-                color: #63656e;
-                width: 100px;
-                line-height: 20px;
-                padding-right: 10px;
-                margin-top: 6px;
-                .label {
-                    white-space: initial;
-                }
-                .required {
-                    position: initial;
-                }
-            }
-            .rf-tag-form {
-                margin-left: 100px;
-            }
-            &:last-child {
-                margin-bottom: 0;
-            }
-        }
-        .form-item-group {
-            padding: 0;
-            margin-right: 0;
-        }
         .tag-ip-selector-wrap,
         .resource-allocation {
             border: none;

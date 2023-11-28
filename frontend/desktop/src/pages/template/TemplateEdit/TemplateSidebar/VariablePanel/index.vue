@@ -1,5 +1,5 @@
 <template>
-    <div :class="['variable-panel', { 'is-hide': !isPanelShow, 'variable-edit-panel': isVariableEdit }]" :style="{ width: `${sideWidth}px` }">
+    <div :class="['variable-panel', { 'is-hide': !isPanelShow }]" :style="{ width: `${width}px` }" :key="isPanelShow">
         <div v-if="!isPanelShow" class="variable-nav" @click="togglePanelShow">
             <i class="bk-icon icon-angle-double-left"></i>
             <span class="text">{{ $t('执行方案') }}</span>
@@ -9,10 +9,22 @@
             ref="variableEdit"
             :is-view-mode="isViewMode"
             :common="common"
+            :variable-cited="variableCited"
             :variable-data="selectVariable"
-            @closeEditingPanel="isVariableEdit = false"
+            :hook-params="hookParams"
+            @closeEditingPanel="closeEditingPanel"
             @onSaveVariable="onSaveVariable">
         </VariableEdit>
+        <PluginFieldConfig
+            v-else-if="isPluginFieldConfig"
+            ref="pluginFieldConfig"
+            :variable-cited="variableCited"
+            :variable-data="selectVariable"
+            :hook-params="hookParams"
+            @closePanel="isPluginFieldConfig = false"
+            @onAddVariable="onAddVariable"
+            @onEditVariable="onEditVariable">
+        </PluginFieldConfig>
         <template v-else>
             <div class="panel-title">
                 <h4>{{ '变量面板' }}</h4>
@@ -68,7 +80,7 @@
                     v-bk-overflow-tips>
                     <span class="count">{{ deleteVarListLen }}</span>
                 </i18n>
-                <bk-button :text="true" class="f12" @click="onDeleteVarList">{{ $t('批量删除' )}}</bk-button>
+                <bk-button :text="true" class="f12" @click="isBatchDeleteDialogShow = true">{{ $t('批量删除' )}}</bk-button>
             </div>
             <div class="variable-collapse-wrap">
                 <bk-collapse class="variable-collapse" v-model="activeCollapse" v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
@@ -83,10 +95,10 @@
                         <ul slot="content" class="var-list">
                             <li
                                 v-for="variable in variableMap[key]"
-                                :key="variable.id"
-                                class="var-item"
-                                @click="onEditVariable(variable)">
+                                :key="variable.key"
+                                class="var-item">
                                 <VariableItem
+                                    :ref="`var-${variable.key}`"
                                     :variable-data="variable"
                                     :panel-type="panelType"
                                     :is-view-mode="isViewMode"
@@ -94,6 +106,9 @@
                                     :variable-cited="variableCited"
                                     :variable-checked="deleteVarList.some(item => item.key === variable.key)"
                                     :internal-variable="internalVariable"
+                                    :is-node-config-panel-show="isNodeConfigPanelShow"
+                                    @onCitedNodeClick="onCitedNodeClick"
+                                    @onEditVariable="onEditVariable(variable)"
                                     @onChooseVariable="onChooseVariable"
                                     @onCloneVariable="onCloneVariable"
                                     @onDeleteVariable="onDeleteVariable">
@@ -103,13 +118,18 @@
                     </bk-collapse-item>
                 </bk-collapse>
             </div>
+            <!--变量快捷操作-->
+            <QuickOperateVariableVue
+                v-if="!isViewMode"
+                :variable-list="variableList"
+                class="quick-operate-btn">
+            </QuickOperateVariableVue>
         </template>
         <!--可拖拽-->
-        <template>
-            <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
-            <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
-            <div class="resize-mask" ref="resizeMask"></div>
+        <template v-if="isPanelShow">
+            <div class="resize-trigger" @mousedown.left="$emit('handleMousedown', 'variable')"></div>
         </template>
+        <!--跨流程克隆变量-->
         <variableClone
             :is-var-clone-dialog-show="isVarCloneDialogShow"
             :var-type-list="varTypeList"
@@ -117,6 +137,30 @@
             @onCloneVarConfirm="onCloneVarConfirm"
             @onCloneVarCancel="isVarCloneDialogShow = false">
         </variableClone>
+        <!--批量删除弹框-->
+        <bk-dialog
+            v-model="isBatchDeleteDialogShow"
+            theme="primary"
+            :mask-close="false"
+            :title="$t('确认批量删除变量？')"
+            :ok-text="$t('删除')"
+            footer-position="center"
+            :draggable="false"
+            :loading="deleteLoading"
+            ext-cls="batch-delete-dialog"
+            @confirm="onConfirmBatchDelete"
+            @cancel="isBatchDeleteDialogShow = false">
+            <p class="tip-text">{{$t('以下自定义流程变量将被彻底删除')}}</p>
+            <ul class="delete-var-list">
+                <li
+                    class="delete-var-item"
+                    v-for="variable in deleteVarList"
+                    :key="variable.key">
+                    <span class="name">{{ variable.name }}</span>
+                    <span class="key" v-bk-overflow-tips>{{ variable.key }}</span>
+                </li>
+            </ul>
+        </bk-dialog>
     </div>
 </template>
 
@@ -124,19 +168,26 @@
     import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
+    import bus from '@/utils/bus.js'
     import VariableItem from './VariableItem.vue'
     import VariableEdit from './VariableEdit.vue'
     import VariableClone from './VariableClone.vue'
+    import PluginFieldConfig from './PluginFieldConfig.vue'
+    import QuickOperateVariableVue from './QuickOperateVariable.vue'
     export default {
         name: 'variablePanel',
         components: {
             VariableItem,
             VariableEdit,
-            VariableClone
+            VariableClone,
+            PluginFieldConfig,
+            QuickOperateVariableVue
         },
         props: {
             isViewMode: Boolean,
-            common: Boolean
+            common: [String, Number],
+            width: Number,
+            isNodeConfigPanelShow: Boolean
         },
         data () {
             return {
@@ -146,11 +197,14 @@
                 varTypeList: [],
                 activeCollapse: ['show', 'hide', 'system'],
                 isPanelShow: true,
-                sideWidth: 180,
                 isVariableEdit: false,
+                isPluginFieldConfig: false,
                 selectVariable: {},
+                hookParams: {}, // 节点配置页变量勾选参数
                 isVarCloneDialogShow: false,
                 newCloneKeys: [],
+                deleteLoading: false,
+                isBatchDeleteDialogShow: false, // 批量删除弹框
                 deleteVarList: [] // 批量删除变量
             }
         },
@@ -160,7 +214,8 @@
                 'gateways': state => state.template.gateways,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
-                'internalVariable': state => state.template.internalVariable
+                'internalVariable': state => state.template.internalVariable,
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             variableList () {
                 const userVars = Object.keys(this.constants)
@@ -214,10 +269,59 @@
                 return this.variableList.filter(item => {
                     return !['system', 'project', 'component_outputs', 'component_inputs'].includes(item.source_type)
                 })
+            },
+            isActivated () {
+                if (!this.isPanelShow) {
+                    return false
+                }
+                return this.isVariableEdit || this.isPluginFieldConfig || !!this.deleteVarListLen
+            }
+        },
+        watch: {
+            isActivated (val) {
+                this.setVarPanelActivated(val)
+                if (!val) {
+                    this.hookParams = {}
+                }
+            },
+            width (val) {
+                if (val < 180) {
+                    this.isPanelShow = false
+                    this.isVariableEdit = false
+                    this.isPluginFieldConfig = false
+                } else if (val >= 180 && val < 280) {
+                    this.panelType = 'simple'
+                } else {
+                    this.panelType = 'detail'
+                }
+            },
+            isNodeConfigPanelShow (val) {
+                if (!val) {
+                    this.getVariableCitedData()
+                }
             }
         },
         created () {
             this.setVariableType()
+
+            // 节点配置页变量勾选
+            bus.$on('variableHook', (data) => {
+                if (!this.isPanelShow) {
+                    this.isPanelShow = true
+                    this.$emit('updateWidth', 400)
+                }
+                this.onAddVariable()
+                this.hookParams = data
+                const { cited_info: citedInfo = {} } = data
+                Object.assign(this.selectVariable, {
+                    ...data,
+                    type: citedInfo.type
+                })
+                if (['reuse', 'reselect'].includes(citedInfo.type)) {
+                    this.isVariableEdit = false
+                    this.isPluginFieldConfig = true
+                }
+            })
         },
         mounted () {
             this.getVariableCitedData()
@@ -229,7 +333,8 @@
             ]),
             ...mapMutations('template/', [
                 'deleteVariable',
-                'addVariable'
+                'addVariable',
+                'setVarPanelActivated'
             ]),
             async getVariableCitedData () {
                 try {
@@ -259,59 +364,11 @@
             },
             togglePanelType (type) {
                 this.panelType = type
-                this.sideWidth = type === 'simple' ? 180 : 280
+                this.$emit('updateWidth', type === 'simple' ? 180 : 280)
             },
             togglePanelShow () {
                 this.isPanelShow = true
-                this.sideWidth = this.panelType === 'simple' ? 180 : 280
-            },
-            handleMousedown (event) {
-                this.updateResizeMaskStyle()
-                this.updateResizeProxyStyle()
-                document.addEventListener('mousemove', this.handleMouseMove)
-                document.addEventListener('mouseup', this.handleMouseUp)
-            },
-            handleMouseMove (event) {
-                const nodeConfigDom = document.querySelector('.node-config-panel')
-                const maxWith = window.innerWidth - 400 - (nodeConfigDom ? 600 : 0)
-                let width = window.innerWidth - event.clientX
-                width = width > maxWith ? maxWith : width
-                const resizeProxy = this.$refs.resizeProxy
-                resizeProxy.style.right = `${width}px`
-            },
-            updateResizeMaskStyle () {
-                const resizeMask = this.$refs.resizeMask
-                resizeMask.style.display = 'block'
-                resizeMask.style.cursor = 'col-resize'
-            },
-            updateResizeProxyStyle () {
-                const resizeProxy = this.$refs.resizeProxy
-                resizeProxy.style.visibility = 'visible'
-                resizeProxy.style.right = `${this.sideWidth}px`
-            },
-            handleMouseUp () {
-                const resizeMask = this.$refs.resizeMask
-                const resizeProxy = this.$refs.resizeProxy
-                resizeProxy.style.visibility = 'hidden'
-                resizeMask.style.display = 'none'
-                const tplSideDom = document.querySelector('.template-side')
-                this.sideWidth = resizeProxy.style.right.slice(0, -2)
-                const right = Number(this.sideWidth)
-                if (right >= 280) { // 详细模式
-                    this.panelType = 'detail'
-                } else if (right < 180) { // 收起模式
-                    this.isPanelShow = false
-                    this.sideWidth = 24
-                } else { // 简洁模式
-                    this.panelType = 'simple'
-                }
-                const nodeConfigDom = document.querySelector('.node-config-panel')
-                if (nodeConfigDom) {
-                    const { width: tplSideWidth } = tplSideDom.getBoundingClientRect()
-                    nodeConfigDom.style.width = `${tplSideWidth - right}px`
-                }
-                document.removeEventListener('mousemove', this.handleMouseMove)
-                document.removeEventListener('mouseup', this.handleMouseUp)
+                this.$emit('updateWidth', this.panelType === 'simple' ? 180 : 280)
             },
             // 跨流程克隆变量
             onCloneVarConfirm (constants = []) {
@@ -332,6 +389,7 @@
                 this.deleteVarList = tools.deepClone(this.editVarList)
             },
             onChooseVariable (variable, isChecked) {
+                if (this.isNodeConfigPanelShow) return
                 if (isChecked) {
                     this.deleteVarList.push(variable)
                 } else {
@@ -341,43 +399,20 @@
                     }
                 }
             },
-            onDeleteVarList () {
-                if (!this.deleteVarListLen) return
-                let title = ''
-                if (this.deleteVarListLen === 1) {
-                    title = i18n.t('确认删除') + i18n.t('全局变量') + `【${this.deleteVarList[0].key}】?`
-                } else {
-                    title = i18n.t('确认删除所选的x个变量？', { num: this.deleteVarListLen })
+            async onConfirmBatchDelete () {
+                try {
+                    this.deleteLoading = true
+                    await this.getVariableCitedData() // 删除变量后更新引用数据
+                    this.deleteVarList.forEach(variableData => {
+                        this.deleteVariable(variableData.key)
+                    })
+                    this.deleteVarList = []
+                    this.isBatchDeleteDialogShow = false
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.deleteLoading = false
                 }
-                const h = this.$createElement
-                this.$bkInfo({
-                    subHeader: h('div', { class: 'custom-header' }, [
-                        h('div', {
-                            class: 'custom-header-title',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [title]),
-                        h('div', {
-                            class: 'custom-header-sub-title bk-dialog-header-inner',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [i18n.t('删除变量将导致所有变量引用失效，请及时检查并更新节点配置')])
-                    ]),
-                    extCls: 'dialog-custom-header-title',
-                    maskClose: false,
-                    width: 450,
-                    confirmLoading: true,
-                    cancelText: this.$t('取消'),
-                    confirmFn: async () => {
-                        await this.getVariableCitedData() // 删除变量后更新引用数据
-                        this.deleteVarList.forEach(variableData => {
-                            this.deleteVariable(variableData.key)
-                        })
-                        this.deleteVarList = []
-                    }
-                })
             },
             onCloneVariable (data) {
                 const variableData = tools.deepClone(data)
@@ -394,8 +429,9 @@
                     message: i18n.t('变量') + i18n.t('删除成功！')
                 })
             },
-            onAddVariable () {
+            onAddVariable (params = {}) {
                 this.selectVariable = {
+                    type: 'create',
                     custom_type: 'input',
                     desc: '',
                     form_schema: {},
@@ -410,20 +446,94 @@
                     is_condition_hide: false,
                     pre_render_mako: false,
                     value: '',
-                    version: 'legacy'
+                    version: 'legacy',
+                    ...params
                 }
                 this.isVariableEdit = true
-                this.sideWidth = 400
+                if (this.width < 400) {
+                    this.$emit('updateWidth', 400)
+                }
             },
             onEditVariable (variable) {
                 this.isVariableEdit = true
                 this.selectVariable = variable
-                this.sideWidth = 400
+                if (this.width < 400) {
+                    this.$emit('updateWidth', 400)
+                }
             },
-            onSaveVariable () {
+            openVarCitedInfo (key) {
+                this.isPanelShow = true
+                this.panelType = 'detail'
+                if (this.width < 400) {
+                    this.$emit('updateWidth', 400)
+                }
+                this.$nextTick(() => {
+                    const varItem = this.$refs[`var-${key}`]
+                    if (varItem[0]) {
+                        varItem[0].showCitedList = true
+                    }
+                })
+            },
+            onCitedNodeClick (data) {
+                if (this.isNodeConfigPanelShow) return
+                const { group, id } = data
+                if (group === 'constants') {
+                    this.onEditVariable(id)
+                } else {
+                    this.$emit('onCitedNodeClick', data)
+                }
+            },
+            closeEditingPanel () {
                 this.isVariableEdit = false
+                // 关闭【变量编辑】面板时，如果【插件字段配置】已打开则selectVariable的部分字段值使用插件默认值
+                if (this.isPluginFieldConfig) {
+                    const { cited_info: citedInfo = {} } = this.hookParams
+                    Object.assign(this.selectVariable, {
+                        ...this.hookParams,
+                        type: citedInfo.type
+                    })
+                }
+            },
+            onSaveVariable (variable = {}) {
+                this.isVariableEdit = false
+                this.isPluginFieldConfig = false
                 this.$emit('templateDataChanged')
                 this.getVariableCitedData() // 新增或者编辑变量后更新引用数据
+
+                // 回填节点配置项勾选的变量值
+                const { cited_info: citedInfo = {} } = this.hookParams
+                if (citedInfo.type) {
+                    bus.$emit('useVariable', {
+                        type: citedInfo.type === 'create' ? 'insert' : 'replace',
+                        code: citedInfo.tagCode,
+                        key: variable.key,
+                        variable
+                    })
+                }
+            },
+            // 关闭全局变量侧滑
+            close () {
+                if (this.isViewMode) {
+                    return false
+                }
+                let isChange = false
+                if (this.isVariableEdit) {
+                    isChange = this.$refs.variableEdit.judgeDataChange()
+                    if (isChange) {
+                        this.$bkInfo({
+                            ...this.infoBasicConfig,
+                            confirmFn: () => {
+                                this.isVariableEdit = false
+                            }
+                        })
+                    } else {
+                        this.isVariableEdit = false
+                    }
+                } else if (this.isPluginFieldConfig) {
+                    isChange = true
+                    this.isPluginFieldConfig = false
+                }
+                return isChange
             }
         }
     }
@@ -432,12 +542,10 @@
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 .variable-panel {
-    width: 180px;
     height: 100%;
     display: flex;
     flex-direction: column;
     position: relative;
-    padding: 18px 0;
     background: #fafbfd;
     border-left: 1px solid #dcdee5;
     .variable-nav {
@@ -465,7 +573,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin: 0 16px 16px;
+        margin: 18px 16px 16px;
         h4 {
             font-size: 14px;
             margin: 0;
@@ -550,6 +658,7 @@
         }
     }
     .variable-collapse-wrap {
+        flex: 1;
         padding: 0 16px;
         overflow-y: auto;
         @include scrollbar;
@@ -583,12 +692,71 @@
             }
         }
     }
+    .quick-operate-btn {
+        align-self: end;
+        margin: 12px 0 18px;
+        padding-right: 16px;
+        line-height: 20px;
+    }
     &.is-hide {
         border: none;
         background: transparent;
+        &::before {
+            content: '';
+            display: inline-block;
+            width: 2px;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #699df4;
+            border-radius: 4px 0 0 4px;
+        }
     }
-    &.variable-edit-panel {
-        padding: 0;
+}
+</style>
+<style lang="scss">
+.batch-delete-dialog {
+    .bk-dialog-header {
+        padding-bottom: 16px;
+        .bk-dialog-header-inner {
+            white-space: inherit;
+        }
+    }
+    .bk-dialog-body {
+        padding-top: 0;
+        line-height: 20px;
+        font-size: 12px;
+        color: #63656e;
+        .delete-var-list {
+            margin-top: 8px;
+            border: 1px solid #dcdee5;
+            .delete-var-item {
+                display: flex;
+                align-items: center;
+                height: 36px;
+                padding: 0 16px;
+                border-bottom: 1px solid #dcdee5;
+                .name {
+                    flex-shrink: 0;
+                    margin-right: 8px;
+                }
+                .key {
+                    color: #979ba5;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                &:last-child {
+                    border: none;
+                }
+            }
+        }
+    }
+    .bk-dialog-footer {
+        padding: 8px 0 24px;
+        border-top: none;
+        background: #fff;
     }
 }
 </style>

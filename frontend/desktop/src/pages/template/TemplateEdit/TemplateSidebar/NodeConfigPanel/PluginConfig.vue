@@ -1,5 +1,5 @@
 <template>
-    <div :class="['plugin-config', { 'edit-mode': !isViewMode }]">
+    <div :class="['plugin-config', { 'edit-mode': !isViewMode || varPanelActivated, 'select-panel-mask': isSelectorPanelShow }]">
         <bk-collapse v-show="activeTab === 'pluginConfig'" class="variable-collapse" v-model="activeCollapse">
             <bk-collapse-item :hide-arrow="true" name="plugin">
                 <i class="common-icon-next-triangle-shape"></i>
@@ -7,8 +7,9 @@
                 <BasicInfo
                     slot="content"
                     ref="basicInfo"
+                    v-if="basicInfo"
                     :basic-info="basicInfo"
-                    :is-view-mode="isViewMode"
+                    :is-view-mode="isViewMode || isNotExist"
                     :is-sub-flow="isSubFlow"
                     :is-third-party="isThirdParty"
                     :common="common"
@@ -16,8 +17,9 @@
                     :version-list="versionList"
                     :node-config="nodeConfig"
                     :input-loading="inputLoading"
-                    :output-loading="outputLoading"
                     :sub-flow-updated="subFlowUpdated"
+                    :is-selector-panel-show="isSelectorPanelShow"
+                    :is-not-exist="isNotExist"
                     v-bkloading="{ isLoading: isBaseInfoLoading }"
                     @openSelectorPanel="isSelectorPanelShow = true"
                     @update="updateBasicInfo"
@@ -27,7 +29,7 @@
                     @updateSubFlowVersion="updateSubFlowVersion">
                 </BasicInfo>
             </bk-collapse-item>
-            <template v-if="isSubFlow ? basicInfo.tpl : basicInfo.plugin">
+            <template v-if="!isNotExist && (isSubFlow ? basicInfo.tpl : basicInfo.plugin)">
                 <bk-collapse-item :hide-arrow="true" name="inputParams">
                     <i class="common-icon-next-triangle-shape"></i>
                     {{ $t('输入参数') }}
@@ -46,9 +48,11 @@
                                 :render-config="inputsRenderConfig"
                                 :is-sub-flow="isSubFlow"
                                 :is-view-mode="isViewMode"
+                                :basic-info="basicInfo"
+                                :activities="activities"
                                 :constants="localConstants"
                                 :third-party-code="isThirdParty ? basicInfo.plugin : ''"
-                                @hookChange="onHookChange"
+                                @updateConstants="updateConstants"
                                 @renderConfigChange="onRenderConfigChange"
                                 @update="updateInputsValue">
                             </input-params>
@@ -70,13 +74,15 @@
                             <output-params
                                 v-if="outputs.length"
                                 ref="outputParams"
+                                :basic-info="basicInfo"
                                 :constants="localConstants"
                                 :params="outputs"
                                 :version="basicInfo.version"
                                 :node-id="nodeId"
+                                :is-sub-flow="isSubFlow"
                                 :is-third-party="isThirdParty"
                                 :is-view-mode="isViewMode"
-                                @hookChange="onHookChange">
+                                @updateConstants="updateConstants">
                             </output-params>
                             <no-data v-else :message="$t('暂无参数')"></no-data>
                         </template>
@@ -87,7 +93,7 @@
         <!-- 流程控制选项 -->
         <ControlOption
             v-show="activeTab === 'controlOption'"
-            :is-view-mode="isViewMode"
+            :is-view-mode="isViewMode || isNotExist"
             :node-id="nodeId"
             @update="updateBasicInfo"
             @close="$emit('close')">
@@ -98,13 +104,19 @@
             :crt-plugin="basicInfo.plugin"
             :is-third-party="isThirdParty"
             :built-in-plugin="atomTypeList.tasknode"
+            v-bk-clickoutside="onSelectPanelClickOutside"
             @select="onPluginOrTplChange">
         </selectPanel>
+        <!--取消勾选-->
+        <CancelVariableDialog
+            :is-show="!!unhookingVar"
+            @onViewCited="$emit('onViewCited', $event)">
+        </CancelVariableDialog>
         <div class="btn-footer">
             <bk-button
-                v-if="!isViewMode"
+                v-if="!isViewMode || varPanelActivated"
                 theme="primary"
-                :disabled="inputLoading"
+                :disabled="varPanelActivated || inputLoading || isSubFlow ? !basicInfo.tpl : !basicInfo.plugin"
                 data-test-id="templateEdit_form_saveNodeConfig"
                 @click="onSaveConfig">
                 {{ $t('确定') }}
@@ -112,6 +124,7 @@
             <bk-button
                 theme="default"
                 data-test-id="templateEdit_form_cancelNodeConfig"
+                :disabled="varPanelActivated"
                 @click="onClosePanel()">
                 {{ isViewMode ? $t('关闭') : $t('取消') }}
             </bk-button>
@@ -128,12 +141,13 @@
     import JsonschemaInputParams from './JsonschemaInputParams.vue'
     import OutputParams from './OutputParams.vue'
     import SelectPanel from './SelectPanel.vue'
-    // import QuickOperateVariable from '../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
     import formSchema from '@/utils/formSchema.js'
     import ControlOption from './ControlOption.vue'
+    import CancelVariableDialog from './CancelVariableDialog.vue'
+    import dom from '@/utils/dom.js'
 
     export default {
         name: 'NodeConfig',
@@ -144,8 +158,8 @@
             OutputParams,
             NoData,
             ControlOption,
+            CancelVariableDialog,
             SelectPanel
-            // QuickOperateVariable
         },
         mixins: [permission],
         props: {
@@ -154,12 +168,8 @@
             activeTab: String,
             atomList: Array,
             atomTypeList: Object,
-            thirdPartyList: {
-                type: Object,
-                default: () => ({})
-            },
             common: [String, Number],
-            isNotExistAtomOrVersion: Boolean,
+            isNotExist: Boolean,
             isViewMode: Boolean,
             isolationAtomConfig: Object
         },
@@ -172,7 +182,7 @@
                 subFlowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subFlowVersionUpdating: false, // 子流程更新
-                isCancelGloVarDialogShow: false, // 取消勾选全局变量
+                unhookingVar: '', // 取消勾选全局变量
                 nodeConfig: {}, // 任务节点的完整 activity 配置参数
                 isBaseInfoLoading: true, // 基础信息loading
                 basicInfo: {}, // 基础信息模块
@@ -187,10 +197,8 @@
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
-                randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
                 isThirdParty: false, // 是否为第三方插件
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
-                unhookingVarForm: {}, // 正被取消勾选的表单配置
                 isUpdateConstants: false, // 是否更新输入参数配置
                 isDataChange: false // 数据是否改变
             }
@@ -204,7 +212,9 @@
                 'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output,
-                'infoBasicConfig': state => state.infoBasicConfig
+                'infoBasicConfig': state => state.infoBasicConfig,
+                'thirdPartyList': state => state.template.thirdPartyList,
+                'varPanelActivated': state => state.template.varPanelActivated
             }),
             variableList () {
                 const systemVars = Object.keys(this.internalVariable).map(key => this.internalVariable[key])
@@ -212,7 +222,8 @@
                 return [...systemVars, ...userVars]
             },
             isSubFlow () {
-                return this.nodeConfig.type !== 'ServiceActivity'
+                const { type: nodeType } = this.nodeConfig
+                return nodeType && nodeType !== 'ServiceActivity'
             },
             atomGroup () { // 某一标准插件下所有版本分组
                 let atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
@@ -236,6 +247,9 @@
         watch: {
             constants (val) {
                 this.localConstants = tools.deepClone(val)
+            },
+            isSelectorPanelShow (val) {
+                this.$emit('selectorPanelToggle', val)
             }
         },
         created () {
@@ -312,7 +326,8 @@
                 'setActivities',
                 'addVariable',
                 'setConstants',
-                'setOutputs'
+                'setOutputs',
+                'setThirdPartyList'
             ]),
             async initDefaultData () {
                 const nodeConfig = tools.deepClone(this.activities[this.nodeId])
@@ -345,7 +360,7 @@
             },
             // 初始化节点数据
             async initData () {
-                if (!this.basicInfo.plugin && !this.basicInfo.tpl) { // 未选择插件
+                if (this.isNotExist || (!this.basicInfo.plugin && !this.basicInfo.tpl)) { // 插件未找到/未选择插件
                     return
                 }
                 if (!this.isSubFlow) {
@@ -581,8 +596,16 @@
                     let code = ''
                     let desc = ''
                     let version = ''
+                    // 节点插件不存在
+                    if (this.isNotExist) {
+                        return {
+                            plugin: component.code,
+                            name: component.code, // 插件名称
+                            nodeName: name // 节点名称
+                        }
+                    }
                     // 节点已选择标准插件
-                    if (component.code && !this.isNotExistAtomOrVersion) { // 节点插件存在
+                    if (component.code) {
                         if (component.code === 'remote_plugin') {
                             const atom = this.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
@@ -671,7 +694,7 @@
              * 获取某一标准插件所有版本列表
              */
             getAtomVersions (code, isThirdParty = false) {
-                if (!code || this.isNotExistAtomOrVersion) {
+                if (!code || this.isNotExist) {
                     return []
                 }
                 let atom
@@ -731,6 +754,11 @@
                     this.isSelectorPanelShow = false
                 }
             },
+            // 点击到插件选择面板外
+            onSelectPanelClickOutside (e) {
+                this.isSelectorPanelShow = dom.parentClsContains('append-icon', e.target)
+                    || dom.parentClsContains('resize-mask', e.target)
+            },
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
             async onPluginOrTplChange (val) {
@@ -759,6 +787,7 @@
                 }
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
+                this.$parent.isNotExist = false
                 await this.clearParamsSourceInfo(inputs)
                 if (this.isSubFlow) {
                     this.tplChange(val)
@@ -987,11 +1016,6 @@
                 this.variableCited = {}
                 this.isUpdateConstants = false
             },
-            // 重选插件
-            handleReselectPlugin () {
-                this.$parent.isNotExistAtomOrVersion = false
-                this.isSelectorPanelShow = true
-            },
             // 切换子流程执行方案，需要重新请求输入、输出参数
             async onSelectSubFlowScheme () {
                 const oldForms = Object.assign({}, this.subFlowForms)
@@ -1015,58 +1039,95 @@
                 const [key, val] = data
                 this.inputsRenderConfig[key] = val
             },
-            // 输入、输出参数勾选状态变化
-            onHookChange (type, data) {
-                if (type === 'create') {
-                    this.$set(this.localConstants, data.key, data)
-                } else {
-                    this.variableCited = {}
-                    this.setVariableSourceInfo(data)
+            // 更新全局变量
+            updateConstants (type, data) {
+                if (!data) return
+
+                const { nodeId, tagCode, key, oldKey } = data.cited_info || {}
+                switch (type) {
+                    case 'create':
+                        this.$set(this.localConstants, data.key, data)
+                        break
+                    case 'edit':
+                        if (oldKey) {
+                            Object.keys(this.localConstants).some(item => {
+                                if (item === oldKey) {
+                                    const { source_info: sourceInfo = {} } = this.localConstants[item]
+                                    delete sourceInfo[nodeId]
+                                    return true
+                                }
+                            })
+                            this.$set(this.localConstants, data.key, {
+                                ...data,
+                                source_info: {
+                                    ...data.source_info,
+                                    [nodeId]: [tagCode]
+                                }
+                            })
+                        } else {
+                            this.$set(this.localConstants, data.key, data)
+                        }
+                        this.$delete(this.localConstants, key)
+                        break
+                    case 'reuse':
+                        Object.keys(this.localConstants).forEach(item => {
+                            const {
+                                source_type: sourceType,
+                                source_info: sourceInfo = {}
+                            } = this.localConstants[item]
+                            if (sourceType !== 'component_inputs') return
+                            if (item === data.key && !sourceInfo[nodeId]) {
+                                sourceInfo[nodeId] = [tagCode]
+                            } else if (item !== data.key && sourceInfo[nodeId]) {
+                                delete sourceInfo[nodeId]
+                            }
+                        })
+                        break
+                    case 'delete':
+                        this.variableCited = {}
+                        this.setVariableSourceInfo(data)
+                        break
                 }
-                // 如果全局变量数据有变，需要更新popover
-                this.randomKey = new Date().getTime()
+                this.isDataChange = true
             },
             // 更新全局变量的 source_info
             async setVariableSourceInfo (data) {
-                const { type, id, key, tagCode, source } = data
-                const constant = this.localConstants[key]
-                if (!constant) return
-                const sourceInfo = constant.source_info
-                if (type === 'add') {
-                    if (sourceInfo[id]) {
-                        sourceInfo[id].push(tagCode)
-                    } else {
-                        this.$set(sourceInfo, id, [tagCode])
-                    }
-                } else if (type === 'delete') {
-                    this.unhookingVarForm = { ...data, value: constant.value }
+                try {
+                    const { id, key, tagCode, source } = data
+                    const constant = this.localConstants[key]
+                    if (!constant) return
+                    const sourceInfo = constant.source_info
+
+                    // 获取变量引用
                     if (!Object.keys(this.variableCited).length) {
                         this.variableCited = await this.getVariableCitedData() || {}
                     }
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
+                    // 当引用数为0时自动删除
                     if (citedNum <= 1) {
-                        this.deleteUnhookingVar()
+                        this.$delete(this.localConstants, key)
                     } else {
-                        // 当变量来源为0时，自动删除变量
+                        // 清除当前来源节点
                         if (sourceInfo[id].length <= 1) {
-                            this.$delete(sourceInfo, id)
+                            this.unhookingVar = key
+                            return
                         } else {
-                            let atomIndex
-                            sourceInfo[id].some((item, index) => {
-                                if (item === tagCode) {
-                                    atomIndex = index
-                                    return true
-                                }
-                            })
+                            const atomIndex = sourceInfo[id].findIndex(item => item === tagCode)
                             sourceInfo[id].splice(atomIndex, 1)
                         }
+                        // 来源数为0时自动删除
                         if (Object.keys(sourceInfo).length === 0) {
                             this.$delete(this.localConstants, key)
                         }
-                        const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                        refDom && refDom.setFormData({ ...this.unhookingVarForm })
                     }
+                    // 更新表单数据
+                    if (source === 'input') {
+                        const refDom = this.$refs.inputParams
+                        refDom && refDom.setFormData({ ...data, value: constant.value })
+                    }
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             async getVariableCitedData () {
@@ -1085,21 +1146,6 @@
                 } catch (e) {
                     console.log(e)
                 }
-            },
-            deleteUnhookingVar () {
-                const { key, source } = this.unhookingVarForm
-                this.$delete(this.localConstants, key)
-                const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFormData({ ...this.unhookingVarForm })
-                this.isCancelGloVarDialogShow = false
-            },
-            onCancelVarConfirmClick () {
-                const { key, source } = this.unhookingVarForm
-                const constant = this.localConstants[key]
-                constant.source_info = {}
-                const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFormData({ ...this.unhookingVarForm })
-                this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量
             deleteVariable (key) {
@@ -1223,20 +1269,45 @@
                         this.setOutputs({ changeType: 'delete', key })
                     }
                 })
-                // 设置全局变量面板icon小红点
-                const localConstantKeys = Object.keys(this.localConstants)
-                if (Object.keys(this.constants).length !== localConstantKeys.length) {
-                    this.$emit('globalVariableUpdate', true)
-                } else {
-                    localConstantKeys.some(key => {
-                        if (!(key in this.constants)) {
-                            this.$emit('globalVariableUpdate', true)
-                            return true
-                        }
-                    })
-                }
 
-                this.setConstants(this.localConstants)
+                // 输入/输出变量key值修改后，更新来源节点相应字段的value
+                const constants = Object.keys(this.localConstants).reduce((acc, cur) => {
+                    const item = this.localConstants[cur]
+                    const {
+                        key,
+                        source_type: sourceType,
+                        source_info: sourceInfo,
+                        source_tag: sourceTag,
+                        cited_info: citedInfo
+                    } = item
+                    if (citedInfo) {
+                        Object.keys(sourceInfo).forEach(id => {
+                            if (id === this.nodeId) return
+                            const config = tools.deepClone(this.activities[id])
+                            if (config.type === 'Subprocess') {
+                                const sourceKey = citedInfo.key
+                                if (config.constants[sourceKey]) {
+                                    config.constants[sourceKey] = key
+                                }
+                            } else {
+                                const code = sourceTag.split('.')[1]
+                                if (config.component.data[code]) {
+                                    config.component.data[code].value = key
+                                }
+                            }
+                            this.setActivities({ type: 'edit', location: config })
+                        })
+                    }
+                    // 删除变量多余参数
+                    delete item.cited_info
+                    // 过滤掉引用数为0的输入变量
+                    if (sourceType !== 'component_inputs' || Object.keys(sourceInfo).length) {
+                        acc[cur] = item
+                    }
+                    return acc
+                }, {})
+
+                this.setConstants(constants)
             },
             /**
              * 获取标准插件生命周期状态
@@ -1292,35 +1363,6 @@
                     }
                 }
                 this.isVariablePanelShow = true
-            },
-            beforeClose () {
-                if (this.isViewMode) {
-                    this.onClosePanel()
-                    return true
-                }
-                if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭
-                    if (!(this.isSubFlow ? this.basicInfo.tpl : this.basicInfo.plugin)) {
-                        this.onClosePanel()
-                        return true
-                    }
-                }
-                if (this.isVariablePanelShow) { // 变量编辑时，点击遮罩需要确认是否保存变量
-                    this.$refs.variableEdit.handleMaskClick()
-                    return false
-                }
-                if (!this.isDataChange && !this.isOutputsChanged()) {
-                    this.onClosePanel()
-                    return true
-                } else {
-                    this.$bkInfo({
-                        ...this.infoBasicConfig,
-                        confirmFn: () => {
-                            this.onClosePanel()
-                        }
-                    })
-                    this.isSelectorPanelShow = false
-                    return false
-                }
             },
             onSaveConfig () {
                 this.validate().then(result => {
@@ -1388,7 +1430,7 @@
                                 plugin_contact,
                                 list: tools.deepClone(this.versionList)
                             }
-                            this.thirdPartyList[this.nodeId] = params
+                            this.setThirdPartyList({ id: this.nodeId, value: params })
                         }
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
                         this.$emit('updateNodeInfo', this.nodeId, nodeData)
@@ -1452,14 +1494,17 @@
         background: #fafbfd;
         box-shadow: 0 -1px 0 0 #dcdee5;
         z-index: 10;
+        .bk-button {
+            width: 88px;
+        }
     }
-    &::before {
+    &.select-panel-mask::before {
         content: '';
         display: block;
         height: calc(100vh - 60px);
-        width: calc(100vh);
+        width: calc(100vw);
         top: -98px;
-        left: -100vh;
+        left: -100vw;
         background: black;
         position: absolute;
         z-index: 1;

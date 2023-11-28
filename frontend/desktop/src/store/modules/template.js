@@ -199,7 +199,10 @@ const template = {
             subproc_has_update: false
         },
         internalVariable: [],
-        default_flow_type: 'common'
+        default_flow_type: 'common',
+        atomList: [],
+        thirdPartyList: {},
+        varPanelActivated: false
     },
     mutations: {
         setTemplateName (state, name) {
@@ -218,15 +221,19 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels, default_flow_type } = data
-            state.name = name
-            state.category = category
-            state.notify_type = notify_type
-            state.notify_receivers.receiver_group = receiver_group
-            state.description = description
-            state.executor_proxy = executor_proxy
-            state.template_labels = template_labels
-            state.default_flow_type = default_flow_type
+            const keys = [
+                'name', 'category', 'notify_type', 'receiver_group', 'description',
+                'executor_proxy', 'template_labels', 'default_flow_type'
+            ]
+            keys.forEach(key => {
+                if (!(key in data)) return
+
+                if (key === 'receiver_group') {
+                    state.notify_receivers.receiver_group = data[key]
+                } else {
+                    state[key] = data[key]
+                }
+            })
         },
         setSubprocessUpdated (state, subflow) {
             if (state.subprocess_info) {
@@ -309,7 +316,7 @@ const template = {
             } = data
 
             const pipelineData = JSON.parse(pipeline_tree)
-            const receiver = JSON.parse(notify_receivers)
+            const receiver = notify_receivers ? JSON.parse(notify_receivers) : {}
             state.name = name
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
@@ -892,6 +899,23 @@ const template = {
         // 设置内置变量
         setInternalVariable (state, payload) {
             state.internalVariable = payload
+        },
+        // 设置基础插件
+        setAtomList (state, payload) {
+            state.atomList = payload
+        },
+        // 设置第三方插件
+        setThirdPartyList (state, payload) {
+            const { id, value, type = 'add' } = payload
+            if (type === 'add') {
+                state.thirdPartyList[id] = value
+            } else {
+                state.thirdPartyList = value
+            }
+        },
+        // 设置变量面板选中态
+        setVarPanelActivated (state, payload) {
+            state.varPanelActivated = payload
         }
     },
     actions: {
@@ -1003,6 +1027,175 @@ const template = {
             }, {
                 headers
             }).then(response => response.data)
+        },
+        // 更新流程配置
+        updateTemplateData ({ state }, data) {
+            const {
+                name,
+                template_labels,
+                description,
+                executor_proxy,
+                receiver_group,
+                notify_type
+            } = state
+            const {
+                common,
+                projectId,
+                templateId
+            } = data
+            const notifyReceivers = {
+                receiver_group,
+                more_receiver: []
+            }
+            const { time_out, category, default_flow_type } = state
+            let prefixUrl = ''
+            if (common) {
+                prefixUrl = 'api/v3/common_template/'
+            } else {
+                prefixUrl = 'api/v3/template/'
+            }
+            return axios.put(`${prefixUrl}${templateId}/`, {
+                name,
+                project: projectId,
+                description,
+                executor_proxy,
+                notify_receivers: JSON.stringify(notifyReceivers),
+                notify_type,
+                timeout: time_out,
+                category,
+                default_flow_type,
+                template_labels
+            }).then(response => response.data)
+        },
+        // 获取草稿
+        loadTemplateDraft ({ commit }, data) {
+            const { templateId, common } = data
+            let prefixUrl = ''
+            if (common) {
+                prefixUrl = 'api/v3/common_template/'
+            } else {
+                prefixUrl = 'api/v3/template/'
+            }
+
+            return axios.get(`${prefixUrl}${templateId}/draft/`).then(response => response.data.data)
+        },
+        // 保存草稿
+        saveTemplateDraft ({ state }, data) {
+            const { projectId, templateId, common } = data
+            const { name, activities, constants, end_event, flows, gateways, line,
+                location, outputs, start_event, notify_receivers, notify_type,
+                time_out, category, description, executor_proxy, template_labels, default_flow_type
+            } = state
+
+            const project = projectId || undefined
+            const pipelineTree = {
+                activities,
+                constants,
+                end_event,
+                flows,
+                gateways,
+                line,
+                location,
+                outputs,
+                start_event
+            }
+            let params = {
+                name,
+                project,
+                category,
+                timeout: time_out,
+                description,
+                executor_proxy,
+                template_labels,
+                default_flow_type,
+                notify_type,
+                pipeline_tree: JSON.stringify(pipelineTree),
+                notify_receivers: JSON.stringify(notify_receivers)
+            }
+
+            let url = ''
+            if (common) {
+                url = 'api/v3/common_template/'
+            } else {
+                url = 'api/v3/template/'
+            }
+            if (templateId) {
+                url = `${url}${templateId}/update_draft/`
+                params = {
+                    pipeline_tree: pipelineTree
+                }
+            }
+
+            return axios.post(url, params).then(response => response.data)
+        },
+        // 发布草稿
+        publishTemplateDraft ({ state }, data) {
+            const { templateId, common } = data
+            const { activities, constants, end_event, flows, gateways, line,
+                location, outputs, start_event
+            } = state
+            // 剔除 location 的冗余字段
+            const pureLocation = location.map(item => ({
+                id: item.id,
+                type: item.type,
+                name: item.name,
+                stage_name: item.stage_name,
+                x: item.x,
+                y: item.y,
+                group: item.group,
+                icon: item.icon
+            }))
+            // 剔除 gateways condition中默认分支配置
+            const pureGateways = Object.values(gateways).reduce((acc, cur) => {
+                if (cur.default_condition) {
+                    const lineId = cur.default_condition.flow_id
+                    if (cur.conditions[lineId]) {
+                        Vue.delete(cur.conditions, lineId)
+                    }
+                }
+                acc[cur.id] = cur
+                return acc
+            }, {})
+            // 完整的画布数据
+            const fullCanvasData = {
+                activities,
+                constants,
+                end_event,
+                flows,
+                gateways: pureGateways,
+                line,
+                location: pureLocation,
+                outputs,
+                start_event
+            }
+            // 校验
+            const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
+
+            if (!validateResult.result) {
+                return new Promise((resolve, reject) => {
+                    resolve(validateResult)
+                })
+            }
+
+            let prefixUrl = ''
+            if (common) {
+                prefixUrl = 'api/v3/common_template/'
+            } else {
+                prefixUrl = 'api/v3/template/'
+            }
+
+            return axios.post(`${prefixUrl}${templateId}/publish_draft/`).then(response => response.data)
+        },
+        // 删除草稿
+        discardTemplateDraft ({ state }, data) {
+            const { templateId, common } = data
+            let prefixUrl = ''
+            if (common) {
+                prefixUrl = 'api/v3/common_template/'
+            } else {
+                prefixUrl = 'api/v3/template/'
+            }
+            return axios.post(`${prefixUrl}${templateId}/discard_draft/`).then(response => response.data)
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {

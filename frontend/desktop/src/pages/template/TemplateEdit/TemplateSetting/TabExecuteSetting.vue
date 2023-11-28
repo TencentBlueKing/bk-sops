@@ -76,12 +76,12 @@
         },
         mixins: [permission],
         props: {
-            common: [String, Number],
-            isViewMode: Boolean
+            common: [String, Number]
         },
         data () {
             const { notify_type, notify_receivers, description, executor_proxy } = this.$store.state.template
             return {
+                isViewMode: true,
                 formData: {
                     description,
                     executorProxy: executor_proxy ? [executor_proxy] : [],
@@ -113,6 +113,9 @@
             ]),
             ...mapActions('project', [
                 'getProjectConfig'
+            ]),
+            ...mapActions('template', [
+                'updateTemplateData'
             ]),
             getTemplateConfig () {
                 const { description, executorProxy, receiverGroup, notifyType } = this.formData
@@ -148,23 +151,29 @@
             },
             onSaveConfig () {
                 if (this.isViewMode) {
-                    const { params, query, name } = this.$route
-                    this.$router.push({
-                        name,
-                        params: { ...params, type: 'edit' },
-                        query
-                    })
+                    this.isViewMode = false
                     return
                 }
-                this.$refs.configForm.validate().then(result => {
+                this.$refs.configForm.validate().then(async result => {
                     if (!result) {
                         return
                     }
 
-                    const data = this.getTemplateConfig()
-                    this.setTplConfig(data)
-                    this.closeTab()
-                    this.$emit('templateDataChanged')
+                    try {
+                        const data = this.getTemplateConfig()
+                        this.setTplConfig(data)
+                        const { template_id } = this.$route.query
+                        const resp = await this.updateTemplateData({
+                            common: this.common,
+                            templateId: template_id,
+                            projectId: this.projectId
+                        })
+                        if (resp.result) {
+                            this.closeTab()
+                        }
+                    } catch (error) {
+                        console.warn(error)
+                    }
                 })
             },
             beforeClose () {

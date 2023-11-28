@@ -27,91 +27,87 @@
                 :is-template-data-changed="isTemplateDataChanged"
                 :template-saving="templateSaving"
                 :tpl-actions="tplActions"
-                @goBackViewMode="goBackViewMode"
-                @onChangePanel="onChangeSettingPanel"
-                @onSaveTemplate="onSaveTemplate">
-            </TemplateHeader>
-            <SubflowUpdateTips
-                v-if="subflowShouldUpdated.length > 0"
-                class="update-tips"
-                :list="subflowShouldUpdated"
-                :locations="locations"
-                :is-view-mode="isViewMode"
-                @viewClick="viewUpdatedNode"
-                @batchUpdate="isBatchUpdateDialogShow = true"
-                @foldClick="clearDotAnimation">
-            </SubflowUpdateTips>
-            <TemplateCanvas
-                :key="isViewMode"
-                ref="templateCanvas"
-                class="template-canvas"
-                :atom-type-list="atomTypeList"
-                :name="name"
-                :show-palette="!isViewMode"
-                :editable="!isViewMode"
-                :common="common"
-                :template-labels="templateLabels"
-                :canvas-data="canvasData"
-                :node-variable-info="nodeVariableInfo"
-                @hook:mounted="canvasMounted"
-                @onConditionClick="onOpenConditionEdit"
+                :draft-update-info="draftUpdateInfo"
+                :is-exec-schema-view="activeSettingTab === 'executeSchemaTab'"
+                :is-exec-schema-preview="isExecSchemaPreview"
+                :collect-info="collectInfo"
+                :published="published"
                 @templateDataChanged="templateDataChanged"
-                @onLocationChange="onLocationChange"
-                @onLineChange="onLineChange"
-                @onLocationMoveDone="onLocationMoveDone"
-                @onFormatPosition="onFormatPosition"
-                @onReplaceLineAndLocation="onReplaceLineAndLocation"
-                @onShowNodeConfig="onShowNodeConfig"
-                @onTogglePerspective="onTogglePerspective"
-                @updateCondition="setBranchCondition($event)">
-            </TemplateCanvas>
-            <TemplateSidebar
-                :is-view-mode="isViewMode"
-                :is-node-config-panel-show="isNodeConfigPanelShow"
-                :atom-list="atomList"
-                :atom-type-list="atomTypeList"
-                :third-party-list="thirdPartyList"
-                :common="common"
+                @onClosePreview="onClosePreview"
+                @goBackViewMode="goBackViewMode"
+                @onChangePanel="activeSettingTab = $event"
+                @onPublishDraft="onPublishDraft">
+            </TemplateHeader>
+            <!--执行方案-->
+            <TaskSelectNode
+                v-if="activeSettingTab === 'executeSchemaTab'"
+                ref="taskSelectNode"
                 :project_id="project_id"
-                :node-id="idOfNodeInConfigPanel"
-                :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
-                :isolation-atom-config="isolationAtomConfig"
-                @updateNodeInfo="onUpdateNodeInfo"
-                @close="closeConfigPanel">
-            </TemplateSidebar>
-            <div class="side-content">
-                <!-- <node-config
-                    ref="nodeConfig"
-                    v-if="isNodeConfigPanelShow"
+                :common="common"
+                :entrance="entrance"
+                :template_id="template_id"
+                :is-create-task="false"
+                @togglePreviewMode="isExecSchemaPreview = $event">
+            </TaskSelectNode>
+            <!--模板-->
+            <template v-else>
+                <SubflowUpdateTips
+                    v-if="subflowShouldUpdated.length > 0"
+                    class="update-tips"
+                    :list="subflowShouldUpdated"
+                    :locations="locations"
                     :is-view-mode="isViewMode"
-                    :is-show="isNodeConfigPanelShow"
+                    @viewClick="viewUpdatedNode"
+                    @batchUpdate="isBatchUpdateDialogShow = true"
+                    @foldClick="clearDotAnimation">
+                </SubflowUpdateTips>
+                <TemplateCanvas
+                    :key="isViewMode"
+                    ref="templateCanvas"
+                    class="template-canvas"
+                    :name="name"
+                    :show-palette="!isViewMode"
+                    :editable="!isViewMode"
+                    :common="common"
+                    :canvas-data="canvasData"
+                    :node-variable-info="nodeVariableInfo"
+                    @hook:mounted="canvasMounted"
+                    @onConditionClick="onOpenConditionEdit"
+                    @templateDataChanged="templateDataChanged"
+                    @onLocationChange="onLocationChange"
+                    @onLineChange="onLineChange"
+                    @onLocationMoveDone="onLocationMoveDone"
+                    @onFormatPosition="onFormatPosition"
+                    @onReplaceLineAndLocation="onReplaceLineAndLocation"
+                    @onShowNodeConfig="onShowNodeConfig"
+                    @onTogglePerspective="onTogglePerspective"
+                    @updateCondition="setBranchCondition($event)">
+                </TemplateCanvas>
+                <TemplateSidebar
+                    :is-view-mode="isViewMode"
+                    :is-node-config-panel-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
-                    :template-labels="templateLabels"
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
-                    :back-to-variable-panel="backToVariablePanel"
-                    :is-not-exist-atom-or-version="isNotExistAtomOrVersion"
-                    :isolation-atom-config="isolationAtomConfig"
-                    @globalVariableUpdate="globalVariableUpdate"
+                    @onCitedNodeClick="onCitedNodeClick"
                     @updateNodeInfo="onUpdateNodeInfo"
-                    @templateDataChanged="templateDataChanged"
                     @close="closeConfigPanel">
-                </node-config> -->
-                <condition-edit
-                    v-if="isShowConditionEdit"
-                    ref="conditionEdit"
-                    :is-show="isShowConditionEdit"
-                    :is-readonly="isViewMode"
-                    :gateways="gateways"
-                    :condition-data="conditionData"
-                    :back-to-variable-panel="backToVariablePanel"
-                    @onBeforeClose="onBeforeClose"
-                    @updataCanvasCondition="updataCanvasCondition"
-                    @close="onCloseConfigPanel">
-                </condition-edit>
-            </div>
+                </TemplateSidebar>
+            </template>
+            <condition-edit
+                v-if="isShowConditionEdit"
+                ref="conditionEdit"
+                :is-show="isShowConditionEdit"
+                :is-readonly="isViewMode"
+                :gateways="gateways"
+                :condition-data="conditionData"
+                :back-to-variable-panel="backToVariablePanel"
+                @onBeforeClose="onBeforeClose"
+                @updataCanvasCondition="updataCanvasCondition"
+                @close="onCloseConfigPanel">
+            </condition-edit>
             <template-setting
                 v-if="activeSettingTab"
                 :is-view-mode="isViewMode"
@@ -132,7 +128,6 @@
                     :project-id="project_id"
                     :common="common"
                     :list="subflowShouldUpdated"
-                    @globalVariableUpdate="globalVariableUpdate"
                     @close="closeBatchUpdateDialog">
                 </batch-update-dialog>
             </bk-dialog>
@@ -164,31 +159,30 @@
     import moment from 'moment-timezone'
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
-    import atomFilter from '@/utils/atomFilter.js'
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader/index.vue'
     import TemplateSidebar from './TemplateSidebar/index.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/index.vue'
-    // import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
-    import tplTabCount from '@/utils/tplTabCount.js'
     import Guide from '@/utils/guide.js'
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
+    import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
     import BatchUpdateDialog from './BatchUpdateDialog.vue'
     import DealVarDirtyData from '@/utils/dealVarDirtyData.js'
     import bus from '@/utils/bus.js'
 
     export default {
+        inject: ['reload'],
         name: 'TemplateEdit',
         components: {
             TemplateHeader,
             TemplateSidebar,
             TemplateCanvas,
-            // NodeConfig,
+            TaskSelectNode,
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips,
@@ -198,12 +192,11 @@
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
-                isPreviewMode: false,
+                isExecSchemaPreview: false,
                 singleAtomListLoading: false,
                 projectInfoLoading: false,
                 templateDataLoading: false,
                 templateSaving: false,
-                isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateDataChanged: false,
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false, // 右侧模板是否展开
@@ -218,9 +211,8 @@
                     tasknode: [],
                     subflow: []
                 },
-                thirdPartyList: {},
-                templateLabels: [],
-                templateLabelLoading: false,
+                collectInfo: {},
+                published: false,
                 tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
@@ -262,11 +254,10 @@
                 isPerspective: false, // 流程是否透视
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
-                isNotExistAtomOrVersion: false, // 选中的节点插件/插件版本是否存在
                 isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
                 checkedNodes: [],
                 checkedConvergeNodes: [],
-                isolationAtomConfig: {} // 被隔离插件的基础配置
+                draftUpdateInfo: {}
             }
         },
         computed: {
@@ -401,12 +392,16 @@
                     this.getNodeVariableCitedData()
                 }
             },
-            '$route.params.type' (val) {
-                const data = this.getTplTabData()
+            async '$route.params.type' (val, oldVal) {
+                this.templateDataLoading = true
+                this.isTemplateDataChanged = false
+                if (val === 'edit' && ['new', 'clone'].includes(oldVal)) {
+                    await this.getTemplateData()
+                }
                 if (val === 'edit') {
-                    tplTabCount.setTab(data, 'add')
+                    this.getTplDraftData()
                 } else {
-                    tplTabCount.setTab(data, 'del')
+                    this.getTemplateData()
                 }
             }
         },
@@ -416,19 +411,9 @@
         },
         mounted () {
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
-            window.addEventListener('unload', this.handleUnload.bind(this), false)
-            if (this.type === 'edit') {
-                const data = this.getTplTabData()
-                tplTabCount.setTab(data, 'add')
-            }
         },
         beforeDestroy () {
-            if (this.type === 'edit') {
-                const data = this.getTplTabData()
-                tplTabCount.setTab(data, 'del')
-            }
             window.removeEventListener('beforeunload', this.handleBeforeUnload, false)
-            window.removeEventListener('unload', this.handleUnload, false)
             this.resetTemplateData()
             this.hideGuideTips()
         },
@@ -436,15 +421,13 @@
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
                 'loadTemplateData',
-                'saveTemplateData',
+                'loadTemplateDraft',
+                'publishTemplateDraft',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
                 'loadInternalVariable',
                 'getVariableCite',
                 'getProcessOpenRetryAndTimeout'
-            ]),
-            ...mapActions('task', [
-                'loadSubflowConfig'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList',
@@ -453,7 +436,6 @@
                 'loadPluginServiceMeta'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault',
                 'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
@@ -474,7 +456,8 @@
                 'replaceLineAndLocation',
                 'setPipelineTree',
                 'setInternalVariable',
-                'setConstants'
+                'setConstants',
+                'setAtomList'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -487,18 +470,19 @@
                 'loadTaskScheme',
                 'saveTaskSchemeList'
             ]),
-            initData () {
+            async initData () {
                 this.initTemplateData()
                 // 获取流程内置变量
                 this.getSystemVars()
                 this.getSingleAtomList()
                 this.getProjectBaseInfo()
-                if (!this.common) {
-                    this.getTemplateLabelList()
-                }
                 this.templateDataLoading = true
                 if (['edit', 'clone', 'view'].includes(this.type)) {
-                    this.getTemplateData()
+                    await this.getTemplateData()
+                    if (this.type !== 'view') {
+                        this.templateDataLoading = true
+                        this.getTplDraftData()
+                    }
                 } else {
                     let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                     if (this.common) {
@@ -545,6 +529,7 @@
                         }
                     })
                     this.atomList = this.handleAtomVersionOrder(atomList)
+                    this.setAtomList(this.atomList)
                     this.handleAtomGroup(tools.deepClone(this.atomList))
                     this.markNodesPhase()
                 } catch (e) {
@@ -575,7 +560,26 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
+
+                    // 如果查看模式下，流程未发布。则切到编辑模式
+                    const { params, query } = this.$route
+                    if (params.type === 'view' && !templateData.published) {
+                        this.$router.replace({
+                            name: 'templatePanel',
+                            query,
+                            params: {
+                                ...params,
+                                type: 'edit'
+                            }
+                        })
+                        this.reload()
+                    }
                     this.tplActions = templateData.auth_actions
+                    this.collectInfo = {
+                        isCollected: templateData.collected,
+                        collectionId: templateData.collection_id
+                    }
+                    this.published = templateData.published
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
@@ -589,77 +593,23 @@
                     this.templateDataLoading = false
                 }
             },
-            /**
-             * 新增节点时取输入参数配置项
-             * 优先取 store 里已保存的
-             */
-            async getSingleAtomConfig (location) {
-                const code = location.atomId
-                const version = location.version
-                const atomConfig = this.atomConfig[code]
-                const project_id = this.common ? undefined : this.project_id
-                if (atomConfig && atomConfig[version]) {
-                    this.addSingleAtomActivities(location, atomConfig[version])
-                    return
-                }
-                // 接口获取最新配置信息
-                this.atomConfigLoading = true
+            // 获取草稿详情
+            async getTplDraftData () {
                 try {
-                    await this.loadAtomConfig({ atom: code, version, project_id })
-                    const config = this.atomConfig[code] && this.atomConfig[code][version]
-                    if (config) {
-                        this.addSingleAtomActivities(location, config)
-                    }
+                    const templateData = await this.loadTemplateDraft({
+                        templateId: this.template_id,
+                        common: this.common
+                    })
+
+                    const { edit_time, editor, pipeline_tree } = templateData
+                    // 草稿更新信息
+                    this.draftUpdateInfo = { edit_time, editor }
+                    const pipelineTree = JSON.parse(pipeline_tree)
+                    this.setPipelineTree(pipelineTree)
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.atomConfigLoading = false
-                }
-            },
-            /**
-             * 加载子流程输入参数表单及配置项
-             */
-            async getSubflowConfig (location) { // get subflow constants and add node
-                try {
-                    const params = {
-                        project_id: this.project_id,
-                        template_id: location.atomId,
-                        scheme_id_list: [],
-                        version: ''
-                    }
-                    if (this.common || location.tplSource === 'common') {
-                        params.template_source = 'common'
-                    } else {
-                        params.project_id = this.project_id
-                    }
-                    const res = await this.loadSubflowConfig(params)
-                    const constants = tools.deepClone(res.data.pipeline_tree.constants)
-                    const activity = tools.deepClone(this.activities[location.id])
-                    const project_id = this.common ? undefined : this.project_id
-                    for (const key in constants) {
-                        const form = constants[key]
-                        const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-                        // 全局变量版本
-                        const version = form.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atom, version, this.atomConfig)) {
-                            await this.loadAtomConfig({ name, atom, classify, version, project_id })
-                        }
-                        const atomConfig = this.atomConfig[atom][version]
-                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-
-                        if (currentFormConfig) {
-                            if (form.is_meta || currentFormConfig.meta_transform) {
-                                currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
-                                if (!form.meta) {
-                                    form.value = currentFormConfig.attrs.value
-                                }
-                            }
-                        }
-                    }
-                    activity.constants = constants || {}
-                    this.setActivities({ type: 'edit', location: activity })
-                } catch (e) {
-                    console.log(e)
+                    this.templateDataLoading = false
                 }
             },
             /**
@@ -703,20 +653,6 @@
                     this.systemVarsLoading = false
                 }
             },
-            /**
-             * 加载模板标签列表
-             */
-            async getTemplateLabelList () {
-                try {
-                    this.templateLabelLoading = true
-                    const res = await this.getProjectLabelsWithDefault(this.project_id)
-                    this.templateLabels = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.templateLabelLoading = false
-                }
-            },
             checkDirtyData () {
                 const ins = new DealVarDirtyData(this.constants)
                 const illegalKeys = ins.checkKeys()
@@ -734,7 +670,7 @@
                         confirmFn: async () => {
                             const constants = ins.handleIllegalKeys()
                             this.setConstants(constants)
-                            await this.saveTemplate()
+                            await this.publishDraft()
                         }
                     })
                     return true
@@ -742,18 +678,19 @@
                 return false
             },
             /**
-             * 保存流程模板
+             * 发布草稿
              */
-            async saveTemplate () {
+            async publishDraft () {
                 // 检查全局变量是否存在脏数据
                 const hasDirtyData = this.checkDirtyData()
                 if (hasDirtyData) return
 
-                const template_id = this.type === 'edit' ? this.template_id : undefined
                 this.templateSaving = true
-
                 try {
-                    const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    const resp = await this.publishTemplateDraft({
+                        templateId: this.template_id,
+                        common: this.common
+                    })
                     if (!resp.result) {
                         // 前端校验返回数据包含errorId，此时采用message消息提醒
                         if ('errorId' in resp) {
@@ -767,82 +704,26 @@
                         }
                         return
                     }
-                    const data = resp.data
-                    this.tplActions = data.auth_actions
+                    // 切换路由到查看模式
+                    const { params, query } = this.$route
+                    this.$router.replace({
+                        name: this.common ? 'commonTemplatePanel' : 'templatePanel',
+                        query,
+                        params: {
+                            ...params,
+                            type: 'view'
+                        }
+                    })
                     this.$bkMessage({
-                        message: i18n.t('保存成功'),
+                        message: i18n.t('发布成功'),
                         theme: 'success'
                     })
                     this.isTemplateDataChanged = false
-                    // 如果为克隆模式保存模板时需要保存执行方案
-                    if (this.type === 'clone' && !this.common) {
-                        // 当前为根据源模板id获取方案列表
-                        const taskSchemeList = await this.loadTaskScheme({
-                            project_id: this.project_id,
-                            template_id: this.template_id,
-                            isCommon: this.common
-                        }) || []
-                        // 当前为根据已生成模板id保存方案列表
-                        const schemes = taskSchemeList.map(item => {
-                            return {
-                                data: item.data,
-                                name: item.name
-                            }
-                        })
-                        await this.saveTaskSchemeList({
-                            project_id: this.project_id,
-                            template_id: data.template_id,
-                            schemes,
-                            isCommon: this.common
-                        })
-                    }
-
-                    if (this.type !== 'edit') {
-                        this.allowLeave = true
-
-                        // 新创建的流程模板需要增加本地浏览器计数信息
-                        const tabQuerydata = {
-                            user: this.username,
-                            id: this.common ? 'common' : this.project_id,
-                            tpl: data.template_id
-                        }
-                        tplTabCount.setTab(tabQuerydata, 'add')
-                    }
-
-                    // 保存后需要切到查看模式(查看执行方案时不需要)
-                    if (this.initType === 'view') {
-                        this.$router.back()
-                        this.initData()
-                    } else {
-                        this.$router.push({
-                            params: { type: 'view' },
-                            query: { template_id: data.template_id }
-                        })
-                        this.initType = 'view'
-                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.templateSaving = false
                 }
-            },
-            /**
-             * 更新普通任务节点配置详情
-             * @param {Object} location 节点对象
-             * @param {Array} config 节点输入参数配置项
-             */
-            addSingleAtomActivities (location, config) {
-                const data = {}
-                const defaultValue = atomFilter.getFormItemDefaultValue(config)
-                config.forEach(item => {
-                    data[item.tag_code] = {
-                        hook: false,
-                        value: defaultValue[item.tag_code]
-                    }
-                })
-                const activities = tools.deepClone(this.activities[location.id])
-                activities.component.data = data
-                this.setActivities({ type: 'edit', location: activities })
             },
             /**
              * 插件列表按照版本号递增排序，legacy 置为最前
@@ -963,14 +844,14 @@
                 this.idOfNodeInConfigPanel = ''
                 this.backToVariablePanel = false
                 if (openVariablePanel) {
-                    this.onChangeSettingPanel('globalVariableTab')
+                    this.activeSettingTab = 'globalVariableTab'
                 }
             },
             /**
              * 设置流程模板为修改状态
              */
-            templateDataChanged () {
-                this.isTemplateDataChanged = true
+            templateDataChanged (val = true) {
+                this.isTemplateDataChanged = val
             },
             /**
              * 任务节点校验
@@ -1130,77 +1011,12 @@
              * 打开节点配置面板
              */
             async onShowNodeConfig (id) {
-                this.isolationAtomConfig = { list: [] }
-                // 判断节点配置的插件是否存在
-                const nodeConfig = this.$store.state.template.activities[id]
-                if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name && nodeConfig.component.code !== 'remote_plugin') {
-                    let atom = true
-                    atom = this.atomList.find(item => item.code === nodeConfig.component.code)
-                    // 插件列表中未匹配到，1.该插件被移除 2.该插件被隔离
-                    if (!atom) {
-                        const resp = await this.loadAtomConfig({
-                            atom: nodeConfig.component.code,
-                            version: nodeConfig.component.version,
-                            project_id: this.common ? undefined : this.project_id,
-                            scope: 'flow'
-                        }).catch(() => {
-                            this.isNotExistAtomOrVersion = true
-                        })
-                        // 隔离插件允许拉取详情数据
-                        if (resp) {
-                            this.isNotExistAtomOrVersion = false
-                            // 被隔离插件的基础配置
-                            this.isolationAtomConfig = {
-                                ...resp.data,
-                                list: [resp.data]
-                            }
-                        }
-                    } else {
-                        const matchResult = atom.list.find(item => item.version === nodeConfig.component.version)
-                        this.isNotExistAtomOrVersion = !matchResult
-                    }
-                }
                 // 点击节点时，清除校验异常状态
                 const index = this.validateConnectFailList.findIndex(val => val === id)
                 if (index > -1) {
                     this.validateConnectFailList.splice(index, 1)
                 }
-                const location = this.locations.find(item => item.id === id)
-                if (['tasknode', 'subflow'].includes(location.type)) {
-                    // 设置第三发插件缓存
-                    const nodeConfig = this.$store.state.template.activities[id]
-                    if (nodeConfig.component
-                        && nodeConfig.component.code === 'remote_plugin'
-                        && !this.thirdPartyList[id]) {
-                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
-                        // 第三方插件是否存在
-                        if (!resp.result && resp.message.indexOf('404') > -1) {
-                            this.isNotExistAtomOrVersion = true
-                            this.showConfigPanel(id)
-                            return
-                        }
-                        const { code, versions, description } = resp.data
-                        const versionList = versions.map(version => {
-                            return { version }
-                        })
-                        const { data } = nodeConfig.component
-                        let version = data && data.plugin_version
-                        version = version && version.value
-                        const group = {
-                            code,
-                            list: versionList,
-                            version,
-                            desc: description
-                        }
-                        // 第三方插件版本是否存在
-                        if (versions.includes(version)) {
-                            this.thirdPartyList[id] = group
-                        } else {
-                            this.isNotExistAtomOrVersion = true
-                        }
-                    }
-                    this.showConfigPanel(id)
-                }
+                this.showConfigPanel(id)
             },
             // 流程透视
             onTogglePerspective (val) {
@@ -1276,39 +1092,6 @@
                 switch (location.type) {
                     case 'tasknode':
                     case 'subflow':
-                        // 添加任务节点
-                        if (changeType === 'add' && location.atomId) {
-                            if (location.type === 'tasknode') {
-                                if (location.atomId === 'remote_plugin') {
-                                    const resp = await this.loadPluginServiceMeta({ plugin_code: location.name })
-                                    if (!resp.result) return
-                                    const versionList = resp.data.versions
-                                    location.version = versionList[versionList.length - 1]
-                                    location.data = {
-                                        plugin_code: {
-                                            hook: false,
-                                            value: location.name
-                                        },
-                                        plugin_version: {
-                                            hook: false,
-                                            value: location.version
-                                        }
-                                    }
-                                } else {
-                                    const atoms = this.atomList.find(item => item.code === location.atomId).list
-                                    // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
-                                    const lastVersionAtom = atoms[atoms.length - 1]
-                                    const version = lastVersionAtom.version
-                                    location.version = version
-                                }
-                                this.setActivities({ type: 'add', location })
-                                this.getSingleAtomConfig(location)
-                            } else {
-                                this.setActivities({ type: 'add', location })
-                                this.getSubflowConfig(location)
-                            }
-                            return
-                        }
                         this.setActivities({ type: changeType, location })
                         break
                     case 'branchgateway':
@@ -1435,12 +1218,6 @@
                 this.setLocationXY(location)
             },
             /**
-             * 全局变量是否有更新，面板收起的情况下增加、删除变量时在 icon 处显示小红点
-             */
-            globalVariableUpdate (val) {
-                this.isGlobalVariableUpdate = val
-            },
-            /**
              * 更新单个节点的信息
              */
             onUpdateNodeInfo (id, data) {
@@ -1449,35 +1226,37 @@
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
+            onClosePreview () {
+                this.$refs.taskSelectNode.togglePreviewMode(false)
+            },
             goBackViewMode () {
                 this.$bkInfo({
                     ...this.infoBasicConfig,
                     confirmFn: () => {
                         // 返回查看模式时初始化数据
                         this.isTemplateDataChanged = false
-                        this.isGlobalVariableUpdate = false
                         this.$router.back()
                         this.initData()
                     }
                 })
             },
-            // 选择侧滑面板
-            onChangeSettingPanel (val) {
-                this.activeSettingTab = val
-                if (this.isGlobalVariableUpdate && val === 'globalVariableTab') {
-                    this.isGlobalVariableUpdate = false
-                }
-            },
-            // 点击保存模板按钮回调
-            onSaveTemplate () {
+            // 发布草稿回调
+            onPublishDraft () {
                 if (this.templateSaving) return
-                this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
-                // 编辑模式下保存模板时，有多个tab
-                if (this.type === 'edit' && this.isMultipleTabCount > 1) {
-                    this.multipleTabDialogShow = true
-                } else {
-                    this.checkNodeAndSaveTemplate()
-                }
+                const isAllNodeValid = this.checkNodeAndSaveTemplate()
+                if (!isAllNodeValid) return
+                this.$bkInfo({
+                    title: this.$t('确认发布流程'),
+                    subTitle: `【${this.name}】?`,
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    okText: this.$t('发布'),
+                    cancelText: this.$t('取消'),
+                    confirmFn: async () => {
+                        await this.publishDraft()
+                    }
+                })
             },
             // 校验节点配置
             checkNodeAndSaveTemplate () {
@@ -1521,29 +1300,11 @@
                     })
                     return
                 }
-                const isAllNodeValid = this.validateAtomNode()
-                if (isAllNodeValid) {
-                    this.saveTemplate()
-                }
+                return this.validateAtomNode()
             },
             // 修改line和location
             onReplaceLineAndLocation (data) {
                 this.replaceLineAndLocation(data)
-            },
-            // 重新获得缓存后，更新 dom data[raw]上绑定的数据
-            updateAllNodeInfo () {
-                const nodes = this.activities
-                Object.keys(nodes).forEach((node, index) => {
-                    this.onUpdateNodeInfo(node, {
-                        status: '',
-                        name: nodes[node].name,
-                        stage_name: nodes[node].stage_name,
-                        optional: nodes[node].optional,
-                        error_ignorable: nodes[node].error_ignorable,
-                        retryable: nodes[node].can_retry || nodes[node].retryable,
-                        skippable: nodes[node].isSkipped || nodes[node].skippable
-                    })
-                })
             },
             closeBatchUpdateDialog (updated) {
                 this.isBatchUpdateDialogShow = false
@@ -1569,7 +1330,7 @@
                 this.isShowConditionEdit = false
                 this.backToVariablePanel = false
                 if (openVariablePanel) {
-                    this.onChangeSettingPanel('globalVariableTab')
+                    this.activeSettingTab = 'globalVariableTab'
                 }
             },
             // 更新分支数据
@@ -1684,23 +1445,10 @@
                 e.returnValue = i18n.t('系统不会保存您所做的更改，确认离开？')
                 return i18n.t('系统不会保存您所做的更改，确认离开？')
             },
-            handleUnload (queryData, type) {
-                if (this.type === 'edit') {
-                    const data = this.getTplTabData()
-                    tplTabCount.setTab(data, 'del')
-                }
-            },
             // 多 tab 打开同一流程模板
             onMultipleTabConfirm () {
                 this.checkNodeAndSaveTemplate()
                 this.multipleTabDialogShow = false
-            },
-            getTplTabData () {
-                return {
-                    user: this.username,
-                    id: this.common ? 'common' : this.project_id,
-                    tpl: this.template_id
-                }
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1791,12 +1539,6 @@
     .template-canvas {
         position: relative;
         height: calc(100vh - 100px);
-    }
-    .side-content {
-        position: absolute;
-        top: 59px;
-        right: 0px;
-        height: calc(100% - 58px);
     }
     .leave-tips {
         padding: 30px;

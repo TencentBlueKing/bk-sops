@@ -7,21 +7,28 @@
             form-type="vertical"
             :model="formData"
             :rules="pluginRules">
-            <bk-form-item :label="$t('标准插件')" :required="true" property="plugin" class="choose-plugin-input" :error-display-type="'normal'">
-                <bk-input :value="formData.name" readonly :key="basicInfo.plugin">
+            <bk-form-item
+                :label="$t('标准插件')"
+                :required="true"
+                property="plugin"
+                class="choose-plugin-input"
+                :error-display-type="'normal'"
+                :rules="isNotExist ? [] : pluginRules.plugin">
+                <bk-input :value="formData.name" readonly :key="basicInfo.plugin" :class="{ 'is-active': isSelectorPanelShow }">
                     <template slot="prepend" v-if="isThirdParty">
                         <span class="third-mark-prepend">{{ $t('第三方') }}</span>
                     </template>
-                    <template slot="append">
+                    <div slot="append" style="display: flex">
                         <p v-if="basicInfo.plugin_contact" class="third-plugin-contact">
                             {{ $t('由') + ' ' + basicInfo.plugin_contact + ' ' + $t('提供') }}
                         </p>
-                        <i :class="['bk-icon icon-sort', { 'is-disabled': isViewMode }]" @click="openSelectorPanel"></i>
-                    </template>
+                        <i :class="['bk-icon icon-sort append-icon', { 'is-disabled': isViewMode && !isNotExist }]" @click="openSelectorPanel"></i>
+                    </div>
                 </bk-input>
                 <p v-if="formData.desc" class="plugin-info-desc" v-html="formData.desc"></p>
+                <p v-if="isNotExist" class="plugin-info-desc">{{ $t('插件已失效，请重新选择') }}</p>
             </bk-form-item>
-            <template v-if="basicInfo.plugin">
+            <template v-if="basicInfo.plugin && !isNotExist">
                 <bk-form-item :label="$t('插件版本')" data-test-id="templateEdit_form_pluginVersion" :required="true" property="version">
                     <bk-select
                         v-model="formData.version"
@@ -65,12 +72,14 @@
             :model="formData"
             :rules="subFlowRules">
             <bk-form-item :label="$t('流程模板')" :required="true" property="tpl">
-                <TplSelectVue
+                <TplSelect
                     :value="formData.tpl"
                     :is-view-mode="isViewMode"
                     :project_id="project_id"
+                    :common="common"
+                    :node-config="nodeConfig"
                     @select="$emit('select', $event)">
-                </TplSelectVue>
+                </TplSelect>
                 <p
                     v-if="basicInfo.tpl"
                     class="view-sub-flow"
@@ -152,11 +161,11 @@
     import permission from '@/mixins/permission.js'
     import { mapState, mapActions, mapGetters } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
-    import TplSelectVue from './TplSelect.vue'
+    import TplSelect from './TplSelect.vue'
     export default {
         name: 'BasicInfo',
         components: {
-            TplSelectVue
+            TplSelect
         },
         mixins: [permission],
         props: {
@@ -169,7 +178,9 @@
             inputLoading: Boolean,
             subFlowUpdated: Boolean,
             common: [String, Number],
-            isViewMode: Boolean
+            isViewMode: Boolean,
+            isSelectorPanelShow: Boolean,
+            isNotExist: Boolean
         },
         data () {
             return {
@@ -261,7 +272,7 @@
             }),
             subFlowHasUpdate () {
                 if (!this.formData.alwaysUseLatest) {
-                    return this.version !== this.basicInfo.version || this.subprocessInfo.details.some(item => {
+                    return this.version !== this.basicInfo.version || this.subprocessInfo?.details.some(item => {
                         if (
                             item.expired
                             && item.template_id === Number(this.formData.tpl)
@@ -282,6 +293,7 @@
                     this.formData.schemeIdList = [0]
                 }
                 if (val.tpl && val.tpl !== oldVal.tpl) {
+                    this.version = val.version
                     this.getSubFlowSchemeList()
                 }
             }
@@ -346,7 +358,7 @@
                 }
             },
             openSelectorPanel () {
-                if (this.isViewMode) return
+                if (this.isViewMode && !this.isNotExist) return
                 this.$emit('openSelectorPanel')
             },
             onUserSelectChange (tags) {
@@ -455,10 +467,8 @@
                     }
                 }
             }
-            .bk-input-text {
-                input::placeholder {
-                    color: #63656e !important;
-                }
+            .bk-form-input  {
+                color: #63656e !important;
             }
             .bk-form-control .group-box.group-append {
                 display: flex;
@@ -498,6 +508,13 @@
                         border-color: #dcdee5;
                         cursor: not-allowed;
                     }
+                }
+            }
+            .is-active {
+                .group-prepend,
+                .bk-form-input,
+                .third-plugin-contact {
+                    border-color: #3a84ff !important;
                 }
             }
         }

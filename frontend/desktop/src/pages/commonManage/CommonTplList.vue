@@ -132,6 +132,9 @@
                                         {{row.name}}
                                     </a>
                                 </div>
+                                <div v-if="item.id === 'published'" :class="['flow-type', { 'is-published': row.published }]">
+                                    {{ row.published ? $t('可用') : $t('草稿') }}
+                                </div>
                                 <!--子流程更新-->
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
@@ -148,6 +151,7 @@
                                     <template>
                                         <a
                                             class="template-operate-btn"
+                                            :class="{ 'is-disable': !props.row.published }"
                                             @click.prevent="handleCreateTaskClick(props.row)">
                                             {{$t('新建任务')}}
                                         </a>
@@ -319,6 +323,11 @@
             label: i18n.t('流程名称'),
             disabled: true,
             min_width: 400
+        },
+        {
+            id: 'published',
+            label: i18n.t('状态'),
+            min_width: 150
         },
         {
             key: 'pipeline_template__create_time',
@@ -1253,6 +1262,7 @@
 
             // 点击创建任务
             handleCreateTaskClick (tpl) {
+                if (!tpl.published) return
                 this.selectedTpl = tpl
                 this.isSelectProjectShow = true
                 this.permissionLoading = false
@@ -1468,6 +1478,10 @@ a {
     .template-operate-btn {
         padding: 5px;
         color: #3a84ff;
+        &.is-disable {
+            color:#cccccc;
+            cursor: not-allowed;
+        }
     }
     .drop-icon-ellipsis {
         font-size: 18px;
@@ -1516,6 +1530,22 @@ a {
     /deep/.create-time {
         .bk-table-caret-wrapper {
             display: none;
+        }
+    }
+    .flow-type {
+        display: inline-block;
+        font-size: 12px;
+        line-height: 20px;
+        padding: 0 8px;
+        margin-right: 8px;
+        color: #63656e;
+        background: #fafbfd;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+        &.is-published {
+            color: #14a568;
+            background: #e4faf0;
+            border: 1px solid #a5e0c6;
         }
     }
 }

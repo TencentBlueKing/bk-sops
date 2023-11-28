@@ -436,7 +436,7 @@
 .select-panel {
     position: absolute;
     top: -54px;
-    left: -615px;
+    left: -608px;
     width: 600px;
     height: 790px;
     background: #fff;

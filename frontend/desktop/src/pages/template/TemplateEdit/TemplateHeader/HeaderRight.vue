@@ -2,15 +2,15 @@
     <div class="header-right">
         <template v-if="type === 'view'">
             <div class="tab-operate" @click="$emit('onChangePanel', 'executeSchemaTab')">
-                <i class="common-icon-file-setting"></i>
+                <i class="common-icon-enter-config"></i>
                 {{ '执行方案' }}
             </div>
             <div class="tab-operate" @click="$emit('onChangePanel', 'executeSettingTab')">
-                <i class="common-icon-file-setting"></i>
+                <i class="common-icon-enter-config"></i>
                 {{ '执行设置' }}
             </div>
             <div class="tab-operate" @click="$emit('onChangePanel', 'operateFlowTab')">
-                <i class="common-icon-file-setting"></i>
+                <i class="common-icon-enter-config"></i>
                 {{ '操作流水' }}
             </div>
             <bk-button
@@ -35,27 +35,30 @@
             </bk-button>
         </template>
         <template v-else>
-            <div class="recently-text">
-                {{ '最近保存：' + 'ddddddd' + ' ' + '10-02' + ' ' + '10:45:41' }}
+            <div class="recently-text" v-if="type === 'edit'">
+                {{ '最近保存：' + (draftUpdateInfo.editor || '--') + ' ' + (draftUpdateInfo.edit_time || '--') }}
             </div>
             <bk-button
                 :class="['task-btn', {
                     'btn-permission-disable': !saveBtnActive
                 }]"
                 v-cursor="{ active: !saveBtnActive }"
+                :loading="draftSaving"
+                :disabled="templateSaving"
                 data-test-id="templateEdit_form_editCanvas"
-                @click.stop="onEditClick">
+                @click.stop="onSaveTplDraft(false)">
                 {{$t('保存草稿')}}
             </bk-button>
             <bk-button
                 theme="primary"
                 :class="['task-btn release-btn', {
-                    'btn-permission-disable': !saveBtnActive
+                    'btn-permission-disable': !publishActive
                 }]"
                 :loading="templateSaving"
-                v-cursor="{ active: !saveBtnActive }"
+                :disabled="draftSaving"
+                v-cursor="{ active: !publishActive }"
                 data-test-id="templateEdit_form_saveCanvas"
-                @click.stop="onRelease">
+                @click.stop="onPublishDraft">
                 {{$t('发布')}}
             </bk-button>
         </template>
@@ -64,11 +67,15 @@
                 <i class="bk-icon icon-more"></i>
             </div>
             <ul class="bk-dropdown-list" slot="dropdown-content">
-                <li v-if="type === 'view'" class="dropdown-item" @click="$emit('onChangePanel', 'templateDataEditTab')">
-                    <i class="common-icon-square-code"></i>
+                <li
+                    v-if="type === 'edit'"
+                    class="dropdown-item"
+                    @click="onDeleteDraft">
+                    {{ $t('删除草稿') }}
+                </li>
+                <li class="dropdown-item" @click="$emit('onChangePanel', 'templateDataEditTab')">
                     {{ 'Code' }}
                 </li>
-                <li v-else class="dropdown-item">{{ '废弃草稿' }}</li>
             </ul>
         </bk-dropdown-menu>
 
@@ -106,19 +113,25 @@
                 default () {
                     return []
                 }
-            }
+            },
+            draftUpdateInfo: {
+                type: Object,
+                default: () => ({})
+            },
+            published: Boolean
         },
         data () {
             return {
                 isSelectProjectShow: false, // 是否显示项目选择弹窗
                 editBtnActive: false, // 编辑按钮是否激活
                 saveBtnActive: false, // 保存按钮是否激活.
-                saveAndCreate: true, // 是否为保存并新建
+                publishActive: false, // 是否为发布
                 createTaskBtnActive: false, // 新建任务按钮是否激活
                 hasCreateCommonTplPerm: false, // 创建公共流程权限
                 hasCommonTplCreateTaskPerm: false, // 公共流程在项目下创建任务权限
                 createCommonTplPermLoading: false,
                 commonTplCreateTaskPermLoading: false,
+                draftSaving: false,
                 selectedProject: {} // 公共流程创建任务所选择的项目
             }
         },
@@ -143,39 +156,81 @@
                 } else {
                     return this.common ? ['common_flow_edit'] : ['flow_edit']
                 }
+            },
+            curPermission () {
+                return [...this.authActions, ...this.tplActions]
             }
         },
         watch: {
             
         },
         async mounted () {
+            // 新建、克隆公共流程需要查询创建公共流程权限
+            if (this.common) {
+                await this.queryCreateCommonTplPerm()
+            }
             this.setEditBtnPerm()
             this.setSaveBtnPerm()
+            this.setPublishBtnPerm()
             this.setCreateTaskBtnPerm()
         },
         methods: {
             ...mapActions([
                 'queryUserPermission'
             ]),
+            ...mapActions('template', [
+                'saveTemplateDraft',
+                'discardTemplateDraft'
+            ]),
+            ...mapActions('templateList', [
+                'deleteTemplate'
+            ]),
             setEditBtnPerm () {
-                const actions = [...this.authActions, ...this.tplActions]
                 const editRequirePerm = this.common ? ['common_flow_edit'] : ['flow_edit']
-                this.editBtnActive = this.hasPermission(editRequirePerm, actions)
+                this.editBtnActive = this.hasPermission(editRequirePerm, this.curPermission)
             },
             setSaveBtnPerm () {
-                const actions = [...this.authActions, ...this.tplActions]
-                this.saveBtnActive = this.hasPermission(this.saveRequiredPerm, actions)
+                if (this.common && ['new', 'clone'].includes(this.type)) {
+                    this.saveBtnActive = this.hasCreateCommonTplPerm
+                    return
+                }
+                this.saveBtnActive = this.hasPermission(this.saveRequiredPerm, this.curPermission)
+            },
+            setPublishBtnPerm () {
+                let editRequirePerm = []
+                if (['new', 'clone'].includes(this.type)) {
+                    if (this.common) {
+                        this.publishActive = this.hasCreateCommonTplPerm
+                        return
+                    }
+                    editRequirePerm = ['flow_create']
+                } else {
+                    editRequirePerm = this.common ? ['common_flow_publish_draft'] : ['flow_publish_draft']
+                }
+                this.publishActive = this.hasPermission(editRequirePerm, this.curPermission)
             },
             setCreateTaskBtnPerm () {
-                const actions = [...this.authActions, ...this.tplActions]
                 const requiredPerm = this.common ? [] : ['flow_create_task']
-                this.createTaskBtnActive = this.hasPermission(requiredPerm, actions)
+                this.createTaskBtnActive = this.hasPermission(requiredPerm, this.curPermission)
+            },
+            // 查询创建公共流程权限
+            async queryCreateCommonTplPerm () {
+                try {
+                    this.createCommonTplPermLoading = true
+                    const res = await this.queryUserPermission({
+                        action: 'common_flow_create'
+                    })
+                    this.hasCreateCommonTplPerm = res.data.is_allow
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.createCommonTplPermLoading = false
+                }
             },
             // 编辑流程
             onEditClick () {
-                const curPermission = [...this.authActions, ...this.tplActions]
                 const applyPermission = this.common ? ['common_flow_edit'] : ['flow_edit']
-                if (!this.hasPermission(applyPermission, curPermission)) {
+                if (!this.setEditBtnPerm) {
                     const permissionData = {
                         project: [{
                             id: this.project_id,
@@ -186,7 +241,7 @@
                         id: this.template_id,
                         name: this.name
                     }]
-                    this.applyForPermission(applyPermission, curPermission, permissionData)
+                    this.applyForPermission(applyPermission, this.curPermission, permissionData)
                     return
                 }
                 const { params, query, name } = this.$route
@@ -209,7 +264,7 @@
                         }
                     })
                 } else {
-                    const requiredPerm = this.common ? ['common_flow_create'] : ['flow_create']
+                    const requiredPerm = this.common ? [] : ['flow_create_task']
                     this.applyTplPerm(requiredPerm)
                 }
             },
@@ -288,15 +343,156 @@
                     }
                 })
             },
+            // 保存草稿
+            async onSaveTplDraft (saveAndPublish) {
+                if (this.createCommonTplPermLoading || this.commonTplCreateTaskPermLoading) {
+                    return
+                }
+                if (!this.saveBtnActive) {
+                    const permissionData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    permissionData[this.common ? 'common_flow' : 'flow'] = [{
+                        id: this.template_id,
+                        name: this.name
+                    }]
+                    this.applyForPermission(this.saveRequiredPerm, this.curPermission, permissionData)
+                    return
+                }
+                try {
+                    this.draftSaving = true
+                    const templateId = this.type === 'edit' ? this.template_id : ''
+                    const resp = await this.saveTemplateDraft({
+                        templateId,
+                        projectId: this.project_id,
+                        common: this.common
+                    })
+                    if (!resp.result) return
+                    const { name, type, params, query } = this.$route.params
+                    if (!saveAndPublish) {
+                        // 不是编辑类型则重置路由
+                        if (type !== 'edit') {
+                            const query = { template_id: resp.data.template_id }
+                            if (this.common) {
+                                query.common = '1'
+                            }
+                            const url = this.common
+                                ? { name: 'commonTemplatePanel', params: { type: 'edit' }, query }
+                                : { name: 'templatePanel', params: { type: 'edit' }, query }
+                            this.$router.replace(url)
+                        }
+                        this.$bkMessage({
+                            message: this.$t('保存成功'),
+                            theme: 'success'
+                        })
+                        // 更新草稿更新信息
+                        Object.assign(this.draftUpdateInfo, {
+                            edit_time: resp.data.edit_time,
+                            editor: resp.data.editor
+                        })
+                        this.$emit('templateDataChanged', false)
+                    } else if (type !== 'edit') {
+                        // 保存并发布时，如果不是编辑类型则先重置路由再发布
+                        this.$router.replace({
+                            name,
+                            params,
+                            query: {
+                                ...query,
+                                template_id: resp.data.template_id
+                            }
+                        })
+                    }
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.draftSaving = false
+                }
+            },
             // 发布草稿
-            onRelease () {
-                if (this.saveBtnActive) {
-                    this.$validator.validateAll().then((result) => {
+            onPublishDraft () {
+                if (this.publishActive) {
+                    this.$validator.validateAll().then(async (result) => {
                         if (!result) return
-                        this.$emit('onSaveTemplate')
+                        try {
+                            // 先更新草稿再发布
+                            await this.onSaveTplDraft(true)
+                            this.$emit('onPublishDraft')
+                        } catch (error) {
+                            console.warn(error)
+                        }
                     })
                 } else {
                     this.applyTplPerm(this.saveRequiredPerm)
+                }
+            },
+            // 删除草稿
+            onDeleteDraft () {
+                const applyPermission = this.common ? ['common_flow_delete'] : ['flow_delete']
+                if (!this.hasPermission(applyPermission, this.curPermission)) {
+                    const permissionData = {
+                        project: {
+                            id: this.project_id,
+                            name: this.projectName
+                        }
+                    }
+                    permissionData[this.common ? 'common_flow' : 'flow'] = [{
+                        id: this.template_id,
+                        name: this.name
+                    }]
+                    this.applyForPermission(applyPermission, this.curPermission, permissionData)
+                    return
+                }
+                this.$bkInfo({
+                    title: this.$t('确认删除') + this.$t('草稿'),
+                    subTitle: `【${this.name}】?`,
+                    maskClose: false,
+                    width: 450,
+                    confirmLoading: true,
+                    okText: this.$t('删除'),
+                    cancelText: this.$t('取消'),
+                    confirmFn: async () => {
+                        await this.onDeleteConfirm()
+                    }
+                })
+            },
+            async onDeleteConfirm () {
+                try {
+                    const params = {
+                        templateId: this.template_id,
+                        common: this.common
+                    }
+                    let resp = {}
+                    if (this.published) {
+                        resp = await this.discardTemplateDraft(params)
+                    } else {
+                        resp = await this.deleteTemplate(params)
+                    }
+                    if (resp.result === false) return
+                    this.$bkMessage({
+                        message: this.$t('草稿') + this.$t('删除成功！'),
+                        theme: 'success'
+                    })
+                    // 发布过后的删除草稿后跳到查看模式。未发布的删除后跳转到列表页
+                    if (this.published) {
+                        const query = { template_id: this.template_id }
+                        if (this.common) {
+                            query.common = '1'
+                        }
+                        const url = this.common
+                            ? { name: 'commonTemplatePanel', params: { type: 'view' }, query }
+                            : { name: 'templatePanel', params: { type: 'view' }, query }
+                        this.$router.replace(url)
+                    } else {
+                        const url = this.common
+                            ? { name: 'commonProcessList' }
+                            : { name: 'processHome', params: { project_id: this.project_id } }
+                        this.$router.replace(url)
+                    }
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             // 申请流程模板创建或编辑权限
@@ -344,7 +540,7 @@
             color: #63656e;
             cursor: pointer;
             i {
-                font-size: 12px;
+                font-size: 16px;
                 color: #979ba5;
                 margin: 1px 6px 0 0;
             }

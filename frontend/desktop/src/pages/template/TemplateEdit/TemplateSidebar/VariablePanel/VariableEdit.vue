@@ -2,7 +2,7 @@
     <div class="variable-edit">
         <div class="header">
             <i class="common-icon-arrow-left" @click="$emit('closeEditingPanel')"></i>
-            <span>{{ isViewMode ? $t('变量详情') : variableData.key ? $t('编辑变量') : $t('新建变量') }}</span>
+            <span>{{ isViewMode ? $t('变量详情') : variableData.type === 'create' ? $t('新建变量') : $t('编辑变量') }}</span>
         </div>
         <div class="variable-edit-content">
             <bk-form :model="theEditingData" form-type="vertical" class="variable-content-form">
@@ -22,8 +22,12 @@
                         name="variableKey"
                         v-model="theEditingData.key"
                         v-validate="variableKeyRule"
+                        v-bk-tooltips="{
+                            content: $t('变量已被引用，key 不可修改'),
+                            disabled: isViewMode || !isBeCited
+                        }"
                         :readonly="isViewMode || isInternalVal"
-                        :disabled="isHookedVar && variableData.key !== ''">
+                        :disabled="isBeCited">
                     </bk-input>
                     <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                 </bk-form-item>
@@ -32,9 +36,10 @@
                     label="类型"
                     :required="true"
                     :property="'type'"
-                    class="variable-type"
+                    :class="['variable-type', { 'hide-tooltips': !variableDesc }]"
                     :desc="{
                         content: variableDesc,
+                        disabled: isHookedVar,
                         theme: 'light',
                         extCls: 'variable-type-desc'
                     }"
@@ -69,121 +74,132 @@
                     </bk-select>
                     <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                 </bk-form-item>
-                <bk-form-item
-                    label="正则校验"
-                    :property="'regex'"
-                    v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal"
-                    class="variable-regex">
-                    <bk-input
-                        name="valueValidation"
-                        v-model="theEditingData.validation"
-                        v-validate="validationRule"
-                        :readonly="isViewMode"
-                        @blur="onBlurValidation">
-                    </bk-input>
-                    <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
-                </bk-form-item>
-                <bk-form-item
-                    v-if="isConstant"
-                    label="是否常量"
-                    :required="true"
-                    :property="'showType'"
-                    class="variable-pre-render-mako">
-                    <bk-radio-group v-model="theEditingData.pre_render_mako" @change="onSelectPreRenderMako">
-                        <bk-radio :value="true">{{$t('是')}}</bk-radio>
-                        <bk-radio :value="false">{{'否'}}</bk-radio>
-                    </bk-radio-group>
-                </bk-form-item>
-                <bk-form-item
-                    v-if="theEditingData.source_type !== 'component_outputs' && !isInternalVal"
-                    :label="formSectionVarType === 'general' ? $t('默认值') : ''"
-                    :class="['form-section', `${formSectionVarType}-variable-section`]">
-                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
-                        <template v-if="!atomConfigLoading && renderConfig.length">
-                            <RenderForm
-                                ref="renderForm"
-                                :scheme="renderConfig"
-                                :form-option="renderOption"
-                                v-model="renderData">
-                            </RenderForm>
-                        </template>
-                    </div>
-                </bk-form-item>
-                <bk-form-item
-                    v-if="!isInternalVal"
-                    label="是否入参"
-                    :property="'showType'"
-                    :desc="$t('配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用')">
-                    <bk-switcher
-                        v-model="theEditingData.show_type"
-                        theme="primary"
-                        :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
-                        @change="onToggleShowType">
-                    </bk-switcher>
-                </bk-form-item>
-                <bk-form-item
-                    v-if="theEditingData.show_type === 'show' && !isInternalVal"
-                    :property="'isConditionHide'"
-                    label="入参隐藏条件"
-                    class="condition-hide-switch-item"
-                    :desc="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')">
-                    <bk-checkbox
-                        :value="theEditingData.is_condition_hide"
-                        :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
-                        @change="onToggleHideCond">
-                    </bk-checkbox>
-                </bk-form-item>
-                <bk-form-item
-                    v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide"
-                    :property="'conditionHide'"
-                    class="trigger-condition-item">
-                    <div class="trigger-condition" @click="isShowErrorMsg = false">
-                        <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
-                            <bk-select
-                                ext-cls="select-variable"
-                                v-model="item.constant_key"
-                                :disabled="isViewMode">
-                                <bk-option
-                                    v-for="variable in variableList"
-                                    :key="variable.key"
-                                    :id="variable.key"
-                                    :name="variable.name">
-                                </bk-option>
-                            </bk-select>
-                            <bk-select
-                                ext-cls="select-operator"
-                                v-model="item.operator"
-                                :clearable="false"
-                                :disabled="isViewMode">
-                                <bk-option id="=" name="="></bk-option>
-                                <bk-option id="!=" name="!="></bk-option>
-                            </bk-select>
-                            <bk-input
-                                ext-cls="variable-value"
-                                v-model="item.value"
-                                :readonly="isViewMode">
-                            </bk-input>
-                            <div class="icon-operat">
-                                <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
-                                <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
-                            </div>
+                <VariableCitedConfigVue
+                    v-if="isHookedVar"
+                    :variable-data="variableData"
+                    :variable-cited="variableCited"
+                    :hook-params="hookParams">
+                </VariableCitedConfigVue>
+                <template v-if="theEditingData.source_type !== 'component_outputs'">
+                    <bk-form-item
+                        label="正则校验"
+                        :property="'regex'"
+                        v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal"
+                        class="variable-regex">
+                        <bk-input
+                            name="valueValidation"
+                            v-model="theEditingData.validation"
+                            v-validate="validationRule"
+                            :readonly="isViewMode"
+                            @blur="onBlurValidation">
+                        </bk-input>
+                        <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="isConstant"
+                        label="是否常量"
+                        :required="true"
+                        :property="'showType'"
+                        class="variable-pre-render-mako">
+                        <bk-radio-group v-model="theEditingData.pre_render_mako" @change="onSelectPreRenderMako">
+                            <bk-radio :disabled="isViewMode" :value="true">{{$t('是')}}</bk-radio>
+                            <bk-radio :disabled="isViewMode" :value="false">{{'否'}}</bk-radio>
+                        </bk-radio-group>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="!isInternalVal"
+                        :label="['component', 'general'].includes(formSectionVarType) ? $t('默认值') : ''"
+                        :class="['form-section', `${formSectionVarType}-variable-section`]">
+                        <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
+                            <template v-if="!atomConfigLoading && renderConfig.length">
+                                <RenderForm
+                                    ref="renderForm"
+                                    :scheme="renderConfig"
+                                    :form-option="{
+                                        ...renderOption,
+                                        'formEdit': !isViewMode
+                                    }"
+                                    v-model="renderData">
+                                </RenderForm>
+                            </template>
                         </div>
-                        <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
-                        <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
-                    </div>
-                </bk-form-item>
-                <bk-form-item
-                    v-if="!isInternalVal"
-                    label="是否作为输出参数"
-                    :property="'output'"
-                    :desc="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')">
-                    <bk-switcher
-                        :value="outputs.indexOf(theEditingData.key) > -1"
-                        :disabled="isViewMode || variableData.isSysVar"
-                        theme="primary"
-                        @change="onChangeVariableOutput(theEditingData.key, $event)">
-                    </bk-switcher>
-                </bk-form-item>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="!isInternalVal"
+                        label="是否入参"
+                        :property="'showType'"
+                        :desc="$t('配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用')">
+                        <bk-switcher
+                            :value="theEditingData.show_type === 'show'"
+                            theme="primary"
+                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
+                            @change="onToggleShowType">
+                        </bk-switcher>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="theEditingData.show_type === 'show' && !isInternalVal"
+                        :property="'isConditionHide'"
+                        label="入参隐藏条件"
+                        class="condition-hide-switch-item"
+                        :desc="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')">
+                        <bk-checkbox
+                            :value="theEditingData.is_condition_hide"
+                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
+                            @change="onToggleHideCond">
+                        </bk-checkbox>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide"
+                        :property="'conditionHide'"
+                        class="trigger-condition-item">
+                        <div class="trigger-condition" @click="isShowErrorMsg = false">
+                            <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
+                                <bk-select
+                                    ext-cls="select-variable"
+                                    v-model="item.constant_key"
+                                    :disabled="isViewMode">
+                                    <bk-option
+                                        v-for="variable in variableList"
+                                        :key="variable.key"
+                                        :id="variable.key"
+                                        :name="variable.name">
+                                    </bk-option>
+                                </bk-select>
+                                <bk-select
+                                    ext-cls="select-operator"
+                                    v-model="item.operator"
+                                    :clearable="false"
+                                    :disabled="isViewMode">
+                                    <bk-option id="=" name="="></bk-option>
+                                    <bk-option id="!=" name="!="></bk-option>
+                                </bk-select>
+                                <bk-input
+                                    ext-cls="variable-value"
+                                    v-model="item.value"
+                                    :readonly="isViewMode">
+                                </bk-input>
+                                <div class="icon-operat">
+                                    <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
+                                    <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
+                                </div>
+                            </div>
+                            <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
+                            <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
+                        </div>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="!isInternalVal"
+                        label="是否作为输出参数"
+                        :property="'output'"
+                        :desc="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')">
+                        <bk-switcher
+                            :value="outputs.indexOf(theEditingData.key) > -1"
+                            :disabled="isViewMode || variableData.isSysVar"
+                            theme="primary"
+                            @change="onChangeVariableOutput(theEditingData.key, $event)">
+                        </bk-switcher>
+                    </bk-form-item>
+                </template>
                 <bk-form-item
                     label="提示文本"
                     :property="'preRenderMako'">
@@ -195,7 +211,7 @@
                             :placeholder="isInternalVal ? ' ' : $t('请输入变量提示文本，不超过500个字符')"
                             :maxlength="500"
                             :readonly="isViewMode || isInternalVal">
-                        </textarea>
+                    </textarea>
                         <p class="limit-box"><span class="strong">{{ theEditingData.desc.length }}</span>/<span>500</span></p>
                     </div>
                 </bk-form-item>
@@ -216,21 +232,25 @@
     import atomFilter from '@/utils/atomFilter.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import VariableCitedConfigVue from './VariableCitedConfig.vue'
 
     export default {
         name: 'VariableEdit',
         components: {
-            RenderForm
+            RenderForm,
+            VariableCitedConfigVue
         },
         props: {
+            variableCited: Object,
             variableData: Object,
-            common: Boolean,
-            isViewMode: Boolean
+            common: [String, Number],
+            isViewMode: Boolean,
+            hookParams: Object
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition, is_condition_hide: isConditionHide } = theEditingData
-            theEditingData.is_condition_hide = Boolean(isConditionHide)
+            theEditingData.is_condition_hide = isConditionHide === 'false' ? false : Boolean(isConditionHide)
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? source_type : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '=', value: '' }]
@@ -290,6 +310,7 @@
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
+                'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
                 'internalVariable': state => state.template.internalVariable,
                 'outputs': state => state.template.outputs,
@@ -378,6 +399,21 @@
                     type = 'dynamic'
                 }
                 return type
+            },
+            isBeCited () {
+                const {
+                    key,
+                    source_info: sourceInfo,
+                    source_type: sourceType
+                } = this.variableData
+                const citedList = this.variableCited[key] || {}
+                const { activities = [], conditions = [], constants = [] } = citedList
+                const citedCount = activities.length + conditions.length + constants.length
+                const sourceCount = Object.keys(sourceInfo).length
+                if (sourceType === 'component_inputs') {
+                    return sourceCount ? citedCount > sourceCount : false
+                }
+                return citedCount > sourceCount
             }
         },
         created () {
@@ -578,7 +614,7 @@
                     config = config.meta_transform(meta)
                 }
                 if (['input', 'textarea'].includes(custom_type)) {
-                    config.attrs.validation.push({
+                    config.attrs.validation && config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
                         error_message: i18n.t('默认值不符合正则规则')
@@ -586,7 +622,7 @@
                 }
 
                 this.renderConfig = [config]
-                if (!this.variableData.key) { // 新建变量
+                if (this.variableData.type === 'create') { // 新建变量
                     this.theEditingData.value = atomFilter.getFormItemDefaultValue(this.renderConfig)
                 }
             },
@@ -728,7 +764,7 @@
              * 变量显示/隐藏切换
              */
             onToggleShowType (showType, data) {
-                this.theEditingData.show_type = showType
+                this.theEditingData.show_type = showType ? 'show' : 'hide'
                 // 预渲染功能发布前的模板主动修改变量的【显示类型】，预渲染默认值为false
                 const variableData = this.variableData
                 if (!variableData.hasOwnProperty('pre_render_mako')) {
@@ -790,34 +826,6 @@
             onSelectPreRenderMako (val) {
                 this.theEditingData.pre_render_mako = val === 'true'
             },
-            handleMaskClick () {
-                if (!this.variableData.key) {
-                    this.$bkInfo({
-                        ...this.infoBasicConfig,
-                        confirmFn: () => {
-                            this.$emit('closeEditingPanel')
-                        }
-                    })
-                } else {
-                    const editingVariable = tools.deepClone(this.theEditingData)
-                    editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
-                    if (this.renderConfig.length > 0) {
-                        const tagCode = this.renderConfig[0].tag_code
-                        editingVariable.value = this.renderData[tagCode]
-                    }
-
-                    if (tools.isDataEqual(editingVariable, this.variableData)) {
-                        this.$emit('closeEditingPanel')
-                    } else {
-                        this.$bkInfo({
-                            ...this.infoBasicConfig,
-                            confirmFn: () => {
-                                this.$emit('closeEditingPanel')
-                            }
-                        })
-                    }
-                }
-            },
             // 保存变量数据
             onSaveVariable () {
                 return this.$validator.validateAll().then(async (result) => {
@@ -877,8 +885,14 @@
                         })
                         return
                     }
+                    // 节点配置表单项勾选创建变量
+                    const { cited_info: citedInfo = {} } = this.hookParams
+                    if (citedInfo.type) {
+                        this.$emit('onSaveVariable', variable)
+                        return true
+                    }
 
-                    if (!this.variableData.key) { // 新增变量
+                    if (this.variableData.type === 'create') { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
                             variable.version = 'legacy'
                             variable.form_schema = formSchema.getSchema(
@@ -895,9 +909,26 @@
                             this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
                         }
                     }
-                    this.$emit('onSaveVariable')
+                    this.$emit('onSaveVariable', variable)
                     return true
                 })
+            },
+            
+            judgeDataChange () {
+                if (!this.variableData.key) {
+                    return true
+                } else {
+                    const editingVariable = tools.deepClone(this.theEditingData)
+                    editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
+                    editingVariable.is_condition_hide = String(editingVariable.is_condition_hide)
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        editingVariable.value = this.renderData[tagCode]
+                    }
+                    console.log(editingVariable, this.variableData, tools.isDataEqual(editingVariable, this.variableData))
+
+                    return !tools.isDataEqual(editingVariable, this.variableData)
+                }
             }
         }
     }
@@ -974,13 +1005,7 @@
     /deep/ .rf-form-item {
         margin-top: 0;
         padding-bottom: 24px !important;
-        .rf-tag-label {
-            display: block;
-            float: initial;
-            line-height: 20px;
-            text-align: left;
-            margin: 0 0 6px;
-        }
+        
         .rf-tag-form {
             margin-left: 0 !important;
             .el-radio {
@@ -995,13 +1020,34 @@
             padding-bottom: 0 !important;
         }
     }
+    /deep/.rf-tag-label {
+        display: block;
+        float: initial;
+        line-height: 20px;
+        text-align: left;
+        margin: 0 0 6px;
+        .scheme-name {
+            font-size: 12px;
+        }
+    }
 }
-.component-variable-section,
 .dynamic-variable-section {
     position: relative;
-    padding: 16px 16px 0;
+    padding: 16px;
     margin: -8px 0 22px !important;
     background: #f5f7fa;
+    /deep/.rf-form-group {
+        > .rf-tag-label {
+            display: none;
+        }
+    }
+}
+.component-variable-section {
+    margin: -8px 0 22px !important;
+    /deep/.bk-form-content {
+        padding: 16px;
+        background: #f5f7fa;
+    }
 }
 .meta-variable-section {
     /deep/ .rf-form-item {
@@ -1052,9 +1098,11 @@
 }
 .condition-hide-switch-item {
     display: flex;
+    align-items: center;
     /deep/.bk-label {
         width: auto !important;
         padding-right: 22px;
+        margin-top: 5px;
     }
 }
 .trigger-condition-item {
@@ -1132,6 +1180,11 @@
         font-size: 12px;
         color: #ffffff;
         background: #b8b8b8;
+    }
+    &.hide-tooltips {
+        /deep/.common-icon-tooltips {
+            display: none;
+        }
     }
 }
 .variable-regex {

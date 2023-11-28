@@ -9,12 +9,12 @@
         <section class="variable-wrap">
             <bk-checkbox
                 v-if="!isViewMode"
-                :disabled="isComponentVar || isInternalVal"
+                :disabled="isDisableDelete || isInternalVal || isNodeConfigPanelShow"
                 :value="variableChecked"
-                v-bk-tooltips="{ content: componentVarDisabledTip, disabled: !isComponentVar }"
+                v-bk-tooltips="{ content: VarDisableDeleteTip, disabled: !isDisableDelete }"
                 @change="onChooseVariable">
             </bk-checkbox>
-            <div class="variable-content">
+            <div class="variable-content" @click="$emit('onEditVariable')">
                 <div class="variable-name">
                     <span v-bk-overflow-tips class="ellipsis">{{ variableData.name }}</span>
                     <span v-if="['component_outputs', 'project'].includes(variableData.source_type)" :class="variableData.source_type">
@@ -29,7 +29,7 @@
                             v-bk-tooltips="$t('从项目变量添加')">
                         </i>
                     </span>
-                    <span v-if="isSpecialModel" class="variable-type ellipsis" v-bk-overflow-tips>{{ variableData.type }}</span>
+                    <span v-if="isSpecialModel" class="variable-type ellipsis" v-bk-overflow-tips @click.stop>{{ variableData.type }}</span>
                 </div>
                 <div class="variable-key" v-bk-overflow-tips>
                     {{ variableData.key }}
@@ -70,7 +70,7 @@
                         <div slot="dropdown-trigger" class="dropdown-trigger">
                             <i class="bk-icon icon-more"></i>
                         </div>
-                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                        <ul class="bk-dropdown-list" slot="dropdown-content" @click.stop>
                             <li
                                 v-if="!isComponentVar"
                                 class="dropdown-item"
@@ -78,8 +78,8 @@
                                 {{ '克隆' }}
                             </li>
                             <li
-                                :class="['dropdown-item', { 'disabled': isComponentVar }]"
-                                v-bk-tooltips="{ content: $t('该类型仅支持从节点配置取消引用'), disabled: !isComponentVar }"
+                                :class="['dropdown-item', { 'disabled': isDisableDelete || isNodeConfigPanelShow }]"
+                                v-bk-tooltips="{ content: VarDisableDeleteTip, disabled: !isDisableDelete }"
                                 @click="onDeleteVariable">
                                 {{ '删除' }}
                             </li>
@@ -113,7 +113,8 @@
             newCloneKeys: Array,
             variableCited: Object,
             variableChecked: Boolean,
-            internalVariable: [Object, Array]
+            internalVariable: [Object, Array],
+            isNodeConfigPanelShow: Boolean
         },
         data () {
             return {
@@ -139,10 +140,15 @@
             isComponentVar () {
                 return ['component_outputs', 'component_inputs'].includes(this.variableData.source_type)
             },
-            componentVarDisabledTip () {
-                return this.variableData.source_type === 'component_inputs'
-                    ? i18n.t('节点输入型变量仅支持从节点"取消使用变量"来删除')
-                    : i18n.t('节点输出型变量仅支持从节点"取消接收输出"来删除')
+            isDisableDelete () {
+                return this.isComponentVar || !!this.citedNum
+            },
+            VarDisableDeleteTip () {
+                return !this.isComponentVar && !!this.citedNum
+                    ? i18n.t('变量已被引用，key 不可修改')
+                    : this.variableData.source_type === 'component_inputs'
+                        ? i18n.t('节点输入型变量不支持删除，当来源数为 0 时即自动删除')
+                        : i18n.t('节点输出型变量不支持删除，当来源数为 0 时即自动删除')
             },
             citedList () {
                 const defaultCiteData = {
@@ -188,7 +194,7 @@
                 this.$emit('onCloneVariable', this.variableData)
             },
             onDeleteVariable () {
-                if (this.isComponentVar) return
+                if (this.isComponentVar || this.isNodeConfigPanelShow) return
                 const h = this.$createElement
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [
@@ -353,6 +359,11 @@
                     i {
                         color: #3a84ff;
                     }
+                }
+                &.disabled {
+                    color: #cccccc;
+                    cursor: not-allowed;
+                    background: #fff;
                 }
             }
         }

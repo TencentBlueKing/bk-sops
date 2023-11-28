@@ -371,6 +371,7 @@
         font-size: 12px;
     }
     &.is-view {
+        display: none;
         > .bk-dropdown-menu,
         > .bk-button {
             transform: scale(0);
