@@ -19,13 +19,16 @@
             </span>
             <dl class="task-state-detail" id="task-state-detail">
                 <dt>{{$t('状态明细')}}</dt>
-                <dd
-                    v-for="item in pendingNodes"
-                    :key="item.id">
-                    <i class="bk-icon icon-circle"></i>
-                    <span class="node-name" @click="$emit('moveNodeToView', item.id)">{{ item.name }}</span>
-                    <span class="task-state">{{ item.statusText }}</span>
-                </dd>
+                <template v-if="pendingNodes.length">
+                    <dd
+                        v-for="item in pendingNodes"
+                        :key="item.id">
+                        <i class="bk-icon icon-circle"></i>
+                        <span class="node-name" v-bk-overflow-tips @click="$emit('moveNodeToView', item.id)">{{ item.name }}</span>
+                        <span class="task-state">{{ item.statusText }}</span>
+                    </dd>
+                </template>
+                <dd v-else>{{ '--' }}</dd>
             </dl>
             <div class="bread-crumbs-wrapper">
                 <span
@@ -41,7 +44,7 @@
                     <span class="node-ellipsis" v-else-if="index === 1">...</span>
                 </span>
             </div>
-            <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
+            <div class="task-operation-btns" v-show="state !== 'FINISHED'">
                 <div
                     v-for="operation in taskOperationBtns"
                     :key="operation.action"
@@ -123,7 +126,6 @@
             'state',
             'stateStr',
             'isBreadcrumbShow',
-            'isTaskOperationBtnsShow',
             'isShowViewProcess',
             'paramsCanBeModify',
             'pendingNodes'
@@ -409,7 +411,7 @@
 }
 .state-detail-tips {
     .tippy-tooltip {
-        padding: 14px 50px 16px 16px;
+        padding: 14px 16px 16px;
         border: 1px solid #DCDEE5;
         box-shadow: 0 2px 6px 0 #0000001a;
     }
@@ -427,12 +429,17 @@
         margin-bottom: 8px;
         color: #3a84ff;
         i {
+            flex-shrink: 0;
             margin: 2px 8px 0 0;
         }
         .node-name {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             cursor: pointer;
         }
         .task-state {
+            flex-shrink: 0;
             padding: 0 8px;
             margin-left: 8px;
             color: #979ba5;

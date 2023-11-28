@@ -1799,8 +1799,7 @@ const cn = {
     '已自动重试 m 次 (最多 c 次)，手动重试 n 次': '已自动重试 {m} 次 (最多 {c} 次)，手动重试 {n} 次',
     '刷新': '刷新',
     'exFailedText': '节点执行失败，请前往{0}查看错误原因',
-    'exFailedText_调用日志': '调用日志',
-    '等待继续': '等待继续'
+    'exFailedText_调用日志': '调用日志'
 }
 
 export default cn

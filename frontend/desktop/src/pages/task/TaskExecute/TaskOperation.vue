@@ -27,7 +27,6 @@
             :state="state"
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
-            :is-task-operation-btns-show="isTaskOperationBtnsShow"
             :params-can-be-modify="paramsCanBeModify"
             :pending-nodes="pendingNodes"
             @moveNodeToView="moveNodeToView"
@@ -466,9 +465,6 @@
             isTopTask () {
                 return this.nodeNav.length === 1
             },
-            isTaskOperationBtnsShow () {
-                return this.state !== 'REVOKED' && this.state !== 'FINISHED'
-            },
             taskOperationBtns () {
                 const operationBtns = []
                 const operationType = STATE_OPERATIONS[this.state]
@@ -512,7 +508,7 @@
             },
             pendingNodes () {
                 const { children = {} } = this.instanceStatus
-                const pendingStatus = ['PENDING_APPROVAL', 'PENDING_CONFIRMATION', 'PENDING_CONTINUE']
+                const pendingStatus = ['PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
                 return Object.values(children).reduce((acc, cur) => {
                     if (pendingStatus.includes(cur.state)) {
                         acc.push({

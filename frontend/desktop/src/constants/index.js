@@ -20,7 +20,6 @@ const TASK_STATE_DICT = {
     'PENDING_PROCESSING': i18n.t('等待处理'),
     'PENDING_APPROVAL': i18n.t('等待审批'),
     'PENDING_CONFIRMATION': i18n.t('等待确认'),
-    'PENDING_CONTINUE': i18n.t('等待继续'),
     'FAILED': i18n.t('失败'),
     'FINISHED': i18n.t('完成'),
     'REVOKED': i18n.t('终止')

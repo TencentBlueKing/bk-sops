@@ -362,7 +362,7 @@
             }),
             autoRetryInfo () {
                 const { auto_retry_infos: retryInfos } = this.nodeDisplayStatus
-                const retryInfo = retryInfos[this.nodeDetailConfig.node_id]
+                const retryInfo = retryInfos[this.nodeDetailConfig.node_id] || {}
                 return {
                     m: retryInfo.auto_retry_times || 0,
                     c: retryInfo.max_auto_retry_times || 10,
@@ -395,9 +395,9 @@
                         state = 'common-icon-dark-circle-ellipsis'
                         break
                     case 'SUSPENDED':
+                    case 'PENDING_PROCESSING':
                     case 'PENDING_APPROVAL':
                     case 'PENDING_CONFIRMATION':
-                    case 'PENDING_CONTINUE':
                         state = 'common-icon-dark-circle-pause'
                         break
                     case 'FINISHED':
@@ -459,7 +459,8 @@
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
-                return this.realTimeState.state === 'RUNNING'
+                const executeState = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(this.realTimeState.state)
+                return executeState
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
                     || this.isShowContinueBtn
@@ -1163,7 +1164,7 @@
              * 更新子流程画布
              * nodeStatus 独立子流程任务状态
             */
-            updateNodeInfo (nodeStatus) {
+            updateNodeInfo (nodeStatus, retryInfo = {}) {
                 if (!this.subProcessPipeline) return
                 const { root_node, node_id } = this.nodeDetailConfig
                 const parentId = root_node?.split('-') || []
@@ -1192,7 +1193,6 @@
                         errorIgnorable = nodeActivity.error_ignorable
                         autoRetry = nodeActivity.auto_retry
                     }
-                    const { auto_retry_infos: retryInfo } = this.nodeDisplayStatus
                     const data = {
                         code,
                         skippable,
@@ -1401,9 +1401,10 @@
                     for (const [key, value] of Object.entries(resp.data)) {
                         const { root_node, node_id } = this.subprocessTasks[key]
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
-                        this.nodeAddStatus(nodeInfo.children, value.data.children)
-                        this.updateNodeInfo(value.data.children)
-                        if (!['CREATED', 'RUNNING'].includes(value.data.state)) {
+                        const { auto_retry_infos: retryInfo, children, state } = value.data
+                        this.nodeAddStatus(nodeInfo.children, children)
+                        this.updateNodeInfo(children, retryInfo)
+                        if (!['CREATED', 'RUNNING'].includes(state)) {
                             delete this.subprocessTasks[key]
                         }
                     }
@@ -1578,7 +1579,7 @@
             display: flex;
             align-items: center;
             :first-child {
-                margin: 2px 5px 0;
+                margin: 0 5px;
             }
         }
         .common-icon-dark-circle-ellipsis {
