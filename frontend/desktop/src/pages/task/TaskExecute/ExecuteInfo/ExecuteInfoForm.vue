@@ -144,7 +144,7 @@
     import atomFilter from '@/utils/atomFilter.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import FormHook from '@/components/common/FormHook.vue'
-    import JsonschemaInputParams from '@/pages/template/TemplateEdit/NodeConfig/JsonschemaInputParams.vue'
+    import JsonschemaInputParams from '@/pages/template/TemplateEdit/TemplateSidebar/NodeConfigPanel/JsonschemaInputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {

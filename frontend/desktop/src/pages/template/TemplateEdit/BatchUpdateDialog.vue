@@ -148,8 +148,8 @@
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
     import i18n from '@/config/i18n/index.js'
-    import InputParams from './NodeConfig/InputParams.vue'
-    import OutputParams from './NodeConfig/OutputParams.vue'
+    import InputParams from './TemplateSidebar/NodeConfigPanel/InputParams.vue'
+    import OutputParams from './TemplateSidebar/NodeConfigPanel/OutputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
