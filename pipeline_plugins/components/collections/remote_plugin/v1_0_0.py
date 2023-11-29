@@ -12,13 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow import Service, StaticIntervalGenerator
+from pipeline.core.flow import AbstractIntervalGenerator, Service
 from pipeline.core.flow.io import StringItemSchema
+
+from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger(PLUGIN_LOGGER)
 
@@ -34,8 +36,19 @@ class State:
 UNFINISHED_STATES = {State.POLL, State.CALLBACK}
 
 
+class StepIntervalGenerator(AbstractIntervalGenerator):
+    def __init__(self):
+        super(StepIntervalGenerator, self).__init__()
+        self.fix_interval = None
+
+    def next(self):
+        super(StepIntervalGenerator, self).next()
+        # 最小 10s，最大 3600s 一次
+        return self.fix_interval or (10 if self.count < 30 else min((self.count - 25) ** 2, 3600))
+
+
 class RemotePluginService(Service):
-    interval = StaticIntervalGenerator(5)
+    interval = StepIntervalGenerator()
 
     def outputs_format(self):
         return [
@@ -70,11 +83,23 @@ class RemotePluginService(Service):
                 if key in parent_data.inputs
             ]
         )
+
+        # 处理回调的情况
+        if detail_result["data"].get("enable_plugin_callback"):
+            logger.info("回调的节点，需要发送回调")
+            self.interval = None
+            plugin_context.update(
+                {
+                    "plugin_callback_info": {
+                        "url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+                        "data": {},
+                    }
+                }
+            )
+
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
         if not ok:
-            message = _(
-                f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}"
-            )
+            message = _(f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
