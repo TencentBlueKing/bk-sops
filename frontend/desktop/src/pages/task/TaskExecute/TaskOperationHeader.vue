@@ -15,9 +15,9 @@
             <i class="bk-icon icon-arrows-left back-icon" @click="onBack"></i>
             <span v-if="stateStr" :class="['task-state', state]" v-bk-tooltips="taskStatusDetailTipsConfig">
                 {{ stateStr }}
-                <i v-if="state === 'PENDING_PROCESSING'" class="common-icon-info"></i>
+                <i v-if="isStateDetailShow" class="common-icon-info"></i>
             </span>
-            <dl class="task-state-detail" id="task-state-detail">
+            <dl v-show="stateStr && isStateDetailShow" class="task-state-detail" id="task-state-detail">
                 <dt>{{$t('状态明细')}}</dt>
                 <template v-if="pendingNodes.length">
                     <dd
@@ -145,7 +145,10 @@
         computed: {
             ...mapState({
                 view_mode: state => state.view_mode
-            })
+            }),
+            isStateDetailShow () {
+                return ['FAILED', 'PENDING_PROCESSING'].includes(this.state)
+            }
         },
         watch: {
             nodeNav (val) {
@@ -269,6 +272,7 @@
         }
     }
     .task-state {
+        flex-shrink: 0;
         display: inline-block;
         margin: 0 8px;
         padding: 0 8px;
@@ -305,6 +309,10 @@
         &.FAILED {
             background-color: #f2d0d3;
             color: #ea3636;
+            i {
+                font-size: 14px;
+                color: #ea3636;
+            }
         }
         &.REVOKED {
             background-color: #f2d0d3;

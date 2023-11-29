@@ -336,7 +336,6 @@
                 sidebarWidth: 960,
                 nodeInfoType: '',
                 state: '', // 当前流程状态，画布切换时会更新
-                rootState: '', // 根流程状态
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
                 cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、终止时才存在
@@ -461,10 +460,6 @@
             nodeNav () {
                 return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
             },
-            // 当前画布是否为最外层
-            isTopTask () {
-                return this.nodeNav.length === 1
-            },
             taskOperationBtns () {
                 const operationBtns = []
                 const operationType = STATE_OPERATIONS[this.state]
@@ -483,7 +478,6 @@
                     if (
                         this.state === 'CREATED'
                         && this.unclaimFuncTask
-                        && this.isTopTask
                         && this.creatorName !== this.username
                     ) {
                         executePauseBtn.disabled = true
@@ -508,7 +502,7 @@
             },
             pendingNodes () {
                 const { children = {} } = this.instanceStatus
-                const pendingStatus = ['PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
+                const pendingStatus = ['FAILED', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
                 return Object.values(children).reduce((acc, cur) => {
                     if (pendingStatus.includes(cur.state)) {
                         acc.push({
@@ -523,11 +517,11 @@
             }
         },
         watch: {
-            instanceStatus: {
-                handler (val) {
-                    const { state, children = {} } = val
+            'instanceStatus.state': {
+                handler (val, oldVal) {
+                    const { children = {} } = this.instanceStatus
                     const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
-                    if (state === 'SUSPENDED') {
+                    if (val !== oldVal && [val, oldVal].includes('SUSPENDED')) {
                         Object.values(children).forEach(node => {
                             // 非任务节点/网关节点
                             if ([start_event.id, end_event.id].includes(node.id)) return
@@ -538,7 +532,7 @@
                             }
                             outgoing.forEach(outLine => {
                                 const targetNode = flows[outLine].target
-                                const isExecuted = targetNode in children
+                                const isExecuted = val === 'SUSPENDED' ? targetNode in children : true
                                 // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
                                 this.setLineSuspendState(node.id, outLine, isExecuted)
                             })
@@ -620,10 +614,6 @@
                             project_id: this.project_id,
                             cancelToken: source.token
                         }
-                        if (!this.isTopTask) {
-                            data.instance_id = this.instance_id
-                            data.subprocess_id = this.taskId
-                        }
                         instanceStatus = await this.getInstanceStatus(data)
                     }
                     // 处理返回数据
@@ -631,9 +621,6 @@
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
                         this.pollErrorTimes = 0
-                        if (this.isTopTask) {
-                            this.rootState = this.state
-                        }
                         if (
                             !this.cacheStatus
                             && ['FINISHED', 'REVOKED'].includes(this.state)
@@ -641,10 +628,16 @@
                         ) { // save cacheStatus
                             this.cacheStatus = instanceStatus.data
                         }
+                        let continueRunning = false
                         // 任务暂停时如果有节点正在执行，需轮询节点状态
-                        let suspendedRunning = false
                         if (this.state === 'SUSPENDED') {
-                            suspendedRunning = Object.values(instanceStatus.data.children).some(item => item.state === 'RUNNING')
+                            const pendingStatus = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
+                            continueRunning = Object.values(instanceStatus.data.children).some(item => pendingStatus.includes(item.state))
+                        }
+                        // 任务失败时如果又节点还没自动重试完，需轮询节点状态
+                        if (this.state === 'FAILED') {
+                            const { auto_retry_infos: retryInfos = {} } = instanceStatus.data
+                            continueRunning = Object.values(retryInfos).some(item => item.max_auto_retry_times > item.auto_retry_times)
                         }
                         // 节点执行记录显示时，重新计算当前执行时间/判断是否还在执行中
                         if (this.isExecRecordOpen) {
@@ -662,7 +655,7 @@
                                 this.nodeExecRecordInfo.state = execNodeConfig.state
                             }
                         }
-                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
+                        if (['RUNNING', 'PENDING_PROCESSING'].includes(this.state) || continueRunning) {
                             if (this.isExecRecordOpen && this.nodeExecRecordInfo.state) { // 节点执行中一秒查一次
                                 this.setTaskStatusTimer(1000)
                             } else {
@@ -1419,9 +1412,9 @@
                     return
                 }
 
+                this.approval.pending = true
                 this.$refs.approvalForm.validate().then(async () => {
                     try {
-                        this.approval.pending = true
                         const { id, is_passed, message } = this.approval
                         const params = {
                             is_passed,
@@ -1448,6 +1441,8 @@
                     } finally {
                         this.approval.pending = false
                     }
+                }, () => {
+                    this.approval.pending = false
                 })
             },
             onApprovalCancel () {
@@ -1512,13 +1507,13 @@
                     case 'reExecute':
                         return true
                     case 'execute':
-                        return this.state === 'CREATED' && this.isTopTask
+                        return this.state === 'CREATED'
                     case 'pause':
                         return ['RUNNING', 'NODE_SUSPENDED'].includes(this.state)
                     case 'resume':
                         return this.state === 'SUSPENDED'
                     case 'revoke':
-                        return this.isTopTask && ['RUNNING', 'SUSPENDED', 'PENDING_PROCESSING', 'FAILED'].includes(this.state)
+                        return ['RUNNING', 'SUSPENDED', 'PENDING_PROCESSING', 'FAILED'].includes(this.state)
                     default:
                         break
                 }
@@ -2102,7 +2097,6 @@
                 if (
                     action === 'execute'
                     && this.unclaimFuncTask
-                    && this.isTopTask
                     && this.creatorName === this.username
                 ) {
                     const h = this.$createElement
@@ -2484,7 +2478,7 @@
             },
             unclickableOperation (type) {
                 // 失败时不允许点击暂停按钮，创建是不允许点击终止按钮，操作执行过程不允许点击
-                return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading || !this.isTopTask
+                return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
