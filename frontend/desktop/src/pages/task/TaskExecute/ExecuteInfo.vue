@@ -118,7 +118,7 @@
                                         </bk-select>
                                         <span>{{$t('次执行')}}</span>
                                     </div>
-                                    <p class="retry-details-tips" v-if="realTimeState.state === 'FAILED' && realTimeState.retry">
+                                    <p class="retry-details-tips" v-if="realTimeState.retry">
                                         {{ $t('已自动重试 m 次 (最多 c 次)，手动重试 n 次', autoRetryInfo)}}
                                     </p>
                                 </section>

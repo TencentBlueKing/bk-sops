@@ -486,6 +486,12 @@
                     &:first-child {
                         margin-left: -4px;
                     }
+                    &:nth-of-type(3) {
+                        margin-left: -3px;
+                    }
+                    &:nth-of-type(4) {
+                        margin-left: -2px;
+                    }
                 }
             }
             .state-icon {
