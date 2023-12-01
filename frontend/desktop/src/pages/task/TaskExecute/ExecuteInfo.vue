@@ -695,7 +695,7 @@
                     await this.getNodeConfig(componentCode, version, inputs.plugin_version)
                 }
                 inputsInfo = Object.keys(inputs).reduce((acc, cur) => {
-                    const scheme = this.renderConfig.find(item => item.tag_code === cur)
+                    const scheme = Array.isArray(this.renderConfig) ? this.renderConfig.find(item => item.tag_code === cur) : null
                     if (scheme) {
                         const defaultValueFormat = getDefaultValueFormat(scheme)
                         const valueType = checkDataType(inputs[cur])
