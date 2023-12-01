@@ -169,7 +169,7 @@
                     </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="executeInfo.state === 'RUNNING'">
+                    <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL'].includes(executeInfo.state)">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
@@ -191,7 +191,7 @@
                             {{ $t('强制终止') }}
                         </bk-button>
                         <bk-button
-                            v-if="isLegacySubProcess || isSubProcessNode"
+                            v-if="executeInfo.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
                             data-test-id="taskExecute_form_pauseBtn"
                             @click="onPauseClick">
                             {{ $t('暂停') }}
@@ -332,8 +332,6 @@
                 loop: 1,
                 theExecuteTime: undefined,
                 isReadyStatus: true,
-                isShowSkipBtn: false,
-                isShowRetryBtn: false,
                 curActiveTab: 'record',
                 theExecuteRecord: 0,
                 executeRecord: {},
@@ -456,6 +454,22 @@
             isShowContinueBtn () {
                 return this.isLegacySubProcess && this.executeInfo.state === 'SUSPENDED'
             },
+            isShowRetryBtn () {
+                if (this.realTimeState.state === 'FAILED') {
+                    const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                    return this.location.type === 'tasknode' ? activity.retryable : false
+                } else {
+                    return false
+                }
+            },
+            isShowSkipBtn () {
+                if (this.realTimeState.state === 'FAILED') {
+                    const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                    return this.location.type === 'tasknode' && activity.skippable
+                } else {
+                    return false
+                }
+            },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
@@ -542,11 +556,32 @@
             nodeDisplayStatus: {
                 handler (val) {
                     // 设置节点树状态
-                    this.nodeAddStatus(this.nodeData, val.children)
+                    this.nodeAddStatus(this.nodeData, val.children, false)
                     this.updateNodeInfo()
                 },
                 deep: true,
                 immediate: true
+            },
+            async 'realTimeState.state' (val, oldVal) {
+                if (val !== oldVal) {
+                    await this.loadNodeInfo()
+                    // 拉取独立子流程状态
+                    const { root_node, component_code, taskId } = this.nodeDetailConfig
+                    if (val === 'RUNNING' && taskId && component_code !== 'subprocess_plugin') {
+                        const nodes = root_node.split('-')
+                        const parentNode = nodes.slice(-1)[0]
+                        const parentRoot = nodes.slice(0, -1).join('-')
+                        // 获取最新节点树
+                        const nodeInfo = this.getNodeInfo(this.nodeData, parentRoot, parentNode)
+                        await this.getSubprocessData(taskId, nodeInfo, true)
+                        this.subprocessTasks[taskId] = {
+                            root_node: parentRoot,
+                            node_id: parentNode
+                        }
+                        // 获取独立子流程任务状态
+                        this.loadSubprocessStatus()
+                    }
+                }
             }
         },
         mounted () {
@@ -607,7 +642,7 @@
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
                         if (taskId) { // 子流程任务已执行才可以查详情和状态
                             // 获取子流程任务详情
-                            await this.getSubprocessData(taskId, nodeInfo)
+                            await this.getSubprocessData(taskId, nodeInfo, true)
                             this.subprocessTasks[taskId] = {
                                 root_node,
                                 node_id
@@ -640,15 +675,6 @@
                     } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
-                    }
-                    // 获取执行失败节点是否允许跳过，重试状态
-                    if (this.realTimeState.state === 'FAILED') {
-                        const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
-                        this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
-                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : false
-                    } else {
-                        this.isShowSkipBtn = false
-                        this.isShowRetryBtn = false
                     }
                 } catch (e) {
                     this.theExecuteTime = undefined
@@ -1127,16 +1153,21 @@
                 }
             },
             // 设置节点树状态
-            nodeAddStatus (treeData = [], states) {
+            nodeAddStatus (treeData = [], states, independent) {
                 treeData.forEach(node => {
-                    const { id, conditionType, isSubProcess, children } = node
+                    const { id, conditionType, isSubProcess, children, taskId } = node
                     if (conditionType) {
                         if (children?.length) {
-                            this.nodeAddStatus(children, states)
+                            this.nodeAddStatus(children, states, independent)
                         }
                         return
                     }
-                    if (!states[id]) return
+                    if (!states[id]) {
+                        if (independent && taskId) {
+                            this.$set(node, 'state', 'READY')
+                        }
+                        return
+                    }
                     const nodeState = states[id].skip ? 'SKIP' : states[id].state
                     this.$set(node, 'state', nodeState)
                     if (this.subNodesExpanded.includes(node.id)) {
@@ -1146,17 +1177,9 @@
                         }
                         this.handleDynamicLoad(node, true)
                     }
-                    // 实时更新执行详情中的状态
-                    if (this.executeRecord.id === node.id) {
-                        this.executeRecord.state = nodeState
-                    }
-                    if (this.nodeDetailConfig.node_id === id && !this.executeRecord.finish_time) {
-                        this.executeRecord.finish_time = states[id].finish_time
-                        this.executeRecord.elapsed_time = states[id].elapsed_time
-                    }
                     if (children) {
                         const newStates = isSubProcess ? Object.assign({}, states, states[id].children) : states
-                        this.nodeAddStatus(children, newStates)
+                        this.nodeAddStatus(children, newStates, independent)
                     }
                 })
             },
@@ -1402,7 +1425,7 @@
                         const { root_node, node_id } = this.subprocessTasks[key]
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
                         const { auto_retry_infos: retryInfo, children, state } = value.data
-                        this.nodeAddStatus(nodeInfo.children, children)
+                        this.nodeAddStatus(nodeInfo.children, children, true)
                         this.updateNodeInfo(children, retryInfo)
                         if (!['CREATED', 'RUNNING'].includes(state)) {
                             delete this.subprocessTasks[key]
