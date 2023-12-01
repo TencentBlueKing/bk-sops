@@ -32,6 +32,7 @@
                         :min-width="item.width"
                         :label="item.label"
                         :align="item.align"
+                        :resizable="false"
                         show-overflow-tooltip
                         :render-header="renderTableHeader"
                         :prop="item.prop">
