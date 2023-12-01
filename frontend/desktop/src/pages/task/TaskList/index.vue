@@ -116,14 +116,14 @@
                                     </div>
                                     <div v-else class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
-                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执行')}}</a>
+                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('再次执行')}}</a>
                                         <a
                                             v-else-if="!hasCreateTaskPerm(props.row)"
                                             v-cursor
                                             class="text-permission-disable task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
-                                            {{$t('重新执行')}}
+                                            {{$t('再次执行')}}
                                         </a>
                                         <a
                                             v-else
@@ -131,7 +131,7 @@
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">
-                                            {{$t('重新执行')}}
+                                            {{$t('再次执行')}}
                                         </a>
                                         <a
                                             v-if="executeStatus[props.row.id] && executeStatus[props.row.id].text === $t('未执行')"
