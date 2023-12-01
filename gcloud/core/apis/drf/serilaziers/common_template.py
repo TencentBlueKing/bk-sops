@@ -11,10 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+
 from rest_framework import serializers
 
-from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
+from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 
 
@@ -43,6 +45,26 @@ class CommonTemplateSerializer(CommonTemplateListSerializer):
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request", None)
+        if request:
+            collected = False
+            collection_id = None
+            try:
+                collection = Collection.objects.get(
+                    username=request.user.username, category="flow", instance_id=instance.id
+                )
+                collected = True
+                collection_id = collection.id
+            except Collection.DoesNotExist:
+                pass
+
+            data["collected"] = collected
+            data["collection_id"] = collection_id
+
+        return data
 
 
 class TopCollectionCommonTemplateSerializer(CommonTemplateSerializer):
@@ -92,3 +114,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "version",
             "pipeline_template",
         ]
+
+
+class UpdateCommonTemplateSerializer(CreateCommonTemplateSerializer):
+    pipeline_tree = serializers.CharField(required=False, allow_null=True)

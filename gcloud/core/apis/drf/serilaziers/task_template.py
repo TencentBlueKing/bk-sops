@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
+from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.core.models import Project
@@ -51,14 +52,37 @@ class TaskTemplateSerializer(TaskTemplateListSerializer):
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        request = self.context.get("request", None)
+        if request:
+            collected = False
+            collection_id = None
+            try:
+                collection = Collection.objects.get(
+                    username=request.user.username, category="flow", instance_id=instance.id
+                )
+                collected = True
+                collection_id = collection.id
+            except Collection.DoesNotExist:
+                pass
+
+            data["collected"] = collected
+            data["collection_id"] = collection_id
+        return data
+
 
 class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
     is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")
     collection_id = serializers.IntegerField(read_only=True, help_text="收藏ID")
 
 
-class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
+class UpdateDraftPipelineTreeSerializer(serializers.Serializer):
+    pipeline_tree = serializers.JSONField(required=True)
 
+
+class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     name = serializers.CharField(help_text="流程模板名称")
     category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
     time_out = serializers.IntegerField(help_text="超时时间", required=False)
@@ -92,6 +116,10 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "project",
             "template_id",
         ]
+
+
+class UpdateTaskTemplateSerializer(CreateTaskTemplateSerializer):
+    pipeline_tree = serializers.CharField(required=False, allow_null=True)
 
 
 class ProjectInfoQuerySerializer(serializers.Serializer):

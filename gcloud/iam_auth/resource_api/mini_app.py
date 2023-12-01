@@ -12,14 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 from django.core.cache import cache
 from django.db.models import Q
-
-from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.models import Project
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 
 
 def mini_app_path_value_hook(value):
@@ -160,3 +159,15 @@ class MiniAppResourceProvider(ResourceProvider):
         ]
 
         return ListResult(results=results, count=count)
+
+    def initiate_approval(self, username, action, resource, ticket_content, callback_data):
+        """
+        @param username: 创建人
+        @param action: 操作id
+        @param resource: 资源实例, 包含资源以及拓扑资源的信息和属性
+        @param ticket_content: 单据内容
+        @param callback_data: 回调内容
+        @return:
+        """
+
+        return True

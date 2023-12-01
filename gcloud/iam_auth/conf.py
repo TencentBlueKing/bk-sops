@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
 from iam import meta
 
 SYSTEM_ID = settings.BK_IAM_SYSTEM_ID
@@ -80,6 +79,13 @@ ACTIONS = [
     {
         "id": "flow_edit",
         "name": _("编辑流程"),
+        "relate_resources": ["flow"],
+        "relate_actions": ["flow_view"],
+        "resource_topo": ["project", "flow"],
+    },
+    {
+        "id": "flow_publish_draft",
+        "name": _("流程发布草稿"),
         "relate_resources": ["flow"],
         "relate_actions": ["flow_view"],
         "resource_topo": ["project", "flow"],
@@ -178,6 +184,13 @@ ACTIONS = [
     {
         "id": "common_flow_edit",
         "name": _("编辑公共流程"),
+        "relate_resources": ["common_flow"],
+        "relate_actions": ["common_flow_view"],
+        "resource_topo": ["common_flow"],
+    },
+    {
+        "id": "common_flow_publish_draft",
+        "name": _("公共流程发布草稿"),
         "relate_resources": ["common_flow"],
         "relate_actions": ["common_flow_view"],
         "resource_topo": ["common_flow"],
@@ -300,6 +313,7 @@ class IAMMeta(object):
     FLOW_CREATE_ACTION = "flow_create"
     FLOW_VIEW_ACTION = "flow_view"
     FLOW_EDIT_ACTION = "flow_edit"
+    FLOW_PUBLISH_DRAFT_ACTION = "flow_publish_draft"
     FLOW_DELETE_ACTION = "flow_delete"
     FLOW_CREATE_TASK_ACTION = "flow_create_task"
     FLOW_CREATE_MINI_APP_ACTION = "flow_create_mini_app"
@@ -317,6 +331,7 @@ class IAMMeta(object):
     COMMON_FLOW_CREATE_ACTION = "common_flow_create"
     COMMON_FLOW_VIEW_ACTION = "common_flow_view"
     COMMON_FLOW_EDIT_ACTION = "common_flow_edit"
+    COMMON_FLOW_PUBLISH_DRAFT_ACTION = "common_flow_publish_draft"
     COMMON_FLOW_DELETE_ACTION = "common_flow_delete"
     COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION = "common_flow_create_periodic_task"
 
@@ -356,6 +371,7 @@ COMMON_FLOW_ACTIONS = [
     IAMMeta.COMMON_FLOW_DELETE_ACTION,
     IAMMeta.COMMON_FLOW_VIEW_ACTION,
     IAMMeta.COMMON_FLOW_CREATE_ACTION,
+    IAMMeta.COMMON_FLOW_PUBLISH_DRAFT_ACTION,
     IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION,
 ]
 
@@ -381,6 +397,7 @@ FLOW_ACTIONS = [
     IAMMeta.FLOW_DELETE_ACTION,
     IAMMeta.FLOW_CREATE_TASK_ACTION,
     IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
+    IAMMeta.FLOW_PUBLISH_DRAFT_ACTION,
     IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
     IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
 ]
