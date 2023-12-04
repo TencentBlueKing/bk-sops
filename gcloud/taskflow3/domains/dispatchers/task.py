@@ -608,7 +608,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             ] = fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
 
             self.format_bamboo_engine_status(
-                task_status, node_ids_gby_code, code__status_map, node_id__auto_retry_info, is_subquery
+                task_status, node_ids_gby_code, code__status_map, node_id__auto_retry_info, False, is_subquery
             )
         else:
             format_bamboo_engine_status_legacy(task_status)
@@ -793,7 +793,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 if AutoRetryNodeStrategy.objects.filter(root_pipeline_id=status_tree["id"]).exists():
                     self.handle_subprocess_node_status(status_tree)
             else:
-                if is_subquery or is_child:
+                if is_subquery:
                     # 只有在「子查询」（独立子流程）或子递归（非独立子流程）的情况下，才需要校验
                     auto_retry_info: typing.Optional[typing.Dict[str, typing.Any]] = node_id__auto_retry_info.get(
                         status_tree["id"]
