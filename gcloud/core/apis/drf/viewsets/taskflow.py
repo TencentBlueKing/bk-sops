@@ -179,9 +179,11 @@ class TaskFLowStatusFilterHandler:
         获取所有暂停的任务，当任务暂停时，pipeline 的状态会变成暂停，
         return:
         """
-        return self.queryset.filter(
-            pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.SUSPENDED], by_root=False)
-        )
+
+        pause_pipeline_instance_ids = set(
+            self._fetch_pipeline_instance_ids(statuses=[states.SUSPENDED], by_root=True)
+        ) - set(self._fetch_pipeline_instance_ids(statuses=[states.FAILED]))
+        return self.queryset.filter(pipeline_instance_id__in=pause_pipeline_instance_ids)
 
     def _filter_running(self):
         """
@@ -189,9 +191,12 @@ class TaskFLowStatusFilterHandler:
 
         @return:
         """
-        return self.queryset.exclude(
+
+        running_task_queryset = self.queryset.exclude(
             pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.FAILED, states.SUSPENDED])
         )
+        pending_process_taskflow_ids: typing.List[int] = self._fetch_pending_process_taskflow_ids(running_task_queryset)
+        return running_task_queryset.exclude(id__in=pending_process_taskflow_ids)
 
     def _filter_pending_process(self):
         """
