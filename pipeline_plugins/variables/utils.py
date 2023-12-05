@@ -166,7 +166,10 @@ def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
     @param bk_supplier_account:
     @return: [{'bk_host_innerip':''}, {'bk_host_innerip':''}]
     """
-    client = get_client_by_user(username)
+    if settings.ENABLE_CC_SUPER_ACCOUNT:
+        client = get_client_by_user(settings.CC_SUPER_ACCOUNT)
+    else:
+        client = get_client_by_user(username)
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
     if kwargs:
         params.update(kwargs)

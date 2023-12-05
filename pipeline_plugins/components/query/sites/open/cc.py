@@ -14,31 +14,26 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from django.http import JsonResponse
 from django.conf.urls import url
-
+from django.http import JsonResponse
+from django.utils.translation import ugettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
 from api.utils.request import batch_request
+from gcloud.conf import settings
+from gcloud.core.utils import get_user_business_list
+from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
-from pipeline_plugins.base.utils.inject import (
-    supplier_account_inject,
-    supplier_id_inject,
-)
+from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_id_inject
 from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
+    cmdb_search_host,
+    cmdb_search_topo_tree,
 )
-
-from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
-from gcloud.exceptions import APIError, ApiRequestError
-from gcloud.core.utils import get_user_business_list
 from pipeline_plugins.components.utils import batch_execute_func
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -484,7 +479,10 @@ def cc_find_host_by_topo(request, biz_cc_id):
     # 模块ID列表，以 , 分割，例如 123,234,345
     bk_inst_id = request.GET.get("bk_inst_id", "")
 
-    client = get_client_by_user(request.user.username)
+    if settings.ENABLE_CC_SUPER_ACCOUNT:
+        client = get_client_by_user(settings.CC_SUPER_ACCOUNT)
+    else:
+        client = get_client_by_user(request.user.username)
 
     # 去除split后的空字符串
     bk_inst_id = filter(lambda x: x, bk_inst_id.split(","))

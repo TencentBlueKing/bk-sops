@@ -65,7 +65,12 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     ]
     :rtype: list
     """
-    client = get_client_by_user(username)
+
+    if settings.ENABLE_CC_SUPER_ACCOUNT:
+        client = get_client_by_user(settings.CC_SUPER_ACCOUNT)
+    else:
+        client = get_client_by_user(username)
+
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     if property_filters is not None:
@@ -137,7 +142,10 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
             "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
         }
 
-    client = get_client_by_user(username)
+    if settings.ENABLE_CC_SUPER_ACCOUNT:
+        client = get_client_by_user(settings.CC_SUPER_ACCOUNT)
+    else:
+        client = get_client_by_user(username)
     return batch_request(client.cc.list_biz_hosts, kwargs)
 
 
@@ -220,7 +228,10 @@ def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, i
             {"field": "bk_cloud_id", "operator": "equal", "value": bk_cloud_id}
         )
 
-    client = get_client_by_user(username)
+    if settings.ENABLE_CC_SUPER_ACCOUNT:
+        client = get_client_by_user(settings.CC_SUPER_ACCOUNT)
+    else:
+        client = get_client_by_user(username)
     return batch_request(client.cc.list_biz_hosts, kwargs)
 
 
@@ -369,5 +380,8 @@ def get_business_host_by_hosts_ids(username, bk_biz_id, supplier_account, host_f
         },
     }
 
-    client = get_client_by_user(username)
+    if settings.ENABLE_CC_SUPER_ACCOUNT:
+        client = get_client_by_user(settings.CC_SUPER_ACCOUNT)
+    else:
+        client = get_client_by_user(username)
     return batch_request(client.cc.list_biz_hosts, kwargs)

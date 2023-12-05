@@ -791,7 +791,6 @@ def check_engine_admin_permission(request, *args, **kwargs):
 
 PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"
 
-
 BKCRYPTO = {
     "ASYMMETRIC_CIPHERS": {
         "default": {
@@ -810,7 +809,6 @@ BKCRYPTO = {
 BLUEAPPS_ENABLE_DB_ENCRYPTION = True
 # 复用已有的 default 对称加密实例
 BKCRYPTO["SYMMETRIC_CIPHERS"]["blueapps"] = BKCRYPTO["SYMMETRIC_CIPHERS"]["default"]
-
 
 # 加密
 if env.BKPAAS_BK_CRYPTO_TYPE == "SHANGMI":
@@ -832,3 +830,7 @@ else:
 
 # 任务列表过滤失败任务最大天数
 TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS
+
+# 是否开启CMDB超级账号查询
+ENABLE_CC_SUPER_ACCOUNT = env.BKPAAS_ENABLE_CC_SUPER_ACCOUNT
+CC_SUPER_ACCOUNT = env.BKPAAS_CC_SUPER_ACCOUNT
