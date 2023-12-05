@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from gcloud.core.models import UserFavoriteProject
+from gcloud.contrib.collection.models import Collection
 
 
 class UserFavoriteProjectTestCase(TestCase):
@@ -22,20 +22,20 @@ class UserFavoriteProjectTestCase(TestCase):
         self.project_id = 1
 
     def tearDown(self):
-        UserFavoriteProject.objects.all().delete()
+        Collection.objects.all().delete()
 
     def test_add_user_favorite_project(self):
-        self.assertEqual(UserFavoriteProject.objects.count(), 0)
-        UserFavoriteProject.objects.add_user_favorite_project(self.username, self.project_id)
-        self.assertEqual(UserFavoriteProject.objects.count(), 1)
+        self.assertEqual(Collection.objects.count(), 0)
+        Collection.objects.add_user_favorite_project(self.username, self.project_id)
+        self.assertEqual(Collection.objects.count(), 1)
 
     def test_remove_user_favorite_project(self):
-        UserFavoriteProject.objects.create(username=self.username, project_id=self.project_id)
-        self.assertEqual(UserFavoriteProject.objects.count(), 1)
-        UserFavoriteProject.objects.remove_user_favorite_project(self.username, self.project_id)
-        self.assertEqual(UserFavoriteProject.objects.count(), 0)
+        Collection.objects.create(category="project", username=self.username, project_id=self.project_id)
+        self.assertEqual(Collection.objects.count(), 1)
+        Collection.objects.remove_user_favorite_project(self.username, self.project_id)
+        self.assertEqual(Collection.objects.count(), 0)
 
     def test_get_user_favorite_projects(self):
-        UserFavoriteProject.objects.create(username=self.username, project_id=1)
-        UserFavoriteProject.objects.create(username=self.username, project_id=2)
-        self.assertEqual(list(UserFavoriteProject.objects.get_user_favorite_projects(self.username)), [1, 2])
+        Collection.objects.create(category="project", username=self.username, project_id=1)
+        Collection.objects.create(category="project", username=self.username, project_id=2)
+        self.assertEqual(list(Collection.objects.get_user_favorite_projects(self.username)), [1, 2])

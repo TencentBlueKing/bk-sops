@@ -19,10 +19,11 @@ from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
+from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers import ProjectWithFavSerializer
-from gcloud.core.models import Project, UserFavoriteProject
+from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, res_factory
 from gcloud.iam_auth.utils import get_user_projects
 
@@ -64,7 +65,7 @@ class UserProjectSetViewSet(GcloudListViewSet):
 
     def list(self, request, *args, **kwargs):
         user_project_ids = list(get_user_projects(request.user.username).values_list("id", flat=True))
-        user_fav_project_ids = list(UserFavoriteProject.objects.get_user_favorite_projects(request.user.username))
+        user_fav_project_ids = list(Collection.objects.get_user_favorite_projects(request.user.username))
         self.list_queryset = (
             Project.objects.all()
             .annotate(
@@ -79,7 +80,7 @@ class UserProjectSetViewSet(GcloudListViewSet):
     def favor(self, request, *args, **kwargs):
         project_id = kwargs["pk"]
         try:
-            UserFavoriteProject.objects.add_user_favorite_project(request.user.username, project_id)
+            Collection.objects.add_user_favorite_project(request.user.username, project_id)
         except IntegrityError as e:
             logger.exception(e)
             return Response({"result": False, "data": None, "message": "该用户已收藏该项目"}, status=400)
@@ -88,5 +89,5 @@ class UserProjectSetViewSet(GcloudListViewSet):
     @action(methods=["delete"], detail=True)
     def cancel_favor(self, request, *args, **kwargs):
         project_id = kwargs["pk"]
-        UserFavoriteProject.objects.remove_user_favorite_project(request.user.username, project_id)
+        Collection.objects.remove_user_favorite_project(request.user.username, project_id)
         return Response({"result": True, "data": "success", "message": ""})
