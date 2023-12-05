@@ -123,3 +123,6 @@ BKPAAS_TASK_LIST_STATUS_FILTER_DAYS = int(os.getenv("BKPAAS_TASK_LIST_STATUS_FIL
 
 # 支持限制接口的 app
 ALLOWED_LIMITED_API_APPS = [app for app in os.getenv("BKAPP_ALLOWED_LIMITED_API_APPS", "").split(",") if app]
+
+# 报错联系助手链接
+MESSAGE_HELPER_URL = os.getenv("BKAPP_MESSAGE_HELPER_URL", "")
