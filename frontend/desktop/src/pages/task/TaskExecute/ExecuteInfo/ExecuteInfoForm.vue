@@ -83,6 +83,9 @@
                         :form-option="option"
                         :form-data="inputsFormData"
                         :render-config="inputsRenderConfig">
+                        <template v-slot:hook="props">
+                            <FormHook :params="props.params"></FormHook>
+                        </template>
                     </render-form>
                     <no-data v-else :message="$t('暂无参数')"></no-data>
                 </template>
@@ -140,12 +143,14 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import JsonschemaInputParams from '@/pages/template/TemplateEdit/NodeConfig/JsonschemaInputParams.vue'
+    import FormHook from '@/components/common/FormHook.vue'
+    import JsonschemaInputParams from '@/pages/template/TemplateEdit/TemplateSidebar/NodeConfigPanel/JsonschemaInputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         components: {
             RenderForm,
+            FormHook,
             JsonschemaInputParams,
             NoData
         },
@@ -676,123 +681,24 @@
         padding-top: 20px;
     }
     /deep/.render-form {
-        >.rf-form-item {
-            .rf-group-name {
-                display: none;
-            }
-            .rf-tag-label {
-                width: 20%;
-            }
-            .rf-tag-form {
-                margin-left: 20%;
-            }
-            
-            .hide-render-icon {
-                top: 0;
-            }
-        }
-        .rf-form-group {
-            .rf-group-name {
-                display: none;
-            }
-            .rf-tag-hook {
-                top: 0;
-            }
-        }
-        >.rf-form-group {
-            .form-item-group >.rf-form-item {
-                .rf-tag-label {
-                    width: 20%;
-                }
-                .rf-tag-form {
-                    margin-left: 20%;
-                }
-            }
-        }
-        .rf-tag-label {
-            width: 20%;
-            padding-right: 24px;
-            .label {
-                white-space: initial;
-            }
-            .required {
-                position: absolute;
-                top: 2px;
-                right: 15px;
-            }
+        .scheme-name {
+            font-size: 12px !important;
         }
     }
     /deep/.subflow-form {
-        .rf-form-group {
-            .rf-group-name {
-                display: block;
-                width: 20%;
-                padding-right: 24px;
-                text-align: right;
-                .scheme-name {
-                    font-size: 12px;
-                }
-            }
-            .rf-has-hook {
-                .rf-tag-label {
-                    display: none;
-                }
-            }
-            .rf-tag-hook {
-                top: 0;
-            }
-        }
-        >.rf-form-group {
-            .rf-group-name {
-                float: left;
-            }
-            .form-item-group {
-                margin-left: 20%;
-            }
-        }
         .form-item-group {
             padding: 16px;
-            margin-right: 40px;
             background: #f5f7fa;
-            .rf-tag-form {
-                margin-right: 0;
-            }
-            .rf-form-item {
-                .rf-tag-label {
-                    display: flex;
-                    text-align: left;
-                    color: #63656e;
-                    width: 100px;
-                    line-height: 20px;
-                    padding-right: 10px;
-                    margin-top: 6px;
-                    .label {
-                        white-space: initial;
-                    }
-                    .required {
-                        position: initial;
-                    }
-                }
-                .rf-tag-form {
-                    margin-left: 100px;
-                }
-                &:last-child {
-                    margin-bottom: 0;
-                }
+            .rf-form-item:last-child {
+                margin-bottom: 0;
             }
             .form-item-group {
                 padding: 0;
-                margin-right: 0;
             }
             .tag-ip-selector-wrap,
             .resource-allocation {
                 border: none;
                 padding: 0;
-            }
-        }
-        .show-render {
-            .form-item-group {
-                margin-right: 64px;
             }
         }
     }

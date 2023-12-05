@@ -14,112 +14,68 @@
         class="rf-form-group"
         :key="randomKey"
         :class="[
-            {
-                'rf-has-hook': option.showHook,
-                'show-render': isShowRenderIcon
-            },
             scheme.status || ''
         ]"
         v-show="showForm">
         <!-- 分组名称和提示 -->
-        <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
-            <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
-            <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
-            <i
-                v-if="showNotReuseTitle || showPreMakoTip"
+        <div v-if="option.showLabel || showFormTitle" :class="['rf-tag-label', { 'not-reuse': showNotReuseTitle }]">
+            <span
+                :class="{ 'tag-label-tips': option.formEdit && scheme.attrs.tips }"
                 v-bk-tooltips="{
-                    content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
-                    placement: 'top-end',
+                    allowHtml: true,
+                    content: scheme.attrs.tips,
+                    placement: 'top-start',
+                    theme: 'light',
+                    extCls: 'rf-label-tips',
                     boundary: 'window',
-                    zIndex: 2072
+                    zIndex: 2072,
+                    disabled: !option.formEdit || !!!scheme.attrs.tips || showFormTitle
                 }"
-                class="common-icon-dark-circle-warning">
-            </i>
-            <!-- <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
-                <i class="common-icon-dark-circle-warning"></i>
-                {{ scheme.attrs.used_tip }}
-            </span> -->
+                class="scheme-name">
+                {{ (showFormTitle ? scheme.name : '') || scheme.attrs.name}}
+            </span>
+            <template v-if="showFormTitle">
+                <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
+                <i
+                    v-if="showNotReuseTitle || showPreMakoTip"
+                    v-bk-tooltips="{
+                        content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
+                        placement: 'top-end',
+                        boundary: 'window',
+                        zIndex: 2072
+                    }"
+                    class="common-icon-dark-circle-warning">
+                </i>
+            </template>
         </div>
 
-        <!-- 参数被使用占位popover -->
-        <bk-popover
-            v-if="scheme.attrs.html_used_tip"
-            ref="htmlUsedTipPopper"
-            placement="top-start"
-            theme="light"
-            always
-            class="html-used-tippy"
-            ext-cls="html-used-tippy-popper">
-            <div class="empty-box"></div>
-            <template slot="content">
-                <p class="tip-title">
-                    <i class="common-icon-dark-circle-warning"></i>
-                    {{ scheme.attrs.used_tip }}
-                </p>
-                <p class="tip-content">{{ $t('将沿用原参数值提交') }}</p>
-                <p class="tip-btn" @click="handleFoldUsedTip">{{ $t('知道了') }}</p>
-            </template>
-        </bk-popover>
-        <!-- 分组勾选 -->
-        <div v-if="hook" class="rf-form-item rf-has-hook show-label">
-            <label v-if="option.showLabel" class="rf-tag-label">
-                <span
-                    v-bk-tooltips="{
-                        allowHtml: true,
-                        content: scheme.attrs.tips,
-                        placement: 'top-start',
-                        theme: 'light',
-                        extCls: 'rf-label-tips',
-                        boundary: 'window',
-                        zIndex: 2072,
-                        disabled: !option.formEdit || !!!scheme.attrs.tips
-                    }"
-                    class="label"
-                    :class="{ 'tag-label-tips': option.formEdit && scheme.attrs.tips }">
-                    {{scheme.attrs.name}}
-                </span>
-            </label>
-            <div class="rf-tag-form rf-has-hook">
-                <bk-input :disabled="true" :value="String(value)"></bk-input>
+        <div class="form-item-content">
+            <!-- 分组表单元素 -->
+            <div class="form-item-group" v-if="!hook">
+                <component
+                    v-for="(form, index) in scheme.attrs.children"
+                    :key="`${form.tag_code}_${index}`"
+                    :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
+                    :constants="constants"
+                    :scheme="form"
+                    :option="groupOption"
+                    :value="value[form.tag_code]"
+                    :parent-value="value"
+                    @init="$emit('init', $event)"
+                    @blur="$emit('blur', $event)"
+                    @change="updateForm">
+                </component>
             </div>
-        </div>
-        <!-- 分组表单元素 -->
-        <div class="form-item-group" v-else>
-            <component
-                v-for="(form, index) in scheme.attrs.children"
-                :key="`${form.tag_code}_${index}`"
-                :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
-                :constants="constants"
-                :scheme="form"
-                :option="groupOption"
-                :value="value[form.tag_code]"
-                :parent-value="value"
-                @init="$emit('init', $event)"
-                @blur="$emit('blur', $event)"
-                @change="updateForm">
-            </component>
-        </div>
-        <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
-            <i
-                :class="['common-icon-variable-hook hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
-                v-bk-tooltips="{
-                    content: hook ? $t('取消使用变量，节点内维护') : $t('转换为变量，集中维护'),
-                    placement: 'bottom',
-                    zIndex: 3000
-                }"
-                @click="onHookForm(!hook)">
-            </i>
-            <i
-                v-if="isShowRenderIcon"
-                :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
-                v-bk-tooltips="{
-                    content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
-                    placement: 'bottom',
-                    zIndex: 3000
-                }"
-                @click="onRenderChange">
-            </i>
+            <!-- 变量勾选 -->
+            <slot
+                name="hook"
+                :is-show="showHook"
+                :value="value"
+                :hook="hook"
+                :render="render"
+                :scheme="scheme"
+                :option="option">
+            </slot>
         </div>
         <!-- 分组描述 -->
         <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
@@ -201,8 +157,7 @@
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
                 isDescTipsShow: false,
-                isExpand: false,
-                isShowRenderIcon: false
+                isExpand: false
             }
         },
         computed: {
@@ -247,42 +202,6 @@
                     }
                 })
             }
-            // 移除「变量免渲染」的功能开关
-            const { type, attrs } = this.scheme
-            if (type === 'code_editor') {
-                if (attrs.variable_render === false) { // variable_render 开启变量渲染
-                    /**
-                     * need_render:
-                        1. false
-                            之前已勾选，现在去掉免渲染icon
-                        2.true，判断value
-                            a. 不包含${}，需要把need_render置为false，去掉免渲染icon
-                            b. 包含${}，保留免渲染icon
-                     */
-                    if (this.render) {
-                        const regex = /\${[a-zA-Z_]\w*}/g
-                        const matchList = this.value.match(regex)
-                        const isMatch = matchList && matchList.some(item => {
-                            return !!this.constants[item]
-                        })
-                        if (isMatch) {
-                            this.isShowRenderIcon = true
-                        } else {
-                            this.showHook = false
-                            this.$nextTick(() => {
-                                this.onRenderChange()
-                            })
-                        }
-                    }
-                } else {
-                    this.showHook = false
-                    if (!this.render) {
-                        this.isShowRenderIcon = true
-                    }
-                }
-            } else if (!this.render) { // 如果开启了免渲染则展示按钮
-                this.isShowRenderIcon = true
-            }
         },
         beforeDestroy () {
             if (this.scheme.events) {
@@ -309,18 +228,6 @@
             updateForm (fieldArr, val) {
                 fieldArr.unshift(this.scheme.tag_code)
                 this.$emit('change', fieldArr, val)
-            },
-            onHookForm (val) {
-                if (!this.option.formEdit || !this.render) {
-                    return
-                }
-                this.$emit('onHook', this.scheme.tag_code, val)
-            },
-            onRenderChange () {
-                if (!this.option.formEdit || this.hook) {
-                    return
-                }
-                this.$emit('onRenderChange', this.scheme.tag_code, !this.render)
             },
             get_parent () {
                 return this.$parent
@@ -386,30 +293,6 @@
                 }
 
                 return isValid
-            },
-            handleFoldUsedTip () {
-                this.$refs['htmlUsedTipPopper'].hideHandler()
-                this.scheme.attrs.html_used_tip = false
-                this.scheme.attrs.disabled = true
-                if (this.scheme.attrs.children) {
-                    this.setAtomDisable(this.scheme.attrs.children)
-                }
-                const value = this.constants[this.scheme.tag_code].value
-                for (const key in value) {
-                    this.updateForm([key], value[key])
-                }
-                this.randomKey = new Date().getTime()
-            },
-            setAtomDisable (atomList) {
-                atomList.forEach(item => {
-                    if (!item.attrs) {
-                        item.attrs = {}
-                    }
-                    item.attrs['disabled'] = true
-                    if (item.attrs.children) {
-                        this.setAtomDisable(item.attrs.children)
-                    }
-                })
             }
         }
     }
@@ -417,77 +300,18 @@
 <style lang="scss">
 .rf-form-group {
     position: relative;
-    margin-top: 15px;
-    &.added {
-        background: rgba(220,255,226,0.30);
+    display: flex;
+    flex-wrap: wrap;
+    >.rf-tag-label {
+        display: none;
     }
-    &.deleted {
-        background: #ffeeec;
-    }
-    &.rf-has-hook .rf-tag-form {
-        margin-right: 40px;
-    }
-    &.show-render {
-        > .rf-tag-form {
-            margin-right: 58px;
+    .form-item-group {
+        flex: 1;
+        .rf-tag-form {
+            margin-right: 0;
         }
-        .hook-icon {
-            padding-right: 3px !important;
-        }
-    }
-    .rf-group-name {
-        display: block
-    }
-    .html-used-tippy {
-        position: absolute;
-        z-index: -2;
-        left: 130px;
-        .empty-box {
-            width: 32px;
-            height: 32px;
-        }
-    }
-    .rf-tag-hook {
-        position: absolute;
-        top: 30px;
-        right: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 32px;
-        background: #f0f1f5;
-        border-radius: 2px;
-        cursor: pointer;
-        z-index: 1;
-        .hook-icon,
-        .render-skip-icon {
-            height: 32px;
-            line-height: 32px;
-            font-size: 12px;
-            color: #979ba5;
-            &.disabled {
-                color: #c4c6cc;
-                cursor: not-allowed;
-            }
-            &.actived {
-                color: #3a84ff;
-            }
-        }
-        .hook-icon {
-            line-height: 33px;
-            padding: 0 8px;
-            font-size: 16px;
-        }
-        .render-skip-icon {
-            padding: 0 8px 0 3px;
-        }
-        .icon-angle-up-fill {
-            font-size: 12px;
-            color: #c4c6cc;
-            margin: 3px 0 0 6px;
-        }
-        &.hide-render-icon {
-            justify-content: center;
+        .rf-form-item {
+            margin-bottom: 0;
         }
     }
     .tag-label-tips {

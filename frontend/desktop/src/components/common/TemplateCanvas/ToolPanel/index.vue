@@ -96,6 +96,16 @@
                 </i>
             </div>
             <div
+                :class="['tool-icon']"
+                v-bk-tooltips="{
+                    content: $t('导出为图片'),
+                    delay: 300,
+                    placements: ['bottom']
+                }"
+                @click="$emit('onDownloadCanvas')">
+                <i class="common-icon-export-canvas"></i>
+            </div>
+            <div
                 :class="['tool-icon', {
                     'actived': isShowHotKey
                 }]"
@@ -257,6 +267,13 @@
         .tool-disable {
             cursor: not-allowed;
             opacity: 0.3;
+        }
+        .common-icon-hot-key {
+            font-size: 14px;
+        }
+        .common-icon-export-canvas {
+            font-size: 16px;
+            line-height: 25px;
         }
     }
     .zoom-wrapper, .square-wrapper {

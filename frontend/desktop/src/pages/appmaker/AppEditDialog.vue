@@ -365,6 +365,7 @@
                         project__id: this.project_id,
                         limit: 15,
                         offset,
+                        published: true,
                         pipeline_template__name__icontains: this.flowName || undefined
                     }
                     const templateListData = await this.loadTemplateList(params)

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
+    <div class="select-node-wrapper" :class="{ 'tpl-edit-page': !isCreateTask }" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -53,7 +53,6 @@
                 :selected-nodes="selectedNodes"
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
-                :is-edit-process-page="isEditProcessPage"
                 @onImportTemporaryPlan="onImportTemporaryPlan"
                 @onExportScheme="onExportScheme"
                 @selectScheme="selectScheme"
@@ -62,7 +61,7 @@
                 @importTextScheme="importTextScheme"
                 @togglePreviewMode="togglePreviewMode" />
         </div>
-        <div class="action-wrapper" slot="action-wrapper" v-if="isEditProcessPage">
+        <div class="action-wrapper" slot="action-wrapper" v-if="isCreateTask">
             <bk-button
                 theme="primary"
                 class="next-button"
@@ -86,7 +85,7 @@
             <div slot="header">
                 <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
                 >
-                <span>{{ isEditProcessPage ? $t('临时方案') : $t('导入选择节点') }}</span>
+                <span>{{ isCreateTask ? $t('临时方案') : $t('导入选择节点') }}</span>
             </div>
             <edit-scheme
                 ref="editScheme"
@@ -126,7 +125,7 @@
                 default: () => ([])
             },
             entrance: String,
-            isEditProcessPage: {
+            isCreateTask: {
                 type: Boolean,
                 default: true
             }
@@ -181,7 +180,7 @@
                 return false
             },
             schemeTemplate () {
-                return this.isEditProcessPage ? 'TaskScheme' : 'EditTaskScheme'
+                return this.isCreateTask ? 'TaskScheme' : 'EditTaskScheme'
             },
             isCommonProcess () {
                 return Number(this.$route.query.common) === 1
@@ -472,7 +471,7 @@
                         return acc
                     }, [])
                     let result = {}
-                    if (this.isEditProcessPage && scheme) {
+                    if (this.isCreateTask && scheme) {
                         result = await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess })
                         selectNodes.push(...JSON.parse(result.data))
                     }
@@ -489,7 +488,7 @@
                 if (selectNodes.length) {
                     // 使用传进来的选中节点，取消画布默认全选
                     this.selectedNodes = selectNodes
-                    this.isAllSelected = !this.isEditProcessPage
+                    this.isAllSelected = !this.isCreateTask
                 } else {
                     const defaultSelected = await this.getDefaultSelected()
                     this.selectedNodes = defaultSelected
@@ -629,7 +628,7 @@
 .select-node-wrapper {
     height: calc(100vh - 101px);
 }
-.task-create-page {
+.tpl-edit-page {
     .canvas-content {
         height: 100%;
     }

@@ -12,16 +12,23 @@
     <div class="input-params">
         <render-form
             ref="renderForm"
-            :class="{ 'subflow-form': isSubflow }"
+            :class="{ 'sub-flow-form': isSubFlow }"
             :scheme="formsScheme"
             :hooked="hooked"
-            :constants="isSubflow ? subflowForms : constants"
+            :constants="constants"
             :form-option="option"
             :form-data="formData"
             :render-config="renderConfig"
-            @change="onInputsValChange"
-            @onRenderChange="$emit('renderConfigChange', arguments)"
-            @onHookChange="onInputHookChange">
+            @change="onInputsValChange">
+            <template v-slot:hook="props">
+                <FormHook
+                    :params="props.params"
+                    @onHook="onHookChange"
+                    @change="updateForm"
+                    @handleVariableHook="handleVariableHook"
+                    @onRenderChange="$emit('renderConfigChange', arguments)">
+                </FormHook>
+            </template>
         </render-form>
         <bk-collapse v-if="formsNotReferredScheme.length > 0" :class="['not-referred-forms', { expand: notReferredExpand }]">
             <bk-collapse-item>
@@ -35,29 +42,23 @@
                 </div>
             </bk-collapse-item>
         </bk-collapse>
-        <reuse-var-dialog
-            :is-show="isReuseDialogShow"
-            :variables="reuseableVarList"
-            :same-key-exist="isKeyExist"
-            :new-var-key-name="newVarKeyName"
-            @confirm="onConfirmReuseVar"
-            @cancel="onCancelReuseVar">
-        </reuse-var-dialog>
     </div>
 </template>
 <script>
+    import bus from '@/utils/bus.js'
     import tools from '@/utils/tools.js'
+    import { random4 } from '@/utils/uuid.js'
     import formSchema from '@/utils/formSchema.js'
+    import FormHook from '@/components/common/FormHook.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import ReuseVarDialog from './ReuseVarDialog.vue'
 
     const varKeyReg = /^\$\{(\w+)\}$/
 
     export default {
         name: 'InputParams',
         components: {
-            RenderForm,
-            ReuseVarDialog
+            FormHook,
+            RenderForm
         },
         props: {
             scheme: Array,
@@ -76,13 +77,15 @@
             },
             plugin: String, // 标准插件
             version: String, // 标准插件版本或子流程版本
-            isSubflow: Boolean,
-            subflowForms: Object, // 子流程模板输入参数变量配置
+            isSubFlow: Boolean,
+            subFlowForms: Object, // 子流程模板输入参数变量配置
             formsNotReferred: { // 子流程未引用的变量
                 type: Object,
                 default: () => ({})
             },
             nodeId: String,
+            basicInfo: Object,
+            activities: Object,
             constants: Object,
             thirdPartyCode: String,
             isViewMode: Boolean
@@ -93,10 +96,6 @@
                 hooked: {},
                 hookingVarForm: '', // 正被勾选的表单项
                 unhookingVarForm: '', // 正被取消勾选的表单项
-                isKeyExist: false, // 勾选的表单生成的 key 是否在全局变量列表中存在
-                newVarKeyName: { key: '', name: '' }, // 变量配置弹窗自动创建使用
-                isReuseDialogShow: false,
-                reuseableVarList: [],
                 notReferredExpand: false, // 未引用变量是否展开
                 option: {
                     showGroup: true,
@@ -104,19 +103,21 @@
                     showLabel: true,
                     showVarList: true,
                     formEdit: this.isViewMode ? false : this.editable
-                }
+                },
+                watchVarInfo: {}, // 监听的变量
+                changeVarInfo: {} // 隐藏的变量
             }
         },
         computed: {
             formsScheme () {
-                if (this.isSubflow && Object.keys(this.formsNotReferred).length > 0) {
+                if (this.isSubFlow && Object.keys(this.formsNotReferred).length > 0) {
                     // 过滤掉子流程未被引用的变量
                     return this.scheme.filter(item => !this.formsNotReferred.hasOwnProperty(item.tag_code))
                 }
                 return this.scheme
             },
             formsNotReferredScheme () {
-                if (this.isSubflow && Object.keys(this.formsNotReferred).length > 0) {
+                if (this.isSubFlow && Object.keys(this.formsNotReferred).length > 0) {
                     return this.scheme.filter(item => this.formsNotReferred.hasOwnProperty(item.tag_code))
                 }
                 return []
@@ -125,11 +126,69 @@
         watch: {
             value (val) {
                 this.formData = tools.deepClone(val)
+            },
+            isViewMode (val) {
+                this.option.formEdit = !val
             }
         },
         created () {
             $.context.exec_env = 'NODE_CONFIG'
             this.hooked = this.getFormsHookState()
+            // 设置变量自动隐藏对象
+            const watchVarInfo = {}
+            const changeVarInfo = {}
+            Object.values(this.constants).forEach(item => {
+                if (!item.hide_condition || !item.hide_condition.length) return
+                item.hide_condition.forEach(val => {
+                    const { constant_key: key, operator, value } = val
+                    // 隐藏的变量和对应的监听变量
+                    if (!(item.key in changeVarInfo)) {
+                        changeVarInfo[item.key] = {}
+                    }
+                    changeVarInfo[item.key][key] = false
+                    // 监听的变量和对应的隐藏变量
+                    const params = {
+                        target_key: item.key,
+                        operator,
+                        value,
+                        isOr: true // 与逻辑或或逻辑 默认或逻辑
+                    }
+                    if (key in watchVarInfo) {
+                        watchVarInfo[key].push(params)
+                    } else {
+                        watchVarInfo[key] = [params]
+                    }
+                })
+            })
+            this.watchVarInfo = watchVarInfo
+            this.changeVarInfo = changeVarInfo
+
+            // 表单项使用变量
+            bus.$on('useVariable', (data) => {
+                const { type, code, key, variable } = data
+                if (!(code in this.formData)) return
+                let updateType = 'create'
+                let updateValue = variable
+                if (type === 'insert') {
+                    const value = this.formData[code] + key
+                    this.updateForm(code, value)
+                } else {
+                    this.updateForm(code, key)
+                    this.hooked[code] = true
+                    updateType = variable.type === 'reuse' ? 'reuse' : 'edit'
+                    updateValue = variable
+                }
+                // 更新变量列表
+                this.$emit('updateConstants', updateType, updateValue)
+                this.$emit('update', tools.deepClone(this.formData))
+                this.hookingVarForm = ''
+            })
+        },
+        mounted () {
+            if (!Object.keys(this.watchVarInfo).length) return
+            for (const [key, value] of Object.entries(this.formData)) {
+                this.setVariableHideLogic(key, value)
+            }
         },
         beforeDestroy () {
             $.context.exec_env = ''
@@ -157,7 +216,7 @@
             onInputsValChange (val) {
                 this.$emit('update', tools.deepClone(val))
             },
-            onInputHookChange (form, val) {
+            onHookChange (form, val) {
                 if (val) {
                     this.hookForm(form)
                 } else {
@@ -168,30 +227,21 @@
              * 输入参数勾选
              *
              * 勾选逻辑：
-             * 1.判断是否存在类型相同的变量(表单项的tag_code是否相同)，存在则显示变量复用弹窗，
-             * 提供“复用已有变量”、“手动创建变量”固定两种方式给用户选择，如果全局变量中不存在与被勾选变量相同key的变量，
-             * 再提供第三种“自动创建变量”的选项，不存在则进行下一步判断
-             * 2.判断是否存在相同key的变量，存在则提示用户手动新建变量，不存在则自动创建变量
+             * 1.判断是否存在类型相同的变量(表单项的tag_code是否相同)，存在则打开【插件字段配置】面板，
+             * 2.判断是否存在相同key的变量，不存在则自动创建变量，存在则在key后面添加随机数并自动创建变量
              */
             hookForm (form) {
-                const reuseList = []
-                let variableKey, formCode
+                let variableKey, formCode, hasReuse
 
-                if (this.isSubflow) {
-                    const variable = this.subflowForms[form]
+                if (this.isSubFlow) {
+                    const variable = this.subFlowForms[form]
                     variableKey = form
                     formCode = variable.source_tag.split('.')[1]
                 } else {
                     variableKey = `\${${form}}`
                     formCode = form
                 }
-
-                let isKeyInVariables = false
                 this.hookingVarForm = form
-                this.hooked[form] = true
-
-                const formConfig = this.scheme.find(item => item.tag_code === form)
-                const config = this.getNewVarConfig(formConfig.attrs.name, variableKey)
 
                 Object.keys(this.constants).forEach(keyItem => {
                     const constant = this.constants[keyItem]
@@ -200,36 +250,91 @@
                         const tagCode = sourceTag.split('.')[1]
                         // 判断全局变量中是否有与被勾选表单项存在相同类型的，输入参数和输出参数不做比较
                         if (tagCode === formCode && constant.source_type !== 'component_outputs') {
-                            reuseList.push({
-                                name: `${constant.name}(${constant.key})`,
-                                id: constant.key
-                            })
+                            hasReuse = true
                         }
                     }
 
                     if (keyItem === variableKey) {
-                        isKeyInVariables = true
+                        variableKey = variableKey.slice(0, -1) + `_${random4()}}`
                     }
                 })
 
-                if (reuseList.length > 0) { // 存在类型相同的全局变量
-                    this.reuseableVarList = reuseList
-                    this.isKeyExist = isKeyInVariables
-                    this.isReuseDialogShow = true
-                    this.newVarKeyName = {
-                        key: config.key,
-                        name: config.name
-                    }
-                } else if (isKeyInVariables) { // 存在相同key的变量，手动创建新变量
-                    this.isKeyExist = true
-                    this.isReuseDialogShow = true
-                    this.reuseableVarList = []
-                    this.newVarKeyName = { key: '', name: '' }
+                if (hasReuse) { // 存在类型相同的全局变量
+                    // 向上抛出边框勾选事件
+                    this.handleVariableHook({ type: 'reuse', code: formCode })
                 } else { // 自动创建新变量
-                    this.reuseableVarList = []
-                    this.newVarKeyName = { key: '', name: '' }
+                    const formConfig = this.scheme.find(item => item.tag_code === form)
+                    const config = this.getNewVarConfig(formConfig.attrs.name, variableKey)
                     this.createVariable(config)
+                    this.hooked[form] = true
                 }
+            },
+            // 向上抛出边框勾选事件
+            handleVariableHook ({ type, code }) {
+                let config = {}
+                const scheme = this.formsScheme.find(item => item.tag_code === code)
+                if (type === 'reuse') {
+                    config = this.getNewVarConfig('', '')
+                } else if (type === 'create') {
+                    let key = code[0] === '$' ? code : `\${${code}}`
+                    key = key in this.constants ? key.slice(0, -1) + `_${random4()}}` : key
+                    config = {
+                        name: scheme.attrs.name,
+                        key,
+                        source_type: 'custom'
+                    }
+                } else {
+                    config = this.constants[this.formData[code]]
+                }
+                const tagCode = code[0] === '$' ? code.slice(2, -1) : code
+                const reuseList = this.getReuseList(tagCode)
+                bus.$emit('variableHook', {
+                    source_type: 'component_inputs',
+                    ...config,
+                    cited_info: {
+                        key: config.key,
+                        type,
+                        plugin: this.basicInfo.name,
+                        field: scheme.attrs.name,
+                        tagCode,
+                        nodeId: this.nodeId,
+                        nodeName: this.basicInfo.nodeName,
+                        reuseList,
+                        isSubFlow: this.isSubFlow
+                    }
+                })
+            },
+            getReuseList (code) {
+                return Object.keys(this.constants).reduce((acc, cur) => {
+                    const {
+                        name,
+                        key,
+                        source_tag: sourceTag,
+                        source_type: sourceType,
+                        source_info: sourceInfo = {}
+                    } = this.constants[cur]
+                    if (sourceTag) { // 判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
+                        const tagCode = sourceTag.split('.')[1]
+                        // 判断全局变量中是否有与被勾选表单项存在相同类型的，输入参数和输出参数不做比较
+                        if (tagCode === code && sourceType !== 'component_outputs') {
+                            const list = Object.keys(sourceInfo).map(id => {
+                                if (id === this.nodeId) {
+                                    return {
+                                        id,
+                                        name: this.basicInfo.nodeName
+                                    }
+                                }
+                                return this.activities[id]
+                            })
+                            acc.push({
+                                name: `${name}(${key})`,
+                                key: key,
+                                list
+                            })
+                        }
+                    }
+                    return acc
+                }, [])
             },
             /**
              * 取消勾选表单
@@ -243,13 +348,12 @@
                 const constant = this.constants[variableKey]
                 if (constant) { // 标准插件里(如：job_execute_task)可能会修改表单的勾选状态，需要做一个兼容处理
                     const config = ({
-                        type: 'delete',
                         id: this.nodeId,
                         key: variableKey,
                         tagCode: form,
                         source: 'input'
                     })
-                    this.$emit('hookChange', 'delete', config)
+                    this.$emit('updateConstants', 'delete', config)
                 }
             },
             // 变量勾选/取消勾选后，需重新对form进行赋值
@@ -269,8 +373,8 @@
                     form_schema: formSchema.getSchema(this.hookingVarForm, this.scheme),
                     plugin_code: this.thirdPartyCode || ''
                 }
-                if (this.isSubflow) {
-                    const constant = this.subflowForms[this.hookingVarForm]
+                if (this.isSubFlow) {
+                    const constant = this.subFlowForms[this.hookingVarForm]
                     const { desc, custom_type, source_tag, validation, is_meta, meta, version, plugin_code } = constant
                     Object.assign(config, {
                         desc,
@@ -314,53 +418,54 @@
                 }
                 const variable = Object.assign({}, defaultOpts, config)
                 this.formData[this.hookingVarForm] = variable.key
-                this.$emit('hookChange', 'create', variable)
+                this.$emit('updateConstants', 'create', variable)
                 this.$emit('update', tools.deepClone(this.formData))
                 this.hookingVarForm = ''
             },
-            /**
-             * 复用变量弹窗点击确认回调
-             *
-             * @param {String} type 自动创建新变量(autoCreate)、复用已有全局变量(reuse)或者创建新变量(manualCreate)
-             * @param {String, Obejct} data 复用时为 formcode，新建时为 {name, key}
-             */
-            onConfirmReuseVar (type, data) {
-                this.isReuseDialogShow = false
-                if (['autoCreate', 'manualCreate'].includes(type)) { // 创建新变量
-                    const { name, key } = data
-                    const config = this.getNewVarConfig(name, key)
-                    this.createVariable(config)
-                } else { // 复用已有全局变量
-                    const variableKey = data
-                    const config = {
-                        type: 'add',
-                        id: this.nodeId,
-                        key: variableKey,
-                        tagCode: this.hookingVarForm
-                    }
-                    this.formData[this.hookingVarForm] = variableKey
-                    this.$emit('hookChange', 'reuse', config)
-                    this.$emit('update', tools.deepClone(this.formData))
-                    this.hookingVarForm = ''
-                }
-            },
-            /**
-             * 取消复用变量回调
-             */
-            onCancelReuseVar (reuseVariable) {
-                this.hooked[this.hookingVarForm] = false
-                this.isReuseDialogShow = false
-                this.isKeyExist = false
-                this.hookingVarForm = ''
-                this.reuseableVarList = []
-            },
             validate () {
                 return this.$refs.renderForm.validate()
+            },
+            updateForm (key, val) {
+                this.formData[key] = val
+                // 变量隐藏逻辑
+                if (!Object.keys(this.watchVarInfo).length) return
+                this.setVariableHideLogic(key, val)
+            },
+            // 设置变量隐藏逻辑
+            setVariableHideLogic (key, val) {
+                if (key in this.watchVarInfo) {
+                    const values = this.watchVarInfo[key]
+                    values.forEach(item => {
+                        let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
+                        const scheme = this.formsScheme.find(config => config.tag_code === item.target_key)
+                        const relatedVarInfo = this.changeVarInfo[item.target_key]
+                        // 计算输入值是否匹配
+                        isEqual = (item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)
+                        relatedVarInfo[key] = isEqual
+                        // 相关运算逻辑
+                        let isMatch = false
+                        const relatedVarValues = Object.values(relatedVarInfo)
+                        if (item.isOr) {
+                            isMatch = relatedVarValues.some(option => option)
+                        } else {
+                            isMatch = relatedVarValues.every(option => option)
+                        }
+                        // 显示隐藏
+                        if (isMatch) {
+                            scheme.attrs.hidden = true
+                        } else {
+                            scheme.attrs.hidden = false
+                        }
+                    })
+                }
             }
         }
     }
 </script>
 <style lang="scss" scoped>
+.input-params {
+    padding: 16px 30px 34px;
+}
 .not-referred-forms {
     margin-top: 20px;
     background: #f0f1f5;
@@ -373,104 +478,50 @@
         }
     }
 }
-/deep/.render-form {
-    >.rf-form-item {
-        .rf-group-name {
-            display: none;
-        }
-        
-        .hide-render-icon {
-            top: 0;
-        }
+
+/deep/ .render-form,
+/deep/.sub-flow-form {
+    .scheme-name {
+        font-size: 12px !important;
     }
-    .rf-form-group {
-        .rf-group-name {
-            display: none;
+    .rf-form-item {
+        /deep/.el-radio {
+            height: 24px;
+            line-height: 24px;
         }
-        .rf-tag-hook {
-            top: 0;
+        .el-input-number {
+            line-height: 32px;
         }
-    }
-    .rf-tag-label {
-        width: 130px;
-        padding-right: 24px;
-        .label {
-            white-space: initial;
+        .tag-input .div-input {
+            height: 30px;
         }
-        .required {
-            position: absolute;
-            top: 2px;
-            right: 15px;
-        }
-    }
-}
-/deep/.subflow-form {
-    .rf-form-group {
-        .rf-group-name {
-            display: block;
-            width: 130px;
-            padding-right: 24px;
-            text-align: right;
-            .scheme-name {
-                font-size: 12px;
-            }
-        }
-        .rf-has-hook {
-            .rf-tag-label {
-                display: none;
-            }
-        }
-        .rf-tag-hook {
-            top: 0;
-        }
-    }
-    >.rf-form-group {
-        .rf-group-name {
-            float: left;
-        }
-        .form-item-group {
-            margin-left: 130px;
+        &:last-child {
+            margin-bottom: 0;
         }
     }
     .form-item-group {
         padding: 16px;
-        margin-right: 40px;
         background: #f5f7fa;
-        .rf-tag-form {
-            margin-right: 0;
+        .rf-form-item:not(:first-child) {
+            margin: 24px 0 0 0;
         }
-        .rf-form-item {
-            .rf-tag-label {
-                display: flex;
-                text-align: left;
-                color: #63656e;
-                width: 100px;
-                line-height: 20px;
-                padding-right: 10px;
-                margin-top: 6px;
-                .label {
-                    white-space: initial;
-                }
-                .required {
-                    position: initial;
-                }
-            }
-            .rf-tag-form {
-                margin-left: 100px;
-            }
-            &:last-child {
-                margin-bottom: 0;
-            }
+        .rf-form-group .rf-tag-label{
+            display: none;
         }
         .form-item-group {
             padding: 0;
-            margin-right: 0;
         }
-        .tag-ip-selector-wrap,
-        .resource-allocation {
-            border: none;
-            padding: 0;
+    }
+    .rf-form-group {
+        margin-bottom: 24px;
+        >.rf-tag-label {
+            display: block;
         }
+    }
+    .tag-ip-selector-wrap,
+    .resource-allocation {
+        border: none;
+        padding: 0;
     }
     .show-render {
         .form-item-group {

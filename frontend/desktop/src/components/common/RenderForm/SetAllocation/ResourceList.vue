@@ -334,6 +334,10 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        .bk-link {
+            flex-shrink: 0;
+            margin-left: 5px;
+        }
         /deep/ .bk-link-text {
             font-size: 12px;
         }

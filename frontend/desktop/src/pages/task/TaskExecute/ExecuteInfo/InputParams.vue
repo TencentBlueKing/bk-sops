@@ -169,23 +169,24 @@
         /deep/.render-form {
             >.rf-form-item,
             .form-item-group >.rf-form-item {
+                display: flex;
                 margin: 0;
                 padding: 5px 0;
                 width: 100% !important;
                 border-bottom: 1px solid #dcdee5;
-                label {
+                .rf-tag-label {
                     width: 20%;
-                    text-align: left;
+                    flex-shrink: 0;
+                    line-height: 30px;
                     padding-left: 13px;
                     color: #63656e;
-                    &::before {
-                        content: initial;
+                    .scheme-name {
+                        font-size: 12px;
                     }
                 }
-                >.rf-tag-form {
-                    margin-left: 20%;
-                    padding-left: 13px;
-                    padding-right: 15px;
+                >.form-item-content {
+                    width: 80%;
+                    padding: 0 15px 0 13px;
                 }
                 .el-table {
                     tr,

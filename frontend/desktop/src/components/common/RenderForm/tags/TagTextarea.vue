@@ -465,6 +465,18 @@
             handleBlur () {
                 this.emit_event(this.tagCode, 'blur', this.value)
                 this.$emit('blur', this.value)
+            },
+            focus () {
+                const range = document.createRange()
+                const divInputDom = this.$el.querySelector('.div-input')
+                const focusDom = divInputDom.lastChild.lastChild
+                range.selectNodeContents(focusDom)
+                range.collapse(false)
+                const selection = window.getSelection()
+                selection.removeAllRanges()
+                selection.addRange(range)
+                this.handleInputChange()
+                this.lastEditRange = selection.getRangeAt(0)
             }
         }
     }

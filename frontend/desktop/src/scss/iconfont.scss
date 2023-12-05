@@ -455,9 +455,6 @@
 .common-icon-zoom-minus:before {
 	content: "\e1b2";
 }
-.common-icon-hot-key:before {
-	content: "\e1b4";
-}
 .common-icon-typesetting:before {
 	content: "\e1bf";
 }
@@ -469,9 +466,6 @@
 }
 .common-icon-node-selection:before {
 	content: "\e1c6";
-}
-.common-icon-thumbnail-view:before {
-	content: "\e1c9";
 }
 .common-icon-node-conditionalparallelgateway-shortcut:before {
 	content: "\e1ca";
@@ -595,4 +589,31 @@
 }
 .common-icon-variable-hook:before {
 	content: "\e207";
+}
+.common-icon-copy:before {
+	content: "\e208";
+}
+.common-icon-cited-link:before {
+	content: "\e209";
+}
+.common-icon-pause:before {
+	content: "\e20e";
+}
+.common-icon-terminate:before {
+	content: "\e20f";
+}
+.common-icon-pending-approval:before {
+	content: "\e210";
+}
+.common-icon-pending-confirm:before {
+	content: "\e211";
+}
+.common-icon-thumbnail-view:before {
+	content: "\e212";
+}
+.common-icon-export-canvas:before {
+	content: "\e213";
+}
+.common-icon-hot-key:before {
+	content: "\e214";
 }

@@ -2,7 +2,7 @@
     <div class="jsonschema-input-params">
         <bkui-form
             :value="inputFormData"
-            form-type="horizontal"
+            form-type="vertical"
             :schema="inputs"
             :layout="{ group: [], container: { gap: '14px' } }"
             @change="$emit('update', $event)">
@@ -44,27 +44,27 @@
     }
 </script>
 <style lang="scss" scoped>
-    .jsonschema-input-params {
-        >>> .bk-form-item {
-            .bk-label {
-               width: 130px !important;
-               font-size: 12px;
-            }
-            .bk-form-content {
-                margin-left: 130px !important;
-            }
-            .bk-form-radio {
-                margin-right: 30px;
-                .bk-radio-text {
-                    font-size: 12px;
-                }
-            }
-            .bk-form-checkbox {
-                margin-right: 30px;
-                .bk-checkbox-text {
-                    font-size: 12px;
-                }
+.jsonschema-input-params {
+    padding: 16px 30px 32px;
+    >>> .bk-form-item {
+        .bk-label {
+            font-size: 12px;
+        }
+        .bk-form-radio {
+            height: 24px;
+            .bk-radio-text {
+                font-size: 12px;
             }
         }
+        .bk-form-checkbox {
+            height: 24px;
+            .bk-checkbox-text {
+                font-size: 12px;
+            }
+        }
+        &:last-child {
+            margin-bottom: 0 !important;
+        }
     }
+}
 </style>

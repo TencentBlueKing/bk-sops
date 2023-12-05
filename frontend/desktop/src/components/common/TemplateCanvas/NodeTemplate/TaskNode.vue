@@ -28,7 +28,7 @@
         </div>
         <!-- 节点名称 -->
         <div class="node-name">
-            <div class="name-text">{{ node.name }}</div>
+            <div class="name-text" :class="{ 'default-name': isShowDefaultNodeName }">{{ isShowDefaultNodeName ? $t('请选择插件') : node.name }}</div>
         </div>
         <!-- 节点顶部左侧区域 icon，是否可选、跳过等 -->
         <div class="node-options-icon">
@@ -126,6 +126,9 @@
                     return true
                 }
                 return false
+            },
+            isShowDefaultNodeName () {
+                return this.node.mode === 'edit' && !this.node.name
             }
         },
         methods: {

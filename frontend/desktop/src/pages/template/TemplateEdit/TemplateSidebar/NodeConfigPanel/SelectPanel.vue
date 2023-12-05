@@ -1,8 +1,6 @@
 <template>
-    <bk-tab
-        :active="curTab"
-        type="unborder-card"
-        @tab-change="onTabChange">
+    <div class="select-panel">
+        <p class="title">{{$t('标准运维插件')}}</p>
         <bk-input
             class="search-input"
             v-model.trim="searchStr"
@@ -14,16 +12,18 @@
             @clear="handleSearch"
             @enter="handleSearch">
         </bk-input>
-        <p
-            v-if="bkPluginDevelopUrl"
-            class="plugin-dev-doc"
-            @click="jumpToPluginDev">
-            {{ $t('找不到想要的插件？可以尝试自己动手开发！') }}
-        </p>
-        <!-- 内置插件 -->
-        <bk-tab-panel name="builtIn" :label="$t('内置插件')">
-            <template v-if="builtInPluginGroup.length > 0">
-                <div class="group-area">
+        <div class="plugin-wrap">
+            <div class="left-wrap">
+                <bk-tab
+                    :active="curTab"
+                    type="unborder-card"
+                    :label-height="42"
+                    @tab-change="onTabChange">
+                    <bk-tab-panel name="builtIn" :label="$t('内置插件')"></bk-tab-panel>
+                    <bk-tab-panel name="thirdParty" :label="$t('第三方插件')"></bk-tab-panel>
+                </bk-tab>
+                <!--内置插件分类-->
+                <div v-if="curTab === 'builtIn' && builtInPluginGroup.length > 0" class="group-area">
                     <div
                         :class="['group-item', {
                             active: group.type === activeGroup
@@ -34,60 +34,56 @@
                         @click="onSelectGroup(group.type)">
                         <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
                         <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
-                        <span v-html="group.group_name"></span>
-                        <span>{{ `(${group.list.length})` }}</span>
+                        <span class="group-name" v-html="group.group_name" v-bk-overflow-tips></span>
+                        <span class="count">{{ group.list.length }}</span>
                     </div>
                 </div>
-                <div class="selector-area" ref="selectorArea">
-                    <template v-if="activeGroupPlugin.length > 0">
-                        <li
-                            v-for="(item, index) in activeGroupPlugin"
-                            :class="['list-item', { active: item.code === crtPlugin }]"
-                            :key="index"
-                            :title="item.name"
-                            :data-test-id="`templateEdit_list_${item.code.replace(/_(\w)/g, (strMatch, p1) => p1.toUpperCase())}`"
-                            @click="$emit('select', item)">
-                            <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
-                            <span class="node-name" v-else>{{ item.name }}</span>
-                        </li>
+                <!--第三方插件分类-->
+                <div
+                    v-if="curTab === 'thirdParty' && isThirdPartyGroupShow"
+                    class="group-area"
+                    v-bkloading="{ isLoading: thirdPluginTagsLoading || thirdPluginLoading }">
+                    <template v-for="group in thirdPluginGroup">
+                        <div
+                            :class="['group-item', {
+                                active: group.id === thirdActiveGroup
+                            }]"
+                            v-if="group.isShow"
+                            :key="group.id"
+                            :data-test-id="`templateEdit_thirdList_${group.id}`"
+                            @click="onSelectThirdGroup(group.id)">
+                            <span class="group-name" v-html="group.name" v-bk-overflow-tips></span>
+                        </div>
                     </template>
-                    <NoData
-                        v-else
-                        :type="searchStr ? 'search-empty' : 'empty'"
-                        :message="searchStr ? $t('搜索结果为空') : ''"
-                        @searchClear="handleSearch('')">
-                    </NoData>
                 </div>
-            </template>
-            <NoData
-                v-else
-                :type="searchStr ? 'search-empty' : 'empty'"
-                :message="searchStr ? $t('搜索结果为空') : ''"
-                @searchClear="handleSearch('')">
-            </NoData>
-        </bk-tab-panel>
-        <!-- 第三方插件 -->
-        <bk-tab-panel
-            ref="thirdPartyPanel"
-            name="thirdParty"
-            :label="$t('第三方插件')"
-            v-bkloading="{ isLoading: thirdPluginTagsLoading || thirdPluginLoading }">
-            <div class="group-area" v-if="isThirdPartyGroupShow">
-                <template v-for="group in thirdPluginGroup">
-                    <div
-                        :class="['group-item', {
-                            active: group.id === thirdActiveGroup
-                        }]"
-                        v-if="group.isShow"
-                        :key="group.id"
-                        :data-test-id="`templateEdit_thirdList_${group.id}`"
-                        @click="onSelectThirdGroup(group.id)">
-                        <span v-html="group.name"></span>
-                    </div>
-                </template>
             </div>
-            <div class="third-party-list">
-                <template v-if="thirdPartyPlugin.length > 0">
+            <div class="right-wrap" v-bkloading="{ isLoading: thirdPluginTagsLoading || thirdPluginLoading }">
+                <p
+                    v-if="bkPluginDevelopUrl"
+                    class="plugin-dev-doc"
+                    @click="jumpToPluginDev">
+                    {{ $t('找不到想要的插件？可以尝试自己动手开发！') }}
+                </p>
+                <!--内置插件列表-->
+                <div
+                    v-show="curTab === 'builtIn' && builtInPluginGroup.length > 0 && activeGroupPlugin.length > 0"
+                    class="selector-area"
+                    ref="selectorArea">
+                    <li
+                        v-for="(item, index) in activeGroupPlugin"
+                        :class="['list-item', { active: item.code === crtPlugin }]"
+                        :key="index"
+                        :title="item.name"
+                        :data-test-id="`templateEdit_list_${item.code.replace(/_(\w)/g, (strMatch, p1) => p1.toUpperCase())}`"
+                        @click="$emit('select', item)">
+                        <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
+                        <span class="node-name" v-else>{{ item.name }}</span>
+                    </li>
+                </div>
+                <!--第三方插件列表-->
+                <div
+                    v-show="curTab === 'thirdParty' && thirdPartyPlugin.length > 0"
+                    class="third-party-list">
                     <div
                         :class="['plugin-item', { 'is-active': plugin.code === crtPlugin }]"
                         v-for="(plugin, index) in thirdPartyPlugin"
@@ -105,16 +101,16 @@
                             <p class="plugin-contact">{{ $t('由') + ' ' + plugin.contact + ' ' + $t('提供') }}</p>
                         </div>
                     </div>
-                </template>
+                </div>
                 <NoData
-                    v-else
+                    v-if="isNoDataShow"
                     :type="searchStr ? 'search-empty' : 'empty'"
                     :message="searchStr ? $t('搜索结果为空') : ''"
                     @searchClear="handleSearch('')">
                 </NoData>
             </div>
-        </bk-tab-panel>
-    </bk-tab>
+        </div>
+    </div>
 </template>
 <script>
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
@@ -144,7 +140,7 @@
                 thirdPluginGroup: [],
                 thirdPluginTagsLoading: false,
                 thirdPluginLoading: false,
-                thirdPluginPagelimit: 15,
+                thirdPluginPageLimit: 15,
                 isThirdPluginCompleteLoading: false,
                 thirdPluginOffset: 0,
                 searchStr: '',
@@ -158,6 +154,15 @@
             },
             isThirdPartyGroupShow () {
                 return this.thirdPluginGroup && this.thirdPluginGroup.some(item => item.isShow)
+            },
+            isNoDataShow () {
+                let isShow = false
+                if (this.curTab === 'builtIn') {
+                    isShow = !this.builtInPluginGroup.length || !this.activeGroupPlugin.length
+                } else {
+                    isShow = !this.thirdPartyPlugin.length
+                }
+                return isShow
             }
         },
         async mounted () {
@@ -167,8 +172,8 @@
             }
         },
         beforeDestroy () {
-            const listWrapEl = this.$refs.thirdPartyPanel.$el.querySelector('.third-party-list')
-            listWrapEl.removeEventListener('scroll', this.handleThirdParPluginScroll, false)
+            const listWrapEl = document.querySelector('.third-party-list')
+            listWrapEl && listWrapEl.removeEventListener('scroll', this.handleThirdParPluginScroll, false)
         },
         methods: {
             // 获取内置插件默认展开的分组，没有选择展开第一组，已选择展开选中的那组
@@ -207,7 +212,7 @@
                     // 搜索时拉取全量插件列表
                     const params = {
                         fetch_all: this.searchStr ? true : undefined,
-                        limit: this.thirdPluginPagelimit,
+                        limit: this.thirdPluginPageLimit,
                         offset: this.thirdPluginOffset,
                         search_term: this.searchStr || undefined,
                         exclude_not_deployed: true,
@@ -241,7 +246,7 @@
                     }
                     this.thirdPluginOffset = return_plugin_count ? next_offset : 0
                     this.thirdPartyPlugin.push(...pluginList)
-                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPagelimit) {
+                    if (next_offset === -1 || return_plugin_count < this.thirdPluginPageLimit) {
                         this.isThirdPluginCompleteLoading = true
                     }
                 } catch (error) {
@@ -253,7 +258,7 @@
             // 设置第三方插件滚动加载事件
             setThirdParScrollLoading () {
                 // 设置滚动加载
-                const listWrapEl = this.$refs.thirdPartyPanel.$el.querySelector('.third-party-list')
+                const listWrapEl = document.querySelector('.third-party-list')
                 listWrapEl.addEventListener('scroll', this.handleThirdParPluginScroll, false)
                 const height = listWrapEl.getBoundingClientRect().height
 
@@ -261,7 +266,7 @@
                 // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加1条
                 // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度80px
                 if (height > 0) {
-                    this.thirdPluginPagelimit = Math.ceil(height / 80) + 1
+                    this.thirdPluginPageLimit = Math.ceil(height / 80) + 1
                 }
                 this.getThirdPartyPlugin()
             },
@@ -284,6 +289,7 @@
                 }
                 // 切换tab时需要重新搜索
                 this.handleSearch(this.searchStr)
+                // 监听滚动
                 if (this.thirdPartyPlugin.length === 0 && this.thirdPluginOffset === 0) {
                     this.$nextTick(() => {
                         this.setThirdParScrollLoading()
@@ -412,6 +418,7 @@
                     const data = {
                         code,
                         name: plugin.name,
+                        plugin_contact: plugin.contact,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
@@ -425,137 +432,229 @@
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-.bk-tab {
-    >>> .bk-tab-section {
-        padding: 0;
-        .bk-tab-content {
-            height: calc(100vh - 110px);
-            overflow: hidden;
-        }
-    }
-}
-.search-input {
+.select-panel {
     position: absolute;
-    top: -46px;
-    right: 20px;
-    width: 300px;
-}
-.plugin-dev-doc {
-    position: absolute;
-    right: 15px;
-    top: 15px;
+    top: -54px;
+    left: -608px;
+    width: 600px;
+    height: 790px;
+    background: #fff;
+    box-shadow: 0 0 4px 0 #0000004d;
     z-index: 2;
-    font-size: 12px;
-    color: #3a84ff;
-    cursor: pointer;
-}
-.group-area {
-    float: left;
-    width: 270px;
-    height: 100%;
-    background-image: linear-gradient(to right, transparent 269px,#e2e4ed 0);
-    background-color: #fafbfd;
-    overflow: auto;
-    @include scrollbar;
-    .group-item {
-        position: relative;
-        padding: 0 18px;
+    .title {
         font-size: 14px;
+        line-height: 22px;
         color: #63656e;
-        height: 42px;
-        line-height: 42px;
-        border-bottom: 1px solid #e2e4ed;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        cursor: pointer;
-        &:hover {
-            color: #3a84ff;
-        }
-        &.active {
-            color: #3a84ff;
-            background: #ffffff;
-            border-right: 1px solid #ffffff;
-        }
+        font-weight: 700;
+        margin: 21px 24px;
     }
-}
-.selector-area {
-    margin-left: 270px;
-    height: 100%;
-    font-size: 12px;
-    color: #63656e;
-    overflow: auto;
-    @include scrollbar;
-    .list-item {
+    .search-input {
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        width: 180px;
+    }
+    .plugin-wrap {
         position: relative;
-        padding: 0 40px 0 20px;
-        height: 42px;
-        line-height: 42px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        cursor: pointer;
-        &:hover {
-            background: #e1ecff;
-            color: #3a84ff;
+        display: flex;
+        height: calc(100% - 64px);
+        background: #fff;
+    }
+    .left-wrap {
+        width: 214px;
+        background: #f5f7fa;
+        border-radius: 0 2px 0 0;
+        /deep/.bk-tab {
+            .bk-tab-label-wrapper {
+                margin-left: 0 !important;
+            }
+            .bk-tab-section {
+                padding: 0;
+            }
         }
-        &.active {
-            background: #e1ecff;
-            & > .node-name {
-                color: #3a84ff;
+        .group-area {
+            height: calc(100% - 42px);
+            width: 100%;
+            padding-top: 16px;
+            overflow: auto;
+            @include scrollbar;
+            .group-item {
+                position: relative;
+                display: flex;
+                align-items: center;
+                height: 40px;
+                padding: 0 16px 0 24px;
+                font-size: 14px;
+                color: #63656e;
+                cursor: pointer;
+                i {
+                    flex-shrink: 0;
+                    font-size: 16px;
+                    color: #979ba5;
+                    margin: 2px 4px 0 0;
+                }
+                .group-name {
+                    flex: 1;
+                    line-height: 22px;
+                    padding-right: 5px;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                }
+                .count {
+                    flex-shrink: 0;
+                    padding: 0 8px;
+                    line-height: 16px;
+                    font-size: 12px;
+                    color: #979ba5;
+                    background: #f0f1f5;
+                    border-radius: 2px;
+                }
+                &:hover {
+                    background: #eaebf0;
+                }
+                &.active {
+                    color: #3a84ff;
+                    background: #ffffff;
+                    .count {
+                        color: #fff;
+                        background: #a3c5fd;
+                    }
+                    &::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        display: inline-block;
+                        width: 3px;
+                        height: 40px;
+                        background: #3a84ff;
+                    }
+                }
             }
         }
     }
-}
-.third-party-list {
-    height: calc(100vh - 110px);
-    overflow: auto;
-    @include scrollbar;
-    .plugin-item {
-        height: 80px;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        padding: 0 59px 0 38px;
-        color: #63656e;
-        font-size: 12px;
-        .plugin-logo {
-            width: 48px;
-            height: 48px;
-            margin-right: 16px;
-            flex-shrink: 0;
+    .right-wrap {
+        flex: 1;
+        margin-left: 8px;
+        .plugin-dev-doc {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            z-index: 2;
+            font-size: 12px;
+            color: #3a84ff;
+            cursor: pointer;
         }
-        .plugin-title {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 4px;
+        .selector-area {
+            height: 100%;
+            font-size: 12px;
+            color: #63656e;
+            border-radius: 2px;
+            overflow: auto;
+            @include scrollbar;
+            .list-item {
+                height: 32px;
+                width: 100%;
+                line-height: 32px;
+                padding: 0 16px;
+                border-radius: 2px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                cursor: pointer;
+                &:hover {
+                    background: #fafbfd;
+                }
+                &.active {
+                    color: #3a84ff;
+                    background: #e1ecff;
+                }
+            }
         }
-        .plugin-desc {
-            width: 375px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
+        .third-party-list {
+            height: 100%;
+            overflow: auto;
+            @include scrollbar;
+            .plugin-item {
+                display: flex;
+                position: relative;
+                height: 78px;
+                line-height: 18px;
+                padding: 10px 18px 10px 12px;
+                color: #63656e;
+                font-size: 12px;
+                cursor: pointer;
+                .plugin-logo {
+                    width: 56px;
+                    height: 56px;
+                    margin-right: 12px;
+                    flex-shrink: 0;
+                }
+                .plugin-title {
+                    font-weight: 700;
+                    margin-bottom: 4px;
+                }
+                .plugin-desc {
+                    width: 274px;
+                    display: -webkit-box;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-break: break-all;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                }
+                .plugin-contact {
+                    position: absolute;
+                    top: 10px;
+                    right: 24px;
+                    display: none;
+                    color: #979ba5;
+                    line-height: 20px;
+                }
+                &:hover {
+                    background: #fafbfd;
+                    .plugin-contact {
+                        display: block;
+                    }
+                }
+                &.is-active {
+                    background: #e1ecff;
+                    .plugin-title {
+                        color: #3a84ff;
+                    }
+                    .plugin-contact {
+                        display: block;
+                    }
+                }
+            }
+            .tpl-loading {
+                height: 40px;
+                bottom: 0;
+                left: 0;
+                font-size: 14px;
+                text-align: center;
+                margin-top: 10px;
+            }
         }
-        .plugin-contact {
-            color: #c4c6cc;
-            font-weight: 700;
-        }
-        &.is-active, &:hover {
-            background: hsl(218, 100%, 94%);
+        .no-data-wrapper {
+            margin-top: 50px;
         }
     }
-    .tpl-loading {
-        height: 40px;
-        bottom: 0;
-        left: 0;
-        font-size: 14px;
-        text-align: center;
-        margin-top: 10px;
+    &::before {
+        background: #fff;
+        border-color: #ebf0f5 #ebf0f5 #fff #fff;
+        border-style: solid;
+        border-width: 1px;
+        content: "";
+        display: block;
+        height: 6px;
+        position: absolute;
+        right: -4px;
+        top: 140px;
+        transform: rotate(45deg);
+        width: 6px;
     }
-}
-.no-data-wrapper {
-    margin-top: 50px;
 }
 </style>

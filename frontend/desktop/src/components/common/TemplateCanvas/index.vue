@@ -44,8 +44,6 @@
             <template v-slot:palettePanel>
                 <palette-panel
                     :common="common"
-                    :atom-type-list="atomTypeList"
-                    :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint">
                 </palette-panel>
@@ -211,12 +209,6 @@
                 type: Boolean,
                 default: true
             },
-            atomTypeList: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
             isNodeCheckOpen: {
                 type: Boolean,
                 default: false
@@ -240,10 +232,6 @@
             common: {
                 type: [String, Number],
                 default: ''
-            },
-            templateLabels: {
-                type: Array,
-                default: () => ([])
             },
             canvasData: {
                 type: Object,
@@ -290,8 +278,8 @@
                 smallMapLoading: true, // 小地图loading
                 isMouseEnterX: '', // 鼠标在选择框中按下的offsetX值
                 isMouseEnterY: '', // 鼠标在选择框中按下的offsetY值
-                windowWidth: document.documentElement.offsetWidth - 60, // 60 header的宽度
-                windowHeight: document.documentElement.offsetHeight - 60 - 50, // 50 tab栏的宽度
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeigh - 50, // 50 tab栏的宽度
                 canvasWidth: 0, // 生成画布的宽
                 canvasHeight: 0, // 生成画布的高
                 canvasImgDownloading: false,
@@ -394,8 +382,8 @@
         },
         methods: {
             handlerWindowResize () {
-                this.windowWidth = document.documentElement.offsetWidth - 60
-                this.windowHeight = document.documentElement.offsetHeight - 60 - 50
+                this.windowWidth = document.documentElement.offsetWidth
+                this.windowHeight = document.documentElement.offsetHeight - 50
                 if (this.showSmallMap) {
                     this.onGenerateCanvas().then(res => {
                         this.smallMapImg = res
@@ -661,6 +649,10 @@
                 this.$nextTick(() => {
                     // 拖拽节点到线上, 自动生成连线
                     this.handleDraggerNodeToLine(node, true)
+                    // 打开节点配置模板(新增节点没有mode字段)
+                    if (!node.mode) {
+                        this.onNodeDblclick(node.id)
+                    }
                 })
             },
             onCreateNodeMoving (node) {
@@ -1068,7 +1060,6 @@
                 }
                 const ratio = this.zoomRatio / 100
                 let nodeWidth, nodeHeight, offsetLeft, offsetTop
-                let paletteWidth = 0
                 if (loc.type.indexOf('gateway') > -1) {
                     nodeHeight = 34
                     nodeWidth = 34
@@ -1085,10 +1076,9 @@
                     nodeWidth = nodeWidth * ratio
                     offsetLeft = offsetLeft * ratio
                     offsetTop = offsetTop * ratio
-                    paletteWidth = 60 // 左侧导航栏宽度
                 }
                 // 横向区间
-                const horizontalInterval = [loc.x + offsetLeft - paletteWidth, loc.x + nodeWidth - offsetLeft - paletteWidth]
+                const horizontalInterval = [loc.x + offsetLeft, loc.x + nodeWidth - offsetLeft]
                 // 纵向区间
                 const verticalInterval = [loc.y + offsetTop, loc.y + nodeHeight - offsetTop]
                 // 符合匹配连线
@@ -1538,7 +1528,6 @@
                         left = left + offsetLeft
                         top = top + offsetTop
                     }
-                    left = left - 60 // 60为画布左边栏的宽度
                     const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
                     // 判断端点是否已经创建
                     const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
@@ -2387,7 +2376,7 @@
     }
     .canvas-wrapper.jsflow {
         border: none;
-        background: #e1e4e8;
+        background: #f5f7fa;
         .palette-panel-wrap {
             border-right: 1px solid #cacedb;
         }

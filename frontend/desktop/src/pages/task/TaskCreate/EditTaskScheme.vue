@@ -189,10 +189,6 @@
                 type: Boolean,
                 default: false
             },
-            isEditProcessPage: {
-                type: Boolean,
-                default: true
-            },
             selectedNodes: {
                 type: Array,
                 default () {

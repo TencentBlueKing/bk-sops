@@ -1,14 +1,3 @@
-/**
-* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-* Edition) available.
-* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
-* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-* http://opensource.org/licenses/MIT
-* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-* an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations under the License.
-*/
 <template>
     <div class="variable-cited-wrap">
         <template v-for="group in list">
@@ -24,7 +13,6 @@
                         @click.stop="onCitedNodeClick(group.key, item.id)">
                         {{ item.name }}
                     </span>
-                    <i class="common-icon-box-top-right-corner" @click.stop="onCitedNodeClick(group.key, item.id)"></i>
                 </div>
             </div>
         </template>
@@ -98,29 +86,25 @@
 @import '@/scss/config.scss';
 .variable-cited-wrap {
     position: relative;
-    margin: 10px 30px;
-    padding: 0 16px 16px;
-    background: #f0f1f5;
-    border: 1px solid #dcdee5;
+    margin-top: 6px;
+    padding: 0 16px 12px;
+    background: #fafbfd;
     border-radius: 2px;
     &::after {
         content: '';
         position: absolute;
         top: -5px;
-        right: 322px;
+        right: 54px;
         width: 8px;
         height: 8px;
-        background: #f0f1f5;
-        border-style: solid;
-        border-width: 1px 1px 0 0;
-        border-color: #dcdee5 #dcdee5 transparent transparent;
+        background: #fafbfd;
         transform: rotate(-45deg);
         border-radius: 1px;
     }
 }
 .group-title {
     width: 100%;
-    margin: 16px 0 4px;
+    margin: 12px 0 8px;
 }
 .variable-cited-list {
     display: flex;
@@ -128,15 +112,16 @@
     flex-wrap: wrap;
     .variable-cited-item {
         position: relative;
-        padding: 0 18px;
-        height: 24px;
-        width: 50%;
+        height: 20px;
+        min-width: 50%;
         display: flex;
         align-items: center;
+        padding: 0 18px 0 14px;
+        margin-bottom: 4px;
         &::before {
             content: '';
             position: absolute;
-            top: 10px;
+            top: 8px;
             left: 0;
             width: 6px;
             height: 6px;
@@ -149,15 +134,10 @@
             text-overflow: ellipsis;
             overflow: hidden;
         }
-        i {
-            color: #737987;
-            padding: 2px 0 0 5px;
-            cursor: pointer;
-        }
         &:hover {
             color: #3a84ff;
-            i {
-                color: #3a84ff;
+            &::before {
+                background: #3a84ff;
             }
         }
     }

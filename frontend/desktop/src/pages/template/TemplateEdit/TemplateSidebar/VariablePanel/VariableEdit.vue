@@ -1,76 +1,91 @@
 <template>
     <div class="variable-edit">
+        <div class="header">
+            <i class="common-icon-arrow-left" @click="$emit('closeEditingPanel')"></i>
+            <span>{{ isViewMode ? $t('变量详情') : variableData.type === 'create' ? $t('新建变量') : $t('编辑变量') }}</span>
+        </div>
         <div class="variable-edit-content">
-            <section class="form-section">
-                <h3>{{ $t('基础信息') }}</h3>
-                <!-- 名称 -->
-                <div class="form-item clearfix">
-                    <label class="required">{{ $t('名称') }}</label>
-                    <div class="form-content">
-                        <bk-input
-                            name="variableName"
-                            v-model="theEditingData.name"
-                            v-validate="variableNameRule"
-                            :readonly="isViewMode || isInternalVal"
-                            :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
-                            :show-word-limit="true">
-                        </bk-input>
-                        <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
-                    </div>
-                </div>
-                <!-- key -->
-                <div class="form-item clearfix">
-                    <label class="required">Key</label>
-                    <div class="form-content">
-                        <bk-input
-                            name="variableKey"
-                            v-model="theEditingData.key"
-                            v-validate="variableKeyRule"
-                            :readonly="isViewMode || isInternalVal"
-                            :disabled="isHookedVar && variableData.key !== ''">
-                        </bk-input>
-                        <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
-                    </div>
-                </div>
-                <!-- 类型 -->
-                <div class="form-item variable-type clearfix" v-if="!isInternalVal">
-                    <label>{{ $t('类型') }}</label>
-                    <div class="form-content">
-                        <bk-select
-                            v-model="currentValType"
-                            :disabled="isViewMode || isHookedVar"
-                            :clearable="false"
-                            @change="onValTypeChange">
-                            <template v-if="isHookedVar">
+            <bk-form :model="theEditingData" form-type="vertical" class="variable-content-form">
+                <bk-form-item label="变量名称" :required="true" :property="'name'">
+                    <bk-input
+                        name="variableName"
+                        v-model="theEditingData.name"
+                        v-validate="variableNameRule"
+                        :readonly="isViewMode || isInternalVal"
+                        :maxlength="stringLength.VARIABLE_NAME_MAX_LENGTH"
+                        :show-word-limit="true">
+                    </bk-input>
+                    <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
+                </bk-form-item>
+                <bk-form-item label="Key" :required="true" :property="'key'">
+                    <bk-input
+                        name="variableKey"
+                        v-model="theEditingData.key"
+                        v-validate="variableKeyRule"
+                        v-bk-tooltips="{
+                            content: $t('变量已被引用，key 不可修改'),
+                            disabled: isViewMode || !isBeCited
+                        }"
+                        :readonly="isViewMode || isInternalVal"
+                        :disabled="isBeCited">
+                    </bk-input>
+                    <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
+                </bk-form-item>
+                <bk-form-item
+                    v-if="!isInternalVal"
+                    label="类型"
+                    :required="true"
+                    :property="'type'"
+                    :class="['variable-type', { 'hide-tooltips': !variableDesc }]"
+                    :desc="{
+                        content: variableDesc,
+                        disabled: isHookedVar,
+                        theme: 'light',
+                        extCls: 'variable-type-desc'
+                    }"
+                    desc-type="icon"
+                    desc-icon="common-icon-tooltips">
+                    <bk-select
+                        v-model="currentValType"
+                        :disabled="isViewMode || isHookedVar"
+                        :clearable="false"
+                        @change="onValTypeChange">
+                        <template v-if="isHookedVar">
+                            <bk-option
+                                v-for="(option, optionIndex) in varTypeList"
+                                :key="optionIndex"
+                                :id="option.code"
+                                :name="option.name">
+                            </bk-option>
+                        </template>
+                        <template v-else>
+                            <bk-option-group
+                                v-for="(group, groupIndex) in varTypeList"
+                                :key="groupIndex"
+                                :name="group.name">
                                 <bk-option
-                                    v-for="(option, optionIndex) in varTypeList"
+                                    v-for="(option, optionIndex) in group.children"
                                     :key="optionIndex"
                                     :id="option.code"
                                     :name="option.name">
                                 </bk-option>
-                            </template>
-                            <template v-else>
-                                <bk-option-group
-                                    v-for="(group, groupIndex) in varTypeList"
-                                    :key="groupIndex"
-                                    :name="group.name">
-                                    <bk-option
-                                        v-for="(option, optionIndex) in group.children"
-                                        :key="optionIndex"
-                                        :id="option.code"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-option-group>
-                            </template>
-                        </bk-select>
-                        <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
-                    </div>
-                    <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
-                </div>
-                <!-- 验证规则 -->
-                <div v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal" class="form-item clearfix">
-                    <label class="form-label">{{ $t('正则校验') }}</label>
-                    <div class="form-content">
+                            </bk-option-group>
+                        </template>
+                    </bk-select>
+                    <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
+                </bk-form-item>
+                <VariableCitedConfigVue
+                    v-if="isHookedVar"
+                    :variable-data="variableData"
+                    :variable-cited="variableCited"
+                    :hook-params="hookParams">
+                </VariableCitedConfigVue>
+                <template v-if="theEditingData.source_type !== 'component_outputs'">
+                    <bk-form-item
+                        label="正则校验"
+                        :property="'regex'"
+                        v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal"
+                        class="variable-regex">
                         <bk-input
                             name="valueValidation"
                             v-model="theEditingData.validation"
@@ -79,109 +94,116 @@
                             @blur="onBlurValidation">
                         </bk-input>
                         <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
-                    </div>
-                </div>
-                <!-- 显示/隐藏 -->
-                <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用')" class="condition-tip">{{ $t('执行时显示')}}</span>
-                    </label>
-                    <div class="form-content">
-                        <bk-select
-                            v-model="theEditingData.show_type"
-                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
-                            :clearable="false"
-                            @change="onToggleShowType">
-                            <bk-option
-                                v-for="(option, index) in showTypeList"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                </div>
-                <!-- 自动隐藏 -->
-                <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
-                    <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')" class="condition-tip">{{ $t('“显示参数”条件隐藏')}}</span>
-                    </label>
-                    <div class="form-content">
-                        <bk-select
-                            v-model="theEditingData.is_condition_hide"
-                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
-                            :clearable="false"
-                            @change="onToggleHideCond">
-                            <bk-option id="true" :name="$t('开启')"></bk-option>
-                            <bk-option id="false" :name="$t('关闭')"></bk-option>
-                        </bk-select>
-                    </div>
-                </div>
-                <!-- 触发条件 -->
-                <div
-                    class="form-item clearfix"
-                    v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide === 'true'">
-                    <label class="form-label">
-                        <span v-bk-tooltips.top="$t('所有变量值都会以字符串类型进行记录和判断，会忽略类型差异')" class="condition-tip">{{ $t('触发条件')}}</span>
-                    </label>
-                    <div class="trigger-condition" @click="isShowErrorMsg = false">
-                        <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
-                            <bk-select
-                                ext-cls="select-variable"
-                                v-model="item.constant_key"
-                                :disabled="isViewMode">
-                                <bk-option
-                                    v-for="variable in variableList"
-                                    :key="variable.key"
-                                    :id="variable.key"
-                                    :name="variable.name">
-                                </bk-option>
-                            </bk-select>
-                            <bk-select
-                                ext-cls="select-operator"
-                                v-model="item.operator"
-                                :disabled="isViewMode">
-                                <bk-option id="=" name="="></bk-option>
-                                <bk-option id="!=" name="!="></bk-option>
-                            </bk-select>
-                            <bk-input
-                                ext-cls="variable-value"
-                                v-model="item.value"
-                                :readonly="isViewMode">
-                            </bk-input>
-                            <div class="icon-operat">
-                                <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
-                                <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
-                            </div>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="isConstant"
+                        label="是否常量"
+                        :required="true"
+                        :property="'showType'"
+                        class="variable-pre-render-mako">
+                        <bk-radio-group v-model="theEditingData.pre_render_mako" @change="onSelectPreRenderMako">
+                            <bk-radio :disabled="isViewMode" :value="true">{{$t('是')}}</bk-radio>
+                            <bk-radio :disabled="isViewMode" :value="false">{{'否'}}</bk-radio>
+                        </bk-radio-group>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="!isInternalVal"
+                        :label="['component', 'general'].includes(formSectionVarType) ? $t('默认值') : ''"
+                        :class="['form-section', `${formSectionVarType}-variable-section`]">
+                        <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
+                            <template v-if="!atomConfigLoading && renderConfig.length">
+                                <RenderForm
+                                    ref="renderForm"
+                                    :scheme="renderConfig"
+                                    :form-option="{
+                                        ...renderOption,
+                                        'formEdit': !isViewMode
+                                    }"
+                                    v-model="renderData">
+                                </RenderForm>
+                            </template>
                         </div>
-                        <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
-                        <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
-                    </div>
-                </div>
-                <!-- 模板预渲染 -->
-                <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label class="form-label">
-                        <span v-bk-tooltips.top="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')" class="condition-tip">{{ $t('常量')}}</span>
-                    </label>
-                    <div class="form-content">
-                        <bk-select
-                            :value="String(theEditingData.pre_render_mako)"
-                            :clearable="false"
-                            :disabled="isViewMode"
-                            @selected="onSelectPreRenderMako">
-                            <bk-option
-                                v-for="(option, index) in preRenderList"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                </div>
-                <!-- 描述 -->
-                <div class="form-item clearfix">
-                    <label class="form-label">{{ $t('提示文本') }}</label>
-                    <div class="form-content" :class="['textarea-wrap', { 'readonly': isViewMode || isInternalVal }]">
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="!isInternalVal"
+                        label="是否入参"
+                        :property="'showType'"
+                        :desc="$t('配置为「显示」可在执行时做为任务入参使用，配置为「隐藏」则仅能在流程内部使用')">
+                        <bk-switcher
+                            :value="theEditingData.show_type === 'show'"
+                            theme="primary"
+                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
+                            @change="onToggleShowType">
+                        </bk-switcher>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="theEditingData.show_type === 'show' && !isInternalVal"
+                        :property="'isConditionHide'"
+                        label="入参隐藏条件"
+                        class="condition-hide-switch-item"
+                        :desc="$t('当满足条件时，原本做为入参的变量会隐藏起来无需录入')">
+                        <bk-checkbox
+                            :value="theEditingData.is_condition_hide"
+                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
+                            @change="onToggleHideCond">
+                        </bk-checkbox>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide"
+                        :property="'conditionHide'"
+                        class="trigger-condition-item">
+                        <div class="trigger-condition" @click="isShowErrorMsg = false">
+                            <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
+                                <bk-select
+                                    ext-cls="select-variable"
+                                    v-model="item.constant_key"
+                                    :disabled="isViewMode">
+                                    <bk-option
+                                        v-for="variable in variableList"
+                                        :key="variable.key"
+                                        :id="variable.key"
+                                        :name="variable.name">
+                                    </bk-option>
+                                </bk-select>
+                                <bk-select
+                                    ext-cls="select-operator"
+                                    v-model="item.operator"
+                                    :clearable="false"
+                                    :disabled="isViewMode">
+                                    <bk-option id="=" name="="></bk-option>
+                                    <bk-option id="!=" name="!="></bk-option>
+                                </bk-select>
+                                <bk-input
+                                    ext-cls="variable-value"
+                                    v-model="item.value"
+                                    :readonly="isViewMode">
+                                </bk-input>
+                                <div class="icon-operat">
+                                    <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
+                                    <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
+                                </div>
+                            </div>
+                            <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
+                            <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
+                        </div>
+                    </bk-form-item>
+                    <bk-form-item
+                        v-if="!isInternalVal"
+                        label="是否作为输出参数"
+                        :property="'output'"
+                        :desc="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')">
+                        <bk-switcher
+                            :value="outputs.indexOf(theEditingData.key) > -1"
+                            :disabled="isViewMode || variableData.isSysVar"
+                            theme="primary"
+                            @change="onChangeVariableOutput(theEditingData.key, $event)">
+                        </bk-switcher>
+                    </bk-form-item>
+                </template>
+                <bk-form-item
+                    label="提示文本"
+                    :property="'preRenderMako'">
+                    <div :class="['textarea-wrap', { 'readonly': isViewMode || isInternalVal }]">
                         <textarea
                             class="label_desc"
                             type="textarea"
@@ -189,34 +211,15 @@
                             :placeholder="isInternalVal ? ' ' : $t('请输入变量提示文本，不超过500个字符')"
                             :maxlength="500"
                             :readonly="isViewMode || isInternalVal">
-                        </textarea>
+                    </textarea>
                         <p class="limit-box"><span class="strong">{{ theEditingData.desc.length }}</span>/<span>500</span></p>
                     </div>
-                </div>
-            </section>
-            <section v-if="theEditingData.source_type !== 'component_outputs' && !isInternalVal" class="form-section">
-                <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
-                <!-- 默认值 -->
-                <div class="form-item value-form clearfix">
-                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
-                        <template v-if="!atomConfigLoading && renderConfig.length">
-                            <RenderForm
-                                ref="renderForm"
-                                :scheme="renderConfig"
-                                :form-option="renderOption"
-                                v-model="renderData">
-                            </RenderForm>
-                        </template>
-                    </div>
-                </div>
-            </section>
+                </bk-form-item>
+            </bk-form>
         </div>
-        <div class="btn-wrap">
-            <template v-if="!isInternalVal">
-                <bk-button v-if="!isViewMode" theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('确定') }}</bk-button>
-                <bk-button @click="$emit('closeEditingPanel')">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
-            </template>
-            <bk-button v-else @click="$emit('closeEditingPanel')">{{ $t('关闭') }}</bk-button>
+        <div class="btn-wrap" v-if="!isViewMode">
+            <bk-button v-if="!isInternalVal" theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('确定') }}</bk-button>
+            <bk-button @click="$emit('closeEditingPanel')">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
         </div>
     </div>
 </template>
@@ -229,23 +232,28 @@
     import atomFilter from '@/utils/atomFilter.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import VariableCitedConfigVue from './VariableCitedConfig.vue'
 
     export default {
         name: 'VariableEdit',
         components: {
-            RenderForm
+            RenderForm,
+            VariableCitedConfigVue
         },
         props: {
+            variableCited: Object,
             variableData: Object,
             common: [String, Number],
-            isViewMode: Boolean
+            isViewMode: Boolean,
+            hookParams: Object
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
-            const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
+            const { source_type, custom_type, hide_condition: hideCondition, is_condition_hide: isConditionHide } = theEditingData
+            theEditingData.is_condition_hide = isConditionHide === 'false' ? false : Boolean(isConditionHide)
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? source_type : custom_type
-            const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
+            const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '=', value: '' }]
 
             return {
                 theEditingData,
@@ -269,7 +277,7 @@
                 renderOption: {
                     showHook: false,
                     showGroup: false,
-                    showLabel: true,
+                    showLabel: false,
                     showVarList: true,
                     validateSet: ['custom', 'regex'],
                     formEdit: !this.isViewMode
@@ -293,12 +301,16 @@
                 // 正则校验规则
                 validationRule: {
                     validReg: true
+                },
+                selectedGroup: {
+                    type: 'general'
                 }
             }
         },
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
+                'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
                 'internalVariable': state => state.template.internalVariable,
                 'outputs': state => state.template.outputs,
@@ -375,6 +387,33 @@
                     })
                 }
                 return desc
+            },
+            isConstant () {
+                const excludeType = ['set_group_selector', 'staff_group_selector']
+                return this.selectedGroup.type === 'dynamic' && !excludeType.includes(this.theEditingData.custom_type)
+            },
+            formSectionVarType () {
+                const specialCustomType = ['set_allocation', 'set_filter_selector', 'format_support_datetime']
+                let { type } = this.selectedGroup
+                if (specialCustomType.includes(this.theEditingData.custom_type)) {
+                    type = 'dynamic'
+                }
+                return type
+            },
+            isBeCited () {
+                const {
+                    key,
+                    source_info: sourceInfo,
+                    source_type: sourceType
+                } = this.variableData
+                const citedList = this.variableCited[key] || {}
+                const { activities = [], conditions = [], constants = [] } = citedList
+                const citedCount = activities.length + conditions.length + constants.length
+                const sourceCount = Object.keys(sourceInfo).length
+                if (sourceType === 'component_inputs') {
+                    return sourceCount ? citedCount > sourceCount : false
+                }
+                return citedCount > sourceCount
             }
         },
         created () {
@@ -388,6 +427,8 @@
                     { code: 'component_inputs', name: i18n.t('节点输入') },
                     { code: 'component_outputs', name: i18n.t('节点输出') }
                 ]
+                this.selectedGroup.type = 'component'
+                this.renderOption.showLabel = true
             } else {
                 await this.getVarTypeList()
                 // 若当前编辑变量为自定义变量类型的元变量，则取meta_tag
@@ -400,6 +441,10 @@
                         }
                     })
                 }
+                // 记录当前类型分组数据
+                this.getGroupType(this.currentValType)
+                // 普通变量中集群资源筛选，集群选择器，日期时间（支持格式自定义）需要展示label
+                this.renderOption.showLabel = this.formSectionVarType !== 'general'
             }
             // 非输出参数勾选变量和系统内置变量(目前有自定义变量和输入参数勾选变量)需要加载标准插件配置项
             if (!['component_outputs', 'system'].includes(this.theEditingData.source_type)) {
@@ -430,7 +475,8 @@
             ]),
             // 获取触发条件数据
             setTriggerCondInfo () {
-                if (!this.theEditingData.is_condition_hide) return
+                const { is_condition_hide: isConditionHide } = this.theEditingData
+                if (!isConditionHide && isConditionHide !== false) return
                 const variableList = Object.values(this.constants).filter(item => {
                     return this.variableData.key !== item.key && item.source_type !== 'component_outputs'
                 })
@@ -532,7 +578,7 @@
                         $.atoms[plugin_code] = {}
                         const renderFrom = resp.data.forms.renderform
                         /* eslint-disable-next-line */
-                        eval(renderFrom)
+                      eval(renderFrom)
                         const config = $.atoms[plugin_code]
                         const { source_tag } = this.theEditingData
                         const tag = source_tag.split('.')[1]
@@ -568,7 +614,7 @@
                     config = config.meta_transform(meta)
                 }
                 if (['input', 'textarea'].includes(custom_type)) {
-                    config.attrs.validation.push({
+                    config.attrs.validation && config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
                         error_message: i18n.t('默认值不符合正则规则')
@@ -576,7 +622,7 @@
                 }
 
                 this.renderConfig = [config]
-                if (!this.variableData.key) { // 新建变量
+                if (this.variableData.type === 'create') { // 新建变量
                     this.theEditingData.value = atomFilter.getFormItemDefaultValue(this.renderConfig)
                 }
             },
@@ -596,15 +642,15 @@
                 })
                 // 注册变量 key 长度规则
                 this.validator.extend('keyLength', (value) => {
-                    const reqLenth = /^\$\{\w+\}$/.test(value) ? (STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + 3) : STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH
-                    return value.length <= reqLenth
+                    const reqLength = /^\$\{\w+\}$/.test(value) ? (STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + 3) : STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH
+                    return value.length <= reqLength
                 })
                 // 注册正则表达式校验规则
                 this.validator.extend('validReg', (value) => {
                     try {
                         /* eslint-disable */
-                        new RegExp(value)
-                        /* eslint-enable */
+                      new RegExp(value)
+                      /* eslint-enable */
                     } catch (e) {
                         console.error(e)
                         return false
@@ -647,6 +693,8 @@
             },
             // 变量类型切换
             onValTypeChange (val, oldValue) {
+                // 记录当前类型分组数据
+                this.getGroupType(val)
                 // 将上一个类型的填写的数据存起来("集群模块IP选择器"的code与"ip选择器"code相同,需要单独处理)
                 const valData = oldValue === 'set_module_ip_selector'
                     ? { set_module_ip_selector: tools.deepClone(this.renderData['ip_selector']) }
@@ -683,7 +731,20 @@
 
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
+                // 普通变量中集群资源筛选，集群选择器，日期时间（支持格式自定义）需要展示label
+                this.renderOption.showLabel = this.formSectionVarType !== 'general'
                 this.getAtomConfig()
+            },
+            // 获取所选类型的组名
+            getGroupType (code) {
+                this.varTypeList.some(group => {
+                    const isExist = group.children?.some(item => item.code === code)
+                    if (isExist) {
+                        this.selectedGroup = group
+                        return true
+                    }
+                    return false
+                })
             },
             // 校验正则规则是否合法
             onBlurValidation () {
@@ -703,7 +764,7 @@
              * 变量显示/隐藏切换
              */
             onToggleShowType (showType, data) {
-                this.theEditingData.show_type = showType
+                this.theEditingData.show_type = showType ? 'show' : 'hide'
                 // 预渲染功能发布前的模板主动修改变量的【显示类型】，预渲染默认值为false
                 const variableData = this.variableData
                 if (!variableData.hasOwnProperty('pre_render_mako')) {
@@ -726,17 +787,25 @@
              * 变量自动显示/隐藏切换
              */
             onToggleHideCond (val) {
-                if (val === 'true' && !this.errorMsgText) {
+                if (val && !this.errorMsgText) {
                     this.setTriggerCondInfo()
                 }
                 this.theEditingData.is_condition_hide = val
                 this.isShowErrorMsg = false
             },
+            /**
+             * 变量输出勾选
+             */
+            onChangeVariableOutput ({ key, checked }) {
+                const changeType = checked ? 'add' : 'delete'
+                this.setOutputs({ changeType, key })
+                this.$emit('templateDataChanged')
+            },
             // 添加触发条件
             addHideCondition () {
                 const condition = {
                     constant_key: '',
-                    operator: '',
+                    operator: '=',
                     value: ''
                 }
                 this.hideConditionList.push(condition)
@@ -757,34 +826,6 @@
             onSelectPreRenderMako (val) {
                 this.theEditingData.pre_render_mako = val === 'true'
             },
-            handleMaskClick () {
-                if (!this.variableData.key) {
-                    this.$bkInfo({
-                        ...this.infoBasicConfig,
-                        confirmFn: () => {
-                            this.$emit('closeEditingPanel')
-                        }
-                    })
-                } else {
-                    const editingVariable = tools.deepClone(this.theEditingData)
-                    editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
-                    if (this.renderConfig.length > 0) {
-                        const tagCode = this.renderConfig[0].tag_code
-                        editingVariable.value = this.renderData[tagCode]
-                    }
-
-                    if (tools.isDataEqual(editingVariable, this.variableData)) {
-                        this.$emit('closeEditingPanel')
-                    } else {
-                        this.$bkInfo({
-                            ...this.infoBasicConfig,
-                            confirmFn: () => {
-                                this.$emit('closeEditingPanel')
-                            }
-                        })
-                    }
-                }
-            },
             // 保存变量数据
             onSaveVariable () {
                 return this.$validator.validateAll().then(async (result) => {
@@ -793,7 +834,7 @@
                     variable.name = variable.name.trim()
 
                     // 触发条件
-                    if (variable.show_type === 'show' && variable.is_condition_hide === 'true') {
+                    if (variable.show_type === 'show' && variable.is_condition_hide) {
                         const isTrue = this.hideConditionList.every(condition => {
                             return Object.values(condition).every(val => val)
                         })
@@ -810,7 +851,7 @@
                     // renderform表单校验
                     if (this.renderConfig.length > 0) {
                         const tagCode = this.renderConfig[0].tag_code
-    
+  
                         if (this.$refs.renderForm) {
                             // 默认值执行校验的逻辑
                             // 1.表单设置为隐藏
@@ -844,8 +885,14 @@
                         })
                         return
                     }
+                    // 节点配置表单项勾选创建变量
+                    const { cited_info: citedInfo = {} } = this.hookParams
+                    if (citedInfo.type) {
+                        this.$emit('onSaveVariable', variable)
+                        return true
+                    }
 
-                    if (!this.variableData.key) { // 新增变量
+                    if (this.variableData.type === 'create') { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
                             variable.version = 'legacy'
                             variable.form_schema = formSchema.getSchema(
@@ -862,245 +909,362 @@
                             this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
                         }
                     }
-                    this.$emit('onSaveEditing')
+                    this.$emit('onSaveVariable', variable)
                     return true
                 })
+            },
+            
+            judgeDataChange () {
+                if (!this.variableData.key) {
+                    return true
+                } else {
+                    const editingVariable = tools.deepClone(this.theEditingData)
+                    editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
+                    editingVariable.is_condition_hide = String(editingVariable.is_condition_hide)
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        editingVariable.value = this.renderData[tagCode]
+                    }
+                    console.log(editingVariable, this.variableData, tools.isDataEqual(editingVariable, this.variableData))
+
+                    return !tools.isDataEqual(editingVariable, this.variableData)
+                }
             }
         }
     }
 </script>
 <style lang="scss" scoped>
-    .variable-edit {
-        height: 100%;
+@import '@/scss/mixins/scrollbar.scss';
+.variable-edit {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+.header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    line-height: 22px;
+    font-size: 14px;
+    color: #63656e;
+    border-bottom: 1px solid #dcdee5;
+    i {
+        font-size: 12px;
+        color: #3a84ff;
+        margin-right: 8px;
+        cursor: pointer;
     }
-    .variable-edit-content {
-        padding: 20px 20px 40px;
-        height: calc(100% - 49px);
-        overflow-y: auto;
-    }
-    .form-section {
-        margin-bottom: 30px;
-        & > h3 {
-            margin: 0;
-            padding-bottom: 10px;
-            color: #313238;
-            font-size: 14px;
-            font-weight: bold;
-            border-bottom: 1px solid #cacedb;
+}
+.variable-edit-content {
+    padding: 24px 24px;
+    height: calc(100% - 49px);
+    overflow-y: auto;
+    @include scrollbar;
+}
+/deep/.variable-content-form {
+    >.bk-form-item {
+        .bk-label {
+            min-height: 20px;
+            line-height: 20px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #63656e;
+        }
+        &:not(:last-child) {
+            margin-bottom: 24px;
         }
     }
-    .form-item {
-        margin: 15px 0;
+}
+.form-section {
+    margin-bottom: 30px;
+    & > h3 {
+        margin: 0;
+        padding-bottom: 10px;
+        color: #313238;
+        font-size: 14px;
+        font-weight: bold;
+        border-bottom: 1px solid #cacedb;
+    }
+}
+.variable-pre-render-mako {
+    position: relative;
+    padding: 16px 16px 18px;
+    margin: -8px 0 -12px !important;
+    background: #f5f7fa;
+    .bk-form-radio {
+        margin-right: 24px;
+    }
+}
+.component-variable-section,
+.dynamic-variable-section,
+.meta-variable-section {
+    /deep/.rf-form-group {
+        margin-top: 0;
+    }
+    /deep/ .rf-form-item {
+        margin-top: 0;
+        padding-bottom: 24px !important;
+        
+        .rf-tag-form {
+            margin-left: 0 !important;
+            .el-radio {
+                height: 20px;
+                line-height: 20px;
+            }
+        }
+        .ip-search-input {
+            width: 100%;
+        }
+        &:last-child {
+            padding-bottom: 0 !important;
+        }
+    }
+    /deep/.rf-tag-label {
+        display: block;
+        float: initial;
+        line-height: 20px;
+        text-align: left;
+        margin: 0 0 6px;
+        .scheme-name {
+            font-size: 12px;
+        }
+    }
+}
+.dynamic-variable-section {
+    position: relative;
+    padding: 16px;
+    margin: -8px 0 22px !important;
+    background: #f5f7fa;
+    /deep/.rf-form-group {
+        > .rf-tag-label {
+            display: none;
+        }
+    }
+}
+.component-variable-section {
+    margin: -8px 0 22px !important;
+    /deep/.bk-form-content {
+        padding: 16px;
+        background: #f5f7fa;
+    }
+}
+.meta-variable-section {
+    /deep/ .rf-form-item {
+        &:not(:last-child) {
+            padding: 0 16px;
+            background: #f5f7fa;
+        }
+        &:first-child {
+            padding-top: 16px;
+        }
+        &:last-child {
+            margin-top: 16px;
+        }
+    }
+}
+.form-content {
+    min-height: 36px;
+    /deep/ {
+        .bk-select {
+            background: #ffffff;
+            &.is-disabled {
+                background-color: #fafbfd !important;
+                border-color: #dcdee5 !important;
+            }
+        }
+        .el-input {
+            .el-input__inner {
+                padding: 0 10px;
+                height: 36px;
+                line-height: 36px;
+            }
+        }
+        .tag-form {
+            margin-left: 0;
+        }
+        .rf-tag-label {
+            width: 120px;
+        }
+        .show-label > .rf-tag-form {
+            margin-left: 140px;
+        }
+        .tag-ip-selector-wrap,
+        .resource-allocation {
+            border: none;
+            padding: 0;
+        }
+    }
+}
+.condition-hide-switch-item {
+    display: flex;
+    align-items: center;
+    /deep/.bk-label {
+        width: auto !important;
+        padding-right: 22px;
+        margin-top: 5px;
+    }
+}
+.trigger-condition-item {
+    margin-top: -25px !important;
+}
+.trigger-condition {
+    min-height: 36px;
+    .condition-item {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        .select-variable {
+            flex: 1;
+            margin-right: 8px;
+        }
+        /deep/.select-operator {
+            width: 48px;
+            margin-right: 8px;
+            background: #f0f1f5;
+            .bk-select-name {
+                color: #ff9c01;
+            }
+        }
+        .variable-value {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .icon-operat {
+            line-height: 32px;
+            font-size: 16px;
+            .bk-icon {
+                color: #c4c6cc;
+                margin-right: 2px;
+                cursor: pointer;
+                &:hover {
+                    color: #979ba5;
+                }
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+        }
         &:first-child {
             margin-top: 0;
         }
-        label {
-            position: relative;
-            float: left;
-            width: 120px;
-            margin-top: 8px;
-            font-size: 12px;
-            color: #666666;
-            text-align: right;
-            word-wrap: break-word;
-            word-break: break-all;
-            &.required:before {
-                content: '*';
-                position: absolute;
-                top: 2px;
-                right: -10px;
-                color: #ff2602;
-                font-family: "SimSun";
-            }
-        }
-        &.value-form {
-            .form-content {
-                margin-left: 0;
-            }
-        }
     }
-    .form-content {
-        margin-left: 140px;
-        min-height: 36px;
-        /deep/ {
-            .bk-select {
-                background: #ffffff;
-                &.is-disabled {
-                    background-color: #fafbfd !important;
-                    border-color: #dcdee5 !important;
-                }
-            }
-            .el-input {
-                .el-input__inner {
-                    padding: 0 10px;
-                    height: 36px;
-                    line-height: 36px;
-                }
-            }
-            .tag-form {
-                margin-left: 0;
-            }
-            .rf-tag-label {
-                width: 120px;
-            }
-            .show-label > .rf-tag-form {
-                margin-left: 140px;
-            }
-        }
-    }
-    .condition-tip {
+}
+.warning-msg {
+    font-size: 12px;
+    line-height: 20px;
+    color: #ff9c01;
+    margin-top: 10px;
+}
+.error-msg {
+    margin-top: 6px;
+    line-height: 20px;
+}
+.variable-type {
+    /deep/.bk-label {
+        width: 100% !important;
         position: relative;
-        line-height: 21px;
-        &::after {
-            content: '';
+        .common-icon-tooltips{
             position: absolute;
-            left: 0;
-            bottom: -3px;
-            border-top: 1px dashed #979ba5;
-            width: 100%
+            top: 2px;
+            right: 0;
         }
     }
-    .trigger-condition {
-        margin-left: 140px;
-        min-height: 36px;
-        .condition-item {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-            .select-variable {
-                width: 200px;
-                margin-right: 10px;
-            }
-            .select-operator {
-                width: 105px;
-                margin-right: 10px;
-            }
-            .variable-value {
-                width: 220px;
-                margin-right: 10px;
-            }
-            .icon-operat {
-                line-height: 32px;
-                margin-left: 16px;
-                font-size: 18px;
-                .bk-icon {
-                    color: #c4c6cc;
-                    margin-right: 6px;
-                    cursor: pointer;
-                    &:hover {
-                        color: #979ba5;
-                    }
-                    &:last-child {
-                        margin-right: 0;
-                    }
-                }
-            }
-            &:first-child {
-                margin-top: 0;
-            }
-        }
-    }
-    .warning-msg {
+    .phase-tag {
+        position: absolute;
+        right: 30px;
+        top: 4px;
+        padding: 3px 6px;
+        border-radius: 10px;
+        border-bottom-left-radius: 0;
         font-size: 12px;
-        color: #ff9c01;
-        margin-top: 10px;
+        color: #ffffff;
+        background: #b8b8b8;
     }
-    .error-msg {
-        margin-top: 10px;
-    }
-    .variable-type {
-        position: relative;
-        .phase-tag {
-            position: absolute;
-            right: 30px;
-            top: 4px;
-            padding: 3px 6px;
-            border-radius: 10px;
-            border-bottom-left-radius: 0;
-            font-size: 12px;
-            color: #ffffff;
-            background: #b8b8b8;
+    &.hide-tooltips {
+        /deep/.common-icon-tooltips {
+            display: none;
         }
-        .variable-type-desc {
-            margin: 0 0 0 140px;
+    }
+}
+.variable-regex {
+    position: relative;
+    padding: 16px 16px 18px;
+    margin: -8px 0 22px;
+    background: #f5f7fa;
+}
+.textarea-wrap {
+    height: 88px;
+    position: relative;
+    border: 1px solid #c4c6cc;
+    border-radius: 2px;
+    &:focus-within {
+        border-color: #3a84ff;
+    }
+    &.readonly {
+        color: #aaaaaa;
+        background: #fafbfd;
+        border-color: #dedee5;
+        cursor: not-allowed;
+        .label_desc {
+            background: #fafbfd;
+        }
+    }
+    .label_desc {
+        width: 100%;
+        min-height: 70px;
+        font-size: 12px;
+        padding: 5px 10px;
+        line-height: 1.5;
+        margin-bottom: 16px;
+        color: #63656e;
+        border: none;
+        resize: none;
+        outline: none;
+        border-radius: inherit;
+        &::-webkit-input-placeholder {
+            color: #c4c6cc;
+        }
+        &::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+            &-thumb {
+                border-radius: 20px;
+                background: #a5a5a5;
+                box-shadow: inset 0 0 6px hsla(0,0%,80%,.3);
+            }
+        }
+    }
+    .limit-box {
+        position: absolute;
+        bottom: 2px;
+        right: 7px;
+        font-size: 12px;
+        margin: 0;
+        padding: 0;
+        color: #979ba5;
+        transform: scale(0.8);
+    }
+}
+.btn-wrap {
+    padding: 8px 30px;
+    border-top: 1px solid #cacedb;
+    .bk-button {
+        margin-right: 10px;
+        padding: 0 25px;
+    }
+    
+}
+</style>
+<style lang="scss">
+    .variable-type-desc {
+        .tippy-content {
             font-size: 12px;
+            line-height: 20px;
             color: #666;
             word-break: break-all;
             white-space: pre-wrap;
             font-family: 'Microsoft YaHei','PingFang SC','Hiragino Sans GB','SimSun','sans-serif';
-        }
-    }
-    .btn-wrap {
-        padding: 8px 30px;
-        border-top: 1px solid #cacedb;
-        .bk-button {
-            margin-right: 10px;
-            padding: 0 25px;
-        }
-        
-    }
-    .textarea-wrap {
-        height: 88px;
-        position: relative;
-        border: 1px solid #c4c6cc;
-        border-radius: 2px;
-        &:focus-within {
-            border-color: #3a84ff;
-        }
-        &.readonly {
-            color: #aaaaaa;
-            background: #fafbfd;
-            border-color: #dedee5;
-            cursor: not-allowed;
-            .label_desc {
-                background: #fafbfd;
-            }
-        }
-        .label_desc {
-            width: 100%;
-            min-height: 70px;
-            font-size: 12px;
-            padding: 5px 10px;
-            line-height: 1.5;
-            margin-bottom: 16px;
-            color: #63656e;
-            border: none;
-            resize: none;
-            outline: none;
-            border-radius: inherit;
-            &::-webkit-input-placeholder {
-                color: #c4c6cc;
-            }
-            &::-webkit-scrollbar {
-                width: 4px;
-                height: 4px;
-                &-thumb {
-                    border-radius: 20px;
-                    background: #a5a5a5;
-                    box-shadow: inset 0 0 6px hsla(0,0%,80%,.3);
-                }
-            }
-        }
-        .limit-box {
-            position: absolute;
-            bottom: 2px;
-            right: 7px;
-            font-size: 12px;
-            margin: 0;
-            padding: 0;
-            color: #979ba5;
-            transform: scale(0.8);
-        }
-    }
-    /deep/ .variable-confirm-dialog-content {
-        padding: 40px 0;
-        text-align: center;
-        .leave-tips {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .action-wrapper .bk-button {
-            margin-right: 6px;
         }
     }
 </style>

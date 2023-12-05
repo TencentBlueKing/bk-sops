@@ -439,6 +439,10 @@
                     word-break: break-all;
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
+                    &.default-name {
+                        text-align: center;
+                        color: #c4c6cc;
+                    }
                 }
             }
             .node-options-icon {

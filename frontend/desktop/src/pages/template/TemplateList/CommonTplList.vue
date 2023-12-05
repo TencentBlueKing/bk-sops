@@ -96,13 +96,20 @@
                                         <a
                                             v-cursor="{ active: !props.row.auth_actions.includes('common_flow_create_task') }"
                                             class="template-operate-btn"
+                                            data-test-id="commonProcess_table_newTaskBtn"
                                             :class="{
                                                 'text-permission-disable': !props.row.auth_actions.includes('common_flow_create_task')
                                             }"
                                             @click.prevent="handleCreateTaskClick(props.row)">
                                             {{$t('新建任务')}}
                                         </a>
-                                        <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link>
+                                        <a
+                                            href="javascript:void(0);"
+                                            data-test-id="commonProcess_table_executeHistoryBtn"
+                                            class="template-operate-btn"
+                                            @click="onExecuteHistory(props.row)">
+                                            {{ $t('执行历史') }}
+                                        </a>
                                     </template>
                                 </div>
                             </template>
@@ -390,6 +397,7 @@
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     common: '1',
+                    published: true,
                     pipeline_template__name__icontains: flowName || undefined,
                     pipeline_template__creator: creator || undefined,
                     pipeline_template__editor: editor || undefined,
@@ -646,12 +654,12 @@
                 }
                 this.$router.push(url)
             },
-            getExecuteHistoryUrl (id) {
-                return {
+            onExecuteHistory (row) {
+                this.$router.push({
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id, template_source: 'common' }
-                }
+                    query: { template_id: row.id, template_source: 'common' }
+                })
             },
             // 添加/取消收藏模板
             async onCollectTemplate (template) {

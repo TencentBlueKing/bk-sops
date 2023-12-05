@@ -132,10 +132,13 @@
                                             v-else
                                             class="template-name"
                                             :title="row.name"
-                                            :to="getJumpUrl('view', row.id)">
+                                            :to="getJumpUrl(row.published ? 'view' : 'edit', row.id)">
                                             {{row.name}}
                                         </router-link>
                                     </template>
+                                </div>
+                                <div v-if="item.id === 'published'" :class="['flow-type', { 'is-published': row.published }]">
+                                    {{ row.published ? $t('可用') : $t('草稿') }}
                                 </div>
                                 <template v-else-if="item.id === 'label'">
                                     <div
@@ -238,13 +241,16 @@
                                             @click="onTemplatePermissionCheck(['flow_create_task'], props.row)">
                                             {{$t('新建任务')}}
                                         </a>
-                                        <router-link
+                                        <a
                                             v-else
-                                            class="template-operate-btn"
+                                            href="javascript:void(0);"
                                             data-test-id="process_table_newTaskBtn"
-                                            :to="getJumpUrl('newTask', props.row.id)">
-                                            {{$t('新建任务')}}
-                                        </router-link>
+                                            :class="['template-operate-btn', {
+                                                'is-disable': !props.row.published
+                                            }]"
+                                            @click="onFlowCreate(props.row)">
+                                            {{ $t('新建任务') }}
+                                        </a>
                                         <a
                                             v-if="!hasPermission(['flow_view', 'flow_create'], [...props.row.auth_actions, ...authActions])"
                                             v-cursor
@@ -260,12 +266,15 @@
                                             :to="getJumpUrl('clone', props.row.id)">
                                             {{$t('克隆')}}
                                         </router-link>
-                                        <router-link
-                                            class="template-operate-btn"
+                                        <a
+                                            href="javascript:void(0);"
                                             data-test-id="process_table_executeHistoryBtn"
-                                            :to="getExecuteHistoryUrl(props.row.id)">
-                                            {{ $t('执行历史')}}
-                                        </router-link>
+                                            :class="['template-operate-btn', {
+                                                'is-disable': !props.row.published
+                                            }]"
+                                            @click="onExecuteHistory(props.row)">
+                                            {{ $t('执行历史') }}
+                                        </a>
                                         <bk-popover
                                             theme="light"
                                             placement="bottom-start"
@@ -470,6 +479,11 @@
             label: i18n.t('流程名称'),
             disabled: true,
             min_width: 400
+        },
+        {
+            id: 'published',
+            label: i18n.t('状态'),
+            min_width: 150
         },
         {
             id: 'label',
@@ -756,7 +770,8 @@
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
-                'saveTemplateData'
+                'saveTemplateData',
+                'saveTemplateDraft'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -949,9 +964,10 @@
                 }
                 curRow.labelLoading = true
                 try {
-                    const { id, labelIds: template_labels } = curRow
+                    const { id, labelIds: template_labels, published } = curRow
                     this.setTemplateData({ ...curRow, template_labels })
-                    const resp = await this.saveTemplateData({
+                    const reqFunction = published ? 'saveTemplateData' : 'saveTemplateDraft'
+                    const resp = await this[reqFunction]({
                         templateId: id,
                         projectId: this.project_id,
                         common: false
@@ -1309,7 +1325,7 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('确认删除') + i18n.t('流程') + '"' + template.name + '"' + '?']),
+                        }, [i18n.t('确认删除') + i18n.t(template.published ? '流程' : '草稿') + '"' + template.name + '"' + '?']),
                         h('div', {
                             class: 'custom-header-sub-title bk-dialog-header-inner',
                             directives: [{
@@ -1565,12 +1581,13 @@
                 }
                 return url
             },
-            getExecuteHistoryUrl (id) {
-                return {
+            onExecuteHistory (row) {
+                if (!row.published) return
+                this.$router.push({
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id, template_source: 'project' }
-                }
+                    query: { template_id: row.id, template_source: 'project' }
+                })
             },
             // 获得表格中“子流程更新”列展示内容
             getSubflowContent (item) {
@@ -1651,6 +1668,11 @@
                     return visitedList.some(item => item === saveId)
                 }
                 return false
+            },
+            onFlowCreate (row) {
+                if (!row.published) return
+                const url = this.getJumpUrl('newTask', row.id)
+                this.$router.push(url)
             },
             onFlowClone (row) {
                 const applyAuth = []
@@ -1836,6 +1858,10 @@
     .template-operate-btn {
         padding: 5px;
         color: #3a84ff;
+        &.is-disable {
+            color:#cccccc;
+            cursor: not-allowed;
+        }
     }
     .drop-icon-ellipsis {
         display: inline-block;
@@ -1894,6 +1920,22 @@
     /deep/.create-time {
         .bk-table-caret-wrapper {
             display: none;
+        }
+    }
+    .flow-type {
+        display: inline-block;
+        font-size: 12px;
+        line-height: 20px;
+        padding: 0 8px;
+        margin-right: 8px;
+        color: #63656e;
+        background: #fafbfd;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+        &.is-published {
+            color: #14a568;
+            background: #e4faf0;
+            border: 1px solid #a5e0c6;
         }
     }
 }

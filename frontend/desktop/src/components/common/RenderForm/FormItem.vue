@@ -12,15 +12,10 @@
 <template>
     <div
         v-show="showForm"
-        :key="randomKey"
         :class="[
             'rf-form-item',
-            'clearfix',
             scheme.status || '',
             {
-                'rf-has-hook': option.showHook,
-                'show-label': option.showLabel,
-                'show-render': isShowRenderIcon,
                 'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols,
                 'rf-section-item': scheme.type === 'section'
@@ -37,31 +32,18 @@
             :tag-code="scheme.tag_code">
         </tag-section>
         <template v-else>
-            <!-- 表单作为全局变量时的名称 -->
-            <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle, 'scheme-select-name': scheme.type === 'select' && !scheme.attrs.remote }]">
-                <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
-                <span class="required" v-if="isRequired()">*</span>
-                <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
-                <i
-                    v-if="showNotReuseTitle || showPreMakoTip"
-                    v-bk-tooltips="{
-                        content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
-                        placement: 'top-end',
-                        boundary: 'window',
-                        zIndex: 2072
-                    }"
-                    class="common-icon-dark-circle-warning">
-                </i>
-                <!-- <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
-                    <i class="common-icon-dark-circle-warning"></i>
-                    {{ scheme.attrs.used_tip }}
-                </span> -->
-            </div>
             <!-- 表单名称 -->
-            <label
-                v-if="option.showLabel && scheme.attrs.name"
-                class="rf-tag-label">
+            <div
+                v-if="option.showLabel || showFormTitle"
+                :class="[
+                    'rf-tag-label',
+                    {
+                        'not-reuse': showNotReuseTitle,
+                        'scheme-select-name': scheme.type === 'select' && !scheme.attrs.remote
+                    }
+                ]">
                 <span
+                    :class="{ 'tag-label-tips': scheme.attrs.tips }"
                     v-bk-tooltips="{
                         allowHtml: true,
                         content: scheme.attrs.tips,
@@ -72,83 +54,62 @@
                         zIndex: 2072,
                         disabled: !!!scheme.attrs.tips
                     }"
-                    class="label"
-                    :class="{ 'tag-label-tips': scheme.attrs.tips }">
-                    {{scheme.attrs.name}}
+                    class="scheme-name">
+                    {{ option.showLabel ? scheme.attrs.name : scheme.name }}
                 </span>
                 <span class="required" v-if="isRequired()">*</span>
-            </label>
-            <!-- 参数被使用占位popover -->
-            <bk-popover
-                v-if="scheme.attrs.html_used_tip"
-                ref="htmlUsedTipPopper"
-                placement="top-start"
-                theme="light"
-                always
-                :z-index="2072"
-                class="html-used-tippy"
-                ext-cls="html-used-tippy-popper">
-                <div class="empty-box"></div>
-                <template slot="content">
-                    <p class="tip-title">
-                        <i class="common-icon-dark-circle-warning"></i>
-                        {{ scheme.attrs.used_tip }}
-                    </p>
-                    <p class="tip-content">{{ $t('将沿用原参数值提交') }}</p>
-                    <p class="tip-btn" @click="handleFoldUsedTip">{{ $t('知道了') }}</p>
+                <template v-if="showFormTitle">
+                    <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
+                    <i
+                        v-if="showNotReuseTitle || showPreMakoTip"
+                        v-bk-tooltips="{
+                            content: showNotReuseTitle ? $t('未能重用') : scheme.attrs.pre_mako_tip,
+                            placement: 'top-end',
+                            boundary: 'window',
+                            zIndex: 2072
+                        }"
+                        class="common-icon-dark-circle-warning">
+                    </i>
                 </template>
-            </bk-popover>
-            <!-- 表单勾选为全局变量 -->
-            <div v-show="hook" class="rf-tag-form">
-                <bk-input :disabled="true" :value="String(value)"></bk-input>
             </div>
-            <!-- 表单元素 -->
-            <component
-                v-show="!hook"
-                :class="[
-                    scheme.attrs.name ? 'rf-tag-form' : '',
-                    groupComponent ? 'form-item-group' : '',
-                    showTagUsedStyle
-                ]"
-                ref="tagComponent"
-                :is="tagComponent"
-                v-bind="getDefaultAttrs()"
-                :tag-code="scheme.tag_code"
-                :hook="hook"
-                :render="render"
-                :constants="constants"
-                :scheme="scheme"
-                :atom-events="scheme.events"
-                :atom-methods="scheme.methods"
-                :value="formValue"
-                :parent-value="parentValue"
-                @init="$emit('init', $event)"
-                @blur="$emit('blur', $event)"
-                @change="updateForm"
-                @onShow="onShowForm"
-                @onHide="onHideForm">
-            </component>
-            <!-- 变量勾选checkbox -->
-            <div class="rf-tag-hook" v-if="showHook" :class="{ 'hide-render-icon': !isShowRenderIcon }">
-                <i
-                    :class="['common-icon-variable-hook hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
-                    v-bk-tooltips="{
-                        content: hook ? $t('取消使用变量，节点内维护') : $t('转换为变量，集中维护'),
-                        placement: 'bottom',
-                        zIndex: 3000
-                    }"
-                    @click="onHookForm(!hook)">
-                </i>
-                <i
-                    v-if="isShowRenderIcon"
-                    :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
-                    v-bk-tooltips="{
-                        content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
-                        placement: 'bottom',
-                        zIndex: 3000
-                    }"
-                    @click="onRenderChange">
-                </i>
+            <div class="form-item-content">
+                <!-- 表单元素 -->
+                <component
+                    v-show="!hook"
+                    :class="[
+                        scheme.attrs.name ? 'rf-tag-form' : '',
+                        groupComponent ? 'form-item-group' : '',
+                        showTagUsedStyle
+                    ]"
+                    ref="tagComponent"
+                    :is="tagComponent"
+                    :key="option.formEdit"
+                    v-bind="getDefaultAttrs()"
+                    :tag-code="scheme.tag_code"
+                    :hook="hook"
+                    :render="render"
+                    :constants="constants"
+                    :scheme="scheme"
+                    :atom-events="scheme.events"
+                    :atom-methods="scheme.methods"
+                    :value="formValue"
+                    :parent-value="parentValue"
+                    @init="$emit('init', $event)"
+                    @blur="$emit('blur', $event)"
+                    @change="updateForm"
+                    @onShow="onShowForm"
+                    @onHide="onHideForm">
+                </component>
+                <!-- 变量勾选 -->
+                <slot
+                    name="hook"
+                    :is-show="showHook"
+                    :value="value"
+                    :hook="hook"
+                    :render="render"
+                    :scheme="scheme"
+                    :option="option">
+                </slot>
             </div>
             <div class="scheme-desc-wrap" v-if="scheme.attrs.desc">
                 <div class="hide-html-text">{{ scheme.attrs.desc }}</div>
@@ -259,7 +220,6 @@
             const formValue = this.getFormValue(this.value)
 
             return {
-                randomKey: null,
                 tagComponent: `tag-${this.scheme.type.replace(/_/g, '-')}`,
                 showForm,
                 showHook,
@@ -310,45 +270,6 @@
             Object.keys(tagComponent).forEach(item => {
                 this.$options.components[item] = tagComponent[item]
             })
-        },
-        created () {
-            // 移除「变量免渲染」的功能开关
-            const { type, attrs } = this.scheme
-            if (type === 'code_editor') {
-                if (attrs.variable_render === false) { // variable_render 开启变量渲染
-                    /**
-                     * need_render:
-                        1. false
-                            之前已勾选，现在去掉免渲染icon
-                        2.true，判断value
-                            a. 不包含${}，需要把need_render置为false，去掉免渲染icon
-                            b. 包含${}，保留免渲染icon
-                     */
-                    if (this.render) {
-                        const regex = /\${[a-zA-Z_]\w*}/g
-                        const matchList = this.value.match(regex)
-                        const isMatch = matchList && matchList.some(item => {
-                            return !!this.constants[item]
-                        })
-                        if (isMatch) {
-                            this.isShowRenderIcon = true
-                        } else {
-                            this.showHook = false
-                            this.$nextTick(() => {
-                                this.onRenderChange()
-                            })
-                        }
-                    } else {
-                        this.showHook = false
-                    }
-                } else {
-                    if (!this.render) {
-                        this.isShowRenderIcon = true
-                    }
-                }
-            } else if (!this.render) { // 如果开启了免渲染则展示按钮
-                this.isShowRenderIcon = true
-            }
         },
         mounted () {
             const showDom = this.$el.querySelector('.rf-group-desc')
@@ -432,32 +353,12 @@
             onHideForm () {
                 this.showForm = false
             },
-            onHookForm (val) {
-                if (!this.option.formEdit || !this.render) {
-                    return
-                }
-                this.$emit('onHook', this.scheme.tag_code, val)
-            },
-            onRenderChange () {
-                if (!this.option.formEdit || this.hook) {
-                    return
-                }
-                this.$emit('onRenderChange', this.scheme.tag_code, !this.render)
-            },
             validate (combineValue) {
                 // 表单未被勾选并且为显示状态
                 if (!this.hook && this.showForm) {
                     return this.$refs.tagComponent.validate(combineValue)
                 }
                 return true
-            },
-            handleFoldUsedTip () {
-                this.$refs['htmlUsedTipPopper'].hideHandler()
-                this.scheme.attrs.html_used_tip = false
-                this.scheme.attrs.disabled = true
-                this.formValue = this.constants[this.scheme.tag_code].value
-                this.updateForm([this.scheme.tag_code], this.formValue)
-                this.randomKey = new Date().getTime()
             }
         }
     }
@@ -465,7 +366,7 @@
 <style lang="scss">
 .rf-form-item {
     position: relative;
-    margin-top: 15px;
+    margin-bottom: 24px;
     min-height: 32px;
     font-size: 12px;
     color: #63656e;
@@ -474,19 +375,6 @@
     }
     &:last-child {
         margin-bottom: 0;
-    }
-    &.rf-has-hook {
-        & > .rf-tag-form {
-            margin-right: 40px;
-        }
-    }
-    &.show-render {
-        > .rf-tag-form {
-            margin-right: 58px;
-        }
-        .hook-icon {
-            padding-right: 3px !important;
-        }
     }
     &.rf-col-layout {
         display: inline-block;
@@ -499,93 +387,10 @@
     &.rf-section-item {
         min-height: initial;
     }
-    &.added {
-        background: rgba(220,255,226,0.30);
-    }
-    &.deleted {
-        background: #ffeeec;
-    }
     .required {
         color: #F00;
         margin-left: 5px;
         font-family: "SimSun";
-    }
-    .rf-tag-label {
-        float: left;
-        position: relative;
-        margin-top: 8px;
-        width: 100px;
-        font-size: 12px;
-        color: #666666;
-        text-align: right;
-        word-wrap: break-word;
-        word-break: break-all;
-        .tag-label-tips {
-            position: relative;
-            &::after {
-                content: '';
-                position: absolute;
-                left: 0;
-                bottom: -3px;
-                border-top: 1px dashed #979ba5;
-                width: 100%
-            }
-        }
-    }
-    &.show-label > .rf-tag-form {
-        margin-left: 130px;
-    }
-    .html-used-tippy {
-        position: absolute;
-        z-index: -2;
-        left: 130px;
-        .empty-box {
-            width: 32px;
-            height: 32px;
-        }
-    }
-    .rf-tag-hook {
-        position: absolute;
-        top: 0;
-        right: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 32px;
-        background: #f0f1f5;
-        border-radius: 2px;
-        z-index: 1;
-        cursor: pointer;
-        .hook-icon,
-        .render-skip-icon {
-            height: 32px;
-            line-height: 32px;
-            font-size: 12px;
-            color: #979ba5;
-            &.disabled {
-                color: #c4c6cc;
-                cursor: not-allowed;
-            }
-            &.actived {
-                color: #3a84ff;
-            }
-        }
-        .hook-icon {
-            line-height: 31px;
-            padding: 0 8px;
-            font-size: 16px;
-        }
-        .render-skip-icon {
-            padding: 0 8px 0 3px;
-        }
-        .icon-angle-up-fill {
-            font-size: 12px;
-            color: #c4c6cc;
-            margin: 3px 0 0 6px;
-        }
-        &.hide-render-icon {
-            justify-content: center;
-        }
     }
     .rf-view-value {
         display: inline-block;

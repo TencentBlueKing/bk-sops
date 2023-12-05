@@ -815,6 +815,7 @@
                     const params = {
                         limit: 15,
                         offset,
+                        published: true,
                         pipeline_template__name__icontains: this.flowName || undefined
                     }
                     if (isCommon) {

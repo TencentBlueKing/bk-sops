@@ -1,38 +1,37 @@
-/**
-* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-* Edition) available.
-* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
-* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-* http://opensource.org/licenses/MIT
-* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-* an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations under the License.
-*/
+
 <template>
-    <div
-        class="quick-operate-panel"
-        v-bkloading="{ isLoading: isPanelLoading }"
-        @click.stop>
-        <div class="header-wrap">
-            <span>{{ $t('选择操作') }}</span>
-            <bk-select v-model="selectOperate" ext-popover-cls="operate-popover" @change="handleOperateChange">
-                <bk-option
-                    v-for="(operate, index) in operationList"
-                    :key="index"
-                    :id="operate.name"
-                    :name="operate.name">
-                </bk-option>
-            </bk-select>
-        </div>
-        <div class="operate-wrap" @click="isShowErrorMsg = false">
-            <div
-                class="template-item"
-                v-for="(template, index) in selectOperateInfo.template"
-                :key="index">
-                <template v-if="selectOperateInfo.operators[template]">
+    <bk-popover
+        ref="popover"
+        placement="top-end"
+        theme="light"
+        trigger="manual"
+        :distance="4"
+        width="480"
+        ext-cls="quick-operate-popover"
+        :arrow="false"
+        :tippy-options="{ hideOnClick: false }">
+        <bk-button :text="true" theme="primary" class="quick-operate-btn" @click="togglePopoverShow">
+            {{ $t('变量快捷处理') }}
+        </bk-button>
+        <div
+            slot="content"
+            class="quick-operate-panel"
+            v-bkloading="{ isLoading: isPanelLoading }"
+            @click.stop>
+            <bk-form form-type="vertical">
+                <bk-form-item label="处理操作">
+                    <bk-select v-model="selectOperate" ext-popover-cls="operate-popover" @change="handleOperateChange">
+                        <bk-option
+                            v-for="(operate, index) in operationList"
+                            :key="index"
+                            :id="operate.name"
+                            :name="operate.name">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
+                <bk-form-item label="变量" :required="true">
                     <bk-select
-                        v-model="selectOperateInfo.operators[template].value"
+                        v-model="selectVariable"
                         ext-popover-cls="variable-field-popover"
                         @change="handleVarFieldChange">
                         <bk-option
@@ -42,22 +41,33 @@
                             :name="field.key + $t('（') + field.description + $t('）')">
                         </bk-option>
                     </bk-select>
-                </template>
-                <template v-else-if="selectOperateInfo.params[template]">
-                    <bk-input v-model="selectOperateInfo.params[template].value"></bk-input>
-                </template>
-                <template v-else>
-                    <span>{{ template }}</span>
-                </template>
+                </bk-form-item>
+            </bk-form>
+            <div class="operate-wrap">
+                <div
+                    class="template-item"
+                    v-for="(template, index) in selectOperateInfo.template"
+                    :key="index">
+                    <template v-if="selectOperateInfo.operators[template]">
+                        {{ '变量' }}
+                    </template>
+                    <template v-else-if="selectOperateInfo.params[template]">
+                        <bk-input v-model="selectOperateInfo.params[template].value" @blur="onGenerateMakoTemp"></bk-input>
+                    </template>
+                    <template v-else>
+                        <span>{{ template }}</span>
+                    </template>
+                </div>
             </div>
+            <div :class="['render-wrap', { 'input-before': !makoTemplate }]" :data-placeholder="$t('选择变量后预览代码')">{{ makoTemplate }}</div>
+            <div class="btn-wrap">
+                <p v-if="isShowErrorMsg" class="error-msg">{{ $t('请填写完整参数') }}</p>
+                <bk-button class="mr5" theme="primary" :disabled="isShowErrorMsg || !makoTemplate" @click="onCopyKey">{{ $t('复制代码') }}</bk-button>
+                <bk-button @click="onCancel">{{ $t('取消') }}</bk-button>
+            </div>
+            
         </div>
-        <p v-if="isShowErrorMsg" class="error-msg">{{ $t('请填写完整参数') }}</p>
-        <div class="btn-wrap">
-            <bk-button class="mr5" theme="primary" @click="onGenerateMakoTemp">{{ $t('生成并复制代码') }}</bk-button>
-            <bk-button @click="onResetMakoTemp">{{ $t('重置') }}</bk-button>
-        </div>
-        <div class="render-wrap">{{ makoTemplate }}</div>
-    </div>
+    </bk-popover>
 </template>
 
 <script>
@@ -74,12 +84,14 @@
             return {
                 isPanelLoading: false,
                 selectOperate: '',
+                selectVariable: '',
                 operationList: [],
                 selectOperateInfo: {},
                 globalVarFiled: [],
                 varFiledList: [],
                 isShowErrorMsg: false,
-                makoTemplate: ''
+                makoTemplate: '',
+                isPopoverOpen: false
             }
         },
         computed: {
@@ -87,15 +99,10 @@
                 'internalVariable': state => state.template.internalVariable
             })
         },
-        created () {
-            this.handleQuickInsertPanel()
-        },
         mounted () {
             window.addEventListener('mouseup', this.handleClickOutside)
         },
         beforeDestroy () {
-            this.selectOperate = ''
-            this.onResetMakoTemp()
             window.removeEventListener('mouseup', this.handleClickOutside)
         },
         methods: {
@@ -103,6 +110,15 @@
                 'getMakoOperations',
                 'getVariableFieldExplain'
             ]),
+            togglePopoverShow () {
+                this.isPopoverOpen = !this.isPopoverOpen
+                if (this.isPopoverOpen) {
+                    this.$refs['popover'].showHandler()
+                    this.handleQuickInsertPanel()
+                } else {
+                    this.$refs['popover'].hideHandler()
+                }
+            },
             // 初始化快捷操作面板
             async handleQuickInsertPanel () {
                 try {
@@ -191,7 +207,9 @@
                 }
                 this.selectOperateInfo = info || {}
                 this.varFiledList = operateVarList || []
-                this.onResetMakoTemp()
+                // 重置mako模板
+                this.selectVariable = ''
+                this.handleVarFieldChange()
             },
             // 切换需要操作的变量
             handleVarFieldChange () {
@@ -206,6 +224,9 @@
                 let { params, operators, mako_template: makoTemplate } = this.selectOperateInfo
                 params = tools.deepClone(params)
                 operators = tools.deepClone(operators)
+                Object.keys(operators).forEach(key => {
+                    operators[key].value = this.selectVariable
+                })
                 let isValidateFail = false
                 const replaceObj = Object.assign({}, params, operators)
                 const replaceArr = Object.keys(replaceObj).reduce((acc, key) => {
@@ -223,34 +244,38 @@
                     this.isShowErrorMsg = true
                     return
                 }
+                this.isShowErrorMsg = false
                 replaceArr.forEach(item => {
                     makoTemplate = makoTemplate.replace(`{${item.name}}`, item.value)
                 })
                 this.makoTemplate = makoTemplate
-                this.onCopyKey(makoTemplate)
             },
-            // 重置mako模板
-            onResetMakoTemp () {
-                Object.values(this.selectOperateInfo.operators).forEach(item => {
-                    item.value = ''
-                })
+            // 取消
+            onCancel () {
+                this.selectOperate = this.operationList[0].name
+                this.selectVariable = ''
                 this.handleVarFieldChange()
+                this.isPopoverOpen = false
+                this.$refs['popover'].hideHandler()
             },
             // 操作快捷框关闭判断
             handleClickOutside (e) {
                 const panelDom = document.querySelector('.quick-operate-panel')
                 const operateDom = document.querySelector('.operate-popover')
                 const varFieldDom = document.querySelector('.variable-field-popover')
+                const openPanelDom = document.querySelector('.quick-operate-btn')
                 if ((!panelDom || !panelDom.contains(e.target))
                     && (!operateDom || !operateDom.contains(e.target))
-                    && (!varFieldDom || !varFieldDom.contains(e.target))) {
-                    this.$emit('closePanel')
+                    && (!varFieldDom || !varFieldDom.contains(e.target))
+                    && (!openPanelDom || !openPanelDom.contains(e.target))) {
+                    this.isPopoverOpen = false
+                    this.$refs['popover'].hideHandler()
                 }
             },
             /**
              * 变量 key 复制
              */
-            onCopyKey (key) {
+            onCopyKey (key = this.makoTemplate) {
                 this.copyText = key
                 document.addEventListener('copy', this.copyHandler)
                 document.execCommand('copy')
@@ -275,30 +300,35 @@
 
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
+.quick-operate-popover {
+    .tippy-tooltip {
+        padding: 10px 24px 24px;
+        border: 1px solid #dcdee5;
+        background: #fff;
+        box-shadow: 0 2px 6px 0 #0000001a;
+        border-radius: 2px;
+    }
+}
 .quick-operate-panel {
-    position: absolute !important;
-    top: 45px;
-    right: 0px;
-    width: 506px;
-    padding: 16px;
     background: #fff;
     z-index: 20;
-    border: 1px solid #eaedf2;
-    box-shadow: 0px 2px 6px 0px rgba(101,101,101,0.10);
     cursor: default;
     .tippy-tooltip {
-        padding: 16px;
         color: #666666;
         font-size: 14px;
     }
-    .header-wrap {
+    .bk-form {
         display: flex;
         align-items: center;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #dcdee5;
-        .bk-select {
+        .bk-form-item {
             flex: 1;
-            margin-left: 8px;
+            margin-top: 0 !important;
+            .bk-label {
+                font-size: 12px;
+            }
+            &:first-child {
+                margin-right: 8px ;
+            }
         }
     }
     .operate-wrap {
@@ -306,7 +336,12 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        margin: 5px 0 25px;
+        margin-top: 15px;
+        padding: 6px 16px 16px;
+        color: #63656e;
+        border: 1px solid #dcdee5;
+        border-bottom: none;
+        border-radius: 2px;
         .template-item {
             display: flex;
             align-items: center;
@@ -314,31 +349,40 @@
             & > span {
                 flex-shrink: 0;
             }
-            .bk-select {
-                width: 300px;
-                margin: 0 5px;
-            }
             .bk-form-control {
-                width: 100px;
+                width: 120px;
                 margin: 0 5px;
             }
         }
     }
-    .error-msg {
-        margin-bottom: 8px;
-        font-size: 12px;
-        color: #ff5757;
-    }
     .render-wrap {
-        width: 474px;
+        display: block;
+        width: 100%;
         height: 192px;
-        padding: 9px 15px;
-        margin-top: 8px;
-        color: #979ba5;
-        background: #f0f1f5;
-        border-radius: 4px;
+        padding: 14px 15px;
+        margin-bottom: 25px;
+        line-height: 20px;
+        color: #63656e;
+        border: 1px solid #dcdee5;
+        border-top: none;
+        background: #f5f7fa;
         overflow-y: auto;
         @include scrollbar;
+        &.input-before::before {
+            content: attr(data-placeholder);
+            color: #c4c6cc;
+        }
+    }
+    .btn-wrap {
+        display: flex;
+        justify-content: flex-end;
+        .error-msg {
+            flex: 1;
+            text-align: left;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #ff5757;
+        }
     }
 }
 </style>
