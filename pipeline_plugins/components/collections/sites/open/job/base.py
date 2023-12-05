@@ -74,29 +74,27 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     {"key1": "value1", "key2": "value2"}
     """
     sops_var_dict = {}
-    # 逐行匹配以便打印全局变量所在行
+    # 支持跨行匹配全局变量
     service_logger.info("search log var with config: {}".format(LOG_VAR_SEARCH_CONFIGS))
-    for index, log_line in enumerate(log_text.splitlines(), 1):
-        for var_search_config in LOG_VAR_SEARCH_CONFIGS:
-            reg = var_search_config["re"]
-            excape_reg = reg.replace("<", "&lt;").replace(">", "&gt;")
-            kv_sep = var_search_config["kv_sep"]
+    for var_search_config in LOG_VAR_SEARCH_CONFIGS:
+        reg = var_search_config["re"]
+        excape_reg = reg.replace("<", "&lt;").replace(">", "&gt;")
+        kv_sep = var_search_config["kv_sep"]
 
-            sops_key_val_list = re.findall(reg, log_line)
-            sops_key_val_list.extend(re.findall(excape_reg, log_line))
-            if len(sops_key_val_list) == 0:
+        sops_key_val_list = re.findall(reg, log_text, re.DOTALL)
+        sops_key_val_list.extend(re.findall(excape_reg, log_text, re.DOTALL))
+        service_logger.info(f"search log var with sops key val list: {sops_key_val_list}")
+        if len(sops_key_val_list) == 0:
+            continue
+        for sops_key_val in sops_key_val_list:
+            if kv_sep not in sops_key_val:
                 continue
-            for sops_key_val in sops_key_val_list:
-                if kv_sep not in sops_key_val:
-                    continue
-                sops_key, sops_val = sops_key_val.split(kv_sep, 1)
-                # 限制变量名不为空
-                if len(sops_key) == 0:
-                    continue
-                sops_var_dict.update({sops_key: sops_val})
-            service_logger.info(
-                _("[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]").format(group=__group_name__, index=index, line=log_line)
-            )
+            sops_key, sops_val = sops_key_val.split(kv_sep, 1)
+            # 限制变量名不为空
+            if len(sops_key) == 0:
+                continue
+            sops_var_dict.update({sops_key: sops_val})
+    service_logger.info(f"search log var result: {sops_var_dict}")
     return sops_var_dict
 
 
@@ -234,12 +232,7 @@ def get_job_tagged_ip_dict(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(
-            __group_name__,
-            "jobv3.get_job_instance_status",
-            kwargs,
-            result,
-        )
+        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
         service_logger.warning(message)
         return False, message
 
@@ -339,12 +332,7 @@ def get_job_tagged_ip_dict_complex(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(
-            __group_name__,
-            "jobv3.get_job_instance_status",
-            kwargs,
-            result,
-        )
+        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
         service_logger.warning(message)
         return False, message
 
@@ -520,9 +508,7 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -762,9 +748,7 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -921,12 +905,7 @@ class GetJobHistoryResultMixin(object):
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(
-                __group_name__,
-                "jobv3.get_job_instance_status",
-                job_kwargs,
-                job_result,
-            )
+            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -946,10 +925,7 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client,
-            self.logger,
-            job_success_id,
-            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(
