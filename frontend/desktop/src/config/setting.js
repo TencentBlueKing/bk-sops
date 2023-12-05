@@ -57,8 +57,9 @@ export const setConfigContext = (site_url, project) => {
             return ''
         },
         canSelectBiz () { // 是否可以选择业务
-            if ($.context.project) {
-                return !$.context.project.from_cmdb
+            const { project } = $.context
+            if (project) {
+                return project.allow_plugin_cross_biz || !project.from_cmdb
             }
             return true
         },
