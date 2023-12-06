@@ -10,18 +10,26 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import permissions
-from rest_framework.pagination import LimitOffsetPagination
+import logging
 
+from django.db import IntegrityError
+from django.db.models import BooleanField, ExpressionWrapper, Q
+from rest_framework import permissions
+from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
+
+from gcloud.contrib.collection.models import Collection
+from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
+from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
+from gcloud.core.apis.drf.serilaziers import ProjectWithFavSerializer
+from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, res_factory
 from gcloud.iam_auth.utils import get_user_projects
 
-from gcloud.core.models import Project
-from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
-from gcloud.core.apis.drf.serilaziers import ProjectSerializer
-from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-
 from .base import GcloudListViewSet
+
+logger = logging.getLogger("root")
 
 
 class UserProjectFilter(AllLookupSupportFilterSet):
@@ -39,7 +47,7 @@ class UserProjectFilter(AllLookupSupportFilterSet):
 
 class UserProjectSetViewSet(GcloudListViewSet):
     queryset = Project.objects.all().order_by("-id")
-    serializer_class = ProjectSerializer
+    serializer_class = ProjectWithFavSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = UserProjectFilter
     pagination_class = LimitOffsetPagination
@@ -56,5 +64,30 @@ class UserProjectSetViewSet(GcloudListViewSet):
     )
 
     def list(self, request, *args, **kwargs):
-        self.queryset = get_user_projects(request.user.username)
+        user_project_ids = list(get_user_projects(request.user.username).values_list("id", flat=True))
+        user_fav_project_ids = list(Collection.objects.get_user_favorite_projects(request.user.username))
+        self.list_queryset = (
+            Project.objects.all()
+            .annotate(
+                is_fav=ExpressionWrapper(Q(id__in=user_fav_project_ids), output_field=BooleanField()),
+                is_user_project=ExpressionWrapper(Q(id__in=user_project_ids), output_field=BooleanField()),
+            )
+            .order_by("-is_fav", "-is_user_project", "id")
+        )
         return super(UserProjectSetViewSet, self).list(request, *args, **kwargs)
+
+    @action(methods=["post"], detail=True)
+    def favor(self, request, *args, **kwargs):
+        project_id = kwargs["pk"]
+        try:
+            Collection.objects.add_user_favorite_project(request.user.username, project_id)
+        except IntegrityError as e:
+            logger.exception(e)
+            return Response({"result": False, "data": None, "message": "该用户已收藏该项目"}, status=400)
+        return Response({"result": True, "data": "success", "message": ""})
+
+    @action(methods=["delete"], detail=True)
+    def cancel_favor(self, request, *args, **kwargs):
+        project_id = kwargs["pk"]
+        Collection.objects.remove_user_favorite_project(request.user.username, project_id)
+        return Response({"result": True, "data": "success", "message": ""})
