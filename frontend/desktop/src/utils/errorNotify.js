@@ -10,17 +10,18 @@ export default class ErrorNotify {
         
         // 详情
         let details = {}
-        details.message = this.getTitleAndContent(msg, false, errorSource, 0)
+        const msgLabel = type === 'success' ? 'success_msg' : 'error_msg'
+        details[msgLabel] = this.getTitleAndContent(msg, false, errorSource, 0)
         if (traceId) {
             details.trace_id = traceId
         }
         if (errorSource === 'result') {
-            details.error_function = this.getTitleAndContent(msg, false, errorSource, 1) || '--'
+            details.error_func = this.getTitleAndContent(msg, false, errorSource, 1) || '--'
         }
         details = JSON.stringify(details)
 
         // 助手
-        const helperUrl = window.MESSAGE_HELPER_URL || ''
+        const helperUrl = type === 'success' ? '' : window.MESSAGE_HELPER_URL || ''
 
         // 工具列表
         const actions = [
