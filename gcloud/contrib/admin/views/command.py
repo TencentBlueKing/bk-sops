@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 
 superuser command
 """
-
+import logging
 from itertools import product
 
 from django.conf import settings
@@ -24,10 +24,14 @@ from rest_framework.decorators import api_view
 
 import env
 from gcloud import err_code
+from gcloud.contrib.admin.utils import force_tasks
 from gcloud.core.decorators import check_is_superuser
 from gcloud.core.models import ProjectBasedComponent
 from gcloud.core.tasks import migrate_pipeline_parent_data_task
 from gcloud.openapi.schema import AnnotationAutoSchema
+from gcloud.taskflow3.models import TaskFlowInstance, TaskFlowRelation
+
+logger = logging.getLogger("root")
 
 
 @check_is_superuser()
@@ -142,3 +146,54 @@ def batch_delete_project_based_component(request):
         project_id__in=set(project_ids), component_code__in=set(component_codes)
     ).delete()
     return JsonResponse({"result": True, "data": [], "message": f"deleted -> {deleted}, rows_count -> {rows_count}"})
+
+
+@swagger_auto_schema(method="post", auto_schema=AnnotationAutoSchema)
+@api_view(["POST"])
+@check_is_superuser()
+def batch_revoke_task(request):
+    """
+    批量 终止某批任务，并终止该任务下面正在执行的节点
+    body: data
+    {
+        "project_id": 任务 id
+        "task_id(optional)": "任务 id ",
+        "task_ids(optional)": "任务 ID 列表(list)",
+    }
+    """
+
+    task_ids = []
+    if "task_id" in request.data:
+        task_ids.append(request.data["task_id"])
+    if "task_ids" in request.data:
+        task_ids.extend(request.data["task_ids"])
+
+    project_id = request.data.get("project_id")
+    if not project_id:
+        return JsonResponse({"result": False, "data": [], "message": "操作失败，project_id 不能为空"})
+
+    tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project_id=project_id, is_deleted=False)
+
+    logger.info(
+        "start batch revoke task, task_count={}, tasks={}, project_id={}".format(
+            len(task_ids), task_ids[0:100], project_id
+        )
+    )
+
+    revoke_failed_tasks = []
+
+    for task in tasks:
+        try:
+            # 终止主任务
+            force_tasks([task], request.user.username)
+            # 终止子任务
+            task_ids = TaskFlowRelation.objects.filter(root_task_id=task.id).values_list("task_id", flat=True)
+            sub_tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project_id=project_id, is_deleted=False)
+            force_tasks(sub_tasks, request.user.username)
+        except Exception as e:
+            logger.exception("revoked task failed, err={}".format(e))
+            revoke_failed_tasks.append(task.id)
+    if revoke_failed_tasks:
+        return JsonResponse({"result": False, "data": [], "message": "存在终止异常的任务 = {}".format(revoke_failed_tasks)})
+
+    return JsonResponse({"result": True, "data": [], "message": f"revoked -> {tasks.count()}"})
