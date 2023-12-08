@@ -78,9 +78,8 @@ class UserProjectSetViewSet(GcloudListViewSet):
 
     @action(methods=["post"], detail=True)
     def favor(self, request, *args, **kwargs):
-        project_id = kwargs["pk"]
         try:
-            Collection.objects.add_user_favorite_project(request.user.username, project_id)
+            Collection.objects.add_user_favorite_project(request.user.username, self.get_object())
         except IntegrityError as e:
             logger.exception(e)
             return Response({"result": False, "data": None, "message": "该用户已收藏该项目"}, status=400)

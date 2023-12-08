@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from unittest.mock import MagicMock
 
 from django.test import TestCase
 
@@ -21,12 +22,16 @@ class UserFavoriteProjectTestCase(TestCase):
         self.username = "user"
         self.project_id = 1
 
+        self.mock_project = MagicMock()
+        self.mock_project.id = 1
+        self.mock_project.name = "mock_project"
+
     def tearDown(self):
         Collection.objects.all().delete()
 
     def test_add_user_favorite_project(self):
         self.assertEqual(Collection.objects.count(), 0)
-        Collection.objects.add_user_favorite_project(self.username, self.project_id)
+        Collection.objects.add_user_favorite_project(self.username, self.mock_project)
         self.assertEqual(Collection.objects.count(), 1)
 
     def test_remove_user_favorite_project(self):

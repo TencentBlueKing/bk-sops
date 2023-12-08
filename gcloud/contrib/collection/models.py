@@ -20,8 +20,13 @@ class CollectionManager(models.Manager):
     def cascade_delete(self, category, instance_id):
         self.filter(category=category, instance_id=instance_id).delete()
 
-    def add_user_favorite_project(self, username, project_id):
-        return self.get_or_create(category="project", username=username, instance_id=project_id)
+    def add_user_favorite_project(self, username, project):
+        return self.get_or_create(
+            category="project",
+            username=username,
+            instance_id=project.id,
+            defaults={"extra_info": json.dumps({"id": project.id, "name": project.name})},
+        )
 
     def remove_user_favorite_project(self, username, project_id):
         return self.filter(category="project", username=username, instance_id=project_id).delete()
