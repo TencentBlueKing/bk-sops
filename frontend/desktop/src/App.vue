@@ -125,7 +125,7 @@
             })
             bus.$on('showErrMessage', info => {
                 const msg = typeof info.message === 'string' ? info.message : JSON.stringify(info.message)
-                window.show_msg(msg, 'error', info.traceId, info.errorSource)
+                window.show_msg(msg, 'error', '', info.traceId, info.errorSource)
             })
             // 登录成功后使用快照
             bus.$on('useSnapshot', data => {
@@ -135,16 +135,16 @@
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
-            window.show_msg = (msg, type = 'error', traceId, errorSource = '') => {
+            window.show_msg = (msg, type = 'error', title = '', traceId, errorSource = '') => {
                 const index = window.msg_list.findIndex(item => item.msg === msg)
                 if (index > -1) {
                     if (traceId && !window.msg_list[index].traceId) {
-                        window.msg_list[index] = { msg, type, traceId, errorSource }
+                        window.msg_list[index] = { msg, type, title, traceId, errorSource }
                     } else {
                         return
                     }
                 } else {
-                    window.msg_list.push({ msg, type, traceId, errorSource })
+                    window.msg_list.push({ msg, type, title, traceId, errorSource })
                 }
                 setTimeout(() => { // 异步执行,可以把前端报错的trace_id同步上
                     const info = window.msg_list.find(item => item.msg === msg && item.traceId === traceId)
@@ -341,6 +341,12 @@
         .main-container {
             width: 100%;
             height: calc(100vh - 52px);
+        }
+    }
+    .interface-exception-notify-message {
+        .message-detail .message-copy {
+            top: 0 !important;
+            right: 0 !important;
         }
     }
 </style>
