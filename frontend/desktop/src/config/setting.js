@@ -63,6 +63,9 @@ export const setConfigContext = (site_url, project) => {
             }
             return true
         },
+        inCommonTemplate () {
+            return !$.context.project
+        },
         getConstants () { // 获取流程模板下的全局变量
             return store.state.template.constants
         },
