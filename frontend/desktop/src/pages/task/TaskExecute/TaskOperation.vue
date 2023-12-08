@@ -770,7 +770,7 @@
                     if (nodeId || taskId) {
                         state = 'NODE_SUSPENDED'
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
+                        const { name } = activities[nodeId] || this.nodePipelineData.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已暂停执行')
                     } else {
                         state = 'SUSPENDED'
@@ -805,7 +805,7 @@
                     }
                     if (nodeId || taskId) {
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
+                        const { name } = activities[nodeId] || this.nodePipelineData.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已继续执行')
                     } else {
                         message = i18n.t('任务已继续执行')
