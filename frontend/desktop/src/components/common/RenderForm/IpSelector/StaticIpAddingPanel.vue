@@ -25,7 +25,7 @@
                                 <span
                                     :class="['checkbox', {
                                         'checked': listAllSelected,
-                                        'half-checked': selectedIp.length > 0 && selectedIp.length < list.length
+                                        'half-checked': selectedIp.length > 0 && selectedIp.length < staticIpList.length
                                     }]"
                                     @click="onSelectAllClick">
                                 </span>
@@ -240,7 +240,8 @@
                     this.selectedIp = []
                     this.listAllSelected = false
                 } else {
-                    this.selectedIp = [...this.list]
+                    const list = this.isSearchMode ? this.searchResult : this.staticIpList
+                    this.selectedIp = [...list]
                     this.listAllSelected = true
                 }
             },
