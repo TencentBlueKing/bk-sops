@@ -12,11 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import AbstractIntervalGenerator, Service
 from pipeline.core.flow.io import StringItemSchema
-
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.exceptions import PluginServiceException
@@ -43,8 +44,8 @@ class StepIntervalGenerator(AbstractIntervalGenerator):
 
     def next(self):
         super(StepIntervalGenerator, self).next()
-        # 最小 10s，最大 3600s 一次
-        return self.fix_interval or (10 if self.count < 30 else min((self.count - 25) ** 2, 3600))
+        # 最小 10s，最大 600s 一次
+        return self.fix_interval or (10 if self.count < 30 else min((self.count - 25) ** 2, 600))
 
 
 class RemotePluginService(Service):
@@ -118,6 +119,9 @@ class RemotePluginService(Service):
     def schedule(self, data, parent_data, callback_data=None):
         plugin_code = data.get_one_of_inputs("plugin_code")
         trace_id = data.get_one_of_outputs("trace_id")
+
+        if plugin_code in settings.REMOTE_PLUGIN_FIX_INTERVAL_CODES:
+            self.interval.fix_interval = settings.REMOTE_PLUGIN_FIX_INTERVAL
 
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
