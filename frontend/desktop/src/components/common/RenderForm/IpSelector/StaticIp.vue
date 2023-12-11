@@ -43,7 +43,7 @@
                         @search="onStaticIpSearch">
                     </ip-search-input>
                 </template>
-                <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ i18n.return }}</span>
+                <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ $t('返回') }}</span>
             </div>
             <div class="selected-ip-table-wrap">
                 <IpSelectorTable
@@ -95,8 +95,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
-
     import StaticIpAddingPanel from './StaticIpAddingPanel.vue'
     import IpSearchInput from './IpSearchInput.vue'
     import IpSelectorTable from './IpSelectorTable.vue'

@@ -1825,7 +1825,10 @@ const en = {
     '节点输出型变量仅支持从节点"取消接收输出"来删除': 'Node output variables can only be deleted by the node "Cancel Receiving Output"',
     '刷新': 'Refresh',
     'exFailedText': 'Node execution failed. Please go to the {0} to check the error reason.',
-    'exFailedText_调用日志': 'call log'
+    'exFailedText_调用日志': 'call log',
+    '解析': 'Parse',
+    'IP地址不合法，': 'IP address is illegal,',
+    'IP地址不存在，': 'IP address does not exist,'
 }
 
 export default en
