@@ -219,6 +219,14 @@ const store = new Vuex.Store({
          */
         getIamUrl ({ commit }, data) {
             return axios.post('iam/api/apply_perms_url/', data).then(response => response.data)
+        },
+        // 添加收藏项目
+        setProjectFavor ({ commit }, data) {
+            return axios.post(`api/v3/user_project/${data.id}/favor/`).then(response => response.data.data)
+        },
+        // 取消项目收藏
+        deleteProjectFavor ({ commit }, data) {
+            return axios.delete(`api/v3/user_project/${data.id}/cancel_favor/`).then(response => response.data.data)
         }
     },
     modules
