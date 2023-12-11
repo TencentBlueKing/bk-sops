@@ -33,7 +33,7 @@
                     "separator": ",",
                 },
                 remote_url: function () {
-                    if (!$.context.canSelectBiz()) {
+                    if (!$.context.inCommonTemplate()) {
                         return {
                             "cc_search_host": $.context.get("site_url") + "pipeline/cc_search_host/" + $.context.getBkBizId() + "/",
                             "cc_search_topo_tree": $.context.get("site_url") + "pipeline/cc_search_topo_tree/" + $.context.getBkBizId() + "/",

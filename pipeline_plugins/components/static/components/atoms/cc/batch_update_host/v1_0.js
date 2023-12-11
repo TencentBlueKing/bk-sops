@@ -103,7 +103,7 @@
                     source: "cc_host_property_custom",
                     type: "init",
                     action: function (value) {
-                        this.remote_url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_input_host_property/' + $.context.getBkBizId() + '/';
+                        this.remote_url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_input_host_property/' + $.context.getBkBizId() + '/';
                         this.remoteMethod();
                     }
                 }

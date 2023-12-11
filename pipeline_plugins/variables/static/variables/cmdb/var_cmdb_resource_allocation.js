@@ -23,7 +23,7 @@
                     }
                 ],
                 remote_url: function () {
-                    if (!$.context.canSelectBiz()) {
+                    if (!$.context.inCommonTemplate()) {
                         return {
                             "cc_search_host": $.context.get("site_url") + "pipeline/cc_search_host/" + $.context.getBkBizId() + "/",
                             "cc_search_topo_set": $.context.get("site_url") + "pipeline/cc_search_topo/set/normal/" + $.context.getBkBizId() + "/",

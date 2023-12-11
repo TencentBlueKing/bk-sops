@@ -58,7 +58,7 @@
                     }
                 ],
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_get_set_attribute/' + $.context.getBkBizId() + '/';
+                    const url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_get_set_attribute/' + $.context.getBkBizId() + '/';
                     return url
                 },
                 remote_data_init: function (resp) {

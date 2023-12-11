@@ -161,7 +161,7 @@
                                     });
                                     if (select_module_list.length > 0) {
                                         $.ajax({
-                                            url: $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_get_host_by_module_id/' + $.context.getBkBizId() + '/',
+                                            url: $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_get_host_by_module_id/' + $.context.getBkBizId() + '/',
                                             type: 'GET',
                                             traditional: true,
                                             data: {
@@ -191,7 +191,7 @@
                                     if (value === 'tree') {
                                         self.show();
                                         $.ajax({
-                                            url: $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/',
+                                            url: $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/',
                                             type: 'GET',
                                             dataType: 'json',
                                             success: function (resp) {
@@ -215,7 +215,7 @@
                                                         });
 
                                                         $.ajax({
-                                                            url: $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_get_host_by_module_id/' + $.context.getBkBizId() + '/',
+                                                            url: $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_get_host_by_module_id/' + $.context.getBkBizId() + '/',
                                                             type: 'GET',
                                                             traditional: true,
                                                             data: {
