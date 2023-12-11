@@ -12,21 +12,21 @@
 <template>
     <div class="static-ip-adding-panel">
         <ip-search-input
-            v-if="type === 'select'"
+            v-if="selectIpMode"
             :class="['ip-search-wrap', { 'static-ip-unfold': allowUnfoldInput }]"
             @search="onIpSearch">
         </ip-search-input>
         <div class="ip-list-wrap">
-            <template v-if="type === 'select' || isManualParse">
+            <template v-if="selectIpMode">
                 <IpSelectorTable
                     :selection="true"
                     :editable="true"
                     :operate="false"
                     :is-search-mode="isSearchMode"
                     :default-selected="selectedIp"
-                    :static-ip-list="isManualParse ? searchResult : staticIpList"
+                    :static-ip-list="isManualParse ? parseIpList : staticIpList"
                     :search-result="searchResult"
-                    :list-in-page="isManualParse ? searchResult : listInPage"
+                    :list-in-page="listInPage"
                     :static-ip-table-config="staticIpTableConfig"
                     @onIpSort="onIpSort"
                     @onHostNameSort="onHostNameSort"
@@ -63,11 +63,11 @@
         </div>
         <div class="adding-footer">
             <div class="ip-list-btns">
-                <bk-button theme="primary" size="small" @click.stop="onAddIpConfirm">{{type === 'select' || isManualParse ? $t('添加') : $t('解析')}}</bk-button>
+                <bk-button theme="primary" size="small" @click.stop="onAddIpConfirm">{{selectIpMode ? $t('添加') : $t('解析')}}</bk-button>
                 <bk-button theme="default" size="small" @click.stop="onAddIpCancel">{{$t('取消')}}</bk-button>
             </div>
             <div class="message-wrap">
-                <span v-if="type === 'select'">{{$t('已选择')}} {{selectedIp.length}} {{$t('个')}}</span>
+                <span v-if="selectIpMode">{{$t('已选择')}} {{selectedIp.length}} {{$t('个')}}</span>
                 <span v-if="type === 'manual' && errorIpList.length > 0">
                     <span style="color: red;">{{ errorIpList.length }}</span>{{ errorStr }}
                     <span class="view-error-ip-btn" v-bk-tooltips="tooltipConfig">{{ $t('查看详情') }}</span>
@@ -124,7 +124,13 @@
                     placement: 'top'
                 },
                 isSearchInputFocus: false,
-                isManualParse: false
+                isManualParse: false,
+                parseIpList: []
+            }
+        },
+        computed: {
+            selectIpMode () {
+                return this.type === 'select' || this.isManualParse
             }
         },
         watch: {
@@ -143,7 +149,7 @@
         },
         methods: {
             setDisplayList () {
-                let list = this.isSearchMode ? this.searchResult : this.staticIpList
+                let list = this.isSearchMode ? this.searchResult : this.isManualParse ? this.parseIpList : this.staticIpList
                 if (this.ipSortActive) {
                     list = this.getSortIpList(list, this.ipSortActive)
                 }
@@ -161,12 +167,13 @@
                 this.currentPage = 1
             },
             onIpSearch (keyword) {
+                const staticIpList = this.isManualParse ? this.parseIpList : this.staticIpList
                 if (keyword) {
                     const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
                         return item.trim() !== ''
                     })
                     const ipv6Regexp = tools.getIpv6Regexp()
-                    const list = this.staticIpList.filter(item => {
+                    const list = staticIpList.filter(item => {
                         const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
                         return keyArr.some(str => {
                             let text = str
@@ -181,7 +188,7 @@
                     this.setPanigation(list)
                     this.isSearchMode = true
                 } else {
-                    this.setPanigation(this.staticIpList)
+                    this.setPanigation(staticIpList)
                     this.isSearchMode = false
                 }
             },
@@ -228,7 +235,7 @@
                 this.hostNameSortActive = way
             },
             onPageChange (page) {
-                const list = this.isSearchMode ? this.searchResult : this.list
+                const list = this.isSearchMode ? this.searchResult : this.isManualParse ? this.parseIpList : this.list
                 this.currentPage = page
                 this.listInPage = list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
@@ -250,7 +257,7 @@
                         }
                         if (str) {
                             if (!ipPattern.test(str) && !ipv6Regexp.test(str)) { // 字符串不是合法 ip 地址
-                                ipInvalidList.push(str)
+                                ipInvalidList.push(item)
                             } else {
                                 let text = str
                                 if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
@@ -261,7 +268,7 @@
                                     return cloudMatch && [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text)
                                 })
                                 if (!ipInList.length) { // ip 地址/ipv6地址不在可选列表里
-                                    ipNotExistList.push(str)
+                                    ipNotExistList.push(item)
                                 } else {
                                     ipInList.forEach(item => {
                                         const ipInSelected = this.selectedIp.find(i => {
@@ -288,7 +295,7 @@
                     }
                     this.errorIpList = []
                     this.selectedIp = selectedIp
-                    this.searchResult = selectedIp
+                    this.parseIpList = selectedIp
                     this.setPanigation(selectedIp)
                     this.isManualParse = true
                     return
