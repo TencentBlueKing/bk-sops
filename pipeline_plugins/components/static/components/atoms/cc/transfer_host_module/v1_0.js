@@ -78,7 +78,7 @@
                 default_expand_all: false,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
+                    const url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
                     return url
                 },
                 remote_data_init: function (resp) {
@@ -130,7 +130,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.canSelectBiz()) {
+                        if ($.context.inCommonTemplate()) {
                             this._set_value('');
                         }
                         this.items = [];

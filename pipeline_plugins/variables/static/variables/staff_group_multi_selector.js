@@ -22,7 +22,7 @@
                 remote: true,
                 remote_url: function () {
 
-                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/get_staff_groups/' + $.context.getProjectId() + '/'
+                    return $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/get_staff_groups/' + $.context.getProjectId() + '/'
                 },
                 remote_data_init: function (resp) {
                     return [

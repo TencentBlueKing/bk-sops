@@ -143,7 +143,7 @@
                                             source: "biz_cc_id",
                                             type: "change",
                                             action: function (value) {
-                                                if ($.context.canSelectBiz()) {
+                                                if ($.context.inCommonTemplate()) {
                                                     this._set_value('');
                                                 }
                                                 this.items = [];
@@ -247,7 +247,7 @@
                                             source: "biz_cc_id",
                                             type: "change",
                                             action: function (value) {
-                                                if ($.context.canSelectBiz()) {
+                                                if ($.context.inCommonTemplate()) {
                                                     this._set_value('');
                                                 }
                                                 this.items = [];

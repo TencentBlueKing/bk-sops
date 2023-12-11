@@ -399,7 +399,7 @@ job_start
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public&value_field=online_script_version_id';
+                    const url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public&value_field=online_script_version_id';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -439,7 +439,7 @@ job_start
                     type: "init",
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '' && $.context.canSelectBiz()) {
+                        if (cc_id !== '' && $.context.inCommonTemplate()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=public&value_field=online_script_version_id';
                             this.remoteMethod();
                         }
@@ -449,7 +449,7 @@ job_start
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if (!$.context.canSelectBiz() || value === '') {
+                        if (!$.context.inCommonTemplate() || value === '') {
                             return;
                         }
                         this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=public&value_field=online_script_version_id';
@@ -478,7 +478,7 @@ job_start
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=general&value_field=online_script_version_id';
+                    const url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=general&value_field=online_script_version_id';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -518,7 +518,7 @@ job_start
                     type: "init",
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '' && $.context.canSelectBiz()) {
+                        if (cc_id !== '' && $.context.inCommonTemplate()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=general&value_field=online_script_version_id';
                             this.remoteMethod();
                         }
@@ -528,7 +528,7 @@ job_start
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if (!$.context.canSelectBiz()) {
+                        if (!$.context.inCommonTemplate()) {
                             return;
                         }
                         this._set_value('');
@@ -571,7 +571,7 @@ job_start
                         }
                         var self = this;
                         const script_version = this.get_parent().get_child('job_script_list_general')._get_value();
-                        const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_by_script_version/' + $.context.getBkBizId() + '/?script_version=' + script_version;
+                        const url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_by_script_version/' + $.context.getBkBizId() + '/?script_version=' + script_version;
                         $.ajax({
                             url: url,
                             type: 'GET',

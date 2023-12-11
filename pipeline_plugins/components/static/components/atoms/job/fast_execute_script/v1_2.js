@@ -571,7 +571,7 @@ job_start
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + $.context.getBkBizId() + '/?type=general';
+                    const url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + $.context.getBkBizId() + '/?type=general';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -611,7 +611,7 @@ job_start
                     type: "init",
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '' && $.context.canSelectBiz()) {
+                        if (cc_id !== '' && $.context.inCommonTemplate()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=general';
                             this.remoteMethod();
                         }
@@ -621,7 +621,7 @@ job_start
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if (!$.context.canSelectBiz()) {
+                        if (!$.context.inCommonTemplate()) {
                             return;
                         }
                         this._set_value('');
@@ -898,7 +898,7 @@ job_start
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + $.context.getBkBizId() + '/1/3/';
+                    const url = $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + $.context.getBkBizId() + '/1/3/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -935,7 +935,7 @@ job_start
                             }
                         }
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '' && $.context.canSelectBiz()) {
+                        if (cc_id !== '' && $.context.inCommonTemplate()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + cc_id + '/1/3/';
                             this.remoteMethod();
                         }
@@ -956,7 +956,7 @@ job_start
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if (!$.context.canSelectBiz()) {
+                        if (!$.context.inCommonTemplate()) {
                             return;
                         }
                         this._set_value('');

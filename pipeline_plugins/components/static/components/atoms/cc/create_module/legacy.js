@@ -77,7 +77,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/'
+                    return $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
                     if (resp.result === false) {
@@ -128,7 +128,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.canSelectBiz()) {
+                        if ($.context.inCommonTemplate()) {
                             this._set_value('');
                         }
                         this.items = [];
@@ -239,7 +239,7 @@
                 add_btn: true,
                 // 远程加载模块可填写属性
                 remote_url: function () {
-                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/'
+                    return $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
                     if (resp.result === false) {
@@ -340,7 +340,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.canSelectBiz()) {
+                        if ($.context.inCommonTemplate()) {
                             this._set_value('');
                         }
                         this.columns = [];
@@ -359,7 +359,7 @@
                 pagination: true,
                 name: gettext("模块信息"),
                 remote_url: function () {
-                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + $.context.getBkBizId() + '/';
+                    return $.context.inCommonTemplate() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + $.context.getBkBizId() + '/';
                 },
                 remote_data_init: function (resp) {
                     if (resp.result === false) {
@@ -460,7 +460,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.canSelectBiz()) {
+                        if ($.context.inCommonTemplate()) {
                             this._set_value('');
                         }
                         this.columns = [];
