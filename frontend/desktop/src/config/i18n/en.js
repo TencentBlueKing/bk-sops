@@ -1828,7 +1828,10 @@ const en = {
     'exFailedText_调用日志': 'call log',
     '任务还未执行，暂无执行历史': 'Task not executed, no history available.',
     '空分支': 'Empty branch',
-    '最多只能收藏 9 个': 'Can only collect up to 9 items'
+    '最多只能收藏 9 个': 'Can only collect up to 9 items',
+    '解析': 'Parse',
+    'IP地址不合法，': 'IP address is illegal,',
+    'IP地址不存在，': 'IP address does not exist,'
 }
 
 export default en
