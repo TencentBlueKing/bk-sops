@@ -1576,7 +1576,11 @@
                         // 分支，条件并行
                         if (['ExclusiveGateway', 'ConditionalParallelGateway'].includes(nodeConfig.type)) {
                             treeItem.gatewayId = parentOrdered ? gatewayId : id
-                            this.getGatewayConvergeNodes(id, id, this.convergeInfo)
+                            this.getGatewayConvergeNodes({
+                                id,
+                                parentId: id,
+                                convergeInfo: this.convergeInfo
+                            })
                             const loopList = [] // 需要打回的node的incoming
                             targetNodes.forEach(item => {
                                 const curNode = taskAndGwNodeMap[item]
@@ -1622,7 +1626,11 @@
                             }
                         } else if (nodeConfig.type === 'ParallelGateway') {
                             treeItem.gatewayId = gatewayId || id
-                            this.getGatewayConvergeNodes(id, id, this.convergeInfo)
+                            this.getGatewayConvergeNodes({
+                                id,
+                                parentId: id,
+                                convergeInfo: this.convergeInfo
+                            })
                             // 添加并行默认条件
                             conditions = nodeConfig.outgoing.map((key, index) => {
                                 const branchName = this.$t('并行') + (index + 1)
@@ -1827,7 +1835,15 @@
              * index: 当前节点属于哪条分支下的
              * isDeep: 是否递归
             */
-            getGatewayConvergeNodes (id, parentId, convergeInfo = {}, index, isDeep) {
+            getGatewayConvergeNodes (data) {
+                const {
+                    id,
+                    parentId,
+                    convergeInfo = {},
+                    index,
+                    isDeep,
+                    isLastBranch
+                } = data
                 if (!id) return
                 if (!convergeInfo[parentId]) {
                     convergeInfo[parentId] = {
@@ -1853,7 +1869,14 @@
                         }
                         // 非递归时使用传入的分支数
                         newIndex = isDeep ? index : newIndex
-                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, newIndex, isDeep)
+                        this.getGatewayConvergeNodes({
+                            id: targetId,
+                            parentId,
+                            convergeInfo,
+                            index: newIndex,
+                            isDeep,
+                            isLastBranch: branchIndex === targetNodes.length - 1
+                        })
                     })
                 } else {
                     // 单条输出分支
@@ -1883,7 +1906,7 @@
                         const matchNode = Object.keys(countMap).filter(key => countMap[key] === branchCount)
                         if (matchNode[0]) {
                             convergeInfo[parentId].convergeNode = matchNode[0]
-                        } else if (index === branchCount - 1) { // 最后一条分支
+                        } else if (index === branchCount - 1 && (isDeep ? isLastBranch : true)) { // 最后一条分支
                             // 没找到汇聚节点则继续向下递归
                             if (!convergeInfo[parentId].convergeNode) {
                                 const executedNodes = []
@@ -1897,14 +1920,28 @@
                                         const samePreBranch = convergeInfo[parentId][`branch${existed.index}`]
                                         convergeInfo[parentId][`branch${idx}`] = [...samePreBranch]
                                         const [preLastId] = samePreBranch.slice(-1)
-                                        this.getGatewayConvergeNodes(preLastId, parentId, convergeInfo, idx, true)
+                                        this.getGatewayConvergeNodes({
+                                            id: preLastId,
+                                            parentId,
+                                            convergeInfo,
+                                            index: idx,
+                                            isDeep: true,
+                                            isLastBranch: idx === countArr.length - 1
+                                        })
                                         return
                                     }
                                     executedNodes.push({ id: lastId, index: idx })
                                     const targetIds = this.nodeTargetMaps[lastId] || [lastId]
                                     // 向下递归
                                     targetIds.forEach(targetId => {
-                                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, idx, true)
+                                        this.getGatewayConvergeNodes({
+                                            id: targetId,
+                                            parentId,
+                                            convergeInfo,
+                                            index: idx,
+                                            isDeep: true,
+                                            isLastBranch: idx === countArr.length - 1
+                                        })
                                     })
                                 })
                             }
@@ -1912,7 +1949,14 @@
                     } else {
                         checkedNodes.push(id)
                         const targetId = targetNodes[0]
-                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, index, isDeep)
+                        this.getGatewayConvergeNodes({
+                            id: targetId,
+                            parentId,
+                            convergeInfo,
+                            index,
+                            isDeep,
+                            isLastBranch
+                        })
                     }
                 }
             },
