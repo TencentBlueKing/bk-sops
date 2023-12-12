@@ -46,14 +46,16 @@ def clean_expired_v2_task_data():
         qs = TaskFlowInstance.objects.filter(
             pipeline_instance__create_time__lt=expire_time,
             engine_ver=2,
+            pipeline_instance__is_finished=True,
+            pipeline_instance__is_revoked=False,
             pipeline_instance__is_expired=False,
             create_method__in=settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS,
         )
-        if settings.BKAPP_CLEAN_EXPIRED_V2_TASK_PROJECTS:
-            qs.filter(project_id__in=settings.BKAPP_CLEAN_EXPIRED_V2_TASK_PROJECTS)
+        if settings.CLEAN_EXPIRED_V2_TASK_PROJECTS:
+            qs = qs.filter(project_id__in=settings.CLEAN_EXPIRED_V2_TASK_PROJECTS)
         ids = qs.order_by("id").values("id", "pipeline_instance__instance_id")[:batch_num]
         task_ids = [item["id"] for item in ids]
-        logger.info(f"Clean expired task data, task_ids: {task_ids}")
+        logger.info(f"[clean_expired_v2_task_data] Clean expired task data, task_ids: {task_ids}")
         pipeline_instance_ids = [item["pipeline_instance__instance_id"] for item in ids]
         data_to_clean = get_clean_pipeline_instance_data(pipeline_instance_ids)
         tasks = TaskFlowInstance.objects.filter(id__in=task_ids)
@@ -65,6 +67,9 @@ def clean_expired_v2_task_data():
         with transaction.atomic():
             for field, qs in data_to_clean.items():
                 if field not in instance_fields or settings.CLEAN_EXPIRED_V2_TASK_INSTANCE:
+                    logger.info(
+                        f"[clean_expired_v2_task_data] clean field: {field}, qs ids: {qs.values_list('id', flat=True)}"
+                    )
                     qs.delete()
                 elif field == "pipeline_instances":
                     qs.update(is_expired=True)
