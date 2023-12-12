@@ -30,7 +30,8 @@
                 </div>
                 <div :class="['scroll-box', { 'subprocess-scroll': subProcessPipeline }]">
                     <div
-                        :class="['sub-process']"
+                        class="sub-process"
+                        :style="{ height: `${subProcessHeight}px` }"
                         v-if="subProcessPipeline"
                         v-bkloading="{ isLoading: subprocessLoading, opacity: 1, zIndex: 100 }">
                         <TemplateCanvas
@@ -41,16 +42,19 @@
                             :show-tool="false"
                             :editable="false"
                             :canvas-data="canvasData"
+                            @onConditionClick="onOpenConditionEdit"
                             @onNodeClick="onNodeClick">
                         </TemplateCanvas>
                         <div class="flow-option">
                             <i
                                 class="bk-icon icon-narrow-line"
+                                :class="{ 'disabled': zoom === 0.25 }"
                                 v-bk-tooltips.top="$t('缩小')"
                                 @click="onZoomOut">
                             </i>
                             <i
                                 class="bk-icon icon-enlarge-line"
+                                :class="{ 'disabled': zoom === 1.5 }"
                                 v-bk-tooltips.top="$t('放大')"
                                 @click="onZoomIn">
                             </i>
@@ -165,7 +169,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="action-wrapper" v-if="isShowActionWrap">
+                <div class="action-wrapper" v-if="isShowActionWrap && !loading">
                     <template v-if="executeInfo.state === 'RUNNING'">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
@@ -224,7 +228,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
@@ -329,8 +333,6 @@
                 loop: 1,
                 theExecuteTime: undefined,
                 isReadyStatus: true,
-                isShowSkipBtn: false,
-                isShowRetryBtn: false,
                 curActiveTab: 'record',
                 theExecuteRecord: 0,
                 executeRecord: {},
@@ -338,16 +340,15 @@
                 subCanvasData: {},
                 timer: null,
                 subprocessLoading: true,
-                subprocessTasks: [],
+                subprocessTasks: {},
                 subprocessNodeStatus: {},
                 subNodesExpanded: [], // 节点树展开的独立子流程节点
+                subProcessHeight: 160,
+                zoom: 0.75,
                 notPerformedSubNode: false // 是否为未执行的独立子流程节点
             }
         },
         computed: {
-            ...mapMutations('template/', [
-                'setLine'
-            ]),
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'atomOutputConfig': state => state.atomForm.outputConfig,
@@ -362,9 +363,9 @@
                 const { root_node, node_id, taskId } = this.nodeDetailConfig
                 let nodes = this.nodeDisplayStatus.children || {}
                 // 独立子流程节点状态特殊处理
-                if (taskId && Object.keys(this.subprocessNodeStatus).length) {
+                if (taskId) {
                     nodes = this.subprocessNodeStatus[taskId]
-                    nodes = nodes && nodes.data.children
+                    nodes = nodes ? nodes.data.children : {}
                 }
                 if (this.subProcessPipeline) {
                     const parentId = root_node?.split('-') || []
@@ -436,9 +437,47 @@
             isShowContinueBtn () {
                 return this.isLegacySubProcess && this.executeInfo.state === 'SUSPENDED'
             },
+            isShowSkipBtn () {
+                let isShow = false
+                if (this.realTimeState.state === 'FAILED') {
+                    const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                    isShow = this.location.type === 'tasknode' && activity.skippable
+                }
+                return isShow
+            },
+            isShowRetryBtn () {
+                let isShow = false
+                if (this.realTimeState.state === 'FAILED') {
+                    const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                    isShow = this.location.type === 'tasknode' ? activity.retryable : false
+                }
+                return isShow
+            },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
                 if (this.state === 'REVOKED') return false
+                // 判断父级节点是否存在失败后跳过
+                if (this.nodeDetailConfig.taskId) {
+                    const allNodeStatus = {
+                        ...this.nodeDisplayStatus.children,
+                        ...Object.values(this.subprocessNodeStatus).reduce((acc, item) => {
+                            return {
+                                ...acc,
+                                ...item.data.children
+                            }
+                        }, {})
+                    }
+
+                    const parentIds = this.nodeDetailConfig.root_node.split('-')
+                    const isFailedSkip = parentIds.some(id => {
+                        const { state, skip } = allNodeStatus[id] || {}
+                        return state === 'FINISHED' && skip
+                    })
+
+                    if (isFailedSkip) {
+                        return false
+                    }
+                }
                 return this.realTimeState.state === 'RUNNING'
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
@@ -503,7 +542,10 @@
                             this.loading = false
                             this.subprocessLoading = false
                             this.randomKey = new Date().getTime()
+                            const nodeInfo = this.getNodeInfo(this.nodeData, val.root_node, val.node_id)
+                            nodeInfo.dynamicLoad = false
                         } else {
+                            this.executeInfo.state = ''
                             this.loadNodeInfo()
                         }
                     }
@@ -602,7 +644,7 @@
                     } else if (this.subProcessPipeline) {
                         this.subprocessLoading = false
                     }
-                    this.historyInfo = respData.skip ? [] : [respData]
+                    this.historyInfo = [respData]
                     if (respData.histories) {
                         this.historyInfo.unshift(...respData.histories)
                     }
@@ -619,15 +661,6 @@
                     } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
-                    }
-                    // 获取执行失败节点是否允许跳过，重试状态
-                    if (this.realTimeState.state === 'FAILED') {
-                        const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
-                        this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
-                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : false
-                    } else {
-                        this.isShowSkipBtn = false
-                        this.isShowRetryBtn = false
                     }
                 } catch (e) {
                     this.theExecuteTime = undefined
@@ -684,7 +717,7 @@
                     await this.getNodeConfig(componentCode, version, inputs.plugin_version)
                 }
                 inputsInfo = Object.keys(inputs).reduce((acc, cur) => {
-                    const scheme = this.renderConfig.find(item => item.tag_code === cur)
+                    const scheme = Array.isArray(this.renderConfig) ? this.renderConfig.find(item => item.tag_code === cur) : null
                     if (scheme) {
                         const defaultValueFormat = getDefaultValueFormat(scheme)
                         const valueType = checkDataType(inputs[cur])
@@ -965,28 +998,36 @@
                 this.randomKey = new Date().getTime()
             },
             onNodeClick (node) {
-                const nodeInfo = this.getNodeInfo(this.nodeData, '', node)
+                let parentId = ''
+                const { node_id: nodeId, root_node: rootNode } = this.nodeDetailConfig
+                if (nodeId === this.subProcessPipeline.id) {
+                    parentId = rootNode ? `${rootNode}-${nodeId}` : nodeId
+                } else {
+                    parentId = rootNode
+                }
+                const nodeInfo = this.getNodeInfo(this.nodeData, parentId, node)
                 if (nodeInfo) {
                     nodeInfo && this.onSelectNode(nodeInfo)
                     const parentInstance = this.$parent.$parent
-                    parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId
+                    if (nodeInfo.conditionType) {
+                        parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId + '-condition'
+                    } else {
+                        parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId
+                    }
                 }
             },
+            onOpenConditionEdit (data) {
+                this.onNodeClick(`${data.nodeId}-${data.id}`)
+            },
             onZoomOut () {
-                let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                jsFlowInstance.zoomOut(0.8)
-                this.$nextTick(() => {
-                    this.setCanvasZoomPosition(true)
-                })
+                const jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance.onZoomOut()
+                this.zoom = jsFlowInstance.zoomRatio / 100
             },
             onZoomIn () {
-                let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                jsFlowInstance.zoomIn(1.2)
-                this.$nextTick(() => {
-                    this.setCanvasZoomPosition(true)
-                })
+                const jsFlowInstance = this.$refs.subProcessCanvas
+                jsFlowInstance.onZoomIn()
+                this.zoom = jsFlowInstance.zoomRatio / 100
             },
             onTabChange (name) {
                 this.curActiveTab = name
@@ -1010,8 +1051,15 @@
                     this.toggleNodeActive(this.nodeDetailConfig.node_id, false)
                 }
                 // 如果点击的是子流程节点或者是不属于当前所选中节点树的节点，需要重新刷新子流程画布
-                const updateCanvas = node.parentId && (!this.subProcessPipeline || !this.subProcessPipeline.location.find(item => item.id === node.id))
-                if (node.isSubProcess || updateCanvas) {
+                let updateCanvas = false
+                if (node.isSubProcess) {
+                    updateCanvas = node.id !== this.nodeDetailConfig.node_id
+                }
+                if (!updateCanvas && node.parentId) {
+                    const nodeId = node.conditionType ? node.id.split('-')[0] : node.id
+                    updateCanvas = !this.subProcessPipeline?.location.find(item => item.id === nodeId)
+                }
+                if (updateCanvas) {
                     this.canvasRandomKey = new Date().getTime()
                     this.$nextTick(() => {
                         this.setCanvasZoomPosition()
@@ -1061,41 +1109,31 @@
                 return top > canvasTop && top < canvasTop + height && left > canvasLeft && left < canvasLeft + width
             },
             // 画布初始化时缩放比偏移
-            setCanvasZoomPosition (zoom) {
+            setCanvasZoomPosition () {
                 if (!this.canvasData.locations) return
-                // 获取画布上下左右最大坐标
-                const xList = this.canvasData.locations.map(node => node.x)
-                const yList = this.canvasData.locations.map(node => node.y)
-                const minX = Math.min(...xList)
-                const maxX = Math.max(...xList)
-                const minY = Math.min(...yList)
-                const maxY = Math.max(...yList)
-                const maxXNodeId = this.canvasData.locations.find(node => node.x === maxX).id
-                const maxYNodeId = this.canvasData.locations.find(node => node.y === maxY).id
-                const { width } = this.$el.querySelector(`#${maxXNodeId}`).getBoundingClientRect()
-                const { height } = this.$el.querySelector(`#${maxYNodeId}`).getBoundingClientRect()
-                const netHeight = maxY - minY + height + 60
-                const netWidth = maxX - minX + width + 80
+                // 设置默认高度
                 const subprocessDom = this.$el.querySelector('.sub-process')
-                const { height: canvasHeight, width: canvasWidth } = subprocessDom.getBoundingClientRect()
-                // 画布实例
+                const { top } = subprocessDom.getBoundingClientRect()
+                this.subProcessHeight = window.innerHeight - top - 320
+                // 设置缩放比例
                 let jsFlowInstance = this.$refs.subProcessCanvas
-                jsFlowInstance = jsFlowInstance.$refs.jsFlow
-                let ratio
-                if (zoom) {
-                    ratio = jsFlowInstance.zoom
-                } else {
-                    // 最大比例0.75
-                    ratio = Math.min(canvasHeight / netHeight, canvasWidth / netWidth)
-                    ratio = ratio > 0.75 ? 0.75 : ratio
-                    jsFlowInstance && jsFlowInstance.zoomOut(ratio, 0, 0)
-                }
+                jsFlowInstance = jsFlowInstance && jsFlowInstance.$refs.jsFlow
+                jsFlowInstance && jsFlowInstance.setZoom(this.zoom, 0, 0)
                 // 设置偏移量
-                const offsetX = canvasWidth / 2 - (minX - 30 + netWidth / 2) * ratio
-                const offsetY = canvasHeight / 2 - (minY + netHeight / 2) * ratio
-                jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
+                const startNode = this.canvasData.locations.find(item => item.type === 'startpoint')
+                // 判断dom是否存在当前视图中
+                const nodeEl = document.querySelector(`#${startNode.id} .canvas-node-item`)
+                if (!nodeEl) return
+                const isInViewPort = this.judgeInViewPort(nodeEl)
+                if (!isInViewPort) {
+                    let jsFlowInstance = this.$refs.subProcessCanvas
+                    jsFlowInstance = jsFlowInstance.$refs.jsFlow
+                    const offsetX = (20 - startNode.x) * this.zoom
+                    const offsetY = (160 - startNode.y) * this.zoom
+                    jsFlowInstance && jsFlowInstance.setCanvasPosition(offsetX, offsetY, true)
+                }
             },
-            
+
             toggleNodeActive (id, isActive) {
                 const node = document.getElementById(id)
                 if (!id || !node) return
@@ -1375,7 +1413,9 @@
                     }
                     const resp = await this.getBatchInstanceStatus(data)
                     if (!resp.result) return
-                    Object.assign(this.subprocessNodeStatus, resp.data)
+                    Object.keys(resp.data).forEach(key => {
+                        this.$set(this.subprocessNodeStatus, key, resp.data[key])
+                    })
                     for (const [key, value] of Object.entries(resp.data)) {
                         const { root_node, node_id } = this.subprocessTasks[key]
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
@@ -1483,8 +1523,7 @@
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.visibility = 'hidden'
                 resizeMask.style.display = 'none'
-                const subProcessDom = document.querySelector('.sub-process')
-                subProcessDom.style.height = resizeProxy.style.top
+                this.subProcessHeight = resizeProxy.style.top.slice(0, -2)
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
             }
@@ -1522,6 +1561,9 @@
     }
     .bk-resize-layout-border {
         border: none;
+        .bk-resize-layout-aside {
+            overflow: hidden;
+        }
     }
     .action-wrapper {
         width: 100%;
@@ -1628,7 +1670,6 @@
                     display: none;
                 }
                 .task-node {
-                    box-shadow: none !important;
                     &.actived {
                         .node-name {
                             border-color: #b4becd !important;
@@ -1663,6 +1704,10 @@
                 }
                 &:hover {
                     color: #3a84ff;
+                }
+                &.disabled {
+                    color: #ccc;
+                    cursor: not-allowed;
                 }
             }
         }

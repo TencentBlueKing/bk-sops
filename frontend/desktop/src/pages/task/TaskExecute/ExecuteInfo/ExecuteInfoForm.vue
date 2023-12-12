@@ -89,6 +89,7 @@
                 <template v-else>
                     <jsonschema-input-params
                         v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
+                        :is-view-mode="true"
                         :inputs="inputs"
                         :value="inputsFormData">
                     </jsonschema-input-params>
@@ -365,7 +366,7 @@
                     this.subflowLoading = false
                 }
             },
-            
+
             /**
              * 加载子流程输入参数表单配置项
              * 遍历每个非隐藏的全局变量，由 source_tag、coustom_type 字段确定需要加载的标准插件
@@ -686,7 +687,7 @@
             .rf-tag-form {
                 margin-left: 20%;
             }
-            
+
             .hide-render-icon {
                 top: 0;
             }
@@ -796,5 +797,5 @@
             }
         }
     }
-    
+
 </style>
