@@ -239,6 +239,8 @@
                                             <template v-else>
                                                 <jsonschema-input-params
                                                     v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
+                                                    ref="jsonSchemaParams"
+                                                    :is-view-mode="isViewMode"
                                                     :inputs="inputs"
                                                     :value="inputsParamValue"
                                                     @update="updateInputsValue">
@@ -1369,9 +1371,10 @@
                 return this.$refs.basicInfo.validate().then(validator => {
                     if (this.$refs.inputParams) {
                         return this.$refs.inputParams.validate()
-                    } else {
-                        return true
+                    } else if (this.$refs.jsonSchemaParams) {
+                        return this.$refs.jsonSchemaParams.validate()
                     }
+                    return true
                 })
             },
             getNodeFullConfig () {

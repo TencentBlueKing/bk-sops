@@ -138,7 +138,7 @@
                         const divInputDom = this.$el.querySelector('.div-input')
                         if (divInputDom) {
                             divInputDom.innerText = this.value
-                            this.handleInputBlur()
+                            this.updateInputHtml()
                         }
                     })
                 }
@@ -149,7 +149,7 @@
                     const divInputDom = this.$el.querySelector('.div-input')
                     divInputDom.innerText = this.value
                 } else {
-                    this.handleInputBlur()
+                    this.updateInputHtml()
                 }
             }
         },
@@ -162,14 +162,17 @@
                 const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
                 divInputDom.innerText = value
                 if (this.render && value) {
-                    this.handleInputBlur()
-                    // 把用户手动换行变成div标签
-                    divInputDom.innerHTML = divInputDom.innerHTML.replace(/<br>/g, '<div><br></div>')
+                    this.updateInputHtml()
                 }
+                divInputDom.addEventListener('paste', this.handlePaste)
             }
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
+            const divInputDom = this.$el.querySelector('.div-input')
+            if (divInputDom) {
+                divInputDom.removeEventListener('paste', this.handlePaste)
+            }
         },
         methods: {
             handleListShow (e) {
@@ -256,6 +259,7 @@
             // 文本框输入
             handleInputChange (e, updateForm = true) {
                 if (updateForm) {
+                    // 实时更新
                     this.updateInputValue()
                 }
                 const range = window.getSelection().getRangeAt(0)
@@ -271,12 +275,12 @@
                     const lastNode = textNode.childNodes[startOffset - 1]
                     previousText = lastNode.textContent
                 }
-                const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
-                // 如果是完整全局变量则不进行后续操作
-                if (/^\$\{\w+\}$/.test(matchText)) {
+                // 如果不包含$则不进行后续计算、 如果是完整全局变量则不进行后续操作
+                if (previousText.indexOf('$') === -1 || /\${[a-zA-Z_][\w|.]*}/.test(previousText)) {
                     this.isListOpen = false
                     return
                 }
+                const matchText = previousText.replace(/(.*)(\$[^\}]*)/, ($0, $1, $2) => $2)
                 // 判断是否为变量格式
                 if (matchText === '$' || /^\${[a-zA-Z_]*[\w|.]*/.test(matchText)) {
                     this.varList = this.constantArr.filter(item => item.key.indexOf(matchText) > -1)
@@ -344,32 +348,44 @@
                 const childNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== 'TEXT')
                 const inputValue = childNodes.map(dom => {
                     // 获取行内纯文本
-                    let domValue = dom.textContent || '\n'
+                    let domValue = dom.textContent
                     if (dom.childNodes.length) {
                         domValue = Array.from(dom.childNodes).map(item => {
                             return item.type === 'button'
                                 ? item.value
-                                : item.textContent.trim() === ''
-                                    ? ' '
-                                    : item.textContent.replace(/&nbsp;/g, ' ')
+                                : item.nodeName === 'BR'
+                                    ? ''
+                                    : item.textContent
                         }).join('')
                     }
-                    return domValue
+                    return domValue.replace(/\u00A0/g, ' ')
                 }).join('\n')
                 this.input.value = inputValue
-                this.updateForm(inputValue)
             },
             // 文本框失焦
             handleInputBlur  (e) {
                 this.$emit('blur')
                 this.input.focus = false
+                // 更新文本框结构，生成tag标签
+                this.updateInputHtml()
+                // 向上更新表单
+                this.updateForm(this.input.value)
+            },
+            // 更新文本框结构，生成tag标签
+            updateInputHtml () {
                 // 如果表单项开启了变量免渲染，不以tag展示
                 if (!this.render) return
                 // 支持所有变量（系统变量，内置变量，自定义变量）
                 const varRegexp = /\${([^${}]+)}/g
                 const divInputDom = this.$el.querySelector('.div-input')
                 const childNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== 'TEXT')
-                childNodes.forEach(dom => {
+                const deleteMap = {} // 需要删除的br下标
+                childNodes.forEach((dom, index) => {
+                    // 删除多余的br标签
+                    if (deleteMap[index]) {
+                        divInputDom.removeChild(dom)
+                        return
+                    }
                     // 获取行内纯文本
                     let domValue = dom.textContent
                     if (dom.childNodes.length) {
@@ -377,6 +393,15 @@
                             return item.type === 'button' ? item.value : item.textContent
                         }).join('')
                     }
+                    // 将html标签拆成文本形式
+                    domValue = domValue.replace(/(<|>)/g, ($0, $1) => `<span>${$1}</span>`)
+                    // 用户手动输入的实体字符渲染时需要切开展示
+                    domValue = domValue.replace(/&(nbsp|ensp|emsp|thinsp|zwnj|zwj|quot|apos|lt|gt|amp|cent|pound|yen|euro|sect|copy|reg|trade|times|divide);/g, ($0, $1) => {
+                        return `<span>&</span><span>${$1}</span><span>;</span>`
+                    })
+
+                    // 初始化时是通过innerText进行复制的，如果有多个连续空格则只会显示一个，所以需手动将转为&nbsp;
+                    domValue = domValue.replace(/( )/g, '&nbsp;')
                     // 支持匹配变量内运算
                     const innerHtml = domValue.replace(varRegexp, (match, $0) => {
                         let isExistVar = false
@@ -390,25 +415,38 @@
                             })
                         }
                         if (isExistVar) {
-                            // 两边留空格保持间距
                             const randomId = Math.random().toString().slice(-6)
-                            return `<input type="button" class="var-tag" id="tag_${randomId}" value=${match} />`
+                            // 将装转的尖括号恢复原样
+                            let value = match.replace(/<span>(<|>)<\/span>/g, ($0, $1) => $1)
+                            // 将双引号转为实体字符
+                            value = value.replace(/"/g, '&quot;')
+                            return `<input type="button" class="var-tag" id="tag_${randomId}" value="${value}" />`
                         }
                         return match
                     })
-                    // div会将\n解析成<br>标签，需要手动把内容标签下的<br>标签清理掉
-                    if (dom.nodeName !== 'BR' && dom.nextElementSibling?.nodeName === 'BR') {
-                        divInputDom.removeChild(dom.nextElementSibling)
-                    }
+                    // 初始化时\n会转化为【独占一行】的<br>标签，导致渲染异常。当我们手动把text标签转为div标签时需要删除【紧挨】着的<br>标签
                     if (dom.nodeName === '#text') {
+                        // 记录需要被删除的br标签下标
+                        if (dom.nextSibling?.nodeName === 'BR') {
+                            deleteMap[index + 1] = true
+                        }
                         const newDom = document.createElement('div')
                         newDom.innerHTML = innerHtml
                         divInputDom.replaceChild(newDom, dom)
-                    } else if (dom.nodeName === 'DIV') {
+                    } else if (dom.nodeName === 'DIV' && innerHtml) {
                         dom.innerHTML = innerHtml
+                    } else if (dom.nodeName === 'BR') {
+                        // br标签实际上是初始化时\n转化的，\n表示当前行换行了，那么br标签必定会有下一行!!!
+                        if (!dom.nextSibling) {
+                            const appendDom = document.createElement('div')
+                            appendDom.innerHTML = '<br>'
+                            divInputDom.appendChild(appendDom)
+                        }
+                        const newDom = document.createElement('div')
+                        newDom.innerHTML = '<br>'
+                        divInputDom.replaceChild(newDom, dom)
                     }
                 })
-                this.updateInputValue()
             },
             // 文本框按键事件
             handleInputKeyDown (e) {
@@ -465,6 +503,28 @@
             handleBlur () {
                 this.emit_event(this.tagCode, 'blur', this.value)
                 this.$emit('blur', this.value)
+            },
+            handlePaste (e) {
+                event.preventDefault()
+                let text = ''
+                const clp = (e.originalEvent || e).clipboardData
+                if (clp === undefined || clp === null) {
+                    text = window.clipboardData.getData('text') || ''
+                    text = text.replace(/(\r|\r\n)/g, '')
+                    if (text !== '') {
+                        if (window.getSelection) {
+                            const newNode = document.createElement('span')
+                            newNode.innerHTML = text
+                            window.getSelection().getRangeAt(0).insertNode(newNode)
+                        } else {
+                            document.selection.createRange().pasteHTML(text)
+                        }
+                    }
+                } else {
+                    text = clp.getData('text/plain') || ''
+                    text = text.replace(/(\r|\r\n)/g, '')
+                    text && document.execCommand('insertText', false, text)
+                }
             }
         }
     }
@@ -552,6 +612,9 @@
             &:hover {
                 background: #eaebf0;
             }
+        }
+        /deep/div {
+            word-break: break-all;
         }
         &.input-before::before {
             content: attr(data-placeholder);

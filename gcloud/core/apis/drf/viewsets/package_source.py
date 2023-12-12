@@ -11,26 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+from itertools import chain
+
 import jsonschema
 import ujson as json
-from itertools import chain
 from django.db import transaction
-
-from rest_framework import status
-
-from rest_framework import permissions
-from rest_framework.response import Response
+from rest_framework import permissions, status
 from rest_framework.exceptions import NotAcceptable
-from rest_framework.generics import UpdateAPIView, ListCreateAPIView, DestroyAPIView
+from rest_framework.generics import DestroyAPIView, ListCreateAPIView, UpdateAPIView
+from rest_framework.response import Response
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.external_plugins import exceptions
-from gcloud.external_plugins.models import source_cls_factory, CachePackageSource
-from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
-
-from gcloud.core.apis.drf.viewsets.base import GcloudCommonMixin
-from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.serilaziers import PackageSourceSerializer
+from gcloud.core.apis.drf.viewsets.base import GcloudCommonMixin
+from gcloud.external_plugins import exceptions
+from gcloud.external_plugins.models import CachePackageSource, source_cls_factory
+from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
+from gcloud.iam_auth import IAMMeta
 
 logger = logging.getLogger("root")
 
@@ -42,6 +39,17 @@ class PackageSourcePermission(IamPermission):
         "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
         "destroy": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
     }
+
+    def check_permission(self, request, view, resource_param=None, check_hook=None):
+
+        permission_info = self.actions.get(view.action, IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION))
+
+        # 不匹配权限不做校验
+        if permission_info.check_hook != check_hook:
+            return True
+
+        self.iam_auth_check(request, action=permission_info.iam_action, resources=[])
+        return True
 
 
 def get_source_models():
