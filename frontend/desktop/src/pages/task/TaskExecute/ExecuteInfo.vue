@@ -169,7 +169,7 @@
                     </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL'].includes(executeInfo.state)">
+                    <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL'].includes(realTimeState.state)">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
@@ -191,7 +191,7 @@
                             {{ $t('强制终止') }}
                         </bk-button>
                         <bk-button
-                            v-if="executeInfo.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
+                            v-if="realTimeState.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
                             data-test-id="taskExecute_form_pauseBtn"
                             @click="onPauseClick">
                             {{ $t('暂停') }}
@@ -452,7 +452,7 @@
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             },
             isShowContinueBtn () {
-                return this.isLegacySubProcess && this.executeInfo.state === 'SUSPENDED'
+                return this.isLegacySubProcess && this.realTimeState.state === 'SUSPENDED'
             },
             isShowRetryBtn () {
                 if (this.realTimeState.state === 'FAILED') {
