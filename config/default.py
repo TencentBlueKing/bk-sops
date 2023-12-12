@@ -22,10 +22,10 @@ from blueapps.conf.default_settings import *  # noqa
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.opentelemetry.utils import inject_logging_trace_info
 from django.utils.translation import ugettext_lazy as _
+from pipeline.celery.queues import ScalableQueues
 
 import env
 from gcloud.exceptions import ApiRequestError
-from pipeline.celery.queues import ScalableQueues
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
@@ -489,11 +489,12 @@ ScalableQueues.add(name=API_TASK_QUEUE_NAME)
 PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
+from pipeline.celery.settings import *  # noqa
+from pipeline.eri.celery import queues as eri_queues  # noqa
+
 from gcloud.contrib.cleaner import settings as cleaner_settings  # noqa
 from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
-from pipeline.celery.settings import *  # noqa
-from pipeline.eri.celery import queues as eri_queues  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
@@ -503,6 +504,8 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queue
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 CELERY_QUEUES.extend(cleaner_settings.CELERY_QUEUES)
+
+CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
