@@ -390,7 +390,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         with transaction.atomic():
             if task_is_started:
                 # 对修改参数的任务状态进行检查
-                status_result = self.get_task_status(subprocess_id=None, with_ex_data=False)
+                status_result = self.get_task_status(subprocess_id=None, with_ex_data=False, with_new_status=True)
                 if status_result is False:
                     logger.error(
                         f"update context values failed: get pipeline states error, "
@@ -404,6 +404,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     bamboo_engine_states.CREATED,
                     bamboo_engine_states.SUSPENDED,
                     bamboo_engine_states.BLOCKED,
+                    TaskExtraStatus.PENDING_PROCESSING.value,
                 ]:
                     logger.error(
                         f"update context values failed: pipeline instance state error, "
