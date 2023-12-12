@@ -181,7 +181,7 @@ class TaskFLowStatusFilterHandler:
         """
 
         pause_pipeline_instance_ids = set(
-            self._fetch_pipeline_instance_ids(statuses=[states.SUSPENDED], by_root=True)
+            self._fetch_pipeline_instance_ids(statuses=[states.SUSPENDED], by_root=False)
         ) - set(self._fetch_pipeline_instance_ids(statuses=[states.FAILED]))
         return self.queryset.filter(pipeline_instance_id__in=pause_pipeline_instance_ids)
 
