@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.31.10"
+app_version: "3.32.0-alpha"
 app:
     region: default
     bk_app_code: bk_sops
