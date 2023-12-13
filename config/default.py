@@ -492,6 +492,7 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
 
+from gcloud.analysis_statistics import settings as analysis_statistics_settings  # noqa
 from gcloud.contrib.cleaner import settings as cleaner_settings  # noqa
 from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
@@ -504,6 +505,7 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queue
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 CELERY_QUEUES.extend(cleaner_settings.CELERY_QUEUES)
+CELERY_QUEUES.extend(analysis_statistics_settings.CELERY_QUEUES)
 
 CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 
