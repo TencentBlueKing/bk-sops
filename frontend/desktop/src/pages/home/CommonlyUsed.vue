@@ -173,7 +173,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .common-used {
     position: relative;
-    margin-top: 20px;
+    margin: 20px 0;
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {

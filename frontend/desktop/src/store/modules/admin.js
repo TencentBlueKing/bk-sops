@@ -63,15 +63,30 @@ const admin = {
         },
         // 加载标准插件统计数据
         queryTemplateData ({ commit }, data) {
-            return axios.post('analysis/query_template_by_group/', data).then(response => response.data)
+            const config = {}
+            if (data.cancelToken) {
+                config.cancelToken = data.cancelToken
+                delete data.cancelToken
+            }
+            return axios.post('analysis/query_template_by_group/', data, config).then(response => response.data)
         },
         // 加载标准插件统计数据
         queryAtomData ({ commit }, data) {
-            return axios.post('analysis/query_atom_by_group/', data).then(response => response.data)
+            const config = {}
+            if (data.cancelToken) {
+                config.cancelToken = data.cancelToken
+                delete data.cancelToken
+            }
+            return axios.post('analysis/query_atom_by_group/', data, config).then(response => response.data)
         },
         // 加载任务实例统计数据
         queryInstanceData ({ commit }, data) {
-            return axios.post('analysis/query_instance_by_group/', data).then(response => response.data)
+            const config = {}
+            if (data.cancelToken) {
+                config.cancelToken = data.cancelToken
+                delete data.cancelToken
+            }
+            return axios.post('analysis/query_instance_by_group/', data, config).then(response => response.data)
         },
         // 加载流程/任务覆盖率
         queryBizUseageData ({ commit }, data) {
@@ -80,7 +95,12 @@ const admin = {
         },
         // 加载轻应用统计数据
         queryAppmakerData ({ commit }, data) {
-            return axios.post('analysis/query_appmaker_by_group/', data).then(response => response.data)
+            const config = {}
+            if (data.cancelToken) {
+                config.cancelToken = data.cancelToken
+                delete data.cancelToken
+            }
+            return axios.post('analysis/query_appmaker_by_group/', data, config).then(response => response.data)
         },
         // 注入全局变量
         taskFlowUpdateContext ({ commit }, data) {
