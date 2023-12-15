@@ -1,7 +1,7 @@
 <template>
     <div class="execute-record">
         <template v-if="Object.keys(executeInfo).length && !notPerformedSubNode">
-            <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.state === 'FAILED'">
+            <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="abnormalShow">
                 <template v-if="executeInfo.ex_data">
                     <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
                     <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
@@ -107,6 +107,10 @@
             }
         },
         computed: {
+            abnormalShow () {
+                const { state, skip, error_ignored } = this.executeInfo
+                return state === 'FAILED' || (state === 'FINISHED' && (skip || error_ignored))
+            },
             nodeState () {
                 const { state, skip, error_ignored } = this.executeInfo
                 // 如果整体任务未执行的话不展示描述

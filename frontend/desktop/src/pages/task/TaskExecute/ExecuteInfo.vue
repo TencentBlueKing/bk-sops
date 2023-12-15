@@ -1575,7 +1575,6 @@
     .action-wrapper {
         width: 100%;
         padding-left: 20px;
-        height: 48px;
         line-height: 48px;
         background: #fafbfd;
         box-shadow: 0 -1px 0 0 #dcdee5;
