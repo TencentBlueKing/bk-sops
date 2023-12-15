@@ -233,7 +233,7 @@ class SubprocessPluginService(Service):
         task_id = data.get_one_of_outputs("task_id")
         self.finish_schedule()
         if not task_success:
-            data.set_outputs("ex_data", "子流程执行失败，请检查失败节点")
+            data.set_outputs("ex_data", callback_data.get("ex_data") or "子流程执行失败，请检查失败节点")
             return False
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)

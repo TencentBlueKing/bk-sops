@@ -186,7 +186,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.forced_fail_activity(
             runtime=BambooDjangoRuntime(),
             node_id=self.node_id,
-            ex_data="forced fail by {}".format(operator),
+            ex_data=kwargs.get("full_ex_data") or "The node has been terminated by {}.".format(operator),
             send_post_set_state_signal=kwargs.get("send_post_set_state_signal", True),
         )
 

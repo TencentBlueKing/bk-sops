@@ -23,7 +23,12 @@ class NodeTimeoutStrategy(metaclass=ABCMeta):
 
 class ForcedFailStrategy(NodeTimeoutStrategy):
     def deal_with_timeout_node(self, task, node_id):
-        return task.nodes_action("forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR)
+        return task.nodes_action(
+            "forced_fail",
+            node_id,
+            self.TIMEOUT_NODE_OPERATOR,
+            full_ex_data="The node has been terminated by the system due to exceeding the 'Timeout Setting'.",
+        )
 
 
 class ForcedFailAndSkipStrategy(NodeTimeoutStrategy):
