@@ -377,6 +377,13 @@
                 }
                 return nodes[node_id] || { state: 'READY' }
             },
+            // 子任务状态
+            subTaskStatus () {
+                const { taskId } = this.nodeDetailConfig
+                if (!taskId) return 'READY'
+                const stateInfo = this.subprocessNodeStatus[taskId]
+                return stateInfo.data.state
+            },
             displayStatus () {
                 let state = ''
                 if (this.realTimeState.state === 'RUNNING') {
@@ -455,7 +462,7 @@
             },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                if (this.state === 'REVOKED') return false
+                if ([this.state, this.subTaskStatus].includes('REVOKED')) return false
                 // 判断父级节点是否存在失败后跳过
                 if (this.nodeDetailConfig.taskId) {
                     const allNodeStatus = {
