@@ -15,6 +15,7 @@ from abc import ABCMeta, abstractmethod
 
 class NodeTimeoutStrategy(metaclass=ABCMeta):
     TIMEOUT_NODE_OPERATOR = "sops_system"
+    ex_data_hint = "The node has been terminated by the system due to exceeding the 'Timeout Setting'."
 
     @abstractmethod
     def deal_with_timeout_node(self, task, node_id):
@@ -23,17 +24,14 @@ class NodeTimeoutStrategy(metaclass=ABCMeta):
 
 class ForcedFailStrategy(NodeTimeoutStrategy):
     def deal_with_timeout_node(self, task, node_id):
-        return task.nodes_action(
-            "forced_fail",
-            node_id,
-            self.TIMEOUT_NODE_OPERATOR,
-            full_ex_data="The node has been terminated by the system due to exceeding the 'Timeout Setting'.",
-        )
+        return task.nodes_action("forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR, full_ex_data=self.ex_data_hint,)
 
 
 class ForcedFailAndSkipStrategy(NodeTimeoutStrategy):
     def deal_with_timeout_node(self, task, node_id):
-        fail_result = task.nodes_action("forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR)
+        fail_result = task.nodes_action(
+            "forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR, full_ex_data=self.ex_data_hint,
+        )
         if fail_result["result"]:
             skip_result = task.nodes_action("skip", node_id, self.TIMEOUT_NODE_OPERATOR)
             return skip_result
