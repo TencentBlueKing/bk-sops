@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.iam_auth.utils import iam_resource_auth_or_raise, iam_multi_resource_auth_or_raise
+from gcloud.iam_auth.utils import iam_multi_resource_auth_or_raise, iam_resource_auth_or_raise
 
 
 class YamlImportInterceptor(ViewInterceptor):
@@ -27,13 +27,13 @@ class YamlImportInterceptor(ViewInterceptor):
             project_resource_id = data["project_id"]
             project_get_resource_func = "resources_for_project"
             project_action = IAMMeta.FLOW_CREATE_ACTION
-            template_action = IAMMeta.FLOW_EDIT_ACTION
+            template_action = IAMMeta.FLOW_PUBLISH_DRAFT_ACTION
             template_get_resource_func = "resources_list_for_flows"
         else:
             project_resource_id = None
             project_get_resource_func = None
             project_action = IAMMeta.COMMON_FLOW_CREATE_ACTION
-            template_action = IAMMeta.COMMON_FLOW_EDIT_ACTION
+            template_action = IAMMeta.COMMON_FLOW_PUBLISH_DRAFT_ACTION
             template_get_resource_func = "resources_list_for_common_flows"
 
         iam_resource_auth_or_raise(username, project_action, project_resource_id, project_get_resource_func)

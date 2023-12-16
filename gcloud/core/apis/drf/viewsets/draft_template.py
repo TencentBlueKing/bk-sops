@@ -24,7 +24,7 @@ class DraftTemplateViewSetMixin:
 
         serializer.validated_data["labels"] = serializer.validated_data.pop("template_labels", [])
         result = manager.update_draft_pipeline(
-            template.draft_template, request.user.username, serializer.validated_data
+            template.draft_template, request.user.username, serializer.validated_data["pipeline_tree"]
         )
         return result
 

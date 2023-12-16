@@ -213,6 +213,15 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
                 obj, created = self.update_or_create(id=tid, defaults=defaults)
                 if created:
                     new_objects_template_ids.add(template_dict["pipeline_template_id"])
+                else:
+                    # 如果不是新建，则需要更新模板信息
+                    from gcloud.template_base.domains.template_manager import TemplateManager
+                    template_instance = self.get(id=tid)
+                    if template_instance.draft_template_id:
+                        manger = TemplateManager(template_model_cls=None)
+                        manger.update_draft_pipeline(draft_template=template_instance.draft_template,
+                                                     editor=operator,
+                                                     pipeline_tree=template_instance.pipeline_template.data)
             else:
                 new_objects.append(self.model(**defaults))
                 new_objects_template_ids.add(template_dict["pipeline_template_id"])
@@ -381,7 +390,6 @@ class BaseTemplate(models.Model):
         draft_template = DraftTemplate.objects.get(id=self.draft_template_id)
         draft_snapshot_id = draft_template.snapshot_id
         tree = Snapshot.objects.get(id=draft_snapshot_id).data
-        replace_template_id(self.__class__, tree, reverse=True)
         return tree
 
     @property

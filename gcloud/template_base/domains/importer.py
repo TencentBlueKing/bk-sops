@@ -10,14 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+import logging
+
 from django.apps import apps
 from django.db import transaction
-
-from .template_manager import TemplateManager
-from ..utils import replace_biz_id_value
-from ...common_template.models import CommonTemplate
 from django.utils.translation import ugettext_lazy as _
-import logging
+
+from ...common_template.models import CommonTemplate
+from ..utils import replace_biz_id_value
+from .template_manager import TemplateManager
 
 logger = logging.getLogger("root")
 
@@ -81,9 +82,9 @@ class TemplateImporter:
                     template_id = override_template_id or refer_template_config["template_id"]
                     try:
                         if (
-                            refer_template_config
-                            and self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
-                            and refer_template_config["template_type"] == "common"
+                                refer_template_config
+                                and self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
+                                and refer_template_config["template_type"] == "common"
                         ):
                             template = CommonTemplate.objects.get(id=template_id)
                         else:
@@ -105,6 +106,7 @@ class TemplateImporter:
                         continue
 
                 if override_template_id:
+                    # 如果选择了替换已有流程，则选择更新模板和草稿
                     operate_result = manager.update(
                         template=template,
                         editor=operator,
@@ -112,6 +114,11 @@ class TemplateImporter:
                         pipeline_tree=pipeline_tree,
                         description=description,
                     )
+                    # 如果需要覆盖的流程已经有草稿了，则更新草稿，没有草稿则不创建
+                    if template.draft_template_id:
+                        # 更新草稿的时候不再替换 id
+                        manager.update_draft_pipeline(template.draft_template, operator, pipeline_tree)
+
                     if operate_result["result"]:
                         pipeline_id_map[td["id"]] = operate_result["data"].id
                         pipeline_version_map[td["id"]] = operate_result["data"].version
@@ -120,8 +127,8 @@ class TemplateImporter:
                     for key, constant in pipeline_tree["constants"].items():
                         source_info_map.setdefault(td["id"], {}).update({key: constant.get("source_info", {})})
                     if (
-                        self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
-                        and refer_template_config["template_type"] == "common"
+                            self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
+                            and refer_template_config["template_type"] == "common"
                     ):
                         common_child_templates[td["id"]] = {"constants": pipeline_tree["constants"]}
                     pipeline_id_map[td["id"]] = refer_template_config["template_id"]
@@ -144,7 +151,7 @@ class TemplateImporter:
 
     @staticmethod
     def _replace_subprocess_template_info(
-        pipeline_tree: dict, pipeline_id_map: dict, source_map_info: dict, pipeline_version_map: dict
+            pipeline_tree: dict, pipeline_id_map: dict, source_map_info: dict, pipeline_version_map: dict
     ) -> dict:
         """
         将模板数据中临时的模板信息 替换成数据库中模型的对应信息
