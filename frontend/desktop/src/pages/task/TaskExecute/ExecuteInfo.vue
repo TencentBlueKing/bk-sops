@@ -386,6 +386,13 @@
                 }
                 return nodes[node_id] || { state: 'READY' }
             },
+            // 子任务状态
+            subTaskStatus () {
+                const { taskId } = this.nodeDetailConfig
+                if (!taskId) return 'READY'
+                const stateInfo = this.subprocessNodeStatus[taskId]
+                return stateInfo.data.state
+            },
             displayStatus () {
                 let state = ''
                 switch (this.realTimeState.state) {
@@ -472,7 +479,7 @@
             },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                if (this.state === 'REVOKED') return false
+                if ([this.state, this.subTaskStatus].includes('REVOKED')) return false
                 const executeState = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(this.realTimeState.state)
                 return executeState
                     || this.isShowRetryBtn
@@ -1572,7 +1579,6 @@
     .action-wrapper {
         width: 100%;
         padding-left: 20px;
-        height: 48px;
         line-height: 48px;
         background: #fafbfd;
         box-shadow: 0 -1px 0 0 #dcdee5;
