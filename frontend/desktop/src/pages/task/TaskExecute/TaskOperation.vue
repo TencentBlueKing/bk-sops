@@ -2795,6 +2795,9 @@
                         border-radius: 2px;
                     }
                 }
+                .jtk-connector {
+                    cursor: inherit;
+                }
             }
         }
     }
