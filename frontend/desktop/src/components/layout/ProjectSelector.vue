@@ -43,7 +43,7 @@
                 v-cursor="{ active: !option.is_user_project }"
                 :key="option.id"
                 :id="option.id"
-                :name="`${option.name}`">
+                :name="`${option.name} ( ${option.bk_biz_id} )`">
                 <div class="project-content-wrapper">
                     <div class="content-wrap">
                         <span class="name" v-html="option.matchName || option.name"></span>
