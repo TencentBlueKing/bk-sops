@@ -400,10 +400,16 @@
                         state = 'common-icon-dark-circle-ellipsis'
                         break
                     case 'SUSPENDED':
-                    case 'PENDING_PROCESSING':
-                    case 'PENDING_APPROVAL':
-                    case 'PENDING_CONFIRMATION':
                         state = 'common-icon-dark-circle-pause'
+                        break
+                    case 'PENDING_PROCESSING':
+                        state = 'common-icon-clock'
+                        break
+                    case 'PENDING_APPROVAL':
+                        state = 'common-icon-pending-approval'
+                        break
+                    case 'PENDING_CONFIRMATION':
+                        state = 'common-icon-pending-confirm'
                         break
                     case 'FINISHED':
                         const { skip, error_ignored } = this.realTimeState
@@ -1618,6 +1624,25 @@
         .common-icon-dark-circle-pause {
             font-size: 14px;
             color: #f8B53f;
+        }
+        .common-icon-clock,
+        .common-icon-pending-approval,
+        .common-icon-pending-confirm {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 14px;
+            height: 14px;
+            font-size: 20px;
+            border-radius: 50%;
+            color: #ffffff;
+            background: #f8b53f;
+            &::before {
+                transform: scale(0.5);
+            }
+        }
+        .common-icon-pending-approval::before {
+            transform: scale(0.45);
         }
         .icon-check-circle-shape {
             font-size: 14px;
