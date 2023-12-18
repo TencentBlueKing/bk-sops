@@ -665,7 +665,7 @@
                     } else if (this.subProcessPipeline) {
                         this.subprocessLoading = false
                     }
-                    this.historyInfo = respData.skip ? [] : [respData]
+                    this.historyInfo = [respData]
                     if (respData.histories) {
                         this.historyInfo.unshift(...respData.histories)
                     }
