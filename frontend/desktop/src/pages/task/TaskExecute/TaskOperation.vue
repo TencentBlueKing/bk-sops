@@ -2581,9 +2581,18 @@
                     // 根据暂停icon所在线段的方向设置平移
                     this.$nextTick(() => {
                         const direction = this.judgeIntersectSegmentDirection(tplInstance, line, nodeId)
-                        if (direction === 'vertical') { // 垂直
-                            const pauseDom = document.querySelector(`.suspend-${lineId}`)
-                            pauseDom.style.transform = 'rotate(90deg)'
+                        if (direction) {
+                            this.$nextTick(() => {
+                                const pauseDom = document.querySelector(`.suspend-${lineId}`)
+                                if (direction === 'vertical') { // 垂直
+                                    pauseDom.style.transform = 'rotate(90deg)'
+                                    const left = pauseDom.style.left.slice(0, -2)
+                                    pauseDom.style.left = `${Number(left) + 1}px`
+                                } else { // 水平
+                                    const top = pauseDom.style.top.slice(0, -2)
+                                    pauseDom.style.top = `${Number(top) + 1}px`
+                                }
+                            })
                         } else if (!direction) { // icon正在停在弯曲线段上
                             // 给曲线上的icon添加偏移计算量太大，改为删除旧的label生成一条偏移量location - 0.1的label
                             tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)

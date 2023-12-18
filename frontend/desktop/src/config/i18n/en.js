@@ -1833,7 +1833,12 @@ const en = {
     '暂停执行': 'Pause',
     '终止执行': 'Terminate',
     '状态明细': 'Detail',
-    '已自动重试 m 次 (最多 c 次)，手动重试 n 次': 'Automatically retried {m} times (up to {c} times), manual retry {n} times'
+    '包含自动重试 m 次': 'Automatically retried {m} times',
+    '，手动重试 n 次': ', manual retry {n} times',
+    '包含手动重试 n 次': ' Manual retry {n} times',
+    '节点自动重试中，暂时无法手动重试': 'The node is retrying automatically and manual retry is temporarily unavailable.',
+    '失败后自动跳过': 'Auto Skipped',
+    '失败后手动跳过': 'Manual Skipped'
 }
 
 export default en

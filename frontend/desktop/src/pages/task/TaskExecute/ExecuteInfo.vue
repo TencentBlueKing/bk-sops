@@ -119,7 +119,11 @@
                                         <span>{{$t('次执行')}}</span>
                                     </div>
                                     <p class="retry-details-tips" v-if="realTimeState.retry">
-                                        {{ $t('已自动重试 m 次 (最多 c 次)，手动重试 n 次', autoRetryInfo)}}
+                                        <template v-if="autoRetryInfo.m">
+                                            {{ $t('包含自动重试 m 次', autoRetryInfo)}}
+                                            <span v-if="autoRetryInfo.n">{{ $t('，手动重试 n 次', autoRetryInfo)}}</span>
+                                        </template>
+                                        <span v-else>{{ $t('包含手动重试 n 次', { n: realTimeState.retry })}}</span>
                                     </p>
                                 </section>
                                 <ExecuteRecord
@@ -198,13 +202,20 @@
                         </bk-button>
                     </template>
                     <template v-if="isShowRetryBtn || isShowSkipBtn">
-                        <bk-button
-                            theme="primary"
-                            v-if="isShowRetryBtn"
-                            data-test-id="taskExecute_form_retryBtn"
-                            @click="onRetryClick">
-                            {{ isSubProcessNode ? $t('重试子流程') : $t('重试') }}
-                        </bk-button>
+                        <span
+                            v-bk-tooltips="{
+                                content: $t('节点自动重试中，暂时无法手动重试'),
+                                disabled: !autoRetryInfo.h || autoRetryInfo.m === autoRetryInfo.c
+                            }">
+                            <bk-button
+                                theme="primary"
+                                v-if="isShowRetryBtn"
+                                data-test-id="taskExecute_form_retryBtn"
+                                :disabled="autoRetryInfo.h && autoRetryInfo.m !== autoRetryInfo.c"
+                                @click="onRetryClick">
+                                {{ isSubProcessNode ? $t('重试子流程') : $t('重试') }}
+                            </bk-button>
+                        </span>
                         <bk-button
                             theme="default"
                             v-if="isShowSkipBtn"
@@ -362,6 +373,7 @@
                 const { auto_retry_infos: retryInfos } = this.nodeDisplayStatus
                 const retryInfo = retryInfos[this.nodeDetailConfig.node_id] || {}
                 return {
+                    h: !!Object.keys(retryInfo).length,
                     m: retryInfo.auto_retry_times || 0,
                     c: retryInfo.max_auto_retry_times || 10,
                     n: this.realTimeState.retry - retryInfo.auto_retry_times || 0
@@ -403,13 +415,13 @@
                         state = 'common-icon-dark-circle-pause'
                         break
                     case 'PENDING_PROCESSING':
-                        state = 'common-icon-clock'
+                        state = 'common-icon-dark-pending-process'
                         break
                     case 'PENDING_APPROVAL':
-                        state = 'common-icon-pending-approval'
+                        state = 'common-icon-dark-pending-approval'
                         break
                     case 'PENDING_CONFIRMATION':
-                        state = 'common-icon-pending-confirm'
+                        state = 'common-icon-dark-pending-confirm'
                         break
                     case 'FINISHED':
                         const { skip, error_ignored } = this.realTimeState
@@ -431,7 +443,7 @@
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
                 if (['FAILED', 'FINISHED'].includes(this.state) && this.realTimeState.state === 'READY') return i18n.t('未执行')
                 const { state, skip, error_ignored } = this.realTimeState
-                return skip || error_ignored ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
+                return skip ? i18n.t('失败后手动跳过') : error_ignored ? i18n.t('失败后自动跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
                 const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
@@ -671,7 +683,7 @@
                     } else if (this.subProcessPipeline) {
                         this.subprocessLoading = false
                     }
-                    this.historyInfo = [respData]
+                    this.historyInfo = respData.skip ? [] : [respData]
                     if (respData.histories) {
                         this.historyInfo.unshift(...respData.histories)
                     }
@@ -1621,28 +1633,12 @@
             font-size: 14px;
             color: #3a84ff;
         }
-        .common-icon-dark-circle-pause {
+        .common-icon-dark-circle-pause,
+        .common-icon-dark-pending-process,
+        .common-icon-dark-pending-approval,
+        .common-icon-dark-pending-confirm {
             font-size: 14px;
             color: #f8B53f;
-        }
-        .common-icon-clock,
-        .common-icon-pending-approval,
-        .common-icon-pending-confirm {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 14px;
-            height: 14px;
-            font-size: 20px;
-            border-radius: 50%;
-            color: #ffffff;
-            background: #f8b53f;
-            &::before {
-                transform: scale(0.5);
-            }
-        }
-        .common-icon-pending-approval::before {
-            transform: scale(0.45);
         }
         .icon-check-circle-shape {
             font-size: 14px;

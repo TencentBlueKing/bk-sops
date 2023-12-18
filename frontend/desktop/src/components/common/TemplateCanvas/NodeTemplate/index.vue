@@ -414,6 +414,11 @@
                 .node-icon-font {
                     font-size: 16px;
                     color: #ffffff;
+                    &.common-icon-bk-plugin-message,
+                    &.common-icon-bk-plugin-confirm,
+                    &.common-icon-bk-plugin-approval {
+                        font-size: 14px;
+                    }
                 }
                 .stage-name {
                     padding: 0 4px;
@@ -542,16 +547,16 @@
             align-items: center;
             justify-content: space-between;
             top: -10px;
-            right: -8px;
-            height: 18px;
+            right: -10px;
+            height: 20px;
         }
         .task-status-icon {
             display: flex;
             justify-content: center;
             align-items: center;
             margin-left: 2px;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             font-size: 14px;
             border-radius: 50%;
             background: #f8b53f;
@@ -565,7 +570,6 @@
             .common-icon-clock {
                 display: inline-block;
             }
-            .common-icon-clock,
             .common-icon-pending-approval,
             .common-icon-pending-confirm {
                 font-size: 12px;
@@ -574,9 +578,6 @@
             .common-icon-loading {
                 display: inline-block;
                 animation: loading 1.4s infinite linear;
-            }
-            .icon-arrows-right-shape {
-                font-size: 12px;
             }
             .retry-times {
                 font-size: 12px;
@@ -621,13 +622,23 @@
                 }
             }
         }
-        .node-subscript {
-            font-size: 12px;
-            background: #ea3636 !important;
+        .node-manual-skip,
+        .node-auto-skip {
+            display: flex;
+            height: 20px;
+            font-size: 20px;
+            border-radius: 50%;
+            color: #f0a0a0;
+            background: #fff;
+            i {
+                transform: translateY(1px);
+            }
         }
         .node-phase-icon {
+            transform: translateY(-2px);
+            margin-right: 4px;
             i {
-                font-size: 14px;
+                font-size: 16px;
                 &.phase-warn {
                     color: $yellowDark;
                 }
