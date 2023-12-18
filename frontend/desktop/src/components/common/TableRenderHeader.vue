@@ -339,17 +339,14 @@
     }
     .table-header-filter-popover {
         .tippy-tooltip {
-            padding: 4px 0 0 0;
-            .tippy-content {
-                background: #fff;
-            }
+            padding: 4px 0;
+            background: #fff !important;
         }
         .option-list {
             width: 200px;
             max-height: 350px;
             overflow: auto;
             @include scrollbar;
-            margin-bottom: 15px;
             background: #fff;
             .option-item {
                 height: 32px;

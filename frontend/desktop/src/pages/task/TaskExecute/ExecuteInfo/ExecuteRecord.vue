@@ -1,7 +1,7 @@
 <template>
     <div class="execute-record">
         <template v-if="Object.keys(executeInfo).length && !notPerformedSubNode">
-            <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.state === 'FAILED'">
+            <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="abnormalShow">
                 <template v-if="executeInfo.ex_data">
                     <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
                     <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
@@ -19,15 +19,15 @@
                     </li>
                     <li>
                         <p class="th">{{ $t('开始时间') }}</p>
-                        <p class="td">{{ executeInfo.start_time || '--' }}</p>
+                        <p class="td" v-bk-overflow-tips>{{ executeInfo.start_time || '--' }}</p>
                     </li>
                     <li>
                         <p class="th">{{ $t('结束时间') }}</p>
-                        <p class="td">{{ executeInfo.finish_time || '--' }}</p>
+                        <p class="td" v-bk-overflow-tips>{{ executeInfo.finish_time || '--' }}</p>
                     </li>
                     <li>
                         <p class="th">{{ $t('耗时') }}</p>
-                        <p class="td">{{ executeInfo.finish_time && getLastTime(executeInfo.elapsed_time) || '--' }}</p>
+                        <p class="td" v-bk-overflow-tips>{{ executeInfo.finish_time && getLastTime(executeInfo.elapsed_time) || '--' }}</p>
                     </li>
                 </ul>
                 <NoData v-else :message="$t('暂无执行信息')"></NoData>
@@ -107,13 +107,17 @@
             }
         },
         computed: {
+            abnormalShow () {
+                const { state, skip, error_ignored } = this.executeInfo
+                return state === 'FAILED' || (state === 'FINISHED' && (skip || error_ignored))
+            },
             nodeState () {
                 const { state, skip, error_ignored } = this.executeInfo
                 // 如果整体任务未执行的话不展示描述
                 if (state === 'CREATED') return this.$t('未执行')
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
                 if (['FAILED', 'FINISHED'].includes(state) && state === 'READY') return this.$t('未执行')
-                return skip || error_ignored ? this.$t.t('失败后跳过') : state && TASK_STATE_DICT[state]
+                return skip || error_ignored ? this.$t('失败后跳过') : state && TASK_STATE_DICT[state]
             }
         },
         mounted () {
@@ -199,6 +203,9 @@
             }
             .td {
                 color: #313238;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             &:first-child,
             &:last-child {

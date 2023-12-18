@@ -386,6 +386,13 @@
                 }
                 return nodes[node_id] || { state: 'READY' }
             },
+            // 子任务状态
+            subTaskStatus () {
+                const { taskId } = this.nodeDetailConfig
+                if (!taskId) return 'READY'
+                const stateInfo = this.subprocessNodeStatus[taskId]
+                return stateInfo.data.state
+            },
             displayStatus () {
                 let state = ''
                 switch (this.realTimeState.state) {
@@ -393,10 +400,16 @@
                         state = 'common-icon-dark-circle-ellipsis'
                         break
                     case 'SUSPENDED':
-                    case 'PENDING_PROCESSING':
-                    case 'PENDING_APPROVAL':
-                    case 'PENDING_CONFIRMATION':
                         state = 'common-icon-dark-circle-pause'
+                        break
+                    case 'PENDING_PROCESSING':
+                        state = 'common-icon-clock'
+                        break
+                    case 'PENDING_APPROVAL':
+                        state = 'common-icon-pending-approval'
+                        break
+                    case 'PENDING_CONFIRMATION':
+                        state = 'common-icon-pending-confirm'
                         break
                     case 'FINISHED':
                         const { skip, error_ignored } = this.realTimeState
@@ -472,7 +485,7 @@
             },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                if (this.state === 'REVOKED') return false
+                if ([this.state, this.subTaskStatus].includes('REVOKED')) return false
                 const executeState = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(this.realTimeState.state)
                 return executeState
                     || this.isShowRetryBtn
@@ -658,7 +671,7 @@
                     } else if (this.subProcessPipeline) {
                         this.subprocessLoading = false
                     }
-                    this.historyInfo = respData.skip ? [] : [respData]
+                    this.historyInfo = [respData]
                     if (respData.histories) {
                         this.historyInfo.unshift(...respData.histories)
                     }
@@ -1572,7 +1585,6 @@
     .action-wrapper {
         width: 100%;
         padding-left: 20px;
-        height: 48px;
         line-height: 48px;
         background: #fafbfd;
         box-shadow: 0 -1px 0 0 #dcdee5;
@@ -1612,6 +1624,25 @@
         .common-icon-dark-circle-pause {
             font-size: 14px;
             color: #f8B53f;
+        }
+        .common-icon-clock,
+        .common-icon-pending-approval,
+        .common-icon-pending-confirm {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 14px;
+            height: 14px;
+            font-size: 20px;
+            border-radius: 50%;
+            color: #ffffff;
+            background: #f8b53f;
+            &::before {
+                transform: scale(0.5);
+            }
+        }
+        .common-icon-pending-approval::before {
+            transform: scale(0.45);
         }
         .icon-check-circle-shape {
             font-size: 14px;
