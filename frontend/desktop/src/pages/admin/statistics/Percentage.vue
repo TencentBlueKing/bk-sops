@@ -62,19 +62,17 @@
 
     const TABLE_COLUMN = [
         {
-            width: '200',
+            width: 150,
             align: 'left',
             label: i18n.t('名称'),
             prop: 'name'
         },
         {
-            width: '',
-            align: 'right',
+            align: 'left',
             label: i18n.t('数量'),
             prop: 'amount'
         },
         {
-            width: 60,
             align: 'left',
             label: i18n.t('占比'),
             prop: 'percentage'
@@ -294,12 +292,17 @@
         }
         .chart-wrapper {
             display: flex;
+            align-items: center;
             .canvas-content {
-                width: 240px;
-                height: 240px;
+                width: 30%;
+                height: 30%;
+                min-width: 160px;
+                min-height: 160px;
+                max-width: 240px;
+                max-height: 240px;
                 position: relative;
                 flex-shrink: 0;
-                margin-right: 40px;
+                margin-right: 3%;
                 .center-circle {
                     width: 140px;
                     height: 140px;
@@ -325,7 +328,7 @@
             }
             /deep/.percent-table {
                 flex: 1;
-                min-width: 352px;
+                min-width: 300px;
                 .bk-table {
                     td {
                         height: 32px;

@@ -121,6 +121,7 @@
     import { mapActions, mapState } from 'vuex'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const TABLE_COLUMN = [
         {
@@ -311,6 +312,8 @@
                     if (this.appmakerSort === '') {
                         delete query.conditions.order_by
                     }
+                    const source = new CancelRequest()
+                    query.cancelToken = source.token
                     this.appmakerData = await this.loadAnalysisData(query, 'appmaker')
                 } catch (e) {
                     console.log(e)

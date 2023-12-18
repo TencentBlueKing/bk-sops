@@ -43,10 +43,10 @@
                 v-cursor="{ active: !option.is_user_project }"
                 :key="option.id"
                 :id="option.id"
-                :name="`${option.name}`">
+                :name="`${option.name} ( ${option.bk_biz_id} )`">
                 <div class="project-content-wrapper">
                     <div class="content-wrap">
-                        <span class="name" v-html="option.matchName || option.name"></span>
+                        <span class="name" v-bk-overflow-tips v-html="option.matchName || option.name"></span>
                         <span class="id">
                             (<span v-html="option.matchBizId || option.bk_biz_id"></span>)
                         </span>
@@ -498,7 +498,9 @@
                 }
             }
             &.is-disabled {
-                color: #c4c4c4 !important;
+                .name {
+                    color: #c4c4c4 !important;
+                }
                 .project-favor {
                     display: none;
                 }
