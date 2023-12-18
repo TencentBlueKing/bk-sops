@@ -43,10 +43,12 @@ const INVALID_NAME_CHAR = '\'‘"”$&<>'
 
 const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM', 'WechatWork']
 const BK_PLUGIN_ICON = {
+    'bk_display': 'common-icon-bk-plugin-message',
+    'pause_node': 'common-icon-bk-plugin-confirm',
+    'bk_approve': 'common-icon-bk-plugin-approval',
     'bk_http_request': 'common-icon-bk-plugin-http',
     'bk_notify': 'common-icon-bk-plugin-notify',
-    'sleep_timer': 'common-icon-bk-plugin-timer',
-    'pause_node': 'common-icon-bk-plugin-pause'
+    'sleep_timer': 'common-icon-bk-plugin-timer'
 }
 
 // 最大长度常量

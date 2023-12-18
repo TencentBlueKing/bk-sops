@@ -6,17 +6,17 @@
         </div>
         <!--节点等待处理/等待审批/等待确认-->
         <div v-else-if="isPendingState" class="task-status-icon node-pending">
-            <i v-if="node.status === 'PENDING_PROCESSING'" v-bk-tooltips="$t('等待处理')" class="common-icon-clock"></i>
+            <i v-if="node.status === 'PENDING_PROCESSING'" v-bk-tooltips="$t('等待处理')" class="bk-icon icon-time"></i>
             <i v-if="node.status === 'PENDING_APPROVAL'" v-bk-tooltips="$t('等待审批')" class="common-icon-pending-approval"></i>
             <i v-if="node.status === 'PENDING_CONFIRMATION'" v-bk-tooltips="$t('等待确认')" class="common-icon-pending-confirm"></i>
         </div>
         <!-- 节点失败后自动忽略icon -->
-        <div v-else-if="node.status === 'FINISHED' && node.skip" class="task-status-icon">
-            <i class="bk-icon icon-arrows-right-shape"></i>
+        <div v-else-if="node.status === 'FINISHED' && node.skip" class="node-manual-skip">
+            <i class="common-icon-manual-skip"></i>
         </div>
         <!-- 节点失败后自动忽略icon -->
-        <div v-else-if="node.status === 'FINISHED' && node.error_ignored" class="task-status-icon node-subscript">
-            <i class="bk-icon icon-arrows-right-shape"></i>
+        <div v-else-if="node.status === 'FINISHED' && node.error_ignored" class="node-auto-skip">
+            <i class="common-icon-auto-skip"></i>
         </div>
         <!-- 节点顶部右侧生命周期 icon -->
         <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
