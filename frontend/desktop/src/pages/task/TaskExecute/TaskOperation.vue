@@ -519,12 +519,14 @@
         watch: {
             'instanceStatus.state': {
                 handler (val, oldVal) {
-                    const { children = {} } = this.instanceStatus
+                    const { children = {}, auto_retry_infos: retryInfos = {} } = this.instanceStatus
                     const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
                     if (val !== oldVal && [val, oldVal].includes('SUSPENDED')) {
                         Object.values(children).forEach(node => {
                             // 非任务节点/网关节点
                             if ([start_event.id, end_event.id].includes(node.id)) return
+                            // 排除节点自动重试
+                            if (retryInfos[node.id]) return
                             // 查看输出节点状态
                             let { outgoing } = activities[node.id] || gateways[node.id] || {}
                             if (!Array.isArray(outgoing)) {
@@ -2794,6 +2796,9 @@
                         border: 1px solid #1768ef;
                         border-radius: 2px;
                     }
+                }
+                .jtk-connector {
+                    cursor: inherit;
                 }
             }
         }
