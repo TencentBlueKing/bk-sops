@@ -12,7 +12,7 @@
                 </i18n>
             </section>
             <section class="info-section" data-test-id="taskExecute_form_executeInfo">
-                <ul class="operation-table" v-if="isReadyStatus">
+                <ul class="operation-table" v-if="isExecuted">
                     <li>
                         <p class="th">{{ $t('执行结果') }}</p>
                         <p class="td">{{ nodeState || '--' }}</p>
@@ -42,7 +42,7 @@
                     :render-data="executeInfo.renderData">
                 </InputParams>
                 <OutputParams
-                    :is-ready-status="isReadyStatus"
+                    :is-executed="isExecuted"
                     :admin-view="adminView"
                     :outputs="executeInfo.outputsInfo"
                     :node-detail-config="nodeDetailConfig">
@@ -79,10 +79,6 @@
                 type: Object,
                 default: () => ({})
             },
-            isReadyStatus: {
-                type: Boolean,
-                default: false
-            },
             executeInfo: {
                 type: Object,
                 default: () => ({})
@@ -118,6 +114,9 @@
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
                 if (['FAILED', 'FINISHED'].includes(state) && state === 'READY') return this.$t('未执行')
                 return skip || error_ignored ? this.$t('失败') : state && TASK_STATE_DICT[state]
+            },
+            isExecuted () {
+                return ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].includes(this.executeInfo.state)
             }
         },
         mounted () {

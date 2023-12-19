@@ -13,23 +13,25 @@
     <page-header class="operation-header">
         <div class="head-left-area">
             <i class="bk-icon icon-arrows-left back-icon" @click="onBack"></i>
-            <span v-if="stateStr" :class="['task-state', state]" v-bk-tooltips="taskStatusDetailTipsConfig">
-                {{ stateStr }}
-                <i v-if="isStateDetailShow" class="common-icon-info"></i>
-            </span>
-            <dl v-show="stateStr && isStateDetailShow" class="task-state-detail" id="task-state-detail">
-                <dt>{{$t('状态明细')}}</dt>
-                <template v-if="pendingNodes.length">
-                    <dd
-                        v-for="item in pendingNodes"
-                        :key="item.id">
-                        <i class="bk-icon icon-circle"></i>
-                        <span class="node-name" v-bk-overflow-tips @click="$emit('moveNodeToView', item.id)">{{ item.name }}</span>
-                        <span class="task-state">{{ item.statusText }}</span>
-                    </dd>
-                </template>
-                <dd v-else>{{ '--' }}</dd>
-            </dl>
+            <bk-popover theme="light" placement="bottom-start" :disabled="!isStateDetailShow" ext-cls="state-detail-tips">
+                <span v-if="stateStr" :class="['task-state', state]">
+                    {{ stateStr }}
+                    <i v-if="isStateDetailShow" class="common-icon-info"></i>
+                </span>
+                <dl slot="content" class="task-state-detail" id="task-state-detail">
+                    <dt>{{$t('状态明细')}}</dt>
+                    <template v-if="pendingNodes.length">
+                        <dd
+                            v-for="item in pendingNodes"
+                            :key="item.id">
+                            <i class="bk-icon icon-circle"></i>
+                            <span class="node-name" v-bk-overflow-tips @click="$emit('moveNodeToView', item.id)">{{ item.name }}</span>
+                            <span class="task-state">{{ item.statusText }}</span>
+                        </dd>
+                    </template>
+                    <dd v-else>{{ '--' }}</dd>
+                </dl>
+            </bk-popover>
             <div class="bread-crumbs-wrapper">
                 <span
                     class="path-item name-ellipsis"
@@ -132,14 +134,7 @@
         ],
         data () {
             return {
-                showNodeList: [0, 1, 2],
-                taskStatusDetailTipsConfig: {
-                    allowHtml: true,
-                    theme: 'light',
-                    extCls: 'state-detail-tips',
-                    content: '#task-state-detail',
-                    placement: 'bottom-start'
-                }
+                showNodeList: [0, 1, 2]
             }
         },
         computed: {

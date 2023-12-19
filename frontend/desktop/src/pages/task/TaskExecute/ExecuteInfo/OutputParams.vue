@@ -6,12 +6,12 @@
                 :class="{ 'is-expand': isExpand }"
                 @click="isExpand = !isExpand"></i>
             {{ $t('输出参数') }}
-            <div class="origin-value" v-if="isReadyStatus && !adminView">
+            <div class="origin-value" v-if="isExecuted && !adminView">
                 <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
                 {{ 'Code' }}
             </div>
         </div>
-        <NoData v-if="!isReadyStatus && isExpand" :message="$t('暂无输出')"></NoData>
+        <NoData v-if="!isExecuted && isExpand" :message="$t('暂无输出')"></NoData>
         <template v-else-if="!adminView && isExpand">
             <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
                 <thead>
@@ -72,7 +72,7 @@
                 type: Object,
                 default: () => ({})
             },
-            isReadyStatus: {
+            isExecuted: {
                 type: Boolean,
                 default: false
             }

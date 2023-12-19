@@ -366,6 +366,7 @@
                     @include nodeClick ($blueDark);
                 }
             }
+            &.pending_task_continue,
             &.pending_processing,
             &.pending_approval,
             &.pending_confirmation {
@@ -578,6 +579,10 @@
             .common-icon-loading {
                 display: inline-block;
                 animation: loading 1.4s infinite linear;
+            }
+            .common-icon-pause {
+                font-size: 20px;
+                transform: scale(0.5);
             }
             .retry-times {
                 font-size: 12px;

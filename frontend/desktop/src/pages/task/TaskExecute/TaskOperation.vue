@@ -519,14 +519,14 @@
         watch: {
             'instanceStatus.state': {
                 handler (val, oldVal) {
-                    const { children = {}, auto_retry_infos: retryInfos = {} } = this.instanceStatus
+                    const { children = {} } = this.instanceStatus
                     const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
                     if (val !== oldVal && [val, oldVal].includes('SUSPENDED')) {
                         Object.values(children).forEach(node => {
                             // 非任务节点/网关节点
                             if ([start_event.id, end_event.id].includes(node.id)) return
                             // 排除节点自动重试
-                            if (retryInfos[node.id]) return
+                            if (val === 'SUSPENDED' && node.state === 'READY') return
                             // 查看输出节点状态
                             let { outgoing } = activities[node.id] || gateways[node.id] || {}
                             if (!Array.isArray(outgoing)) {
@@ -1055,7 +1055,7 @@
             },
             // 更新节点状态
             updateNodeInfo () {
-                const { auto_retry_infos: retryInfo, children: nodes } = this.instanceStatus
+                const { auto_retry_infos: retryInfo, children: nodes, state } = this.instanceStatus
                 for (const id in nodes) {
                     let code, skippable, retryable, errorIgnorable, autoRetry
                     const currentNode = nodes[id]
@@ -1068,12 +1068,13 @@
                         errorIgnorable = nodeActivities.error_ignorable
                         autoRetry = nodeActivities.auto_retry
                     }
+                    const status = state === 'SUSPENDED' && currentNode.state === 'READY' ? 'PENDING_TASK_CONTINUE' : currentNode.state
                     const data = {
                         code,
                         skippable,
                         retryable,
                         loop: currentNode.loop,
-                        status: currentNode.state,
+                        status,
                         skip: currentNode.skip,
                         auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
@@ -2652,9 +2653,9 @@
                     segments[0].params = params
                     segments = segments.slice(0, 1)
                 }
-                // 过滤掉圆弧线段
-                segments = segments.filter(item => item.type === 'Straight')
-                segments.some(item => {
+                segments.some((item, index) => {
+                    // 过滤掉圆弧线段
+                    if (item.type === 'Arc') return false
                     // 计算线段的高宽和坐标
                     const { x1, x2, y1, y2 } = item.params
                     // 线段的坐标的最大值/最小值
@@ -2662,6 +2663,9 @@
                     const minX = Math.min(x1, x2)
                     const maxY = Math.max(y1, y2)
                     const minY = Math.min(y1, y2)
+                    let arcHeight = 0
+                    const prevSegment = segments[index - 1]
+                    const nextSegment = segments[index + 1]
 
                     let left, top, height, width
                     if (x1 === x2) { // 垂直
@@ -2672,8 +2676,15 @@
                             direction = 'vertical'
                         }
                     } else if (y1 === y2) { // 水平
+                        if (prevSegment?.type === 'Arc') {
+                            const { y1: prevY1, y2: prevY2, r } = prevSegment.params
+                            arcHeight = Math.min(prevY1, prevY2) < y1 ? r : 0
+                        } else if (!arcHeight && nextSegment?.type === 'Arc') {
+                            const { y1: nextY1, y2: nextY2, r } = nextSegment.params
+                            arcHeight = Math.min(nextY1, nextY2) < y1 ? r : 0
+                        }
                         width = maxX - minX
-                        top = lineTop + minY + firstSegmentHeight + 5
+                        top = lineTop + minY + firstSegmentHeight + arcHeight
                         left = lineLeft + minX + firstSegmentWidth
                         if (top > iconPos.top && top < iconPos.top + iHeight && left < iconPos.left && left + width > iconPos.left + iWidth) {
                             direction = 'horizontal'
