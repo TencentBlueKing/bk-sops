@@ -89,7 +89,7 @@
                 </template>
                 <span v-if="node.status === 'SUSPENDED'" @click.stop="onSubflowPauseResumeClick('resume')">
                     <i class="common-icon-play"></i>
-                    {{ $t('确认') }}
+                    {{ $t('确认继续') }}
                 </span>
             </template>
         </div>

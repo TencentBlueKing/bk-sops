@@ -1839,7 +1839,8 @@ const en = {
     '节点自动重试中，暂时无法手动重试': 'The node is retrying automatically and manual retry is temporarily unavailable.',
     '失败后自动跳过': 'Auto Skipped',
     '失败后手动跳过': 'Manual Skipped',
-    '等待任务继续': 'Pending Task Continue'
+    '等待任务继续': 'Pending Task Continue',
+    '确认继续': 'Confirm'
 }
 
 export default en

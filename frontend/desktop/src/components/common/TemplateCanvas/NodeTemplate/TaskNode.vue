@@ -79,7 +79,7 @@
             <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(node.status)">
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
                     <i class="common-icon-play"></i>
-                    {{ $t('确认') }}
+                    {{ $t('确认继续') }}
                 </span>
                 <span v-else-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
                     <i class="common-icon-circulation"></i>
