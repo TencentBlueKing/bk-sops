@@ -404,7 +404,8 @@
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
-                retryNodeName: ''
+                retryNodeName: '',
+                suspendLines: []
             }
         },
         computed: {
@@ -517,16 +518,15 @@
             }
         },
         watch: {
-            'instanceStatus.state': {
+            instanceStatus: {
                 handler (val, oldVal) {
-                    const { children = {} } = this.instanceStatus
-                    const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
-                    if (val !== oldVal && [val, oldVal].includes('SUSPENDED')) {
+                    if ([val.state, oldVal.state].includes('SUSPENDED')) {
+                        if (val.state === oldVal.state && !this.suspendLines.length) return
+                        const { children = {} } = this.instanceStatus
+                        const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
                         Object.values(children).forEach(node => {
                             // 非任务节点/网关节点
                             if ([start_event.id, end_event.id].includes(node.id)) return
-                            // 排除节点自动重试
-                            if (val === 'SUSPENDED' && node.state === 'READY') return
                             // 查看输出节点状态
                             let { outgoing } = activities[node.id] || gateways[node.id] || {}
                             if (!Array.isArray(outgoing)) {
@@ -534,7 +534,7 @@
                             }
                             outgoing.forEach(outLine => {
                                 const targetNode = flows[outLine].target
-                                const isExecuted = val === 'SUSPENDED' ? targetNode in children : true
+                                const isExecuted = val.state === 'SUSPENDED' ? (node.state === 'READY' || targetNode in children) : true
                                 // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
                                 this.setLineSuspendState(node.id, outLine, isExecuted)
                             })
@@ -2569,8 +2569,10 @@
                     if (pauseDom) {
                         tplInstance.setPaintStyle(lineId, '#a9adb6')
                         tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
+                        const index = this.suspendLines.findIndex(item => item === lineId)
+                        this.suspendLines.splice(index, 1)
                     }
-                } else if (location > 0) {
+                } else if (!this.suspendLines.includes(lineId) && location > 0) {
                     // 设置连线颜色
                     tplInstance.setPaintStyle(lineId, '#ffb848')
                     const labelData = {
@@ -2595,6 +2597,7 @@
                                     const top = pauseDom.style.top.slice(0, -2)
                                     pauseDom.style.top = `${Number(top) + 1}px`
                                 }
+                                this.suspendLines.push(lineId)
                             })
                         } else if (!direction) { // icon正在停在弯曲线段上
                             // 给曲线上的icon添加偏移计算量太大，改为删除旧的label生成一条偏移量location - 0.1的label

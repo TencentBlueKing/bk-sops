@@ -127,7 +127,7 @@
                                         </a>
                                         <a
                                             v-else
-                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执行')"
+                                            v-bk-tooltips.top="$t('使用当前任务数据（节点选择、入参）再次创建任务')"
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">

@@ -46,10 +46,14 @@
                     <span class="node-ellipsis" v-else-if="index === 1">...</span>
                 </span>
             </div>
-            <div class="task-operation-btns" v-show="state !== 'FINISHED'">
+            <div class="task-operation-btns">
                 <div
                     v-for="operation in taskOperationBtns"
                     :key="operation.action"
+                    v-bk-tooltips.top="{
+                        content: $t('使用当前任务数据（节点选择、入参）再次创建任务'),
+                        disabled: operation.action !== 'reExecute'
+                    }"
                     class="operation-btn">
                     <bk-button
                         :class="[
@@ -155,20 +159,33 @@
             }
         },
         methods: {
-            getTplURL () {
-                let routerData = ''
+            onViewFlow () {
+                let routerData = {}
                 const templateId = this.primitiveTplId || this.template_id
+                const params = {
+                    type: 'view',
+                    project_id: this.project_id
+                }
                 // business 兼容老数据
                 if (this.primitiveTplSource === 'business' || this.primitiveTplSource === 'project') {
-                    routerData = `/template/view/${this.project_id}/?template_id=${templateId}`
+                    routerData = this.$router.resolve({
+                        name: 'templatePanel',
+                        params,
+                        query: {
+                            template_id: templateId
+                        }
+                    })
                 } else if (this.primitiveTplSource === 'common') {
-                    routerData = `/template/common/view/${this.project_id}/?template_id=${templateId}&common=1`
+                    routerData = this.$router.resolve({
+                        name: 'commonTemplatePanel',
+                        params,
+                        query: {
+                            common: 1,
+                            template_id: templateId
+                        }
+                    })
                 }
-                return routerData
-            },
-            onViewFlow () {
-                const url = this.getTplURL()
-                window.open(url, '_blank')
+                window.open(routerData.href, '_blank')
             },
             onSelectSubflow (id) {
                 this.$emit('onSelectSubflow', id)

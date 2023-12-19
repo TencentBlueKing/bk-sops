@@ -475,7 +475,7 @@
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             },
             isShowContinueBtn () {
-                return this.isLegacySubProcess && this.realTimeState.state === 'SUSPENDED'
+                return this.isLegacySubProcess && [this.realTimeState.state, this.executeInfo.state].includes('SUSPENDED')
             },
             isShowRetryBtn () {
                 if (this.realTimeState.state === 'FAILED') {
