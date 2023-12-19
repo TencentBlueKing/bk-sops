@@ -1342,13 +1342,10 @@
                             task_id: this.subProcessTaskId || this.instance_id,
                             node_id: id
                         }
-                        // 如果存在子流程任务节点时则需要传subprocess_id
-                        if (this.subProcessTaskId) {
-                            let { subprocess_stack: stack } = this.nodeDetailConfig
-                            if (stack) {
-                                stack = JSON.parse(stack)
-                                params.subprocess_id = stack.join(',')
-                            }
+                        let { subprocess_stack: stack } = this.nodeDetailConfig
+                        if (stack) {
+                            stack = JSON.parse(stack)
+                            params.subprocess_id = stack.join(',')
                         }
                         await this.itsmTransition(params)
                         this.approval.id = ''
