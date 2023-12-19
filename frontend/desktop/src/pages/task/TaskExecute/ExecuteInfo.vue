@@ -131,7 +131,6 @@
                                     :admin-view="adminView"
                                     :loading="loading"
                                     :location="location"
-                                    :is-ready-status="isReadyStatus"
                                     :node-state="nodeState"
                                     :node-activity="nodeActivity"
                                     :execute-info="executeRecord"
@@ -173,13 +172,13 @@
                     </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap">
-                    <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL'].includes(realTimeState.state)">
+                    <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_CONFIRMATION', 'PENDING_APPROVAL'].includes(realTimeState.state)">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
                             data-test-id="taskExecute_form_resumeBtn"
                             @click="onResumeClick">
-                            {{ $t('继续执行') }}
+                            {{ $t('确认') }}
                         </bk-button>
                         <bk-button
                             v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
@@ -228,7 +227,7 @@
                         v-if="isShowContinueBtn"
                         data-test-id="taskExecute_form_continueBtn"
                         @click="onContinueClick">
-                        {{ $t('继续') }}
+                        {{ $t('确认') }}
                     </bk-button>
                 </div>
             </div>
@@ -342,7 +341,6 @@
                 },
                 loop: 1,
                 theExecuteTime: undefined,
-                isReadyStatus: true,
                 curActiveTab: 'record',
                 theExecuteRecord: 0,
                 executeRecord: {},
@@ -643,14 +641,12 @@
                     this.renderConfig = []
                     let respData = await this.getTaskNodeDetail()
                     if (!respData) {
-                        this.isReadyStatus = false
                         this.executeInfo = {}
                         this.theExecuteTime = undefined
                         this.historyInfo = []
                         return
                     }
                     respData = this.adminView && this.engineVer === 1 ? { ...respData, ...respData.execution_info } : respData
-                    this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(respData.state) > -1
 
                     await this.setFillRecordField(respData)
                     if (this.theExecuteTime === undefined) {

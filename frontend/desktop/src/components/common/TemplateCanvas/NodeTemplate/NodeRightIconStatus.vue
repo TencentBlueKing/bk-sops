@@ -4,6 +4,10 @@
         <div v-if="node.status === 'RUNNING'" class="task-status-icon">
             <i class="common-icon-loading"></i>
         </div>
+        <!-- 节点等待任务继续 -->
+        <div v-else-if="node.status === 'PENDING_TASK_CONTINUE'" class="node-pending task-status-icon">
+            <i v-bk-tooltips="$t('等待任务继续')" class="common-icon-pause"></i>
+        </div>
         <!--节点等待处理/等待审批/等待确认-->
         <div v-else-if="isPendingState" class="task-status-icon node-pending">
             <i v-if="node.status === 'PENDING_PROCESSING'" v-bk-tooltips="$t('等待处理')" class="bk-icon icon-time"></i>
