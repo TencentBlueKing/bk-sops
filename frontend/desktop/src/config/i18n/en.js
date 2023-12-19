@@ -1840,7 +1840,8 @@ const en = {
     '失败后自动跳过': 'Auto Skipped',
     '失败后手动跳过': 'Manual Skipped',
     '等待任务继续': 'Pending Task Continue',
-    '确认继续': 'Confirm'
+    '确认继续': 'Confirm',
+    '使用当前任务数据（节点选择、入参）再次创建任务': 'Create task again using current task data (node selection, input parameters)'
 }
 
 export default en

@@ -42,8 +42,8 @@
                 </bk-checkbox>
             </template>
             <!-- 节点循环次数 -->
-            <div v-if="node.loop > 1" :class="['task-status-icon task-node-loop', { 'loop-plural': node.loop > 9 }]">
-                <i :class="`common-icon-loading-${ node.loop > 9 ? 'oval' : 'round' }`"></i>
+            <div v-if="node.loop > 1" class="task-status-icon task-node-loop">
+                <i class="common-icon-loading-oval"></i>
                 <span>{{ node.loop > 99 ? '99+' : node.loop }}</span>
             </div>
             <!-- 任务节点自动重试/手动重试 -->

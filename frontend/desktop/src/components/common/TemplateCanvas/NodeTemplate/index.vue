@@ -461,19 +461,20 @@
                 position: absolute;
                 top: -20px;
                 left: 0;
+                height: 20px;
                 .bk-form-checkbox,
                 .dark-circle {
-                    margin-bottom: -3px;
+                    margin-bottom: 2px;
                     font-size: 14px;
                     color: #979ba5;
                 }
                 .error-handle-icon {
                     display: flex;
                     align-items: center;
-                    margin: 4px 0 -4px;
+                    margin-left: -4px;
                     line-height: 12px;
                     font-size: 12px;
-                    transform: scale(0.75);
+                    transform: scale(0.75) translateY(-1px);
                     .text {
                         padding: 2px 3px;
                         color: #ffffff;
@@ -486,17 +487,17 @@
                         background: #dcdee5;
                         border-radius: 0px 1px 1px 0;
                     }
+                    &:nth-of-type(2) {
+                        margin-left: -1px;
+                    }
                     &:last-child {
                         margin-left: -5px;
                     }
-                    &:first-child {
-                        margin-left: -4px;
-                    }
-                    &:nth-of-type(3) {
-                        margin-left: -3px;
-                    }
                     &:nth-of-type(4) {
-                        margin-left: -2px;
+                        margin-left: -5px;
+                    }
+                    &:nth-of-type(5) {
+                        margin-left: -4px;
                     }
                 }
             }
@@ -593,16 +594,15 @@
                 box-shadow: none;
             }
             &.task-node-loop {
-                position: relative;
-                top: 2px;
-                height: 16px;
-                width: 16px;
-                margin-left: 0;
+                width: 24px;
+                margin: 0 4px 0 0;
+                transform: translateY(1px);
                 color: #3a84ff;
-                background: #fff !important;
+                background: transparent !important;
+                box-shadow: none;
                 > i {
                     position: absolute;
-                    font-size: 16px;
+                    font-size: 14px;
                 }
                 > span {
                     position: relative;
@@ -610,12 +610,7 @@
                     left: 0px;
                     font-weight: 700;
                     font-size: 18px;
-                    transform: scale(.5);
-                }
-                &.loop-plural {
-                    width: 26px;
-                    height: 16px;
-                    border-radius: 8px;
+                    transform: scale(.5) translateY(2px);
                 }
             }
             @keyframes loading {
