@@ -178,7 +178,7 @@
                             theme="primary"
                             data-test-id="taskExecute_form_resumeBtn"
                             @click="onResumeClick">
-                            {{ $t('确认') }}
+                            {{ $t('确认继续') }}
                         </bk-button>
                         <bk-button
                             v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
@@ -227,7 +227,7 @@
                         v-if="isShowContinueBtn"
                         data-test-id="taskExecute_form_continueBtn"
                         @click="onContinueClick">
-                        {{ $t('确认') }}
+                        {{ $t('确认继续') }}
                     </bk-button>
                 </div>
             </div>
