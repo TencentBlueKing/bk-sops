@@ -2,7 +2,7 @@
     <div class="jsonschema-input-params">
         <bkui-form
             form-type="horizontal"
-            readonly
+            :readonly="true"
             :value="formData"
             :schema="schema"
             :layout="{ group: [], container: { gap: '14px' } }">

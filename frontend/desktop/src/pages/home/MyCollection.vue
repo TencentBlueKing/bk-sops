@@ -61,7 +61,7 @@
     import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
     import permission from '@/mixins/permission.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapActions } from 'vuex'
+    import { mapMutations, mapActions } from 'vuex'
     export default {
         name: 'MyCollection',
         components: {
@@ -100,8 +100,12 @@
         },
         methods: {
             ...mapActions([
+                'changeDefaultProject',
                 'deleteCollect',
                 'loadCollectList'
+            ]),
+            ...mapMutations('project', [
+                'setProjectId'
             ]),
             async initData () {
                 try {
@@ -125,12 +129,13 @@
                     if (index > -1) {
                         grounp[index].childrens.push(collect)
                     } else {
-                        grounp.push({
+                        const method = collect.category === 'project' ? 'unshift' : 'push'
+                        grounp[method]({
                             name: this.getCategoryChineseName(collect.category),
                             key: collect.category,
                             childrens: [collect]
                         })
-                        names.push(collect.category)
+                        names[method](collect.category)
                         this.$set(this.categorySwitchMap, collect.category, false)
                     }
                 })
@@ -138,6 +143,7 @@
             },
             getCategoryChineseName (enType) {
                 const categoryMap = {
+                    'project': i18n.t('项目'),
                     'flow': i18n.t('项目流程'),
                     'common_flow': i18n.t('公共流程'),
                     'mini_app': i18n.t('轻应用'),
@@ -208,6 +214,14 @@
                             params: { project_id },
                             query: { flowName: name }
                         })
+                        break
+                    case 'project':
+                        this.setProjectId(id)
+                        this.changeDefaultProject(id)
+                        this.$router.push({
+                            name: 'processHome',
+                            params: { project_id: id }
+                        })
                 }
             },
             openSelectCreateTask (item) {
@@ -220,6 +234,8 @@
             getRourcePerm (item) {
                 if (item.category === 'flow') {
                     return !this.hasPermission(['flow_create_task'], item.auth_actions)
+                } else if (item.category === 'project') {
+                    return !this.hasPermission(['project_view'], item.auth_actions)
                 }
                 return false
             },
@@ -240,6 +256,14 @@
                         ]
                     }
                     this.applyForPermission(['flow_create_task'], item.auth_actions, resourceData)
+                } else if (item.category === 'project') {
+                    const resourceData = {
+                        project: [{
+                            id: item.extra_info.id,
+                            name: item.extra_info.name
+                        }]
+                    }
+                    this.applyForPermission(['project_view'], item.auth_actions, resourceData)
                 }
             },
             onHideCreateTask () {
@@ -264,7 +288,6 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 .my-collection {
-    margin-top: 20px;
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {

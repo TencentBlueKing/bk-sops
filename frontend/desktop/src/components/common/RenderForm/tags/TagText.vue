@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-text">
+    <div class="tag-text" :style="{ color }">
         <pre v-if="raw" class="view-value-raw">{{ viewValue }}</pre>
         <span v-else class="rf-view-value">{{ viewValue }}</span>
     </div>
@@ -29,6 +29,10 @@
             type: String,
             required: false,
             default: ''
+        },
+        color: {
+            type: String,
+            default: 'inherit'
         }
     }
     export default {

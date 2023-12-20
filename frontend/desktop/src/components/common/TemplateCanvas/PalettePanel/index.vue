@@ -34,14 +34,12 @@
             </div>
             <div
                 :class="['palette-item', 'entry-item', 'palette-with-menu']"
-                data-type="tasknode"
-                @mousedown="onNodeMouseDown('plugin', $event)">
+                data-type="tasknode">
                 <div class="node-type-icon common-icon-node-tasknode"></div>
             </div>
             <div
                 :class="['palette-item','entry-item', 'palette-with-menu']"
-                data-type="subflow"
-                @mousedown="onNodeMouseDown('subflow', $event)">
+                data-type="subflow">
                 <div class="node-type-icon common-icon-node-subflow"></div>
             </div>
             <div class="palette-item entry-item" data-config-name="" data-type="parallelgateway">

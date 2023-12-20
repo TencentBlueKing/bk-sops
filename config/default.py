@@ -211,7 +211,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.31.0"
+STATIC_VERSION = "3.32.0-alpha"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -460,6 +460,7 @@ MAKO_SANDBOX_IMPORT_MODULES = {
     "random": "random",
     "time": "time",
     "os.path": "os.path",
+    "json": "json",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:
@@ -504,6 +505,8 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queue
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 CELERY_QUEUES.extend(cleaner_settings.CELERY_QUEUES)
+
+CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
@@ -772,6 +775,8 @@ CLEAN_EXPIRED_V2_TASK_CRON = env.CLEAN_EXPIRED_V2_TASK_CRON
 V2_TASK_VALIDITY_DAY = env.V2_TASK_VALIDITY_DAY
 CLEAN_EXPIRED_V2_TASK_BATCH_NUM = env.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
 CLEAN_EXPIRED_V2_TASK_INSTANCE = env.CLEAN_EXPIRED_V2_TASK_INSTANCE
+CLEAN_EXPIRED_V2_TASK_CREATE_METHODS = env.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS
+CLEAN_EXPIRED_V2_TASK_PROJECTS = env.CLEAN_EXPIRED_V2_TASK_PROJECTS
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
@@ -832,5 +837,12 @@ else:
 # 任务列表过滤失败任务最大天数
 TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS
 
+# 第三方插件特殊轮询时间配置
+REMOTE_PLUGIN_FIX_INTERVAL_CODES = env.REMOTE_PLUGIN_FIX_INTERVAL_CODES
+REMOTE_PLUGIN_FIX_INTERVAL = env.REMOTE_PLUGIN_FIX_INTERVAL
+
 # 支持限制接口的 app
 ALLOWED_LIMITED_API_APPS = env.ALLOWED_LIMITED_API_APPS
+
+# 报错联系助手链接
+MESSAGE_HELPER_URL = env.MESSAGE_HELPER_URL

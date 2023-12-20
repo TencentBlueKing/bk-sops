@@ -241,15 +241,6 @@
     .navigator-head-right {
         display: flex;
         align-items: center;
-        .project-select >>> .project-wrapper {
-            margin-top: 0;
-            margin-right: 18px;
-            width: 240px;
-            background: #f0f1f5;
-            &.read-only {
-                background: #fff;
-            }
-        }
         .language-icon,
         .help-icon {
             display: flex;

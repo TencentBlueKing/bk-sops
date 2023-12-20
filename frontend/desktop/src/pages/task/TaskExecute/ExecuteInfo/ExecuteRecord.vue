@@ -113,7 +113,7 @@
                 if (state === 'CREATED') return this.$t('未执行')
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
                 if (['FAILED', 'FINISHED'].includes(state) && state === 'READY') return this.$t('未执行')
-                return skip || error_ignored ? this.$t.t('失败后跳过') : state && TASK_STATE_DICT[state]
+                return skip || error_ignored ? this.$t('失败后跳过') : state && TASK_STATE_DICT[state]
             }
         },
         mounted () {

@@ -76,10 +76,10 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
                     for _file in push_files_info["file_info"]
                     if _file["response"]["result"] is True
                 ],
-                "target_path": push_files_info["target_path"],
+                "target_path": push_files_info["target_path"].strip(),
                 "ips": None,
                 "target_server": target_server,
-                "account": target_account,
+                "account": target_account.strip(),
                 "rolling_config": rolling_config,
             }
             for push_files_info in local_files_and_target_path

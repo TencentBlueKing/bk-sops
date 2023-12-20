@@ -223,6 +223,7 @@
                         })
                     })
                     this.decorationsMap = {}
+                    this.globalVarLength = 0
                 }
             },
             onLanguageChange () {

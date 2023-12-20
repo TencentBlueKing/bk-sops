@@ -69,7 +69,7 @@
             :width="sidebarWidth"
             :quick-close="true"
             :before-close="onBeforeClose"
-            @hidden="onHiddenSideslider">
+            @hidden="onHiddenSideSlider">
             <div slot="header">
                 <div class="header">
                     <span>{{sideSliderTitle}}</span>
@@ -80,7 +80,7 @@
             </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <!--可拖拽-->
-                <template v-if="['viewNodeDetails', 'executeInfo'].includes(nodeInfoType)">
+                <template v-if="nodeInfoType === 'executeInfo'">
                     <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
                     <i :class="['resize-proxy', 'left']" ref="resizeProxy"></i>
                     <div class="resize-mask" ref="resizeMask"></div>
@@ -99,7 +99,8 @@
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
-                    v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
+                    v-if="nodeInfoType === 'executeInfo'"
+                    ref="executeInfo"
                     :state="state"
                     :node-data="nodeData"
                     :engine-ver="engineVer"
@@ -404,7 +405,8 @@
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
-                retryNodeName: ''
+                retryNodeName: '',
+                isSourceDetailSideBar: false // 节点重试侧栏是否从节点详情打开
             }
         },
         computed: {
@@ -500,6 +502,12 @@
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
             },
+            // 父流程是否存在子流程节点
+            hasSubprocessNode () {
+                return Object.values(this.pipelineData.activities).some(item => {
+                    return item.type !== 'ServiceActivity' || item.component?.code === 'subprocess_plugin'
+                })
+            },
             pendingNodes () {
                 const { children = {} } = this.instanceStatus
                 const pendingStatus = ['FAILED', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
@@ -551,12 +559,14 @@
                     this.onOperationClick('execute')
                 })
             }
+            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             if (source) {
                 source.cancel('cancelled')
             }
             this.cancelTaskStatusTimer()
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapMutations('template/', [
@@ -816,7 +826,7 @@
                     if (nodeId || taskId) {
                         state = 'NODE_SUSPENDED'
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
+                        const { name } = activities[nodeId] || this.nodePipelineData.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已暂停执行')
                     } else {
                         state = 'SUSPENDED'
@@ -851,7 +861,7 @@
                     }
                     if (nodeId || taskId) {
                         const { activities } = this.pipelineData
-                        const { name } = activities[nodeId] || this.activities[nodeId] || {}
+                        const { name } = activities[nodeId] || this.nodePipelineData.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已继续执行')
                     } else {
                         message = i18n.t('任务已继续执行')
@@ -917,15 +927,12 @@
                     }
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
                             theme: 'success'
                         })
-                        setTimeout(() => {
-                            this.setTaskStatusTimer()
-                        }, 1000)
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     }
                 } catch (e) {
                     console.log(e)
@@ -969,11 +976,8 @@
                             message: i18n.t('强制终止执行成功'),
                             theme: 'success'
                         })
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
-                        setTimeout(() => {
-                            this.setTaskStatusTimer()
-                        }, 1000)
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     }
                 } catch (e) {
                     console.log(e)
@@ -1022,11 +1026,8 @@
                             message: i18n.t('继续成功'),
                             theme: 'success'
                         })
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
-                        setTimeout(() => {
-                            this.setTaskStatusTimer()
-                        }, 1000)
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     }
                 } catch (e) {
                     console.log(e)
@@ -1164,6 +1165,8 @@
                         this.openNodeInfoPanel('modifyParams', isSubProcessNode ? i18n.t('重试子流程') : i18n.t('重试节点'))
                         this.retryNodeId = id
                     }
+                    // 记录是否由【节点详情侧栏】打开的【重试侧栏】
+                    this.isSourceDetailSideBar = !!info
                 } catch (error) {
                     console.warn(error)
                 }
@@ -1324,11 +1327,22 @@
                         data.node_id = node_id
                     }
                     await this.onRetryTask(data)
-                    this.isNodeInfoPanelShow = false
-                    this.retryNodeId = undefined
-                    // 重新轮询任务状态
-                    this.setTaskStatusTimer()
                     this.updateNodeActived(this.nodeDetailConfig.id, false)
+                    // 重新打开详情面板
+                    if (this.isSourceDetailSideBar) {
+                        setTimeout(() => {
+                            // 重新轮询任务状态
+                            Promise.resolve(this.loadTaskStatus()).then(() => {
+                                this.onNodeClick(data.node_id)
+                                this.retryNodeId = undefined
+                                this.isSourceDetailSideBar = false
+                            })
+                        }, 1000)
+                    } else {
+                        this.retryNodeId = undefined
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
+                    }
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -1423,8 +1437,8 @@
                             task_id: this.subProcessTaskId || this.instance_id,
                             node_id: id
                         }
-                        // 如果存在子流程任务节点时则不需要传subprocess_id
-                        if (!this.subProcessTaskId) {
+                        // 如果存在子流程任务节点时则需要传subprocess_id
+                        if (this.subProcessTaskId) {
                             let { subprocess_stack: stack } = this.nodeDetailConfig
                             if (stack) {
                                 stack = JSON.parse(stack)
@@ -1436,6 +1450,12 @@
                         this.approval.is_passed = true
                         this.approval.message = ''
                         this.approval.dialogShow = false
+                        this.$bkMessage({
+                            message: i18n.t('节点审批成功'),
+                            theme: 'success'
+                        })
+                        // 更新节点执行信息
+                        this.updateNodeExecuteInfo()
                     } catch (e) {
                         console.error(e)
                     } finally {
@@ -1451,21 +1471,23 @@
                 this.approval.message = ''
                 this.approval.dialogShow = false
             },
-            onPauseClick (id, taskId, independent) {
-                this.taskPause(id, taskId, independent)
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
-                setTimeout(() => {
-                    this.setTaskStatusTimer()
-                }, 1000)
+            async onPauseClick (id, taskId) {
+                try {
+                    await this.taskPause(true, id, taskId)
+                    // 更新节点执行信息
+                    this.updateNodeExecuteInfo()
+                } catch (error) {
+                    console.warn(error)
+                }
             },
-            onContinueClick (id, taskId, independent) {
-                this.taskResume(id, taskId, independent)
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
-                setTimeout(() => {
-                    this.setTaskStatusTimer()
-                }, 1000)
+            async onContinueClick (id, taskId) {
+                try {
+                    await this.taskResume(true, id, taskId)
+                    // 更新节点执行信息
+                    this.updateNodeExecuteInfo()
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             onCloseConfigPanel () {
                 this.isShowConditionEdit = false
@@ -1670,7 +1692,11 @@
                         // 分支，条件并行
                         if (['ExclusiveGateway', 'ConditionalParallelGateway'].includes(nodeConfig.type)) {
                             treeItem.gatewayId = parentOrdered ? gatewayId : id
-                            this.getGatewayConvergeNodes(id, id, this.convergeInfo)
+                            this.getGatewayConvergeNodes({
+                                id,
+                                parentId: id,
+                                convergeInfo: this.convergeInfo
+                            })
                             const loopList = [] // 需要打回的node的incoming
                             targetNodes.forEach(item => {
                                 const curNode = taskAndGwNodeMap[item]
@@ -1691,7 +1717,8 @@
                                     expanded: false,
                                     target: flows[key].target,
                                     gatewayId: id,
-                                    children: []
+                                    children: [],
+                                    taskId
                                 }
                             })
                             // 添加条件分支默认节点
@@ -1709,12 +1736,17 @@
                                     expanded: false,
                                     target: flows[flow_id].target,
                                     gatewayId: id,
-                                    children: []
+                                    children: [],
+                                    taskId
                                 })
                             }
                         } else if (nodeConfig.type === 'ParallelGateway') {
                             treeItem.gatewayId = gatewayId || id
-                            this.getGatewayConvergeNodes(id, id, this.convergeInfo)
+                            this.getGatewayConvergeNodes({
+                                id,
+                                parentId: id,
+                                convergeInfo: this.convergeInfo
+                            })
                             // 添加并行默认条件
                             conditions = nodeConfig.outgoing.map((key, index) => {
                                 const branchName = this.$t('并行') + (index + 1)
@@ -1728,7 +1760,8 @@
                                     conditionType: 'parallel',
                                     target: flows[key].target,
                                     gatewayId: id,
-                                    children: []
+                                    children: [],
+                                    taskId
                                 }
                             })
                             if (this.nodeIds[flowId]) {
@@ -1843,7 +1876,8 @@
                                     parentId,
                                     independentId,
                                     gatewayId: id,
-                                    lastId: item.id
+                                    lastId: item.id,
+                                    taskId
                                 },
                                 ordered,
                                 item.children
@@ -1905,81 +1939,150 @@
                 }, {})
                 Object.assign(this.nodeTargetMaps, targetMap)
             },
-            getGatewayConvergeNodes (id, parentId, convergeInfo = {}, index, isDeep) {
+            /**
+             * id: 当前查找的id
+             * parentId: 最外层的网关id
+             * convergeInfo: { 汇聚详情
+             *    id: '', 网关节点
+             *    checkedNodes: [], 已经查找过的节点
+             *    convergeNode: '', 最终汇聚的节点
+             *    branchCount: 1 总共有多少条分支
+             * }
+             * index: 当前节点属于哪条分支下的
+             * isDeep: 是否递归
+            */
+            getGatewayConvergeNodes (data) {
+                const {
+                    id,
+                    parentId,
+                    convergeInfo = {},
+                    index,
+                    isDeep,
+                    isLastBranch
+                } = data
                 if (!id) return
                 if (!convergeInfo[parentId]) {
                     convergeInfo[parentId] = {
                         id: parentId,
                         checkedNodes: [],
                         convergeNode: '',
-                        branchCount: 1
+                        branchCount: 1 // 默认是一条分支
                     }
                 }
                 const targetNodes = this.nodeTargetMaps[id] || []
+                // 多条输出分支
                 if (targetNodes.length > 1) {
+                    // 非递归时，将节点分支添加到总分支，删除旧分支。
                     if (!isDeep) {
                         convergeInfo[parentId].branchCount += targetNodes.length - 1
                     }
                     targetNodes.forEach((targetId, branchIndex) => {
                         let newIndex = branchIndex
+                        // 当前节点属于存在分支下时，向下查找时采用新的分支数
                         if (index !== 0) {
                             const branches = Object.keys(convergeInfo[parentId]).filter(item => /^branch[0-9]*$/.test(item))
                             newIndex = branches.length
                         }
+                        // 非递归时使用传入的分支数
                         newIndex = isDeep ? index : newIndex
-                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, newIndex, isDeep)
+                        this.getGatewayConvergeNodes({
+                            id: targetId,
+                            parentId,
+                            convergeInfo,
+                            index: newIndex,
+                            isDeep,
+                            isLastBranch: branchIndex === targetNodes.length - 1
+                        })
                     })
                 } else {
+                    // 单条输出分支
                     const { checkedNodes, branchCount = 0 } = convergeInfo[parentId]
                     const countArr = [...Array(branchCount).keys()]
                     const { end_event } = this.pipelineData
+                    // 已查找过的节点、结束节点、汇聚节点
                     if ([...checkedNodes, end_event.id].includes(id) || this.nodeSourceMaps[id].length > 1) {
+                        // 记录分支下的汇聚节点
                         const branchConvergeNode = convergeInfo[parentId][`branch${index}`]
                         if (!branchConvergeNode) {
                             convergeInfo[parentId][`branch${index}`] = [id]
                         } else if (!branchConvergeNode.includes(id)) {
                             branchConvergeNode.push(id)
                         }
+                        // 记录查找过的节点
                         if (!checkedNodes.includes(id)) {
                             checkedNodes.push(id)
                         }
+                        // 所有分支下的汇聚节点
                         const convergeNodes = countArr.map(item => {
                             const data = convergeInfo[parentId][`branch${item}`] || []
                             return [...new Set(data)]
                         }).flat()
-                        if (this.findMost(convergeNodes) === branchCount) {
-                            convergeInfo[parentId].convergeNode = id
-                        } else if (index === branchCount - 1) {
-                            countArr.forEach(item => {
-                                if (!convergeInfo[parentId].convergeNode) {
-                                    const data = convergeInfo[parentId][`branch${item}`] || []
+                        // 如果重复出现汇聚节点的最大次数等于分支数则表示已经找到最终的汇聚节点了
+                        const countMap = this.getCountMap(convergeNodes)
+                        const matchNode = Object.keys(countMap).filter(key => countMap[key] === branchCount)
+                        if (matchNode[0]) {
+                            convergeInfo[parentId].convergeNode = matchNode[0]
+                        } else if (index === branchCount - 1 && (isDeep ? isLastBranch : true)) { // 最后一条分支
+                            // 没找到汇聚节点则继续向下递归
+                            if (!convergeInfo[parentId].convergeNode) {
+                                const executedNodes = []
+                                countArr.forEach(idx => {
+                                    // 根据各条分支最后的汇聚节点继续查找
+                                    const data = convergeInfo[parentId][`branch${idx}`] || []
                                     const [lastId] = data.slice(-1)
+                                    // 合并有相同汇聚节点的分支
+                                    const existed = executedNodes.find(item => item.id === lastId)
+                                    if (existed && lastId !== end_event.id) {
+                                        const samePreBranch = convergeInfo[parentId][`branch${existed.index}`]
+                                        convergeInfo[parentId][`branch${idx}`] = [...samePreBranch]
+                                        const [preLastId] = samePreBranch.slice(-1)
+                                        this.getGatewayConvergeNodes({
+                                            id: preLastId,
+                                            parentId,
+                                            convergeInfo,
+                                            index: idx,
+                                            isDeep: true,
+                                            isLastBranch: idx === countArr.length - 1
+                                        })
+                                        return
+                                    }
+                                    executedNodes.push({ id: lastId, index: idx })
                                     const targetIds = this.nodeTargetMaps[lastId] || [lastId]
+                                    // 向下递归
                                     targetIds.forEach(targetId => {
-                                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, item, true)
+                                        this.getGatewayConvergeNodes({
+                                            id: targetId,
+                                            parentId,
+                                            convergeInfo,
+                                            index: idx,
+                                            isDeep: true,
+                                            isLastBranch: idx === countArr.length - 1
+                                        })
                                     })
-                                }
-                            })
+                                })
+                            }
                         }
                     } else {
                         checkedNodes.push(id)
                         const targetId = targetNodes[0]
-                        this.getGatewayConvergeNodes(targetId, parentId, convergeInfo, index, isDeep)
+                        this.getGatewayConvergeNodes({
+                            id: targetId,
+                            parentId,
+                            convergeInfo,
+                            index,
+                            isDeep,
+                            isLastBranch
+                        })
                     }
                 }
             },
-            findMost (arr) {
-                if (!arr.length) return
-                if (arr.length === 1) return 1
-                let maxNum = 0
-                arr.reduce((acc, cur) => {
+            getCountMap (arr) {
+                if (!arr.length) return {}
+                const countMap = arr.reduce((acc, cur) => {
                     acc[cur] ? acc[cur] += 1 : acc[cur] = 1
-                    if (acc[cur] > maxNum) {
-                        maxNum = acc[cur]
-                    }
                     return acc
                 }, {})
-                return maxNum
+                return countMap
             },
             judgeNodeBack (id, backId, checked) {
                 if (checked.includes(id)) return id === backId
@@ -2024,7 +2127,6 @@
             openNodeInfoPanel (type, name, isCondition = false) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
-                this.sidebarWidth = 960
                 this.nodeInfoType = type
                 this.isCondition = isCondition
             },
@@ -2150,6 +2252,10 @@
                 this.convergeInfo = {}
                 this.nodeIds = {}
                 this.nodeData = this.getOrderedTree(this.completePipelineData)
+                // 如果选中节点为子流程节点则侧栏宽度默认为最大值
+                if (this.hasSubprocessNode) {
+                    this.sidebarWidth = window.innerWidth - 400
+                }
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
             onOpenConditionEdit (data, isCondition = true) {
@@ -2412,9 +2518,21 @@
                 try {
                     this.pending.retry = true
                     await this.onRetryTask(data)
-                    this.isNodeInfoPanelShow = false
-                    this.setTaskStatusTimer()
-                    this.updateNodeActived(this.nodeDetailConfig.id, false)
+                    // 重新打开详情面板
+                    if (this.isSourceDetailSideBar) {
+                        setTimeout(() => {
+                            // 重新轮询任务状态
+                            Promise.resolve(this.loadTaskStatus()).then(() => {
+                                this.onNodeClick(data.node_id)
+                                this.retryNodeId = undefined
+                                this.isSourceDetailSideBar = false
+                            })
+                        }, 1000)
+                    } else {
+                        this.isNodeInfoPanelShow = false
+                        this.setTaskStatusTimer()
+                        this.updateNodeActived(this.nodeDetailConfig.id, false)
+                    }
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -2425,6 +2543,11 @@
                 this.isNodeInfoPanelShow = false
                 this.retryNodeId = undefined
                 this.updateNodeActived(id, false)
+                // 重新打开详情面板
+                if (this.isSourceDetailSideBar) {
+                    this.onNodeClick(id)
+                    this.isSourceDetailSideBar = false
+                }
             },
             onModifyTimeSuccess (id) {
                 this.isNodeInfoPanelShow = false
@@ -2482,6 +2605,11 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
+                // 重新打开详情面板
+                if (this.isSourceDetailSideBar) {
+                    this.onNodeClick(this.retryNodeId)
+                    this.isSourceDetailSideBar = false
+                }
                 this.retryNodeId = undefined
             },
             onshutDown () {
@@ -2508,10 +2636,11 @@
                     }
                 }
             },
-            onHiddenSideslider () {
+            onHiddenSideSlider () {
                 this.subProcessTaskId = null
                 this.nodeInfoType = ''
                 this.retryNodeName = ''
+                this.sidebarWidth = 960
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             },
             // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态
@@ -2723,6 +2852,49 @@
                 }
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
+            },
+            onWindowResize () {
+                const maxWidth = window.innerWidth - 400
+                let width = this.sidebarWidth
+                width = width > maxWidth ? maxWidth : width
+                width = width < 960 ? 960 : width
+                this.sidebarWidth = width
+            },
+            updateNodeExecuteInfo () {
+                if (this.isNodeInfoPanelShow && this.nodeInfoType === 'executeInfo') {
+                    this.updateNodeActived(this.nodeDetailConfig.id, true)
+                    const execInfoInstance = this.$refs.executeInfo
+                    execInfoInstance.loading = true
+                    execInfoInstance.subprocessLoading = !!execInfoInstance.subProcessPipeline
+                    setTimeout(async () => {
+                        try {
+                            const { root_node, component_code, taskId } = this.nodeDetailConfig
+                            // 重新拉取父流程状态
+                            await this.loadTaskStatus()
+                            // 更新节点详情
+                            await execInfoInstance.loadNodeInfo()
+                            // 拉取独立子流程状态
+                            if (taskId && component_code !== 'subprocess_plugin') {
+                                const nodes = root_node.split('-')
+                                execInfoInstance.subprocessTasks[taskId] = {
+                                    root_node: nodes.slice(0, -1).join('-'),
+                                    node_id: nodes.slice(-1)[0]
+                                }
+                                // 获取独立子流程任务状态
+                                execInfoInstance.loadSubprocessStatus()
+                            }
+                        } catch (error) {
+                            execInfoInstance.loading = false
+                            execInfoInstance.subprocessLoading = false
+                        }
+                    }, 1000)
+                } else {
+                    this.isNodeInfoPanelShow = false
+                    this.nodeInfoType = ''
+                    setTimeout(() => {
+                        this.setTaskStatusTimer()
+                    }, 1000)
+                }
             }
         }
     }
@@ -2790,8 +2962,11 @@
         }
     }
 }
-/deep/.bk-sideslider-content {
-    height: calc(100% - 60px);
+/deep/.bk-sideslider {
+    min-width: 1360px;
+    .bk-sideslider-content {
+        height: calc(100% - 60px);
+    }
 }
 .header {
     display: flex;

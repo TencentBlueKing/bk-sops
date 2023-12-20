@@ -15,15 +15,15 @@ import traceback
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.component_framework.component import Component
+
+from files.factory import ManagerFactory
+from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
+from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
-from files.factory import ManagerFactory
-from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
-from gcloud.core.models import EnvironmentVariables
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -82,9 +82,9 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
             esb_client=client,
             bk_biz_id=biz_cc_id,
             file_tags=file_tags,
-            target_path=target_path,
+            target_path=target_path.strip(),
             ips=None,
-            account=target_account,
+            account=target_account.strip(),
             callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
             target_server=target_server,
         )
