@@ -32,6 +32,7 @@ from gcloud.taskflow3.models import (
     AutoRetryNodeStrategy,
     EngineConfig,
     TaskFlowInstance,
+    TaskFlowRelation,
     TimeoutNodeConfig,
     TimeoutNodesRecord,
 )
@@ -42,9 +43,17 @@ HOST_NAME = socket.gethostname()
 
 
 @task
-def send_taskflow_message(task_id, msg_type, node_name=""):
+def send_taskflow_message(task_id, msg_type, node_name="", use_root=False):
     try:
         taskflow = TaskFlowInstance.objects.get(id=task_id)
+        if use_root and taskflow.is_child_taskflow:
+            logger.info("send_task_flow_message[taskflow_id=%s] is_child_taskflow, try to find root taskflow.", task_id)
+            root_task_id = TaskFlowRelation.objects.get(task_id=task_id).root_task_id
+            taskflow = TaskFlowInstance.objects.get(id=root_task_id)
+            logger.info(
+                "send_task_flow_message[taskflow_id=%s] use root taskflow[id=%s] to send message", task_id, root_task_id
+            )
+
         send_task_flow_message(taskflow, msg_type, node_name)
     except Exception as e:
         logger.exception("send_task_flow_message[taskflow_id=%s] send message error: %s" % (task_id, e))
@@ -132,6 +141,7 @@ def dispatch_timeout_nodes(record_id: int):
     nodes = json.loads(record.timeout_nodes)
     metrics.TASKFLOW_TIMEOUT_NODES_NUMBER.labels(hostname=HOST_NAME).set(len(nodes))
     for node in nodes:
+        # TODO 支持 node 自解析
         node_id, version = node.split("_")
         execute_node_timeout_strategy.apply_async(
             kwargs={"node_id": node_id, "version": version},

@@ -15,6 +15,7 @@ import copy
 import json
 import logging
 import traceback
+import typing
 from typing import Optional
 
 from bamboo_engine import api as bamboo_engine_api
@@ -22,6 +23,7 @@ from bamboo_engine import exceptions as bamboo_engine_exceptions
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
 from bamboo_engine.eri import ContextValue
+from django.apps import apps
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -39,10 +41,17 @@ from pipeline.service import task_service
 
 from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
+from gcloud.constants import TaskExtraStatus
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_started
-from gcloud.taskflow3.utils import format_bamboo_engine_status, format_pipeline_status
+from gcloud.taskflow3.utils import (
+    _format_status_time,
+    extract_nodes_by_statuses,
+    fetch_node_id__auto_retry_info_map,
+    find_nodes_from_pipeline_tree,
+    format_pipeline_status,
+)
 from pipeline_web.parser.format import classify_constants, format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
@@ -191,7 +200,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             message = _(f"任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理. {e} | start_v2")
             logger.error(message)
@@ -203,7 +214,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
@@ -377,7 +390,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         with transaction.atomic():
             if task_is_started:
                 # 对修改参数的任务状态进行检查
-                status_result = self.get_task_status(subprocess_id=None, with_ex_data=False)
+                status_result = self.get_task_status(subprocess_id=None, with_ex_data=False, with_new_status=True)
                 if status_result is False:
                     logger.error(
                         f"update context values failed: get pipeline states error, "
@@ -391,6 +404,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     bamboo_engine_states.CREATED,
                     bamboo_engine_states.SUSPENDED,
                     bamboo_engine_states.BLOCKED,
+                    TaskExtraStatus.PENDING_PROCESSING.value,
                 ]:
                     logger.error(
                         f"update context values failed: pipeline instance state error, "
@@ -424,12 +438,21 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             "code": err_code.SUCCESS.code,
         }
 
-    def get_task_status(self, subprocess_id: Optional[str] = None, with_ex_data: bool = False) -> dict:
+    def get_task_status(
+        self,
+        subprocess_id: Optional[str] = None,
+        with_ex_data: bool = False,
+        with_new_status: bool = False,
+        is_subquery: bool = False,
+    ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
         return getattr(self, "get_task_status_v{}".format(self.engine_ver))(
-            subprocess_id=subprocess_id, with_ex_data=with_ex_data
+            subprocess_id=subprocess_id,
+            with_ex_data=with_ex_data,
+            with_new_status=with_new_status,
+            is_subquery=is_subquery,
         )
 
     def _collect_fail_nodes(self, task_status: dict) -> list:
@@ -446,7 +469,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     failed_nodes.append(node_id)
         return failed_nodes
 
-    def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+    def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool, *args, **kwargs) -> dict:
         if self.pipeline_instance.is_expired:
             return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
@@ -505,7 +528,15 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}
 
-    def get_task_status_v2(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+    def get_task_status_v2(
+        self,
+        subprocess_id: Optional[str],
+        with_ex_data: bool,
+        with_new_status: bool,
+        is_subquery: bool,
+        *args,
+        **kwargs,
+    ) -> dict:
         if self.pipeline_instance.is_expired:
             return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
@@ -520,6 +551,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         status_result = bamboo_engine_api.get_pipeline_states(
             runtime=runtime, root_id=self.pipeline_instance.instance_id, flat_children=False
         )
+
         if not status_result:
             logger.exception("bamboo_engine_api.get_pipeline_states fail")
             return {
@@ -553,7 +585,34 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         # subprocess not been executed
         task_status = task_status or self.CREATED_STATUS
 
-        format_bamboo_engine_status(task_status)
+        if with_new_status:
+            # 遍历树，获取需要进行状态优化的节点，标记哪些节点具有独立子流程
+            # 遍历状态树，hit -> 状态优化，独立子流程 -> 递归
+            node_infos_gby_code: typing.Dict[
+                str, typing.List[typing.Dict[str, typing.Any]]
+            ] = find_nodes_from_pipeline_tree(
+                self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
+            )
+
+            node_ids_gby_code: typing.Dict[str, typing.Set[str]] = {}
+            for code, node_infos in node_infos_gby_code.items():
+                node_ids_gby_code[code] = {node_info["act_id"] for node_info in node_infos}
+
+            code__status_map: typing.Dict[str, str] = {
+                "pause_node": TaskExtraStatus.PENDING_CONFIRMATION.value,
+                "bk_approve": TaskExtraStatus.PENDING_APPROVAL.value,
+            }
+
+            status_tree, root_pipeline_id = task_status, task_status["id"]
+            node_id__auto_retry_info: typing.Dict[
+                str, typing.Dict[str, typing.Any]
+            ] = fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
+
+            self.format_bamboo_engine_status(
+                task_status, node_ids_gby_code, code__status_map, node_id__auto_retry_info, False, is_subquery
+            )
+        else:
+            format_bamboo_engine_status_legacy(task_status)
 
         # 返回失败节点和对应调试信息
         if with_ex_data and task_status["state"] == bamboo_engine_states.FAILED:
@@ -642,3 +701,150 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 data.append({"key": key, "value": value})
 
         return {"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""}
+
+    def get_subprocess_task_status_result(self, subprocess_node_id: str):
+        from gcloud.taskflow3.models import TaskFlowInstance
+
+        # 尝试从独立子流程组件输出中获取 TaskID
+        task: TaskFlowInstance = TaskFlowInstance.objects.get(pk=self.taskflow_id, project_id=self.project_id)
+        node_outputs: typing.List[typing.Dict[str, typing.Any]] = task.get_node_data(
+            subprocess_node_id, "admin", "subprocess_plugin"
+        )["data"]["outputs"]
+
+        # Raise StopIteration if not found
+        task_id: typing.Optional[int] = next(
+            (node_output["value"] for node_output in node_outputs if node_output["key"] == "task_id")
+        )
+        sub_task: TaskFlowInstance = TaskFlowInstance.objects.get(pk=task_id, project_id=self.project_id)
+
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=sub_task.engine_ver,
+            taskflow_id=sub_task.id,
+            pipeline_instance=sub_task.pipeline_instance,
+            project_id=self.project_id,
+        )
+        get_task_status_result: typing.Dict[str, typing.Any] = dispatcher.get_task_status(
+            with_ex_data=False, with_new_status=True, is_subquery=True
+        )
+
+        return get_task_status_result["data"]
+
+    def handle_subprocess_node_status(self, status_tree: typing.Dict[str, typing.Any]):
+        try:
+            subprocess_status_tree = self.get_subprocess_task_status_result(status_tree["id"])
+        except Exception:
+            # 非核心逻辑，记录排查日志并跳过
+            logger.exception(
+                f"[format_bamboo_engine_status] get subprocess_plugin task_id failed, "
+                f"project_id -> {self.project_id}, taskflow_id -> {self.taskflow_id}, "
+                f"node -> {status_tree['id']}"
+            )
+        else:
+            status_tree["state"] = subprocess_status_tree["state"]
+
+    def format_bamboo_engine_status(
+        self,
+        status_tree: typing.Dict[str, typing.Any],
+        node_ids_gby_code: typing.Dict[str, typing.Set[str]],
+        code__status_map: typing.Dict[str, str],
+        node_id__auto_retry_info: typing.Dict[str, typing.Dict[str, typing.Any]],
+        is_child: bool = False,
+        is_subquery: bool = False,
+    ):
+        """
+        格式化 bamboo 状态树
+        :param status_tree: 状态树
+        :param node_ids_gby_code: 按组件 Code 聚合节点 ID
+        :param code__status_map: 状态映射关系
+        :param node_id__auto_retry_info:
+        :param is_child: 是否为子递归
+        :param is_subquery: 是否为子查询
+        :return:
+        """
+
+        _format_status_time(status_tree)
+
+        if status_tree["state"] == bamboo_engine_states.SUSPENDED and is_child:
+            status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
+        # 处理状态映射
+        elif status_tree["state"] == TaskExtraStatus.NODE_SUSPENDED.value:
+            status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
+        elif status_tree["state"] == bamboo_engine_states.RUNNING:
+            # 独立子流程下钻
+            if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
+                self.handle_subprocess_node_status(status_tree)
+
+                # 已暂停 -> 等待处理
+                if status_tree["state"] in {
+                    bamboo_engine_states.SUSPENDED,
+                    TaskExtraStatus.NODE_SUSPENDED.value,
+                }:
+                    status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
+
+            else:
+                # 状态转换
+                for code, node_ids in node_ids_gby_code.items():
+                    # 短路原则：code in code__status_map 处理效率高于后者，先行过滤不需要转换的 code
+                    if code in code__status_map and status_tree["id"] in node_ids:
+                        status_tree["state"] = code__status_map[code]
+
+        elif status_tree["state"] == bamboo_engine_states.FAILED:
+            if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
+                AutoRetryNodeStrategy = apps.get_model("taskflow3", "AutoRetryNodeStrategy")
+                if AutoRetryNodeStrategy.objects.filter(root_pipeline_id=status_tree["id"]).exists():
+                    self.handle_subprocess_node_status(status_tree)
+            else:
+                if is_subquery:
+                    # 只有在「子查询」（独立子流程）或子递归（非独立子流程）的情况下，才需要校验
+                    auto_retry_info: typing.Optional[typing.Dict[str, typing.Any]] = node_id__auto_retry_info.get(
+                        status_tree["id"]
+                    )
+                    if (
+                        auto_retry_info
+                        and auto_retry_info["auto_retry_times"] < auto_retry_info["max_auto_retry_times"]
+                    ):
+                        status_tree["state"] = bamboo_engine_states.RUNNING
+
+        child_status: typing.Set[str] = set()
+        for identifier_code, child_tree in list(status_tree["children"].items()):
+            self.format_bamboo_engine_status(
+                child_tree,
+                node_ids_gby_code,
+                code__status_map,
+                node_id__auto_retry_info,
+                is_child=True,
+                is_subquery=is_subquery,
+            )
+            child_status.add(child_tree["state"])
+
+        if status_tree["state"] in [bamboo_engine_states.RUNNING, bamboo_engine_states.SUSPENDED]:
+            if bamboo_engine_states.FAILED in child_status:
+                # 失败优先级最高
+                status_tree["state"] = bamboo_engine_states.FAILED
+
+        if status_tree["state"] == bamboo_engine_states.RUNNING:
+            if {
+                TaskExtraStatus.PENDING_APPROVAL.value,
+                TaskExtraStatus.PENDING_CONFIRMATION.value,
+                TaskExtraStatus.PENDING_PROCESSING.value,
+            } & child_status:
+                # 存在其中一个状态，父级状态扭转为等待处理（PENDING_PROCESSING）
+                status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
+
+
+def format_bamboo_engine_status_legacy(status_tree):
+    """
+    @summary: 转换通过 bamboo engine api 获取的任务状态格式
+    @return:
+    """
+    _format_status_time(status_tree)
+    child_status = set()
+    for identifier_code, child_tree in list(status_tree["children"].items()):
+        format_bamboo_engine_status_legacy(child_tree)
+        child_status.add(child_tree["state"])
+
+    if status_tree["state"] == bamboo_engine_states.RUNNING:
+        if bamboo_engine_states.FAILED in child_status:
+            status_tree["state"] = bamboo_engine_states.FAILED
+        elif bamboo_engine_states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
+            status_tree["state"] = "NODE_SUSPENDED"

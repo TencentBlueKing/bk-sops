@@ -14,22 +14,10 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
+from bamboo_engine import states as bamboo_engine_states
 from bk_monitor_report.reporter import MonitorReporter
 from django.conf import settings
 from django.dispatch import receiver
-
-import env
-from bamboo_engine import states as bamboo_engine_states
-from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
-from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
-from gcloud.taskflow3.models import (
-    AutoRetryNodeStrategy,
-    EngineConfig,
-    TaskCallBackRecord,
-    TaskFlowInstance,
-    TimeoutNodeConfig,
-)
-from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from pipeline.core.pipeline import Pipeline
 from pipeline.engine.signals import activity_failed, pipeline_end, pipeline_revoke
 from pipeline.eri.signals import (
@@ -41,6 +29,18 @@ from pipeline.eri.signals import (
 )
 from pipeline.models import PipelineInstance
 from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
+
+import env
+from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
+from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
+from gcloud.taskflow3.models import (
+    AutoRetryNodeStrategy,
+    EngineConfig,
+    TaskCallBackRecord,
+    TaskFlowInstance,
+    TimeoutNodeConfig,
+)
+from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 
 logger = logging.getLogger("celery")
 
@@ -90,7 +90,9 @@ def _check_and_callback(taskflow_id, *args, **kwargs):
         return
     try:
         task_callback.apply_async(
-            kwargs=dict(task_id=taskflow_id, **kwargs), queue="task_callback", routing_key="task_callback",
+            kwargs=dict(task_id=taskflow_id, **kwargs),
+            queue="task_callback",
+            routing_key="task_callback",
         )
     except Exception as e:
         logger.exception(f"[_check_and_callback] task_callback delay error: {e}")

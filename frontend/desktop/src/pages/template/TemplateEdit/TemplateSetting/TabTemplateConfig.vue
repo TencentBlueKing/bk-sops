@@ -248,6 +248,8 @@
                 name, category, notify_type, notify_receivers, description,
                 executor_proxy, template_labels, default_flow_type
             } = this.$store.state.template
+            const { success, fail, pending_processing = [] } = notify_type
+            const notifyType = [success.slice(0), fail.slice(0), pending_processing.slice(0)]
 
             return {
                 formData: {
@@ -256,7 +258,7 @@
                     description,
                     executorProxy: executor_proxy ? [executor_proxy] : [],
                     receiverGroup: notify_receivers.receiver_group.slice(0),
-                    notifyType: [notify_type.success.slice(0), notify_type.fail.slice(0)],
+                    notifyType,
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
@@ -404,7 +406,7 @@
                     template_labels: labels,
                     executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                     receiver_group: receiverGroup,
-                    notify_type: { success: notifyType[0], fail: notifyType[1] },
+                    notify_type: { success: notifyType[0], fail: notifyType[1], pending_processing: notifyType[2] },
                     default_flow_type: defaultFlowType
                 }
             },

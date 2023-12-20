@@ -122,13 +122,19 @@
                                         </bk-select>
                                         <span>{{$t('次执行')}}</span>
                                     </div>
+                                    <p class="retry-details-tips" v-if="realTimeState.retry">
+                                        <template v-if="autoRetryInfo.m">
+                                            {{ $t('包含自动重试 m 次', autoRetryInfo)}}
+                                            <span v-if="autoRetryInfo.n">{{ $t('，手动重试 n 次', autoRetryInfo)}}</span>
+                                        </template>
+                                        <span v-else>{{ $t('包含手动重试 n 次', { n: realTimeState.retry })}}</span>
+                                    </p>
                                 </section>
                                 <ExecuteRecord
                                     v-if="curActiveTab === 'record'"
                                     :admin-view="adminView"
                                     :loading="loading"
                                     :location="location"
-                                    :is-ready-status="isReadyStatus"
                                     :node-state="nodeState"
                                     :node-activity="nodeActivity"
                                     :execute-info="executeRecord"
@@ -170,13 +176,13 @@
                     </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap && !loading">
-                    <template v-if="executeInfo.state === 'RUNNING'">
+                    <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_CONFIRMATION', 'PENDING_APPROVAL'].includes(realTimeState.state)">
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
                             data-test-id="taskExecute_form_resumeBtn"
                             @click="onResumeClick">
-                            {{ $t('继续执行') }}
+                            {{ $t('确认继续') }}
                         </bk-button>
                         <bk-button
                             v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
@@ -192,20 +198,27 @@
                             {{ $t('强制终止') }}
                         </bk-button>
                         <bk-button
-                            v-if="isLegacySubProcess || isSubProcessNode"
+                            v-if="realTimeState.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
                             data-test-id="taskExecute_form_pauseBtn"
                             @click="onPauseClick">
                             {{ $t('暂停') }}
                         </bk-button>
                     </template>
                     <template v-if="isShowRetryBtn || isShowSkipBtn">
-                        <bk-button
-                            theme="primary"
-                            v-if="isShowRetryBtn"
-                            data-test-id="taskExecute_form_retryBtn"
-                            @click="onRetryClick">
-                            {{ isSubProcessNode ? $t('重试子流程') : $t('重试') }}
-                        </bk-button>
+                        <span
+                            v-bk-tooltips="{
+                                content: $t('节点自动重试中，暂时无法手动重试'),
+                                disabled: !autoRetryInfo.h || autoRetryInfo.m === autoRetryInfo.c
+                            }">
+                            <bk-button
+                                theme="primary"
+                                v-if="isShowRetryBtn"
+                                data-test-id="taskExecute_form_retryBtn"
+                                :disabled="autoRetryInfo.h && autoRetryInfo.m !== autoRetryInfo.c"
+                                @click="onRetryClick">
+                                {{ isSubProcessNode ? $t('重试子流程') : $t('重试') }}
+                            </bk-button>
+                        </span>
                         <bk-button
                             theme="default"
                             v-if="isShowSkipBtn"
@@ -218,7 +231,7 @@
                         v-if="isShowContinueBtn"
                         data-test-id="taskExecute_form_continueBtn"
                         @click="onContinueClick">
-                        {{ $t('继续') }}
+                        {{ $t('确认继续') }}
                     </bk-button>
                 </div>
             </div>
@@ -332,7 +345,6 @@
                 },
                 loop: 1,
                 theExecuteTime: undefined,
-                isReadyStatus: true,
                 curActiveTab: 'record',
                 theExecuteRecord: 0,
                 executeRecord: {},
@@ -358,6 +370,16 @@
             ...mapState('project', {
                 project_id: state => state.project_id
             }),
+            autoRetryInfo () {
+                const { auto_retry_infos: retryInfos } = this.nodeDisplayStatus
+                const retryInfo = retryInfos[this.nodeDetailConfig.node_id] || {}
+                return {
+                    h: !!Object.keys(retryInfo).length,
+                    m: retryInfo.auto_retry_times || 0,
+                    c: retryInfo.max_auto_retry_times || 10,
+                    n: this.realTimeState.retry - retryInfo.auto_retry_times || 0
+                }
+            },
             // 节点实时状态
             realTimeState () {
                 const { root_node, node_id, taskId } = this.nodeDetailConfig
@@ -377,21 +399,42 @@
                 }
                 return nodes[node_id] || { state: 'READY' }
             },
+            // 子任务状态
+            subTaskStatus () {
+                const { taskId } = this.nodeDetailConfig
+                if (!taskId) return 'READY'
+                const stateInfo = this.subprocessNodeStatus[taskId]
+                return stateInfo.data.state
+            },
             displayStatus () {
                 let state = ''
-                if (this.realTimeState.state === 'RUNNING') {
-                    state = 'common-icon-dark-circle-ellipsis'
-                } else if (this.realTimeState.state === 'SUSPENDED') {
-                    state = 'common-icon-dark-circle-pause'
-                } else if (this.realTimeState.state === 'FINISHED') {
-                    const { skip, error_ignored } = this.realTimeState
-                    state = skip || error_ignored ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
-                } else if (this.realTimeState.state === 'FAILED') {
-                    state = 'common-icon-dark-circle-close'
-                } else if (this.realTimeState.state === 'CREATED') {
-                    state = 'common-icon-waitting'
-                } else if (this.realTimeState.state === 'READY') {
-                    state = 'common-icon-waitting'
+                switch (this.realTimeState.state) {
+                    case 'RUNNING':
+                        state = 'common-icon-dark-circle-ellipsis'
+                        break
+                    case 'SUSPENDED':
+                        state = 'common-icon-dark-circle-pause'
+                        break
+                    case 'PENDING_PROCESSING':
+                        state = 'common-icon-dark-pending-process'
+                        break
+                    case 'PENDING_APPROVAL':
+                        state = 'common-icon-dark-pending-approval'
+                        break
+                    case 'PENDING_CONFIRMATION':
+                        state = 'common-icon-dark-pending-confirm'
+                        break
+                    case 'FINISHED':
+                        const { skip, error_ignored } = this.realTimeState
+                        state = skip || error_ignored ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
+                        break
+                    case 'FAILED':
+                        state = 'common-icon-dark-circle-close'
+                        break
+                    case 'CREATED':
+                    case 'READY':
+                        state = 'common-icon-waitting'
+                        break
                 }
                 return state
             },
@@ -401,7 +444,7 @@
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
                 if (['FAILED', 'FINISHED'].includes(this.state) && this.realTimeState.state === 'READY') return i18n.t('未执行')
                 const { state, skip, error_ignored } = this.realTimeState
-                return skip || error_ignored ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
+                return skip ? i18n.t('失败后手动跳过') : error_ignored ? i18n.t('失败后自动跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
                 const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
@@ -435,7 +478,7 @@
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             },
             isShowContinueBtn () {
-                return this.isLegacySubProcess && this.executeInfo.state === 'SUSPENDED'
+                return this.isLegacySubProcess && [this.realTimeState.state, this.executeInfo.state].includes('SUSPENDED')
             },
             isShowSkipBtn () {
                 let isShow = false
@@ -455,7 +498,7 @@
             },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                if (this.state === 'REVOKED') return false
+                if ([this.state, this.subTaskStatus].includes('REVOKED')) return false
                 // 判断父级节点是否存在失败后跳过
                 if (this.nodeDetailConfig.taskId) {
                     const allNodeStatus = {
@@ -478,7 +521,8 @@
                         return false
                     }
                 }
-                return this.realTimeState.state === 'RUNNING'
+                const executeState = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(this.realTimeState.state)
+                return executeState
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
                     || this.isShowContinueBtn
@@ -563,11 +607,32 @@
             nodeDisplayStatus: {
                 handler (val) {
                     // 设置节点树状态
-                    this.nodeAddStatus(this.nodeData, val.children)
+                    this.nodeAddStatus(this.nodeData, val.children, false)
                     this.updateNodeInfo()
                 },
                 deep: true,
                 immediate: true
+            },
+            async 'realTimeState.state' (val, oldVal) {
+                if (val !== oldVal) {
+                    await this.loadNodeInfo()
+                    // 拉取独立子流程状态
+                    const { root_node, component_code, taskId } = this.nodeDetailConfig
+                    if (val === 'RUNNING' && taskId && component_code !== 'subprocess_plugin') {
+                        const nodes = root_node.split('-')
+                        const parentNode = nodes.slice(-1)[0]
+                        const parentRoot = nodes.slice(0, -1).join('-')
+                        // 获取最新节点树
+                        const nodeInfo = this.getNodeInfo(this.nodeData, parentRoot, parentNode)
+                        await this.getSubprocessData(taskId, nodeInfo, true)
+                        this.subprocessTasks[taskId] = {
+                            root_node: parentRoot,
+                            node_id: parentNode
+                        }
+                        // 获取独立子流程任务状态
+                        this.loadSubprocessStatus()
+                    }
+                }
             }
         },
         mounted () {
@@ -604,14 +669,12 @@
                     this.renderConfig = []
                     let respData = await this.getTaskNodeDetail()
                     if (!respData) {
-                        this.isReadyStatus = false
                         this.executeInfo = {}
                         this.theExecuteTime = undefined
                         this.historyInfo = []
                         return
                     }
                     respData = this.adminView && this.engineVer === 1 ? { ...respData, ...respData.execution_info } : respData
-                    this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(respData.state) > -1
 
                     await this.setFillRecordField(respData)
                     if (this.theExecuteTime === undefined) {
@@ -628,7 +691,7 @@
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
                         if (taskId) { // 子流程任务已执行才可以查详情和状态
                             // 获取子流程任务详情
-                            await this.getSubprocessData(taskId, nodeInfo)
+                            await this.getSubprocessData(taskId, nodeInfo, true)
                             this.subprocessTasks[taskId] = {
                                 root_node,
                                 node_id
@@ -1144,16 +1207,21 @@
                 }
             },
             // 设置节点树状态
-            nodeAddStatus (treeData = [], states) {
+            nodeAddStatus (treeData = [], states, independent) {
                 treeData.forEach(node => {
-                    const { id, conditionType, isSubProcess, children } = node
+                    const { id, conditionType, isSubProcess, children, taskId } = node
                     if (conditionType) {
                         if (children?.length) {
-                            this.nodeAddStatus(children, states)
+                            this.nodeAddStatus(children, states, independent)
                         }
                         return
                     }
-                    if (!states[id]) return
+                    if (!states[id]) {
+                        if (independent && taskId) {
+                            this.$set(node, 'state', 'READY')
+                        }
+                        return
+                    }
                     const nodeState = states[id].skip ? 'SKIP' : states[id].state
                     this.$set(node, 'state', nodeState)
                     if (this.subNodesExpanded.includes(node.id)) {
@@ -1163,17 +1231,9 @@
                         }
                         this.handleDynamicLoad(node, true)
                     }
-                    // 实时更新执行详情中的状态
-                    if (this.executeRecord.id === node.id) {
-                        this.executeRecord.state = nodeState
-                    }
-                    if (this.nodeDetailConfig.node_id === id && !this.executeRecord.finish_time) {
-                        this.executeRecord.finish_time = states[id].finish_time
-                        this.executeRecord.elapsed_time = states[id].elapsed_time
-                    }
                     if (children) {
                         const newStates = isSubProcess ? Object.assign({}, states, states[id].children) : states
-                        this.nodeAddStatus(children, newStates)
+                        this.nodeAddStatus(children, newStates, independent)
                     }
                 })
             },
@@ -1181,7 +1241,7 @@
              * 更新子流程画布
              * nodeStatus 独立子流程任务状态
             */
-            updateNodeInfo (nodeStatus) {
+            updateNodeInfo (nodeStatus, retryInfo = {}) {
                 if (!this.subProcessPipeline) return
                 const { root_node, node_id } = this.nodeDetailConfig
                 const parentId = root_node?.split('-') || []
@@ -1217,6 +1277,7 @@
                         loop: currentNode.loop,
                         status: currentNode.state,
                         skip: currentNode.skip,
+                        auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
@@ -1419,9 +1480,10 @@
                     for (const [key, value] of Object.entries(resp.data)) {
                         const { root_node, node_id } = this.subprocessTasks[key]
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
-                        this.nodeAddStatus(nodeInfo.children, value.data.children)
-                        this.updateNodeInfo(value.data.children)
-                        if (!['CREATED', 'RUNNING'].includes(value.data.state)) {
+                        const { auto_retry_infos: retryInfo, children, state } = value.data
+                        this.nodeAddStatus(nodeInfo.children, children, true)
+                        this.updateNodeInfo(children, retryInfo)
+                        if (!['CREATED', 'RUNNING'].includes(state)) {
                             delete this.subprocessTasks[key]
                         }
                     }
@@ -1568,7 +1630,6 @@
     .action-wrapper {
         width: 100%;
         padding-left: 20px;
-        height: 48px;
         line-height: 48px;
         background: #fafbfd;
         box-shadow: 0 -1px 0 0 #dcdee5;
@@ -1598,14 +1659,17 @@
             display: flex;
             align-items: center;
             :first-child {
-                margin: 2px 5px 0;
+                margin: 0 5px;
             }
         }
         .common-icon-dark-circle-ellipsis {
             font-size: 14px;
             color: #3a84ff;
         }
-        .common-icon-dark-circle-pause {
+        .common-icon-dark-circle-pause,
+        .common-icon-dark-pending-process,
+        .common-icon-dark-pending-approval,
+        .common-icon-dark-pending-confirm {
             font-size: 14px;
             color: #f8B53f;
         }
@@ -1775,6 +1839,10 @@
                 height: 16px;
                 margin: 0 16px;
                 background: #dcdee5;
+            }
+            .retry-details-tips {
+                color: #979ba5;
+                margin-left: 16px;
             }
         }
         .panel-title {

@@ -366,6 +366,15 @@
                     @include nodeClick ($blueDark);
                 }
             }
+            &.pending_task_continue,
+            &.pending_processing,
+            &.pending_approval,
+            &.pending_confirmation {
+                @include taskNodeStyle (#ffb848);
+                &.actived {
+                    @include nodeClick (#ffb848);
+                }
+            }
             &.running {
                 .node-name {
                     border-color: $blueDark;
@@ -406,6 +415,11 @@
                 .node-icon-font {
                     font-size: 16px;
                     color: #ffffff;
+                    &.common-icon-bk-plugin-message,
+                    &.common-icon-bk-plugin-confirm,
+                    &.common-icon-bk-plugin-approval {
+                        font-size: 14px;
+                    }
                 }
                 .stage-name {
                     padding: 0 4px;
@@ -447,26 +461,43 @@
                 position: absolute;
                 top: -20px;
                 left: 0;
-                overflow: hidden;
+                height: 20px;
                 .bk-form-checkbox,
                 .dark-circle {
-                    float: left;
-                    margin-right: 2px;
+                    margin-bottom: 2px;
                     font-size: 14px;
                     color: #979ba5;
                 }
                 .error-handle-icon {
-                    float: left;
-                    margin-right: 2px;
-                    padding: 0 3px;
+                    display: flex;
+                    align-items: center;
+                    margin-left: -4px;
                     line-height: 12px;
-                    color: #ffffff;
-                    background: #979ba5;
-                    border-radius: 2px;
+                    font-size: 12px;
+                    transform: scale(0.75) translateY(-1px);
                     .text {
-                        display: inline-block;
-                        font-size: 12px;
-                        transform: scale(0.8);
+                        padding: 2px 3px;
+                        color: #ffffff;
+                        background: #979ba5;
+                        border-radius: 1px 0 0 1px;
+                    }
+                    .count {
+                        padding: 2px 3px;
+                        color: #636568;
+                        background: #dcdee5;
+                        border-radius: 0px 1px 1px 0;
+                    }
+                    &:nth-of-type(2) {
+                        margin-left: -1px;
+                    }
+                    &:last-child {
+                        margin-left: -5px;
+                    }
+                    &:nth-of-type(4) {
+                        margin-left: -5px;
+                    }
+                    &:nth-of-type(5) {
+                        margin-left: -4px;
                     }
                 }
             }
@@ -518,16 +549,16 @@
             align-items: center;
             justify-content: space-between;
             top: -10px;
-            right: -8px;
-            height: 18px;
+            right: -10px;
+            height: 20px;
         }
         .task-status-icon {
             display: flex;
             justify-content: center;
             align-items: center;
             margin-left: 2px;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             font-size: 14px;
             border-radius: 50%;
             background: #f8b53f;
@@ -541,37 +572,45 @@
             .common-icon-clock {
                 display: inline-block;
             }
+            .common-icon-pending-approval,
+            .common-icon-pending-confirm {
+                font-size: 12px;
+                color: #fff;
+            }
             .common-icon-loading {
                 display: inline-block;
                 animation: loading 1.4s infinite linear;
             }
-            .icon-arrows-right-shape {
-                font-size: 12px;
+            .common-icon-pause {
+                font-size: 20px;
+                transform: scale(0.5);
             }
             .retry-times {
                 font-size: 12px;
             }
+            &.node-pending {
+                height: 20px;
+                width: 20px;
+                box-shadow: none;
+            }
             &.task-node-loop {
-                position: relative;
-                height: 16px;
-                width: 16px;
+                width: 24px;
+                margin: 0 4px 0 0;
+                transform: translateY(1px);
                 color: #3a84ff;
-                background: #fff !important;
+                background: transparent !important;
+                box-shadow: none;
                 > i {
                     position: absolute;
                     font-size: 14px;
                 }
                 > span {
                     position: relative;
-                    top: -0.5px;
+                    top: -1px;
+                    left: 0px;
                     font-weight: 700;
                     font-size: 18px;
-                    transform: scale(.5);
-                }
-                &.loop-plural {
-                    width: 26px;
-                    height: 16px;
-                    border-radius: 8px;
+                    transform: scale(.5) translateY(2px);
                 }
             }
             @keyframes loading {
@@ -583,13 +622,23 @@
                 }
             }
         }
-        .node-subscript {
-            font-size: 12px;
-            background: #ea3636 !important;
+        .node-manual-skip,
+        .node-auto-skip {
+            display: flex;
+            height: 20px;
+            font-size: 20px;
+            border-radius: 50%;
+            color: #f0a0a0;
+            background: #fff;
+            i {
+                transform: translateY(1px);
+            }
         }
         .node-phase-icon {
+            transform: translateY(-2px);
+            margin-right: 4px;
             i {
-                font-size: 14px;
+                font-size: 16px;
                 &.phase-warn {
                     color: $yellowDark;
                 }

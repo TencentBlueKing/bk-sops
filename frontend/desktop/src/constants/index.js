@@ -17,6 +17,9 @@ const TASK_STATE_DICT = {
     'READY': i18n.t('排队中'),
     'SUSPENDED': i18n.t('已暂停'),
     'NODE_SUSPENDED': i18n.t('节点暂停'),
+    'PENDING_PROCESSING': i18n.t('等待处理'),
+    'PENDING_APPROVAL': i18n.t('等待审批'),
+    'PENDING_CONFIRMATION': i18n.t('等待确认'),
     'FAILED': i18n.t('失败'),
     'FINISHED': i18n.t('完成'),
     'REVOKED': i18n.t('终止')
@@ -40,10 +43,12 @@ const INVALID_NAME_CHAR = '\'‘"”$&<>'
 
 const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM', 'WechatWork']
 const BK_PLUGIN_ICON = {
+    'bk_display': 'common-icon-bk-plugin-message',
+    'pause_node': 'common-icon-bk-plugin-confirm',
+    'bk_approve': 'common-icon-bk-plugin-approval',
     'bk_http_request': 'common-icon-bk-plugin-http',
     'bk_notify': 'common-icon-bk-plugin-notify',
-    'sleep_timer': 'common-icon-bk-plugin-timer',
-    'pause_node': 'common-icon-bk-plugin-pause'
+    'sleep_timer': 'common-icon-bk-plugin-timer'
 }
 
 // 最大长度常量

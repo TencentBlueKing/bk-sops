@@ -18,12 +18,7 @@ from django.db import models, transaction
 from django_celery_beat.models import ClockedSchedule as DjangoCeleryBeatClockedSchedule
 from django_celery_beat.models import PeriodicTask as DjangoCeleryBeatPeriodicTask
 
-from gcloud.constants import (
-    CLOCKED_TASK_NOT_STARTED,
-    CLOCKED_TASK_STATE,
-    PROJECT,
-    TEMPLATE_SOURCE,
-)
+from gcloud.constants import CLOCKED_TASK_NOT_STARTED, CLOCKED_TASK_STATE, PROJECT, TEMPLATE_SOURCE
 from gcloud.core.models import Project, StaffGroupSet
 from gcloud.shortcuts.cmdb import get_business_group_members
 from gcloud.utils.unique import uniqid
@@ -134,7 +129,11 @@ class ClockedTask(models.Model):
         else:
             notify_type = json.loads(self.notify_type)
         logger.info(f"[clocked_task get_notify_type] success: {notify_type}")
-        return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+        return (
+            notify_type
+            if isinstance(notify_type, dict)
+            else {"success": notify_type, "fail": notify_type, "pending_processing": notify_type}
+        )
 
     def get_stakeholders(self):
         # 如果没有配置，则使用模版中的配置

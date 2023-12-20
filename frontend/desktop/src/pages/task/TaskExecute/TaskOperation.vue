@@ -27,8 +27,9 @@
             :state="state"
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
-            :is-task-operation-btns-show="isTaskOperationBtnsShow"
             :params-can-be-modify="paramsCanBeModify"
+            :pending-nodes="pendingNodes"
+            @moveNodeToView="moveNodeToView"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick"
@@ -218,7 +219,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapMutations, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
@@ -242,34 +243,42 @@
     let source = CancelToken.source()
 
     const TASK_OPERATIONS = {
+        reExecute: {
+            action: 'reExecute',
+            icon: 'bk-icon icon-refresh-line',
+            text: i18n.t('再次执行'),
+            disabled: false
+        },
         execute: {
             action: 'execute',
-            icon: 'common-icon-right-triangle',
+            icon: 'bk-icon icon-play-shape',
             text: i18n.t('执行')
         },
         pause: {
             action: 'pause',
-            icon: 'common-icon-double-vertical-line',
-            text: i18n.t('暂停')
+            icon: 'common-icon-pause',
+            text: i18n.t('暂停执行')
         },
         resume: {
             action: 'resume',
-            icon: 'common-icon-right-triangle',
-            text: i18n.t('继续')
+            icon: 'bk-icon icon-play-shape',
+            text: i18n.t('继续执行')
         },
         revoke: {
             action: 'revoke',
-            icon: 'common-icon-stop',
-            text: i18n.t('终止')
+            icon: 'common-icon-terminate',
+            text: i18n.t('终止执行'),
+            disabled: false
         }
     }
     // 执行按钮的变更
     const STATE_OPERATIONS = {
         'RUNNING': 'pause',
         'NODE_SUSPENDED': 'pause',
+        'PENDING_PROCESSING': 'pause',
         'SUSPENDED': 'resume',
         'CREATED': 'execute',
-        'FAILED': 'pause'
+        'FAILED': 'reExecute'
     }
     export default {
         name: 'TaskOperation',
@@ -295,6 +304,7 @@
             instanceFlow: String,
             instanceName: String,
             template_id: [Number, String],
+            templateName: [Number, String],
             primitiveTplId: [Number, String],
             primitiveTplSource: String,
             templateSource: String,
@@ -327,7 +337,6 @@
                 sidebarWidth: 960,
                 nodeInfoType: '',
                 state: '', // 当前流程状态，画布切换时会更新
-                rootState: '', // 根流程状态
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
                 cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、终止时才存在
@@ -396,8 +405,9 @@
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
+                isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
                 retryNodeName: '',
-                isSourceDetailSideBar: false // 节点重试侧栏是否从节点详情打开
+                suspendLines: []
             }
         },
         computed: {
@@ -453,13 +463,6 @@
             nodeNav () {
                 return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
             },
-            // 当前画布是否为最外层
-            isTopTask () {
-                return this.nodeNav.length === 1
-            },
-            isTaskOperationBtnsShow () {
-                return this.state !== 'REVOKED' && this.state !== 'FINISHED'
-            },
             taskOperationBtns () {
                 const operationBtns = []
                 const operationType = STATE_OPERATIONS[this.state]
@@ -478,7 +481,6 @@
                     if (
                         this.state === 'CREATED'
                         && this.unclaimFuncTask
-                        && this.isTopTask
                         && this.creatorName !== this.username
                     ) {
                         executePauseBtn.disabled = true
@@ -486,6 +488,8 @@
                     }
 
                     operationBtns.push(executePauseBtn, revokeBtn)
+                } else if (this.state) {
+                    operationBtns.push(TASK_OPERATIONS['reExecute'])
                 }
                 return operationBtns
             },
@@ -504,6 +508,48 @@
                 return Object.values(this.pipelineData.activities).some(item => {
                     return item.type !== 'ServiceActivity' || item.component?.code === 'subprocess_plugin'
                 })
+            },
+            pendingNodes () {
+                const { children = {} } = this.instanceStatus
+                const pendingStatus = ['FAILED', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
+                return Object.values(children).reduce((acc, cur) => {
+                    if (pendingStatus.includes(cur.state)) {
+                        acc.push({
+                            id: cur.id,
+                            name: this.activities[cur.id].name,
+                            state: cur.state,
+                            statusText: TASK_STATE_DICT[cur.state]
+                        })
+                    }
+                    return acc
+                }, [])
+            }
+        },
+        watch: {
+            instanceStatus: {
+                handler (val, oldVal) {
+                    if ([val.state, oldVal.state].includes('SUSPENDED')) {
+                        if (val.state === oldVal.state && !this.suspendLines.length) return
+                        const { children = {} } = this.instanceStatus
+                        const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
+                        Object.values(children).forEach(node => {
+                            // 非任务节点/网关节点
+                            if ([start_event.id, end_event.id].includes(node.id)) return
+                            // 查看输出节点状态
+                            let { outgoing } = activities[node.id] || gateways[node.id] || {}
+                            if (!Array.isArray(outgoing)) {
+                                outgoing = [outgoing]
+                            }
+                            outgoing.forEach(outLine => {
+                                const targetNode = flows[outLine].target
+                                const isExecuted = val.state === 'SUSPENDED' ? (node.state === 'READY' || targetNode in children) : true
+                                // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
+                                this.setLineSuspendState(node.id, outLine, isExecuted)
+                            })
+                        })
+                    }
+                },
+                deep: true
             }
         },
         mounted () {
@@ -525,6 +571,9 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
+            ...mapMutations('template/', [
+                'setLine'
+            ]),
             ...mapActions('task/', [
                 'getInstanceStatus',
                 'instanceStart',
@@ -577,10 +626,6 @@
                             project_id: this.project_id,
                             cancelToken: source.token
                         }
-                        if (!this.isTopTask) {
-                            data.instance_id = this.instance_id
-                            data.subprocess_id = this.taskId
-                        }
                         instanceStatus = await this.getInstanceStatus(data)
                     }
                     // 处理返回数据
@@ -588,9 +633,6 @@
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
                         this.pollErrorTimes = 0
-                        if (this.isTopTask) {
-                            this.rootState = this.state
-                        }
                         if (
                             !this.cacheStatus
                             && ['FINISHED', 'REVOKED'].includes(this.state)
@@ -598,10 +640,16 @@
                         ) { // save cacheStatus
                             this.cacheStatus = instanceStatus.data
                         }
+                        let continueRunning = false
                         // 任务暂停时如果有节点正在执行，需轮询节点状态
-                        let suspendedRunning = false
                         if (this.state === 'SUSPENDED') {
-                            suspendedRunning = Object.values(instanceStatus.data.children).some(item => item.state === 'RUNNING')
+                            const pendingStatus = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
+                            continueRunning = Object.values(instanceStatus.data.children).some(item => pendingStatus.includes(item.state))
+                        }
+                        // 任务失败时如果又节点还没自动重试完，需轮询节点状态
+                        if (this.state === 'FAILED') {
+                            const { auto_retry_infos: retryInfos = {} } = instanceStatus.data
+                            continueRunning = Object.values(retryInfos).some(item => item.max_auto_retry_times > item.auto_retry_times)
                         }
                         // 节点执行记录显示时，重新计算当前执行时间/判断是否还在执行中
                         if (this.isExecRecordOpen) {
@@ -619,7 +667,7 @@
                                 this.nodeExecRecordInfo.state = execNodeConfig.state
                             }
                         }
-                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
+                        if (['RUNNING', 'PENDING_PROCESSING'].includes(this.state) || continueRunning) {
                             if (this.isExecRecordOpen && this.nodeExecRecordInfo.state) { // 节点执行中一秒查一次
                                 this.setTaskStatusTimer(1000)
                             } else {
@@ -854,6 +902,20 @@
                     this.pending.task = false
                 }
             },
+            // 任务重新执行
+            taskReExecute () {
+                const url = {
+                    name: 'taskCreate',
+                    query: { template_id: this.template_id, task_id: this.instance_id, entrance: 'taskflow' },
+                    params: { project_id: this.projectId, step: 'selectnode' }
+                }
+                if (this.templateSource === 'common') {
+                    url.query.common = 1
+                }
+                const { href } = this.$router.resolve(url)
+                window.open(href, '_blank')
+                this.pending.task = false
+            },
             async nodeTaskSkip (id, taskId) {
                 if (this.pending.skip) {
                     return
@@ -994,7 +1056,7 @@
             },
             // 更新节点状态
             updateNodeInfo () {
-                const nodes = this.instanceStatus.children
+                const { auto_retry_infos: retryInfo, children: nodes, state } = this.instanceStatus
                 for (const id in nodes) {
                     let code, skippable, retryable, errorIgnorable, autoRetry
                     const currentNode = nodes[id]
@@ -1007,13 +1069,15 @@
                         errorIgnorable = nodeActivities.error_ignorable
                         autoRetry = nodeActivities.auto_retry
                     }
+                    const status = state === 'SUSPENDED' && currentNode.state === 'READY' ? 'PENDING_TASK_CONTINUE' : currentNode.state
                     const data = {
                         code,
                         skippable,
                         retryable,
                         loop: currentNode.loop,
-                        status: currentNode.state,
+                        status,
                         skip: currentNode.skip,
+                        auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
@@ -1465,14 +1529,16 @@
             },
             getOptBtnIsClickable (action) {
                 switch (action) {
+                    case 'reExecute':
+                        return true
                     case 'execute':
-                        return this.state === 'CREATED' && this.isTopTask
+                        return this.state === 'CREATED'
                     case 'pause':
                         return ['RUNNING', 'NODE_SUSPENDED'].includes(this.state)
                     case 'resume':
                         return this.state === 'SUSPENDED'
                     case 'revoke':
-                        return this.isTopTask && ['RUNNING', 'SUSPENDED', 'NODE_SUSPENDED', 'FAILED'].includes(this.state)
+                        return ['RUNNING', 'SUSPENDED', 'PENDING_PROCESSING', 'FAILED'].includes(this.state)
                     default:
                         break
                 }
@@ -2082,7 +2148,8 @@
                     return
                 }
 
-                if (!this.hasPermission(['task_operate'], this.instanceActions)) {
+                const requestPerm = action !== 'reExecute' ? 'task_operate' : this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                if (!this.hasPermission([requestPerm], this.instanceActions)) {
                     const resourceData = {
                         task: [{
                             id: this.instance_id,
@@ -2093,7 +2160,14 @@
                             name: this.projectName
                         }]
                     }
-                    this.applyForPermission(['task_operate'], this.instanceActions, resourceData)
+                    if (action === 'reExecute') {
+                        const flowKey = this.templateSource === 'project' ? 'flow' : 'common_flow'
+                        resourceData[flowKey] = [{
+                            id: this.template_id,
+                            name: this.templateName
+                        }]
+                    }
+                    this.applyForPermission([requestPerm], this.instanceActions, resourceData)
                     return
                 }
 
@@ -2128,7 +2202,6 @@
                 if (
                     action === 'execute'
                     && this.unclaimFuncTask
-                    && this.isTopTask
                     && this.creatorName === this.username
                 ) {
                     const h = this.$createElement
@@ -2531,7 +2604,7 @@
             },
             unclickableOperation (type) {
                 // 失败时不允许点击暂停按钮，创建是不允许点击终止按钮，操作执行过程不允许点击
-                return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading || !this.isTopTask
+                return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
@@ -2582,6 +2655,187 @@
                         && this.pipelineData.activities[key].component.code === 'pause_node'))
                         ? 'SUSPENDED'
                         : ''
+            },
+            /**
+             * 移动画布，将节点放到画布左上角
+             */
+            moveNodeToView (id) {
+                // 获取对应dom
+                const nodeEl = document.querySelector(`#${id} .canvas-node-item`)
+                // 判断dom是否存在当前视图中
+                const isInViewPort = this.judgeInViewPort(nodeEl)
+                // 如果存在只需要节点摇晃，不存在需要将节点挪到画布中间并节点摇晃
+                if (!isInViewPort) {
+                    const { width, height } = document.querySelector('#canvasContainer').getBoundingClientRect()
+                    const { x, y } = this.canvasData.locations.find(item => item.id === id)
+                    const offsetX = (width - 154) / 2 - x
+                    const offsetY = (height - 54) / 2 - y
+                    this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
+                }
+                // 移动画布到选中节点位置的摇晃效果
+                if (nodeEl) {
+                    nodeEl.classList.add('node-shake')
+                    setTimeout(() => {
+                        nodeEl.classList.remove('node-shake')
+                    }, 500)
+                }
+            },
+            // dom是否存在当前视图中
+            judgeInViewPort (element) {
+                if (!element) return false
+                const viewWidth = window.innerWidth || document.documentElement.clientWidth
+                const viewHeight = window.innerHeight || document.documentElement.clientHeight
+                const { top, right, bottom, left } = element.getBoundingClientRect()
+                return top >= 0 && left >= 0 && right <= viewWidth && bottom <= viewHeight
+            },
+            setLineSuspendState (nodeId, lineId, isExecuted, location = 0.5) {
+                const tplInstance = this.$refs.templateCanvas
+                const line = this.canvasData.lines.find(item => item.id === lineId)
+                // 分支添加暂停icon
+                if (isExecuted) {
+                    // 删除label
+                    const pauseDom = document.querySelector(`.suspend-${lineId}`)
+                    if (pauseDom) {
+                        tplInstance.setPaintStyle(lineId, '#a9adb6')
+                        tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
+                        const index = this.suspendLines.findIndex(item => item === lineId)
+                        this.suspendLines.splice(index, 1)
+                    }
+                } else if (!this.suspendLines.includes(lineId) && location > 0) {
+                    // 设置连线颜色
+                    tplInstance.setPaintStyle(lineId, '#ffb848')
+                    const labelData = {
+                        type: 'Label',
+                        location,
+                        name: `<i class="common-icon-pause"></i>`,
+                        cls: `suspend-line suspend-${lineId}`,
+                        id: `suspend-${lineId}`
+                    }
+                    tplInstance.$refs.jsFlow.addLineOverlay(line, labelData)
+                    // 根据暂停icon所在线段的方向设置平移
+                    this.$nextTick(() => {
+                        const direction = this.judgeIntersectSegmentDirection(tplInstance, line, nodeId)
+                        if (direction) {
+                            this.$nextTick(() => {
+                                const pauseDom = document.querySelector(`.suspend-${lineId}`)
+                                if (direction === 'vertical') { // 垂直
+                                    pauseDom.style.transform = 'rotate(90deg)'
+                                    const left = pauseDom.style.left.slice(0, -2)
+                                    pauseDom.style.left = `${Number(left) + 1}px`
+                                } else { // 水平
+                                    const top = pauseDom.style.top.slice(0, -2)
+                                    pauseDom.style.top = `${Number(top) + 1}px`
+                                }
+                                this.suspendLines.push(lineId)
+                            })
+                        } else if (!direction) { // icon正在停在弯曲线段上
+                            // 给曲线上的icon添加偏移计算量太大，改为删除旧的label生成一条偏移量location - 0.1的label
+                            tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
+                            this.setLineSuspendState(nodeId, lineId, isExecuted, location - 0.1)
+                        }
+                    })
+                }
+            },
+            // 计算与暂停图标相交的线段方向
+            judgeIntersectSegmentDirection (tplInstance, line, nodeId) {
+                // 节点尺寸坐标
+                const pauseDom = document.querySelector(`.suspend-${line.id}`)
+                const iconPos = this.getDomPos(pauseDom)
+                const { width: iWidth, height: iHeight } = pauseDom.getBoundingClientRect()
+                // 存在偏移，所以真实坐标需要减去高/宽的一半
+                iconPos.left = iconPos.left - iWidth / 2
+                iconPos.top = iconPos.top - iHeight / 2
+
+                // 暂停图标是在水平线还是垂直线还是曲线
+                let direction = ''
+                // 获取连线实例
+                let connection = tplInstance.$refs.jsFlow.getConnectorsByNodeId(nodeId)
+                if (Array.isArray(connection)) {
+                    connection = connection.find(item => item.sourceId === line.source.id && item.targetId === line.target.id)
+                }
+                // 连线各个线段
+                const { left: lineLeft, top: lineTop } = this.getDomPos(connection.canvas)
+                let segments = connection.connector.getSegments()
+                // 第一段线段坐标
+                const { x1, x2, y1, y2 } = segments[0].params
+                const firstSegmentWidth = x2 - x1
+                const firstSegmentHeight = y2 - y1
+                // 切除插入到节点内部的两端线段
+                segments = segments.slice(1, -1)
+                // 克隆线段列表，直线时会对线段宽高重新计算，避免影响
+                segments = tools.deepClone(segments)
+                // 纯直线会重叠了1px，为线的折点预留的位置
+                if (segments.length === 2 && segments.every(item => item.type === 'Straight')) {
+                    // 整合为一条线段
+                    let params = {}
+                    const { x1, x2, y1, y2 } = segments[0].params
+                    if (x1 === x2) {
+                        if (y1 > y2) {
+                            params = { x1: 0, x2: 0, y1, y2: 0 }
+                        } else {
+                            params = { x1: 0, x2: 0, y1: 0, y2: y2 * 2 }
+                        }
+                    } else if (y1 === y2) {
+                        if (x1 > x2) {
+                            params = { x1, x2: 0, y1: 0, y2: 0 }
+                        } else {
+                            params = { x1: 0, x2: x2 * 2, y1: 0, y2: 0 }
+                        }
+                    }
+                    segments[0].params = params
+                    segments = segments.slice(0, 1)
+                }
+                segments.some((item, index) => {
+                    // 过滤掉圆弧线段
+                    if (item.type === 'Arc') return false
+                    // 计算线段的高宽和坐标
+                    const { x1, x2, y1, y2 } = item.params
+                    // 线段的坐标的最大值/最小值
+                    const maxX = Math.max(x1, x2)
+                    const minX = Math.min(x1, x2)
+                    const maxY = Math.max(y1, y2)
+                    const minY = Math.min(y1, y2)
+                    let arcHeight = 0
+                    const prevSegment = segments[index - 1]
+                    const nextSegment = segments[index + 1]
+
+                    let left, top, height, width
+                    if (x1 === x2) { // 垂直
+                        height = maxY - minY
+                        top = lineTop + minY + firstSegmentHeight
+                        left = lineLeft + minX + firstSegmentWidth
+                        if (top < iconPos.top && top + height > iconPos.top + iHeight && left > iconPos.left && left < iconPos.left + iWidth) {
+                            direction = 'vertical'
+                        }
+                    } else if (y1 === y2) { // 水平
+                        if (prevSegment?.type === 'Arc') {
+                            const { y1: prevY1, y2: prevY2, r } = prevSegment.params
+                            arcHeight = Math.min(prevY1, prevY2) < y1 ? r : 0
+                        } else if (!arcHeight && nextSegment?.type === 'Arc') {
+                            const { y1: nextY1, y2: nextY2, r } = nextSegment.params
+                            arcHeight = Math.min(nextY1, nextY2) < y1 ? r : 0
+                        }
+                        width = maxX - minX
+                        top = lineTop + minY + firstSegmentHeight + arcHeight
+                        left = lineLeft + minX + firstSegmentWidth
+                        if (top > iconPos.top && top < iconPos.top + iHeight && left < iconPos.left && left + width > iconPos.left + iWidth) {
+                            direction = 'horizontal'
+                        }
+                    }
+                    return !!direction
+                })
+                return direction
+            },
+            getDomPos (dom) {
+                let { cssText } = dom.style
+                cssText = cssText.split(';').filter(value => /:.(\-)?[0-9.]+px/.test(value))
+                let left = cssText.find(item => item.indexOf('left') > -1)
+                left = left ? /:.((\-)?[0-9.]+)px/.exec(left)[1] : 0
+                left = Number(left)
+                let top = cssText.find(item => item.indexOf('top') > -1)
+                top = top ? /:.((\-)?[0-9.]+)px/.exec(top)[1] : 0
+                top = Number(top)
+                return { left, top }
             },
             handleMousedown (event) {
                 this.updateResizeMaskStyle()
@@ -2729,6 +2983,9 @@
                         border-radius: 2px;
                     }
                 }
+                .jtk-connector {
+                    cursor: inherit;
+                }
             }
         }
     }
@@ -2854,6 +3111,13 @@
     /deep/.bk-label {
         width: auto !important;
     }
+}
+/deep/.suspend-line {
+    display: flex;
+    font-size: 12px;
+    color: #ffb946;
+    background: #f5f7fa;
+    transform-origin: top;
 }
 </style>
 <style lang="scss">

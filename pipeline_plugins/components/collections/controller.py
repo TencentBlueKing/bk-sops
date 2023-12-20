@@ -12,18 +12,20 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
+import logging
 import os
 import re
-import logging
 
 from django.conf import settings
-from django.utils import translation, timezone
+from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
+
 from gcloud.core.models import Project
+from gcloud.shortcuts.message import PENDING_PROCESSING
+from gcloud.taskflow3.celery.tasks import send_taskflow_message
 
 __group_name__ = _("蓝鲸服务(BK)")
 
@@ -34,6 +36,12 @@ class PauseService(Service):
     __need_schedule__ = True
 
     def execute(self, data, parent_data):
+        task_id: int = parent_data.get_one_of_inputs("task_id")
+        send_taskflow_message.delay(
+            task_id=task_id,
+            msg_type=PENDING_PROCESSING,
+            use_root=True,
+        )
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -45,7 +53,10 @@ class PauseService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("描述"), key="description", type="string", schema=StringItemSchema(description=_("描述")),
+                name=_("描述"),
+                key="description",
+                type="string",
+                schema=StringItemSchema(description=_("描述")),
             )
         ]
 
@@ -55,7 +66,10 @@ class PauseService(Service):
                 name=_("API回调数据"),
                 key="callback_data",
                 type="object",
-                schema=ObjectItemSchema(description=_("通过node_callback API接口回调并传入数据,支持dict数据"), property_schemas={},),
+                schema=ObjectItemSchema(
+                    description=_("通过node_callback API接口回调并传入数据,支持dict数据"),
+                    property_schemas={},
+                ),
             ),
         ]
 

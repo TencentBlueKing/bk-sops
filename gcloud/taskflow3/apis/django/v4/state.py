@@ -14,14 +14,14 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.http.response import JsonResponse
-from django.views.decorators.http import require_GET
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_GET
 
 from gcloud import err_code
 from gcloud.taskflow3.apis.django.validators import StatusValidator
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
-from gcloud.utils.decorators import request_validate
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.utils.decorators import request_validate
 
 logger = logging.getLogger("root")
 
@@ -50,7 +50,7 @@ def root_state(request, project_id):
         project_id=project_id,
     )
 
-    result = dispatcher.get_task_status(subprocess_id=subprocess_id)
+    result = dispatcher.get_task_status(subprocess_id=subprocess_id, with_new_status=True)
     if not result["result"]:
         return JsonResponse(result)
 

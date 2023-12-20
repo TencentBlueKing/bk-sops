@@ -281,6 +281,11 @@
                     connectionsDetachable: false
                 })
             }
+            const isExecute = nodes[0].mode === 'execute'
+            if (isExecute) {
+                delete combinedEndpointOptions.hoverPaintStyle
+                delete connectorOptions.hoverPaintStyle
+            }
             return {
                 isSmallMap: false, // 小地图激活态
                 smallMapWidth: 344, // 344 小地图宽度

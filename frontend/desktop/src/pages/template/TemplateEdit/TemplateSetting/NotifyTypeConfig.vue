@@ -25,7 +25,7 @@
                                 :value="props.row.includes(col.type)"
                                 @change="onSelectNotifyType(props.$index, col.type, $event)">
                             </bk-switcher>
-                            <span v-else>{{ props.$index === 0 ? $t('成功') : $t('失败') }}</span>
+                            <span v-else>{{ props.$index === 0 ? $t('成功') : props.$index === 1 ? $t('失败') : $t('等待处理') }}</span>
                         </template>
                         <div class="empty-data" slot="empty">
                             <NoData></NoData>

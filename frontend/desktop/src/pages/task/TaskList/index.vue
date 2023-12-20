@@ -116,22 +116,22 @@
                                     </div>
                                     <div v-else class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
-                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执行')}}</a>
+                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('再次执行')}}</a>
                                         <a
                                             v-else-if="!hasCreateTaskPerm(props.row)"
                                             v-cursor
                                             class="text-permission-disable task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
-                                            {{$t('重新执行')}}
+                                            {{$t('再次执行')}}
                                         </a>
                                         <a
                                             v-else
-                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执行')"
+                                            v-bk-tooltips.top="$t('使用当前任务数据（节点选择、入参）再次创建任务')"
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">
-                                            {{$t('重新执行')}}
+                                            {{$t('再次执行')}}
                                         </a>
                                         <a
                                             v-if="executeStatus[props.row.id] && executeStatus[props.row.id].text === $t('未执行')"
@@ -192,6 +192,7 @@
     const TASK_STATUS_LIST = [
         { id: 'nonExecution', name: i18n.t('未执行') },
         { id: 'running', name: i18n.t('执行中') },
+        { id: 'pending_processing', name: i18n.t('等待处理') },
         { id: 'failed', name: i18n.t('失败') },
         { id: 'pause', name: i18n.t('暂停') },
         { id: 'finished', name: i18n.t('完成') },
@@ -455,7 +456,6 @@
             async getTaskList () {
                 // 空字符串需要转换为undefined，undefined数据在axios请求发送过程中会被删除
                 this.listLoading = true
-                this.executeStatus = {}
                 try {
                     const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
@@ -479,6 +479,12 @@
                             break
                         case 'finished':
                             pipeline_instance__is_finished = true
+                            break
+                        case 'pending_processing':
+                            pipeline_instance__is_started = true
+                            pipeline_instance__is_finished = false
+                            pipeline_instance__is_revoked = false
+                            task_instance_status = 'pending_processing'
                             break
                     }
 
@@ -1140,7 +1146,11 @@
         color: $blueDefault;
     }
     .task-status {
-       @include ui-task-status;
+        span:first-child {
+            position: relative;
+            top: 1px;
+        }
+        @include ui-task-status;
     }
     .task-operation {
         .task-operation-btn {

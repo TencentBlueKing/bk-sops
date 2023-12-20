@@ -13,38 +13,48 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.common import (
     title_and_content_for_atom_failed,
-    title_and_content_for_flow_finished,
-    title_and_content_for_periodic_task_start_fail,
     title_and_content_for_clocked_task_create_fail,
+    title_and_content_for_flow_finished,
+    title_and_content_for_pending_processing,
+    title_and_content_for_periodic_task_start_fail,
 )
 from gcloud.shortcuts.message.send_msg import send_message
-from gcloud.periodictask.models import PeriodicTask
 
 logger = logging.getLogger("root")
 
 ATOM_FAILED = "atom_failed"
 TASK_FINISHED = "task_finished"
+PENDING_PROCESSING = "pending_processing"
 
 
 def send_task_flow_message(taskflow, msg_type, node_name=""):
 
+    # {"success": ["weixin"], "fail": ["weixin"]}
+    # []
     notify_types = taskflow.get_notify_type()
     receivers_list = taskflow.get_stakeholders()
     receivers = ",".join(receivers_list)
     executor = taskflow.executor
 
-    if msg_type == "atom_failed":
+    if msg_type == ATOM_FAILED:
         title, content, email_content = title_and_content_for_atom_failed(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("fail", [])
-    elif msg_type == "task_finished":
+    elif msg_type == TASK_FINISHED:
         title, content, email_content = title_and_content_for_flow_finished(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("success", [])
+    elif msg_type == PENDING_PROCESSING:
+        title, content, email_content = title_and_content_for_pending_processing(
+            taskflow, taskflow.pipeline_instance, node_name, executor
+        )
+        notify_type = notify_types.get("pending_processing", [])
+
     else:
         return False
 

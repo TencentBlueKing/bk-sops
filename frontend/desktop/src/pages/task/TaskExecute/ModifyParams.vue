@@ -112,7 +112,7 @@
                         ? ['SUSPENDED', 'RUNNING'].includes(this.rootTaskState)
                             ? i18n.t('保存并继续')
                             : i18n.t('保存')
-                        : ['CREATED', 'SUSPENDED', 'FAILED'].includes(this.rootTaskState)
+                        : ['CREATED', 'SUSPENDED', 'FAILED', 'PENDING_PROCESSING'].includes(this.rootTaskState)
                             ? i18n.t('去修改')
                             : i18n.t('暂停去修改')
             },
