@@ -42,8 +42,8 @@
                 </bk-checkbox>
             </template>
             <!-- 节点循环次数 -->
-            <div v-if="node.loop > 1" :class="['task-status-icon task-node-loop', { 'loop-plural': node.loop > 9 }]">
-                <i :class="`common-icon-loading-${ node.loop > 9 ? 'oval' : 'round' }`"></i>
+            <div v-if="node.loop > 1" class="task-status-icon task-node-loop">
+                <i class="common-icon-loading-oval"></i>
                 <span>{{ node.loop > 99 ? '99+' : node.loop }}</span>
             </div>
             <!-- 任务节点自动重试/手动重试 -->
@@ -79,7 +79,7 @@
             <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(node.status)">
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
                     <i class="common-icon-play"></i>
-                    {{ $t('继续') }}
+                    {{ $t('确认继续') }}
                 </span>
                 <span v-else-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
                     <i class="common-icon-circulation"></i>

@@ -1,5 +1,4 @@
 const en = {
-
     // 导航
     '标准运维': 'Standard OPS',
     '首页': 'Home',
@@ -1833,14 +1832,22 @@ const en = {
     '暂停执行': 'Pause',
     '终止执行': 'Terminate',
     '状态明细': 'Detail',
-    '已自动重试 m 次 (最多 c 次)，手动重试 n 次': 'Automatically retried {m} times (up to {c} times), manual retry {n} times'
-    'exFailedText_调用日志': 'call log',
+    '已自动重试 m 次 (最多 c 次)，手动重试 n 次': 'Automatically retried {m} times (up to {c} times), manual retry {n} times',
     '任务还未执行，暂无执行历史': 'Task not executed, no history available.',
     '空分支': 'Empty branch',
     '最多只能收藏 9 个': 'Can only collect up to 9 items',
     '解析': 'Parse',
     'IP地址不合法，': 'IP address is illegal,',
-    'IP地址不存在，': 'IP address does not exist,'
+    'IP地址不存在，': 'IP address does not exist,',
+    '包含自动重试 m 次': 'Automatically retried {m} times',
+    '，手动重试 n 次': ', manual retry {n} times',
+    '包含手动重试 n 次': ' Manual retry {n} times',
+    '节点自动重试中，暂时无法手动重试': 'The node is retrying automatically and manual retry is temporarily unavailable.',
+    '失败后自动跳过': 'Auto Skipped',
+    '失败后手动跳过': 'Manual Skipped',
+    '等待任务继续': 'Pending Task Continue',
+    '确认继续': 'Confirm',
+    '使用当前任务数据（节点选择、入参）再次创建任务': 'Create task again using current task data (node selection, input parameters)'
 }
 
 export default en

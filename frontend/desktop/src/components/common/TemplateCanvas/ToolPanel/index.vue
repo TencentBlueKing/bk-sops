@@ -14,7 +14,7 @@
         <div class="tool-position">
             <div
                 :class="['tool-icon', {
-                    'actived': showSmallMap
+                    'is-active': showSmallMap
                 }]"
                 v-bk-tooltips="{
                     content: $t('缩略视图'),
@@ -60,7 +60,7 @@
                 </div>
                 <div
                     :class="['tool-icon', {
-                        'actived': isSelectionOpen
+                        'is-active': isSelectionOpen
                     }]"
                     v-if="editable"
                     v-bk-tooltips="{
@@ -85,7 +85,7 @@
             </div>
             <div
                 :class="['tool-icon', {
-                    'actived': isAllSelected
+                    'is-active': isAllSelected
                 }]"
                 v-if="isShowSelectAllTool"
                 v-bk-tooltips="{
@@ -99,7 +99,7 @@
             </div>
             <div
                 :class="['tool-icon', {
-                    'actived': isShowHotKey
+                    'is-active': isShowHotKey
                 }]"
                 v-bk-tooltips="{
                     content: $t('快捷键'),
@@ -111,7 +111,7 @@
             </div>
             <div
                 :class="['tool-icon', {
-                    'actived': isPerspective
+                    'is-active': isPerspective
                 }]"
                 v-bk-tooltips="{
                     content: $t('变量引用预览'),
@@ -251,7 +251,7 @@
             background: #f4f7ff;
             border-radius: 1px;
         }
-        &.actived {
+        &.is-active {
             color: #3a84ff;
             background: #f4f7ff;
             border-radius: 1px;

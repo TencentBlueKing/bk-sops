@@ -127,7 +127,7 @@
                                         </a>
                                         <a
                                             v-else
-                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执行')"
+                                            v-bk-tooltips.top="$t('使用当前任务数据（节点选择、入参）再次创建任务')"
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">
@@ -456,7 +456,6 @@
             async getTaskList () {
                 // 空字符串需要转换为undefined，undefined数据在axios请求发送过程中会被删除
                 this.listLoading = true
-                this.executeStatus = {}
                 try {
                     const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
@@ -482,6 +481,9 @@
                             pipeline_instance__is_finished = true
                             break
                         case 'pending_processing':
+                            pipeline_instance__is_started = true
+                            pipeline_instance__is_finished = false
+                            pipeline_instance__is_revoked = false
                             task_instance_status = 'pending_processing'
                             break
                     }
@@ -1144,7 +1146,11 @@
         color: $blueDefault;
     }
     .task-status {
-       @include ui-task-status;
+        span:first-child {
+            position: relative;
+            top: 1px;
+        }
+        @include ui-task-status;
     }
     .task-operation {
         .task-operation-btn {

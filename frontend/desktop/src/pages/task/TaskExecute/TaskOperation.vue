@@ -405,8 +405,9 @@
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
+                isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
                 retryNodeName: '',
-                isSourceDetailSideBar: false // 节点重试侧栏是否从节点详情打开
+                suspendLines: []
             }
         },
         computed: {
@@ -525,11 +526,12 @@
             }
         },
         watch: {
-            'instanceStatus.state': {
+            instanceStatus: {
                 handler (val, oldVal) {
-                    const { children = {} } = this.instanceStatus
-                    const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
-                    if (val !== oldVal && [val, oldVal].includes('SUSPENDED')) {
+                    if ([val.state, oldVal.state].includes('SUSPENDED')) {
+                        if (val.state === oldVal.state && !this.suspendLines.length) return
+                        const { children = {} } = this.instanceStatus
+                        const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.pipelineData)
                         Object.values(children).forEach(node => {
                             // 非任务节点/网关节点
                             if ([start_event.id, end_event.id].includes(node.id)) return
@@ -540,7 +542,7 @@
                             }
                             outgoing.forEach(outLine => {
                                 const targetNode = flows[outLine].target
-                                const isExecuted = val === 'SUSPENDED' ? targetNode in children : true
+                                const isExecuted = val.state === 'SUSPENDED' ? (node.state === 'READY' || targetNode in children) : true
                                 // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
                                 this.setLineSuspendState(node.id, outLine, isExecuted)
                             })
@@ -1054,7 +1056,7 @@
             },
             // 更新节点状态
             updateNodeInfo () {
-                const { auto_retry_infos: retryInfo, children: nodes } = this.instanceStatus
+                const { auto_retry_infos: retryInfo, children: nodes, state } = this.instanceStatus
                 for (const id in nodes) {
                     let code, skippable, retryable, errorIgnorable, autoRetry
                     const currentNode = nodes[id]
@@ -1067,12 +1069,13 @@
                         errorIgnorable = nodeActivities.error_ignorable
                         autoRetry = nodeActivities.auto_retry
                     }
+                    const status = state === 'SUSPENDED' && currentNode.state === 'READY' ? 'PENDING_TASK_CONTINUE' : currentNode.state
                     const data = {
                         code,
                         skippable,
                         retryable,
                         loop: currentNode.loop,
-                        status: currentNode.state,
+                        status,
                         skip: currentNode.skip,
                         auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
@@ -2695,8 +2698,10 @@
                     if (pauseDom) {
                         tplInstance.setPaintStyle(lineId, '#a9adb6')
                         tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
+                        const index = this.suspendLines.findIndex(item => item === lineId)
+                        this.suspendLines.splice(index, 1)
                     }
-                } else if (location > 0) {
+                } else if (!this.suspendLines.includes(lineId) && location > 0) {
                     // 设置连线颜色
                     tplInstance.setPaintStyle(lineId, '#ffb848')
                     const labelData = {
@@ -2710,9 +2715,19 @@
                     // 根据暂停icon所在线段的方向设置平移
                     this.$nextTick(() => {
                         const direction = this.judgeIntersectSegmentDirection(tplInstance, line, nodeId)
-                        if (direction === 'vertical') { // 垂直
-                            const pauseDom = document.querySelector(`.suspend-${lineId}`)
-                            pauseDom.style.transform = 'rotate(90deg)'
+                        if (direction) {
+                            this.$nextTick(() => {
+                                const pauseDom = document.querySelector(`.suspend-${lineId}`)
+                                if (direction === 'vertical') { // 垂直
+                                    pauseDom.style.transform = 'rotate(90deg)'
+                                    const left = pauseDom.style.left.slice(0, -2)
+                                    pauseDom.style.left = `${Number(left) + 1}px`
+                                } else { // 水平
+                                    const top = pauseDom.style.top.slice(0, -2)
+                                    pauseDom.style.top = `${Number(top) + 1}px`
+                                }
+                                this.suspendLines.push(lineId)
+                            })
                         } else if (!direction) { // icon正在停在弯曲线段上
                             // 给曲线上的icon添加偏移计算量太大，改为删除旧的label生成一条偏移量location - 0.1的label
                             tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
@@ -2770,9 +2785,9 @@
                     segments[0].params = params
                     segments = segments.slice(0, 1)
                 }
-                // 过滤掉圆弧线段
-                segments = segments.filter(item => item.type === 'Straight')
-                segments.some(item => {
+                segments.some((item, index) => {
+                    // 过滤掉圆弧线段
+                    if (item.type === 'Arc') return false
                     // 计算线段的高宽和坐标
                     const { x1, x2, y1, y2 } = item.params
                     // 线段的坐标的最大值/最小值
@@ -2780,6 +2795,9 @@
                     const minX = Math.min(x1, x2)
                     const maxY = Math.max(y1, y2)
                     const minY = Math.min(y1, y2)
+                    let arcHeight = 0
+                    const prevSegment = segments[index - 1]
+                    const nextSegment = segments[index + 1]
 
                     let left, top, height, width
                     if (x1 === x2) { // 垂直
@@ -2790,8 +2808,15 @@
                             direction = 'vertical'
                         }
                     } else if (y1 === y2) { // 水平
+                        if (prevSegment?.type === 'Arc') {
+                            const { y1: prevY1, y2: prevY2, r } = prevSegment.params
+                            arcHeight = Math.min(prevY1, prevY2) < y1 ? r : 0
+                        } else if (!arcHeight && nextSegment?.type === 'Arc') {
+                            const { y1: nextY1, y2: nextY2, r } = nextSegment.params
+                            arcHeight = Math.min(nextY1, nextY2) < y1 ? r : 0
+                        }
                         width = maxX - minX
-                        top = lineTop + minY + firstSegmentHeight + 5
+                        top = lineTop + minY + firstSegmentHeight + arcHeight
                         left = lineLeft + minX + firstSegmentWidth
                         if (top > iconPos.top && top < iconPos.top + iHeight && left < iconPos.left && left + width > iconPos.left + iWidth) {
                             direction = 'horizontal'
@@ -2957,6 +2982,9 @@
                         border: 1px solid #1768ef;
                         border-radius: 2px;
                     }
+                }
+                .jtk-connector {
+                    cursor: inherit;
                 }
             }
         }

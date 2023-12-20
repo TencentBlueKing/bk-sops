@@ -127,16 +127,33 @@ class TaskFLowStatusFilterHandler:
     def _fetch_pipeline_instance_ids(self, statuses: typing.List[str], by_root: bool = True) -> QuerySet:
         pipeline_id_list = self._get_pipeline_id_list()
         # 暂停是针对于流程的暂停
-        query_kwargs: typing.Dict[str, typing.Any] = {"name__in": statuses}
+
+        if len(statuses) == 1:
+            query_kwargs: typing.Dict[str, typing.Any] = {"name": statuses[0]}
+        else:
+            query_kwargs: typing.Dict[str, typing.Any] = {"name__in": statuses}
         if by_root:
             query_kwargs["root_id__in"] = pipeline_id_list
         else:
             query_kwargs["node_id__in"] = pipeline_id_list
-        pipeline_pause_root_id_list = State.objects.filter(**query_kwargs).values("root_id").distinct()
-        return PipelineInstance.objects.filter(instance_id__in=pipeline_pause_root_id_list).values_list("id", flat=True)
+        pipeline_root_id_list = State.objects.filter(**query_kwargs).values("root_id").distinct()
+        return PipelineInstance.objects.filter(instance_id__in=pipeline_root_id_list).values_list("id", flat=True)
+
+    def _fetch_pause_pipeline_instance_ids(self):
+        pipeline_id_list = self._get_pipeline_id_list()
+        pipeline_pause_root_id_list = State.objects.filter(node_id__in=pipeline_id_list,
+                                                           name=states.SUSPENDED).values_list(
+            "root_id", flat=True)
+
+        pipeline_failed_root_id_list = State.objects.filter(root_id__in=pipeline_id_list,
+                                                            name=states.FAILED).values_list(
+            "root_id", flat=True)
+
+        pipeline_root_id_list = set(pipeline_pause_root_id_list) - set(pipeline_failed_root_id_list)
+        return PipelineInstance.objects.filter(instance_id__in=pipeline_root_id_list).values_list("id", flat=True)
 
     def _fetch_pending_process_taskflow_ids(
-        self, taskflow_instances: typing.List[TaskFlowInstance]
+            self, taskflow_instances: typing.List[TaskFlowInstance]
     ) -> typing.List[int]:
         def _get_task_status(taskflow_instance: TaskFlowInstance) -> typing.Dict[str, typing.Any]:
             dispatcher = TaskCommandDispatcher(
@@ -179,10 +196,7 @@ class TaskFLowStatusFilterHandler:
         获取所有暂停的任务，当任务暂停时，pipeline 的状态会变成暂停，
         return:
         """
-
-        pause_pipeline_instance_ids = set(
-            self._fetch_pipeline_instance_ids(statuses=[states.SUSPENDED], by_root=True)
-        ) - set(self._fetch_pipeline_instance_ids(statuses=[states.FAILED]))
+        pause_pipeline_instance_ids = self._fetch_pause_pipeline_instance_ids()
         return self.queryset.filter(pipeline_instance_id__in=pause_pipeline_instance_ids)
 
     def _filter_running(self):
@@ -330,7 +344,6 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
             )
             queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
-
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
             queryset = queryset.filter(
@@ -742,7 +755,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 {
                     "result": False,
                     "message": "the flow_type of task should be common_func and "
-                    "the number of corresponding function task should be 1. ",
+                               "the number of corresponding function task should be 1. ",
                 }
             )
         with transaction.atomic():
