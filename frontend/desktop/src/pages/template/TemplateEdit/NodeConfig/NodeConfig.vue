@@ -239,6 +239,8 @@
                                             <template v-else>
                                                 <jsonschema-input-params
                                                     v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
+                                                    ref="jsonSchemaParams"
+                                                    :is-view-mode="isViewMode"
                                                     :inputs="inputs"
                                                     :value="inputsParamValue"
                                                     @update="updateInputsValue">
@@ -1005,12 +1007,15 @@
             async pluginChange (atomGroup) {
                 const { code, group_name, name, list } = atomGroup
                 this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
+                // 获取默认版本
+                const defaultVersion = list.find(item => item.is_default_version)
+                const version = defaultVersion ? defaultVersion.version : list[list.length - 1].version
                 // 获取不同版本的描述
                 let desc = atomGroup.desc || ''
                 if (!this.isThirdParty) {
                     let atom = this.atomList.find(item => item.code === code)
                     atom = atom || this.isolationAtomConfig
-                    desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
+                    desc = atom.list.find(item => item.version === version).desc
                 } else {
                     desc = ''
                 }
@@ -1020,7 +1025,7 @@
                 }
                 const config = {
                     plugin: code,
-                    version: list[list.length - 1].version,
+                    version,
                     name: this.isThirdParty ? name : `${group_name}-${name}`,
                     nodeName: name,
                     stageName: '',
@@ -1366,9 +1371,10 @@
                 return this.$refs.basicInfo.validate().then(validator => {
                     if (this.$refs.inputParams) {
                         return this.$refs.inputParams.validate()
-                    } else {
-                        return true
+                    } else if (this.$refs.jsonSchemaParams) {
+                        return this.$refs.jsonSchemaParams.validate()
                     }
+                    return true
                 })
             },
             getNodeFullConfig () {

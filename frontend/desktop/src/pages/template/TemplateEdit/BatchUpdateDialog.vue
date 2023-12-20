@@ -148,6 +148,7 @@
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
     import i18n from '@/config/i18n/index.js'
+    import formSchema from '@/utils/formSchema.js'
     import InputParams from './NodeConfig/InputParams.vue'
     import OutputParams from './NodeConfig/OutputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -571,7 +572,7 @@
                     const curVar = this.$store.state.template.constants[key] // 当前版本key相同的变量
                     const { source_type, source_info } = varItem
                     if (['component_inputs', 'component_outputs'].includes(source_type)) {
-                        this.subflowForms.forEach(subflow => {
+                        this.subflowForms.forEach((subflow, index) => {
                             if (source_info[subflow.id]) { // 该节点最新版本输入输出参数有勾选
                                 source_info[subflow.id].slice(0).forEach(nodeFormItem => {
                                     // 注释 1.a 场景
@@ -622,6 +623,24 @@
                                         }
                                     })
                                 }
+                            }
+                                                
+                            const { form, inputsConfig } = subflow.latestForm
+                            const formValue = form[key]
+                            const inputRef = this.$refs.inputParams[index]
+                            let hook = false
+                            // 获取输入参数的勾选状态
+                            if (inputRef && inputRef.hooked) {
+                                hook = inputRef.hooked[key] || false
+                            }
+                            if (varItem.is_meta && formValue && hook) {
+                                const schema = formSchema.getSchema(formValue.key, inputsConfig)
+                                varItem['form_schema'] = schema
+                                varItem.meta = formValue.meta
+                                // 如果之前选中的下拉项被删除了，则删除对应的值
+                                const curVal = varItem.value
+                                const isMatch = curVal ? schema.attrs.items.find(item => item.value === curVal) : true
+                                varItem.value = isMatch ? curVal : ''
                             }
                         })
                         if (Object.keys(source_info).length > 0) {

@@ -158,6 +158,7 @@
     import Percentage from './Percentage.vue'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const TABLE_COLUMN = [
         {
@@ -409,6 +410,8 @@
                     if (this.tplSort === '') {
                         delete query.conditions.order_by
                     }
+                    const source = new CancelRequest()
+                    query.cancelToken = source.token
                     this.tplData = await this.loadAnalysisData(query, 'tpl')
                 } catch (e) {
                     console.log(e)

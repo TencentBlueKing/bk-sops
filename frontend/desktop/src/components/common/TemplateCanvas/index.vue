@@ -426,22 +426,30 @@
                 }, 0)
             },
             onZoomIn (pos) {
+                let zoom = this.$refs.jsFlow.zoom
+                zoom = zoom < 1.5 ? zoom + 0.25 : 1.5
                 if (pos) {
                     const { x, y } = pos
-                    this.$refs.jsFlow.zoomIn(1.1, x, y)
+                    const offsetX = x - x * zoom
+                    const offsetY = y - y * zoom
+                    this.$refs.jsFlow.setZoom(zoom, offsetX, offsetY)
                 } else {
-                    this.$refs.jsFlow.zoomIn(1.1, 0, 0)
+                    this.$refs.jsFlow.setZoom(zoom, 0, 0)
                 }
-                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
+                this.zoomRatio = Math.round(zoom * 100)
             },
             onZoomOut (pos) {
+                let zoom = this.$refs.jsFlow.zoom
+                zoom = zoom > 0.25 ? zoom - 0.25 : 0.25
                 if (pos) {
                     const { x, y } = pos
-                    this.$refs.jsFlow.zoomOut(0.9, x, y)
+                    const offsetX = x - x * zoom
+                    const offsetY = y - y * zoom
+                    this.$refs.jsFlow.setZoom(zoom, offsetX, offsetY)
                 } else {
-                    this.$refs.jsFlow.zoomOut(0.9, 0, 0)
+                    this.$refs.jsFlow.setZoom(zoom, 0, 0)
                 }
-                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
+                this.zoomRatio = Math.round(zoom * 100)
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
@@ -994,12 +1002,14 @@
                 // 获取节点对应匹配连线
                 const matchLines = this.matchLines
                 // 只对符合单条线的情况进行处理
-                if (Object.keys(matchLines).length === 1) {
-                    const values = Object.values(matchLines)[0]
+                const length = Object.keys(matchLines).length
+                if (length) {
+                    // 如果匹配的连线大于1且不是汇聚网关时不继续执行
+                    if (length !== 1 && location.type !== 'convergegateway') return
                     // 计算节点的坐标和两端节点的左边是否在一条线上
                     const canvasData = tools.deepClone(this.canvasData)
                     const isTaskNode = ['tasknode', 'subflow'].includes(location.type)
-                    const { source, target, segmentPosition } = values
+                    const { source, target, segmentPosition } = Object.values(matchLines)[0]
                     const bothNodes = canvasData.locations.filter(item => {
                         return [source.id, target.id].includes(item.id)
                     })
@@ -1022,30 +1032,36 @@
                             return true
                         }
                     })
-                    // 删除旧的连线，创建新的连线
-                    const result = this.updateConnector({
-                        startNodeId: values.source.id,
-                        endNodeId: values.target.id,
-                        location,
-                        startLineArrow: {
-                            source: values.source.arrow,
-                            target: values.inputArrow
-                        },
-                        endLineArrow: {
-                            source: values.outputArrow,
-                            target: values.target.arrow
+                    let exit = false
+                    Object.values(matchLines).forEach(values => {
+                        // 删除旧的连线，创建新的连线
+                        const result = this.updateConnector({
+                            startNodeId: values.source.id,
+                            endNodeId: values.target.id,
+                            location,
+                            startLineArrow: {
+                                source: values.source.arrow,
+                                target: values.inputArrow
+                            },
+                            endLineArrow: {
+                                source: values.outputArrow,
+                                target: values.target.arrow
+                            }
+                        })
+                        if (!result) return
+                        const { startLine, endLine } = result
+                        // 更新节点position不更新activities
+                        if (!exit) {
+                            this.$refs.jsFlow.setNodePosition(location)
+                            this.$emit('onLocationChange', 'edit', location)
+                            exit = true
                         }
-                    })
-                    if (!result) return
-                    const { startLine, endLine } = result
-                    // 更新节点position不更新activities
-                    this.$refs.jsFlow.setNodePosition(location)
-                    this.$emit('onLocationChange', 'edit', location)
-                    this.$emit('onLineChange', 'add', startLine)
-                    this.$emit('onLineChange', 'add', endLine)
-                    this.$nextTick(() => {
-                        this.$refs.jsFlow.createConnector(startLine)
-                        this.$refs.jsFlow.createConnector(endLine)
+                        this.$emit('onLineChange', 'add', startLine)
+                        this.$emit('onLineChange', 'add', endLine)
+                        this.$nextTick(() => {
+                            this.$refs.jsFlow.createConnector(startLine)
+                            this.$refs.jsFlow.createConnector(endLine)
+                        })
                     })
                     // 删除节点两端插入连线的端点,isCreate为true时表示从左侧菜单栏直接拖拽创建，插入端点还存在在画布里面
                     const nodeDom = document.querySelector(!isCreate ? `#${location.id}` : '.canvas-flow-wrap')
@@ -1520,7 +1536,10 @@
                 // 拖拽节点到线上, 自动匹配连线
                 const matchLines = this.getNodeMatchLines(location)
                 this.matchLines = matchLines || []
-                if (Object.keys(matchLines).length === 1) {
+                const length = Object.keys(matchLines).length
+                if (length) {
+                    // 如果匹配的连线大于1且不是汇聚网关时不继续执行
+                    if (length !== 1 && location.type !== 'convergegateway') return
                     const lineConfig = Object.values(matchLines)[0]
                     this.setPaintStyle(lineConfig.id, '#3a84ff')
                     this.connectionHoverList.push(lineConfig.id)

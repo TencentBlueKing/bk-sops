@@ -119,6 +119,7 @@ def mysetting(request):
         "ENABLE_IPV6": settings.ENABLE_IPV6,
         "BK_DOMAIN": env.BKPAAS_BK_DOMAIN,
         "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
+        "MESSAGE_HELPER_URL": settings.MESSAGE_HELPER_URL,
     }
 
     # custom context config

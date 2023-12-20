@@ -252,7 +252,7 @@
             :type="exportType">
         </ExportTemplateDialog>
         <SelectProjectModal
-            :title="$t('创建任务')"
+            :title="$t('新建任务')"
             :show="isSelectProjectShow"
             :confirm-loading="permissionLoading"
             :confirm-cursor="!hasCreateTaskPerm"
@@ -935,7 +935,7 @@
             filterDeleteErrorTpls (templateIds) {
                 const creatorInfo = this.searchSelectValue.find(item => item.id === 'template_id')
                 if (creatorInfo) {
-                    creatorInfo.values = templateIds
+                    creatorInfo.values = [templateIds]
                 } else {
                     const form = this.searchList.find(item => item.id === 'template_id')
                     this.searchSelectValue.push({ ...form, values: [templateIds] })

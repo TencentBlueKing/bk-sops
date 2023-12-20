@@ -11,27 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from functools import partial
 from copy import deepcopy
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
-
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
-from pipeline_plugins.components.utils.common import batch_execute_func
-from pipeline_plugins.components.utils import (
-    get_job_instance_url,
-    loose_strip,
-    chunk_table_data,
-)
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import chunk_table_data, get_job_instance_url, loose_strip
+from pipeline_plugins.components.utils.common import batch_execute_func
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -186,8 +180,8 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 "bk_biz_id": biz_cc_id,
                 "file_source_list": file_source,
                 "target_server": target_server,
-                "account_alias": attr["job_account"],
-                "file_target_path": attr["job_target_path"],
+                "account_alias": attr["job_account"].strip(),
+                "file_target_path": attr["job_target_path"].strip(),
             }
             if upload_speed_limit:
                 job_kwargs["upload_speed_limit"] = int(upload_speed_limit)

@@ -38,10 +38,7 @@ class WechatWorkSendMessageService(Service):
                 schema=StringItemSchema(description=_("通过在群里@企业微信机器人获取，多个用换行分隔")),
             ),
             self.InputItem(
-                name=_("消息内容"),
-                key="message_content",
-                type="string",
-                schema=StringItemSchema(description=_("消息内容")),
+                name=_("消息内容"), key="message_content", type="string", schema=StringItemSchema(description=_("消息内容")),
             ),
             self.InputItem(
                 name=_("提醒人"),
@@ -139,4 +136,5 @@ class WechatWorkSendMessageComponent(Component):
     bound_service = WechatWorkSendMessageService
     form = "%scomponents/atoms/wechat_work/wechat_work_send_message/v1_0.js" % settings.STATIC_URL
     version = "1.0"
+    is_default_version = True
     desc = _("1.部署环境与企业微信服务器网络必须联通 " "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770")

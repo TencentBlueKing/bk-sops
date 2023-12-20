@@ -183,6 +183,7 @@
     import VerticalBarChart from './VerticalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import tippy from 'bk-magic-vue/lib/utils/tippy.js'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const SELECTORS = [
         {
@@ -523,6 +524,8 @@
                     if (this.instanceSort === '') {
                         delete query.conditions.order_by
                     }
+                    const source = new CancelRequest()
+                    query.cancelToken = source.token
                     this.instanceData = await this.loadAnalysisData(query, 'instance')
                 } catch (e) {
                     console.log(e)
