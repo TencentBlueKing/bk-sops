@@ -45,6 +45,7 @@ def get_task_list(request, project_id):
         "is_finished": "pipeline_instance__is_finished",
         "executor": "pipeline_instance__executor",
         "create_method": "create_method",
+        "template_id": "template_id"
     }
     filter_kwargs = dict(is_deleted=Value(0), project_id=project.id)
     for param, filter_key in param_mappings.items():
