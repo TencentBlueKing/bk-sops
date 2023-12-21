@@ -218,16 +218,9 @@ class TaskFLowStatusFilterHandler:
         :return:
         """
         # 找到所有正在执行中的流程
-        # selected_related 只能在 objects 最前面加，此处先查处 ID 列表
-        taskflow_instance_ids: typing.List[int] = list(
-            self.queryset.exclude(
-                pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.FAILED])
-            ).values_list("id", flat=True)
-        )
-        # selected_related 提前查取刚需的关联数据，避免 n+1 查询
-        taskflow_instances: typing.List[TaskFlowInstance] = TaskFlowInstance.objects.select_related(
-            "pipeline_instance"
-        ).filter(id__in=taskflow_instance_ids)
+        taskflow_instances = self.queryset.exclude(
+            pipeline_instance_id__in=self._fetch_pipeline_instance_ids(statuses=[states.FAILED])
+        ).select_related("pipeline_instance")
         # 并行找到全部的等待执行任务
         pending_process_taskflow_ids: typing.List[int] = self._fetch_pending_process_taskflow_ids(taskflow_instances)
         return self.queryset.filter(id__in=pending_process_taskflow_ids)
