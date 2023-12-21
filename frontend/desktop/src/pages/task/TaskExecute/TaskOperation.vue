@@ -1111,6 +1111,7 @@
                         retryable,
                         loop: currentNode.loop,
                         status,
+                        subprocessState: currentNode.subprocess_state,
                         skip: currentNode.skip,
                         auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
