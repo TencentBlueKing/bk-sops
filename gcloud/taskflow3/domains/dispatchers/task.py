@@ -763,9 +763,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         """
 
         _format_status_time(status_tree)
-        # 记录引擎原本的状态
-        status_tree["engine_state"] = status_tree.get("state", "")
         if status_tree["state"] == bamboo_engine_states.SUSPENDED and is_child:
+            # 子流程暂停的时候返回暂停
+            status_tree["subprocess_state"] = status_tree.get("state", "")
             status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
         # 处理状态映射
         elif status_tree["state"] == TaskExtraStatus.NODE_SUSPENDED.value:
@@ -774,7 +774,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             # 独立子流程下钻
             if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
                 self.handle_subprocess_node_status(status_tree)
-
+                status_tree["subprocess_state"] = status_tree.get("state", "")
                 # 已暂停 -> 等待处理
                 if status_tree["state"] in {
                     bamboo_engine_states.SUSPENDED,
