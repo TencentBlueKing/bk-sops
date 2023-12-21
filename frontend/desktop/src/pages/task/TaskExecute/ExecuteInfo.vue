@@ -253,6 +253,7 @@
     import NodeLog from './ExecuteInfo/NodeLog.vue'
     import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
     import taskCondition from './taskCondition.vue'
+    import lineSuspendState from '@/mixins/lineSuspendState.js'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -268,6 +269,7 @@
             taskCondition,
             TemplateCanvas
         },
+        mixins: [lineSuspendState],
         props: {
             adminView: {
                 type: Boolean,
@@ -401,10 +403,10 @@
             },
             // 子任务状态
             subTaskStatus () {
-                const { taskId } = this.nodeDetailConfig
+                const taskId = this.isSubProcessNode ? this.subProcessPipeline.taskId : this.subProcessTaskId
                 if (!taskId) return 'READY'
                 const stateInfo = this.subprocessNodeStatus[taskId]
-                return stateInfo.data.state
+                return stateInfo && stateInfo.data.state
             },
             displayStatus () {
                 let state = ''
@@ -478,7 +480,14 @@
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             },
             isShowContinueBtn () {
-                return this.isLegacySubProcess && [this.realTimeState.state, this.executeInfo.state].includes('SUSPENDED')
+                if (this.isLegacySubProcess) {
+                    return [this.realTimeState.state, this.executeInfo.state].includes('SUSPENDED')
+                } else if (this.isSubProcessNode) {
+                    const { taskId } = this.subProcessPipeline
+                    const taskState = this.subprocessNodeStatus[taskId]?.data?.state
+                    return [this.realTimeState.state, taskState].includes('SUSPENDED')
+                }
+                return false
             },
             isShowSkipBtn () {
                 let isShow = false
@@ -614,7 +623,7 @@
                 immediate: true
             },
             async 'realTimeState.state' (val, oldVal) {
-                if (val !== oldVal) {
+                if (val !== oldVal && this.isSubProcessNode) {
                     await this.loadNodeInfo()
                     // 拉取独立子流程状态
                     const { root_node, component_code, taskId } = this.nodeDetailConfig
@@ -1218,7 +1227,7 @@
                     }
                     if (!states[id]) {
                         if (independent && taskId) {
-                            this.$set(node, 'state', 'READY')
+                            this.$set(node, 'state', '')
                         }
                         return
                     }
@@ -1474,6 +1483,11 @@
                     }
                     const resp = await this.getBatchInstanceStatus(data)
                     if (!resp.result) return
+                    // 当前展示的子任务id
+                    const taskId = this.isSubProcessNode ? this.subProcessPipeline.taskId : this.subProcessTaskId
+                    // 记录之前的子任务状态
+                    const { state: oldState } = this.subprocessNodeStatus[taskId]?.data || {}
+
                     Object.keys(resp.data).forEach(key => {
                         this.$set(this.subprocessNodeStatus, key, resp.data[key])
                     })
@@ -1489,6 +1503,33 @@
                     }
                     if (Object.keys(this.subprocessTasks).length) {
                         this.setTaskStatusTimer()
+                    }
+                    // 根据子任务的状态，设置边的暂停样式
+                    const { state, children = {} } = resp.data[taskId]?.data
+                    if ([state, oldState].includes('SUSPENDED')) {
+                        if (state === oldState && !this.suspendLines.length) return
+                        const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.subProcessPipeline)
+                        Object.values(children).forEach(node => {
+                            // 非任务节点/网关节点
+                            if ([start_event.id, end_event.id].includes(node.id)) return
+                            // 查看输出节点状态
+                            let { outgoing } = activities[node.id] || gateways[node.id] || {}
+                            if (!Array.isArray(outgoing)) {
+                                outgoing = [outgoing]
+                            }
+                            outgoing.forEach(outLine => {
+                                const targetNode = flows[outLine].target
+                                const isExecuted = state === 'SUSPENDED' ? (node.state === 'READY' || targetNode in children) : true
+                                // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
+                                this.setLineSuspendState({
+                                    nodeId: node.id,
+                                    lineId: outLine,
+                                    isExecuted,
+                                    location: 0.5,
+                                    ref: 'subProcessCanvas'
+                                })
+                            })
+                        })
                     }
                 } catch (error) {
                     console.warn(error)
@@ -1527,12 +1568,7 @@
                 this.$emit('onSkipClick', this.nodeDetailConfig.node_id, info)
             },
             onResumeClick () {
-                if (this.isSubProcessNode) {
-                    const taskId = this.executeInfo.outputs.find(item => item.key === 'task_id') || {}
-                    this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, taskId.value, true)
-                } else {
-                    this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
-                }
+                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             onApprovalClick () {
                 this.$emit('onApprovalClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
@@ -1544,15 +1580,22 @@
                 this.$emit('onForceFail', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             onPauseClick () {
-                if (this.isSubProcessNode) {
-                    const taskId = this.executeInfo.outputs.find(item => item.key === 'task_id') || {}
-                    this.$emit('onPauseClick', this.nodeDetailConfig.node_id, taskId.value, true)
-                } else {
-                    this.$emit('onPauseClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                const taskId = this.isSubProcessNode ? this.subProcessPipeline.taskId : this.subProcessTaskId
+                const info = {
+                    taskId,
+                    name: this.executeInfo.name,
+                    independent: this.isSubProcessNode
                 }
+                this.$emit('onPauseClick', this.nodeDetailConfig.node_id, info)
             },
             onContinueClick () {
-                this.$emit('onContinueClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                const taskId = this.isSubProcessNode ? this.subProcessPipeline.taskId : this.subProcessTaskId
+                const info = {
+                    taskId,
+                    name: this.executeInfo.name,
+                    independent: this.isSubProcessNode
+                }
+                this.$emit('onContinueClick', this.nodeDetailConfig.node_id, info)
             },
             handleMousedown (event) {
                 this.updateResizeMaskStyle()
