@@ -763,7 +763,8 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         """
 
         _format_status_time(status_tree)
-
+        # 记录引擎原本的状态
+        status_tree["engine_state"] = status_tree.get("state", "")
         if status_tree["state"] == bamboo_engine_states.SUSPENDED and is_child:
             status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
         # 处理状态映射
