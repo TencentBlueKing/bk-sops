@@ -774,7 +774,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             # 独立子流程下钻
             if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
                 self.handle_subprocess_node_status(status_tree)
-
+                status_tree["engine_state"] = status_tree.get("state", "")
                 # 已暂停 -> 等待处理
                 if status_tree["state"] in {
                     bamboo_engine_states.SUSPENDED,
