@@ -109,9 +109,7 @@
                 return this.retryNodeId
                     ? i18n.t('重试')
                     : this.editable
-                        ? ['SUSPENDED', 'RUNNING'].includes(this.rootTaskState)
-                            ? i18n.t('保存并继续')
-                            : i18n.t('保存')
+                        ? i18n.t('保存')
                         : ['CREATED', 'SUSPENDED', 'FAILED', 'PENDING_PROCESSING'].includes(this.rootTaskState)
                             ? i18n.t('去修改')
                             : i18n.t('暂停去修改')
@@ -309,21 +307,15 @@
                         this.$emit('nodeTaskRetry')
                         return
                     }
-                    let message = i18n.t('参数未修改')
-                    let theme = 'warning'
                     // 节点暂停时提交修改，如果未修改则不继续报错直接继续执行任务
                     if (this.rootTaskState === 'SUSPENDED') {
-                        const resp = await this.instanceResume(this.instance_id)
-                        message = i18n.t('参数未修改，任务已继续执行')
-                        theme = 'success'
-                        if (resp.result) {
-                            this.$parent.$parent.state = 'RUNNING'
-                            this.$parent.$parent.setTaskStatusTimer()
-                        }
+                        this.$emit('packUp')
+                        this.handleTaskResume(false)
+                        return
                     }
                     this.$bkMessage({
-                        message,
-                        theme
+                        message: i18n.t('参数未修改'),
+                        theme: 'warning'
                     })
                     this.$emit('packUp')
                     return
@@ -388,18 +380,14 @@
                             this.$emit('nodeTaskRetry')
                             return
                         }
-                        let message = i18n.t('参数修改成功')
                         // 暂停的任务继续执行
                         if (this.rootTaskState === 'SUSPENDED') {
-                            const resp = await this.instanceResume(this.instance_id)
-                            message = i18n.t('参数修改成功，任务已继续执行')
-                            if (resp.result) {
-                                this.$parent.$parent.state = 'RUNNING'
-                                this.$parent.$parent.setTaskStatusTimer()
-                            }
+                            this.$emit('packUp')
+                            this.handleTaskResume(true)
+                            return
                         }
                         this.$bkMessage({
-                            message,
+                            message: this.t('参数修改成功'),
                             theme: 'success'
                         })
                         this.$emit('packUp')
@@ -409,6 +397,52 @@
                 } finally {
                     this.pending = false
                 }
+            },
+            // 任务重试
+            handleTaskResume (hasModify = false) {
+                let msgInstance = null
+                let message = null
+                const h = this.$createElement
+                message = h('p', {
+                    style: {
+                        display: 'flex',
+                        'align-items': 'center',
+                        'justify-content': 'space-between',
+                        width: '100%'
+                    }
+                }, [
+                    h('span', {
+                        display: 'hidden',
+                        'white-space': 'nowrap',
+                        'text-overflow': 'ellipsis'
+                    }, hasModify
+                        ? this.$t('已成功调整入参，是否继续执行任务？')
+                        : this.$t('参数未修改，是否继续执行任务？')
+                    ),
+                    h('span', {
+                        style: { color: '#3a84ff', cursor: 'pointer' },
+                        on: {
+                            click: async () => {
+                                msgInstance && msgInstance.close()
+                                const resp = await this.instanceResume(this.instance_id)
+                                if (resp.result) {
+                                    this.$bkMessage({
+                                        message: this.$t('任务已继续执行'),
+                                        theme: 'success'
+                                    })
+                                    this.$parent.$parent.state = 'RUNNING'
+                                    this.$parent.$parent.setTaskStatusTimer()
+                                }
+                            }
+                        }
+                    }, this.$t('继续执行'))
+                ])
+                msgInstance = this.$bkMessage({
+                    message,
+                    theme: 'success',
+                    offsetY: 108,
+                    delay: 10000
+                })
             },
             setAtomDisable (atomList) {
                 atomList.forEach(item => {

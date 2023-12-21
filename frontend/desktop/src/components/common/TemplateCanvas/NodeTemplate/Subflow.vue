@@ -77,7 +77,7 @@
                         {{ $t('跳过子流程') }}
                     </span>
                 </template>
-                <template v-if="node.status === 'RUNNING'">
+                <template v-if="isShowPauseBtn">
                     <span @click.stop="onSubflowPauseResumeClick('pause')">
                         <i class="common-icon-mandatory-failure"></i>
                         {{ $t('暂停') }}
@@ -87,7 +87,7 @@
                         {{ $t('强制终止') }}
                     </span>
                 </template>
-                <span v-if="node.status === 'SUSPENDED'" @click.stop="onSubflowPauseResumeClick('resume')">
+                <span v-if="isShowContinueBtn" @click.stop="onSubflowPauseResumeClick('resume')">
                     <i class="common-icon-play"></i>
                     {{ $t('确认继续') }}
                 </span>
@@ -138,6 +138,14 @@
             },
             isSubProcessNode () {
                 return this.node.code === 'subprocess_plugin'
+            },
+            isShowPauseBtn () {
+                const { status, subprocessState } = this.node
+                return status === 'RUNNING' || subprocessState === 'RUNNING'
+            },
+            isShowContinueBtn () {
+                const { status, subprocessState } = this.node
+                return status === 'SUSPENDED' || subprocessState === 'SUSPENDED'
             }
         },
         methods: {

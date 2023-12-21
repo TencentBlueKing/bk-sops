@@ -1847,7 +1847,13 @@ const en = {
     '失败后手动跳过': 'Manual Skipped',
     '等待任务继续': 'Pending Task Continue',
     '确认继续': 'Confirm',
-    '使用当前任务数据（节点选择、入参）再次创建任务': 'Create task again using current task data (node selection, input parameters)'
+    '使用当前任务数据（节点选择、入参）再次创建任务': 'Create task again using current task data (node selection, input parameters)',
+    '确定暂停子流程【n】 ？': 'Pause this subflow [ {n} ] ?',
+    '确定继续子流程【n】 ？': 'Continue this subflow [ {n} ] ?',
+    '任务已暂停；如需要，可调整入参后继续': 'Task Paused; if necessary, you can modify the input parameters before continuing.',
+    '调整入参': 'Modify input parameters',
+    '已成功调整入参，是否继续执行任务？': 'The input parameters have been modify successfully. Do you want to continue the task?',
+    '参数未修改，是否继续执行任务？': 'The parameters have not been modified. Do you want to continue executing the task?'
 }
 
 export default en

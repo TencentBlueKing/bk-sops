@@ -234,6 +234,7 @@
     import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import permission from '@/mixins/permission.js'
+    import lineSuspendState from '@/mixins/lineSuspendState.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
     import injectVariableDialog from './InjectVariableDialog.vue'
@@ -296,7 +297,7 @@
             TemplateData,
             injectVariableDialog
         },
-        mixins: [permission, tplPerspective],
+        mixins: [permission, tplPerspective, lineSuspendState],
         props: {
             project_id: [Number, String],
             instance_id: [Number, String],
@@ -406,8 +407,7 @@
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
                 isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
-                retryNodeName: '',
-                suspendLines: []
+                retryNodeName: ''
             }
         },
         computed: {
@@ -544,7 +544,13 @@
                                 const targetNode = flows[outLine].target
                                 const isExecuted = val.state === 'SUSPENDED' ? (node.state === 'READY' || targetNode in children) : true
                                 // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
-                                this.setLineSuspendState(node.id, outLine, isExecuted)
+                                this.setLineSuspendState({
+                                    nodeId: node.id,
+                                    lineId: outLine,
+                                    isExecuted,
+                                    location: 0.5,
+                                    ref: 'templateCanvas'
+                                })
                             })
                         })
                     }
@@ -813,7 +819,7 @@
              * independent 是否为独立子流程节点
              */
             async taskPause (nodeId, taskId, independent) {
-                let res, state, message
+                let res, message
                 try {
                     const instanceId = taskId || this.instance_id
                     if (nodeId && !independent) { // 非独立子流程节点暂停
@@ -825,23 +831,52 @@
                     } else { // 任务暂停/独立子流程任务暂停
                         res = await this.instancePause(instanceId)
                     }
+                    if (!res.result) return
+
                     if (nodeId || taskId) {
-                        state = 'NODE_SUSPENDED'
                         const { activities } = this.pipelineData
                         const { name } = activities[nodeId] || this.nodePipelineData.activities[nodeId] || {}
                         message = name + ' ' + i18n.t('节点已暂停执行')
-                    } else {
-                        state = 'SUSPENDED'
-                        message = i18n.t('任务已暂停执行')
-                    }
-                    if (res.result) {
-                        this.state = state
-                        this.setTaskStatusTimer()
                         this.$bkMessage({
                             message,
                             theme: 'success'
                         })
+                    } else {
+                        this.state = 'SUSPENDED'
+                        let msgInstance = null
+                        const h = this.$createElement
+                        message = h('p', {
+                            style: {
+                                display: 'flex',
+                                'align-items': 'center',
+                                'justify-content': 'space-between',
+                                width: '100%'
+                            }
+                        }, [
+                            h('span', {
+                                display: 'hidden',
+                                'white-space': 'nowrap',
+                                'text-overflow': 'ellipsis'
+                            }, this.$t('任务已暂停；如需要，可调整入参后继续')),
+                            h('span', {
+                                style: { color: '#3a84ff', cursor: 'pointer' },
+                                on: {
+                                    click: () => {
+                                        this.isSourceDetailSideBar = this.isNodeInfoPanelShow && this.nodeInfoType === 'execution'
+                                        this.openNodeInfoPanel('modifyParams', this.$t('任务入参'))
+                                        msgInstance && msgInstance.close()
+                                    }
+                                }
+                            }, this.$t('调整入参'))
+                        ])
+                        msgInstance = this.$bkMessage({
+                            message,
+                            theme: 'primary',
+                            offsetY: 108,
+                            delay: 10000
+                        })
                     }
+                    this.setTaskStatusTimer()
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -859,7 +894,7 @@
                         }
                         res = await this.subInstanceResume(data)
                     } else { // 任务继续执行/独立子流程任务继续执行
-                        res = await this.instanceResume(this.instance_id)
+                        res = await this.instanceResume(instanceId)
                     }
                     if (nodeId || taskId) {
                         const { activities } = this.pipelineData
@@ -950,7 +985,7 @@
                 try {
                     let res = {}
                     // 强制终止独立子流程任务节点
-                    const nodeConfig = this.activities[id]
+                    const nodeConfig = this.activities[id] || this.nodePipelineData.activities[id]
                     const isSubProcessNode = nodeConfig.component?.code === 'subprocess_plugin'
                     if (isSubProcessNode) {
                         if (!taskId) {
@@ -1076,6 +1111,7 @@
                         retryable,
                         loop: currentNode.loop,
                         status,
+                        subprocessState: currentNode.subprocess_state,
                         skip: currentNode.skip,
                         auto_skip: retryInfo[id]?.auto_retry_times || 0,
                         retry: currentNode.retry,
@@ -1440,13 +1476,10 @@
                             task_id: this.subProcessTaskId || this.instance_id,
                             node_id: id
                         }
-                        // 如果存在子流程任务节点时则需要传subprocess_id
-                        if (this.subProcessTaskId) {
-                            let { subprocess_stack: stack } = this.nodeDetailConfig
-                            if (stack) {
-                                stack = JSON.parse(stack)
-                                params.subprocess_id = stack.join(',')
-                            }
+                        let { subprocess_stack: stack } = this.nodeDetailConfig
+                        if (stack) {
+                            stack = JSON.parse(stack)
+                            params.subprocess_id = stack.join(',')
                         }
                         await this.itsmTransition(params)
                         this.approval.id = ''
@@ -1474,20 +1507,38 @@
                 this.approval.message = ''
                 this.approval.dialogShow = false
             },
-            async onPauseClick (id, taskId) {
+            async onPauseClick (id, info = {}) {
                 try {
-                    await this.taskPause(true, id, taskId)
-                    // 更新节点执行信息
-                    this.updateNodeExecuteInfo()
+                    const { name, taskId, independent } = info
+                    this.$bkInfo({
+                        title: this.$t('确定暂停子流程【n】 ？', { n: name }),
+                        maskClose: false,
+                        confirmLoading: true,
+                        cancelText: this.$t('取消'),
+                        confirmFn: async () => {
+                            await this.taskPause(id, taskId, independent)
+                            // 更新节点执行信息
+                            this.updateNodeExecuteInfo()
+                        }
+                    })
                 } catch (error) {
                     console.warn(error)
                 }
             },
-            async onContinueClick (id, taskId) {
+            async onContinueClick (id, info) {
                 try {
-                    await this.taskResume(true, id, taskId)
-                    // 更新节点执行信息
-                    this.updateNodeExecuteInfo()
+                    const { name, taskId, independent } = info
+                    this.$bkInfo({
+                        title: this.$t('确定继续子流程【n】 ？', { n: name }),
+                        maskClose: false,
+                        confirmLoading: true,
+                        cancelText: this.$t('取消'),
+                        confirmFn: async () => {
+                            await this.taskResume(id, taskId, independent)
+                            // 更新节点执行信息
+                            this.updateNodeExecuteInfo()
+                        }
+                    })
                 } catch (error) {
                     console.warn(error)
                 }
@@ -1498,8 +1549,12 @@
             async onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
                 try {
-                    const nodeConfig = this.activities[id]
+                    const nodeConfig = this.activities[id] || this.nodePipelineData.activities[id]
                     const isSubProcessNode = nodeConfig.component?.code === 'subprocess_plugin'
+                    const info = {
+                        independent: isSubProcessNode,
+                        name: nodeConfig.name
+                    }
                     if (isSubProcessNode) {
                         const resp = await this.getNodeActDetail({
                             instance_id: this.instance_id,
@@ -1510,10 +1565,9 @@
                         if (!resp.result) return
                         const { outputs = [] } = resp.data
                         const taskId = outputs.find(item => item.key === 'task_id') || {}
-                        value === 'pause' ? this.taskPause(id, taskId.value, true) : this.taskResume(id, taskId.value, true)
-                    } else {
-                        value === 'pause' ? this.taskPause(id) : this.taskResume(id)
+                        info.taskId = taskId.value
                     }
+                    value === 'pause' ? this.onPauseClick(id, info) : this.onContinueClick(id, info)
                 } catch (error) {
                     console.warn(error)
                 }
@@ -2687,155 +2741,6 @@
                 const viewHeight = window.innerHeight || document.documentElement.clientHeight
                 const { top, right, bottom, left } = element.getBoundingClientRect()
                 return top >= 0 && left >= 0 && right <= viewWidth && bottom <= viewHeight
-            },
-            setLineSuspendState (nodeId, lineId, isExecuted, location = 0.5) {
-                const tplInstance = this.$refs.templateCanvas
-                const line = this.canvasData.lines.find(item => item.id === lineId)
-                // 分支添加暂停icon
-                if (isExecuted) {
-                    // 删除label
-                    const pauseDom = document.querySelector(`.suspend-${lineId}`)
-                    if (pauseDom) {
-                        tplInstance.setPaintStyle(lineId, '#a9adb6')
-                        tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
-                        const index = this.suspendLines.findIndex(item => item === lineId)
-                        this.suspendLines.splice(index, 1)
-                    }
-                } else if (!this.suspendLines.includes(lineId) && location > 0) {
-                    // 设置连线颜色
-                    tplInstance.setPaintStyle(lineId, '#ffb848')
-                    const labelData = {
-                        type: 'Label',
-                        location,
-                        name: `<i class="common-icon-pause"></i>`,
-                        cls: `suspend-line suspend-${lineId}`,
-                        id: `suspend-${lineId}`
-                    }
-                    tplInstance.$refs.jsFlow.addLineOverlay(line, labelData)
-                    // 根据暂停icon所在线段的方向设置平移
-                    this.$nextTick(() => {
-                        const direction = this.judgeIntersectSegmentDirection(tplInstance, line, nodeId)
-                        if (direction) {
-                            this.$nextTick(() => {
-                                const pauseDom = document.querySelector(`.suspend-${lineId}`)
-                                if (direction === 'vertical') { // 垂直
-                                    pauseDom.style.transform = 'rotate(90deg)'
-                                    const left = pauseDom.style.left.slice(0, -2)
-                                    pauseDom.style.left = `${Number(left) + 1}px`
-                                } else { // 水平
-                                    const top = pauseDom.style.top.slice(0, -2)
-                                    pauseDom.style.top = `${Number(top) + 1}px`
-                                }
-                                this.suspendLines.push(lineId)
-                            })
-                        } else if (!direction) { // icon正在停在弯曲线段上
-                            // 给曲线上的icon添加偏移计算量太大，改为删除旧的label生成一条偏移量location - 0.1的label
-                            tplInstance.$refs.jsFlow.removeLineOverlay(line, `suspend-${lineId}`)
-                            this.setLineSuspendState(nodeId, lineId, isExecuted, location - 0.1)
-                        }
-                    })
-                }
-            },
-            // 计算与暂停图标相交的线段方向
-            judgeIntersectSegmentDirection (tplInstance, line, nodeId) {
-                // 节点尺寸坐标
-                const pauseDom = document.querySelector(`.suspend-${line.id}`)
-                const iconPos = this.getDomPos(pauseDom)
-                const { width: iWidth, height: iHeight } = pauseDom.getBoundingClientRect()
-                // 存在偏移，所以真实坐标需要减去高/宽的一半
-                iconPos.left = iconPos.left - iWidth / 2
-                iconPos.top = iconPos.top - iHeight / 2
-
-                // 暂停图标是在水平线还是垂直线还是曲线
-                let direction = ''
-                // 获取连线实例
-                let connection = tplInstance.$refs.jsFlow.getConnectorsByNodeId(nodeId)
-                if (Array.isArray(connection)) {
-                    connection = connection.find(item => item.sourceId === line.source.id && item.targetId === line.target.id)
-                }
-                // 连线各个线段
-                const { left: lineLeft, top: lineTop } = this.getDomPos(connection.canvas)
-                let segments = connection.connector.getSegments()
-                // 第一段线段坐标
-                const { x1, x2, y1, y2 } = segments[0].params
-                const firstSegmentWidth = x2 - x1
-                const firstSegmentHeight = y2 - y1
-                // 切除插入到节点内部的两端线段
-                segments = segments.slice(1, -1)
-                // 克隆线段列表，直线时会对线段宽高重新计算，避免影响
-                segments = tools.deepClone(segments)
-                // 纯直线会重叠了1px，为线的折点预留的位置
-                if (segments.length === 2 && segments.every(item => item.type === 'Straight')) {
-                    // 整合为一条线段
-                    let params = {}
-                    const { x1, x2, y1, y2 } = segments[0].params
-                    if (x1 === x2) {
-                        if (y1 > y2) {
-                            params = { x1: 0, x2: 0, y1, y2: 0 }
-                        } else {
-                            params = { x1: 0, x2: 0, y1: 0, y2: y2 * 2 }
-                        }
-                    } else if (y1 === y2) {
-                        if (x1 > x2) {
-                            params = { x1, x2: 0, y1: 0, y2: 0 }
-                        } else {
-                            params = { x1: 0, x2: x2 * 2, y1: 0, y2: 0 }
-                        }
-                    }
-                    segments[0].params = params
-                    segments = segments.slice(0, 1)
-                }
-                segments.some((item, index) => {
-                    // 过滤掉圆弧线段
-                    if (item.type === 'Arc') return false
-                    // 计算线段的高宽和坐标
-                    const { x1, x2, y1, y2 } = item.params
-                    // 线段的坐标的最大值/最小值
-                    const maxX = Math.max(x1, x2)
-                    const minX = Math.min(x1, x2)
-                    const maxY = Math.max(y1, y2)
-                    const minY = Math.min(y1, y2)
-                    let arcHeight = 0
-                    const prevSegment = segments[index - 1]
-                    const nextSegment = segments[index + 1]
-
-                    let left, top, height, width
-                    if (x1 === x2) { // 垂直
-                        height = maxY - minY
-                        top = lineTop + minY + firstSegmentHeight
-                        left = lineLeft + minX + firstSegmentWidth
-                        if (top < iconPos.top && top + height > iconPos.top + iHeight && left > iconPos.left && left < iconPos.left + iWidth) {
-                            direction = 'vertical'
-                        }
-                    } else if (y1 === y2) { // 水平
-                        if (prevSegment?.type === 'Arc') {
-                            const { y1: prevY1, y2: prevY2, r } = prevSegment.params
-                            arcHeight = Math.min(prevY1, prevY2) < y1 ? r : 0
-                        } else if (!arcHeight && nextSegment?.type === 'Arc') {
-                            const { y1: nextY1, y2: nextY2, r } = nextSegment.params
-                            arcHeight = Math.min(nextY1, nextY2) < y1 ? r : 0
-                        }
-                        width = maxX - minX
-                        top = lineTop + minY + firstSegmentHeight + arcHeight
-                        left = lineLeft + minX + firstSegmentWidth
-                        if (top > iconPos.top && top < iconPos.top + iHeight && left < iconPos.left && left + width > iconPos.left + iWidth) {
-                            direction = 'horizontal'
-                        }
-                    }
-                    return !!direction
-                })
-                return direction
-            },
-            getDomPos (dom) {
-                let { cssText } = dom.style
-                cssText = cssText.split(';').filter(value => /:.(\-)?[0-9.]+px/.test(value))
-                let left = cssText.find(item => item.indexOf('left') > -1)
-                left = left ? /:.((\-)?[0-9.]+)px/.exec(left)[1] : 0
-                left = Number(left)
-                let top = cssText.find(item => item.indexOf('top') > -1)
-                top = top ? /:.((\-)?[0-9.]+)px/.exec(top)[1] : 0
-                top = Number(top)
-                return { left, top }
             },
             handleMousedown (event) {
                 this.updateResizeMaskStyle()
