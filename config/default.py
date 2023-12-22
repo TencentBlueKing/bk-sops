@@ -89,6 +89,7 @@ INSTALLED_APPS += (
     "pipeline.contrib.periodic_task",
     "pipeline.contrib.external_plugins",
     "pipeline.contrib.engine_admin",
+    "pipeline.contrib.node_timer_event",
     "pipeline.django_signal_valve",
     "pipeline_plugins",
     "pipeline_plugins.components",
@@ -405,6 +406,15 @@ PIPELINE_DATA_BACKEND = env.BKAPP_PIPELINE_DATA_BACKEND
 PIPELINE_DATA_CANDIDATE_BACKEND = env.BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
+
+# 配置节点计时器边界事件扫描间隔为 0.1，保证计时器事件及时执行
+PIPELINE_NODE_TIMER_EVENT_POOL_SCAN_INTERVAL = 0.1
+PIPELINE_NODE_TIMER_EVENT_ADAPTER_CLASS = (
+    "gcloud.taskflow3.domains.node_timeout_strategy." "NodeTimerEventWithTimeoutConfigAdapter"
+)
+# 复用节点超时节点池
+PIPELINE_NODE_TIMER_EVENT_EXECUTING_POOL = "sops_executing_node_pool"
+
 
 BAMBOO_PERIODIC_TASK_ROOT_PIPELINE_CONTEXT_PROVIER = "gcloud.taskflow3.context.root_pipeline_context_provider"
 BAMBOO_PERIODIC_TASK_SUBPROCESS_CONTEXT_PROVIER = "gcloud.taskflow3.context.subprocess_context_provider"

@@ -190,7 +190,9 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
             logger.exception("pipeline_end send error")
 
     try:
-        _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)
+        # 切换到边界事件
+        # _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)
+        pass
     except Exception:
         logger.exception("node_timeout_info_update error")
 
