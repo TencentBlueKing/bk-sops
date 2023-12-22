@@ -64,7 +64,11 @@ def _finish_taskflow_and_send_signal(instance_id, sig, task_success=False):
             logger.exception("send_taskflow_message[taskflow_id=%s] task delay error: %s" % (task_id, e))
 
     if sig is taskflow_revoked:
-        _check_and_callback(task_id, task_success=False)
+        _check_and_callback(
+            task_id,
+            task_success=False,
+            ex_data="The sub flow node execution has failed because the subtask was forcibly terminated.",
+        )
 
 
 def _send_node_fail_message(node_id, pipeline_id):

@@ -9,9 +9,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from mock import MagicMock
-
 from django.test import TestCase
+from mock import MagicMock
 from mock.mock import call
 
 from gcloud.taskflow3.domains import node_timeout_strategy
@@ -29,7 +28,12 @@ class NodeTimeoutStrategyTestCase(TestCase):
         handler = self.handlers["forced_fail"]
         result = handler.deal_with_timeout_node(task, node_id)
         self.assertEqual(result, {"result": True})
-        task.nodes_action.assert_called_once_with("forced_fail", node_id, NodeTimeoutStrategy.TIMEOUT_NODE_OPERATOR)
+        task.nodes_action.assert_called_once_with(
+            "forced_fail",
+            node_id,
+            NodeTimeoutStrategy.TIMEOUT_NODE_OPERATOR,
+            full_ex_data="The node has been terminated by the system due to exceeding the 'Timeout Setting'.",
+        )
 
     def test_forced_fail_and_skip_strategy_failed(self):
         task = MagicMock()
@@ -38,7 +42,12 @@ class NodeTimeoutStrategyTestCase(TestCase):
         handler = self.handlers["forced_fail_and_skip"]
         result = handler.deal_with_timeout_node(task, node_id)
         self.assertEqual(result, {"result": False})
-        task.nodes_action.assert_called_once_with("forced_fail", node_id, NodeTimeoutStrategy.TIMEOUT_NODE_OPERATOR)
+        task.nodes_action.assert_called_once_with(
+            "forced_fail",
+            node_id,
+            NodeTimeoutStrategy.TIMEOUT_NODE_OPERATOR,
+            full_ex_data="The node has been terminated by the system due to exceeding the 'Timeout Setting'.",
+        )
 
     def test_forced_fail_and_skip_strategy_success(self):
         task = MagicMock()
@@ -50,7 +59,12 @@ class NodeTimeoutStrategyTestCase(TestCase):
         self.assertEqual(task.nodes_action.call_count, 2)
         task.nodes_action.assert_has_calls(
             [
-                call("forced_fail", node_id, NodeTimeoutStrategy.TIMEOUT_NODE_OPERATOR),
+                call(
+                    "forced_fail",
+                    node_id,
+                    NodeTimeoutStrategy.TIMEOUT_NODE_OPERATOR,
+                    full_ex_data="The node has been terminated by the system due to exceeding the 'Timeout Setting'.",
+                ),
                 call("skip", node_id, NodeTimeoutStrategy.TIMEOUT_NODE_OPERATOR),
             ],
         )
