@@ -1611,11 +1611,14 @@
                             // 更新子流程已勾选的变量值
                             Object.keys(this.localConstants).forEach(key => {
                                 const constantValue = this.localConstants[key]
-                                const formValue = this.subflowForms[key]
+                                // 根据source_info中获取勾选的表单项code
+                                const [formCode] = constantValue.source_info[this.nodeId] || []
+                                if (!formCode) return
+                                const formValue = this.subflowForms[formCode]
                                 let hook = false
                                 // 获取输入参数的勾选状态
                                 if (inputRef && inputRef.hooked) {
-                                    hook = inputRef.hooked[key] || false
+                                    hook = inputRef.hooked[formCode] || false
                                 }
                                 if (constantValue.is_meta && formValue && hook) {
                                     const schema = formSchema.getSchema(formValue.key, this.inputs)
