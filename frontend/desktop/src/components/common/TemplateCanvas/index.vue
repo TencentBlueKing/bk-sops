@@ -128,7 +128,7 @@
         </help-info>
         <div class="small-map" ref="smallMap" v-if="showSmallMap">
             <div class="small-map-body" v-bkloading="{ isLoading: smallMapLoading }">
-                <img :src="smallMapImg" alt="">
+                <img v-if="smallMapImg" :src="smallMapImg" alt="">
                 <div
                     ref="selectBox"
                     class="select-box"

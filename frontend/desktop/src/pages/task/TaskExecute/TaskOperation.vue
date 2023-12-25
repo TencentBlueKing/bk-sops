@@ -2892,6 +2892,9 @@
                     cursor: inherit;
                 }
             }
+            /deep/.small-map {
+                left: 20px;
+            }
         }
     }
 }
