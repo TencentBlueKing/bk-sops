@@ -857,7 +857,7 @@
                                 display: 'hidden',
                                 'white-space': 'nowrap',
                                 'text-overflow': 'ellipsis'
-                            }, this.$t('任务已暂停；如需要，可调整入参后继续')),
+                            }, this.$t('任务已暂停，您还可根据需要修改入参')),
                             h('span', {
                                 style: { color: '#3a84ff', cursor: 'pointer' },
                                 on: {
@@ -867,7 +867,7 @@
                                         msgInstance && msgInstance.close()
                                     }
                                 }
-                            }, this.$t('调整入参'))
+                            }, this.$t('修改入参'))
                         ])
                         msgInstance = this.$bkMessage({
                             message,
@@ -1477,8 +1477,8 @@
                             node_id: id
                         }
                         let { subprocess_stack: stack } = this.nodeDetailConfig
-                        if (stack) {
-                            stack = JSON.parse(stack)
+                        stack = stack ? JSON.parse(stack) : ''
+                        if (stack.length > 0) {
                             params.subprocess_id = stack.join(',')
                         }
                         await this.itsmTransition(params)
