@@ -99,6 +99,9 @@
                 'deleteCollect',
                 'loadCollectList'
             ]),
+            ...mapActions('project', [
+                'loadUserProjectList'
+            ]),
             ...mapMutations('project', [
                 'setProjectId'
             ]),
@@ -176,6 +179,12 @@
                 this.deleteCollectLoading = true
                 await this.deleteCollect(collectId)
                 this.deleteCollectLoading = false
+                const isProject = this.collectionList.find(item => item.id === collectId && item.category === 'project')
+                if (isProject) {
+                    this.loadUserProjectList({
+                        params: { is_disable: false }
+                    })
+                }
                 this.initData()
             },
             // card 点击
