@@ -83,7 +83,7 @@
         },
         computed: {
             ...mapState({
-                'functionClaimMsg': state => state.functionClaimMsg
+                'msgInstance': state => state.msgInstance
             })
         },
         created () {
@@ -91,7 +91,7 @@
         },
         methods: {
             ...mapMutations([
-                'setFunctionClaimMsg'
+                'setMsgInstance'
             ]),
             ...mapMutations('template/', [
                 'setPipelineTree'
@@ -140,9 +140,9 @@
         beforeRouteLeave (to, from, next) {
             document.title = this.primaryTitle
             dom.setPageTabIcon(`${window.SITE_URL}static/core/images/bk_sops.png`)
-            if (this.functionClaimMsg) {
-                this.functionClaimMsg.close()
-                this.setFunctionClaimMsg(null)
+            if (this.msgInstance) {
+                this.msgInstance.close()
+                this.setMsgInstance(null)
             }
             next()
         }

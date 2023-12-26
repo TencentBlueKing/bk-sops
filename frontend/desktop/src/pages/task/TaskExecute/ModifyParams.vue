@@ -55,7 +55,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import bus from '@/utils/bus.js'
-    import { mapState, mapActions } from 'vuex'
+    import { mapState, mapMutations, mapActions } from 'vuex'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
@@ -92,6 +92,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'msgInstance': state => state.msgInstance
+            }),
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
@@ -154,6 +157,8 @@
                     paramEditComp.randomKey = new Date().getTime()
                 }
             })
+            // 清理任务暂停/参数修改后继续执行 msg信息
+            this.msgInstance && this.msgInstance.close()
         },
         beforeDestroy () {
             $.context.exec_env = ''
@@ -166,6 +171,9 @@
                 'getTaskUsedConstants',
                 'instancePause',
                 'instanceResume'
+            ]),
+            ...mapMutations([
+                'setMsgInstance'
             ]),
             async loadRootTaskState () {
                 try {
@@ -387,7 +395,7 @@
                             return
                         }
                         this.$bkMessage({
-                            message: this.t('参数修改成功'),
+                            message: this.$t('参数修改成功'),
                             theme: 'success'
                         })
                         this.$emit('packUp')
@@ -416,7 +424,7 @@
                         'white-space': 'nowrap',
                         'text-overflow': 'ellipsis'
                     }, hasModify
-                        ? this.$t('已成功调整入参，是否继续执行任务？')
+                        ? this.$t('已成功修改入参，是否继续执行任务？')
                         : this.$t('参数未修改，是否继续执行任务？')
                     ),
                     h('span', {
@@ -443,6 +451,7 @@
                     offsetY: 108,
                     delay: 10000
                 })
+                this.setMsgInstance(msgInstance)
             },
             setAtomDisable (atomList) {
                 atomList.forEach(item => {

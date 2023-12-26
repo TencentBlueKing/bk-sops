@@ -89,11 +89,6 @@
             window.addEventListener('resize', this.onWindowResize, false)
             await this.initData()
             this.handlerWindowResize()
-            let storageData = localStorage.getItem('myCollection')
-            storageData = storageData ? JSON.parse(storageData) : {}
-            Object.keys(storageData).forEach(key => {
-                this.categorySwitchMap[key] = storageData[key]
-            })
         },
         beforeDestroy () {
             window.removeEventListener('resize', this.onWindowResize, false)
@@ -103,6 +98,9 @@
                 'changeDefaultProject',
                 'deleteCollect',
                 'loadCollectList'
+            ]),
+            ...mapActions('project', [
+                'loadUserProjectList'
             ]),
             ...mapMutations('project', [
                 'setProjectId'
@@ -114,6 +112,12 @@
                     this.collectionList = res.data
                     this.collectionGrounpList = this.getGrounpList(res.data)
                     this.collectionBodyLoading = false
+                    // 判断是否展开全部
+                    let storageData = localStorage.getItem('myCollection')
+                    storageData = storageData ? JSON.parse(storageData) : {}
+                    Object.keys(storageData).forEach(key => {
+                        this.categorySwitchMap[key] = storageData[key]
+                    })
                 } catch (e) {
                     console.log(e)
                 }
@@ -175,6 +179,12 @@
                 this.deleteCollectLoading = true
                 await this.deleteCollect(collectId)
                 this.deleteCollectLoading = false
+                const isProject = this.collectionList.find(item => item.id === collectId && item.category === 'project')
+                if (isProject) {
+                    this.loadUserProjectList({
+                        params: { is_disable: false }
+                    })
+                }
                 this.initData()
             },
             // card 点击

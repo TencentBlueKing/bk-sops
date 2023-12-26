@@ -128,7 +128,7 @@
         </help-info>
         <div class="small-map" ref="smallMap" v-if="showSmallMap">
             <div class="small-map-body" v-bkloading="{ isLoading: smallMapLoading }">
-                <img :src="smallMapImg" alt="">
+                <img v-if="smallMapImg" :src="smallMapImg" alt="">
                 <div
                     ref="selectBox"
                     class="select-box"
@@ -1540,73 +1540,84 @@
                 if (length) {
                     // 如果匹配的连线大于1且不是汇聚网关时不继续执行
                     if (length !== 1 && location.type !== 'convergegateway') return
-                    const lineConfig = Object.values(matchLines)[0]
-                    this.setPaintStyle(lineConfig.id, '#3a84ff')
-                    this.connectionHoverList.push(lineConfig.id)
-                    const ratio = this.zoomRatio / 100
-                    // 节点宽高
-                    let nodeWidth, nodeHeight
-                    if (['tasknode', 'subflow'].includes(location.type)) {
-                        nodeWidth = 154 * ratio
-                        nodeHeight = 54 * ratio
-                    } else {
-                        nodeWidth = 34 * ratio
-                        nodeHeight = 34 * ratio
-                    }
-                    let { x: left, y: top } = location
-                    const { x: canvasWrapLeft, y: canvasWrapTop } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                    const { x: canvasLeft, y: canvasTop } = document.querySelector('.canvas-flow').getBoundingClientRect()
-                    const offsetLeft = canvasLeft - canvasWrapLeft
-                    const offsetTop = canvasTop - canvasWrapTop
-                    if (offsetLeft || offsetTop) {
-                        left = left + offsetLeft
-                        top = top + offsetTop
-                    }
-                    left = left - 60 // 60为画布左边栏的宽度
-                    const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
-                    // 判断端点是否已经创建
-                    const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
-                    if (!pointDoms.length) {
-                        // 创建节点两边插入连线的端点
-                        const pointDom1 = document.createElement('span')
-                        const pointDom2 = document.createElement('span')
-                        pointDom1.className = 'node-inset-line-point'
-                        pointDom2.className = 'node-inset-line-point'
-                        if (lineConfig.segmentPosition.width > 8) { // 平行
-                            if (!location.id) { // 还未生成的节点
+                    // 遍历 connectionHoverList，如果上次匹配的连线在这次结果中不存在，则重置其样式并从列表中移除
+                    this.connectionHoverList = this.connectionHoverList.filter(lineId => {
+                        if (!matchLines[lineId]) {
+                            this.setPaintStyle(lineId, '#a9adb6')
+                            return false
+                        }
+                        return true
+                    })
+                    Object.values(matchLines).forEach(lineConfig => {
+                        if (!this.connectionHoverList.includes(lineConfig.id)) {
+                            this.setPaintStyle(lineConfig.id, '#3a84ff')
+                            this.connectionHoverList.push(lineConfig.id)
+                        }
+                        const ratio = this.zoomRatio / 100
+                        // 节点宽高
+                        let nodeWidth, nodeHeight
+                        if (['tasknode', 'subflow'].includes(location.type)) {
+                            nodeWidth = 154 * ratio
+                            nodeHeight = 54 * ratio
+                        } else {
+                            nodeWidth = 34 * ratio
+                            nodeHeight = 34 * ratio
+                        }
+                        let { x: left, y: top } = location
+                        const { x: canvasWrapLeft, y: canvasWrapTop } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                        const { x: canvasLeft, y: canvasTop } = document.querySelector('.canvas-flow').getBoundingClientRect()
+                        const offsetLeft = canvasLeft - canvasWrapLeft
+                        const offsetTop = canvasTop - canvasWrapTop
+                        if (offsetLeft || offsetTop) {
+                            left = left + offsetLeft
+                            top = top + offsetTop
+                        }
+                        left = left - 60 // 60为画布左边栏的宽度
+                        const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px;'
+                        // 判断端点是否已经创建
+                        const pointDoms = parentDom.querySelectorAll('.node-inset-line-point')
+                        if (!pointDoms.length) {
+                            // 创建节点两边插入连线的端点
+                            const pointDom1 = document.createElement('span')
+                            const pointDom2 = document.createElement('span')
+                            pointDom1.className = 'node-inset-line-point'
+                            pointDom2.className = 'node-inset-line-point'
+                            if (lineConfig.segmentPosition.width > 8) { // 平行
+                                if (!location.id) { // 还未生成的节点
+                                    const sameTop = `top: ${top + (nodeHeight - 14) / 2}px;`
+                                    pointDom1.style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
+                                    pointDom2.style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
+                                } else {
+                                    const sameAttribute = `top: ${((nodeHeight - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                    pointDom1.style.cssText = defaultAttribute + 'left: -7px;' + sameAttribute
+                                    pointDom2.style.cssText = defaultAttribute + 'right: -7px;' + sameAttribute
+                                }
+                            } else { // 垂直
+                                if (!location.id) { // 还未生成的节点
+                                    const sameLeft = `left: ${left + (nodeWidth - 14) / 2}px;`
+                                    pointDom1.style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
+                                    pointDom2.style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
+                                } else {
+                                    const sameAttribute = `left: ${((nodeWidth - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
+                                    pointDom1.style.cssText = defaultAttribute + 'top: -7px;' + sameAttribute
+                                    pointDom2.style.cssText = defaultAttribute + 'bottom: -7px;' + sameAttribute
+                                }
+                            }
+                            parentDom.appendChild(pointDom1)
+                            parentDom.appendChild(pointDom2)
+                        } else if (!location.id) { // 未创建的节点拖拽时需要实时计算端点的位置
+                            const doms = Array.from(pointDoms)
+                            if (lineConfig.segmentPosition.width > 8) { // 平行
                                 const sameTop = `top: ${top + (nodeHeight - 14) / 2}px;`
-                                pointDom1.style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
-                                pointDom2.style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
-                            } else {
-                                const sameAttribute = `top: ${((nodeHeight - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
-                                pointDom1.style.cssText = defaultAttribute + 'left: -7px;' + sameAttribute
-                                pointDom2.style.cssText = defaultAttribute + 'right: -7px;' + sameAttribute
-                            }
-                        } else { // 垂直
-                            if (!location.id) { // 还未生成的节点
+                                doms[0].style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
+                                doms[1].style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
+                            } else { // 垂直
                                 const sameLeft = `left: ${left + (nodeWidth - 14) / 2}px;`
-                                pointDom1.style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
-                                pointDom2.style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
-                            } else {
-                                const sameAttribute = `left: ${((nodeWidth - 14) / 2) / ratio}px; transform: scale(${1 / ratio});`
-                                pointDom1.style.cssText = defaultAttribute + 'top: -7px;' + sameAttribute
-                                pointDom2.style.cssText = defaultAttribute + 'bottom: -7px;' + sameAttribute
+                                doms[0].style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
+                                doms[1].style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
                             }
                         }
-                        parentDom.appendChild(pointDom1)
-                        parentDom.appendChild(pointDom2)
-                    } else if (!location.id) { // 未创建的节点拖拽时需要实时计算端点的位置
-                        const doms = Array.from(pointDoms)
-                        if (lineConfig.segmentPosition.width > 8) { // 平行
-                            const sameTop = `top: ${top + (nodeHeight - 14) / 2}px;`
-                            doms[0].style.cssText = defaultAttribute + `left: ${left - 7}px;` + sameTop
-                            doms[1].style.cssText = defaultAttribute + `left: ${left + nodeWidth - 7}px;` + sameTop
-                        } else { // 垂直
-                            const sameLeft = `left: ${left + (nodeWidth - 14) / 2}px;`
-                            doms[0].style.cssText = defaultAttribute + `top: ${top - 7}px;` + sameLeft
-                            doms[1].style.cssText = defaultAttribute + `top: ${top + nodeHeight - 7}px;` + sameLeft
-                        }
-                    }
+                    })
                 } else if (this.connectionHoverList.length) {
                     this.connectionHoverList.forEach(lineId => {
                         this.setPaintStyle(lineId, '#a9adb6')

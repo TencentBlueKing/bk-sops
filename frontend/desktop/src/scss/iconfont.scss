@@ -623,13 +623,13 @@
 .common-icon-auto-refresh:before {
 	content: "\e216";
 }
-.common-icon-dark-pending-process:before {
+.common-icon-dark-circle-pending-process:before {
 	content: "\e217";
 }
-.common-icon-dark-pending-confirm:before {
+.common-icon-dark-circle-pending-confirm:before {
 	content: "\e218";
 }
-.common-icon-dark-pending-approval:before {
+.common-icon-dark-circle-pending-approval:before {
 	content: "\e219";
 }
 .common-icon-bk-plugin-confirm:before {
@@ -646,4 +646,10 @@
 }
 .common-icon-auto-skip:before {
 	content: "\e21f";
+}
+.common-icon-dark-force-fail:before {
+	content: "\e220";
+}
+.common-icon-dark-pending-approval:before {
+	content: "\e221";
 }

@@ -70,7 +70,7 @@ const task = {
                             status.text = i18n.t('失败')
                             break
                         case 'PENDING_PROCESSING':
-                            status.cls = 'pending common-icon-dark-pending-process'
+                            status.cls = 'pending common-icon-dark-circle-pending-process'
                             status.text = i18n.t('等待处理')
                             break
                         default:

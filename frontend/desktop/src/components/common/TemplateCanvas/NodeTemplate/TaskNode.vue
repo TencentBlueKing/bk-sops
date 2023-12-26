@@ -28,7 +28,7 @@
         </div>
         <!-- 节点名称 -->
         <div class="node-name">
-            <div class="name-text">{{ node.name }}</div>
+            <div class="name-text" v-bk-overflow-tips>{{ node.name }}</div>
         </div>
         <!-- 节点顶部左侧区域 icon，是否可选、跳过等 -->
         <div class="node-options-icon">
@@ -78,15 +78,15 @@
             </span>
             <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(node.status)">
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
-                    <i class="common-icon-play"></i>
+                    <i class="bk-icon icon-play-circle-shape"></i>
                     {{ $t('确认继续') }}
                 </span>
                 <span v-else-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
-                    <i class="common-icon-circulation"></i>
+                    <i class="common-icon-dark-pending-approval"></i>
                     {{ $t('审批') }}
                 </span>
                 <span v-else @click.stop="$emit('onForceFail', node.id)">
-                    <i class="common-icon-mandatory-failure"></i>
+                    <i class="common-icon-dark-force-fail"></i>
                     {{ $t('强制终止') }}
                 </span>
             </template>

@@ -522,14 +522,15 @@
                             display: inline-block;
                             height: 16px;
                             width: 1px;
-                            background: #979ba5;
+                            background: #dcdee5;
                         }
                     }
                     i {
+                        font-size: 14px;
                         color: #979ba5;
-                        margin-right: 5px;
-                        &.common-icon-play {
-                            font-size: 14px;
+                        margin-right: 2px;
+                        &.common-icon-skip {
+                            font-size: 12px;
                         }
                     }
                     &:hover {
@@ -539,6 +540,11 @@
                             color: #3a84ff;
                         }
                     }
+                }
+            }
+            &.subflow-node {
+                .state-icon {
+                    bottom: -26px;
                 }
             }
         }

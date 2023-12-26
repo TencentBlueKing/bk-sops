@@ -21,8 +21,8 @@
     .common-icon-dark-circle-close {
         @include status-icon-style(#ff5757);
     }
-    .common-icon-dark-pending-process,
-    .common-icon-dark-circle-pause {
+    .common-icon-dark-circle-pending-process,
+    .common-icon-dark-circle-circle-pause {
         @include status-icon-style(#ff9c01);
     }
     .common-icon-waitting {

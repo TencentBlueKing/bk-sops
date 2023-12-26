@@ -421,6 +421,9 @@
                 projectId: state => state.project_id,
                 projectName: state => state.projectName
             }),
+            ...mapState({
+                'msgInstance': state => state.msgInstance
+            }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
             },
@@ -579,6 +582,9 @@
         methods: {
             ...mapMutations('template/', [
                 'setLine'
+            ]),
+            ...mapMutations([
+                'setMsgInstance'
             ]),
             ...mapActions('task/', [
                 'getInstanceStatus',
@@ -857,7 +863,7 @@
                                 display: 'hidden',
                                 'white-space': 'nowrap',
                                 'text-overflow': 'ellipsis'
-                            }, this.$t('任务已暂停；如需要，可调整入参后继续')),
+                            }, this.$t('任务已暂停，您还可根据需要修改入参')),
                             h('span', {
                                 style: { color: '#3a84ff', cursor: 'pointer' },
                                 on: {
@@ -867,7 +873,7 @@
                                         msgInstance && msgInstance.close()
                                     }
                                 }
-                            }, this.$t('调整入参'))
+                            }, this.$t('修改入参'))
                         ])
                         msgInstance = this.$bkMessage({
                             message,
@@ -875,6 +881,7 @@
                             offsetY: 108,
                             delay: 10000
                         })
+                        this.setMsgInstance(msgInstance)
                     }
                     this.setTaskStatusTimer()
                 } catch (e) {
@@ -910,6 +917,8 @@
                             message,
                             theme: 'success'
                         })
+                        // 清理任务暂停/参数修改后继续执行 msg信息
+                        this.msgInstance && this.msgInstance.close()
                     }
                 } catch (e) {
                     console.log(e)
@@ -1477,8 +1486,8 @@
                             node_id: id
                         }
                         let { subprocess_stack: stack } = this.nodeDetailConfig
-                        if (stack) {
-                            stack = JSON.parse(stack)
+                        stack = stack ? JSON.parse(stack) : ''
+                        if (stack.length > 0) {
                             params.subprocess_id = stack.join(',')
                         }
                         await this.itsmTransition(params)
@@ -2891,6 +2900,9 @@
                 .jtk-connector {
                     cursor: inherit;
                 }
+            }
+            /deep/.small-map {
+                left: 20px;
             }
         }
     }
