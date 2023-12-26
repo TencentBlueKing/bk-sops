@@ -21,7 +21,7 @@
             </NodeTree>
             <div slot="main" class="execute-content">
                 <div class="execute-head">
-                    <span class="node-name">{{isCondition ? conditionData.name : executeInfo.name}}</span>
+                    <span class="node-name">{{isCondition ? conditionData.name : nodeActivity.name}}</span>
                     <bk-divider direction="vertical"></bk-divider>
                     <div class="node-state">
                         <span :class="displayStatus"></span>
@@ -60,9 +60,11 @@
                             </i>
                         </div>
                         <!--可拖拽-->
-                        <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
-                        <i :class="['resize-proxy', 'top']" ref="resizeProxy"></i>
-                        <div class="resize-mask" ref="resizeMask"></div>
+                        <template v-if="!subprocessLoading">
+                            <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
+                            <i :class="['resize-proxy', 'top']" ref="resizeProxy"></i>
+                            <div class="resize-mask" ref="resizeMask"></div>
+                        </template>
                     </div>
                     <div
                         v-if="location"
@@ -176,7 +178,21 @@
                     </div>
                 </div>
                 <div class="action-wrapper" v-if="isShowActionWrap && !loading">
+                    <bk-button
+                        v-if="isShowContinueBtn"
+                        theme="primary"
+                        data-test-id="taskExecute_form_continueBtn"
+                        @click="onContinueClick">
+                        {{ $t('继续执行') }}
+                    </bk-button>
                     <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_CONFIRMATION', 'PENDING_APPROVAL'].includes(realTimeState.state)">
+                        <bk-button
+                            v-if="realTimeState.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
+                            theme="primary"
+                            data-test-id="taskExecute_form_pauseBtn"
+                            @click="onPauseClick">
+                            {{ $t('暂停执行') }}
+                        </bk-button>
                         <bk-button
                             v-if="nodeDetailConfig.component_code === 'pause_node'"
                             theme="primary"
@@ -196,12 +212,6 @@
                             data-test-id="taskExecute_form_mandatoryFailBtn"
                             @click="mandatoryFailure">
                             {{ $t('强制终止') }}
-                        </bk-button>
-                        <bk-button
-                            v-if="realTimeState.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
-                            data-test-id="taskExecute_form_pauseBtn"
-                            @click="onPauseClick">
-                            {{ $t('暂停') }}
                         </bk-button>
                     </template>
                     <template v-if="isShowRetryBtn || isShowSkipBtn">
@@ -227,12 +237,6 @@
                             {{ isSubProcessNode ? $t('跳过子流程') : $t('跳过') }}
                         </bk-button>
                     </template>
-                    <bk-button
-                        v-if="isShowContinueBtn"
-                        data-test-id="taskExecute_form_continueBtn"
-                        @click="onContinueClick">
-                        {{ $t('确认继续') }}
-                    </bk-button>
                 </div>
             </div>
         </bk-resize-layout>
@@ -418,13 +422,13 @@
                         state = 'common-icon-dark-circle-pause'
                         break
                     case 'PENDING_PROCESSING':
-                        state = 'common-icon-dark-pending-process'
+                        state = 'common-icon-dark-circle-pending-process'
                         break
                     case 'PENDING_APPROVAL':
-                        state = 'common-icon-dark-pending-approval'
+                        state = 'common-icon-dark-circle-pending-approval'
                         break
                     case 'PENDING_CONFIRMATION':
-                        state = 'common-icon-dark-pending-confirm'
+                        state = 'common-icon-dark-circle-pending-confirm'
                         break
                     case 'FINISHED':
                         const { skip, error_ignored } = this.realTimeState
@@ -505,9 +509,14 @@
                 }
                 return isShow
             },
+            isExecutingState () {
+                return ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
+            },
             isShowActionWrap () {
                 // 任务终止时禁止节点操作
-                if ([this.state, this.subTaskStatus].includes('REVOKED')) return false
+                if (this.state === 'REVOKED' || (!this.isSubProcessNode && this.subTaskStatus === 'REVOKED')) {
+                    return false
+                }
                 // 判断父级节点是否存在失败后跳过
                 if (this.nodeDetailConfig.taskId) {
                     const allNodeStatus = {
@@ -530,7 +539,7 @@
                         return false
                     }
                 }
-                const executeState = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(this.realTimeState.state)
+                const executeState = this.isExecutingState.includes(this.realTimeState.state)
                 return executeState
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
@@ -642,6 +651,19 @@
                         this.loadSubprocessStatus()
                     }
                 }
+            },
+            'realTimeState.subprocess_state': {
+                handler (val, oldVal) {
+                    // 非独立
+                    if (this.isLegacySubProcess) {
+                        this.handleLinesSuspendState({
+                            state: val,
+                            oldState: oldVal,
+                            children: this.realTimeState.children
+                        })
+                    }
+                },
+                immediate: true
             }
         },
         mounted () {
@@ -675,6 +697,7 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
+                    this.suspendLines = []
                     this.renderConfig = []
                     let respData = await this.getTaskNodeDetail()
                     if (!respData) {
@@ -1492,12 +1515,26 @@
                         this.$set(this.subprocessNodeStatus, key, resp.data[key])
                     })
                     for (const [key, value] of Object.entries(resp.data)) {
-                        const { root_node, node_id } = this.subprocessTasks[key]
+                        const { root_node, node_id } = this.subprocessTasks[key] || {}
                         const nodeInfo = this.getNodeInfo(this.nodeData, root_node, node_id)
                         const { auto_retry_infos: retryInfo, children, state } = value.data
+                        // 如果子任务暂停时，节点存在READY状态则将状态置为PENDING_TASK_CONTINUE
+                        Object.values(children).forEach(item => {
+                            item.state = state === 'SUSPENDED' && item.state === 'READY' ? 'PENDING_TASK_CONTINUE' : item.state
+                        })
                         this.nodeAddStatus(nodeInfo.children, children, true)
                         this.updateNodeInfo(children, retryInfo)
-                        if (!['CREATED', 'RUNNING'].includes(state)) {
+                        
+                        let continueRunning = ['CREATED', 'RUNNING', 'PENDING_PROCESSING'].includes(state)
+                        // 任务暂停时如果有节点正在执行，需轮询节点状态
+                        if (state === 'SUSPENDED') {
+                            continueRunning = Object.values(children).some(item => this.isExecutingState.includes(item.state))
+                        }
+                        // 任务失败时如果又节点还没自动重试完，需轮询节点状态
+                        if (state === 'FAILED') {
+                            continueRunning = Object.values(retryInfo).some(item => item.max_auto_retry_times > item.auto_retry_times)
+                        }
+                        if (!continueRunning) {
                             delete this.subprocessTasks[key]
                         }
                     }
@@ -1505,38 +1542,43 @@
                         this.setTaskStatusTimer()
                     }
                     // 根据子任务的状态，设置边的暂停样式
-                    const { state, children = {} } = resp.data[taskId]?.data
-                    if ([state, oldState].includes('SUSPENDED')) {
-                        if (state === oldState && !this.suspendLines.length) return
-                        const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.subProcessPipeline)
-                        Object.values(children).forEach(node => {
-                            // 非任务节点/网关节点
-                            if ([start_event.id, end_event.id].includes(node.id)) return
-                            // 查看输出节点状态
-                            let { outgoing } = activities[node.id] || gateways[node.id] || {}
-                            if (!Array.isArray(outgoing)) {
-                                outgoing = [outgoing]
-                            }
-                            outgoing.forEach(outLine => {
-                                const targetNode = flows[outLine].target
-                                const isExecuted = state === 'SUSPENDED' ? (node.state === 'READY' || targetNode in children) : true
-                                // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
-                                this.setLineSuspendState({
-                                    nodeId: node.id,
-                                    lineId: outLine,
-                                    isExecuted,
-                                    location: 0.5,
-                                    ref: 'subProcessCanvas'
-                                })
-                            })
-                        })
-                    }
+                    const { state, children = {} } = resp.data[taskId]?.data || {}
+                    this.handleLinesSuspendState({ state, oldState, children })
                 } catch (error) {
                     console.warn(error)
                 } finally {
                     source = null
                     this.subprocessLoading = false
                 }
+            },
+            // 根据子任务的状态，设置边的暂停样式
+            handleLinesSuspendState (info) {
+                const { state, oldState, children = {} } = info
+                if (![state, oldState].includes('SUSPENDED')) return
+                const { activities, gateways, flows, start_event, end_event } = tools.deepClone(this.subProcessPipeline)
+                Object.values(children).forEach(node => {
+                    // 非任务节点/网关节点
+                    if ([start_event.id, end_event.id].includes(node.id)) return
+                    // 查看输出节点状态
+                    let { outgoing } = activities[node.id] || gateways[node.id] || {}
+                    if (!Array.isArray(outgoing)) {
+                        outgoing = [outgoing]
+                    }
+                    outgoing.forEach(outLine => {
+                        const targetNode = flows[outLine].target
+                        const isExecuted = state === 'SUSPENDED' ? (node.state === 'PENDING_TASK_CONTINUE' || targetNode in children) : true
+                        // 输出节点未被执行则表明任务暂停后该分支在当前节点停止往下继续执行
+                        this.$nextTick(() => {
+                            this.setLineSuspendState({
+                                nodeId: node.id,
+                                lineId: outLine,
+                                isExecuted,
+                                location: 0.5,
+                                ref: 'subProcessCanvas'
+                            })
+                        })
+                    })
+                })
             },
             setTaskStatusTimer (time = 3000) {
                 this.cancelTaskStatusTimer()
@@ -1710,9 +1752,9 @@
             color: #3a84ff;
         }
         .common-icon-dark-circle-pause,
-        .common-icon-dark-pending-process,
-        .common-icon-dark-pending-approval,
-        .common-icon-dark-pending-confirm {
+        .common-icon-dark-circle-pending-process,
+        .common-icon-dark-circle-pending-approval,
+        .common-icon-dark-circle-pending-confirm {
             font-size: 14px;
             color: #f8B53f;
         }
