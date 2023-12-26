@@ -23,8 +23,8 @@
             <i class="node-icon-font common-icon-sub-process"></i>
             <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
         </div>
-        <div class="node-name" :title="node.name">
-            <div class="name-text">{{ node.name }}</div>
+        <div class="node-name">
+            <div class="name-text" v-bk-overflow-tips>{{ node.name }}</div>
         </div>
         <div class="node-options-icon">
             <template v-if="node.optional">
@@ -77,19 +77,17 @@
                         {{ $t('跳过子流程') }}
                     </span>
                 </template>
-                <template v-if="isShowPauseBtn">
-                    <span @click.stop="onSubflowPauseResumeClick('pause')">
-                        <i class="common-icon-mandatory-failure"></i>
-                        {{ $t('暂停') }}
-                    </span>
-                    <span v-if="isSubProcessNode" @click.stop="$emit('onForceFail', node.id)">
-                        <i class="common-icon-resume"></i>
-                        {{ $t('强制终止') }}
-                    </span>
-                </template>
+                <span v-if="isShowPauseBtn" @click.stop="onSubflowPauseResumeClick('pause')">
+                    <i class="common-icon-dark-circle-pause"></i>
+                    {{ $t('暂停执行') }}
+                </span>
                 <span v-if="isShowContinueBtn" @click.stop="onSubflowPauseResumeClick('resume')">
-                    <i class="common-icon-play"></i>
-                    {{ $t('确认继续') }}
+                    <i class="bk-icon icon-play-circle-shape"></i>
+                    {{ $t('继续执行') }}
+                </span>
+                <span v-if="isShowForceFailBtn" @click.stop="$emit('onForceFail', node.id)">
+                    <i class="common-icon-dark-force-fail"></i>
+                    {{ $t('强制终止') }}
                 </span>
             </template>
         </div>
@@ -140,8 +138,12 @@
                 return this.node.code === 'subprocess_plugin'
             },
             isShowPauseBtn () {
-                const { status, subprocessState } = this.node
-                return status === 'RUNNING' || subprocessState === 'RUNNING'
+                const { status } = this.node
+                return status === 'RUNNING'
+            },
+            isShowForceFailBtn () {
+                const { status } = this.node
+                return this.isSubProcessNode && ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(status)
             },
             isShowContinueBtn () {
                 const { status, subprocessState } = this.node
