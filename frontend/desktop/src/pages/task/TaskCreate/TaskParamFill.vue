@@ -182,7 +182,7 @@
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
-                'functionClaimMsg': state => state.functionClaimMsg,
+                'msgInstance': state => state.msgInstance,
                 'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
@@ -252,7 +252,7 @@
                 'createTask'
             ]),
             ...mapMutations([
-                'setFunctionClaimMsg'
+                'setMsgInstance'
             ]),
             ...mapMutations('template/', [
                 'setTemplateData'
@@ -537,7 +537,7 @@
                                 theme: 'success',
                                 delay: 0
                             })
-                            this.setFunctionClaimMsg(functionClaimMsg)
+                            this.setMsgInstance(functionClaimMsg)
                         }
                         let url = {}
                         if (this.viewMode === 'appmaker') {
@@ -580,8 +580,8 @@
                 })
             },
             cloneClaimLink (instanceId) {
-                this.functionClaimMsg.close()
-                this.setFunctionClaimMsg(null)
+                this.msgInstance.close()
+                this.setMsgInstance(null)
                 const { href } = this.$router.resolve({
                     name: 'functionTaskExecute',
                     params: { project: this.project_id },

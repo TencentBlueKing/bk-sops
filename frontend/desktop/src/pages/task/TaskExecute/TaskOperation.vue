@@ -421,6 +421,9 @@
                 projectId: state => state.project_id,
                 projectName: state => state.projectName
             }),
+            ...mapState({
+                'msgInstance': state => state.msgInstance
+            }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
             },
@@ -579,6 +582,9 @@
         methods: {
             ...mapMutations('template/', [
                 'setLine'
+            ]),
+            ...mapMutations([
+                'setMsgInstance'
             ]),
             ...mapActions('task/', [
                 'getInstanceStatus',
@@ -875,6 +881,7 @@
                             offsetY: 108,
                             delay: 10000
                         })
+                        this.setMsgInstance(msgInstance)
                     }
                     this.setTaskStatusTimer()
                 } catch (e) {
@@ -910,6 +917,8 @@
                             message,
                             theme: 'success'
                         })
+                        // 清理任务暂停/参数修改后继续执行 msg信息
+                        this.msgInstance && this.msgInstance.close()
                     }
                 } catch (e) {
                     console.log(e)

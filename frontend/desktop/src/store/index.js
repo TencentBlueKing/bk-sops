@@ -53,7 +53,7 @@ const store = new Vuex.Store({
                 return true
             }
         },
-        functionClaimMsg: null
+        msgInstance: null
     },
     mutations: {
         setAppId (state, id) {
@@ -83,8 +83,8 @@ const store = new Vuex.Store({
         setPermissionMeta (state, data) {
             state.permissionMeta = data
         },
-        setFunctionClaimMsg (state, data) {
-            state.functionClaimMsg = data
+        setMsgInstance (state, data) {
+            state.msgInstance = data
         }
     },
     actions: {
