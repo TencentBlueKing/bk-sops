@@ -48,6 +48,7 @@
         watch: {
             defaultActiveId: {
                 handler (val) {
+                    if (!val) return
                     this.activeId = val
                     let nodeId = val.split('-')[0]
                     let parentId = []

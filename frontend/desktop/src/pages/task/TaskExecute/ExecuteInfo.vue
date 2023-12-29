@@ -478,7 +478,14 @@
                 return codeInfo
             },
             nodeActivity () {
-                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                const { node_id: nodeId } = this.nodeDetailConfig
+                const { activities, end_event, start_event } = this.pipelineData
+                const nodeMap = {
+                    ...activities,
+                    [start_event.id]: { ...start_event, name: this.$t('开始节点') },
+                    [end_event.id]: { ...end_event, name: this.$t('结束节点') }
+                }
+                return nodeMap[nodeId]
             },
             isExecuteTimeShow () {
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
@@ -536,6 +543,20 @@
                     })
 
                     if (isFailedSkip) {
+                        return false
+                    }
+
+                    // 检查根节点的状态，如果有撤销的状态，则不继续执行
+                    const rootNodeStates = Object.keys(this.subprocessTasks).reduce((acc, taskId) => {
+                        const stateInfo = this.subprocessTasks[taskId]
+                        if (parentIds.includes(stateInfo.node_id)) {
+                            const { state } = this.subprocessNodeStatus[taskId].data
+                            acc.push(state)
+                        }
+                        return acc
+                    }, [])
+
+                    if (rootNodeStates.includes('REVOKED')) {
                         return false
                     }
                 }
@@ -697,7 +718,6 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
-                    this.suspendLines = []
                     this.renderConfig = []
                     let respData = await this.getTaskNodeDetail()
                     if (!respData) {
@@ -729,7 +749,7 @@
                                 node_id
                             }
                             // 获取独立子流程任务状态
-                            this.loadSubprocessStatus()
+                            await this.loadSubprocessStatus()
                         } else {
                             nodeInfo.dynamicLoad = false
                             this.subprocessLoading = false
@@ -739,7 +759,8 @@
                     } else if (this.subProcessPipeline) {
                         this.subprocessLoading = false
                     }
-                    this.historyInfo = [respData]
+                    // 【失败后跳过】过滤掉最新的记录
+                    this.historyInfo = respData.skip ? [] : [respData]
                     if (respData.histories) {
                         this.historyInfo.unshift(...respData.histories)
                     }
@@ -765,6 +786,7 @@
                 } finally {
                     this.randomKey = new Date().getTime()
                     this.loading = false
+                    this.subprocessLoading = false
                 }
             },
             close () {
@@ -1175,6 +1197,9 @@
                         this.moveNodeToView(node.id)
                     }
                 })
+                // 清空默认选中节点
+                const parentInstance = this.$parent.$parent
+                parentInstance.defaultActiveId = ''
             },
             // 移动画布，将节点放到画布中央
             moveNodeToView (id) {
@@ -1408,6 +1433,11 @@
                 try {
                     const parentId = nodeInfo.parentId?.split('-') || []
                     if (nodeInfo.dynamicLoad || updateState) {
+                        if (source) {
+                            source.cancel('cancelled') // 取消定时器里已经执行的请求
+                            this.timer = null
+                        }
+                        this.suspendLines = []
                         const resp = await this.getTaskInstanceData(taskId)
                         const pipelineTree = JSON.parse(resp.pipeline_tree)
                         const parentInfo = {
@@ -1497,7 +1527,7 @@
                         this.timer = null
                     }
                     source = CancelToken.source()
-                    const taskIds = Object.keys(this.subprocessTasks)
+                    const taskIds = Object.keys(this.subprocessTasks).filter(key => !this.subprocessTasks[key].notContinue)
                     if (!taskIds.length) return
                     const data = {
                         task_ids: taskIds,
@@ -1535,10 +1565,12 @@
                             continueRunning = Object.values(retryInfo).some(item => item.max_auto_retry_times > item.auto_retry_times)
                         }
                         if (!continueRunning) {
-                            delete this.subprocessTasks[key]
+                            // 添加notContinue字段，防止子任务继续请求
+                            this.subprocessTasks[key].notContinue = true
                         }
                     }
-                    if (Object.keys(this.subprocessTasks).length) {
+                    const isContinue = Object.values(this.subprocessTasks).some(item => !item.notContinue)
+                    if (isContinue) {
                         this.setTaskStatusTimer()
                     }
                     // 根据子任务的状态，设置边的暂停样式
@@ -1548,7 +1580,6 @@
                     console.warn(error)
                 } finally {
                     source = null
-                    this.subprocessLoading = false
                 }
             },
             // 根据子任务的状态，设置边的暂停样式
@@ -1619,9 +1650,17 @@
                 this.$emit('onModifyTimeClick', this.nodeDetailConfig.node_id, this.subProcessTaskId)
             },
             mandatoryFailure () {
-                this.$emit('onForceFail', this.nodeDetailConfig.node_id, this.subProcessTaskId)
+                // 节点绑定的是父流程的taskId，独立子流程节点操作应从子流程树中取taskId
+                const taskId = this.isSubProcessNode ? this.subProcessPipeline.taskId : this.subProcessTaskId
+                const info = {
+                    name: this.executeInfo.name,
+                    taskId,
+                    isSubProcessNode: this.isSubProcessNode
+                }
+                this.$emit('onForceFail', this.nodeDetailConfig.node_id, info)
             },
             onPauseClick () {
+                // 节点绑定的是父流程的taskId，独立子流程节点操作应从子流程树中取taskId
                 const taskId = this.isSubProcessNode ? this.subProcessPipeline.taskId : this.subProcessTaskId
                 const info = {
                     taskId,
@@ -1631,6 +1670,7 @@
                 this.$emit('onPauseClick', this.nodeDetailConfig.node_id, info)
             },
             onContinueClick () {
+                // 节点绑定的是父流程的taskId，独立子流程节点操作应从子流程树中取taskId
                 const taskId = this.isSubProcessNode ? this.subProcessPipeline.taskId : this.subProcessTaskId
                 const info = {
                     taskId,
