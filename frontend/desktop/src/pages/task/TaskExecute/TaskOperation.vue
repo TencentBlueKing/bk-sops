@@ -986,7 +986,7 @@
                     this.pending.skip = false
                 }
             },
-            async nodeForceFail (id, taskId) {
+            async nodeForceFail (id, info = {}) {
                 if (this.pending.forceFail) {
                     return
                 }
@@ -994,9 +994,9 @@
                 try {
                     let res = {}
                     // 强制终止独立子流程任务节点
-                    const nodeConfig = this.activities[id] || this.nodePipelineData.activities[id]
-                    const isSubProcessNode = nodeConfig.component?.code === 'subprocess_plugin'
-                    if (isSubProcessNode) {
+                    let taskId = info.taskId
+                    let message = ''
+                    if (info.isSubProcessNode) {
                         if (!taskId) {
                             const resp = await this.getNodeActDetail({
                                 instance_id: this.instance_id,
@@ -1010,16 +1010,18 @@
                             taskId = data.value
                         }
                         res = await this.instanceRevoke(taskId)
+                        message = i18n.t('子流程【n】已被强制终止', { n: info.name })
                     } else {
                         const params = {
                             node_id: id,
-                            task_id: Number(taskId || this.instance_id)
+                            task_id: Number(info.taskId || this.instance_id)
                         }
                         res = await this.forceFail(params)
+                        message = i18n.t('节点【n】已被强制终止', { n: info.name })
                     }
                     if (res.result) {
                         this.$bkMessage({
-                            message: i18n.t('强制终止执行成功'),
+                            message,
                             theme: 'success'
                         })
                         // 更新节点执行信息
@@ -1397,7 +1399,24 @@
                     this.pending.retry = false
                 }
             },
-            onForceFailClick (id, taskId) {
+            onForceFailClick (id, info) {
+                let name, isSubProcessNode
+
+                if (info) {
+                    ({ name, isSubProcessNode } = info)
+                } else {
+                    const nodeConfig = this.nodeTreePipelineData.activities[id]
+                    name = nodeConfig.name
+                    isSubProcessNode = nodeConfig.component.code === 'subprocess_plugin'
+                }
+
+                const titleKey = isSubProcessNode ? '确定强制终止子流程【n】 ？' : '确定强制终止节点【n】 ？'
+                const subTitleKey = isSubProcessNode
+                    ? '强制终止子流程将直接终止子流程发起的任务，终止后仅能重试或跳过子流程'
+                    : '强制终止将强行修改节点状态为失败，但不会中断已经发送到其它系统的请求'
+
+                const title = this.$t(titleKey, { n: name })
+                const subTitle = this.$t(subTitleKey)
                 const h = this.$createElement
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [
@@ -1406,20 +1425,20 @@
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('确定强制终止当前节点？')]),
+                        }, [title]),
                         h('div', {
                             class: 'custom-header-sub-title bk-dialog-header-inner',
                             directives: [{
                                 name: 'bk-overflow-tips'
                             }]
-                        }, [i18n.t('强制终止将强行修改节点状态为失败，但不会中断已经发送到其它系统的请求')])
+                        }, [subTitle])
                     ]),
                     extCls: 'dialog-custom-header-title',
                     maskClose: false,
                     confirmLoading: true,
                     cancelText: this.$t('取消'),
                     confirmFn: async () => {
-                        await this.nodeForceFail(id, taskId)
+                        await this.nodeForceFail(id, { ...info, name })
                     }
                 })
             },
@@ -2810,14 +2829,19 @@
                             const { root_node, component_code, taskId } = this.nodeDetailConfig
                             // 重新拉取父流程状态
                             await this.loadTaskStatus()
-                            // 更新节点详情
-                            await execInfoInstance.loadNodeInfo()
+                            // 重新拉取所有独立子流程状态
+                            execInfoInstance.suspendLines = []
+                            Object.values(execInfoInstance.subprocessTasks).forEach(item => {
+                                delete item.notContinue
+                            })
                             // 拉取独立子流程状态
-                            if (taskId && component_code !== 'subprocess_plugin') {
-                                const nodes = root_node.split('-')
-                                execInfoInstance.subprocessTasks[taskId] = {
-                                    root_node: nodes.slice(0, -1).join('-'),
-                                    node_id: nodes.slice(-1)[0]
+                            if (taskId) {
+                                if (component_code !== 'subprocess_plugin') {
+                                    const nodes = root_node.split('-')
+                                    execInfoInstance.subprocessTasks[taskId] = {
+                                        root_node: nodes.slice(0, -1).join('-'),
+                                        node_id: nodes.slice(-1)[0]
+                                    }
                                 }
                                 // 获取独立子流程任务状态
                                 execInfoInstance.loadSubprocessStatus()
