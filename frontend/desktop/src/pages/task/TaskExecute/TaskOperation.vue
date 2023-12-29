@@ -1343,8 +1343,8 @@
                             node_id: id
                         }
                         let { subprocess_stack: stack } = this.nodeDetailConfig
-                        if (stack) {
-                            stack = JSON.parse(stack)
+                        stack = stack ? JSON.parse(stack) : ''
+                        if (stack.length > 0) {
                             params.subprocess_id = stack.join(',')
                         }
                         await this.itsmTransition(params)
