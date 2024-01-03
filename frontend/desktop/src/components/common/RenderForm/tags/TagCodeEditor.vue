@@ -158,6 +158,8 @@
             },
             // 变量tag设置
             setVariableTag (value, valueUpdate) {
+                const { attrs } = this.scheme
+                if (attrs.variable_render !== false) return
                 const regex = /\${[a-zA-Z_]\w*}/
                 const rows = value.split('\n')
                 // 获取光标所在行

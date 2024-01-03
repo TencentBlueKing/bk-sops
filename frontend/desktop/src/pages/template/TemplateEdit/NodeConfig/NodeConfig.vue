@@ -1038,7 +1038,7 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = crt.type !== 'code_editor'
+                        acc[crt.tag_code] = !!crt.attrs.variable_render
                         return acc
                     }, {})
                 }
@@ -1065,7 +1065,7 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = crt.type !== 'code_editor'
+                        acc[crt.tag_code] = !!crt.attrs.variable_render
                         return acc
                     }, {})
                 }
