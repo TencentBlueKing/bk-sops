@@ -60,3 +60,6 @@ class CryptoTestCase(TestCase):
 
     def test_plaintext(self):
         self.assertEqual(self.plaintext, crypto.decrypt(self.plaintext))
+
+    def test_invalid_b64(self):
+        self.assertEqual("AAAA", crypto.decrypt("AAAA"))
