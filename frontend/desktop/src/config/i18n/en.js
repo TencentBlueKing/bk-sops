@@ -1857,7 +1857,9 @@ const en = {
     '任务已暂停，您还可根据需要修改入参': 'Task Paused; if necessary, You can modify the input parameters as needed.',
     '已成功修改入参，是否继续执行任务？': 'The input parameters have been modify successfully. Do you want to continue the task?',
     '参数未修改，是否继续执行任务？': 'The parameters have not been modified. Do you want to continue executing the task?',
-    '节点审批成功': 'Node Approved'
+    '节点审批成功': 'Node Approved',
+    '当前项目不存在或已归档': 'Project not exist or has been archived',
+    '返回首页': 'Return to Home'
 }
 
 export default en
