@@ -529,7 +529,15 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
                 hist = result.data
                 if hist:
-                    inputs = hist[-1]["inputs"]
+                    if (
+                        node_info["type"] == "ServiceActivity"
+                        and node_code == "subprocess_plugin"
+                        and kwargs.get("subprocess_simple_inputs")
+                    ):
+                        raw_inputs = hist[-1]["inputs"]["subprocess"]["pipeline"]["constants"]
+                        inputs = {key[2:-1]: value.get("value") for key, value in raw_inputs.items()}
+                    else:
+                        inputs = hist[-1]["inputs"]
                     outputs = hist[-1]["outputs"]
                     outputs = {"outputs": outputs, "ex_data": outputs.get("ex_data")}
         # 未执行节点需要实时渲染
