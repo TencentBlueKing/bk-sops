@@ -234,7 +234,7 @@
                             selectedNodes.push(item.id)
                         }
                     })
-                    this.selectedNodes = selectedNodes
+                    this.selectedNodes = this.selectedNodes.length ? this.selectedNodes : selectedNodes
 
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
@@ -257,6 +257,7 @@
                             this.$set(item, 'checked', true)
                         }
                     })
+                    this.updateExcludeNodes()
                 } catch (e) {
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
@@ -486,6 +487,7 @@
              * 设置默认勾选值
              */
             async setCanvasSelected (selectNodes = []) {
+                if (this.excludeNode.length) return
                 if (selectNodes.length) {
                     // 使用传进来的选中节点，取消画布默认全选
                     this.selectedNodes = selectNodes
