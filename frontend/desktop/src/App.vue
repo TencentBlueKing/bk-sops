@@ -16,8 +16,14 @@
                 <div class="main-container">
                     <router-view v-if="isRouterViewShow"></router-view>
                 </div>
+                <bk-exception v-if="isProjectDisabled" class="project-exception-wrap" type="404">
+                    <span class="exception-title">{{ $t('当前项目不存在或已归档') }}</span>
+                    <div class="text-wrap">
+                        <router-link :to="{ name: 'home' }" class="link-btn">{{ $t('返回首页') }}</router-link>
+                    </div>
+                </bk-exception>
                 <permissionApply
-                    v-if="permissinApplyShow"
+                    v-else-if="permissinApplyShow"
                     ref="permissionApply"
                     :permission-data="permissionData">
                 </permissionApply>
@@ -27,8 +33,14 @@
             <div class="main-container">
                 <router-view v-if="isRouterViewShow"></router-view>
             </div>
+            <bk-exception v-if="isProjectDisabled" class="project-exception-wrap" type="404">
+                <span class="exception-title">{{ $t('当前项目不存在或已归档') }}</span>
+                <div class="text-wrap">
+                    <router-link :to="{ name: 'home' }" class="link-btn">{{ $t('返回首页') }}</router-link>
+                </div>
+            </bk-exception>
             <permissionApply
-                v-if="permissinApplyShow"
+                v-else-if="permissinApplyShow"
                 ref="permissionApply"
                 :permission-data="permissionData">
             </permissionApply>
@@ -74,7 +86,8 @@
                 isRouterAlive: false,
                 projectDetailLoading: false, // 项目详情加载
                 appmakerDataLoading: false, // 轻应用加载 app 详情,
-                isUseSnapshot: false // 登录成功时是否使用快照
+                isUseSnapshot: false, // 登录成功时是否使用快照
+                isProjectDisabled: false // 当前项目是否禁用
             }
         },
         computed: {
@@ -85,10 +98,11 @@
                 'site_url': state => state.site_url
             }),
             ...mapState('project', {
-                'project_id': state => state.project_id
+                'project_id': state => state.project_id,
+                'userProjectList': state => state.userProjectList
             }),
             isRouterViewShow () {
-                return !this.permissinApplyShow && this.isRouterAlive && !this.projectDetailLoading
+                return !this.permissinApplyShow && this.isRouterAlive && !this.projectDetailLoading && !this.isProjectDisabled
             }
         },
         watch: {
@@ -96,6 +110,11 @@
                 const prevRouterProjectId = oldVal.params.project_id
                 const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
                 this.handleRouteChange(id)
+                if (this.isProjectDisabled && !val.meta.project) {
+                    this.isProjectDisabled = false
+                    // 重新设置默认项目
+                    this.setProjectId(this.userProjectList[0].id)
+                }
             }
         },
         created () {
@@ -212,7 +231,8 @@
                     this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     const projectConfig = await this.getUserProjectConfigs(this.project_id)
-                    const { name, id, bk_biz_id, auth_actions } = projectDetail
+                    const { name, id, bk_biz_id, auth_actions, is_disable } = projectDetail
+                    this.isProjectDisabled = is_disable
                     this.setProjectId(id)
                     this.setBizId(bk_biz_id)
                     this.setProjectName(name)
@@ -347,6 +367,17 @@
         .message-detail .message-copy {
             top: 0 !important;
             right: 0 !important;
+        }
+    }
+    .project-exception-wrap {
+        position: absolute !important;
+        top: 30%;
+        left: 0;
+        width: 100%;
+        .link-btn {
+            font-size: 14px;
+            color: #3a84ff;
+            margin-top: 12px;
         }
     }
 </style>
