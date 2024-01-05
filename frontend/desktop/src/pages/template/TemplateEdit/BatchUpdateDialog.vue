@@ -625,13 +625,16 @@
                                 }
                             }
                                                 
+                            // 根据source_info中获取勾选的表单项code
+                            const [formCode] = curVar?.source_info[subflow.id] || []
+                            if (!formCode) return
                             const { form, inputsConfig } = subflow.latestForm
-                            const formValue = form[key]
+                            const formValue = form[formCode]
                             const inputRef = this.$refs.inputParams[index]
                             let hook = false
                             // 获取输入参数的勾选状态
                             if (inputRef && inputRef.hooked) {
-                                hook = inputRef.hooked[key] || false
+                                hook = inputRef.hooked[formCode] || false
                             }
                             if (varItem.is_meta && formValue && hook) {
                                 const schema = formSchema.getSchema(formValue.key, inputsConfig)

@@ -1041,7 +1041,8 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = crt.type !== 'code_editor'
+                        // 普通插件值为true，codeEditor类型插件优先使用variable_render字段，默认值为true
+                        acc[crt.tag_code] = crt.type !== 'code_editor' || 'variable_render' in crt.attrs ? crt.attrs.variable_render : true
                         return acc
                     }, {})
                 }
@@ -1068,7 +1069,8 @@
                 await this.getPluginDetail()
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                        acc[crt.tag_code] = crt.type !== 'code_editor'
+                        // 普通插件值为true，codeEditor类型插件优先使用variable_render字段，默认值为true
+                        acc[crt.tag_code] = crt.type !== 'code_editor' || 'variable_render' in crt.attrs ? crt.attrs.variable_render : true
                         return acc
                     }, {})
                 }
@@ -1614,11 +1616,14 @@
                             // 更新子流程已勾选的变量值
                             Object.keys(this.localConstants).forEach(key => {
                                 const constantValue = this.localConstants[key]
-                                const formValue = this.subflowForms[key]
+                                // 根据source_info中获取勾选的表单项code
+                                const [formCode] = constantValue.source_info[this.nodeId] || []
+                                if (!formCode) return
+                                const formValue = this.subflowForms[formCode]
                                 let hook = false
                                 // 获取输入参数的勾选状态
                                 if (inputRef && inputRef.hooked) {
-                                    hook = inputRef.hooked[key] || false
+                                    hook = inputRef.hooked[formCode] || false
                                 }
                                 if (constantValue.is_meta && formValue && hook) {
                                     const schema = formSchema.getSchema(formValue.key, this.inputs)
