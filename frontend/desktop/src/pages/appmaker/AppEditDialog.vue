@@ -203,12 +203,13 @@
                     :class="{
                         'btn-permission-disable': !hasConfirmPerm
                     }"
+                    :loading="isLoading"
                     v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
                     data-test-id="appmaker_form_confirmEditBtn"
                     @click="onConfirm">
                     {{ isCreateNewApp ? $t('提交') : $t('保存') }}
                 </bk-button>
-                <bk-button type="default" data-test-id="appmaker_form_cancelEditBtn" @click="onCancel">{{$t('取消')}}</bk-button>
+                <bk-button type="default" :disabled="isLoading" data-test-id="appmaker_form_cancelEditBtn" @click="onCancel">{{$t('取消')}}</bk-button>
             </div>
         </div>
     </bk-dialog>
@@ -226,6 +227,7 @@
             'project_id': [String, Number],
             'isCreateNewApp': Boolean,
             'isEditDialogShow': Boolean,
+            'isLoading': Boolean,
             'currentAppData': {
                 type: Object,
                 default () {
@@ -414,6 +416,15 @@
                         item.isDefault = defaultScheme.includes(item.id)
                         return item
                     })
+                    if (this.schemeList.length) {
+                        this.schemeList.unshift({
+                            data: '',
+                            id: 0,
+                            idDefault: false,
+                            name: '<' + i18n.t('不使用执行方案') + '>'
+                        })
+                        this.appData.appScheme = this.appData.appScheme || 0
+                    }
                     this.schemeLoading = false
                 } catch (e) {
                     console.log(e)
@@ -508,6 +519,7 @@
                 }
 
                 this.appData.appName = this.appData.appName.trim()
+                this.appData.appScheme = this.appData.appScheme || ''
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
                     this.$emit('onEditConfirm', this.appData, this.resetAppData)

@@ -523,8 +523,9 @@
              * 加载标准插件节点输入参数表单配置项，获取输出参数列表
              */
             async getPluginDetail () {
-                const { component_code, version } = this.nodeDetailConfig
+                const { component_code, componentData } = this.nodeDetailConfig
                 const plugin = this.isThirdPartyNode ? this.thirdPartyNodeCode : component_code
+                const version = this.isThirdPartyNode ? componentData.plugin_version.value : this.nodeDetailConfig.version
                 this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
