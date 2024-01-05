@@ -10,9 +10,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import base64
 import json
 import typing
-import base64
 
 from bkcrypto import constants as crypto_constants
 from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
@@ -66,9 +66,15 @@ def decrypt(ciphertext: str, using: typing.Optional[str] = None) -> str:
         # 如果抛出异常，在外层被 catch 后返回
         if not base64.b64decode(plaintext.encode(encoding="utf-8")):
             return plaintext
-        plaintext = asymmetric_cipher_manager.cipher(using=using, cipher_type=AsymmetricCipherType.RSA.value).decrypt(
-            plaintext
-        )
+        candidate_plaintext: str = asymmetric_cipher_manager.cipher(
+            using=using, cipher_type=AsymmetricCipherType.RSA.value
+        ).decrypt(plaintext)
+
+        # 空字符串的密文是空字符串
+        # 如果解密结果为空，属于解密失败，直接返回原文
+        if candidate_plaintext:
+            plaintext = candidate_plaintext
+
     except Exception:
         # 已经是明文的情况下会抛出该异常
         pass

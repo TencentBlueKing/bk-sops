@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 import typing
 from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 from django.apps import apps
 from django.utils.translation import ugettext_lazy as _

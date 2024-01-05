@@ -2057,19 +2057,38 @@
                 const targetNodes = this.nodeTargetMaps[id] || []
                 // 多条输出分支
                 if (targetNodes.length > 1) {
-                    // 非递归时，将节点分支添加到总分支，删除旧分支。
-                    if (!isDeep) {
-                        convergeInfo[parentId].branchCount += targetNodes.length - 1
-                    }
-                    targetNodes.forEach((targetId, branchIndex) => {
-                        let newIndex = branchIndex
-                        // 当前节点属于存在分支下时，向下查找时采用新的分支数
-                        if (index !== 0) {
-                            const branches = Object.keys(convergeInfo[parentId]).filter(item => /^branch[0-9]*$/.test(item))
-                            newIndex = branches.length
+                    if (!convergeInfo[id]) {
+                        const subConvergeInfo = {}
+                        this.getGatewayConvergeNodes({
+                            id: id,
+                            parentId: id,
+                            convergeInfo: subConvergeInfo
+                        })
+                        const { convergeNode: subConvergeNodes } = subConvergeInfo[id]
+                        convergeInfo[parentId].checkedNodes.push(subConvergeNodes)
+                        const branchConvergeNode = convergeInfo[parentId][`branch${index}`]
+                        if (!branchConvergeNode) {
+                            convergeInfo[parentId][`branch${index}`] = [subConvergeNodes]
+                        } else if (!branchConvergeNode.includes(subConvergeNodes)) {
+                            branchConvergeNode.push(subConvergeNodes)
                         }
+                        // 如果是最后一条分支，则需要判断是否找到最终汇聚节点
+                        if (isLastBranch) {
+                            this.getGatewayConvergeNodes({
+                                id: this.pipelineData.end_event.id,
+                                parentId,
+                                convergeInfo,
+                                index,
+                                isDeep,
+                                isLastBranch
+                            })
+                        }
+                        return
+                    }
+                    convergeInfo[parentId].branchCount = targetNodes.length
+                    targetNodes.forEach((targetId, branchIndex) => {
                         // 非递归时使用传入的分支数
-                        newIndex = isDeep ? index : newIndex
+                        const newIndex = isDeep ? index : branchIndex
                         this.getGatewayConvergeNodes({
                             id: targetId,
                             parentId,
@@ -2110,28 +2129,10 @@
                         } else if (index === branchCount - 1 && (isDeep ? isLastBranch : true)) { // 最后一条分支
                             // 没找到汇聚节点则继续向下递归
                             if (!convergeInfo[parentId].convergeNode) {
-                                const executedNodes = []
                                 countArr.forEach(idx => {
                                     // 根据各条分支最后的汇聚节点继续查找
                                     const data = convergeInfo[parentId][`branch${idx}`] || []
                                     const [lastId] = data.slice(-1)
-                                    // 合并有相同汇聚节点的分支
-                                    const existed = executedNodes.find(item => item.id === lastId)
-                                    if (existed && lastId !== end_event.id) {
-                                        const samePreBranch = convergeInfo[parentId][`branch${existed.index}`]
-                                        convergeInfo[parentId][`branch${idx}`] = [...samePreBranch]
-                                        const [preLastId] = samePreBranch.slice(-1)
-                                        this.getGatewayConvergeNodes({
-                                            id: preLastId,
-                                            parentId,
-                                            convergeInfo,
-                                            index: idx,
-                                            isDeep: true,
-                                            isLastBranch: idx === countArr.length - 1
-                                        })
-                                        return
-                                    }
-                                    executedNodes.push({ id: lastId, index: idx })
                                     const targetIds = this.nodeTargetMaps[lastId] || [lastId]
                                     // 向下递归
                                     targetIds.forEach(targetId => {
