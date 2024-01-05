@@ -187,7 +187,7 @@
                         this.$set(scheme, 'isDefault', false)
                         if (this.defaultSchemeList.includes(scheme.id)) {
                             scheme.isDefault = true
-                            if (!reuseTaskId) { // 优先复用变量的勾选
+                            if (!reuseTaskId && this.viewMode !== 'appmaker') { // 优先复用变量的勾选
                                 scheme.isChecked = true
                                 selectNodes.push(...JSON.parse(scheme.data))
                             }

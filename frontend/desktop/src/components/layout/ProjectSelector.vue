@@ -127,7 +127,7 @@
             updateSelected () {
                 let { project_id: projectId } = this.$route.params
                 projectId = Number(projectId)
-                const { selected } = this.$refs.projectSelect
+                const { selected } = this.$refs.projectSelect || {}
                 if (Number(projectId) !== selected) {
                     this.crtProject = projectId
                     this.randomKey = new Date().getTime()

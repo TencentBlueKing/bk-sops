@@ -474,6 +474,8 @@
                     }, [])
                     let result = {}
                     if (this.isEditProcessPage && scheme) {
+                        const schemeInfo = taskSchemeDom.schemeList.find(item => item.id === Number(scheme.id))
+                        schemeInfo.isChecked = true
                         result = await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess })
                         selectNodes.push(...JSON.parse(result.data))
                     }
@@ -487,7 +489,7 @@
              * 设置默认勾选值
              */
             async setCanvasSelected (selectNodes = []) {
-                if (this.excludeNode.length) return
+                if (this.viewMode === 'appmaker') return
                 if (selectNodes.length) {
                     // 使用传进来的选中节点，取消画布默认全选
                     this.selectedNodes = selectNodes
