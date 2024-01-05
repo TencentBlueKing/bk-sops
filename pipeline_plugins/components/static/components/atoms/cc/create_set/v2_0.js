@@ -131,7 +131,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.inCommonTemplate()) {
+                        if ($.context.canSelectBiz()) {
                             this._set_value('');
                         }
                         this.items = [];
@@ -245,7 +245,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.inCommonTemplate()) {
+                        if ($.context.canSelectBiz()) {
                             this._set_value('');
                         }
                         this.columns = [];
