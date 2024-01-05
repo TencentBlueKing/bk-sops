@@ -28,15 +28,30 @@ const Configuration = {
 				'perf',
 				'chore',
 			],
-    ]
+    ],
+      'content-rule': [2, 'always'],
   },
+    plugins: [
+        {
+            rules: {
+                'content-rule': ({subject}) => {
+                    const pattern = /#\d+$|--story=\d+$|--bug=\d+$/;
+                    return [
+                        pattern.test(subject.trim()),
+                        `Your subject should contain issue id`,
+                    ];
+                }
+            }
+        }
+    ],
   /*
    * Functions that return true if commitlint should ignore the given message.
    */
   ignores: [
       (commit) => commit === '',
       (message) => message.includes('Merge'),
-      (message) => message.includes('merge')
+      (message) => message.includes('merge'),
+      (message) => message.includes('ignore')
   ],
   /*
    * Whether commitlint uses the default ignore rules.
