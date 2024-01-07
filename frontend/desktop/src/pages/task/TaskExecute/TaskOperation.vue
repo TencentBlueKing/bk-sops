@@ -1124,7 +1124,7 @@
                         status,
                         subprocessState: currentNode.subprocess_state,
                         skip: currentNode.skip,
-                        auto_skip: retryInfo[id]?.auto_retry_times || 0,
+                        auto_retry_info: retryInfo[id] || {},
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
