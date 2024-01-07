@@ -377,7 +377,10 @@
                 project_id: state => state.project_id
             }),
             autoRetryInfo () {
-                const { auto_retry_infos: retryInfos } = this.nodeDisplayStatus
+                const { taskId } = this.nodeDetailConfig
+                const retryInfos = taskId
+                    ? this.subprocessNodeStatus[taskId].data.auto_retry_infos || {}
+                    : this.nodeDisplayStatus.auto_retry_infos || {}
                 const retryInfo = retryInfos[this.nodeDetailConfig.node_id] || {}
                 return {
                     h: !!Object.keys(retryInfo).length,
@@ -685,6 +688,17 @@
                     }
                 },
                 immediate: true
+            },
+            realTimeState: {
+                handler (val, oldVal) {
+                    // 节点状态没变，重试次数变了，需要重新获取节点状态
+                    const { state, retry } = val
+                    const { state: oldState, retry: oldRetry } = oldVal
+                    if (state === 'FAILED' && state === oldState && retry !== oldRetry) {
+                        this.loadNodeInfo()
+                    }
+                },
+                deep: true
             }
         },
         mounted () {
@@ -1334,7 +1348,7 @@
                         loop: currentNode.loop,
                         status: currentNode.state,
                         skip: currentNode.skip,
-                        auto_skip: retryInfo[id]?.auto_retry_times || 0,
+                        auto_retry_info: retryInfo[id] || {},
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
