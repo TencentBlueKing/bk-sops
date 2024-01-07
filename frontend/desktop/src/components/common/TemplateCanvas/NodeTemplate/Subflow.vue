@@ -17,7 +17,8 @@
             node.status ? node.status.toLowerCase() : '',
             { 'fail-skip': node.status === 'FINISHED' && node.skip },
             { 'ready': node.ready },
-            { 'actived': node.isActived }
+            { 'actived': node.isActived },
+            { 'unchecked ': node.mode === 'select' && node.optional && !node.checked }
         ]">
         <div class="node-status-block">
             <i class="node-icon-font common-icon-sub-process"></i>

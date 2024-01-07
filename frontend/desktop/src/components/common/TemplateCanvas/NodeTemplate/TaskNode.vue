@@ -18,7 +18,8 @@
             node.status ? node.status.toLowerCase() : '',
             { 'fail-skip': node.status === 'FINISHED' && (node.skip || node.error_ignored) },
             { 'ready': node.ready },
-            { 'actived': node.isActived }
+            { 'actived': node.isActived },
+            { 'unchecked ': node.mode === 'select' && node.optional && !node.checked }
         ]">
         <!-- 节点左侧的色块区域 -->
         <div class="node-status-block">

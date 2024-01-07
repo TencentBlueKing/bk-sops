@@ -399,6 +399,13 @@
                     @include nodeClick ($brightRedDark);
                 }
             }
+            &.unchecked {
+                &::before,
+                .node-status-block,
+                .node-name {
+                    opacity: 0.3;
+                }
+            }
 
             .node-status-block {
                 display: flex;
@@ -467,6 +474,9 @@
                     margin-bottom: 2px;
                     font-size: 14px;
                     color: #979ba5;
+                }
+                .bk-form-checkbox  {
+                    margin-right: 3px;
                 }
                 .error-handle-icon {
                     display: flex;
