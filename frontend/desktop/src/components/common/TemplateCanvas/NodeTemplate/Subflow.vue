@@ -17,7 +17,8 @@
             node.status ? node.status.toLowerCase() : '',
             { 'fail-skip': node.status === 'FINISHED' && node.skip },
             { 'ready': node.ready },
-            { 'actived': node.isActived }
+            { 'actived': node.isActived },
+            { 'unchecked ': node.mode === 'select' && node.optional && !node.checked }
         ]">
         <div class="node-status-block">
             <i class="node-icon-font common-icon-sub-process"></i>
@@ -43,13 +44,13 @@
             </div>
             <!-- 任务节点自动重试/手动重试 -->
             <template v-if="node.mode === 'execute'">
-                <span v-if="node.retry - node.auto_skip > 0" class="error-handle-icon">
+                <span v-if="node.retry - autoRetryInfo.m > 0" class="error-handle-icon">
                     <span class="text">MR</span>
-                    <span class="count">{{ node.retry - node.auto_skip }}</span>
+                    <span class="count">{{ node.retry - autoRetryInfo.m }}</span>
                 </span>
-                <span v-if="node.auto_skip" class="error-handle-icon">
+                <span v-if="autoRetryInfo.m" class="error-handle-icon">
                     <span class="text">AR</span>
-                    <span class="count">{{ node.auto_skip }}</span>
+                    <span class="count">{{ autoRetryInfo.m }}</span>
                 </span>
             </template>
             <template v-else>
@@ -129,8 +130,11 @@
                 return false
             },
             isShowRetryBtn () {
-                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.errorIgnorable)) {
-                    return true
+                if (this.node.status === 'FAILED') {
+                    if (this.autoRetryInfo.h && this.autoRetryInfo.m !== this.autoRetryInfo.c) {
+                        return false
+                    }
+                    return this.node.retryable || this.node.errorIgnorable
                 }
                 return false
             },
@@ -148,6 +152,14 @@
             isShowContinueBtn () {
                 const { status, subprocessState } = this.node
                 return status === 'SUSPENDED' || subprocessState === 'SUSPENDED'
+            },
+            autoRetryInfo () {
+                const { auto_retry_info: autoRetryInfo = {} } = this.node
+                return {
+                    h: !!Object.keys(autoRetryInfo).length,
+                    m: autoRetryInfo.auto_retry_times || 0,
+                    c: autoRetryInfo.max_auto_retry_times || 10
+                }
             }
         },
         methods: {

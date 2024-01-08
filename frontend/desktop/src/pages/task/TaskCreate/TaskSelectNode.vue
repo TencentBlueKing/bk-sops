@@ -641,8 +641,11 @@
     height: calc(100% - 72px);
     min-height: 500px;
     overflow: hidden;
-    /deep/ .jsflow .tool-panel-wrap {
-        left: 40px;
+    /deep/ .jsflow {
+        background: #f5f7fa;
+        .tool-panel-wrap {
+            left: 40px;
+        }
     }
     .node-preview-wrapper {
         height: 100%;
