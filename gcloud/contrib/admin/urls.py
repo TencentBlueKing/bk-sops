@@ -18,6 +18,7 @@ from gcloud.contrib.admin import migration_api, views
 from gcloud.contrib.admin.views import (
     batch_delete_project_based_component,
     batch_insert_project_based_component,
+    batch_revoke_task,
 )
 from gcloud.contrib.admin.viewsets import (
     AdminPeriodicTaskViewSet,
@@ -55,4 +56,5 @@ urlpatterns = [
     url(r"^migration/fix_engine_version_zero_task/$", migration_api.fix_engine_version_zero_task),
     url(r"^batch_insert_project_based_component/$", batch_insert_project_based_component),
     url(r"^batch_delete_project_based_component/$", batch_delete_project_based_component),
+    url(r"^batch_revoke_task/$", batch_revoke_task),
 ]

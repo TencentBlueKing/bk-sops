@@ -149,7 +149,7 @@
             ...mapActions('project', [
                 'loadUserProjectList'
             ]),
-            
+
             getTransformInfo (text) {
                 const sentence = []
                 const head = []
