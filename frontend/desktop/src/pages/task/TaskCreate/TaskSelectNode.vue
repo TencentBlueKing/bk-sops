@@ -296,6 +296,13 @@
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
+                if (!this.selectedNodes.length) {
+                    this.$bkMessage({
+                        message: this.$t('请至少选择一个节点'),
+                        theme: 'error'
+                    })
+                    return
+                }
                 const { type, task_id = undefined } = this.$route.query
                 const url = {
                     name: 'taskCreate',

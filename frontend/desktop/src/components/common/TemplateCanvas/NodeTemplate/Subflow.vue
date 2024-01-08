@@ -43,7 +43,7 @@
                 <span>{{ node.loop > 99 ? '99+' : node.loop }}</span>
             </div>
             <!-- 任务节点自动重试/手动重试 -->
-            <template v-if="node.mode === 'execute'">
+            <template v-if="node.mode !== 'select' && node.mode === 'execute'">
                 <span v-if="node.retry - autoRetryInfo.m > 0" class="error-handle-icon">
                     <span class="text">MR</span>
                     <span class="count">{{ node.retry - autoRetryInfo.m }}</span>
@@ -53,7 +53,7 @@
                     <span class="count">{{ autoRetryInfo.m }}</span>
                 </span>
             </template>
-            <template v-else>
+            <template v-else-if="node.mode !== 'select'">
                 <span v-if="node.error_ignorable" class="error-handle-icon"><span class="text">AS</span></span>
                 <span v-if="node.isSkipped || node.skippable" class="error-handle-icon"><span class="text">MS</span></span>
                 <span v-if="node.can_retry || node.retryable" class="error-handle-icon"><span class="text">MR</span></span>
