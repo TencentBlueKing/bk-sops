@@ -296,7 +296,9 @@
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
-                if (!this.selectedNodes.length) {
+                let hasSelectNode = !!this.selectedNodes.length
+                hasSelectNode = hasSelectNode || Object.values(this.activities).some(item => !item.optional)
+                if (!hasSelectNode) {
                     this.$bkMessage({
                         message: this.$t('请至少选择一个节点'),
                         theme: 'error'
