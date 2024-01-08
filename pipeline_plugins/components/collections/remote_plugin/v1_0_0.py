@@ -14,10 +14,10 @@ import logging
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import AbstractIntervalGenerator, Service
 from pipeline.core.flow.io import StringItemSchema
+
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.exceptions import PluginServiceException
@@ -149,7 +149,7 @@ class RemotePluginService(Service):
             message = _("请通过第三方节点日志查看任务失败原因")
             logger.error(message)
             logger.error(f"[remote plugin service state failed]: {result_data}")
-            data.set_outputs("ex_data", result_data["outputs"].get("err") or message)
+            data.set_outputs("ex_data", result_data.get("err") or message)
             return False
         if state in UNFINISHED_STATES:
             setattr(self, "__need_schedule__", True)

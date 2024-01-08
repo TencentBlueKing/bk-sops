@@ -73,6 +73,7 @@
             :is-create-new-app="isCreateNewApp"
             :project_id="project_id"
             :current-app-data="currentAppData"
+            :is-loading="pending.edit"
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
         </AppEditDialog>
