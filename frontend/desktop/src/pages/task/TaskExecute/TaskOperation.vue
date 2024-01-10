@@ -396,6 +396,7 @@
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
+                allCheckoutNodes: {},
                 retryNodeName: '',
                 isSourceDetailSideBar: false // 节点重试侧栏是否从节点详情打开
             }
@@ -1461,6 +1462,8 @@
                     taskId,
                     style: `margin-left: ${marginLeft}px`
                 })
+                this.convergeInfo = {}
+                this.allCheckoutNodes = {}
                 this.getNodeTargetMaps(data)
                 this.getNodeSourceMaps(data)
                 const nodeInfo = { id: nodeId, parentId, independentId, parentLevel, lastLevelStyle, taskId }
@@ -1716,7 +1719,8 @@
                                 nextNodeInfo.style = treeItem.style
                             } else {
                                 result = this.getMatchOrderedNode(ordered, gatewayId, false)
-                                if (result) {
+                                // 如果该多个输入连线节点是循环上的节点则不进行层级提升
+                                if (result && !this.judgeNodeBack(id, id, [])) {
                                     treeItem.nodeLevel = result.children[0].nodeLevel
                                     treeItem.style = result.children[0].style
                                     treeItem.isLevelUp = true
@@ -1837,7 +1841,7 @@
                     id,
                     parentId,
                     convergeInfo = {},
-                    index,
+                    index = 0,
                     isDeep,
                     isLastBranch
                 } = data
@@ -1850,9 +1854,20 @@
                         branchCount: 1 // 默认是一条分支
                     }
                 }
+                // 如果该节点的查找次数大于输入连线的数量则退出递归
+                if (this.allCheckoutNodes[parentId]) {
+                    this.allCheckoutNodes[parentId].push(id)
+                } else {
+                    this.allCheckoutNodes[parentId] = [id]
+                }
+                const checkedCount = this.allCheckoutNodes[parentId].filter(item => item === id).length
+                const sourceCount = this.nodeSourceMaps[id].length
+                if (checkedCount > sourceCount) return
+
                 const targetNodes = this.nodeTargetMaps[id] || []
                 // 多条输出分支
                 if (targetNodes.length > 1) {
+                    // 子网关
                     if (!convergeInfo[id]) {
                         const subConvergeInfo = {}
                         this.getGatewayConvergeNodes({
@@ -1900,7 +1915,7 @@
                     const countArr = [...Array(branchCount).keys()]
                     const { end_event } = this.pipelineData
                     // 已查找过的节点、结束节点、汇聚节点
-                    if ([...checkedNodes, end_event.id].includes(id) || this.nodeSourceMaps[id].length > 1) {
+                    if ([...checkedNodes, end_event.id].includes(id) || (this.nodeSourceMaps[id].length > 1 && id !== parentId)) {
                         // 记录分支下的汇聚节点
                         const branchConvergeNode = convergeInfo[parentId][`branch${index}`]
                         if (!branchConvergeNode) {
