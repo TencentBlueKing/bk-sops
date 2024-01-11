@@ -616,6 +616,10 @@
                         executor_proxy: this.editingAgent.executor_proxy.join(','),
                         executor_proxy_exempts: this.editingAgent.executor_proxy_exempts.join(',')
                     }
+                    // 如果执行代理人没有修改则不传
+                    if (this.agent.executor_proxy === data.executor_proxy) {
+                        delete data.executor_proxy
+                    }
                     const resp = await this.updateProjectConfig(data)
                     if (resp.result) {
                         this.isAgentDialogShow = false
