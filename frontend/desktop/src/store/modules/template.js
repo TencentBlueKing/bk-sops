@@ -1010,9 +1010,13 @@ const template = {
             }
 
             // 新增用post, 编辑用patch
-            return axios[templateId === undefined ? 'post' : 'patch'](url, params, {
+            const method = templateId === undefined ? 'post' : common ? 'put' : 'patch'
+            return axios[method](url, params, {
                 headers
-            }).then(response => response.data)
+            }).then(response => {
+                state.init_executor_proxy = state.executor_proxy
+                return response.data
+            })
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
