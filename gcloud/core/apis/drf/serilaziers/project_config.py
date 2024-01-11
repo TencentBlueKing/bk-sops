@@ -21,3 +21,11 @@ class ProjectConfigSerializer(serializers.ModelSerializer):
         model = ProjectConfig
         fields = ["project_id", "executor_proxy", "executor_proxy_exempts"]
         read_only_fields = ["project_id"]
+
+    def validate_executor_proxy(self, value):
+        user = getattr(self.context.get("request"), "user", None)
+        if not user:
+            raise serializers.ValidationError("user can not be empty.")
+        if user.username != value and value:
+            raise serializers.ValidationError("you can only set yourself as executor proxy.")
+        return value

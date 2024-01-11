@@ -76,6 +76,14 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
         except Project.DoesNotExist:
             raise serializers.ValidationError(_("project不存在"))
 
+    def validate_executor_proxy(self, value):
+        user = getattr(self.context.get("request"), "user", None)
+        if not user:
+            raise serializers.ValidationError("user can not be empty.")
+        if user.username != value and value:
+            raise serializers.ValidationError("you can only set yourself as executor proxy.")
+        return value
+
     class Meta:
         model = TaskTemplate
         fields = [

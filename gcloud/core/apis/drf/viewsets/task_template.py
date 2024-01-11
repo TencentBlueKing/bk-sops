@@ -13,45 +13,42 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
-from django.db.models import BooleanField, ExpressionWrapper, Q
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.exceptions import ErrorDetail
-from rest_framework import status, permissions
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import BooleanField, ExpressionWrapper, Q
+from django.utils.translation import ugettext_lazy as _
 from django_filters import CharFilter
+from drf_yasg.utils import swagger_auto_schema
+from pipeline.models import TemplateRelationship, TemplateScheme
+from rest_framework import permissions, status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ErrorDetail
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 from gcloud import err_code
-from pipeline.models import TemplateRelationship, TemplateScheme
-
 from gcloud.contrib.collection.models import Collection
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.label.models import TemplateLabelRelation, Label
-from gcloud.tasktmpl3.signals import post_template_save_commit
-from gcloud.taskflow3.models import TaskTemplate, TaskConfig
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
+from gcloud.contrib.operate_record.signal import operate_record_signal
+from gcloud.core.apis.drf.filters import BooleanPropertyFilter
+from gcloud.core.apis.drf.filtersets import PropertyFilterSet
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.task_template import (
+    CreateTaskTemplateSerializer,
+    ProjectFilterQuerySerializer,
+    ProjectInfoQuerySerializer,
     TaskTemplateListSerializer,
     TaskTemplateSerializer,
-    CreateTaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
-    ProjectInfoQuerySerializer,
-    ProjectFilterQuerySerializer,
 )
-from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import IAMMeta
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.label.models import Label, TemplateLabelRelation
+from gcloud.taskflow3.models import TaskConfig, TaskTemplate
+from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
-from gcloud.core.apis.drf.filtersets import PropertyFilterSet
-from gcloud.core.apis.drf.filters import BooleanPropertyFilter
-from gcloud.contrib.operate_record.signal import operate_record_signal
-from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
-from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
-from django.utils.translation import ugettext_lazy as _
-
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -72,6 +69,9 @@ class TaskTemplatePermission(IamPermission):
             IAMMeta.FLOW_DELETE_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "update": IamPermissionInfo(
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "partial_update": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project"),
@@ -206,7 +206,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         return Response(data)
 
     def create(self, request, *args, **kwargs):
-        serializer = CreateTaskTemplateSerializer(data=request.data)
+        serializer = CreateTaskTemplateSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data.pop("name")
         creator = request.user.username
@@ -250,7 +250,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         template = self.get_object()
-        serializer = CreateTaskTemplateSerializer(template, data=request.data, partial=partial)
+        serializer = CreateTaskTemplateSerializer(
+            template, data=request.data, partial=partial, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         # update pipeline_template
         name = serializer.validated_data.pop("name")
