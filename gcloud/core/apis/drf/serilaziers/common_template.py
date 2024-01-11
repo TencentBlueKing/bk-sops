@@ -81,7 +81,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             old_executor_proxy = old_nodes.get(node_id, {}).get("executor_proxy")
             if not old_executor_proxy or executor_proxy != old_executor_proxy:
                 new_executor_proxies.add(executor_proxy)
-        return set(new_executor_proxies)
+        return new_executor_proxies
 
     def _calculate_executor_proxies(self, pipeline_tree):
         new_executor_proxies = set()
@@ -90,7 +90,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             if not executor_proxy:
                 continue
             new_executor_proxies.add(executor_proxy)
-        return set(new_executor_proxies)
+        return new_executor_proxies
 
     def validate_pipeline_tree(self, value: str):
         pipeline_tree = json.loads(value)
