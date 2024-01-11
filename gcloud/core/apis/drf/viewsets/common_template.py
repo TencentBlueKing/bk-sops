@@ -17,7 +17,6 @@ import ujson as json
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Request, Resource, Subject
 from pipeline.models import TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -29,19 +28,11 @@ from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
 from gcloud.common_template.signals import post_template_save_commit
 from gcloud.contrib.collection.models import Collection
-from gcloud.contrib.operate_record.constants import (
-    OperateSource,
-    OperateType,
-    RecordType,
-)
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
 from gcloud.core.apis.drf.filtersets import PropertyFilterSet
-from gcloud.core.apis.drf.permission import (
-    HAS_OBJECT_PERMISSION,
-    IamPermission,
-    IamPermissionInfo,
-)
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.common_template import (
     CommonTemplateListSerializer,
@@ -53,6 +44,7 @@ from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
+from iam import Action, Request, Resource, Subject
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -178,7 +170,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         return allowed_template_ids
 
     def create(self, request, *args, **kwargs):
-        serializer = CreateCommonTemplateSerializer(data=request.data)
+        serializer = CreateCommonTemplateSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         try:
             name = serializer.validated_data.pop("name")
@@ -219,7 +211,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         template = self.get_object()
-        serializer = CreateCommonTemplateSerializer(template, data=request.data, partial=partial)
+        serializer = CreateCommonTemplateSerializer(
+            template, data=request.data, partial=partial, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         # update pipeline_template
         name = serializer.validated_data.pop("name")

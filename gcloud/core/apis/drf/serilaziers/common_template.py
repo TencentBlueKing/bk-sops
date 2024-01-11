@@ -11,10 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+
 from rest_framework import serializers
 
-from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 
 
@@ -69,6 +70,43 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     pipeline_template = serializers.IntegerField(
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
+
+    def _calculate_new_executor_proxies(self, old_pipeline_tree: dict, pipeline_tree: dict):
+        new_executor_proxies = set()
+        old_nodes = old_pipeline_tree.get("activities", {})
+        for node_id, node in pipeline_tree.get("activities", {}).items():
+            executor_proxy = node.get("executor_proxy")
+            if not executor_proxy:
+                continue
+            old_executor_proxy = old_nodes.get(node_id, {}).get("executor_proxy")
+            if not old_executor_proxy or executor_proxy != old_executor_proxy:
+                new_executor_proxies.add(executor_proxy)
+        return set(new_executor_proxies)
+
+    def _calculate_executor_proxies(self, pipeline_tree):
+        new_executor_proxies = set()
+        for node_id, node in pipeline_tree.get("activities", {}).items():
+            executor_proxy = node.get("executor_proxy")
+            if not executor_proxy:
+                continue
+            new_executor_proxies.add(executor_proxy)
+        return set(new_executor_proxies)
+
+    def validate_pipeline_tree(self, value: str):
+        pipeline_tree = json.loads(value)
+        old_pipeline_tree = self.instance.pipeline_tree if self.instance else None
+        if old_pipeline_tree:
+            # update
+            new_executor_proxies = self._calculate_new_executor_proxies(old_pipeline_tree, pipeline_tree)
+        else:
+            # create
+            new_executor_proxies = self._calculate_executor_proxies(pipeline_tree)
+        user = getattr(self.context.get("request"), "user", None)
+        if not user:
+            raise serializers.ValidationError("user can not be empty.")
+        if len(new_executor_proxies) > 1 or (new_executor_proxies and user.username != new_executor_proxies.pop()):
+            raise serializers.ValidationError("you can only set yourself as executor proxy.")
+        return value
 
     class Meta:
         model = CommonTemplate
