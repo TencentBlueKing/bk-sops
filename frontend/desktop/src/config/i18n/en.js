@@ -1860,7 +1860,8 @@ const en = {
     '节点审批成功': 'Node Approved',
     '当前项目不存在或已归档': 'Project not exist or has been archived',
     '返回首页': 'Return to Home',
-    '请至少选择一个节点': 'Please select at least one node'
+    '请至少选择一个节点': 'Please select at least one node',
+    '代理人仅可设置为本人': 'The executor proxy can only set yourself'
 }
 
 export default en

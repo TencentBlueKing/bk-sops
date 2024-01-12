@@ -215,6 +215,7 @@
                     :multiple="false"
                     @change="onUserSelectChange">
                 </bk-user-selector>
+                <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
             </bk-form-item>
         </bk-form>
         <!-- 子流程 -->
@@ -450,6 +451,7 @@
                     :multiple="false"
                     @change="onUserSelectChange">
                 </bk-user-selector>
+                <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
             </bk-form-item>
         </bk-form>
     </div>
@@ -562,6 +564,7 @@
                         }
                     ]
                 },
+                isProxyValidateError: false,
                 errorHandleTipsConfig: {
                     allowHtml: true,
                     theme: 'light',
@@ -581,6 +584,7 @@
         },
         computed: {
             ...mapState({
+                'username': state => state.username,
                 'subprocessInfo': state => state.template.subprocess_info
             }),
             subflowHasUpdate () {
@@ -819,6 +823,7 @@
             onUserSelectChange (tags) {
                 this.formData.executor_proxy = tags
                 this.updateData()
+                this.isProxyValidateError = tags.length === 1 && tags[0] !== this.username
             },
             async onAlwaysUseLatestChange (val) {
                 this.formData.alwaysUseLatest = val
@@ -1117,6 +1122,7 @@
             }
         }
         .user-selector {
+            display: block;
             width: 100%;
             .disabled::before {
                 content: '';

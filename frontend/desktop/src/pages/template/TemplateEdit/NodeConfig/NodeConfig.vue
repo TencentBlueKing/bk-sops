@@ -1371,6 +1371,9 @@
             // 节点配置面板表单校验，基础信息和输入参数
             validate () {
                 return this.$refs.basicInfo.validate().then(validator => {
+                    if (this.$refs.basicInfo.isProxyValidateError) {
+                        return false
+                    }
                     if (this.$refs.inputParams) {
                         return this.$refs.inputParams.validate()
                     } else if (this.$refs.jsonSchemaParams) {
