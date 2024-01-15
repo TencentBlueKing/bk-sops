@@ -198,15 +198,17 @@
             data-test-id="projectConfig_form_executeAgentDialog"
             :cancel-text="$t('取消')"
             @confirm="updateAgentData"
-            @cancel="isAgentDialogShow = false">
+            @cancel="closeAgentDialog">
             <bk-form class="agent-dialog" :model="editingAgent" :label-width="180">
                 <bk-form-item :label="$t('执行代理人')">
                     <bk-user-selector
                         v-model="editingAgent.executor_proxy"
                         :placeholder="$t('请输入用户')"
                         :api="userApi"
-                        :multiple="false">
+                        :multiple="false"
+                        @change="onSelectedExecutorProxy">
                     </bk-user-selector>
+                    <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
                 </bk-form-item>
                 <bk-form-item :label="$t('免代理用户')">
                     <bk-user-selector
@@ -436,6 +438,7 @@
                         }
                     ]
                 },
+                isProxyValidateError: false,
                 labelRules: {
                     color: [
                         {
@@ -604,9 +607,13 @@
                     }
                 })
             },
+            onSelectedExecutorProxy (val) {
+                this.editingAgent.executor_proxy = val
+                this.isProxyValidateError = val.length === 1 && val[0] !== this.username
+            },
             // 更新代理人数据
             async updateAgentData () {
-                if (this.pending.agent) {
+                if (this.pending.agent || this.isProxyValidateError) {
                     return
                 }
                 this.pending.agent = true
@@ -615,6 +622,10 @@
                         id: this.id,
                         executor_proxy: this.editingAgent.executor_proxy.join(','),
                         executor_proxy_exempts: this.editingAgent.executor_proxy_exempts.join(',')
+                    }
+                    // 如果执行代理人没有修改则不传
+                    if (this.agent.executor_proxy === data.executor_proxy) {
+                        delete data.executor_proxy
                     }
                     const resp = await this.updateProjectConfig(data)
                     if (resp.result) {
@@ -627,6 +638,10 @@
                 } finally {
                     this.pending.agent = false
                 }
+            },
+            closeAgentDialog () {
+                this.isProxyValidateError = false
+                this.isAgentDialogShow = false
             },
             // 获取人员分组数据
             async getStaffGroupData () {
@@ -1059,6 +1074,7 @@
         }
         .user-selector {
             width: 100%;
+            display: block;
         }
     }
     .create-variable-dialog {
