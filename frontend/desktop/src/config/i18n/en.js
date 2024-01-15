@@ -1827,7 +1827,8 @@ const en = {
     'exFailedText': 'Node execution failed. Please go to the {0} to check the error reason.',
     'exFailedText_调用日志': 'call log',
     '任务还未执行，暂无执行历史': 'Task not executed, no history available.',
-    '空分支': 'Empty branch'
+    '空分支': 'Empty branch',
+    '代理人仅可设置为本人': 'The executor proxy can only set yourself'
 }
 
 export default en

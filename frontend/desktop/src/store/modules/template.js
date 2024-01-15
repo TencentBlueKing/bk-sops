@@ -193,6 +193,7 @@ const template = {
         category: '',
         description: '',
         executor_proxy: '',
+        init_executor_proxy: '',
         template_labels: '',
         subprocess_info: {
             details: [],
@@ -316,6 +317,7 @@ const template = {
             state.notify_type = typeof notify_type === 'string' ? { success: JSON.parse(notify_type), fail: [] } : notify_type
             state.description = description
             state.executor_proxy = executor_proxy
+            state.init_executor_proxy = executor_proxy
             state.template_labels = template_labels || []
             state.time_out = time_out
             state.category = category
@@ -353,6 +355,7 @@ const template = {
             }
             state.description = ''
             state.executor_proxy = ''
+            state.init_executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
         },
@@ -377,6 +380,7 @@ const template = {
             }
             state.description = ''
             state.executor_proxy = ''
+            state.init_executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
         },
@@ -926,7 +930,8 @@ const template = {
         saveTemplateData ({ state }, { templateId, projectId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
-                time_out, category, description, executor_proxy, template_labels, default_flow_type
+                time_out, category, description, executor_proxy, template_labels, default_flow_type,
+                init_executor_proxy
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => ({
@@ -986,9 +991,7 @@ const template = {
                 url = `${url}${templateId}/`
                 headers['X-HTTP-Method-Override'] = 'PATCH'
             }
-
-            // 新增用post, 编辑用put
-            return axios[templateId === undefined ? 'post' : 'put'](url, {
+            const params = {
                 name,
                 project,
                 category,
@@ -1000,9 +1003,20 @@ const template = {
                 notify_type,
                 pipeline_tree: pipelineTree,
                 notify_receivers: notifyReceivers
-            }, {
+            }
+            // 更新时如果执行代理人没有修改则不传
+            if (templateId && init_executor_proxy === executor_proxy) {
+                delete params.executor_proxy
+            }
+
+            // 新增用post, 编辑用patch
+            const method = templateId === undefined ? 'post' : common ? 'put' : 'patch'
+            return axios[method](url, params, {
                 headers
-            }).then(response => response.data)
+            }).then(response => {
+                state.init_executor_proxy = state.executor_proxy
+                return response.data
+            })
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {

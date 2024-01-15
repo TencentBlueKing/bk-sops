@@ -141,8 +141,9 @@
                             :disabled="isViewMode"
                             :placeholder="proxyPlaceholder"
                             :value="formData.executorProxy"
-                            @change="formData.executorProxy = $event">
+                            @change="onSelectedExecutorProxy">
                         </member-select>
+                        <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
                         <div class="executor-proxy-desc">
                             {{ $t('推荐留空使用') }}
                             <span
@@ -280,6 +281,7 @@
                         }
                     ]
                 },
+                isProxyValidateError: false,
                 taskCategories: TASK_CATEGORIES,
                 labelDialogShow: false,
                 labelRules: {
@@ -408,6 +410,10 @@
                     default_flow_type: defaultFlowType
                 }
             },
+            onSelectedExecutorProxy (val) {
+                this.formData.executorProxy = val
+                this.isProxyValidateError = val.length === 1 && val[0] !== this.username
+            },
             jumpProjectManagement () {
                 if (this.isViewMode) return
                 if (this.authActions.includes('project_edit')) {
@@ -433,7 +439,7 @@
             },
             onSaveConfig () {
                 this.$refs.configForm.validate().then(result => {
-                    if (!result) {
+                    if (!result || this.isProxyValidateError) {
                         return
                     }
 
