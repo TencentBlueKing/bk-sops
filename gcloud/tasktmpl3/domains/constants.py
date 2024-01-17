@@ -75,13 +75,13 @@ def get_constant_values(constants, extra_data):
 
 
 def preview_node_inputs(
-    runtime: BambooDjangoRuntime,
-    pipeline: dict,
-    node_id: str,
-    subprocess_stack: List[str] = [],
-    root_pipeline_data: dict = {},
-    parent_params: dict = {},
-    subprocess_simple_inputs: bool = False,
+        runtime: BambooDjangoRuntime,
+        pipeline: dict,
+        node_id: str,
+        subprocess_stack: List[str] = [],
+        root_pipeline_data: dict = {},
+        parent_params: dict = {},
+        subprocess_simple_inputs: bool = False,
 ):
     def get_need_render_context_keys():
         keys = set()
@@ -94,7 +94,11 @@ def preview_node_inputs(
             if isinstance(item["value"], str):
                 for value in var_pattern.findall(item["value"]):
                     keys.add("${" + value + "}")
-        return keys
+
+        if keys:
+            references_keys = runtime.get_context_key_references(pipeline["id"], keys)
+            return keys | references_keys
+        return set()
 
     # 对于子流程内的节点，拿不到当前node_id的type和code
     node_type = pipeline["activities"].get(node_id, {}).get("type")
