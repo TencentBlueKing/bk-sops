@@ -75,13 +75,13 @@ def get_constant_values(constants, extra_data):
 
 
 def preview_node_inputs(
-        runtime: BambooDjangoRuntime,
-        pipeline: dict,
-        node_id: str,
-        subprocess_stack: List[str] = [],
-        root_pipeline_data: dict = {},
-        parent_params: dict = {},
-        subprocess_simple_inputs: bool = False,
+    runtime: BambooDjangoRuntime,
+    pipeline: dict,
+    node_id: str,
+    subprocess_stack: List[str] = [],
+    root_pipeline_data: dict = {},
+    parent_params: dict = {},
+    subprocess_simple_inputs: bool = False,
 ):
     def get_need_render_context_keys():
         keys = set()
