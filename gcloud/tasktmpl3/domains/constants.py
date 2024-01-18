@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import copy
 import logging
 import re
 from typing import List
@@ -19,6 +19,7 @@ from bamboo_engine.context import Context
 from bamboo_engine.eri import ContextValue, NodeType
 from bamboo_engine.template import Template
 from bamboo_engine.utils.constants import VAR_CONTEXT_MAPPING
+from pipeline.component_framework.constant import ConstantPool
 from pipeline.core.data import var
 from pipeline.core.data.expression import ConstantTemplate
 from pipeline.core.data.library import VariableLibrary
@@ -74,6 +75,25 @@ def get_constant_values(constants, extra_data):
     return {**constant_values, **hydrated_context}
 
 
+def get_references(constants: dict, data) -> set:
+    referenced_keys = []
+    while True:
+        last_count = len(referenced_keys)
+        cons_pool = ConstantPool(data, lazy=True)
+        refs = cons_pool.get_reference_info(strict=False)
+
+        for keys in list(refs.values()):
+            for key in keys:
+                # add outputs keys later
+                if key in constants and key not in referenced_keys:
+                    referenced_keys.append(key)
+                    data.update({key: constants[key]})
+        if len(referenced_keys) == last_count:
+            break
+
+    return set(referenced_keys)
+
+
 def preview_node_inputs(
     runtime: BambooDjangoRuntime,
     pipeline: dict,
@@ -84,21 +104,13 @@ def preview_node_inputs(
     subprocess_simple_inputs: bool = False,
 ):
     def get_need_render_context_keys():
-        keys = set()
         # 如果遇到子流程，到最后一层才会实际去解析需要渲染的变量
         node_info = pipeline["activities"][node_id]
-        inputs_values = node_info.get("component", {}).get("inputs", {}).values()
-        for item in inputs_values:
-            if not item["need_render"]:
-                continue
-            if isinstance(item["value"], str):
-                for value in var_pattern.findall(item["value"]):
-                    keys.add("${" + value + "}")
-
-        if keys:
-            references_keys = runtime.get_context_key_references(pipeline["id"], keys)
-            return keys | references_keys
-        return set()
+        node_inputs = node_info.get("component", {}).get("inputs", {})
+        pipeline_inputs = copy.deepcopy(pipeline["data"].get("inputs", {}))
+        pipeline_inputs.update(parent_params)
+        keys = get_references(pipeline_inputs, node_inputs)
+        return set(keys)
 
     # 对于子流程内的节点，拿不到当前node_id的type和code
     node_type = pipeline["activities"].get(node_id, {}).get("type")
