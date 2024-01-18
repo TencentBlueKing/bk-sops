@@ -98,3 +98,5 @@ opentelemetry-instrumentation-dbapi==0.30b1
 opentelemetry-instrumentation-redis==0.30b1
 opentelemetry-instrumentation-logging==0.30b1
 opentelemetry-instrumentation-requests==0.30b1
+
+bk-notice-sdk==1.2.0

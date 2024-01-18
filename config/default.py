@@ -63,6 +63,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.appmaker",
     "gcloud.contrib.function",
     "gcloud.contrib.audit",
+    "gcloud.contrib.notice",
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
