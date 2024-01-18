@@ -94,7 +94,11 @@ def preview_node_inputs(
             if isinstance(item["value"], str):
                 for value in var_pattern.findall(item["value"]):
                     keys.add("${" + value + "}")
-        return keys
+
+        if keys:
+            references_keys = runtime.get_context_key_references(pipeline["id"], keys)
+            return keys | references_keys
+        return set()
 
     # 对于子流程内的节点，拿不到当前node_id的type和code
     node_type = pipeline["activities"].get(node_id, {}).get("type")
