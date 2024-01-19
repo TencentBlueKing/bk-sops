@@ -1147,7 +1147,13 @@
                     console.warn(e)
                 }
             },
-            onSkipClick (id, info) {
+            onSkipClick (id, info = {}) {
+                const isGateway = this.pipelineData.gateways[id] || this.nodePipelineData.gateways[id]
+                if (isGateway) {
+                    this.subProcessTaskId = info.taskId
+                    this.onGatewaySelectionClick(id)
+                    return
+                }
                 const h = this.$createElement
                 let name = ''
                 let taskId = this.instance_id
@@ -1289,7 +1295,7 @@
                 }
             },
             onGatewaySelectionClick (id) {
-                const nodeGateway = this.pipelineData.gateways[id]
+                const nodeGateway = this.pipelineData.gateways[id] || this.nodePipelineData.gateways[id]
                 const branches = []
                 for (const item in nodeGateway.conditions) {
                     branches.push({
@@ -2451,7 +2457,7 @@
             onConfirmGatewaySelect (selected) {
                 const data = {
                     node_id: selected[0].node_id,
-                    instance_id: this.instance_id,
+                    instance_id: this.subProcessTaskId || this.instance_id,
                     converge_gateway_id: this.isCondParallelGw ? selected[0].converge_gateway_id : undefined
                 }
                 if (this.isCondParallelGw) {
@@ -2464,6 +2470,8 @@
                 }
                 this.isGatewaySelectDialogShow = false
                 this.selectGatewayBranch(data)
+                // 更新节点执行信息
+                this.updateNodeExecuteInfo()
             },
             onCancelGatewaySelect () {
                 this.isGatewaySelectDialogShow = false
