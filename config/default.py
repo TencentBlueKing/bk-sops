@@ -211,7 +211,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.31.17"
+STATIC_VERSION = "3.31.18"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -678,6 +678,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
