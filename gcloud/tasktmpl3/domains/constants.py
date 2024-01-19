@@ -75,11 +75,17 @@ def get_constant_values(constants, extra_data):
     return {**constant_values, **hydrated_context}
 
 
-def get_references(constants: dict, data) -> set:
+def get_references(constants: dict, inputs: dict) -> set:
+    """
+    获取某个变量在上下文中引用的其他变量
+    @param constants: {"${ip_lisr}: {}"}
+    @param inputs: {"${ip_lisr}": {"value": xxx}}
+    @return: ["${ip_lisr}"]
+    """
     referenced_keys = []
     while True:
         last_count = len(referenced_keys)
-        cons_pool = ConstantPool(data, lazy=True)
+        cons_pool = ConstantPool(inputs, lazy=True)
         refs = cons_pool.get_reference_info(strict=False)
 
         for keys in list(refs.values()):
@@ -87,7 +93,7 @@ def get_references(constants: dict, data) -> set:
                 # add outputs keys later
                 if key in constants and key not in referenced_keys:
                     referenced_keys.append(key)
-                    data.update({key: constants[key]})
+                    inputs.update({key: constants[key]})
         if len(referenced_keys) == last_count:
             break
 
@@ -106,11 +112,11 @@ def preview_node_inputs(
     def get_need_render_context_keys():
         # 如果遇到子流程，到最后一层才会实际去解析需要渲染的变量
         node_info = pipeline["activities"][node_id]
-        node_inputs = node_info.get("component", {}).get("inputs", {})
+        node_inputs = copy.deepcopy(node_info.get("component", {}).get("inputs", {}))
         pipeline_inputs = copy.deepcopy(pipeline["data"].get("inputs", {}))
         pipeline_inputs.update(parent_params)
         keys = get_references(pipeline_inputs, node_inputs)
-        return set(keys)
+        return keys
 
     # 对于子流程内的节点，拿不到当前node_id的type和code
     node_type = pipeline["activities"].get(node_id, {}).get("type")
