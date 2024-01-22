@@ -190,9 +190,9 @@
 
     const TASK_STATUS_LIST = [
         { id: 'nonExecution', name: i18n.t('未执行') },
-        { id: 'running', name: i18n.t('执行中') },
-        { id: 'failed', name: i18n.t('失败') },
-        { id: 'pause', name: i18n.t('暂停') },
+        { id: 'running', name: i18n.t('未完成') },
+        // { id: 'failed', name: i18n.t('失败') },
+        // { id: 'pause', name: i18n.t('暂停') },
         { id: 'finished', name: i18n.t('完成') },
         { id: 'revoked', name: i18n.t('终止') }
     ]
@@ -464,13 +464,13 @@
                         case 'nonExecution':
                             pipeline_instance__is_started = false
                             break
-                        case 'failed':
-                        case 'pause':
+                        // case 'failed':
+                        // case 'pause':
                         case 'running':
                             pipeline_instance__is_started = true
                             pipeline_instance__is_finished = false
                             pipeline_instance__is_revoked = false
-                            task_instance_status = statusSync
+                            // task_instance_status = statusSync
                             break
                         case 'revoked':
                             pipeline_instance__is_revoked = true
