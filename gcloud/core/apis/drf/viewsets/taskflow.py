@@ -128,7 +128,7 @@ class TaskFLowStatusFilterHandler:
         获取所有失败的任务，当任务失败时，任务的State的name会为Failed，去重可以获得当前存在失败节点的pipeline instance
         @return:
         """
-        pipeline_instance_id_list, pipeline_id_list = self._get_pipeline_id_list()
+        _, pipeline_id_list = self._get_pipeline_id_list()
         # 获取存在异常任务状态的pipline task
 
         pipeline_failed_root_id_list = (
@@ -138,7 +138,7 @@ class TaskFLowStatusFilterHandler:
             instance_id__in=set(pipeline_failed_root_id_list)
         ).values_list("id", flat=True)
 
-        queryset = self.queryset.filter(pipeline_instance_id__in=set(failed_pipeline_instance_id_list))
+        queryset = self.queryset.filter(pipeline_instance_id__in=list(failed_pipeline_instance_id_list))
 
         return queryset
 
@@ -148,7 +148,7 @@ class TaskFLowStatusFilterHandler:
         return:
         """
         # 获取正在暂停的pipeline任务
-        pipeline_instance_id_list, pipeline_id_list = self._get_pipeline_id_list()
+        _, pipeline_id_list = self._get_pipeline_id_list()
 
         # 暂停是针对于流程的暂停
         pipeline_pause_root_id_list = (
