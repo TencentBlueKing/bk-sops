@@ -112,26 +112,33 @@ class TaskFLowStatusFilterHandler:
         """
         pipeline_instance_id_list = self.queryset.values_list("pipeline_instance_id", flat=True)
 
+        if len(pipeline_instance_id_list) > settings.MAX_TASK_LIST_STATUS_NUM:
+            raise ValidationException(
+                "当前处于未完成的任务数量超过 {}, 请缩小范围再查询该状态".format(
+                    settings.MAX_TASK_LIST_STATUS_NUM))
+
         pipeline_id_list = PipelineInstance.objects.filter(id__in=pipeline_instance_id_list).values_list(
             "instance_id", flat=True
         )
 
-        return pipeline_id_list
+        return list(pipeline_instance_id_list), list(pipeline_id_list)
 
     def _filter_failed(self):
         """
         获取所有失败的任务，当任务失败时，任务的State的name会为Failed，去重可以获得当前存在失败节点的pipeline instance
         @return:
         """
-        pipeline_id_list = self._get_pipeline_id_list()
+        pipeline_instance_id_list, pipeline_id_list = self._get_pipeline_id_list()
         # 获取存在异常任务状态的pipline task
+
         pipeline_failed_root_id_list = (
-            State.objects.filter(name=states.FAILED, root_id__in=pipeline_id_list).values("root_id").distinct()
+            State.objects.filter(name=states.FAILED, root_id__in=pipeline_id_list).values_list("root_id", flat=True)
         )
         failed_pipeline_instance_id_list = PipelineInstance.objects.filter(
-            instance_id__in=pipeline_failed_root_id_list
+            instance_id__in=set(pipeline_failed_root_id_list)
         ).values_list("id", flat=True)
-        queryset = self.queryset.filter(pipeline_instance_id__in=failed_pipeline_instance_id_list)
+
+        queryset = self.queryset.filter(pipeline_instance_id__in=set(failed_pipeline_instance_id_list))
 
         return queryset
 
@@ -141,17 +148,18 @@ class TaskFLowStatusFilterHandler:
         return:
         """
         # 获取正在暂停的pipeline任务
-        pipeline_id_list = self._get_pipeline_id_list()
+        pipeline_instance_id_list, pipeline_id_list = self._get_pipeline_id_list()
+
         # 暂停是针对于流程的暂停
         pipeline_pause_root_id_list = (
-            State.objects.filter(name=states.SUSPENDED, node_id__in=pipeline_id_list).values("root_id").distinct()
+            State.objects.filter(name=states.SUSPENDED, node_id__in=pipeline_id_list).values_list("root_id", flat=True)
         )
         # 获取
         pause_pipeline_instance_id_list = PipelineInstance.objects.filter(
-            instance_id__in=pipeline_pause_root_id_list
+            instance_id__in=set(pipeline_pause_root_id_list)
         ).values_list("id", flat=True)
 
-        queryset = self.queryset.filter(pipeline_instance_id__in=pause_pipeline_instance_id_list)
+        queryset = self.queryset.filter(pipeline_instance_id__in=list(pause_pipeline_instance_id_list))
 
         return queryset
 
@@ -161,19 +169,20 @@ class TaskFLowStatusFilterHandler:
 
         @return:
         """
-        pipeline_id_list = self._get_pipeline_id_list()
+        pipeline_instance_id_list, pipeline_id_list = self._get_pipeline_id_list()
 
         # 这里统一使用 root_id 进行查询，可以避免进行失败和暂停两次查询
         pipeline_failed_and_pause_root_id_list = (
             State.objects.filter(name__in=[states.SUSPENDED, states.FAILED], root_id__in=pipeline_id_list)
-            .values("root_id")
-            .distinct()
+            .values_list("root_id", flat=True)
         )
         pipeline_failed_and_pause_id_list = PipelineInstance.objects.filter(
-            instance_id__in=pipeline_failed_and_pause_root_id_list
+            instance_id__in=set(pipeline_failed_and_pause_root_id_list)
         ).values_list("id", flat=True)
 
-        queryset = self.queryset.exclude(pipeline_instance_id__in=pipeline_failed_and_pause_id_list)
+        running_pipeline_instance_id_list = set(pipeline_instance_id_list) - set(pipeline_failed_and_pause_id_list)
+
+        queryset = self.queryset.filter(pipeline_instance_id__in=running_pipeline_instance_id_list)
 
         return queryset
 
@@ -676,7 +685,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 {
                     "result": False,
                     "message": "the flow_type of task should be common_func and "
-                    "the number of corresponding function task should be 1. ",
+                               "the number of corresponding function task should be 1. ",
                 }
             )
         with transaction.atomic():
