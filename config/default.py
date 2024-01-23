@@ -193,11 +193,10 @@ else:
 if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
-MIDDLEWARE = (
-    "gcloud.core.middlewares.HttpRedirectMiddleware",
-    "gcloud.core.middlewares.TraceIDInjectMiddleware",
-    "weixin.core.middlewares.WeixinProxyPatchMiddleware",
-) + MIDDLEWARE
+MIDDLEWARE = ("gcloud.core.middlewares.HttpRedirectMiddleware",
+              "gcloud.core.middlewares.TraceIDInjectMiddleware",
+              "weixin.core.middlewares.WeixinProxyPatchMiddleware",
+              ) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
 LOG_LEVEL = "INFO"
@@ -793,7 +792,6 @@ def check_engine_admin_permission(request, *args, **kwargs):
 
 PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"
 
-
 BKCRYPTO = {
     "ASYMMETRIC_CIPHERS": {
         "default": {
@@ -812,7 +810,6 @@ BKCRYPTO = {
 BLUEAPPS_ENABLE_DB_ENCRYPTION = True
 # 复用已有的 default 对称加密实例
 BKCRYPTO["SYMMETRIC_CIPHERS"]["blueapps"] = BKCRYPTO["SYMMETRIC_CIPHERS"]["default"]
-
 
 # 加密
 if env.BKPAAS_BK_CRYPTO_TYPE == "SHANGMI":
@@ -833,8 +830,8 @@ else:
     )
 
 # 任务列表过滤失败任务最大天数
-TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS
-MAX_TASK_LIST_STATUS_NUM = env.BKPAAS_MAX_TASK_LIST_STATUS_NUM
+TASK_LIST_STATUS_FILTER_DAYS = env.BKAPP_TASK_LIST_STATUS_FILTER_DAYS
+MAX_TASK_LIST_STATUS_NUM = env.BKAPP_MAX_TASK_LIST_STATUS_NUM
 
 # 第三方插件特殊轮询时间配置
 REMOTE_PLUGIN_FIX_INTERVAL_CODES = env.REMOTE_PLUGIN_FIX_INTERVAL_CODES
