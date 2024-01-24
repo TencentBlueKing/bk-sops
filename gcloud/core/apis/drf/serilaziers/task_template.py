@@ -81,7 +81,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
         if not user:
             raise serializers.ValidationError("user can not be empty.")
         if user.username != value and value:
-            raise serializers.ValidationError("you can only set yourself as executor proxy.")
+            raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
 
     class Meta:

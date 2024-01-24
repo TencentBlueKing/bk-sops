@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from gcloud.common_template.models import CommonTemplate
@@ -105,7 +106,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
         if not user:
             raise serializers.ValidationError("user can not be empty.")
         if len(new_executor_proxies) > 1 or (new_executor_proxies and user.username != new_executor_proxies.pop()):
-            raise serializers.ValidationError("you can only set yourself as executor proxy.")
+            raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
 
     class Meta:
