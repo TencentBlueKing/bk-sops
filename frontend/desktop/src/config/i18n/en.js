@@ -1828,7 +1828,7 @@ const en = {
     'exFailedText_调用日志': 'call log',
     '任务还未执行，暂无执行历史': 'Task not executed, no history available.',
     '空分支': 'Empty branch',
-    '代理人仅可设置为本人': 'The executor proxy can only set yourself'
+    '代理人仅可设置为本人': 'The agent can only be set as yourself.'
 }
 
 export default en
