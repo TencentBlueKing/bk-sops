@@ -85,8 +85,16 @@ export default class ErrorNotify {
     setNotifyTitleAndContent (info, isTitle, errorSource, msgIndex) {
         let content = ''
         if (errorSource !== 'result') {
-            const infoArr = info.split(': ')
-            content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
+            if (info.match(': ')) {
+                const infoArr = info.split(': ')
+                if (isTitle) {
+                    content = infoArr[0].indexOf('{') !== -1 ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : infoArr[0]
+                } else {
+                    content = infoArr[1].indexOf('}') !== -1 ? infoArr[1].split('}')[0] : infoArr[1]
+                }
+            } else {
+                content = isTitle ? '' : info
+            }
         } else {
             const { message } = JSON.parse(info)
             const regex = /([^:]*)?: (.*)?/ // 标准数据结构
