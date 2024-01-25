@@ -17,29 +17,19 @@ import logging
 from django.db import models
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
-
-from gcloud.utils import managermixins
-
-from iam import Subject, Action
+from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.conf import settings
-from gcloud.core.api_adapter import (
-    create_maker_app,
-    edit_maker_app,
-    del_maker_app,
-    modify_app_logo,
-    get_app_logo_url,
-)
 from gcloud.constants import AE, TASK_CATEGORY
+from gcloud.core.api_adapter import create_maker_app, del_maker_app, edit_maker_app, get_app_logo_url, modify_app_logo
 from gcloud.core.models import Project
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.utils.dates import time_now_str
 from gcloud.core.utils import convert_readable_username
+from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils import managermixins
+from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import standardize_name
-
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -62,7 +52,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             app_id = None
         template_id = app_params["template_id"]
         app_params["name"] = standardize_name(app_params["name"], 20)
-        app_params["desc"] = standardize_name(app_params.get("desc", ""), 30)
+        app_params["desc"] = standardize_name(app_params.get("desc", ""), 500)
         proj = Project.objects.get(id=project_id)
         try:
             task_template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
@@ -259,7 +249,7 @@ class AppMaker(models.Model):
     name = models.CharField(_("APP名称"), max_length=255)
     code = models.CharField(_("APP编码"), max_length=255)
     info = models.CharField(_("APP基本信息"), max_length=255, null=True)
-    desc = models.CharField(_("APP描述信息"), max_length=255, null=True)
+    desc = models.CharField(_("APP描述信息"), max_length=500, null=True)
     logo_url = models.TextField(_("轻应用logo存放地址"), default="", blank=True)
     link = models.URLField(_("gcloud链接"), max_length=255)
     creator = models.CharField(_("创建人"), max_length=100)
