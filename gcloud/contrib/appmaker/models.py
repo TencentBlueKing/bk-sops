@@ -62,7 +62,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             app_id = None
         template_id = app_params["template_id"]
         app_params["name"] = standardize_name(app_params["name"], 20)
-        app_params["desc"] = standardize_name(app_params.get("desc", ""), 30)
+        app_params["desc"] = standardize_name(app_params.get("desc", ""), 500)
         proj = Project.objects.get(id=project_id)
         try:
             task_template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
@@ -259,7 +259,7 @@ class AppMaker(models.Model):
     name = models.CharField(_("APP名称"), max_length=255)
     code = models.CharField(_("APP编码"), max_length=255)
     info = models.CharField(_("APP基本信息"), max_length=255, null=True)
-    desc = models.CharField(_("APP描述信息"), max_length=255, null=True)
+    desc = models.CharField(_("APP描述信息"), max_length=500, null=True)
     logo_url = models.TextField(_("轻应用logo存放地址"), default="", blank=True)
     link = models.URLField(_("gcloud链接"), max_length=255)
     creator = models.CharField(_("创建人"), max_length=100)
