@@ -961,14 +961,39 @@
              * 优先取 store 里的缓存
              */
             async getAtomConfig (config) {
-                const { plugin, version, classify, name } = config
+                const { plugin, version, classify, name, isThird } = config
                 try {
                     // 先取标准节点缓存的数据
                     const pluginGroup = this.atomFormConfig[plugin]
                     if (pluginGroup && pluginGroup[version]) {
                         return pluginGroup[version]
                     }
-                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id: this.project_id })
+                    // 第三方插件
+                    if (isThird) {
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code: plugin,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
+                        if (!resp.result) return
+                        // 获取参数
+                        const { forms, inputs } = resp.data
+                        if (forms.renderform) {
+                            // 获取host
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                            $.context.bk_plugin_api_host[plugin] = hostUrl
+                            // 输入参数
+                            $.atoms[plugin] = {}
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                        } else {
+                            $.atoms[plugin] = inputs
+                        }
+                    } else {
+                        await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id: this.project_id })
+                    }
                     const config = $.atoms[plugin]
                     return config
                 } catch (e) {
