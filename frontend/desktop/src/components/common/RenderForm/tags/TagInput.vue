@@ -623,6 +623,7 @@
             background: #f0f1f5;
             cursor: pointer;
             border: none;
+            user-select: auto;
             &:hover {
                 background: #eaebf0;
             }
