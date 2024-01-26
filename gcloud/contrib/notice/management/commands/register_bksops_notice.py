@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 defaults={"value": 1}, key="ENABLE_NOTICE_CENTER"
             )
         except Exception as e:
-            logger.exception("[register_bksops_notice] err: {}".format(e))
+            print("[register_bksops_notice] err: {}".format(e))
             EnvironmentVariables.objects.update_or_create(
                 defaults={"value": 0}, key="ENABLE_NOTICE_CENTER"
             )
