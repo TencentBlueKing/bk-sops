@@ -185,7 +185,7 @@
                     this.schemeList.forEach(scheme => {
                         this.$set(scheme, 'isChecked', false)
                         this.$set(scheme, 'isDefault', false)
-                        if (this.defaultSchemeList.includes(scheme.id)) {
+                        if (this.viewMode !== 'appmaker' && this.defaultSchemeList.includes(scheme.id)) {
                             scheme.isDefault = true
                             if (!reuseTaskId && this.viewMode !== 'appmaker') { // 优先复用变量的勾选
                                 scheme.isChecked = true
