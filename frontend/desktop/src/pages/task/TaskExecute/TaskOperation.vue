@@ -407,7 +407,8 @@
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
                 isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
-                retryNodeName: ''
+                retryNodeName: '',
+                allCheckoutNodes: []
             }
         },
         computed: {
@@ -2054,6 +2055,16 @@
                         branchCount: 1 // 默认是一条分支
                     }
                 }
+                // 如果该节点的查找次数大于输入连线的数量则退出递归
+                if (this.allCheckoutNodes[parentId]) {
+                    this.allCheckoutNodes[parentId].push(id)
+                } else {
+                    this.allCheckoutNodes[parentId] = [id]
+                }
+                const checkedCount = this.allCheckoutNodes[parentId].filter(item => item === id).length
+                const sourceCount = this.nodeSourceMaps[id].length
+                if (checkedCount > sourceCount) return
+
                 const targetNodes = this.nodeTargetMaps[id] || []
                 // 多条输出分支
                 if (targetNodes.length > 1) {
