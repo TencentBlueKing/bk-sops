@@ -14,31 +14,26 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from django.http import JsonResponse
 from django.conf.urls import url
-
+from django.http import JsonResponse
+from django.utils.translation import ugettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
 from api.utils.request import batch_request
+from gcloud.conf import settings
+from gcloud.core.utils import get_user_business_list
+from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
-from pipeline_plugins.base.utils.inject import (
-    supplier_account_inject,
-    supplier_id_inject,
-)
+from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_id_inject
 from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
+    cmdb_search_host,
+    cmdb_search_topo_tree,
 )
-
-from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
-from gcloud.exceptions import APIError, ApiRequestError
-from gcloud.core.utils import get_user_business_list
 from pipeline_plugins.components.utils import batch_execute_func
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -247,15 +242,21 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": service_templates, "message": "success"})
 
 
-def cc_format_topo_data(data, obj_id, category):
+def cc_format_topo_data(data, obj_id, category, sets, modules):
     """
     @summary: 格式化拓扑数据
     @param obj_id set or module
     @param category prev(获取obj_id上一层级拓扑) or normal (获取obj_id层级拓扑) or picker(ip选择器拓扑)
+    @param sets 可更新的集群id列表
+    @param modules 可更新的模块id列表
     @return 拓扑数据列表
     """
     tree_data = []
     for item in data:
+        if item["bk_obj_id"] == "set" and item["bk_inst_id"] not in sets:
+            continue
+        if item["bk_obj_id"] == "module" and item["bk_inst_id"] not in modules:
+            continue
         tree_item = {
             "id": "%s_%s" % (item["bk_obj_id"], item["bk_inst_id"]),
             "label": item["bk_inst_name"],
@@ -264,12 +265,12 @@ def cc_format_topo_data(data, obj_id, category):
             if item["bk_obj_id"] != obj_id:
                 tree_data.append(tree_item)
                 if "child" in item:
-                    tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category)
+                    tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category, sets, modules)
         else:
             if item["bk_obj_id"] == obj_id:
                 tree_data.append(tree_item)
             elif "child" in item:
-                tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category)
+                tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category, sets, modules)
                 tree_data.append(tree_item)
 
     return tree_data
@@ -326,10 +327,11 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         cc_result["data"] = insert_inter_result_to_topo_data(inter_result["data"], cc_result["data"])
 
     if category in ["normal", "prev"]:
-        cc_topo = cc_format_topo_data(cc_result["data"], obj_id, category)
+        modules = cc_search_modules(request, biz_cc_id, supplier_account)
+        sets = cc_search_sets(request, biz_cc_id, supplier_account)
+        cc_topo = cc_format_topo_data(cc_result["data"], obj_id, category, sets, modules)
     else:
         cc_topo = []
-
     return JsonResponse({"result": True, "data": cc_topo})
 
 
@@ -537,6 +539,34 @@ def list_business_set(request):
         for item in resp
     ]
     return JsonResponse({"result": True, "data": business_set})
+
+
+def cc_search_sets(request, biz_cc_id, supplier_account) -> dict:
+    client = get_client_by_user(request.user.username)
+    kwargs = {
+        "bk_biz_id": biz_cc_id,
+        "bk_supplier_account": supplier_account,
+        "fields": ["bk_set_id", "set_template_id"],
+    }
+    cc_result = client.cc.search_set(kwargs)
+    if not cc_result["result"]:
+        return {}
+    data = cc_result["data"]["info"]
+    sets = {item["bk_set_id"] for item in data if not item["set_template_id"]}
+    return sets
+
+
+def cc_search_modules(request, biz_cc_id, supplier_account):
+    client = get_client_by_user(request.user.username)
+    kwargs = {
+        "bk_biz_id": biz_cc_id,
+        "bk_supplier_account": supplier_account,
+        "fields": ["service_template_id", "bk_module_id"],
+    }
+    cc_result = client.cc.search_module(kwargs)
+    data = cc_result["data"]["info"]
+    modules = {item["bk_module_id"] for item in data if not item["service_template_id"]}
+    return modules
 
 
 cc_urlpatterns = [
