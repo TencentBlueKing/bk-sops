@@ -1284,6 +1284,9 @@
                 if (!constant) return
                 const sourceInfo = constant.source_info
                 if (type === 'add') {
+                    if (data.reuse) { // 是否为复用变量
+                        constant.reuse = true
+                    }
                     if (sourceInfo[id]) {
                         sourceInfo[id].push(tagCode)
                     } else {
@@ -1616,6 +1619,11 @@
                             // 更新子流程已勾选的变量值
                             Object.keys(this.localConstants).forEach(key => {
                                 const constantValue = this.localConstants[key]
+                                // 复用变量不去更新变量配置和值
+                                if (constantValue.reuse) {
+                                    delete constantValue.reuse
+                                    return
+                                }
                                 // 根据source_info中获取勾选的表单项code
                                 const [formCode] = constantValue.source_info[this.nodeId] || []
                                 if (!formCode) return
