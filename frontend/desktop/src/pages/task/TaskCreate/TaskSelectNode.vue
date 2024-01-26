@@ -40,6 +40,7 @@
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <component
+                v-if="!templateLoading"
                 :is="schemeTemplate"
                 ref="taskScheme"
                 :project_id="project_id"
@@ -127,6 +128,10 @@
             },
             entrance: String,
             isEditProcessPage: {
+                type: Boolean,
+                default: true
+            },
+            isStepChange: {
                 type: Boolean,
                 default: true
             }
@@ -234,7 +239,7 @@
                             selectedNodes.push(item.id)
                         }
                     })
-                    this.selectedNodes = this.selectedNodes.length ? this.selectedNodes : selectedNodes
+                    this.selectedNodes = selectedNodes
 
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
@@ -257,7 +262,6 @@
                             this.$set(item, 'checked', true)
                         }
                     })
-                    this.updateExcludeNodes()
                 } catch (e) {
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
@@ -489,7 +493,8 @@
              * 设置默认勾选值
              */
             async setCanvasSelected (selectNodes = []) {
-                if (this.viewMode === 'appmaker') return
+                // 该方法在创建任务路由中只执行一次
+                if (this.isStepChange || this.viewMode === 'appmaker') return
                 if (selectNodes.length) {
                     // 使用传进来的选中节点，取消画布默认全选
                     this.selectedNodes = selectNodes
