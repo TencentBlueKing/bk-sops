@@ -31,7 +31,7 @@ class Command(BaseCommand):
             print("[bk-sops]current version is not open v3,skip register_bksops_notice")
             return
         try:
-            call_command("register_application")
+            call_command("register_application", raise_error=True)
             EnvironmentVariables.objects.update_or_create(
                 defaults={"value": 1}, key="ENABLE_NOTICE_CENTER"
             )
