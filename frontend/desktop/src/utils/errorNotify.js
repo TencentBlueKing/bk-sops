@@ -30,7 +30,7 @@ export default class ErrorNotify {
             { id: 'fix' },
             { id: 'close' }
         ]
-        vueInstance.$bkMessage({
+        const errorMsgInstance = vueInstance.$bkMessage({
             message: {
                 title: msgTitle,
                 details,
@@ -50,6 +50,7 @@ export default class ErrorNotify {
                 bus.$emit('onCloseErrorNotify', details)
             }
         })
+        vueInstance.errorMsgList.push(errorMsgInstance)
     }
     getTitleAndContent (info, isTitle, errorSource, msgIndex) {
         let content = ''

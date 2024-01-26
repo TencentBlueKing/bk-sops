@@ -87,7 +87,8 @@
                 projectDetailLoading: false, // 项目详情加载
                 appmakerDataLoading: false, // 轻应用加载 app 详情,
                 isUseSnapshot: false, // 登录成功时是否使用快照
-                isProjectDisabled: false // 当前项目是否禁用
+                isProjectDisabled: false, // 当前项目是否禁用
+                errorMsgList: [] // message报错实例
             }
         },
         computed: {
@@ -114,6 +115,13 @@
                     this.isProjectDisabled = false
                     // 重新设置默认项目
                     this.setProjectId(this.userProjectList[0].id)
+                }
+                // 路由发生变化时清空失败message列表
+                if (val.name !== oldVal.name && this.errorMsgList.length) {
+                    this.errorMsgList.forEach(msgInstance => {
+                        msgInstance.close()
+                    })
+                    this.errorMsgList = []
                 }
             }
         },
