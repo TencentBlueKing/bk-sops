@@ -523,7 +523,7 @@
                 this.getProjectData()
             },
             projectFilterClear () {
-                this.categorySelector[0].checked = ''
+                this.categorySelector[0].selected = ''
                 this.projectDataCategory = ''
                 this.getProjectData()
             },
