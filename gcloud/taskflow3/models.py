@@ -1061,6 +1061,10 @@ class TaskFlowInstance(models.Model):
             parent_task.change_parent_task_node_state_to_running()
 
     def task_action(self, action, username):
+        if self.is_deleted:
+            message = _(f"任务操作失败: 任务[ID: {self.id}]已被删除.请重新创建任务 | task_action")
+            logger.error(message)
+            return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
         if self.current_flow != "execute_task":
             return {
                 "result": False,
