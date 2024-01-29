@@ -4,3 +4,4 @@ python manage.py createcachetable django_cache
 python manage.py update_component_models
 python manage.py update_variable_models
 python manage.py sync_saas_apigw
+python manage.py register_bksops_notice
