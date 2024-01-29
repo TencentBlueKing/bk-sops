@@ -61,6 +61,11 @@ def mysetting(request):
     default_asymmetric_key_config: AsymmetricKeyConfig = get_default_asymmetric_key_config(
         settings.BKCRYPTO_ASYMMETRIC_CIPHER_TYPE
     )
+    try:
+        enable_notice_center = int(EnvironmentVariables.objects.get_var("ENABLE_NOTICE_CENTER", 0))
+    except Exception:
+        enable_notice_center = 0
+
     ctx = {
         "MEDIA_URL": settings.MEDIA_URL,  # MEDIA_URL
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问
@@ -118,6 +123,8 @@ def mysetting(request):
         "BK_PLUGIN_DEVELOP_URL": settings.BK_PLUGIN_DEVELOP_URL,
         "ENABLE_IPV6": settings.ENABLE_IPV6,
         "BK_DOMAIN": env.BKPAAS_BK_DOMAIN,
+        # 是否开启通知中心
+        "ENABLE_NOTICE_CENTER": enable_notice_center,
         "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
     }
 
