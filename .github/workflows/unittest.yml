@@ -39,6 +39,7 @@ jobs:
         export BKAPP_AUTO_UPDATE_VARIABLE_MODELS="0"
         export BKAPP_AUTO_UPDATE_COMPONENT_MODELS="0"
         export BK_IAM_HOST="BK_IAM_HOST"
+        export BK_API_URL_TMPL="BK_API_URL_TMPL"
         # add local_settings.py
         echo '# -*- coding: utf-8 -*-
         DATABASES = {

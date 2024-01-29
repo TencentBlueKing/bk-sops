@@ -63,6 +63,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.appmaker",
     "gcloud.contrib.function",
     "gcloud.contrib.audit",
+    "gcloud.contrib.notice",
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
@@ -113,6 +114,7 @@ INSTALLED_APPS += (
     "django_dbconn_retry",
     "blueapps.opentelemetry.instrument_app",
     "apigw_manager.apigw",
+    "bk_notice_sdk"
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动

@@ -28,14 +28,15 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.views import static
 
 from config.urls_custom import urlpatterns_custom
 from gcloud.core.views import page_not_found
-from django.views import static
 
 urlpatterns = [
     url(r"^django_admin/", admin.site.urls),
     url(r"^account/", include("blueapps.account.urls")),
+    url(r"^notice/", include("bk_notice_sdk.urls")),
 ]
 
 # app自定义路径
