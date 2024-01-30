@@ -636,7 +636,7 @@
 @import '@/scss/config.scss';
 
 .select-node-wrapper {
-    height: calc(100vh - 101px);
+    flex: 1;
 }
 .task-create-page {
     .canvas-content {

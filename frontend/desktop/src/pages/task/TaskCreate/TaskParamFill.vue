@@ -502,7 +502,7 @@
                     }
                     try {
                         const taskData = await this.createTask(data)
-                        if (this.isSelectFunctionalType || this.$route.name === 'functionTemplateStep') {
+                        if (this.isSelectFunctionalType) {
                             const h = this.$createElement
                             const self = this
                             const functionClaimMsg = this.$bkMessage({
@@ -615,7 +615,10 @@
 
 .param-fill-wrapper {
     position: relative;
-    height: calc(100vh - 101px);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     background: #fff;
 }
 .form-area {
