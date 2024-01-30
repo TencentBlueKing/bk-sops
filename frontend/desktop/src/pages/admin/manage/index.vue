@@ -132,14 +132,16 @@
     @import '@/scss/mixins/scrollbar.scss';
 
     .page-manage {
-        height: calc(100vh - 52px);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
         background: #f4f7fa;
         .page-manage-content {
             height: 100%;
             overflow: auto;
             @include scrollbar;
             &.has-nav {
-                height: calc(100vh - 100px);
+                flex: 1;
             }
         }
     }

@@ -11,9 +11,14 @@
 */
 <template>
     <div id="app">
-        <navigation v-if="!hideHeader">
+        <notice-component
+            v-if="enableNoticeCenter"
+            :api-url="apiUrl"
+            @show-alert-change="hasAlertNotice = $event"
+        />
+        <navigation v-if="!hideHeader" :class="['sops-layout-navigation', { 'with-system-notice': hasAlertNotice }]">
             <template slot="page-content">
-                <div class="main-container">
+                <div :class="['main-container', { 'with-system-notice': hasAlertNotice }]">
                     <router-view v-if="isRouterViewShow"></router-view>
                 </div>
                 <permissionApply
@@ -24,7 +29,7 @@
             </template>
         </navigation>
         <template v-else>
-            <div class="main-container">
+            <div :class="['main-container', { 'with-system-notice': hasAlertNotice }]">
                 <router-view v-if="isRouterViewShow"></router-view>
             </div>
             <permissionApply
@@ -48,6 +53,8 @@
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
     import permissionApply from '@/components/layout/permissionApply.vue'
+    import NoticeComponent from '@blueking/notice-component-vue2'
+    import '@blueking/notice-component-vue2/dist/style.css'
 
     export default {
         name: 'App',
@@ -55,7 +62,8 @@
             Navigation,
             ErrorCodeModal,
             permissionApply,
-            PermissionModal
+            PermissionModal,
+            NoticeComponent
         },
         mixins: [permission],
         provide () {
@@ -65,6 +73,9 @@
         },
         data () {
             return {
+                enableNoticeCenter: window.ENABLE_NOTICE_CENTER,
+                apiUrl: `${window.SITE_URL}notice/announcements/`,
+                hasAlertNotice: false,
                 footerLoading: false,
                 permissinApplyShow: false,
                 permissionData: {
@@ -338,9 +349,21 @@
         overflow: hidden;
     }
     #app {
+        .sops-layout-navigation.with-system-notice {
+            height: calc(100vh - 40px);
+            .container-content {
+                max-height: calc(100vh - 92px)!important;
+            }
+            .nav-slider-list {
+                height: calc(100vh - 148px) !important;
+            }
+        }
         .main-container {
             width: 100%;
             height: calc(100vh - 52px);
+            &.with-system-notice {
+                height: calc(100vh - 92px);
+            }
         }
     }
 </style>
