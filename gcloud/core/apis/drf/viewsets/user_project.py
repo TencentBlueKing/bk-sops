@@ -67,12 +67,9 @@ class UserProjectSetViewSet(GcloudListViewSet):
         user_project_ids = list(get_user_projects(request.user.username).values_list("id", flat=True))
         user_fav_project_ids = list(Collection.objects.get_user_favorite_projects(request.user.username))
         self.list_queryset = (
-            Project.objects.all()
-            .annotate(
-                is_fav=ExpressionWrapper(Q(id__in=user_fav_project_ids), output_field=BooleanField()),
-                is_user_project=ExpressionWrapper(Q(id__in=user_project_ids), output_field=BooleanField()),
-            )
-            .order_by("-is_fav", "-is_user_project", "id")
+            Project.objects.filter(id__in=user_project_ids)
+            .annotate(is_fav=ExpressionWrapper(Q(id__in=user_fav_project_ids), output_field=BooleanField()))
+            .order_by("-is_fav", "id")
         )
         return super(UserProjectSetViewSet, self).list(request, *args, **kwargs)
 
