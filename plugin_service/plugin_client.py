@@ -197,9 +197,10 @@ class PluginServiceApiClient:
         plugin_code=None, environment=None, limit=100, offset=0, search_term=None, distributor_code_name=None, **kwargs
     ):
         """可支持通过PaaS平台请求获取插件服务列表或插件详情"""
-        url, params = PluginServiceApiClient._prepare_paas_api_request(
+        url, headers = PluginServiceApiClient._prepare_paas_api_request(
             path_params=["system/bk_plugins", plugin_code if plugin_code else ""], environment=environment
         )
+        params = {}
         if not plugin_code:
             # list接口相关参数
             params.update({"limit": limit, "offset": offset, "has_deployed": True})
@@ -207,54 +208,54 @@ class PluginServiceApiClient:
                 params.update({"search_term": search_term})
             if distributor_code_name:
                 params.update({"distributor_code_name": distributor_code_name})
-        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params={**params, **kwargs})
+        return PluginServiceApiClient._request_api_and_error_retry(
+            url, method="get", params={**params, **kwargs}, headers=headers
+        )
 
     @staticmethod
     @json_response_decoder
     def batch_get_paas_plugin_detailed_info(environment=None, search_term=None, distributor_code_name=None, **kwargs):
         """通过PaaS平台批量请求插件服务列表及对应详情"""
-        url, params = PluginServiceApiClient._prepare_paas_api_request(
+        url, headers = PluginServiceApiClient._prepare_paas_api_request(
             path_params=["system/bk_plugins/batch/detailed"], environment=environment
         )
-        params.update({"has_deployed": True, **kwargs})
+        params = {"has_deployed": True, **kwargs}
         if search_term:
             params.update({"search_term": search_term})
         if distributor_code_name:
             params.update({"distributor_code_name": distributor_code_name})
-        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params, headers=headers)
 
     @staticmethod
     @json_response_decoder
     def get_paas_logs(plugin_code, trace_id, scroll_id=None, environment=None):
         """通过PaaS平台查询插件服务日志"""
-        url, data = PluginServiceApiClient._prepare_paas_api_request(
+        url, headers = PluginServiceApiClient._prepare_paas_api_request(
             path_params=["system/bk_plugins", plugin_code, "logs"], environment=environment
         )
+        headers.update({"Content-Type": "application/json"})
 
-        if env.PAASV3_APIGW_API_TOKEN:
-            url = "{}?private_token={}".format(url, env.PAASV3_APIGW_API_TOKEN)
-
-        data.update({"trace_id": trace_id})
+        data = {"trace_id": trace_id}
         if scroll_id:
             data.update({"scroll_id": scroll_id})
 
-        return PluginServiceApiClient._request_api_and_error_retry(url, method="post", data=data)
+        return PluginServiceApiClient._request_api_and_error_retry(
+            url, method="post", data=json.dumps(data), headers=headers
+        )
 
     @staticmethod
     @json_response_decoder
     def get_paas_plugin_tags(environment=None, **kwargs):
         """通过PaaS获取插件分类列表"""
-        url, params = PluginServiceApiClient._prepare_paas_api_request(
-            path_params=["system/bk_plugin_tags"], environment=environment, force_add_app_info=True
+        url, headers = PluginServiceApiClient._prepare_paas_api_request(
+            path_params=["system/bk_plugin_tags"], environment=environment
         )
-        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", headers=headers)
 
     def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = None):
         """插件服务APIGW接口请求信息准备"""
         url = os.path.join(
-            env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name),
-            env.APIGW_ENVIRONMENT,
-            *path_params,
+            env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name), env.APIGW_ENVIRONMENT, *path_params,
         )
         authorization_info = {
             "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
@@ -271,7 +272,7 @@ class PluginServiceApiClient:
         return url, headers
 
     @staticmethod
-    def _prepare_paas_api_request(path_params: list, environment=None, force_add_app_info=False):
+    def _prepare_paas_api_request(path_params: list, environment=None):
         """PaaS平台服务接口请求信息准备"""
         url = os.path.join(
             env.PAASV3_APIGW_API_HOST or f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
@@ -279,26 +280,27 @@ class PluginServiceApiClient:
             *path_params,
         )
 
-        params = (
-            {"private_token": env.PAASV3_APIGW_API_TOKEN}
-            if env.PAASV3_APIGW_API_TOKEN
-            else {
-                "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
-                "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,
-            }
-        )
-        if force_add_app_info:
-            params.update(
-                {"bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE, "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET}
-            )
-        return url, params
+        authorization_info = {
+            "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
+            "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,
+        }
+
+        headers = {"X-Bkapi-Authorization": json.dumps(authorization_info)}
+
+        if env.PAASV3_APIGW_API_TOKEN:
+            headers.update({"Authorization": "Bearer {}".format(env.PAASV3_APIGW_API_TOKEN)})
+
+        return url, headers
 
     @staticmethod
     def _request_api_and_error_retry(url, method, **kwargs):
         """请求API接口,失败进行重试"""
         message = f"request url {url} with method {method} and kwargs {kwargs}".replace(
-            env.PAASV3_APIGW_API_TOKEN or env.PLUGIN_SERVICE_APIGW_APP_SECRET, "******"
+            env.PLUGIN_SERVICE_APIGW_APP_SECRET, "******"
         )
+        if env.PAASV3_APIGW_API_TOKEN:
+            message = message.replace(env.PAASV3_APIGW_API_TOKEN, "******")
+
         for invoke_num in range(1, env.BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
             try:
                 logger.info(f"[PluginServiceApiClient] {message}")
