@@ -30,7 +30,7 @@ export default class ErrorNotify {
             { id: 'fix' },
             { id: 'close' }
         ]
-        vueInstance.$bkMessage({
+        const errorMsgInstance = vueInstance.$bkMessage({
             message: {
                 title: msgTitle,
                 details,
@@ -50,13 +50,18 @@ export default class ErrorNotify {
                 bus.$emit('onCloseErrorNotify', details)
             }
         })
+        vueInstance.errorMsgList.push(errorMsgInstance)
     }
     getTitleAndContent (info, isTitle, errorSource, msgIndex) {
         let content = ''
         if (errorSource !== 'result') {
             if (info.match(': ')) {
                 const infoArr = info.split(': ')
-                content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
+                if (isTitle) {
+                    content = infoArr[0].indexOf('{') !== -1 ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : infoArr[0]
+                } else {
+                    content = infoArr[1].indexOf('}') !== -1 ? infoArr[1].split('}')[0] : infoArr[1]
+                }
             } else {
                 content = isTitle ? '' : info
             }

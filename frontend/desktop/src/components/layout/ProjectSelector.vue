@@ -37,10 +37,8 @@
                 class="project-item"
                 v-for="option in renderList"
                 :class="{
-                    'is-disabled': !option.is_user_project,
                     'is-hover': option.id === hoverId
                 }"
-                v-cursor="{ active: !option.is_user_project }"
                 :key="option.id"
                 :id="option.id"
                 :name="`${option.name} (${option.bk_biz_id})`">
@@ -180,13 +178,10 @@
             sortProjectList (list) {
                 const favorList = []
                 const unFavorList = []
-                const unPermission = []
 
                 list.forEach((item) => {
                     if (item.is_fav) {
                         favorList.push(item)
-                    } else if (!item.is_user_project) {
-                        unPermission.push(item)
                     } else {
                         unFavorList.push(item)
                     }
@@ -194,12 +189,10 @@
                 // 按符号 => 数字 => 英文 => 中文 排序
                 favorList.sort((a, b) => compare(a.name, b.name, true))
                 unFavorList.sort((a, b) => compare(a.name, b.name, true))
-                unPermission.sort((a, b) => compare(a.name, b.name, true))
 
                 return [
                     ...favorList,
-                    ...unFavorList,
-                    ...unPermission
+                    ...unFavorList
                 ]
             },
             updateSelected () {
@@ -212,18 +205,6 @@
                 }
             },
             async onProjectChange (id) {
-                const project = this.projectList.find(item => item.id === id)
-                if (!project.is_user_project) {
-                    const resourceData = {
-                        project: [{
-                            id: project.id,
-                            name: project.name
-                        }]
-                    }
-                    this.applyForPermission(['project_view'], project.auth_actions, resourceData)
-                    this.crtProject = Number(this.$store.state.project.project_id)
-                    return false
-                }
                 if (this.project_id === id) {
                     return false
                 }

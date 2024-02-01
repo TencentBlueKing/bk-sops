@@ -1008,7 +1008,7 @@
                 const { code, group_name, name, list } = atomGroup
                 this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
                 // 获取默认版本
-                const defaultVersion = list.reverse().find(item => item.is_default_version)
+                const defaultVersion = tools.deepClone(list).reverse().find(item => item.is_default_version)
                 const version = defaultVersion ? defaultVersion.version : list[list.length - 1].version
                 // 获取不同版本的描述
                 let desc = atomGroup.desc || ''

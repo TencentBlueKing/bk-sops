@@ -21,7 +21,7 @@
             </NodeTree>
             <div slot="main" class="execute-content">
                 <div class="execute-head">
-                    <span class="node-name">{{isCondition ? conditionData.name : nodeActivity.name}}</span>
+                    <span class="node-name">{{isCondition ? conditionData.name : nodeActivity.name || executeInfo.name}}</span>
                     <bk-divider direction="vertical"></bk-divider>
                     <div class="node-state">
                         <span :class="displayStatus"></span>
@@ -482,9 +482,10 @@
             },
             nodeActivity () {
                 const { node_id: nodeId } = this.nodeDetailConfig
-                const { activities, end_event, start_event } = this.pipelineData
+                const { activities, end_event, start_event, gateways } = this.pipelineData
                 const nodeMap = {
                     ...activities,
+                    ...gateways,
                     [start_event.id]: { ...start_event, name: this.$t('开始节点') },
                     [end_event.id]: { ...end_event, name: this.$t('结束节点') }
                 }
