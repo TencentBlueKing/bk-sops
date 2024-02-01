@@ -26,6 +26,7 @@
             :entrance="entrance"
             :template_id="template_id"
             :exclude-node="excludeNode"
+            :is-step-change="isStepChange"
             @setExcludeNode="setExcludeNode">
         </task-select-node>
         <task-param-fill
@@ -46,6 +47,7 @@
     import TaskCreateHeader from '../TaskCreateHeader.vue'
     import TaskSelectNode from './TaskSelectNode.vue'
     import TaskParamFill from './TaskParamFill.vue'
+    import { mapMutations } from 'vuex'
 
     const STEP_DICT = [
         {
@@ -79,6 +81,7 @@
             return {
                 stepList: this.addStepIcon(STEP_DICT),
                 currentStep: this.$route.params.step,
+                isStepChange: false,
                 excludeNode: []
             }
         },
@@ -93,6 +96,8 @@
                     this.stepList = this.addStepIcon(STEP_DICT)
                 }
                 this.currentStep = val
+                // 如果step从selectnode跳转到其他则设置为true
+                this.isStepChange = this.isStepChange || val !== 'selectnode'
             }
         },
         created () {
@@ -100,7 +105,13 @@
                 this.toggleFunctionalStep(true)
             }
         },
+        beforeDestroy () {
+            this.resetTemplateData()
+        },
         methods: {
+            ...mapMutations('template/', [
+                'resetTemplateData'
+            ]),
             addStepIcon (steps) {
                 return steps.map((item, index) => Object.assign({}, item, { icon: index + 1 }))
             },

@@ -112,3 +112,6 @@ scripts/check_sensitive_info.sh
 version_logs_html
 .codecc
 staticfiles/*
+
+
+pre-*-bkcodeai

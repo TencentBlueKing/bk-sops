@@ -191,10 +191,9 @@
 
     const TASK_STATUS_LIST = [
         { id: 'nonExecution', name: i18n.t('未执行') },
-        { id: 'running', name: i18n.t('执行中') },
-        { id: 'pending_processing', name: i18n.t('等待处理') },
-        { id: 'failed', name: i18n.t('失败') },
-        { id: 'pause', name: i18n.t('暂停') },
+        { id: 'running', name: i18n.t('未完成') },
+        // { id: 'failed', name: i18n.t('失败') },
+        // { id: 'pause', name: i18n.t('暂停') },
         { id: 'finished', name: i18n.t('完成') },
         { id: 'revoked', name: i18n.t('终止') }
     ]
@@ -466,13 +465,13 @@
                         case 'nonExecution':
                             pipeline_instance__is_started = false
                             break
-                        case 'failed':
-                        case 'pause':
+                        // case 'failed':
+                        // case 'pause':
                         case 'running':
                             pipeline_instance__is_started = true
                             pipeline_instance__is_finished = false
                             pipeline_instance__is_revoked = false
-                            task_instance_status = statusSync
+                            // task_instance_status = statusSync
                             break
                         case 'revoked':
                             pipeline_instance__is_revoked = true
@@ -929,11 +928,12 @@
             },
             // 判断时间是否超出
             judgeDateIsExceed (date) {
-                let startDate = moment(date).format('YYYY-MM-DD')
-                startDate = Number(startDate.split('-').join(''))
-                let nowDate = moment(new Date()).format('YYYY-MM-DD')
-                nowDate = Number(nowDate.split('-').join(''))
-                if (nowDate - startDate > window.TASK_LIST_STATUS_FILTER_DAYS) {
+                const oneDay = 24 * 60 * 60 * 1000
+                const startDate = new Date(date).getTime()
+                const nowDate = new Date().getTime()
+                const diffTime = Math.abs(nowDate - startDate)
+                const diffDays = Math.floor(diffTime / oneDay)
+                if (diffDays > window.TASK_LIST_STATUS_FILTER_DAYS) {
                     this.$bkMessage({
                         message: i18n.t('仅支持查询最近x天任务记录', { x: window.TASK_LIST_STATUS_FILTER_DAYS }),
                         theme: 'warning'
