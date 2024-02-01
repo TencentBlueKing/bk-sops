@@ -507,8 +507,15 @@
             isShowSkipBtn () {
                 let isShow = false
                 if (this.realTimeState.state === 'FAILED') {
-                    const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
-                    isShow = this.location.type === 'tasknode' && activity.skippable
+                    const { type } = this.location
+                    if (type === 'tasknode') {
+                        // 任务节点和独立子任务节点
+                        const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                        isShow = activity.skippable
+                    } else if (type !== 'subflow') {
+                        // 网关节点
+                        isShow = true
+                    }
                 }
                 return isShow
             },

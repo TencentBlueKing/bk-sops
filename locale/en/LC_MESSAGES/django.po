@@ -1084,6 +1084,9 @@ msgstr "Remote service called failed, HTTP request error status error: %(code)s,
 msgid "project不存在"
 msgstr "Project don't exist"
 
+msgid "代理人仅可设置为本人"
+msgstr "The agent can only be set as yourself."
+
 #: gcloud/core/apis/drf/viewsets/business.py:38
 msgid "停运"
 msgstr "Closed"

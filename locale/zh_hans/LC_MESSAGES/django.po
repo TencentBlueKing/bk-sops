@@ -1129,6 +1129,9 @@ msgstr "调用远程服务失败，Http请求错误状态码：%(code)s， 请�
 msgid "project不存在"
 msgstr "项目 Project"
 
+msgid "代理人仅可设置为本人"
+msgstr "代理人仅可设置为本人"
+
 #: gcloud/core/apis/drf/viewsets/business.py:38
 msgid "停运"
 msgstr "停运"
