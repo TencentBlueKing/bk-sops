@@ -10,22 +10,20 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
-from gcloud.apigw.utils import bucket_cached, BucketTTLCache, api_bucket_and_key
-
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
-from gcloud.taskflow3.utils import add_node_name_to_status_tree, extract_failed_nodes, get_failed_nodes_info
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.utils import BucketTTLCache, api_bucket_and_key, bucket_cached
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.utils import add_node_name_to_status_tree, extract_failed_nodes, get_failed_nodes_info
 
 
 def cache_decisioner(key, value):
@@ -96,6 +94,11 @@ def get_task_status(request, task_id, project_id):
             failed_node_info = get_failed_nodes_info(root_pipeline_id, failed_node_ids)
             result["data"]["failed_node_info"] = failed_node_info
         except Exception as e:
+            logger.error(
+                "task[id={task_id}] extract failed node info error, get_task_status result: {result}".format(
+                    task_id=task_id, result=result
+                )
+            )
             message = "task[id={task_id}] extract failed node info error: {error}".format(task_id=task_id, error=e)
             logger.exception(message)
             return {
