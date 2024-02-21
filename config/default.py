@@ -114,7 +114,7 @@ INSTALLED_APPS += (
     "django_dbconn_retry",
     "blueapps.opentelemetry.instrument_app",
     "apigw_manager.apigw",
-    "bk_notice_sdk"
+    "bk_notice_sdk",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -213,7 +213,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.31.21"
+STATIC_VERSION = "3.31.22"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
