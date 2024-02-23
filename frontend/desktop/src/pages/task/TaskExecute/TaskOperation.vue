@@ -1293,7 +1293,7 @@
                 }
             },
             onSkipClick (id, info = {}) {
-                const isGateway = this.pipelineData.gateways[id] || this.nodePipelineData.gateways[id]
+                const isGateway = this.pipelineData.gateways[id] || (this.nodePipelineData.gateways && this.nodePipelineData.gateways[id])
                 if (isGateway) {
                     this.subProcessTaskId = info.taskId
                     this.onGatewaySelectionClick(id)
@@ -1305,7 +1305,7 @@
                 let title = ''
                 let subTitle = ''
                 let isSubProcessNode = false
-                if (info) {
+                if (Object.keys(info).length > 0) {
                     name = info.name
                     taskId = info.taskId
                     isSubProcessNode = info.isSubProcessNode

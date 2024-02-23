@@ -12,13 +12,14 @@
 <template>
     <div class="parameter-details">
         <bk-resize-layout class="details-wrapper" placement="left" :max="sidebarWidth - 600" :initial-divide="243" :min="240">
-            <NodeTree
-                slot="aside"
-                :tree-data="nodeData"
-                :default-active-id="defaultActiveId"
-                @dynamicLoad="handleDynamicLoad"
-                @onSelectNode="onSelectNode">
-            </NodeTree>
+            <div slot="aside">
+                <NodeTree
+                    :tree-data="nodeData"
+                    :default-active-id="defaultActiveId"
+                    @dynamicLoad="handleDynamicLoad"
+                    @onSelectNode="onSelectNode">
+                </NodeTree>
+            </div>
             <div slot="main" class="execute-content">
                 <div class="execute-head">
                     <span class="node-name">{{isCondition ? conditionData.name : nodeActivity.name || executeInfo.name}}</span>
