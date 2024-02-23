@@ -18,22 +18,12 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from pipeline.exceptions import SubprocessExpiredError
-from pipeline.models import (
-    PipelineTemplate,
-    TemplateCurrentVersion,
-    TemplateRelationship,
-)
+from pipeline.models import PipelineTemplate, TemplateCurrentVersion, TemplateRelationship
 
 from gcloud import err_code
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.conf import settings
-from gcloud.constants import (
-    CLOCKED_TASK_NOT_STARTED,
-    COMMON,
-    PROJECT,
-    TASK_CATEGORY,
-    TEMPLATE_EXPORTER_VERSION,
-)
+from gcloud.constants import CLOCKED_TASK_NOT_STARTED, COMMON, PROJECT, TASK_CATEGORY, TEMPLATE_EXPORTER_VERSION
 from gcloud.core.utils import convert_readable_username
 from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
@@ -446,13 +436,17 @@ class BaseTemplate(models.Model):
 
     def referencer_clocked_task(self):
         clocked_task_referencer = ClockedTask.objects.filter(
-            template_id=self.id, state=CLOCKED_TASK_NOT_STARTED
+            template_id=self.id,
+            template_source=COMMON if self.__class__.__name__ == "CommonTemplate" else PROJECT,
+            state=CLOCKED_TASK_NOT_STARTED,
         ).values("id", "task_name")
         return [{"id": referencer["id"], "name": referencer["task_name"]} for referencer in clocked_task_referencer]
 
     def referencer_periodic_task(self):
         periodic_task_cls = apps.get_model("periodictask", "PeriodicTask")
-        periodic_task_referencer = periodic_task_cls.objects.filter(template_id=self.id).values("id", "task__name")
+        periodic_task_referencer = periodic_task_cls.objects.filter(
+            template_id=self.id, template_source=COMMON if self.__class__.__name__ == "CommonTemplate" else PROJECT
+        ).values("id", "task__name")
         return [{"id": referencer["id"], "name": referencer["task__name"]} for referencer in periodic_task_referencer]
 
     def get_clone_pipeline_tree(self):
