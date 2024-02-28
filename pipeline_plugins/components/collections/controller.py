@@ -12,17 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
+import logging
 import os
 import re
-import logging
 
 from django.conf import settings
-from django.utils import translation, timezone
+from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
+
 from gcloud.core.models import Project
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -73,16 +73,7 @@ class SleepTimerService(Service):
     interval = StaticIntervalGenerator(0)
     BK_TIMEMING_TICK_INTERVAL = int(os.getenv("BK_TIMEMING_TICK_INTERVAL", 60 * 60 * 24))
     #  匹配年月日 时分秒 正则 yyyy-MM-dd HH:mm:ss
-    date_regex = re.compile(
-        r"%s %s"
-        % (
-            r"^(((\d{3}[1-9]|\d{2}[1-9]\d{1}|\d{1}[1-9]\d{2}|[1-9]\d{3}))|"
-            r"(29/02/((\d{2})(0[48]|[2468][048]|[13579][26])|((0[48]|[2468][048]|[3579][26])00))))-"
-            r"((0[13578]|1[02])-((0[1-9]|[12]\d|3[01]))|"
-            r"((0[469]|11)-(0[1-9]|[12]\d|30))|(02)-(0[1-9]|[1]\d|2[0-8]))",
-            r"((0|[1])\d|2[0-3]):(0|[1-5])\d:(0|[1-5])\d$",
-        )
-    )
+    date_regex = re.compile(r"%s %s" % (r"^\d{4}-\d{2}-\d{2}", r"((0|[1])\d|2[0-3]):(0|[1-5])\d:(0|[1-5])\d$"))
 
     seconds_regex = re.compile(r"^\d+$")
 
