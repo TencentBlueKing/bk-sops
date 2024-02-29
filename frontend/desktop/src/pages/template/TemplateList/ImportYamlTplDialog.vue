@@ -137,12 +137,12 @@
                                     </bk-select>
                                     <bk-select
                                         :key="row.refer"
-                                        v-if="row.meta.id in Object.assign({}, overriders, reference)"
+                                        v-if="row.meta.id in subFlowReferData"
                                         style="width: 180px; margin-left: 8px;"
                                         :placeholder="getPlaceholder(row)"
                                         :loading="tplLoading"
                                         :searchable="true"
-                                        :value="overriders[row.meta.id]"
+                                        :value="subFlowReferData[row.meta.id]"
                                         ext-popover-cls="tpl-popover"
                                         enable-scroll-load
                                         :scroll-loading="{ isLoading: scrollLoading }"
@@ -281,6 +281,16 @@
             // 子流程
             subFlowTableList () {
                 return this.subFlowList.slice((this.subFlowPagination.current - 1) * 5, this.subFlowPagination.current * 5)
+            },
+            // 子流程配置覆盖/引用的流程
+            subFlowReferData () {
+                return {
+                    ...this.overriders,
+                    ...Object.keys(this.reference).reduce((acc, cur) => {
+                        acc[cur] = this.reference[cur].template_id
+                        return acc
+                    }, {})
+                }
             }
         },
         created () {
