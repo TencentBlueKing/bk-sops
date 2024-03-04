@@ -200,9 +200,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None,
-                is_started=False,
-                executor="",
+                start_time=None, is_started=False, executor="",
             )
             message = _(f"任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理. {e} | start_v2")
             logger.error(message)
@@ -214,9 +212,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None,
-                is_started=False,
-                executor="",
+                start_time=None, is_started=False, executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
@@ -781,7 +777,6 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     TaskExtraStatus.NODE_SUSPENDED.value,
                 }:
                     status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
-
             else:
                 # 状态转换
                 for code, node_ids in node_ids_gby_code.items():
@@ -847,5 +842,5 @@ def format_bamboo_engine_status_legacy(status_tree):
     if status_tree["state"] == bamboo_engine_states.RUNNING:
         if bamboo_engine_states.FAILED in child_status:
             status_tree["state"] = bamboo_engine_states.FAILED
-        elif bamboo_engine_states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
-            status_tree["state"] = "NODE_SUSPENDED"
+        elif bamboo_engine_states.SUSPENDED in child_status or TaskExtraStatus.NODE_SUSPENDED.value in child_status:
+            status_tree["state"] = TaskExtraStatus.NODE_SUSPENDED.value
