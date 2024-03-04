@@ -141,19 +141,19 @@ class TaskFLowStatusFilterHandler:
 
     def _fetch_pause_pipeline_instance_ids(self):
         pipeline_id_list = self._get_pipeline_id_list()
-        pipeline_pause_root_id_list = State.objects.filter(node_id__in=pipeline_id_list,
-                                                           name=states.SUSPENDED).values_list(
-            "root_id", flat=True)
+        pipeline_pause_root_id_list = State.objects.filter(
+            node_id__in=pipeline_id_list, name=states.SUSPENDED
+        ).values_list("root_id", flat=True)
 
-        pipeline_failed_root_id_list = State.objects.filter(root_id__in=pipeline_id_list,
-                                                            name=states.FAILED).values_list(
-            "root_id", flat=True)
+        pipeline_failed_root_id_list = State.objects.filter(
+            root_id__in=pipeline_id_list, name=states.FAILED
+        ).values_list("root_id", flat=True)
 
         pipeline_root_id_list = set(pipeline_pause_root_id_list) - set(pipeline_failed_root_id_list)
         return PipelineInstance.objects.filter(instance_id__in=pipeline_root_id_list).values_list("id", flat=True)
 
     def _fetch_pending_process_taskflow_ids(
-            self, taskflow_instances: typing.List[TaskFlowInstance]
+        self, taskflow_instances: typing.List[TaskFlowInstance]
     ) -> typing.List[int]:
         def _get_task_status(taskflow_instance: TaskFlowInstance) -> typing.Dict[str, typing.Any]:
             dispatcher = TaskCommandDispatcher(
@@ -330,7 +330,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        task_instance_status = request.query_params.get("task_instance_status")
+        # task_instance_status = request.query_params.get("task_instance_status")
 
         user_type = request.query_params.get("user_type")
 
@@ -338,12 +338,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         if user_type != "auditor":
             start_time = datetime.now() - timedelta(days=settings.TASK_LIST_STATUS_FILTER_DAYS)
             queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
-        if task_instance_status:
-            # 状态查询的范围为最近TASK_LIST_STATUS_FILTER_DAYS天内，已经开始的v2引擎的任务
-            queryset = queryset.filter(
-                pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
-            )
-            queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
+        # 该实现存在性能问题，需要优化
+        # if task_instance_status:
+        #     # 状态查询的范围为最近TASK_LIST_STATUS_FILTER_DAYS天内，已经开始的v2引擎的任务
+        #     queryset = queryset.filter(
+        #         pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
+        #     )
+        #     queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
             queryset = queryset.filter(
@@ -755,7 +756,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 {
                     "result": False,
                     "message": "the flow_type of task should be common_func and "
-                               "the number of corresponding function task should be 1. ",
+                    "the number of corresponding function task should be 1. ",
                 }
             )
         with transaction.atomic():
