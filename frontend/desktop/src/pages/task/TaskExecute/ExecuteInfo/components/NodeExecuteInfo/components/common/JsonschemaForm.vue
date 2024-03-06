@@ -44,30 +44,30 @@
     }
 </script>
 <style lang="scss" scoped>
-    .jsonschema-input-params {
-        >>> .bk-form-item {
-            .bk-label {
-                width: 100px !important;
-                font-size: 12px;
-            }
-            .bk-form-content {
-                margin-left: 100px !important;
-            }
-            .bk-form-radio {
-                margin-right: 30px;
-                .bk-radio-text {
-                    font-size: 12px;
-                }
-            }
-            .bk-form-checkbox {
-                margin-right: 30px;
-                .bk-checkbox-text {
-                    font-size: 12px;
-                }
-            }
-            & + .bk-form-item {
-                margin-top: 0;
-            }
-        }
-    }
+  .jsonschema-input-params {
+      >>> .bk-form-item {
+          .bk-label {
+              width: 100px !important;
+              font-size: 12px;
+          }
+          .bk-form-content {
+              margin-left: 100px !important;
+          }
+          .bk-form-radio {
+              margin-right: 30px;
+              .bk-radio-text {
+                  font-size: 12px;
+              }
+          }
+          .bk-form-checkbox {
+              margin-right: 30px;
+              .bk-checkbox-text {
+                  font-size: 12px;
+              }
+          }
+          & + .bk-form-item {
+              margin-top: 0;
+          }
+      }
+  }
 </style>

@@ -15,11 +15,11 @@
             <template v-else>
                 <li>
                     <span class="th">{{ $t('标准插件') }}</span>
-                    <span class="td">{{ executeInfo.plugin_name || '--' }}</span>
+                    <span class="td">{{ pluginName || '--' }}</span>
                 </li>
                 <li>
                     <span class="th">{{ $t('插件版本') }}</span>
-                    <span class="td">{{ executeInfo.plugin_version || '--' }}</span>
+                    <span class="td">{{ pluginVersion || '--' }}</span>
                 </li>
             </template>
             <li>
@@ -87,12 +87,11 @@
                     <no-data v-else :message="$t('暂无参数')"></no-data>
                 </template>
                 <template v-else>
-                    <jsonschema-input-params
+                    <jsonschema-form
                         v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
-                        :is-view-mode="true"
-                        :inputs="inputs"
+                        :schema="inputs"
                         :value="inputsFormData">
-                    </jsonschema-input-params>
+                    </jsonschema-form>
                     <no-data v-else :message="$t('暂无参数')"></no-data>
                 </template>
             </div>
@@ -141,13 +140,13 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import JsonschemaInputParams from '@/pages/template/TemplateEdit/NodeConfig/JsonschemaInputParams.vue'
+    import JsonschemaForm from './common/JsonschemaForm.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         components: {
             RenderForm,
-            JsonschemaInputParams,
+            JsonschemaForm,
             NoData
         },
         props: {
@@ -200,7 +199,9 @@
                 subflowForms: {},
                 taskNodeLoading: false,
                 subflowLoading: false,
-                constantsLoading: false
+                constantsLoading: false,
+                pluginVersion: '',
+                pluginName: ''
             }
         },
         computed: {
@@ -210,7 +211,8 @@
             }),
             ...mapState({
                 'pluginConfigs': state => state.atomForm.config,
-                'pluginOutput': state => state.atomForm.output
+                'pluginOutput': state => state.atomForm.output,
+                'atomFormInfo': state => state.atomForm.form
             }),
             timeoutTextValue () {
                 const timeoutConfig = this.nodeActivity['timeout_config']
@@ -264,11 +266,23 @@
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
-                'loadPluginServiceDetail'
+                'loadPluginServiceDetail',
+                'loadPluginServiceAppDetail'
             ]),
             // 初始化节点数据
             async initData () {
                 try {
+                    // 获取插件名称和版本
+                    const { component_code: componentCode, version } = this.nodeDetailConfig
+                    this.pluginVersion = this.isThirdPartyNode ? this.executeInfo.inputs.plugin_version : version
+                    if (this.isThirdPartyNode) {
+                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
+                        this.pluginName = resp.data.name
+                    } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                        const pluginInfo = this.atomFormInfo[componentCode][version]
+                        this.pluginName = `${pluginInfo.group_name}-${pluginInfo.name}`
+                    }
+
                     // 获取对应模板配置
                     const tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
                     this.templateConfig = tplConfig.data || { ...this.nodeActivity, isOldData: true } || {}
