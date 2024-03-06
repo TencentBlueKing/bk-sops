@@ -7,7 +7,7 @@
             @click="onContinueClick">
             {{ $t('继续执行') }}
         </bk-button>
-        <template v-if="isExecutingState.includes(realTimeState.state)">
+        <template v-if="executingStates.includes(realTimeState.state)">
             <bk-button
                 v-if="realTimeState.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
                 theme="primary"
@@ -106,7 +106,7 @@
         },
         data () {
             return {
-                
+                executingStates: ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
             }
         },
         computed: {
@@ -147,14 +147,11 @@
                         return false
                     }
                 }
-                const executeState = this.isExecutingState.includes(this.realTimeState.state)
+                const executeState = this.executingStates.includes(this.realTimeState.state)
                 return executeState
                     || this.isShowRetryBtn
                     || this.isShowSkipBtn
                     || this.isShowContinueBtn
-            },
-            isExecutingState () {
-                return ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
             },
             isShowSkipBtn () {
                 let isShow = false
@@ -265,7 +262,3 @@
         }
     }
 </script>
-
-<style>
-
-</style>

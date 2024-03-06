@@ -282,10 +282,7 @@
                     if (this.nodeActivity.pipeline) {
                         pipelineData = this.nodeActivity.pipeline
                     } else {
-                        let { data: componentData } = this.nodeActivity.component
-                        componentData = componentData && componentData.subprocess
-                        componentData = componentData && componentData.value
-                        componentData = componentData && componentData.pipeline
+                        const componentData = this.nodeActivity.component.data?.subprocess?.value?.pipeline
                         pipelineData = componentData || pipelineData
                     }
                 } else if (this.nodeDetailConfig.root_node) {
@@ -602,10 +599,7 @@
                         if (nodeData.pipeline) {
                             pipelineData = nodeData.pipeline
                         } else {
-                            let { data: componentData } = nodeData.component
-                            componentData = componentData && componentData.subprocess
-                            componentData = componentData && componentData.value
-                            componentData = componentData && componentData.pipeline
+                            const componentData = nodeData.component.data?.subprocess?.value?.pipeline
                             pipelineData = componentData || pipelineData
                         }
                     })
@@ -678,17 +672,18 @@
                             item.state = state === 'SUSPENDED' && item.state === 'READY' ? 'PENDING_TASK_CONTINUE' : item.state
                         })
                         
-                        let continueRunning = ['CREATED', 'RUNNING', 'PENDING_PROCESSING'].includes(state)
+                        // 是否继续请求子任务
+                        let continueRequest = ['CREATED', 'RUNNING', 'PENDING_PROCESSING'].includes(state)
                         // 任务暂停时如果有节点正在执行，需轮询节点状态
                         if (state === 'SUSPENDED') {
-                            const isExecutingState = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
-                            continueRunning = Object.values(children).some(item => isExecutingState.includes(item.state))
+                            const executingStates = ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
+                            continueRequest = Object.values(children).some(item => executingStates.includes(item.state))
                         }
                         // 任务失败时如果又节点还没自动重试完，需轮询节点状态
                         if (state === 'FAILED') {
-                            continueRunning = Object.values(retryInfo).some(item => item.max_auto_retry_times > item.auto_retry_times)
+                            continueRequest = Object.values(retryInfo).some(item => item.max_auto_retry_times > item.auto_retry_times)
                         }
-                        if (!continueRunning) {
+                        if (!continueRequest) {
                             // 添加notContinue字段，防止子任务继续请求
                             this.subprocessTasks[key].notContinue = true
                         }

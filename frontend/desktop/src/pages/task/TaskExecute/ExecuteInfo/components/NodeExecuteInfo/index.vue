@@ -89,7 +89,7 @@
                     <NodeOperationFlow
                         :locations="pipelineTree.location"
                         :node-id="executeInfo.id"
-                        :sub-process-task-id="subProcessTaskId"
+                        :sub-process-task-id="nodeDetailConfig.taskId"
                         :not-performed-sub-node="notPerformedSubNode">
                     </NodeOperationFlow>
                 </section>
@@ -228,11 +228,7 @@
             thirdPartyNodeCode () {
                 if (!this.isThirdPartyNode) return ''
                 const nodeInfo = this.pipelineTree.activities[this.nodeDetailConfig.node_id]
-                if (!nodeInfo) return ''
-                let codeInfo = nodeInfo.component.data
-                codeInfo = codeInfo && codeInfo.plugin_code
-                codeInfo = codeInfo.value
-                return codeInfo
+                return nodeInfo ? nodeInfo.component.data?.plugin_code?.value : ''
             },
             nodeActivity () {
                 const { node_id: nodeId } = this.nodeDetailConfig
@@ -244,9 +240,6 @@
                     [end_event.id]: { ...end_event, name: this.$t('结束节点') }
                 }
                 return nodeMap[nodeId]
-            },
-            subProcessTaskId () { // 独立子流程节点的任务id
-                return this.nodeDetailConfig.taskId
             }
         },
         watch: {

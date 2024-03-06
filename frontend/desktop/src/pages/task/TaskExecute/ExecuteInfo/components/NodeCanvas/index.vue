@@ -120,15 +120,12 @@
             // 更新子流程画布
             updateNodeInfo (nodeStatus) {
                 if (!this.subprocessPipeline) return
-                
-                for (const id in nodeStatus) {
+
+                this.subprocessPipeline.location.forEach(item => {
                     let code, skippable, retryable, errorIgnorable, autoRetry
-                    const currentNode = nodeStatus[id]
-                    const nodeActivity = this.subprocessPipeline.activities[id]
-                    // 独立子流程节点特殊处理
-                    if (this.subProcessTaskId && !nodeStatus) {
-                        return
-                    }
+                    const currentNode = nodeStatus[item.id]
+                    if (!currentNode) return
+                    const nodeActivity = this.subprocessPipeline.activities[item.id]
 
                     if (nodeActivity) {
                         code = nodeActivity.component ? nodeActivity.component.code : ''
@@ -154,9 +151,9 @@
                     }
 
                     this.$nextTick(() => {
-                        this.onUpdateNodeInfo(id, data)
+                        this.onUpdateNodeInfo(item.id, data)
                     })
-                }
+                })
             },
             onUpdateNodeInfo (id, info) {
                 this.$refs.subProcessCanvas && this.$refs.subProcessCanvas.onUpdateNodeInfo(id, info)

@@ -49,7 +49,7 @@
     import VueJsonPretty from 'vue-json-pretty'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import JsonschemaForm from '../..//common/JsonschemaForm.vue'
+    import JsonschemaForm from '../../common/JsonschemaForm.vue'
     import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import tools from '@/utils/tools.js'
     export default {
