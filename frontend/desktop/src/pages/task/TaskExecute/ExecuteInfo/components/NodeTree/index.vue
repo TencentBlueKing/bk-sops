@@ -62,8 +62,10 @@
             }
         },
         data () {
+            const pipelineData = JSON.parse(this.instanceFlow)
             return {
                 nodeData: [],
+                pipelineData,
                 activeId: this.defaultActiveId,
                 nodeIds: {},
                 convergeInfo: {},
@@ -89,9 +91,7 @@
                         parentId = nodes.slice(2)
                     }
                     // 根据父节点过滤节点树
-                    if (!this.nodeData.length) {
-                        this.getNodeData()
-                    }
+                    this.getNodeData()
                     let nodes = this.nodeData
                     parentId = parentId.length ? parentId : val.split('-').slice(1)
                     if (parentId.length) {
@@ -140,9 +140,7 @@
                 handler (val) {
                     if (!val) return
                     // 设置节点树状态
-                    if (!this.nodeData.length) {
-                        this.getNodeData()
-                    }
+                    this.getNodeData()
                     this.nodeAddStatus(this.nodeData, val)
                 },
                 deep: true,
@@ -160,8 +158,8 @@
                 'getTaskInstanceData'
             ]),
             getNodeData () {
-                const nodeData = JSON.parse(this.instanceFlow)
-                this.nodeData = this.getOrderedTree(nodeData)
+                if (this.nodeData.length) return
+                this.nodeData = this.getOrderedTree(this.pipelineData)
             },
             getOrderedTree (data, pipelineInfo = {}) {
                 const startNode = tools.deepClone(data.start_event)

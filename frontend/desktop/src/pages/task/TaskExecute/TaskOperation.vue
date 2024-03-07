@@ -510,7 +510,7 @@
                 const { children = {} } = this.instanceStatus
                 const pendingStatus = ['FAILED', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
                 return Object.values(children).reduce((acc, cur) => {
-                    if (pendingStatus.includes(cur.state)) {
+                    if (pendingStatus.includes(cur.state) && this.activities[cur.id]) {
                         acc.push({
                             id: cur.id,
                             name: this.activities[cur.id].name,
