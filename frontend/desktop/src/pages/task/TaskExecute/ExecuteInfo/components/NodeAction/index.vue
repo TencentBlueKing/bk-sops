@@ -7,7 +7,7 @@
             @click="onContinueClick">
             {{ $t('继续执行') }}
         </bk-button>
-        <template v-if="executingStates.includes(realTimeState.state)">
+        <template v-if="isShowExecStateRelatedBtn">
             <bk-button
                 v-if="realTimeState.state !== 'PENDING_PROCESSING' && (isLegacySubProcess || isSubProcessNode)"
                 theme="primary"
@@ -110,6 +110,7 @@
         },
         data () {
             return {
+                taskStatusDisplayVersion: window.TASK_STATUS_DISPLAY_VERSION,
                 executingStates: ['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION']
             }
         },
@@ -181,6 +182,10 @@
                 return isShow
             },
             isShowContinueBtn () {
+                // 如果状态状态版本为v1，独立子流程节点禁止操作
+                if (this.taskStatusDisplayVersion === 'v1' && this.isSubProcessNode) {
+                    return false
+                }
                 if (this.isLegacySubProcess) {
                     return [this.realTimeState.state, this.executeInfo.state].includes('SUSPENDED')
                 } else if (this.isSubProcessNode) {
@@ -189,6 +194,13 @@
                     return [this.realTimeState.state, taskState].includes('SUSPENDED')
                 }
                 return false
+            },
+            isShowExecStateRelatedBtn () {
+                // 如果状态状态版本为v1，独立子流程节点禁止操作
+                if (this.taskStatusDisplayVersion === 'v1' && this.isSubProcessNode) {
+                    return false
+                }
+                return this.executingStates.includes(this.realTimeState.state)
             },
             location () {
                 const { node_id, subprocess_stack = [] } = this.nodeDetailConfig

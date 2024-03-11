@@ -13,6 +13,7 @@
         var BK_DOC_URL = ''
         var FEEDBACK_URL = ''
         var USERNAME = 'admin';
+        var TAM_PROJECT_ID = ""
         // 用户身份： 管理员
         var IS_SUPERUSER = 1;
         // 用户身份： 职能化
@@ -38,18 +39,27 @@
         var APP_CODE = 'bk_sops';
         var FILE_UPLOAD_ENTRY = '/package/upload/';
         var MAX_NODE_EXECUTE_TIMEOUT = 6000;
+        var PAAS_MAJOR_VERSION = 2
+        var MEMBER_SELECTOR_DATA_HOST = ''
+        var BK_DOMAIN = ''
+        var BK_PAAS_ESB_HOST = ''
+        var TASK_LIST_STATUS_FILTER_DAYS = 180
         // 是否开启通知中心
         var ENABLE_NOTICE_CENTER = true
+        // 任务状态版本
+        var TASK_STATUS_DISPLAY_VERSION ='v1'
         function getCookie(name) {
             var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
             return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;
         }
     </script>
+    <script src="https://cdn-go.cn/aegis/aegis-sdk/latest/aegis.min.js?_bid=3977"></script>
     <script src="http://dev.{BK_PAAS_HOST}:8000/jsi18n/gcloud" type="text/javascript"></script>
     <script src="http://dev.{BK_PAAS_HOST}:8000/static/core/js/paas_api.js" type="text/javascript"></script>
 </head>
 <body>
     <div id="root"></div>
+    <script src="https://push.o.tencent.com/push.js"></script>
 </body>
 
 </html>

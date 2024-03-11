@@ -78,18 +78,21 @@
                         {{ $t('跳过子流程') }}
                     </span>
                 </template>
-                <span v-if="isShowPauseBtn" @click.stop="onSubflowPauseResumeClick('pause')">
-                    <i class="common-icon-dark-circle-pause"></i>
-                    {{ $t('暂停执行') }}
-                </span>
-                <span v-if="isShowContinueBtn" @click.stop="onSubflowPauseResumeClick('resume')">
-                    <i class="bk-icon icon-play-circle-shape"></i>
-                    {{ $t('继续执行') }}
-                </span>
-                <span v-if="isShowForceFailBtn" @click.stop="$emit('onForceFail', node.id)">
-                    <i class="common-icon-dark-force-fail"></i>
-                    {{ $t('强制终止') }}
-                </span>
+                <!--如果状态状态版本为v1，独立子流程节点禁止操作-->
+                <template v-if="taskStatusDisplayVersion !== 'v1' || !isSubProcessNode">
+                    <span v-if="isShowPauseBtn" @click.stop="onSubflowPauseResumeClick('pause')">
+                        <i class="common-icon-dark-circle-pause"></i>
+                        {{ $t('暂停执行') }}
+                    </span>
+                    <span v-if="isShowContinueBtn" @click.stop="onSubflowPauseResumeClick('resume')">
+                        <i class="bk-icon icon-play-circle-shape"></i>
+                        {{ $t('继续执行') }}
+                    </span>
+                    <span v-if="isShowForceFailBtn" @click.stop="$emit('onForceFail', node.id)">
+                        <i class="common-icon-dark-force-fail"></i>
+                        {{ $t('强制终止') }}
+                    </span>
+                </template>
             </template>
         </div>
     </div>
@@ -111,6 +114,11 @@
                 default () {
                     return {}
                 }
+            }
+        },
+        data () {
+            return {
+                taskStatusDisplayVersion: window.TASK_STATUS_DISPLAY_VERSION
             }
         },
         computed: {

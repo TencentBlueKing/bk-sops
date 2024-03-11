@@ -6,7 +6,7 @@
             ext-cls="execute-info-tab"
             @tab-change="onTabChange">
             <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行详情')"></bk-tab-panel>
-            <bk-tab-panel name="config" v-if="isCondition || (!loading && ['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type))" :label="$t('配置快照')"></bk-tab-panel>
+            <bk-tab-panel name="config" v-if="isCondition || ['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type)" :label="$t('配置快照')"></bk-tab-panel>
             <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
             <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
         </bk-tab>
@@ -340,23 +340,27 @@
                     })
                 } else {
                     if (this.isThirdPartyNode) {
-                        const excludeList = []
-                        outputsInfo = outputs.filter(item => {
-                            if (!item.preset) {
-                                excludeList.push(item)
-                            }
-                            return item.preset
-                        })
-                        excludeList.forEach(item => {
-                            const output = this.pluginOutputs.find(output => output.key === item.key)
-                            if (output) {
-                                const { name, key } = output
-                                const info = {
-                                    key,
-                                    name,
-                                    value: item.value
+                        outputs.forEach(param => {
+                            // 判断preset是否为true
+                            if (param.preset) {
+                                outputsInfo.push(param)
+                            } else {
+                                // 判断key是否与插件配置项对应
+                                const output = this.pluginOutputs.find(output => output.key === param.key)
+                                if (output) {
+                                    outputsInfo.push(param)
+                                } else {
+                                    // 判断key是否变量
+                                    const varKey = `\${${param.key}}`
+                                    const varInfo = this.constants[varKey]
+                                    let isHooked = false
+                                    if (varInfo && varInfo.source_type === 'component_outputs') {
+                                        isHooked = this.nodeActivity.id in varInfo.source_info
+                                    }
+                                    if (isHooked) {
+                                        outputsInfo.push(param)
+                                    }
                                 }
-                                outputsInfo.push(info)
                             }
                         })
                     } else if (this.isLegacySubProcess) {
@@ -518,14 +522,39 @@
              * 优先取 store 里的缓存
              */
             async getAtomConfig (config) {
-                const { plugin, version, classify, name } = config
+                const { plugin, version, classify, name, isThird } = config
                 try {
                     // 先取标准节点缓存的数据
                     const pluginGroup = this.atomFormConfig[plugin]
                     if (pluginGroup && pluginGroup[version]) {
                         return pluginGroup[version]
                     }
-                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id: this.project_id })
+                    // 第三方插件
+                    if (isThird) {
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code: plugin,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
+                        if (!resp.result) return
+                        // 获取参数
+                        const { forms, inputs } = resp.data
+                        if (forms.renderform) {
+                            // 获取host
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                            $.context.bk_plugin_api_host[plugin] = hostUrl
+                            // 输入参数
+                            $.atoms[plugin] = {}
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                        } else {
+                            $.atoms[plugin] = inputs
+                        }
+                    } else {
+                        await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id: this.project_id })
+                    }
                     const config = $.atoms[plugin]
                     return config
                 } catch (e) {
