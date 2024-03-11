@@ -95,6 +95,10 @@
                 type: Object,
                 default: () => ({})
             },
+            subprocessState: {
+                type: String,
+                default: ''
+            },
             subprocessPipeline: {
                 type: Object,
                 default: () => ({})

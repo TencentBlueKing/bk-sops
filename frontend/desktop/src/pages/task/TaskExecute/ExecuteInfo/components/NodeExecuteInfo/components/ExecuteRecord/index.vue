@@ -33,7 +33,7 @@
                 <NoData v-else :message="$t('暂无执行信息')"></NoData>
             </section>
             <!-- 任务节点才允许展示输入、输出配置 -->
-            <template v-if="['tasknode', 'subflow'].includes(location.type)">
+            <template v-if="['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type)">
                 <InputParams
                     :admin-view="adminView"
                     :inputs="executeInfo.inputs"
@@ -70,14 +70,6 @@
             adminView: {
                 type: Boolean,
                 default: false
-            },
-            loading: {
-                type: Boolean,
-                default: false
-            },
-            location: {
-                type: Object,
-                default: () => ({})
             },
             executeInfo: {
                 type: Object,

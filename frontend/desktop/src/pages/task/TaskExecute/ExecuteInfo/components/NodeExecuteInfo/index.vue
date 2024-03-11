@@ -6,7 +6,7 @@
             ext-cls="execute-info-tab"
             @tab-change="onTabChange">
             <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行详情')"></bk-tab-panel>
-            <bk-tab-panel name="config" v-if="isCondition || (!loading && ['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
+            <bk-tab-panel name="config" v-if="isCondition || (!loading && ['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type))" :label="$t('配置快照')"></bk-tab-panel>
             <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
             <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
         </bk-tab>
@@ -64,10 +64,6 @@
                 <ExecuteRecord
                     v-if="curActiveTab === 'record'"
                     :admin-view="adminView"
-                    :loading="loading"
-                    :location="location"
-                    :node-state="nodeState"
-                    :node-activity="nodeActivity"
                     :execute-info="executeRecord"
                     :node-detail-config="nodeDetailConfig"
                     :not-performed-sub-node="notPerformedSubNode"
@@ -82,12 +78,10 @@
                     :constants="pipelineTree.constants"
                     :is-third-party-node="isThirdPartyNode"
                     :third-party-node-code="thirdPartyNodeCode"
-                    :not-performed-sub-node="notPerformedSubNode"
                     :is-sub-process-node="isSubProcessNode">
                 </ExecuteInfoForm>
                 <section class="info-section" data-test-id="taskExecute_form_operatFlow" v-else-if="curActiveTab === 'history'">
                     <NodeOperationFlow
-                        :locations="pipelineTree.location"
                         :node-id="executeInfo.id"
                         :sub-process-task-id="nodeDetailConfig.taskId"
                         :not-performed-sub-node="notPerformedSubNode">
@@ -151,16 +145,16 @@
                 type: Object,
                 default: () => ({})
             },
+            nodeActivity: {
+                type: Object,
+                default: () => ({})
+            },
             nodeDetailConfig: {
                 type: Object,
                 default: () => ({}),
                 required: true
             },
             pipelineTree: {
-                type: Object,
-                default: () => ({})
-            },
-            location: {
                 type: Object,
                 default: () => ({})
             },
@@ -175,10 +169,6 @@
             executeInfo: {
                 type: Object,
                 default: () => ({})
-            },
-            nodeState: {
-                type: String,
-                default: ''
             },
             subprocessPipeline: {
                 type: Object,
@@ -229,17 +219,6 @@
                 if (!this.isThirdPartyNode) return ''
                 const nodeInfo = this.pipelineTree.activities[this.nodeDetailConfig.node_id]
                 return nodeInfo ? nodeInfo.component.data?.plugin_code?.value : ''
-            },
-            nodeActivity () {
-                const { node_id: nodeId } = this.nodeDetailConfig
-                const { activities, end_event, start_event, gateways } = this.pipelineTree
-                const nodeMap = {
-                    ...activities,
-                    ...gateways,
-                    [start_event.id]: { ...start_event, name: this.$t('开始节点') },
-                    [end_event.id]: { ...end_event, name: this.$t('结束节点') }
-                }
-                return nodeMap[nodeId]
             }
         },
         watch: {
