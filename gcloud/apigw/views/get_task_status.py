@@ -108,6 +108,11 @@ def get_task_status(request, task_id, project_id):
                     "auto_retry_nodes": auto_retry_waiting_nodes,
                 }
         except Exception as e:
+            logger.error(
+                "task[id={task_id}] extract failed node info error, get_task_status result: {result}".format(
+                    task_id=task_id, result=result
+                )
+            )
             message = "task[id={task_id}] extract failed node info error: {error}".format(task_id=task_id, error=e)
             logger.exception(message)
             return {

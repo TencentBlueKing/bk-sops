@@ -38,9 +38,7 @@ class PauseService(Service):
     def execute(self, data, parent_data):
         task_id: int = parent_data.get_one_of_inputs("task_id")
         send_taskflow_message.delay(
-            task_id=task_id,
-            msg_type=PENDING_PROCESSING,
-            use_root=True,
+            task_id=task_id, msg_type=PENDING_PROCESSING, use_root=True,
         )
         return True
 
@@ -53,10 +51,7 @@ class PauseService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("描述"),
-                key="description",
-                type="string",
-                schema=StringItemSchema(description=_("描述")),
+                name=_("描述"), key="description", type="string", schema=StringItemSchema(description=_("描述")),
             )
         ]
 
@@ -66,10 +61,7 @@ class PauseService(Service):
                 name=_("API回调数据"),
                 key="callback_data",
                 type="object",
-                schema=ObjectItemSchema(
-                    description=_("通过node_callback API接口回调并传入数据,支持dict数据"),
-                    property_schemas={},
-                ),
+                schema=ObjectItemSchema(description=_("通过node_callback API接口回调并传入数据,支持dict数据"), property_schemas={},),
             ),
         ]
 
@@ -87,16 +79,7 @@ class SleepTimerService(Service):
     interval = StaticIntervalGenerator(0)
     BK_TIMEMING_TICK_INTERVAL = int(os.getenv("BK_TIMEMING_TICK_INTERVAL", 60 * 60 * 24))
     #  匹配年月日 时分秒 正则 yyyy-MM-dd HH:mm:ss
-    date_regex = re.compile(
-        r"%s %s"
-        % (
-            r"^(((\d{3}[1-9]|\d{2}[1-9]\d{1}|\d{1}[1-9]\d{2}|[1-9]\d{3}))|"
-            r"(29/02/((\d{2})(0[48]|[2468][048]|[13579][26])|((0[48]|[2468][048]|[3579][26])00))))-"
-            r"((0[13578]|1[02])-((0[1-9]|[12]\d|3[01]))|"
-            r"((0[469]|11)-(0[1-9]|[12]\d|30))|(02)-(0[1-9]|[1]\d|2[0-8]))",
-            r"((0|[1])\d|2[0-3]):(0|[1-5])\d:(0|[1-5])\d$",
-        )
-    )
+    date_regex = re.compile(r"%s %s" % (r"^\d{4}-\d{2}-\d{2}", r"((0|[1])\d|2[0-3]):(0|[1-5])\d:(0|[1-5])\d$"))
 
     seconds_regex = re.compile(r"^\d+$")
 

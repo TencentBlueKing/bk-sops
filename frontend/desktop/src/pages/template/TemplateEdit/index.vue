@@ -1976,6 +1976,8 @@
     }
     .pipeline-canvas-wrapper {
         height: 100%;
+        display: flex;
+        flex-direction: column;
     }
     .template-canvas {
         position: relative;

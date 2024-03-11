@@ -336,7 +336,8 @@
                         type: 'add',
                         id: this.nodeId,
                         key: variableKey,
-                        tagCode: this.hookingVarForm
+                        tagCode: this.hookingVarForm,
+                        reuse: true
                     }
                     this.formData[this.hookingVarForm] = variableKey
                     this.$emit('hookChange', 'reuse', config)
