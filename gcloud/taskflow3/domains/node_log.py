@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
-from urllib.parse import urlencode
 from abc import ABCMeta, abstractmethod
+from urllib.parse import urlencode
 
 import requests
 from django.conf import settings
@@ -38,7 +38,8 @@ class PaaS3NodeLogDataSource(BaseNodeLogDataSource):
             ),
             "Content-Type": "application/json",
         }
-        self.private_token = settings.PAASV3_APIGW_API_TOKEN
+        if settings.PAASV3_APIGW_API_TOKEN:
+            self.headers["Authorization"] = f"Bearer {settings.PAASV3_APIGW_API_TOKEN}"
 
     def fetch_node_logs(self, node_id, version_id, *args, **kwargs):
         page, page_size = kwargs.get("page", 1), kwargs.get("page_size", 30)
@@ -47,7 +48,6 @@ class PaaS3NodeLogDataSource(BaseNodeLogDataSource):
             "page_size": page_size,
             "log_type": "STRUCTURED",
             "time_range": "7d",
-            "private_token": self.private_token,
         }
         url = self.url.rstrip("/") + f"/?{urlencode(url_params)}"
         payload = {"query": {"query_string": f"json.node_id:{node_id} AND json.version:{version_id}"}}

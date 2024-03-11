@@ -150,6 +150,12 @@
 </script>
 <style lang="scss" scoped>
     .task-create-container {
-       height: calc(100vh - 52px);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        margin-top: -1px;
+        .task-create-header {
+            flex-shrink: 0;
+        }
     }
 </style>

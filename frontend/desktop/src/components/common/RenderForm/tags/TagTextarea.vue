@@ -609,6 +609,7 @@
             cursor: pointer;
             white-space: nowrap;
             border: none;
+            user-select: auto;
             &:hover {
                 background: #eaebf0;
             }

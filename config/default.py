@@ -213,7 +213,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.32.0-alpha3"
+STATIC_VERSION = "3.32.0-alpha4"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -844,6 +844,9 @@ TASK_LIST_STATUS_FILTER_DAYS = env.BKPAAS_TASK_LIST_STATUS_FILTER_DAYS
 # 第三方插件特殊轮询时间配置
 REMOTE_PLUGIN_FIX_INTERVAL_CODES = env.REMOTE_PLUGIN_FIX_INTERVAL_CODES
 REMOTE_PLUGIN_FIX_INTERVAL = env.REMOTE_PLUGIN_FIX_INTERVAL
+
+# 通知中心
+BK_NOTICE = {"BK_API_URL_TMPL": env.BK_APIGW_URL_TMPL or ""}
 
 # 支持限制接口的 app
 ALLOWED_LIMITED_API_APPS = env.ALLOWED_LIMITED_API_APPS

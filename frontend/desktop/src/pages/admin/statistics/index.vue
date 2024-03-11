@@ -170,7 +170,9 @@
     @import '@/scss/mixins/scrollbar.scss';
 
     .page-statistics {
-        height: calc(100vh - 52px);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
         background: #f4f7fa;
         .statistics-content {
             padding: 20px 24px;
