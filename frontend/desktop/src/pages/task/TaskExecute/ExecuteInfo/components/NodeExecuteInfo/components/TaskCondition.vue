@@ -75,7 +75,6 @@
             isShow: Boolean,
             gateways: Object,
             conditionData: Object,
-            backToVariablePanel: Boolean,
             isReadonly: {
                 type: Boolean,
                 default: false

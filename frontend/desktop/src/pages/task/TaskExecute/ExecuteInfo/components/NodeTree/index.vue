@@ -14,7 +14,7 @@
         <NodeTreeItem
             :active-id="activeId"
             :node-list="nodeData"
-            @dynamicLoad="$emit('dynamicLoad', $event)"
+            @dynamicLoad="handleDynamicLoad"
             @click="handleClickNode">
         </NodeTreeItem>
     </div>
@@ -52,10 +52,6 @@
                 type: Object,
                 default: () => ({})
             },
-            subNodesExpanded: {
-                type: Array,
-                default: () => ([])
-            },
             loading: {
                 type: Boolean,
                 default: true
@@ -72,7 +68,8 @@
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
                 allCheckoutNodes: [],
-                subprocessLoading: false
+                subprocessLoading: false,
+                subNodesExpanded: [] // 节点树展开的独立子流程节点
             }
         },
         watch: {
@@ -123,14 +120,18 @@
                                 this.subprocessLoading = true
                                 // 获取子流程任务详情
                                 await this.getSubprocessData(taskId, nodeInfo, true)
-                                this.$emit('updateSubprocessState', taskId)
+                                this.$emit('updateSubprocessState', {
+                                    root_node,
+                                    node_id,
+                                    taskId
+                                })
                             } catch (error) {
                                 console.warn(error)
                             }
                         } else {
                             nodeInfo.dynamicLoad = false
                             this.subprocessLoading = false
-                            this.$emit('setSubNodeExpanded', nodeInfo)
+                            this.setSubNodeExpanded(nodeInfo)
                         }
                     }
                 },
@@ -757,12 +758,15 @@
                         nodeInfo.dynamicLoad = false
                         nodeInfo.expanded = true
 
-                        this.canvasRandomKey = new Date().getTime()
-                        this.$emit('updateNodeTree', {
+                        this.$emit('updateParentPipelineData', {
                             parentId,
                             nodeId: nodeInfo.id,
                             pipeline: { ...pipelineTree, taskId }
                         })
+                        // 如果当前选中的节点是子流程下的节点，且是子流程未执行时选中的，那么当节点树变更时默认选中该子流程
+                        if (this.executeInfo.state === 'READY' && this.nodeDetailConfig.root_node?.indexOf(nodeInfo.id) > -1) {
+                            this.handleClickNode(nodeInfo)
+                        }
                     }
                 } catch (error) {
                     console.warn(error)
@@ -772,9 +776,9 @@
             // 设置节点树状态
             nodeAddStatus (treeData = [], states) {
                 treeData.forEach(node => {
-                    const { id, conditionType, children } = node
+                    const { id, conditionType, children = [] } = node
                     if (conditionType) {
-                        if (children?.length) {
+                        if (children.length) {
                             this.nodeAddStatus(children, states)
                         }
                         return
@@ -788,18 +792,101 @@
                     const index = this.subNodesExpanded.findIndex(item => item === node.id)
                     if (index > -1) {
                         this.subNodesExpanded.splice(index, 1)
-                        this.$emit('dynamicLoad', node, true)
+                        this.handleDynamicLoad(node, true)
                     }
-                    if (children) {
+                    if (children.length) {
                         this.nodeAddStatus(children, states)
                     }
                 })
             },
+            // 只点击子流程展开/收起
+            async handleDynamicLoad (node, updateState) {
+                try {
+                    // 检查是否需要更新子流程状态
+                    if (!updateState) {
+                        // 如果节点未动态加载、已收起或未执行，则不进行更新
+                        if (!node.dynamicLoad || !node.expanded || !node.state) {
+                            if (!node.state) {
+                                // 子流程任务未执行，更新节点状态并记录
+                                node.dynamicLoad = false
+                                this.subprocessLoading = false
+                                this.setSubNodeExpanded(node)
+                            }
+                            return
+                        }
+                    }
+                    const { instance_id } = this.$route.query
+                    // 该独立子流程节点的父流程也可能为独立子流程
+                    const nodeDetailConfig = this.getNodeDetailConfig(node, node.taskId || instance_id)
+                    const parentInstance = this.$parent.$parent
+                    const nodeConfig = await parentInstance.getTaskNodeDetail(nodeDetailConfig)
+                    if (!nodeConfig) return
+
+                    // 获取子流程任务id
+                    const taskInfo = nodeConfig.outputs.find(item => item.key === 'task_id') || {}
+                    this.subprocessLoading = false
+                    // 更新子流程树
+                    const taskId = taskInfo.value
+                    if (taskId) {
+                        await this.getSubprocessData(taskId, node, updateState)
+                        this.$emit('updateSubprocessState', {
+                            root_node: node.parentId,
+                            node_id: node.id,
+                            taskId
+                        })
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            // 获取节点配置
+            getNodeDetailConfig (node, instance_id) {
+                const { id, parentId, taskId } = node
+                let pipelineData = this.pipelineData
+                if (parentId) {
+                    parentId.split('-').forEach(item => {
+                        const nodeData = pipelineData.activities[item]
+                        pipelineData = nodeData.pipeline || nodeData.component.data?.subprocess?.value?.pipeline || pipelineData
+                    })
+                }
+                let code, version, componentData
+                const nodeInfo = pipelineData.activities[id]
+                if (nodeInfo) {
+                    componentData = nodeInfo.component.data
+                    code = nodeInfo.component.code
+                    version = nodeInfo.component.version || 'legacy'
+                }
+                this.isCondition = false
+                const subprocessStack = parentId && !taskId ? parentId.split('-') : []
+                return {
+                    component_code: code,
+                    version: version,
+                    node_id: id,
+                    instance_id,
+                    root_node: parentId,
+                    subprocess_stack: JSON.stringify(subprocessStack),
+                    componentData
+                }
+            },
+            // 记录独立子流程展开收起
+            setSubNodeExpanded (node) {
+                // 子任务展开收起
+                if (node.expanded) { // 记录展开的子流程id
+                    if (!this.subNodesExpanded.includes(node.id)) {
+                        this.subNodesExpanded.push(node.id)
+                    }
+                } else {
+                    const index = this.subNodesExpanded.findIndex(item => item === node.id)
+                    if (index > -1) {
+                        this.subNodesExpanded.splice(index, 1)
+                    }
+                }
+            },
+            // 获取节点树节点详情
             getNodeInfo (data, rootId, nodeId) {
                 let nodes = data
                 if (rootId) {
-                    const parentId = rootId.split('-') || []
-                    parentId.forEach(id => {
+                    rootId.split('-').forEach(id => {
                         nodes.some(item => {
                             if (item.id === id) {
                                 nodes = item.children
@@ -810,11 +897,10 @@
                 }
                 let nodeInfo
                 nodes.some(item => {
-                    const { id, children } = item
-                    if (id === nodeId) {
+                    if (item.id === nodeId) {
                         nodeInfo = item
                         return true
-                    } else if (children && children.length) {
+                    } else if (item.children?.length) {
                         nodeInfo = this.getNodeInfo(item.children, '', nodeId)
                         return !!nodeInfo
                     }

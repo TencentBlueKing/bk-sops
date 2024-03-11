@@ -21,17 +21,14 @@
                 :execute-info="executeInfo"
                 :node-state-mapping="nodeStateMapping"
                 :node-detail-config="nodeDetailConfig"
-                :sub-nodes-expanded="subNodesExpanded"
                 @updateSubprocessLoading="subprocessLoading = $event"
-                @updateNodeTree="updateNodeTree"
+                @updateParentPipelineData="updateParentPipelineData"
                 @updateSubprocessState="updateSubprocessState"
-                @setSubNodeExpanded="setSubNodeExpanded"
-                @dynamicLoad="handleDynamicLoad"
                 @onSelectNode="onSelectNode">
             </NodeTree>
             <div slot="main" class="execute-content">
                 <div class="execute-head">
-                    <span class="node-name">{{isCondition ? conditionData.name : nodeActivity.name || executeInfo.name}}</span>
+                    <span class="node-name">{{isCondition ? conditionData.name : nodeActivity.name}}</span>
                     <bk-divider direction="vertical"></bk-divider>
                     <div class="node-state">
                         <span :class="displayState"></span>
@@ -47,18 +44,18 @@
                         :node-state-mapping="nodeStateMapping"
                         :subprocess-state="subprocessState"
                         :subprocess-pipeline="subprocessPipeline"
-                        @onNodeClick="onNodeClick">
+                        @onNodeClick="handleSubCanvasNodeClick">
                     </NodeCanvas>
                     <NodeExecuteInfo
-                        v-if="location"
+                        v-if="nodeActivity"
                         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
                         :key="nodeDetailConfig.node_id"
                         :loading="loading"
-                        :location="location"
                         :is-condition="isCondition"
                         :is-show="isShow"
                         :gateways="gateways"
                         :condition-data="conditionData"
+                        :node-activity="nodeActivity"
                         :node-detail-config="nodeDetailConfig"
                         :pipeline-tree="pipelineData"
                         :not-performed-sub-node="notPerformedSubNode"
@@ -81,6 +78,7 @@
                     :subprocess-nodes-state="subprocessNodesState"
                     :pipeline-data="pipelineData"
                     :execute-info="executeInfo"
+                    :subprocess-state="subprocessState"
                     :subprocess-pipeline="subprocessPipeline"
                     :auto-retry-info="autoRetryInfo"
                     @onRetryClick="onRetryClick"
@@ -100,7 +98,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import axios from 'axios'
-    import { TASK_STATE_DICT } from '@/constants/index.js'
+    import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
     import NodeTree from './components/NodeTree/index.vue'
     import NodeCanvas from './components/NodeCanvas/index.vue'
     import NodeExecuteInfo from './components/NodeExecuteInfo/index.vue'
@@ -159,18 +157,8 @@
                 required: true
             },
             isShow: Boolean,
-            constants: Object,
             gateways: Object,
             conditionData: Object,
-            backToVariablePanel: Boolean,
-            isReadonly: {
-                type: Boolean,
-                default: false
-            },
-            smallMapImg: {
-                type: String,
-                default: ''
-            },
             sidebarWidth: Number
         },
         data () {
@@ -183,8 +171,6 @@
                 subprocessLoading: true,
                 subprocessTasks: {},
                 subprocessNodesState: {},
-                subNodesExpanded: [], // 节点树展开的独立子流程节点
-                subProcessHeight: 160,
                 notPerformedSubNode: false // 是否为未执行的独立子流程节点
             }
         },
@@ -202,15 +188,14 @@
             },
             // 子任务状态
             subprocessState () {
-                const { type, component } = this.nodeActivity
-                const { root_node } = this.nodeDetailConfig
+                const { root_node, type, component_code } = this.nodeDetailConfig
                 const { taskId } = this.subprocessPipeline || {}
                 let state = 'READY'
                 if (type === 'Subprocess') { // 非独立子流程节点
                     state = this.realTimeState.subprocess_state || state
                 } else if (taskId) { // 独立子流程节点/独立子流程下的节点
                     state = this.subprocessNodesState[taskId]?.state || state
-                } else if (root_node && component && component.code !== 'subprocess_plugin') { // 非独立子流程下的节点
+                } else if (root_node && component_code !== 'subprocess_plugin') { // 非独立子流程下的节点
                     const parentNode = root_node.split('-').slice(-1)[0]
                     state = this.nodeStateMapping[parentNode]?.subprocess_state || state
                 }
@@ -256,20 +241,18 @@
                 const { state, skip, error_ignored } = this.realTimeState
                 return skip ? i18n.t('失败后手动跳过') : error_ignored ? i18n.t('失败后自动跳过') : state && TASK_STATE_DICT[state]
             },
-            location () {
-                const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
-                return this.pipelineData.location.find(item => {
-                    if (item.id === node_id || subprocess_stack.includes(item.id)) {
-                        return true
-                    }
-                })
-            },
             nodeActivity () {
                 const { node_id: nodeId } = this.nodeDetailConfig
                 const { activities, end_event, start_event, gateways } = this.pipelineData
                 const nodeMap = {
                     ...activities,
-                    ...gateways,
+                    ...Object.values(gateways).reduce((acc, cur) => {
+                        acc[cur.id] = {
+                            ...cur,
+                            name: NODE_DICT[cur.type.toLowerCase()]
+                        }
+                        return acc
+                    }, {}),
                     [start_event.id]: { ...start_event, name: this.$t('开始节点') },
                     [end_event.id]: { ...end_event, name: this.$t('结束节点') }
                 }
@@ -433,13 +416,11 @@
                 }
             },
             // 子流程画布节点点击
-            onNodeClick (node) {
-                let parentId = ''
+            handleSubCanvasNodeClick (node) {
                 const { node_id: nodeId, root_node: rootNode } = this.nodeDetailConfig
+                let parentId = rootNode
                 if (nodeId === this.subprocessPipeline.id) {
                     parentId = rootNode ? `${rootNode}-${nodeId}` : nodeId
-                } else {
-                    parentId = rootNode
                 }
                 const nodeInfo = this.getNodeInfo(parentId, node)
                 if (nodeInfo) {
@@ -495,9 +476,8 @@
                         this.moveNodeToView(node.id)
                     }
                     // 更新子流程画布状态
-                    if (this.subprocessPipeline) {
-                        this.$refs.nodeCanvas.updateNodeInfo(this.nodeStateMapping)
-                    }
+                    const nodeCanvas = this.$refs.nodeCanvas
+                    nodeCanvas && nodeCanvas.updateNodeInfo(this.nodeStateMapping)
                 })
             },
             // 移动画布，将节点放到画布中央
@@ -516,7 +496,7 @@
                 }
             },
             // 更新父级节点树
-            updateNodeTree (data) {
+            updateParentPipelineData (data) {
                 const { parentId, nodeId, pipeline } = data
                 const parentInstance = this.$parent.$parent
                 let pipelineData = parentInstance.nodeTreePipelineData
@@ -526,11 +506,7 @@
                         if (nodeData.pipeline) {
                             pipelineData = nodeData.pipeline
                         } else {
-                            let { data: componentData } = nodeData.component
-                            componentData = componentData && componentData.subprocess
-                            componentData = componentData && componentData.value
-                            componentData = componentData && componentData.pipeline
-                            pipelineData = componentData || pipelineData
+                            pipelineData = nodeData.component.data?.subprocess?.value?.pipeline || pipelineData
                         }
                     })
                 }
@@ -539,8 +515,8 @@
                 this.canvasRandomKey = new Date().getTime()
             },
             // 更新子任务状态
-            updateSubprocessState (taskId) {
-                const { root_node, node_id } = this.nodeDetailConfig
+            updateSubprocessState (info) {
+                const { root_node, node_id, taskId } = info
                 this.subprocessTasks[taskId] = {
                     root_node,
                     node_id
@@ -548,95 +524,7 @@
                 // 获取独立子流程任务状态
                 this.loadSubprocessState()
             },
-            // 只点击子流程展开/收起
-            async handleDynamicLoad (node, updateState) {
-                try {
-                    if (!updateState) {
-                        // 独立子流程任务节点
-                        if (!node.dynamicLoad) return
-                        // 记录子流程展开收起
-                        this.setSubNodeExpanded(node)
-                        // 节点收起
-                        if (!node.expanded) return
-                        // 子流程任务未执行时，节点树从父流程取
-                        if (!node.state) {
-                            node.dynamicLoad = false
-                            this.subprocessLoading = false
-                            return
-                        }
-                    }
-                    const { id, parentId } = node
-                    const { instance_id } = this.$route.query
-                    // 该独立子流程节点的父流程也可能为独立子流程
-                    const nodeDetailConfig = this.getNodeDetailConfig(node, node.taskId || instance_id)
-                    const nodeConfig = await this.getTaskNodeDetail(nodeDetailConfig)
-                    if (!nodeConfig) return
-                    // 获取子流程任务id
-                    const taskInfo = nodeConfig.outputs.find(item => item.key === 'task_id') || {}
-                    const taskId = taskInfo.value
-                    this.subprocessLoading = false
-                    if (taskId) { // 子流程任务已执行才可以查详情和状态
-                        // 更新子流程树
-                        this.$refs.nodeTree.getSubprocessData(taskId, node, updateState)
-                        this.subprocessTasks[taskId] = {
-                            root_node: parentId,
-                            node_id: id
-                        }
-                        this.loadSubprocessState()
-                    }
-                } catch (error) {
-                    console.warn(error)
-                }
-            },
-            // 获取节点配置
-            getNodeDetailConfig (node, instance_id) {
-                const { id, parentId, taskId } = node
-                let pipelineData = this.pipelineData
-                if (parentId) {
-                    const parentIdList = parentId.split('-')
-                    parentIdList.forEach(item => {
-                        const nodeData = pipelineData.activities[item]
-                        if (nodeData.pipeline) {
-                            pipelineData = nodeData.pipeline
-                        } else {
-                            const componentData = nodeData.component.data?.subprocess?.value?.pipeline
-                            pipelineData = componentData || pipelineData
-                        }
-                    })
-                }
-                let code, version, componentData
-                const nodeInfo = pipelineData.activities[id]
-                if (nodeInfo) {
-                    componentData = nodeInfo.component.data
-                    code = nodeInfo.component.code
-                    version = nodeInfo.component.version || 'legacy'
-                }
-                this.isCondition = false
-                const subprocessStack = parentId && !taskId ? parentId.split('-') : []
-                return {
-                    component_code: code,
-                    version: version,
-                    node_id: id,
-                    instance_id,
-                    root_node: parentId,
-                    subprocess_stack: JSON.stringify(subprocessStack),
-                    componentData
-                }
-            },
-            // 记录独立子流程展开收起
-            setSubNodeExpanded (node) {
-                // 子任务展开收起
-                if (node.expanded) { // 记录展开的子流程id
-                    if (!this.subNodesExpanded.includes(node.id)) {
-                        this.subNodesExpanded.push(node.id)
-                    }
-                } else {
-                    const index = this.subNodesExpanded.findIndex(item => item === node.id)
-                    if (index > -1) {
-                        this.subNodesExpanded.splice(index, 1)
-                    }
-                }
-            },
+            // 获取节点树节点详情
             getNodeInfo (rootId, nodeId) {
                 let nodeInfo = null
                 const nodeTreeRef = this.$refs.nodeTree
@@ -849,7 +737,7 @@
             }
         }
         &.subprocess-scroll {
-            .scroll-area {
+            /deep/.scroll-area {
                 overflow-y: initial;
             }
         }
