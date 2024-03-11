@@ -24,6 +24,7 @@ from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
 from bamboo_engine.eri import ContextValue
 from django.apps import apps
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -768,7 +769,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             status_tree["state"] = TaskExtraStatus.PENDING_PROCESSING.value
         elif status_tree["state"] == bamboo_engine_states.RUNNING:
             # 独立子流程下钻
-            if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
+            if settings.TASK_STATUS_DISPLAY_VERSION != "v1" and status_tree["id"] in node_ids_gby_code.get(
+                "subprocess_plugin", set()
+            ):
                 self.handle_subprocess_node_status(status_tree)
                 status_tree["subprocess_state"] = status_tree.get("state", "")
                 # 已暂停 -> 等待处理
@@ -785,7 +788,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         status_tree["state"] = code__status_map[code]
 
         elif status_tree["state"] == bamboo_engine_states.FAILED:
-            if status_tree["id"] in node_ids_gby_code.get("subprocess_plugin", set()):
+            if settings.TASK_STATUS_DISPLAY_VERSION != "v1" and status_tree["id"] in node_ids_gby_code.get(
+                "subprocess_plugin", set()
+            ):
                 AutoRetryNodeStrategy = apps.get_model("taskflow3", "AutoRetryNodeStrategy")
                 if AutoRetryNodeStrategy.objects.filter(root_pipeline_id=status_tree["id"]).exists():
                     self.handle_subprocess_node_status(status_tree)
