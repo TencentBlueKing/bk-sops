@@ -127,6 +127,7 @@ def mysetting(request):
         "ENABLE_NOTICE_CENTER": enable_notice_center,
         "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
         "MESSAGE_HELPER_URL": settings.MESSAGE_HELPER_URL,
+        "TASK_STATUS_DISPLAY_VERSION": settings.TASK_STATUS_DISPLAY_VERSION,
     }
 
     # custom context config

@@ -112,6 +112,9 @@ MAX_RECORDED_NODE_EXECUTION_TIMES = int(os.getenv("BKAPP_MAX_RECORDED_NODE_EXECU
 # 获取 PaaS 注入的蓝鲸域名
 BKPAAS_BK_DOMAIN = os.getenv("BKPAAS_BK_DOMAIN", "") or os.getenv("BK_DOMAIN", "")
 
+# 任务状态展示版本, v2 为支持了等待处理展示的版本，修改为 v1 会退化为不计算独立子任务的状态
+TASK_STATUS_DISPLAY_VERSION = os.getenv("BKAPP_TASK_STATUS_DISPLAY_VERSION", "v2")
+
 
 # 获取加密类型
 BKPAAS_BK_CRYPTO_TYPE = (

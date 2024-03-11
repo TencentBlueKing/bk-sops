@@ -797,6 +797,8 @@ def check_engine_admin_permission(request, *args, **kwargs):
 
 PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"
 
+TASK_STATUS_DISPLAY_VERSION = env.TASK_STATUS_DISPLAY_VERSION
+
 
 BKCRYPTO = {
     "ASYMMETRIC_CIPHERS": {
