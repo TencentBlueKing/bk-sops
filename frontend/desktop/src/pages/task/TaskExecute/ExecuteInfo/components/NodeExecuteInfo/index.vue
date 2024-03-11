@@ -340,23 +340,27 @@
                     })
                 } else {
                     if (this.isThirdPartyNode) {
-                        const excludeList = []
-                        outputsInfo = outputs.filter(item => {
-                            if (!item.preset) {
-                                excludeList.push(item)
-                            }
-                            return item.preset
-                        })
-                        excludeList.forEach(item => {
-                            const output = this.pluginOutputs.find(output => output.key === item.key)
-                            if (output) {
-                                const { name, key } = output
-                                const info = {
-                                    key,
-                                    name,
-                                    value: item.value
+                        outputs.forEach(param => {
+                            // 判断preset是否为true
+                            if (param.preset) {
+                                outputsInfo.push(param)
+                            } else {
+                                // 判断key是否与插件配置项对应
+                                const output = this.pluginOutputs.find(output => output.key === param.key)
+                                if (output) {
+                                    outputsInfo.push(param)
+                                } else {
+                                    // 判断key是否变量
+                                    const varKey = `\${${param.key}}`
+                                    const varInfo = this.constants[varKey]
+                                    let isHooked = false
+                                    if (varInfo && varInfo.source_type === 'component_outputs') {
+                                        isHooked = this.nodeActivity.id in varInfo.source_info
+                                    }
+                                    if (isHooked) {
+                                        outputsInfo.push(param)
+                                    }
                                 }
-                                outputsInfo.push(info)
                             }
                         })
                     } else if (this.isLegacySubProcess) {
