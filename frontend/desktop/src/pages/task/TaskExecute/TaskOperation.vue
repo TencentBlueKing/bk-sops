@@ -1155,14 +1155,13 @@
                     componentData
                 }
             },
-            async onRetryClick (id, info) {
+            async onRetryClick (id, info = {}) {
                 try {
-                    const { taskId } = info || {}
-                    this.subProcessTaskId = taskId
+                    this.subProcessTaskId = info.taskId
                     // 独立子任务重试使用二次确认弹框
-                    if (this.isChildTaskFlow || (info && info.isSubNode)) {
+                    if (this.isChildTaskFlow || info.isSubNode) {
                         const nodeConfig = this.nodeTreePipelineData.activities[id]
-                        const name = info ? info.name : nodeConfig.name
+                        const name = info.name || nodeConfig.name
                         const title = info.isSubProcessNode
                             ? this.$t('确定重试子流程【n】 ？', { n: name })
                             : this.$t('确定重试节点【n】 ？', { n: name })
@@ -1194,7 +1193,7 @@
                         })
                         return
                     }
-                    const resp = await this.getInstanceRetryParams({ id: taskId || this.instance_id })
+                    const resp = await this.getInstanceRetryParams({ id: info.taskId || this.instance_id })
                     if (resp.data.enable) {
                         this.openNodeInfoPanel('retryNode', i18n.t('重试节点'))
                         this.setNodeDetailConfig(id)

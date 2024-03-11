@@ -6,7 +6,7 @@
             ext-cls="execute-info-tab"
             @tab-change="onTabChange">
             <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行详情')"></bk-tab-panel>
-            <bk-tab-panel name="config" v-if="isCondition || (!loading && ['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type))" :label="$t('配置快照')"></bk-tab-panel>
+            <bk-tab-panel name="config" v-if="isCondition || ['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type)" :label="$t('配置快照')"></bk-tab-panel>
             <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
             <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
         </bk-tab>

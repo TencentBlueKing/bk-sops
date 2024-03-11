@@ -153,7 +153,7 @@
                 const { auto_retry_info: autoRetryInfo = {} } = this.node
                 return {
                     h: !!Object.keys(autoRetryInfo).length,
-                    m: autoRetryInfo.m || 0,
+                    m: autoRetryInfo.auto_retry_times || 0,
                     c: autoRetryInfo.max_auto_retry_times || 10
                 }
             }
