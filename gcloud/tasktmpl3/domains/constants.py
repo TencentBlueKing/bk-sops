@@ -169,7 +169,8 @@ def preview_node_inputs(
     else:
         raise Exception(f"can not preview inputs for node type: {node_type}")
     raw_inputs = {key: info["value"] for key, info in raw_inputs.items()}
-    hydrated_context = context.hydrate(deformat=True)
+    need_render = pipeline["activities"][node_id]["component"]["inputs"]["job_content"]["need_render"]
+    hydrated_context = context.hydrate(deformat=need_render)
     inputs = Template(raw_inputs).render(hydrated_context)
     return inputs
 
