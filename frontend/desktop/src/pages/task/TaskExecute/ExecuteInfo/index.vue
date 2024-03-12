@@ -48,7 +48,6 @@
                     </NodeCanvas>
                     <NodeExecuteInfo
                         v-if="nodeActivity"
-                        v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
                         :key="nodeDetailConfig.node_id"
                         :loading="loading"
                         :is-condition="isCondition"
