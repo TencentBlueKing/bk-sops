@@ -1,5 +1,8 @@
 <template>
-    <div :class="['node-execute-info', { 'loading': loading }]" :key="randomKey">
+    <div
+        :class="['node-execute-info', { 'loading': loading || isRecordLoading }]"
+        v-bkloading="{ isLoading: loading || isRecordLoading, opacity: 1, zIndex: 100 }"
+        :key="randomKey">
         <bk-tab
             :active.sync="curActiveTab"
             type="unborder-card"
@@ -186,6 +189,7 @@
         data () {
             return {
                 randomKey: null,
+                isRecordLoading: true,
                 curActiveTab: 'record',
                 loop: 1,
                 theExecuteTime: undefined,
@@ -244,6 +248,7 @@
             ]),
             async initLoad () {
                 try {
+                    this.isRecordLoading = true
                     const record = await this.getExecuteRecord(this.executeInfo)
                     // 设置执行次数和循环次数
                     if (this.theExecuteTime === undefined) {
@@ -261,6 +266,8 @@
                     this.executeRecord = record
                 } catch (error) {
                     console.warn(error)
+                } finally {
+                    this.isRecordLoading = false
                 }
             },
             // 获取执行记录数据
@@ -352,7 +359,7 @@
                                 } else {
                                     // 判断key是否变量
                                     const varKey = `\${${param.key}}`
-                                    const varInfo = this.constants[varKey]
+                                    const varInfo = this.pipelineTree.constants[varKey]
                                     let isHooked = false
                                     if (varInfo && varInfo.source_type === 'component_outputs') {
                                         isHooked = this.nodeActivity.id in varInfo.source_info
