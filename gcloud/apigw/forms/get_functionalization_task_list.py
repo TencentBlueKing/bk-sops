@@ -19,6 +19,8 @@ class GetFunctionalizationTaskListForm(forms.Form):
     task_id_in = forms.CharField(required=False)
     id_in = forms.CharField(required=False)
     project_id = forms.IntegerField(required=False)
+    create_time__lte = forms.DateTimeField(required=False)
+    create_time__gte = forms.DateTimeField(required=False)
 
     def _list_field_validate(self, field_name):
         field_value = self.cleaned_data.get(field_name)
