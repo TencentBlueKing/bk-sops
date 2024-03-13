@@ -92,6 +92,7 @@
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
                         return { ...item, mode: 'execute', checked: true, code, ready: true }
                     }),
+                    gateways,
                     branchConditions
                 }
             }
