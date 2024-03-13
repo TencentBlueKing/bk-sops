@@ -856,7 +856,6 @@
                     code = nodeInfo.component.code
                     version = nodeInfo.component.version || 'legacy'
                 }
-                this.isCondition = false
                 const subprocessStack = parentId && !taskId ? parentId.split('-') : []
                 return {
                     component_code: code,

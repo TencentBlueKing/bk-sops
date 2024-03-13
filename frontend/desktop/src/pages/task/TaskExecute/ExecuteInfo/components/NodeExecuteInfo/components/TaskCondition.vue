@@ -17,8 +17,8 @@
                     {{ $t('分支类型') }}
                 </label>
                 <bk-radio-group v-model="branchType">
-                    <bk-radio :value="'customize'" :disabled="isReadonly">{{ $t('自定义分支') }}</bk-radio>
-                    <bk-radio :value="'default'" :disabled="isReadonly || hasDefaultBranch">
+                    <bk-radio :value="'customize'" disabled>{{ $t('自定义分支') }}</bk-radio>
+                    <bk-radio :value="'default'" disabled>
                         {{ $t('默认分支') }}
                         <i v-bk-tooltips="defaultTipsConfig" class="common-icon-info"></i>
                     </bk-radio>
@@ -47,14 +47,11 @@
                         <p>{{ $t('包含：') }}<code class="code">${key} in (1,2,3)</code></p>
                     </div>
                     <full-code-editor
-                        v-validate="expressionRule"
                         name="expression"
                         :value="expression"
-                        :options="{ language: 'python', readOnly: isReadonly }"
-                        @input="onDataChange">
+                        :options="{ language: 'python', readOnly: true }">
                     </full-code-editor>
                 </div>
-                <span v-show="veeErrors.has('expression')" class="common-error-tip error-msg">{{ veeErrors.first('expression') }}</span>
             </div>
         </div>
     </div>
@@ -62,8 +59,6 @@
 
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapMutations } from 'vuex'
-    import { NAME_REG } from '@/constants/index.js'
     import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
 
     export default {
@@ -72,107 +67,21 @@
             FullCodeEditor
         },
         props: {
-            isShow: Boolean,
-            gateways: Object,
-            conditionData: Object,
-            isReadonly: {
-                type: Boolean,
-                default: false
-            }
+            conditionData: Object
         },
         data () {
-            const { name, value, id, nodeId } = this.conditionData
-            const gwConfig = this.gateways[nodeId]
-            const defaultCondition = gwConfig && gwConfig.default_condition // 默认分支配置
-            const isDefaultBranch = defaultCondition && defaultCondition.flow_id === id // 当前分支是否为默认分支
-            const branchType = isDefaultBranch ? 'default' : 'customize'
-            let hasDefaultBranch = false
-            if (defaultCondition && defaultCondition.flow_id !== id) {
-                hasDefaultBranch = true
-            }
             return {
-                branchType, // 当前分支类型
-                hasDefaultBranch, // 是否存在默认分支(不包含当前分支)
                 defaultTipsConfig: {
                     width: 216,
                     content: i18n.t('所有分支均不匹配时执行，类似switch-case-default里面的default'),
                     placements: ['bottom-start']
                 },
-                conditionName: name,
-                expression: value,
-                conditionRule: {
-                    required: true,
-                    max: 20,
-                    regex: NAME_REG
-                },
-                expressionRule: {
-                    required: true
-                }
+                expression: this.conditionData.value
             }
         },
-        watch: {
-            conditionData (val) {
-                const { name, value } = val
-                this.conditionName = name
-                this.expression = value
-            },
-            branchType: {
-                handler (val) {
-                    if (val === 'default') {
-                        this.conditionName = i18n.t('默认')
-                    } else {
-                        this.conditionName = this.conditionData.name
-                    }
-                }
-            }
-        },
-        methods: {
-            ...mapMutations('template/', [
-                'setBranchCondition'
-            ]),
-            onDataChange (val) {
-                this.expression = val
-            },
-            // 关闭配置面板
-            onBeforeClose () {
-                if (this.isReadonly) {
-                    this.close()
-                    return true
-                }
-                const { name, value } = this.conditionData
-                if (this.conditionName === name && this.expression === value) {
-                    this.close()
-                    return true
-                }
-                this.$emit('onBeforeClose')
-            },
-            confirm () {
-                this.$validator.validateAll().then(result => {
-                    if (result) {
-                        const { id, nodeId, tag, overlayId, loc } = this.conditionData
-                        const data = {
-                            id,
-                            nodeId,
-                            overlayId,
-                            loc,
-                            value: this.branchType === 'default' ? undefined : this.expression.trim(),
-                            name: this.conditionName
-                        }
-                        if (this.branchType === 'default') {
-                            data.default_condition = {
-                                name: this.conditionName,
-                                tag,
-                                flow_id: id
-                            }
-                        }
-                        this.setBranchCondition(data)
-                        this.$emit('updataCanvasCondition', data)
-                        this.close()
-                    }
-                })
-            },
-            close (openVariablePanel) {
-                this.$emit('close', openVariablePanel)
+        computed: {
+            branchType () {
+                return this.conditionData.conditionType === 'default' ? 'default' : 'customize'
             }
         }
     }
@@ -247,12 +156,6 @@
             &.quote-info {
                 margin-left: 0px;
             }
-        }
-        .btn-wrap {
-            position: relative;
-            padding: 8px 20px;
-            border-top: 1px solid #cacedb;
-            background: #fff;
         }
     }
     .code-wrapper .full-code-editor {

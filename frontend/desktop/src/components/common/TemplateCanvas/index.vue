@@ -924,7 +924,8 @@
                         // 兼容旧数据，分支条件里没有 name 属性的情况
                         const labelName = conditionInfo.name || labelValue
                         const loc = ('loc' in conditionInfo) ? conditionInfo.loc : -70
-                        const gatewayInfo = this.$store.state.template.gateways[line.source.id]
+                        const gateways = this.canvasData.gateways || this.$store.state.template.gateways
+                        const gatewayInfo = gateways[line.source.id]
                         let defaultCls = conditionInfo.default_condition ? 'default-branch' : ''
                         if (gatewayInfo && gatewayInfo.default_condition && gatewayInfo.default_condition.flow_id === lineId) {
                             defaultCls = 'default-branch'
