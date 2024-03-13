@@ -144,7 +144,7 @@ def format_task_list_data(tasks, project=None, return_id_list=False, tz=None):
     return data, ids
 
 
-def format_function_task_list_data(function_tasks, project=None, tz=None):
+def format_function_task_list_data(function_tasks, tz=None):
     data = []
     for function_task in function_tasks:
         task_create_time = function_task.create_time

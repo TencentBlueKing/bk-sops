@@ -39,8 +39,8 @@ def get_functionalization_task_list(request):
         "task_id_in": "task_id__in",
         "status": "status",
         "project_id": "task__project_id",
-        "create_time__lte": "create_time__lte",
-        "create_time__gte": "create_time__gte",
+        "create_time_lte": "create_time__lte",
+        "create_time_gte": "create_time__gte",
     }
     filter_kwargs = {}
     for param, filter_key in param_mappings.items():
