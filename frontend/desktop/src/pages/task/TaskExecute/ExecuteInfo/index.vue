@@ -48,6 +48,7 @@
                     </NodeCanvas>
                     <NodeExecuteInfo
                         v-if="nodeActivity"
+                        v-bkloading="{ isLoading: loading || executeInfoLoading, opacity: 1, zIndex: 100 }"
                         :key="executeInfoRandomKey"
                         :loading="loading"
                         :condition-data="conditionData"
@@ -61,11 +62,12 @@
                         :subprocess-pipeline="subprocessPipeline"
                         :real-time-state="realTimeState"
                         :auto-retry-info="autoRetryInfo"
+                        @updateExecuteInfoLoading="executeInfoLoading = $event"
                         @onSelectExecuteTime="onSelectExecuteTime">
                     </NodeExecuteInfo>
                 </div>
                 <NodeAction
-                    v-if="!loading"
+                    v-if="!loading && !executeInfoLoading"
                     :real-time-state="realTimeState"
                     :node-detail-config="nodeDetailConfig"
                     :node-state-mapping="nodeStateMapping"
@@ -159,6 +161,7 @@
                 theExecuteTime: undefined,
                 timer: null,
                 subprocessLoading: true,
+                executeInfoLoading: true,
                 subprocessTasks: {},
                 subprocessNodesState: {},
                 notPerformedSubNode: false // 是否为未执行的独立子流程节点
@@ -313,6 +316,7 @@
                         if (this.notPerformedSubNode) {
                             this.loading = false
                             this.subprocessLoading = false
+                            this.executeInfoLoading = false
                         } else {
                             this.executeInfo.state = ''
                             this.loadNodeInfo()

@@ -1,8 +1,5 @@
 <template>
-    <div
-        :class="['node-execute-info', { 'loading': loading || isRecordLoading }]"
-        v-bkloading="{ isLoading: loading || isRecordLoading, opacity: 1, zIndex: 100 }"
-        :key="randomKey">
+    <div :class="['node-execute-info', { 'loading': loading || isRecordLoading }]" :key="randomKey">
         <bk-tab
             :active.sync="curActiveTab"
             type="unborder-card"
@@ -227,6 +224,9 @@
                     }
                 },
                 deep: true
+            },
+            isRecordLoading (val) {
+                this.$emit('updateExecuteInfoLoading', val)
             }
         },
         methods: {
