@@ -8,20 +8,16 @@
             type="unborder-card"
             ext-cls="execute-info-tab"
             @tab-change="onTabChange">
-            <bk-tab-panel name="record" v-if="!isCondition" :label="$t('执行详情')"></bk-tab-panel>
-            <bk-tab-panel name="config" v-if="isCondition || ['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type)" :label="$t('配置快照')"></bk-tab-panel>
-            <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
-            <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
+            <bk-tab-panel name="record" v-if="!isBranchCondition" :label="$t('执行详情')"></bk-tab-panel>
+            <bk-tab-panel name="config" v-if="isBranchCondition || ['ServiceActivity', 'SubProcess'].includes(nodeDetailConfig.type)" :label="$t('配置快照')"></bk-tab-panel>
+            <bk-tab-panel name="history" v-if="!isBranchCondition" :label="$t('操作历史')"></bk-tab-panel>
+            <bk-tab-panel name="log" v-if="!isBranchCondition" :label="$t('调用日志')"></bk-tab-panel>
         </bk-tab>
         <div class="scroll-area">
             <TaskCondition
-                v-if="isCondition"
+                v-if="isBranchCondition"
                 ref="conditionEdit"
-                :is-readonly="true"
-                :is-show.sync="isShow"
-                :gateways="gateways"
-                :condition-data="conditionData"
-                @close="$emit('close')">
+                :condition-data="conditionData">
             </TaskCondition>
             <template v-else>
                 <section class="execute-time-section" v-if="isExecuteTimeShow">
@@ -132,18 +128,6 @@
                 type: Boolean,
                 default: false
             },
-            isCondition: {
-                type: Boolean,
-                default: false
-            },
-            isShow: {
-                type: Boolean,
-                default: false
-            },
-            gateways: {
-                type: Object,
-                default: () => ({})
-            },
             conditionData: {
                 type: Object,
                 default: () => ({})
@@ -223,6 +207,10 @@
                 if (!this.isThirdPartyNode) return ''
                 const nodeInfo = this.pipelineTree.activities[this.nodeDetailConfig.node_id]
                 return nodeInfo ? nodeInfo.component.data?.plugin_code?.value : ''
+            },
+            isBranchCondition () {
+                const { conditionType } = this.conditionData
+                return conditionType && conditionType !== 'parallel'
             }
         },
         watch: {

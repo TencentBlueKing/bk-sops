@@ -107,14 +107,10 @@
                     :admin-view="adminView"
                     :pipeline-data="nodePipelineData"
                     :default-active-id="defaultActiveId"
-                    :is-condition="isCondition"
                     :node-detail-config="nodeDetailConfig"
-                    :is-show.sync="isShowConditionEdit"
-                    :gateways="pipelineData.gateways"
                     :condition-data="conditionData"
                     :sidebar-width="sidebarWidth"
                     :instance-flow="instanceFlow"
-                    @close="onCloseConfigPanel"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
@@ -175,15 +171,6 @@
             @onConfirmInjectVar="onConfirmInjectVar"
             @onCancelInjectVar="onCancelInjectVar">
         </injectVariableDialog>
-        <!-- <condition-edit
-            v-if="isShowConditionEdit"
-            ref="conditionEdit"
-            :is-readonly="true"
-            :is-show.sync="isShowConditionEdit"
-            :gateways="pipelineData.gateways"
-            :condition-data="conditionData"
-            @close="onCloseConfigPanel">
-        </condition-edit> -->
         <bk-dialog
             width="600"
             :theme="'primary'"
@@ -366,7 +353,6 @@
                 operateLoading: false,
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
-                isShowConditionEdit: false, // 条件分支侧栏
                 conditionData: {},
                 tabIconState: '',
                 approval: { // 节点审批
@@ -394,7 +380,6 @@
                 isInjectVarDialogShow: false,
                 nodeDisplayStatus: {},
                 showNodeList: [0, 1, 2],
-                isCondition: false,
                 conditionOutgoing: [],
                 unrenderedCoverNode: [],
                 subProcessTaskId: null,
@@ -1570,9 +1555,6 @@
                     console.warn(error)
                 }
             },
-            onCloseConfigPanel () {
-                this.isShowConditionEdit = false
-            },
             async onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
                 try {
@@ -1643,11 +1625,10 @@
                 this.openNodeInfoPanel(type, name)
             },
             // 打开节点参数信息面板
-            openNodeInfoPanel (type, name, isCondition = false) {
+            openNodeInfoPanel (type, name) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
-                this.isCondition = isCondition
             },
             // 注入全局变量
             onInjectGlobalVariable () {
@@ -1774,16 +1755,17 @@
                 }
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
-            onOpenConditionEdit (data, isCondition = true) {
-                if (isCondition && data) {
-                    this.onNodeClick(data.nodeId)
-                    // 生成网关添加id 网关id + 分支条件outgoning + 特殊标识
-                    this.defaultActiveId = data.nodeId + '-' + data.id + '-condition'
-                    this.isCondition = true
-                    this.isShowConditionEdit = true
-                    this.conditionData = { ...data }
+            onOpenConditionEdit (data) {
+                this.onNodeClick(data.nodeId)
+                // 生成网关添加id 网关id + 分支条件outgoning + 特殊标识
+                this.defaultActiveId = data.nodeId + '-' + data.id + '-condition'
+                const { gateways } = this.pipelineData
+                const isDefaultBranch = gateways[data.nodeId]?.default_condition?.flow_id === data.id
+                this.conditionData = {
+                    ...data,
+                    id: `${data.nodeId}-${data.id}`,
+                    conditionType: isDefaultBranch ? 'default' : 'condition'
                 }
-                this.isCondition = isCondition
             },
             /**
              * 切换为子流程画布
@@ -1923,10 +1905,9 @@
                     version = (nodeInfo.type === 'ServiceActivity' ? nodeInfo.component.version : nodeInfo.version) || 'legacy'
                 }
                 let nodeId = id
-                this.isCondition = false
+                this.conditionData = {}
                 if (conditionType) {
                     nodeId = id.split('-')[0]
-                    this.isCondition = true
                     this.conditionData = { ...node }
                 }
                 this.nodeDetailConfig = {
@@ -2161,6 +2142,7 @@
                 this.nodeInfoType = ''
                 this.retryNodeName = ''
                 this.sidebarWidth = 960
+                this.conditionData = {}
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             },
             // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态
