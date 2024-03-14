@@ -13,6 +13,8 @@
 | project_id        | int    | 否   | 项目id作为过滤条件，仅支持标准运维项目id，非ccid                                                       | 
 | limit             | int    | 否   | 分页，返回任务列表任务数，默认为100                                                                |
 | offset            | int    | 否   | 分页，返回任务列表起始任务下标，默认为0                                                               |
+| create_time_gte   | string | 否   | 职能化任务创建时间起始时间                                                                   |
+| create_time_lte   | string | 否   | 职能化任务创建时间截止时间                                                              |
 
 ### 请求参数示例
 
