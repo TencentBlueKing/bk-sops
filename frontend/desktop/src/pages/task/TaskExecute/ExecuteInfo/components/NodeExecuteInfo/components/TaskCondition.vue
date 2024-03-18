@@ -101,10 +101,6 @@
         }
     }
     .condition-form {
-        height: calc(100vh - 60px);
-        .form-wrap {
-            height: calc(100% - 49px);
-        }
         .form-item {
             margin-bottom: 20px;
             .label {

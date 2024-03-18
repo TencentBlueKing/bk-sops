@@ -2246,10 +2246,8 @@
                             const { root_node, component_code, taskId } = this.nodeDetailConfig
                             // 重新拉取父流程状态
                             await this.loadTaskStatus()
-                            // 非独立子流程节点重新加载节点配置
-                            if (component_code !== 'subprocess_plugin') {
-                                await execInfoInstance.loadNodeInfo()
-                            }
+                            // 重新加载节点配置
+                            await execInfoInstance.loadNodeInfo()
                             // 重新拉取所有独立子流程状态
                             execInfoInstance.suspendLines = []
                             Object.values(execInfoInstance.subprocessTasks).forEach(item => {
