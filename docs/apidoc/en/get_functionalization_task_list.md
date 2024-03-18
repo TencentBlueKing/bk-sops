@@ -22,6 +22,8 @@ Get functionalization task list, support filtering with functionalization task s
 | project_id        | int    | NO       | project id for filtering, only support sops project id, not ccid                                  |
 | limit             | int    | NO       | pagination, the number of tasks in the task list in each result. default is 100                   |
 | offset            | int    | NO       | pagination, the start index of task in the task list in each result. default is 0                 |
+| create_time_gte   | string | No       | start time, the start time of the functionalization task creation                                 |
+| create_time_lte   | string | No       | end time, the end time of the functionalization task creation                                     |
 
 ### Request Parameters Example
 

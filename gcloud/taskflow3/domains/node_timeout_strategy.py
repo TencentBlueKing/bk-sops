@@ -24,18 +24,21 @@ class NodeTimeoutStrategy(metaclass=ABCMeta):
 
 class ForcedFailStrategy(NodeTimeoutStrategy):
     def deal_with_timeout_node(self, task, node_id):
-        return task.nodes_action("forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR, full_ex_data=self.ex_data_hint,)
+        return task.nodes_action("forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR, full_ex_data=self.ex_data_hint)
 
 
 class ForcedFailAndSkipStrategy(NodeTimeoutStrategy):
     def deal_with_timeout_node(self, task, node_id):
         fail_result = task.nodes_action(
-            "forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR, full_ex_data=self.ex_data_hint,
+            "forced_fail", node_id, self.TIMEOUT_NODE_OPERATOR, full_ex_data=self.ex_data_hint
         )
-        if fail_result["result"]:
-            skip_result = task.nodes_action("skip", node_id, self.TIMEOUT_NODE_OPERATOR)
-            return skip_result
-        return fail_result
+        if not fail_result["result"]:
+            return fail_result
+
+        skip_result = task.nodes_action("skip", node_id, self.TIMEOUT_NODE_OPERATOR)
+        if skip_result["result"]:
+            task.change_parent_task_node_state_to_running()
+        return skip_result
 
 
 node_timeout_handler = {

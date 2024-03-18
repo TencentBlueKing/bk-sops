@@ -28,7 +28,7 @@
             </NodeTree>
             <div slot="main" class="execute-content">
                 <div class="execute-head">
-                    <span class="node-name">{{isCondition ? conditionData.name : nodeActivity.name}}</span>
+                    <span class="node-name">{{conditionData.name || nodeActivity.name}}</span>
                     <bk-divider direction="vertical"></bk-divider>
                     <div class="node-state">
                         <span :class="displayState"></span>
@@ -48,12 +48,9 @@
                     </NodeCanvas>
                     <NodeExecuteInfo
                         v-if="nodeActivity"
-                        v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
-                        :key="nodeDetailConfig.node_id"
+                        v-bkloading="{ isLoading: loading || executeInfoLoading, opacity: 1, zIndex: 100 }"
+                        :key="executeInfoRandomKey"
                         :loading="loading"
-                        :is-condition="isCondition"
-                        :is-show="isShow"
-                        :gateways="gateways"
                         :condition-data="conditionData"
                         :node-activity="nodeActivity"
                         :node-detail-config="nodeDetailConfig"
@@ -65,12 +62,12 @@
                         :subprocess-pipeline="subprocessPipeline"
                         :real-time-state="realTimeState"
                         :auto-retry-info="autoRetryInfo"
-                        @onSelectExecuteTime="onSelectExecuteTime"
-                        @close="$emit(close)">
+                        @updateExecuteInfoLoading="executeInfoLoading = $event"
+                        @onSelectExecuteTime="onSelectExecuteTime">
                     </NodeExecuteInfo>
                 </div>
                 <NodeAction
-                    v-if="!loading"
+                    v-if="!loading && !executeInfoLoading"
                     :real-time-state="realTimeState"
                     :node-detail-config="nodeDetailConfig"
                     :node-state-mapping="nodeStateMapping"
@@ -130,10 +127,6 @@
                 type: String,
                 default: ''
             },
-            isCondition: {
-                type: Boolean,
-                default: false
-            },
             instanceFlow: {
                 type: String,
                 required: true
@@ -156,19 +149,19 @@
                 type: Object,
                 required: true
             },
-            isShow: Boolean,
-            gateways: Object,
             conditionData: Object,
             sidebarWidth: Number
         },
         data () {
             return {
                 canvasRandomKey: null,
+                executeInfoRandomKey: null,
                 loading: true,
                 executeInfo: {},
                 theExecuteTime: undefined,
                 timer: null,
                 subprocessLoading: true,
+                executeInfoLoading: true,
                 subprocessTasks: {},
                 subprocessNodesState: {},
                 notPerformedSubNode: false // 是否为未执行的独立子流程节点
@@ -317,10 +310,13 @@
                 handler (val) {
                     if (val.node_id !== undefined) {
                         this.theExecuteTime = undefined
+                        // 节点切换时重新加载执行详情
+                        this.executeInfoRandomKey = new Date().getTime()
                         // 未执行的独立子流程节点
                         if (this.notPerformedSubNode) {
                             this.loading = false
                             this.subprocessLoading = false
+                            this.executeInfoLoading = false
                         } else {
                             this.executeInfo.state = ''
                             this.loadNodeInfo()
@@ -383,9 +379,6 @@
                 } finally {
                     this.loading = false
                 }
-            },
-            close () {
-                this.$emit('close')
             },
             async getTaskNodeDetail (nodeConfig = this.nodeDetailConfig) {
                 try {
