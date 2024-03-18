@@ -21,6 +21,7 @@
                 :execute-info="executeInfo"
                 :node-state-mapping="nodeStateMapping"
                 :node-detail-config="nodeDetailConfig"
+                :subprocess-id="subprocessPipeline && subprocessPipeline.id"
                 @updateSubprocessLoading="subprocessLoading = $event"
                 @updateParentPipelineData="updateParentPipelineData"
                 @updateSubprocessState="updateSubprocessState"
@@ -44,6 +45,8 @@
                         :node-state-mapping="nodeStateMapping"
                         :subprocess-state="subprocessState"
                         :subprocess-pipeline="subprocessPipeline"
+                        :subprocess-height="subprocessHeight"
+                        @updateSubprocessHeight="subprocessHeight = $event"
                         @onNodeClick="handleSubCanvasNodeClick">
                     </NodeCanvas>
                     <NodeExecuteInfo
@@ -156,6 +159,7 @@
             return {
                 canvasRandomKey: null,
                 executeInfoRandomKey: null,
+                subprocessHeight: 0,
                 loading: true,
                 executeInfo: {},
                 theExecuteTime: undefined,

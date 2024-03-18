@@ -1,7 +1,7 @@
 <template>
     <div
         class="sub-process"
-        :style="{ height: `${subProcessHeight}px` }"
+        :style="{ height: `${subprocessHeight}px` }"
         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <TemplateCanvas
             ref="subProcessCanvas"
@@ -30,7 +30,7 @@
         <!--可拖拽-->
         <template v-if="!loading">
             <div class="resize-trigger" @mousedown.left="handleMousedown($event)"></div>
-            <i :class="['resize-proxy', 'top']" ref="resizeProxy"></i>
+            <i :class="['resize-proxy', 'top']" :style="{ top: `${subprocessHeight}px` }" ref="resizeProxy"></i>
             <div class="resize-mask" ref="resizeMask"></div>
         </template>
     </div>
@@ -62,12 +62,15 @@
             subprocessState: {
                 type: String,
                 value: ''
+            },
+            subprocessHeight: {
+                type: [Number, String],
+                default: 0
             }
         },
         data () {
             return {
                 subprocessLoading: false,
-                subProcessHeight: 160,
                 zoom: 0.75
             }
         },
@@ -183,9 +186,11 @@
             setCanvasZoomPosition () {
                 if (!this.canvasData.locations) return
                 // 设置默认高度
-                const subprocessDom = document.querySelector('.sub-process')
-                const { top } = subprocessDom.getBoundingClientRect()
-                this.subProcessHeight = window.innerHeight - top - 320
+                if (!this.subprocessHeight) {
+                    const subprocessDom = document.querySelector('.sub-process')
+                    const { top } = subprocessDom.getBoundingClientRect()
+                    this.$emit('updateSubprocessHeight', window.innerHeight - top - 320)
+                }
                 // 设置缩放比例
                 let jsFlowInstance = this.$refs.subProcessCanvas
                 jsFlowInstance = jsFlowInstance && jsFlowInstance.$refs.jsFlow
@@ -258,7 +263,7 @@
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.visibility = 'hidden'
                 resizeMask.style.display = 'none'
-                this.subProcessHeight = resizeProxy.style.top.slice(0, -2)
+                this.$emit('updateSubprocessHeight', resizeProxy.style.top.slice(0, -2))
                 document.removeEventListener('mousemove', this.handleMouseMove)
                 document.removeEventListener('mouseup', this.handleMouseUp)
             },
@@ -326,7 +331,7 @@
                 }
             }
             .state-icon {
-                display: none;
+                display: none !important;
             }
             .task-node {
                 &.actived {
