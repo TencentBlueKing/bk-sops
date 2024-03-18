@@ -170,7 +170,7 @@
         data () {
             return {
                 randomKey: null,
-                isRecordLoading: true,
+                isRecordLoading: false,
                 curActiveTab: 'record',
                 loop: 1,
                 theExecuteTime: undefined,

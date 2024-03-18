@@ -55,6 +55,10 @@
             loading: {
                 type: Boolean,
                 default: true
+            },
+            subprocessId: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -69,7 +73,8 @@
                 nodeTargetMaps: {},
                 allCheckoutNodes: [],
                 subprocessLoading: false,
-                subNodesExpanded: [] // 节点树展开的独立子流程节点
+                subNodesExpanded: [], // 节点树展开的独立子流程节点
+                sourceCanvas: false // 是否通过子画布选中节点
             }
         },
         watch: {
@@ -187,6 +192,7 @@
                     name: this.$t('开始节点'),
                     nodeLevel: 1,
                     parentId,
+                    belongFlow: data.id,
                     subprocessStack,
                     expanded: false,
                     taskId,
@@ -197,6 +203,7 @@
                     name: this.$t('结束节点'),
                     nodeLevel: 1,
                     parentId,
+                    belongFlow: data.id,
                     subprocessStack,
                     expanded: false,
                     taskId,
@@ -239,8 +246,8 @@
                 if (this.nodeIds[flowId] && this.nodeIds[flowId].includes(id)) {
                     const isBack = this.judgeNodeBack(id, id, [])
                     if (isBack) { // 打回节点
-                        const lastNode = this.getMatchOrderedNode(ordered, lastId, false)
-                        const existNode = this.getMatchOrderedNode(ordered, id, false)
+                        const lastNode = this.getMatchOrderedNode(ordered, lastId, false, flowId)
+                        const existNode = this.getMatchOrderedNode(ordered, id, false, flowId)
                         lastNode.isCallback = true
                         lastNode.callbackInfo = {
                             ...existNode,
@@ -251,16 +258,16 @@
                         if (isConverge) { // 网关汇聚
                             return
                         } else { // 分支汇聚
-                            const existNode = this.getMatchOrderedNode(ordered, id, false)
+                            const existNode = this.getMatchOrderedNode(ordered, id, false, flowId)
                             const isSameLevel = existNode && existNode.nodeLevel === nodeLevel
                             if (isSameLevel) { // 同层次汇聚
-                                const gatewayOrdered = this.getMatchOrderedNode(ordered, gatewayId, false)
+                                const gatewayOrdered = this.getMatchOrderedNode(ordered, gatewayId, false, flowId)
                                 const convergeIndex = gatewayOrdered.children.findIndex(item => item.id === id)
                                 const branchIndex = gatewayOrdered.children.findIndex(item => item.id === branchId)
                                 const branchInfo = gatewayOrdered.children.splice(branchIndex, 1)
                                 gatewayOrdered.children.splice(convergeIndex, 0, branchInfo[0])
                             } else if (existNode) { // 跨层级汇聚
-                                const lastNode = this.getMatchOrderedNode(ordered, lastId, false)
+                                const lastNode = this.getMatchOrderedNode(ordered, lastId, false, flowId)
                                 parentOrdered.push({
                                     ...existNode,
                                     isLevelUp: lastNode.isLevelUp,
@@ -283,6 +290,7 @@
                         expanded: false,
                         nodeLevel: parentLevel ? parentLevel + nodeLevel : nodeLevel,
                         isLevelUp,
+                        belongFlow: flowId, // 当前节点属于哪个画布下
                         taskId
                     }
                     if (parentId) {
@@ -335,6 +343,7 @@
                                     value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
+                                    belongFlow: flowId,
                                     conditionType: 'condition', // 条件、条件并行网关
                                     expanded: false,
                                     target: flows[key].target,
@@ -354,6 +363,7 @@
                                     value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
+                                    belongFlow: flowId,
                                     conditionType: 'default',
                                     expanded: false,
                                     target: flows[flow_id].target,
@@ -378,6 +388,7 @@
                                     title: this.$t('并行'),
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
+                                    belongFlow: flowId,
                                     expanded: false,
                                     conditionType: 'parallel',
                                     target: flows[key].target,
@@ -439,8 +450,8 @@
                             let result
                             const convergeNode = Object.values(this.convergeInfo).find(item => item.convergeNode === id)
                             if (convergeNode) {
-                                result = this.getMatchOrderedNode(ordered, convergeNode.id, true)
-                                const gatewayInfo = this.getMatchOrderedNode(ordered, convergeNode.id, false)
+                                result = this.getMatchOrderedNode(ordered, convergeNode.id, true, flowId)
+                                const gatewayInfo = this.getMatchOrderedNode(ordered, convergeNode.id, false, flowId)
                                 const { gatewayId, nodeLevel } = result[0]
                                 treeItem.nodeLevel = nodeLevel
                                 treeItem.style = gatewayInfo.style
@@ -456,7 +467,7 @@
                                 nextNodeInfo.isLevelUp = treeItem.isLevelUp
                                 nextNodeInfo.style = treeItem.style
                             } else {
-                                result = this.getMatchOrderedNode(ordered, gatewayId, false)
+                                result = this.getMatchOrderedNode(ordered, gatewayId, false, flowId)
                                 if (result) {
                                     treeItem.nodeLevel = result.children[0].nodeLevel
                                     treeItem.style = result.children[0].style
@@ -487,6 +498,7 @@
                         conditions.forEach(item => {
                             item.style = `margin-left: ${item.parentId ? 16 : marginLeft + 33}px`
                             item.subprocessStack = treeItem.subprocessStack
+                            item.belongFlow = flowId
                             treeItem.children.push(item)
                             this.retrieveLines(
                                 flowId,
@@ -522,14 +534,14 @@
                     }
                 }
             },
-            getMatchOrderedNode (ordered, id, isParent) {
+            getMatchOrderedNode (ordered, id, isParent, flowId) {
                 let result
                 ordered.some(item => {
-                    if (item.id === id) {
+                    if (item.id === id && item.belongFlow === flowId) {
                         result = isParent ? ordered : item
                         return true
                     } else if (item.children?.length) {
-                        result = this.getMatchOrderedNode(item.children, id, isParent)
+                        result = this.getMatchOrderedNode(item.children, id, isParent, flowId)
                         return result && !!Object.keys(result).length
                     }
                     return false
@@ -882,7 +894,7 @@
                 }
             },
             // 获取节点树节点详情
-            getNodeInfo (data, rootId, nodeId) {
+            getNodeInfo (data, rootId, nodeId, eventSource) {
                 let nodes = data
                 if (rootId) {
                     rootId.split('-').forEach(id => {
@@ -896,11 +908,24 @@
                 }
                 let nodeInfo
                 nodes.some(item => {
+                    /**
+                     * 由子画布获取节点详情，可能出现多个节点id相同的问题
+                     * 例如：流程套娃、多个相同的子流程
+                     * 故额外判断节点所属的画布是否匹配
+                     */
                     if (item.id === nodeId) {
+                        if (eventSource === 'canvas') {
+                            this.sourceCanvas = true
+                            if (item.belongFlow === this.subprocessId) {
+                                nodeInfo = item
+                                return true
+                            }
+                            return false
+                        }
                         nodeInfo = item
                         return true
                     } else if (item.children?.length) {
-                        nodeInfo = this.getNodeInfo(item.children, '', nodeId)
+                        nodeInfo = this.getNodeInfo(item.children, '', nodeId, eventSource)
                         return !!nodeInfo
                     }
                 })
@@ -912,8 +937,19 @@
             },
             setDefaultActiveId (treeData = [], id) {
                 return treeData.some(item => {
+                    // 由子画布设置默认id时需要判断节点所属的画布是否匹配
                     if (item.id === id) {
-                        item.expanded = !!item.isSubProcess || !!item.conditionType || item.isGateway
+                        const isExpand = !!item.isSubProcess || !!item.conditionType || item.isGateway
+                        // sourceCanvas: 是否通过子画布设置默认id
+                        if (this.sourceCanvas) {
+                            this.sourceCanvas = false
+                            if (item.belongFlow === this.subprocessId) {
+                                item.expanded = isExpand
+                                return true
+                            }
+                            return false
+                        }
+                        item.expanded = isExpand
                         return true
                     } else if (item.children?.length) {
                         if (item.expanded) {

@@ -21,6 +21,7 @@
                 :execute-info="executeInfo"
                 :node-state-mapping="nodeStateMapping"
                 :node-detail-config="nodeDetailConfig"
+                :subprocess-id="subprocessPipeline && subprocessPipeline.id"
                 @updateSubprocessLoading="subprocessLoading = $event"
                 @updateParentPipelineData="updateParentPipelineData"
                 @updateSubprocessState="updateSubprocessState"
@@ -44,6 +45,8 @@
                         :node-state-mapping="nodeStateMapping"
                         :subprocess-state="subprocessState"
                         :subprocess-pipeline="subprocessPipeline"
+                        :subprocess-height="subprocessHeight"
+                        @updateSubprocessHeight="subprocessHeight = $event"
                         @onNodeClick="handleSubCanvasNodeClick">
                     </NodeCanvas>
                     <NodeExecuteInfo
@@ -156,6 +159,7 @@
             return {
                 canvasRandomKey: null,
                 executeInfoRandomKey: null,
+                subprocessHeight: 0,
                 loading: true,
                 executeInfo: {},
                 theExecuteTime: undefined,
@@ -415,7 +419,7 @@
                 if (nodeId === this.subprocessPipeline.id) {
                     parentId = rootNode ? `${rootNode}-${nodeId}` : nodeId
                 }
-                const nodeInfo = this.getNodeInfo(parentId, node)
+                const nodeInfo = this.getNodeInfo(parentId, node, 'canvas')
                 if (nodeInfo) {
                     nodeInfo && this.onSelectNode(nodeInfo)
                     const parentInstance = this.$parent.$parent
@@ -518,11 +522,11 @@
                 this.loadSubprocessState()
             },
             // 获取节点树节点详情
-            getNodeInfo (rootId, nodeId) {
+            getNodeInfo (rootId, nodeId, eventSource) {
                 let nodeInfo = null
                 const nodeTreeRef = this.$refs.nodeTree
                 if (nodeTreeRef) {
-                    nodeInfo = nodeTreeRef.getNodeInfo(nodeTreeRef.nodeData, rootId, nodeId)
+                    nodeInfo = nodeTreeRef.getNodeInfo(nodeTreeRef.nodeData, rootId, nodeId, eventSource)
                 }
                 return nodeInfo
             },
