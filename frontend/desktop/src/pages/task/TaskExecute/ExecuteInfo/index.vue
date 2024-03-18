@@ -419,7 +419,7 @@
                 if (nodeId === this.subprocessPipeline.id) {
                     parentId = rootNode ? `${rootNode}-${nodeId}` : nodeId
                 }
-                const nodeInfo = this.getNodeInfo(parentId, node)
+                const nodeInfo = this.getNodeInfo(parentId, node, 'canvas')
                 if (nodeInfo) {
                     nodeInfo && this.onSelectNode(nodeInfo)
                     const parentInstance = this.$parent.$parent
@@ -522,11 +522,11 @@
                 this.loadSubprocessState()
             },
             // 获取节点树节点详情
-            getNodeInfo (rootId, nodeId) {
+            getNodeInfo (rootId, nodeId, eventSource) {
                 let nodeInfo = null
                 const nodeTreeRef = this.$refs.nodeTree
                 if (nodeTreeRef) {
-                    nodeInfo = nodeTreeRef.getNodeInfo(nodeTreeRef.nodeData, rootId, nodeId)
+                    nodeInfo = nodeTreeRef.getNodeInfo(nodeTreeRef.nodeData, rootId, nodeId, eventSource)
                 }
                 return nodeInfo
             },
