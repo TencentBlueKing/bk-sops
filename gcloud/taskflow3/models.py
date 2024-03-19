@@ -1031,18 +1031,28 @@ class TaskFlowInstance(models.Model):
 
     def change_parent_task_node_state_to_running(self):
         if not self.is_child_taskflow:
-            logger.info("taskflow[id=%s] is not child taskflow, cannot change parent task node state to running")
+            logger.info(
+                "[change_parent_task_node_state_to_running] taskflow[id=%s] is not child taskflow, "
+                "cannot change parent task node state to running"
+            )
             return
 
         with transaction.atomic():
             record = TaskCallBackRecord.objects.filter(task_id=self.id).first()
             if not record:
+                logger.info(
+                    f"[change_parent_task_node_state_to_running] taskflow[id={self.id}] callback record not found"
+                )
                 return
             info = json.loads(record.extra_info)
             parent_node_id, parent_node_version = info["node_id"], info["node_version"]
             runtime = BambooDjangoRuntime()
             node_state = runtime.get_state(parent_node_id)
             if node_state.name != states.FAILED or node_state.version != parent_node_version:
+                logger.info(
+                    f"[change_parent_task_node_state_to_running] taskflow[id={self.id}] "
+                    f"node_id={parent_node_id} node_version={parent_node_version} state check failed"
+                )
                 return
             schedule = runtime.get_schedule_with_node_and_version(parent_node_id, parent_node_version)
             DBSchedule.objects.filter(id=schedule.id).update(expired=False)
