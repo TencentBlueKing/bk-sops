@@ -1031,10 +1031,7 @@ class TaskFlowInstance(models.Model):
 
     def change_parent_task_node_state_to_running(self):
         if not self.is_child_taskflow:
-            logger.info(
-                "[change_parent_task_node_state_to_running] taskflow[id=%s] is not child taskflow, "
-                "cannot change parent task node state to running"
-            )
+            logger.info(f"[change_parent_task_node_state_to_running] taskflow[id={self.id}] is not child taskflow")
             return
 
         with transaction.atomic():
