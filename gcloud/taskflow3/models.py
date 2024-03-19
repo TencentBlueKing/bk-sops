@@ -1032,7 +1032,7 @@ class TaskFlowInstance(models.Model):
     def change_parent_task_node_state_to_running(self):
         if not self.is_child_taskflow:
             logger.info(f"[change_parent_task_node_state_to_running] taskflow[id={self.id}] is not child taskflow")
-            return
+            return False
 
         with transaction.atomic():
             record = TaskCallBackRecord.objects.filter(task_id=self.id).first()
@@ -1040,7 +1040,7 @@ class TaskFlowInstance(models.Model):
                 logger.info(
                     f"[change_parent_task_node_state_to_running] taskflow[id={self.id}] callback record not found"
                 )
-                return
+                return False
             info = json.loads(record.extra_info)
             parent_node_id, parent_node_version = info["node_id"], info["node_version"]
             runtime = BambooDjangoRuntime()
@@ -1050,7 +1050,7 @@ class TaskFlowInstance(models.Model):
                     f"[change_parent_task_node_state_to_running] taskflow[id={self.id}] "
                     f"node_id={parent_node_id} node_version={parent_node_version} state check failed"
                 )
-                return
+                return False
             schedule = runtime.get_schedule_with_node_and_version(parent_node_id, parent_node_version)
             DBSchedule.objects.filter(id=schedule.id).update(expired=False)
             # FAILED 状态需要转换为 READY 之后才能转换为 RUNNING
@@ -1066,6 +1066,7 @@ class TaskFlowInstance(models.Model):
             parent_task_id = TaskFlowRelation.objects.filter(task_id=self.id).first().parent_task_id
             parent_task = TaskFlowInstance.objects.get(id=parent_task_id)
             parent_task.change_parent_task_node_state_to_running()
+            return True
 
     def task_action(self, action, username):
         if self.current_flow != "execute_task":

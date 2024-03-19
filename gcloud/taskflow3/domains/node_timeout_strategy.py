@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import time
 from abc import ABCMeta, abstractmethod
 
 
@@ -36,8 +37,14 @@ class ForcedFailAndSkipStrategy(NodeTimeoutStrategy):
             return fail_result
 
         skip_result = task.nodes_action("skip", node_id, self.TIMEOUT_NODE_OPERATOR)
-        if skip_result["result"]:
-            task.change_parent_task_node_state_to_running()
+        if skip_result["result"] and task.is_child_taskflow:
+            # 子任务失败后父任务可能状态还没有同步
+            retry_time = 3
+            for _ in range(retry_time):
+                time.sleep(1)
+                result = task.change_parent_task_node_state_to_running()
+                if result:
+                    break
         return skip_result
 
 
