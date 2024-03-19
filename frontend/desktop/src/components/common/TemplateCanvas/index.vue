@@ -960,7 +960,11 @@
                             this.$emit('updateCondition', condition)
                         }
                         this.conditionInfo = null
-                        this.setLabelDraggable({ ...line, id: lineId }, condition)
+                        // 任务执行模式下禁止label拖拽
+                        const isExecute = this.canvasData.locations[0].mode === 'execute'
+                        if (!isExecute) {
+                            this.setLabelDraggable({ ...line, id: lineId }, condition)
+                        }
                     }
                 })
             },
