@@ -23,6 +23,7 @@
 
     import NodeTreeItem from './components/NodeTreeItem'
     import tools from '@/utils/tools.js'
+    import { random4 } from '@/utils/uuid.js'
     import { NODE_DICT } from '@/constants/index.js'
     import { mapActions } from 'vuex'
 
@@ -32,10 +33,6 @@
             NodeTreeItem
         },
         props: {
-            instanceFlow: {
-                type: String,
-                required: true
-            },
             defaultActiveId: {
                 type: String,
                 default: ''
@@ -56,23 +53,25 @@
                 type: Boolean,
                 default: true
             },
-            subprocessId: {
+            subprocessKey: {
                 type: String,
                 default: ''
+            },
+            pipelineData: {
+                type: Object,
+                default: () => ({})
             }
         },
         data () {
-            const pipelineData = JSON.parse(this.instanceFlow)
             return {
                 nodeData: [],
-                pipelineData,
                 activeId: this.defaultActiveId,
                 nodeIds: {},
                 convergeInfo: {},
                 nodeSourceMaps: {},
                 nodeTargetMaps: {},
                 allCheckoutNodes: [],
-                subprocessLoading: false,
+                subprocessLoading: true,
                 subNodesExpanded: [], // 节点树展开的独立子流程节点
                 sourceCanvas: false // 是否通过子画布选中节点
             }
@@ -165,7 +164,13 @@
             ]),
             getNodeData () {
                 if (this.nodeData.length) return
+                this.pipelineData.randomKey = random4()
                 this.nodeData = this.getOrderedTree(this.pipelineData)
+                // 更新当前节点所对应的流程树
+                this.$emit('updateParentPipelineData', {
+                    pipeline: this.pipelineData,
+                    reset: true
+                })
             },
             getOrderedTree (data, pipelineInfo = {}) {
                 const startNode = tools.deepClone(data.start_event)
@@ -192,7 +197,7 @@
                     name: this.$t('开始节点'),
                     nodeLevel: 1,
                     parentId,
-                    belongFlow: data.id,
+                    flowKey: data.randomKey,
                     subprocessStack,
                     expanded: false,
                     taskId,
@@ -203,7 +208,7 @@
                     name: this.$t('结束节点'),
                     nodeLevel: 1,
                     parentId,
-                    belongFlow: data.id,
+                    flowKey: data.randomKey,
                     subprocessStack,
                     expanded: false,
                     taskId,
@@ -241,13 +246,13 @@
                     isLevelUp,
                     style
                 } = nodeInfo
-                const { activities, gateways, flows } = data
+                const { activities, gateways, flows, randomKey } = data
                 const nodeConfig = activities[id] || gateways[id]
                 if (this.nodeIds[flowId] && this.nodeIds[flowId].includes(id)) {
                     const isBack = this.judgeNodeBack(id, id, [])
                     if (isBack) { // 打回节点
-                        const lastNode = this.getMatchOrderedNode(ordered, lastId, false, flowId)
-                        const existNode = this.getMatchOrderedNode(ordered, id, false, flowId)
+                        const lastNode = this.getMatchOrderedNode(ordered, lastId, false, randomKey)
+                        const existNode = this.getMatchOrderedNode(ordered, id, false, randomKey)
                         lastNode.isCallback = true
                         lastNode.callbackInfo = {
                             ...existNode,
@@ -258,16 +263,16 @@
                         if (isConverge) { // 网关汇聚
                             return
                         } else { // 分支汇聚
-                            const existNode = this.getMatchOrderedNode(ordered, id, false, flowId)
+                            const existNode = this.getMatchOrderedNode(ordered, id, false, randomKey)
                             const isSameLevel = existNode && existNode.nodeLevel === nodeLevel
                             if (isSameLevel) { // 同层次汇聚
-                                const gatewayOrdered = this.getMatchOrderedNode(ordered, gatewayId, false, flowId)
+                                const gatewayOrdered = this.getMatchOrderedNode(ordered, gatewayId, false, randomKey)
                                 const convergeIndex = gatewayOrdered.children.findIndex(item => item.id === id)
                                 const branchIndex = gatewayOrdered.children.findIndex(item => item.id === branchId)
                                 const branchInfo = gatewayOrdered.children.splice(branchIndex, 1)
                                 gatewayOrdered.children.splice(convergeIndex, 0, branchInfo[0])
                             } else if (existNode) { // 跨层级汇聚
-                                const lastNode = this.getMatchOrderedNode(ordered, lastId, false, flowId)
+                                const lastNode = this.getMatchOrderedNode(ordered, lastId, false, randomKey)
                                 parentOrdered.push({
                                     ...existNode,
                                     isLevelUp: lastNode.isLevelUp,
@@ -290,7 +295,7 @@
                         expanded: false,
                         nodeLevel: parentLevel ? parentLevel + nodeLevel : nodeLevel,
                         isLevelUp,
-                        belongFlow: flowId, // 当前节点属于哪个画布下
+                        flowKey: randomKey, // 当前节点属于哪个画布下
                         taskId
                     }
                     if (parentId) {
@@ -343,7 +348,7 @@
                                     value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
-                                    belongFlow: flowId,
+                                    flowKey: randomKey,
                                     conditionType: 'condition', // 条件、条件并行网关
                                     expanded: false,
                                     target: flows[key].target,
@@ -363,7 +368,7 @@
                                     value: evaluate,
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
-                                    belongFlow: flowId,
+                                    flowKey: randomKey,
                                     conditionType: 'default',
                                     expanded: false,
                                     target: flows[flow_id].target,
@@ -388,7 +393,7 @@
                                     title: this.$t('并行'),
                                     nodeLevel: treeItem.nodeLevel + 1,
                                     parentId,
-                                    belongFlow: flowId,
+                                    flowKey: randomKey,
                                     expanded: false,
                                     conditionType: 'parallel',
                                     target: flows[key].target,
@@ -412,6 +417,8 @@
                             }
                             // 兼容旧数据
                             if (nodeConfig.pipeline) {
+                                // 子流程添加唯一标识
+                                nodeConfig.pipeline.randomKey = random4()
                                 this.getNodeTargetMaps(nodeConfig.pipeline)
                                 this.getNodeSourceMaps(nodeConfig.pipeline)
                                 treeItem.children = this.getOrderedTree(nodeConfig.pipeline, parentInfo)
@@ -421,6 +428,8 @@
                                 componentData = componentData && componentData.value
                                 componentData = componentData && componentData.pipeline
                                 if (componentData) {
+                                    // 子流程添加唯一标识
+                                    componentData.randomKey = random4()
                                     this.getNodeTargetMaps(componentData)
                                     this.getNodeSourceMaps(componentData)
                                     if (this.nodeIds[componentData.id]) {
@@ -450,8 +459,8 @@
                             let result
                             const convergeNode = Object.values(this.convergeInfo).find(item => item.convergeNode === id)
                             if (convergeNode) {
-                                result = this.getMatchOrderedNode(ordered, convergeNode.id, true, flowId)
-                                const gatewayInfo = this.getMatchOrderedNode(ordered, convergeNode.id, false, flowId)
+                                result = this.getMatchOrderedNode(ordered, convergeNode.id, true, randomKey)
+                                const gatewayInfo = this.getMatchOrderedNode(ordered, convergeNode.id, false, randomKey)
                                 const { gatewayId, nodeLevel } = result[0]
                                 treeItem.nodeLevel = nodeLevel
                                 treeItem.style = gatewayInfo.style
@@ -467,7 +476,7 @@
                                 nextNodeInfo.isLevelUp = treeItem.isLevelUp
                                 nextNodeInfo.style = treeItem.style
                             } else {
-                                result = this.getMatchOrderedNode(ordered, gatewayId, false, flowId)
+                                result = this.getMatchOrderedNode(ordered, gatewayId, false, randomKey)
                                 if (result) {
                                     treeItem.nodeLevel = result.children[0].nodeLevel
                                     treeItem.style = result.children[0].style
@@ -498,7 +507,7 @@
                         conditions.forEach(item => {
                             item.style = `margin-left: ${item.parentId ? 16 : marginLeft + 33}px`
                             item.subprocessStack = treeItem.subprocessStack
-                            item.belongFlow = flowId
+                            item.flowKey = randomKey
                             treeItem.children.push(item)
                             this.retrieveLines(
                                 flowId,
@@ -534,14 +543,14 @@
                     }
                 }
             },
-            getMatchOrderedNode (ordered, id, isParent, flowId) {
+            getMatchOrderedNode (ordered, id, isParent, randomKey) {
                 let result
                 ordered.some(item => {
-                    if (item.id === id && item.belongFlow === flowId) {
+                    if (item.id === id && item.flowKey === randomKey) {
                         result = isParent ? ordered : item
                         return true
                     } else if (item.children?.length) {
-                        result = this.getMatchOrderedNode(item.children, id, isParent, flowId)
+                        result = this.getMatchOrderedNode(item.children, id, isParent, randomKey)
                         return result && !!Object.keys(result).length
                     }
                     return false
@@ -766,6 +775,8 @@
                             taskId
                         }
                         this.nodeIds[pipelineTree.id] = []
+                        // 子流程添加唯一标识
+                        pipelineTree.randomKey = random4()
                         nodeInfo.children = this.getOrderedTree(pipelineTree, parentInfo)
                         nodeInfo.dynamicLoad = false
                         nodeInfo.expanded = true
@@ -913,15 +924,11 @@
                      * 例如：流程套娃、多个相同的子流程
                      * 故额外判断节点所属的画布是否匹配
                      */
-                    if (item.id === nodeId) {
-                        if (eventSource === 'canvas') {
-                            this.sourceCanvas = true
-                            if (item.belongFlow === this.subprocessId) {
-                                nodeInfo = item
-                                return true
-                            }
-                            return false
-                        }
+                    if (eventSource === 'canvas' && item.id === nodeId && item.flowKey === this.subprocessKey) {
+                        this.sourceCanvas = true
+                        nodeInfo = item
+                        return true
+                    } else if (eventSource !== 'canvas' && item.id === nodeId) {
                         nodeInfo = item
                         return true
                     } else if (item.children?.length) {
@@ -938,18 +945,12 @@
             setDefaultActiveId (treeData = [], id) {
                 return treeData.some(item => {
                     // 由子画布设置默认id时需要判断节点所属的画布是否匹配
-                    if (item.id === id) {
-                        const isExpand = !!item.isSubProcess || !!item.conditionType || item.isGateway
-                        // sourceCanvas: 是否通过子画布设置默认id
-                        if (this.sourceCanvas) {
-                            this.sourceCanvas = false
-                            if (item.belongFlow === this.subprocessId) {
-                                item.expanded = isExpand
-                                return true
-                            }
-                            return false
-                        }
-                        item.expanded = isExpand
+                    if (this.sourceCanvas && item.id === id && item.flowKey === this.subprocessKey) {
+                        this.sourceCanvas = false
+                        item.expanded = !!item.isSubProcess || !!item.conditionType || item.isGateway
+                        return true
+                    } else if (!this.sourceCanvas && item.id === id) {
+                        item.expanded = !!item.isSubProcess || !!item.conditionType || item.isGateway
                         return true
                     } else if (item.children?.length) {
                         if (item.expanded) {
