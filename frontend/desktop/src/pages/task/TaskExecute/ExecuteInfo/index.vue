@@ -531,7 +531,8 @@
                 const { root_node, node_id, taskId } = info
                 this.subprocessTasks[taskId] = {
                     root_node,
-                    node_id
+                    node_id,
+                    pollErrorTimes: 0
                 }
                 // 获取独立子流程任务状态
                 this.loadSubprocessState()
@@ -584,8 +585,14 @@
                             continueRequest = Object.values(retryInfo).some(item => item.max_auto_retry_times > item.auto_retry_times)
                         }
                         if (!continueRequest) {
-                            // 添加notContinue字段，防止子任务继续请求
-                            this.subprocessTasks[key].notContinue = true
+                            // 查询流程状态接口返回失败后再请求三次
+                            this.subprocessTasks[key].pollErrorTimes += 1
+                            if (this.subprocessTasks[key].pollErrorTimes > 3) {
+                                // 添加notContinue字段，防止子任务继续请求
+                                this.subprocessTasks[key].notContinue = true
+                            }
+                        } else if (this.subprocessTasks[key].pollErrorTimes) {
+                            this.subprocessTasks[key].pollErrorTimes = 0
                         }
                     }
                     const isContinue = Object.values(this.subprocessTasks).some(item => !item.notContinue)

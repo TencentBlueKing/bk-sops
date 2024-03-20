@@ -353,6 +353,7 @@
                 operateLoading: false,
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
+                statePollErrorTimes: 0, // 任务状态失败后额外查询五次后停止轮询
                 conditionData: {},
                 tabIconState: '',
                 approval: { // 节点审批
@@ -657,12 +658,21 @@
                             }
                         }
                         if (['RUNNING', 'PENDING_PROCESSING'].includes(this.state) || continueRunning) {
+                            this.statePollErrorTimes = 0
                             if (this.isExecRecordOpen && this.nodeExecRecordInfo.state) { // 节点执行中一秒查一次
                                 this.setTaskStatusTimer(1000)
                             } else {
                                 this.setTaskStatusTimer()
                             }
                             this.setRunningNode(instanceStatus.data.children)
+                        } else if (this.state === 'FAILED') {
+                            // 流程状态失败后再请求五次
+                            this.statePollErrorTimes += 1
+                            if (this.statePollErrorTimes > 5) {
+                                this.cancelTaskStatusTimer()
+                            } else {
+                                this.setTaskStatusTimer()
+                            }
                         }
                         this.updateNodeInfo()
                     } else {
