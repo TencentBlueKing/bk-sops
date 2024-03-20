@@ -16,12 +16,12 @@
                 slot="aside"
                 ref="nodeTree"
                 :loading="loading"
-                :instance-flow="instanceFlow"
+                :pipeline-data="pipelineData"
                 :default-active-id="defaultActiveId"
                 :execute-info="executeInfo"
                 :node-state-mapping="nodeStateMapping"
                 :node-detail-config="nodeDetailConfig"
-                :subprocess-id="subprocessPipeline && subprocessPipeline.id"
+                :subprocess-key="subprocessPipeline && subprocessPipeline.randomKey"
                 @updateSubprocessLoading="subprocessLoading = $event"
                 @updateParentPipelineData="updateParentPipelineData"
                 @updateSubprocessState="updateSubprocessState"
@@ -57,7 +57,7 @@
                         :condition-data="conditionData"
                         :node-activity="nodeActivity"
                         :node-detail-config="nodeDetailConfig"
-                        :pipeline-tree="pipelineData"
+                        :pipeline-tree="nodePipelineData"
                         :not-performed-sub-node="notPerformedSubNode"
                         :execute-info="executeInfo"
                         :engine-ver="engineVer"
@@ -76,7 +76,7 @@
                     :node-state-mapping="nodeStateMapping"
                     :subprocess-tasks="subprocessTasks"
                     :subprocess-nodes-state="subprocessNodesState"
-                    :pipeline-data="pipelineData"
+                    :pipeline-data="nodePipelineData"
                     :execute-info="executeInfo"
                     :subprocess-state="subprocessState"
                     :subprocess-pipeline="subprocessPipeline"
@@ -130,11 +130,13 @@
                 type: String,
                 default: ''
             },
-            instanceFlow: {
-                type: String,
-                required: true
+            pipelineData: { // 最外层画布的流程树
+                type: Object,
+                default () {
+                    return {}
+                }
             },
-            pipelineData: {
+            nodePipelineData: { // 当前节点所对应的流程树
                 type: Object,
                 default () {
                     return {}
@@ -240,7 +242,7 @@
             },
             nodeActivity () {
                 const { node_id: nodeId } = this.nodeDetailConfig
-                const { activities, end_event, start_event, gateways } = this.pipelineData
+                const { activities, end_event, start_event, gateways } = this.nodePipelineData
                 const nodeMap = {
                     ...activities,
                     ...Object.values(gateways).reduce((acc, cur) => {
@@ -266,7 +268,7 @@
                         pipelineData = componentData || pipelineData
                     }
                 } else if (this.nodeDetailConfig.root_node) {
-                    pipelineData = this.pipelineData
+                    pipelineData = this.nodePipelineData
                 }
                 return pipelineData
             },
@@ -421,7 +423,6 @@
                 }
                 const nodeInfo = this.getNodeInfo(parentId, node, 'canvas')
                 if (nodeInfo) {
-                    nodeInfo && this.onSelectNode(nodeInfo)
                     const parentInstance = this.$parent.$parent
                     parentInstance.defaultActiveId = ''
                     if (nodeInfo.conditionType) {
@@ -429,6 +430,10 @@
                     } else {
                         parentInstance.defaultActiveId = node + '-' + nodeInfo.parentId
                     }
+                    // 子流程节点选中时会切换画布，所以先设置节点树默认选中节点，再去加载节点详情
+                    this.$nextTick(() => {
+                        this.onSelectNode(nodeInfo)
+                    })
                 }
             },
             // 节点树节点点击
@@ -457,7 +462,12 @@
                 }
                 if (!updateCanvas && node.parentId) {
                     const nodeId = node.conditionType ? node.id.split('-')[0] : node.id
-                    updateCanvas = !this.subprocessPipeline?.location.find(item => item.id === nodeId)
+                    if (this.subprocessPipeline) {
+                        const { randomKey, location } = this.subprocessPipeline
+                        updateCanvas = !location.find(item => item.id === nodeId && node.flowKey === randomKey)
+                    } else {
+                        updateCanvas = true
+                    }
                 }
                 if (updateCanvas) {
                     this.canvasRandomKey = new Date().getTime()
@@ -494,9 +504,14 @@
             },
             // 更新父级节点树
             updateParentPipelineData (data) {
-                const { parentId, nodeId, pipeline } = data
+                const { parentId, nodeId, pipeline, reset } = data
                 const parentInstance = this.$parent.$parent
                 let pipelineData = parentInstance.nodeTreePipelineData
+                // 更新当前节点所对应的流程树
+                if (reset) {
+                    this.$set(parentInstance, 'nodePipelineData', { ...pipeline })
+                    return
+                }
                 if (parentId) {
                     parentId.forEach(item => {
                         const nodeData = pipelineData.activities[item]
