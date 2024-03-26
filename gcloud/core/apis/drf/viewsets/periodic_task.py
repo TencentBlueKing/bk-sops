@@ -268,5 +268,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
                 instance.task.save(update_fields=["name"])
             instance.editor = request.user.username
             instance.save(update_fields=["editor", "edit_time"])
+            instance.task.creator = request.user.username
+            instance.task.save()
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
