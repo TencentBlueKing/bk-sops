@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django_celery_beat.models import PeriodicTask as CeleryTask
@@ -209,3 +210,26 @@ class PatchUpdatePeriodicTaskSerializer(serializers.Serializer):
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
         return attrs
+
+
+class PeriodicTaskMailInfoSerializer(serializers.ModelSerializer):
+    project = ProjectSerializer()
+    task_link = serializers.SerializerMethodField(help_text="任务查看链接", read_only=True)
+    last_run_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+
+    class Meta:
+        model = PeriodicTask
+        fields = [
+            "id",
+            "edit_time",
+            "last_run_at",
+            "name",
+            "total_run_count",
+            "task_link",
+            "project",
+        ]
+
+    def get_task_link(self, obj):
+        url = settings.BK_SOPS_HOST + f"/taskflow/home/periodic/{obj.project.id}/?limit=15&page=1&task_id={obj.id}"
+        return url
