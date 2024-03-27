@@ -572,6 +572,10 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
         "formatter": "engine",
     }
 
+    for handler, handler_config in logging_dict["handlers"].items():
+        if handler in ["root", "component", "mysql", "celery", "blueapps"]:
+            handler_config["maxBytes"] = 1024 * 1024 * 30
+
     # loggers
     logging_dict["loggers"]["iam"] = {
         "handlers": ["component"],
