@@ -10,12 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.core.cache import cache
 from django.dispatch import receiver
 
-from gcloud.iam_auth.tasks import register_grant_resource_creator_task
 from gcloud.core.signals import user_enter
+from gcloud.iam_auth.tasks import register_grant_resource_creator_task
 
 
 @receiver(user_enter)
 def user_enter_handler(username, **kwargs):
+    if cache.get(f"user_enter_{username}"):
+        return
+    cache.set(f"user_enter_{username}", 1, 60 * 60)
     register_grant_resource_creator_task.delay(username=username)
