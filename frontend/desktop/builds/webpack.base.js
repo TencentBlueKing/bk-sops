@@ -26,16 +26,10 @@ module.exports = {
         rules: [
             {
                 test: require.resolve('jquery'),
-                use: [
-                    {
-                        loader: 'expose-loader',
-                        options: 'jQuery'
-                    },
-                    {
-                        loader: 'expose-loader',
-                        options: '$'
-                    }
-                ]
+                loader: 'expose-loader',
+                options: {
+                    exposes: ['$', 'jQuery']
+                }
             },
             {
                 enforce: 'pre',
@@ -87,6 +81,7 @@ module.exports = {
             {
                 test: /\.(woff2?|eot|ttf|otf|svg)(\?.*)?$/,
                 loader: 'url-loader',
+                type: 'asset/resource',
                 exclude: [
                     path.join(__dirname, '../src/assets/images/'),
                     path.join(__dirname, '../src/assets/bk-magic/images/')
@@ -112,6 +107,7 @@ module.exports = {
         })
     ],
     optimization: {
+        moduleIds: 'named',
         splitChunks: {
             cacheGroups: {
                 vendors: { // 框架相关
@@ -159,9 +155,11 @@ module.exports = {
             '@': path.resolve(__dirname, '../src/'),
             'vue': 'vue/dist/vue.esm.js'
         },
-        extensions: ['*', '.js', '.vue', '.json']
+        extensions: ['*', '.js', '.vue', '.json'],
+        fallback: {
+            path: false,
+            buffer: false
+        }
     },
-    node: {
-        fs: 'empty'
-    }
+    node: false
 }
