@@ -88,7 +88,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             all_hosts, row_host_params_list = [], []
             for host in nodeman_hosts:
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
-                install_channel_id = host.get("nodeman_bk_install_channel", "")
+                install_channel_id = host.get("nodeman_bk_install_channel")
                 use_inner_ip = True if host.get("inner_ip") else False
                 # use_inner_ip 判定用户输入的的是ipv4还是ipv6
                 inner_ip_list = self.get_ip_list(
@@ -132,12 +132,12 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                     **auth_params,
                     "bk_biz_id": bk_biz_id,
                     "bk_cloud_id": bk_cloud_id,
-                    "install_channel_id": install_channel_id,
                     "ap_id": host["nodeman_ap_id"],
                     "os_type": host["os_type"],
                     "is_manual": False,
                 }
-
+                if install_channel_id:
+                    base_params["install_channel_id"] = install_channel_id
                 # 支持表格中一行多ip操作, 拼装表格内的inner_ip参数
                 for index, inner_ip in enumerate(inner_ip_list):
 
