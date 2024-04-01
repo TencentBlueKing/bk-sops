@@ -88,7 +88,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             all_hosts, row_host_params_list = [], []
             for host in nodeman_hosts:
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
-                install_channel_id = host["nodeman_bk_install_channel"]
+                install_channel_id = host.get("nodeman_bk_install_channel", "")
                 use_inner_ip = True if host.get("inner_ip") else False
                 # use_inner_ip 判定用户输入的的是ipv4还是ipv6
                 inner_ip_list = self.get_ip_list(
