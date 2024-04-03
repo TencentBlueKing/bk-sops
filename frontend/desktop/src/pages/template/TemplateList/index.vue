@@ -68,7 +68,7 @@
     bottom: 0;
     z-index: 110;
     height: calc(100% - 52px);
-    >>> .bk-tab {
+    /deep/ .bk-tab {
         height: 100%;
         .bk-tab-header {
             background: #ffffff;

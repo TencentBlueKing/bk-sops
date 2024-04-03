@@ -49,7 +49,7 @@ module.exports = merge(webpackBaseConfig, {
     mode: 'development',
     output: {
         publicPath: '/',
-        filename: 'js/[name].[hash:10].js'
+        filename: 'js/[name].[contenthash:10].js'
     },
     module: {
         rules: [
@@ -80,7 +80,7 @@ module.exports = merge(webpackBaseConfig, {
     performance: {
         hints: false
     },
-    devtool: 'source-map',
+    devtool: 'inline-cheap-module-source-map',
     devServer: {
         port: 9000,
         host: 'dev.{BK_PAAS_HOST}',
@@ -93,16 +93,15 @@ module.exports = merge(webpackBaseConfig, {
         proxy: [
             {
                 context,
-                target: 'http://dev.{BK_PAAS_HOST}:8000',
+                target: 'https://{BK_PAAS_HOST}:8000',
                 secure: false,
                 changeOrigin: true,
                 headers: {
-                    referer: 'http://dev.{BK_PAAS_HOST}:8000'
+                    referer: 'https://{BK_PAAS_HOST}:8000'
                 }
             }
         ],
         client: {
-            progress: true,
             overlay: true,
             progress: true
         }

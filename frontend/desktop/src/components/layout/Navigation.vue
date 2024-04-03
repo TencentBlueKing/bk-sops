@@ -300,12 +300,12 @@
 
     .bk-navigation {
         &.hide-header-border {
-            & >>> .container-header {
+            /deep/ .container-header {
                 border-color: transparent;
                 box-shadow: 0;
             }
         }
-        & >>> {
+        /deep/ {
             .bk-navigation-wrapper {
                 min-width: 1366px;
                 .navigation-container {
