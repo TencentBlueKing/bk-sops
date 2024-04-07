@@ -36,4 +36,4 @@ class NodemanCreateTaskComponent(Component):
     bound_service = NodemanCreateTaskService
     form = "%scomponents/atoms/nodeman/create_task/v6_0.js" % settings.STATIC_URL
     version = VERSION
-    desc = _("v6.0版本 支持选择安装通道")
+    desc = _("v6.0版本 支持选择安装通道 \n" "注意：bk_apigateway版本>=1.12.17")
