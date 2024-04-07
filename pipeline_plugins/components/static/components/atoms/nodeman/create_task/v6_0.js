@@ -60,8 +60,7 @@
                     remote_data_init: function (resp) {
                         if (resp.result === false) {
                             show_msg(resp.message, 'error');
-                        }
-                        if (resp.data.length != 0){
+                        }else if (resp.data.length != 0){
                             this._set_value(resp.data[0]["value"]);
                         }
                         return resp.data;
@@ -76,11 +75,12 @@
                     {
                         source: "nodeman_bk_cloud_id",
                         type: "change",
-                        action: function () {
-                            var cloud_id = this.get_parent().get_child("nodeman_bk_cloud_id").value;
+                        action: function (cloud_id) {
                             if (cloud_id !== '') {
                                 this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_install_channel/' + cloud_id + '/';
                                 this.remoteMethod();
+                            }else{
+                                this._set_value("");
                             }
                         }
                     },
