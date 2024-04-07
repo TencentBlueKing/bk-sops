@@ -122,3 +122,6 @@ class BKNodeManClient(BKComponentClient):
                 "names": ["DEFAULT"],
             },
         )
+
+    def install_channel(self):
+        return self._request(method="get", url=_get_nodeman_api_v2("install_channel"), data={})
