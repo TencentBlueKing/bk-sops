@@ -136,7 +136,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                     "os_type": host["os_type"],
                     "is_manual": False,
                 }
-                if install_channel_id:
+                if install_channel_id and install_channel_id != -1:
                     base_params["install_channel_id"] = install_channel_id
                 # 支持表格中一行多ip操作, 拼装表格内的inner_ip参数
                 for index, inner_ip in enumerate(inner_ip_list):

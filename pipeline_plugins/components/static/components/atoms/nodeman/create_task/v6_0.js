@@ -54,15 +54,15 @@
                 type: "select",
                 attrs: {
                     name: gettext("安装通道"),
-                    hookable: false,
+                    width: "180px",
                     remote: true,
                     remote_url: "",
                     remote_data_init: function (resp) {
                         if (resp.result === false) {
                             show_msg(resp.message, 'error');
-                        }else if (resp.data.length != 0){
-                            this._set_value(resp.data[0]["value"]);
                         }
+                        resp.data.unshift({"text": gettext("默认通道"), "value": -1});
+                        this._set_value(resp.data[0]["value"]);
                         return resp.data;
                     },
                     validation: [
@@ -72,6 +72,16 @@
                     ]
                 },
                 events: [
+                    {
+                        source: "nodeman_bk_cloud_id",
+                        type: "init",
+                        action: function (cloud_id) {
+                            if (cloud_id !== '') {
+                                this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_install_channel/' + cloud_id + '/';
+                                this.remoteMethod();
+                            }
+                        }
+                    },
                     {
                         source: "nodeman_bk_cloud_id",
                         type: "change",
