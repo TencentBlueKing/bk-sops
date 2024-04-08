@@ -122,7 +122,7 @@
     import { getFormMixins } from '../formMixins.js'
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
-    import XLSX from 'xlsx'
+    import * as XLSX from 'xlsx'
     import Sortable from 'sortablejs'
     import atomFilter from '@/utils/atomFilter.js'
     import bus from '@/utils/bus.js'

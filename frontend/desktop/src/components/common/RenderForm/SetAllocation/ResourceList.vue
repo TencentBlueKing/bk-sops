@@ -97,7 +97,7 @@
 </template>
 <script >
     import '@/utils/i18n.js'
-    import XLSX from 'xlsx'
+    import * as XLSX from 'xlsx'
     import tools from '@/utils/tools.js'
     import RenderForm from '../RenderForm.vue'
     import SeparatorSelect from '../SeparatorSelect.vue'
