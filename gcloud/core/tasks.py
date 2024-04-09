@@ -23,9 +23,9 @@ from celery.five import monotonic
 from celery.task import periodic_task
 from django.contrib.sessions.models import Session
 from django.core.cache import cache
-from django.db.models import Count
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django_celery_beat.models import PeriodicTask as DjangoCeleryBeatPeriodicTask
 from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
 from pipeline.engine.core.data.api import _backend, _candidate_backend
 from pipeline.engine.core.data.redis_backend import RedisDataBackend
@@ -33,10 +33,7 @@ from pipeline.engine.core.data.redis_backend import RedisDataBackend
 from gcloud import exceptions
 from gcloud.conf import settings
 from gcloud.core.api_adapter.user_info import get_user_info
-from gcloud.core.apis.drf.serilaziers.periodic_task import PeriodicTaskMailInfoSerializer
-from gcloud.core.models import Project
 from gcloud.core.project import sync_projects_from_cmdb
-from gcloud.core.utils.sites.open.utils import get_user_business_list
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.send_msg import send_message
 
@@ -132,30 +129,18 @@ def migrate_pipeline_parent_data_task():
     logger.info("[migrate_pipeline_parent_data] migrate done!")
 
 
-@periodic_task(run_every=TzAwareCrontab(minute="*/2"))
+@periodic_task(run_every=TzAwareCrontab(minute=0, hour="*/2"))
 def cmdb_business_sync_shutdown_period_task():
     task_id = cmdb_business_sync_shutdown_period_task.request.id
     with redis_lock(LOCK_ID, task_id) as acquired:
         if acquired:
             logger.info("Start sync business from cmdb...")
             try:
-                biz_list = get_user_business_list(username=settings.SYSTEM_USE_API_ACCOUNT, use_cache=False)
-                all_biz_cc_ids = set()
-                archived_biz_cc_ids = set()
-                for biz in biz_list:
-                    if biz["bk_biz_name"] == "资源池":
-                        continue
-                    biz_cc_id = biz["bk_biz_id"]
-                    biz_status = biz.get("bk_data_status", "enable")
-                    all_biz_cc_ids.add(biz_cc_id)
-                    if biz_status == "disabled":
-                        archived_biz_cc_ids.add(biz_cc_id)
-                exist_sync_biz_cc_ids = set(Project.objects.filter(from_cmdb=True).values_list("bk_biz_id", flat=True))
-                deleted_biz_cc_ids = exist_sync_biz_cc_ids - all_biz_cc_ids
-                archived_cc_ids = archived_biz_cc_ids | deleted_biz_cc_ids
-                period_tasks = PeriodicTask.objects.filter(project__id__in=archived_cc_ids).all()
-                for period_task in period_tasks:
-                    period_task.set_enabled(False)
+                task_ids = [
+                    item["task__celery_task__id"]
+                    for item in PeriodicTask.objects.filter(project__is_disable=True).values("task__celery_task__id")
+                ]
+                DjangoCeleryBeatPeriodicTask.objects.filter(id__in=task_ids).update(enabled=False)
             except exceptions.APIError as e:
                 logger.error(
                     "An error occurred when sync cmdb business, message: {msg}, trace: {trace}".format(
@@ -174,29 +159,50 @@ def send_period_task_notify(executor, notify_type, receivers, title, content):
         logger.exception(f"send period task notify error: {e}")
 
 
-@periodic_task(run_every=TzAwareCrontab(**settings.EXPIRED_SESSION_PERIOD_TASK_SCAN))
+@periodic_task(run_every=TzAwareCrontab(**settings.PERIODIC_TASK_REMINDER_SCAN_CRON))
 def scan_period_task():
     title = "【标准运维 APP 提醒】请确认您正在运行的周期任务状态"
     # 以执行人维度发邮件通知
-    queryset = PeriodicTask.objects.filter(task__celery_task__enabled=True).order_by("-edit_time")
-    task_creators = queryset.values("task__creator").distinct()
+    periodic_tasks = (
+        PeriodicTask.objects.filter(task__celery_task__enabled=True)
+        .values(
+            "id",
+            "task__creator",
+            "project__id",
+            "project__name",
+            "edit_time",
+            "task__last_run_at",
+            "task__name",
+            "task__total_run_count",
+        )
+        .order_by("-edit_time")
+    )
     data = {}
-    for task_creator in task_creators:
-        data[task_creator["task__creator"]] = []
-        # 超过一个月周期任务
+    for p_task in periodic_tasks:
+        creator = p_task["task__creator"]
+        project_name = p_task["project__name"]
         last_month_time = datetime.datetime.now() + dateutil.relativedelta.relativedelta(
-            months=-int(settings.PERIOD_TASK_TIMES)
+            months=-int(settings.PERIODIC_TASK_REMINDER_TIME)
         )
-        queryset = queryset.select_related("task").filter(
-            task__creator=task_creator["task__creator"], edit_time__lt=last_month_time
-        )
-        task_projects = queryset.values("project__name").annotate(count=Count("project__name"))
-        for task_project in task_projects:
-            tasks = queryset.filter(project__name=task_project["project__name"])
-            serializer = PeriodicTaskMailInfoSerializer(instance=tasks, many=True)
-            data[task_creator["task__creator"]].append(
-                {"project_name": task_project["project__name"], "tasks": serializer.data}
-            )
+        if last_month_time.timestamp() < p_task["edit_time"].timestamp():
+            continue
+        task_dict = {
+            "edit_time": p_task["edit_time"],
+            "last_run_at": p_task["task__last_run_at"],
+            "name": p_task["task__name"],
+            "total_run_count": p_task["task__total_run_count"],
+            "task_link": settings.BK_SOPS_HOST
+            + f"/taskflow/home/periodic/{p_task['project__id']}/?limit=15&page=1&task_id={p_task['id']}",
+        }
+        if creator in data:
+            for item in data[creator]:
+                if project_name == item["project_name"]:
+                    item["tasks"].append(task_dict)
+                    break
+            else:
+                data[creator].append({"project_name": project_name, "tasks": [task_dict]})
+        else:
+            data[creator] = [{"project_name": project_name, "tasks": [task_dict]}]
     # 发送通知
     for notifier, tasks in data.items():
         user_info = get_user_info(notifier)
@@ -205,13 +211,13 @@ def scan_period_task():
             {
                 "notifier": notifier,
                 "ch_notifier": user_info["data"]["bk_username"],
-                "period_task_times": settings.PERIOD_TASK_TIMES,
-                "task_projects": data[notifier],
+                "period_task_times": settings.PERIODIC_TASK_REMINDER_TIME,
+                "task_projects": tasks,
             },
         )
         try:
             send_period_task_notify.delay(
-                "admin", settings.PERIOD_TASK_MESSAGE_NOTIFY_TYPE, notifier, title, mail_content
+                "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
             )
         except Exception as e:
             logger.exception(f"send period task notify error: {e}")
