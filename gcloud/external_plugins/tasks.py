@@ -13,21 +13,14 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from celery import task
+from celery import current_app
 
-from gcloud.external_plugins.models import (
-    source_cls_factory,
-    CachePackageSource,
-    SyncTask,
-    SUCCEEDED,
-    FAILED
-)
+from gcloud.external_plugins.models import FAILED, SUCCEEDED, CachePackageSource, SyncTask, source_cls_factory
+
+logger = logging.getLogger("celery")
 
 
-logger = logging.getLogger('celery')
-
-
-@task
+@current_app.task
 def sync_task(task_id):
     sync = SyncTask.objects.get(id=task_id)
     all_origin_dirs = []
@@ -38,10 +31,8 @@ def sync_task(task_id):
                 origin.read()
                 all_origin_dirs.append(origin.name)
             except Exception as e:
-                message = 'Origin package[type={origin_type}, id={origin_id}] read error: {error}'.format(
-                    origin_type=origin.type,
-                    origin_id=origin.id,
-                    error=e
+                message = "Origin package[type={origin_type}, id={origin_id}] read error: {error}".format(
+                    origin_type=origin.type, origin_id=origin.id, error=e
                 )
                 logger.error(message)
                 sync.finish_task(FAILED, message)
@@ -53,10 +44,8 @@ def sync_task(task_id):
             cache.write(all_origin_dirs)
         except Exception as e:
             SyncTask.objects.filter(id=task_id).update(status=FAILED)
-            message = 'Cache package[type={origin_type}, id={origin_id}] write error: {error}'.format(
-                origin_type=cache.type,
-                origin_id=cache.id,
-                error=e
+            message = "Cache package[type={origin_type}, id={origin_id}] write error: {error}".format(
+                origin_type=cache.type, origin_id=cache.id, error=e
             )
             logger.error(message)
             sync.finish_task(FAILED, message)

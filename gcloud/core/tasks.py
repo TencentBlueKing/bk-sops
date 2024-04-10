@@ -15,21 +15,20 @@ import logging
 import time
 import traceback
 from contextlib import contextmanager
+from time import monotonic
 
+from blueapps.contrib.celery_tools.periodic import periodic_task
+from celery import current_app
 from django.contrib.sessions.models import Session
 from django.core.cache import cache
-from celery import task
-from celery.five import monotonic
-from celery.task import periodic_task
 from django.utils import timezone
+from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
+from pipeline.engine.core.data.api import _backend, _candidate_backend
+from pipeline.engine.core.data.redis_backend import RedisDataBackend
 
 from gcloud import exceptions
 from gcloud.conf import settings
 from gcloud.core.project import sync_projects_from_cmdb
-
-from pipeline.engine.core.data.api import _backend, _candidate_backend
-from pipeline.engine.core.data.redis_backend import RedisDataBackend
-from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
 
 logger = logging.getLogger("celery")
 
@@ -91,7 +90,7 @@ def clean_django_sessions():
         logger.exception(f"Clean django sessions error: {e}")
 
 
-@task
+@current_app.task
 def migrate_pipeline_parent_data_task():
     """
     将 pipeline 的 schedule_parent_data 从 _backend(redis) 迁移到 _candidate_backend(mysql)
