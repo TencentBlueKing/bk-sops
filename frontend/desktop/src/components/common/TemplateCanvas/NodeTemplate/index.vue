@@ -553,6 +553,14 @@
                 }
             }
             &.subflow-node {
+                background: initial;
+                .node-status-block {
+                    width: 150px;
+                }
+                .node-name {
+                    width: 150px;
+                    background: #fff;
+                }
                 .state-icon {
                     bottom: -26px;
                 }
