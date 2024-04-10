@@ -51,8 +51,8 @@
                     v-for="operation in taskOperationBtns"
                     :key="operation.action"
                     v-bk-tooltips.top="{
-                        content: $t('使用当前任务数据（节点选择、入参）再次创建任务'),
-                        disabled: operation.action !== 'reExecute'
+                        content: getTipsContent(operation),
+                        disabled: judgeTipsDisabled(operation)
                     }"
                     class="operation-btn">
                     <bk-button
@@ -227,6 +227,14 @@
             hasOperatePerm (operation) {
                 const requestPerm = operation.action !== 'reExecute' ? 'task_operate' : this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
                 return this.hasPermission([requestPerm], this.instanceActions)
+            },
+            getTipsContent (operation) {
+                return operation.action === 'reExecute'
+                    ? this.$t('使用当前任务数据（节点选择、入参）再次创建任务')
+                    : this.$t('任务等待处理中，无需暂停')
+            },
+            judgeTipsDisabled (operation) {
+                return operation.action !== 'reExecute' && this.state !== 'PENDING_PROCESSING'
             }
         }
     }

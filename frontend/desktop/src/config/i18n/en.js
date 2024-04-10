@@ -276,7 +276,7 @@ const en = {
     '请先保存已修改的信息': 'Save the modified information first',
     '暂不支持分层层级大于 业务-集群 两层的集群模版': 'Do not support Set template with more than two levels: Business-set',
     '任务数据': 'Task Data',
-    '继续执行': 'Continue Execution',
+    '继续执行': 'Continue',
     '保存筛选方案': 'Save',
     '修改名称会新建方案记录': 'Changing the name creates a new schema record',
     '筛选方案': 'Filter Scheme',
@@ -1861,7 +1861,8 @@ const en = {
     '当前项目不存在或已归档': 'Project not exist or has been archived',
     '返回首页': 'Return to Home',
     '请至少选择一个节点': 'Please select at least one node',
-    '代理人仅可设置为本人': 'The executor proxy can only set yourself'
+    '代理人仅可设置为本人': 'The executor proxy can only set yourself',
+    '任务等待处理中，无需暂停': 'The task is waiting for processing, no need to pause'
 }
 
 export default en
