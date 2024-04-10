@@ -173,19 +173,19 @@ modules:
               description: 是否启动 metrics server
         processes:
             v1-engine:
-                command: celery worker -A blueapps.core.celery -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             api-er-e:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 4
             api-er-s:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 4
             api-task:
-                command: celery worker -A blueapps.core.celery -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
                 plan: 4C1G5R
                 replicas: 2
             cworker:
@@ -193,27 +193,27 @@ modules:
                 plan: 4C1G5R
                 replicas: 2
             er-e:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_execute -n er_e_worker@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q er_execute -n er_e_worker@%h -c 100 -l info
                 plan: 4C2G5R
                 replicas: 2
             er-s:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule -n er_s_worker@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q er_schedule -n er_s_worker@%h -c 100 -l info
                 plan: 4C2G5R
                 replicas: 2
             peri-er-e:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             peri-er-s:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             stats-worker:
-                command: celery worker -A blueapps.core.celery -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             cleaner:
-                command: celery worker -A blueapps.core.celery -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
+                command: celery -A blueapps.core.celery worker -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             exporter:
