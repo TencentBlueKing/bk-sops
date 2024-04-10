@@ -341,6 +341,9 @@
                     }
                 }
             }
+            .jtk-connector {
+                cursor: default;
+            }
         }
         /deep/.node-tips-content {
             display: none;

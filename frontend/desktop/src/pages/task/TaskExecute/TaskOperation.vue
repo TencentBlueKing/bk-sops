@@ -2357,7 +2357,7 @@
                     }
                 }
                 .jtk-connector {
-                    cursor: inherit;
+                    cursor: default;
                 }
             }
             /deep/.small-map {
@@ -2494,6 +2494,7 @@
     color: #ffb946;
     background: #f5f7fa;
     transform-origin: top;
+    cursor: default !important;
 }
 </style>
 <style lang="scss">
