@@ -12,7 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-from celery import task
+
+from celery import current_app
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_action_attributes
@@ -20,7 +21,7 @@ from gcloud.iam_auth.resource_creator_action.utils import register_grant_resourc
 logger = logging.getLogger("root")
 
 
-@task
+@current_app.task
 def register_grant_resource_creator_task(username):
     register_grant_resource_creator_action_attributes(
         IAMMeta.TASK_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]

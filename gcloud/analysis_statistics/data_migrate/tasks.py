@@ -14,31 +14,29 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-
-from django.db.models import Q
+from blueapps.contrib.celery_tools.periodic import periodic_task
 from django.db import transaction
-from celery.task import periodic_task
-
+from django.db.models import Q
+from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
 from pipeline.contrib.statistics.models import (
-    TemplateInPipeline,
+    ComponentExecuteData,
     ComponentInTemplate,
     InstanceInPipeline,
-    ComponentExecuteData,
+    TemplateInPipeline,
 )
-from pipeline.models import PipelineInstance, PipelineTemplate
 from pipeline.core.constants import PE
 from pipeline.engine.utils import calculate_elapsed_time
-from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
+from pipeline.models import PipelineInstance, PipelineTemplate
 
+from gcloud.analysis_statistics.data_migrate.models import MigrateLog
 from gcloud.analysis_statistics.models import (
-    TemplateStatistics,
-    TemplateNodeStatistics,
     TaskflowExecutedNodeStatistics,
     TaskflowStatistics,
+    TemplateNodeStatistics,
+    TemplateStatistics,
 )
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.analysis_statistics.data_migrate.models import MigrateLog
+from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("celery")
 

@@ -17,34 +17,32 @@ from copy import deepcopy
 from datetime import datetime
 
 import ujson as json
-from celery import task
-from celery.task import periodic_task
-from celery.schedules import crontab
 from bamboo_engine import api as bamboo_engine_api
-
+from blueapps.contrib.celery_tools.periodic import periodic_task
+from celery import current_app
+from celery.schedules import crontab
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.contrib.statistics.utils import count_pipeline_tree_nodes
 from pipeline.core.constants import PE
-from pipeline.models import PipelineTemplate
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import states
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
+from pipeline.models import PipelineTemplate
 
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.common_template.models import CommonTemplate
 from gcloud.analysis_statistics import variable
 from gcloud.analysis_statistics.models import (
+    TaskflowExecutedNodeStatistics,
     TaskflowStatistics,
+    TemplateCustomVariableSummary,
     TemplateNodeStatistics,
     TemplateStatistics,
-    TaskflowExecutedNodeStatistics,
     TemplateVariableStatistics,
-    TemplateCustomVariableSummary,
 )
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.common_template.models import CommonTemplate
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
-
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("celery")
 
@@ -165,7 +163,7 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
     return component_list
 
 
-@task
+@current_app.task
 def taskflowinstance_post_save_statistics_task(task_instance_id, created):
     try:
         taskflow_instance = TaskFlowInstance.objects.get(id=task_instance_id)
@@ -205,7 +203,7 @@ def taskflowinstance_post_save_statistics_task(task_instance_id, created):
         return False
 
 
-@task
+@current_app.task
 def tasktemplate_post_save_statistics_task(template_id):
     template = TaskTemplate.objects.get(id=template_id)
     task_template_id = template.id
@@ -307,7 +305,7 @@ def tasktemplate_post_save_statistics_task(template_id):
     return True
 
 
-@task
+@current_app.task
 def pipeline_archive_statistics_task(instance_id):
     taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance__instance_id=instance_id)
     # 更新taskflowinstance统计数据start_time finish_time elapsed_time
@@ -349,7 +347,7 @@ def pipeline_archive_statistics_task(instance_id):
     return True
 
 
-@task
+@current_app.task
 @periodic_task(run_every=crontab(hour="0"))
 def backfill_template_variable_statistics_task():
     custom_variables_records = {}
