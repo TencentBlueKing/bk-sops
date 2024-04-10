@@ -2247,15 +2247,21 @@
             },
             updateNodeExecuteInfo () {
                 if (this.isNodeInfoPanelShow && this.nodeInfoType === 'executeInfo') {
-                    this.updateNodeActived(this.nodeDetailConfig.id, true)
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, true)
                     const execInfoInstance = this.$refs.executeInfo
                     execInfoInstance.loading = true
                     execInfoInstance.subprocessLoading = !!execInfoInstance.subProcessPipeline
                     setTimeout(async () => {
                         try {
-                            const { root_node, component_code, taskId } = this.nodeDetailConfig
+                            const { root_node, component_code, taskId, node_id } = this.nodeDetailConfig
                             // 重新拉取父流程状态
                             await this.loadTaskStatus()
+                            // 如果当前节点是根流程下的节点，切任务状态变为【已完成】，则自动关闭抽屉
+                            if (!root_node && this.nodeDisplayStatus.children[node_id]?.state === 'FINISHED') {
+                                this.isNodeInfoPanelShow = false
+                                this.updateNodeActived(node_id, false)
+                                return
+                            }
                             // 重新加载节点配置
                             await execInfoInstance.loadNodeInfo()
                             // 重新拉取所有独立子流程状态
