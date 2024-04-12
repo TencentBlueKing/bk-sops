@@ -27,7 +27,7 @@ pyinstrument==3.1.3
 djangorestframework==3.11.2
 django-filter==2.4.0
 prometheus-client==0.9.0
-bamboo-pipeline==3.24.5
+bamboo-pipeline==3.24.6
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 pyyaml==5.4.1
@@ -59,7 +59,7 @@ importlib-metadata==3.7.3
 protobuf==3.19.4
 
 # blueapps
-blueapps[opentelemetry,bkcrypto]==4.11.0rc1
+blueapps[opentelemetry,bkcrypto]==4.11.0
 whitenoise==5.2.0
 raven==6.5.0
 python-json-logger==2.0.1
