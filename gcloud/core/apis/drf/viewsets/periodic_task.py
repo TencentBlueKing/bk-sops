@@ -182,7 +182,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
         if project_id:
             order_by = request.query_params.get("order_by") or "-id"
-            orderings = ("-is_collected", order_by)
+            orderings = ("-is_collected", "-task__celery_task__enabled", order_by)
 
             collection_task_ids, collection_task_map = Collection.objects.get_user_project_collection_instance_info(
                 project_id=project_id, username=request.user.username, category="periodic_task"
