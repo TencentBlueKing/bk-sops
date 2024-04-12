@@ -45,6 +45,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: C_FORCE_ROOT
+              value: true
+              description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
@@ -110,6 +113,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: C_FORCE_ROOT
+              value: true
+              description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
@@ -168,6 +174,9 @@ modules:
             - key: CELERY_EXPORTER_PORT
               value: 5001
               description: celery-exporter 监听端口
+            - key: C_FORCE_ROOT
+              value: true
+              description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
@@ -271,6 +280,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: C_FORCE_ROOT
+              value: true
+              description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
