@@ -1,6 +1,6 @@
 @mixin status-icon-style($color) {
     display: inline-block;
-    font-size: 12px;
+    font-size: 14px;
     color: $color;
     vertical-align: middle;
 }
@@ -15,20 +15,20 @@
     .common-icon-dark-circle-ellipsis {
         @include status-icon-style(#3a84ff);
     }
-    .icon-check-circle-shape {
+    .common-icon-task-finished {
         @include status-icon-style(#30d878);
     }
-    .common-icon-dark-circle-close {
+    .common-icon-task-failed {
         @include status-icon-style(#ff5757);
     }
-    .common-icon-dark-circle-pending-process,
+    .common-icon-task-pending-process,
     .common-icon-dark-circle-circle-pause {
         @include status-icon-style(#ff9c01);
     }
-    .common-icon-waitting {
+    .common-icon-task-ready {
         @include status-icon-style(#979BA5);
     }
-    .common-icon-dark-stop {
+    .common-icon-task-revoke {
         @include status-icon-style(#ea3636);
     }
     &.revoke {

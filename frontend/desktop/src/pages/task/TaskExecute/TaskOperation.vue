@@ -797,7 +797,8 @@
                         this.setTaskStatusTimer()
                         this.$bkMessage({
                             message: i18n.t('任务开始执行'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                     }
                 } catch (e) {
@@ -832,7 +833,8 @@
                         message = name + ' ' + i18n.t('节点已暂停执行')
                         this.$bkMessage({
                             message,
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                     } else {
                         this.state = 'SUSPENDED'
@@ -902,7 +904,8 @@
                         this.setTaskStatusTimer()
                         this.$bkMessage({
                             message,
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         // 清理任务暂停/参数修改后继续执行 msg信息
                         this.msgInstance && this.msgInstance.close()
@@ -921,7 +924,8 @@
                         this.state = 'REVOKED'
                         this.$bkMessage({
                             message: i18n.t('任务终止成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         setTimeout(() => {
                             this.setTaskStatusTimer()
@@ -962,7 +966,8 @@
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         // 更新节点执行信息
                         this.updateNodeExecuteInfo()
@@ -1009,7 +1014,8 @@
                     if (res.result) {
                         this.$bkMessage({
                             message,
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         // 更新节点执行信息
                         this.updateNodeExecuteInfo()
@@ -1032,7 +1038,8 @@
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         setTimeout(() => {
                             this.setTaskStatusTimer()
@@ -1059,7 +1066,8 @@
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('继续成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         // 更新节点执行信息
                         this.updateNodeExecuteInfo()
@@ -1269,7 +1277,8 @@
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('重试成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         this.nodeInfo = {}
                         this.nodeInputs = {}
@@ -1510,7 +1519,8 @@
                         this.approval.dialogShow = false
                         this.$bkMessage({
                             message: i18n.t('节点审批成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         // 更新节点执行信息
                         this.updateNodeExecuteInfo()
@@ -2100,7 +2110,8 @@
                         this.isInjectVarDialogShow = false
                         this.$bkMessage({
                             message: i18n.t('注入全局变量成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                     }
                 } catch (error) {
