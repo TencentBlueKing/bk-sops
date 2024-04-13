@@ -52,7 +52,10 @@ class TaskContext(object):
         self.biz_cc_name = self.bk_biz_name
         # 任务开始时间
         project = Project.objects.get(id=self.project_id)
-        project_tz = timezone.pytz.timezone(project.time_zone)
+        try:
+            project_tz = timezone.pytz.timezone(project.time_zone)
+        except timezone.pytz.exceptions.UnknownTimeZoneError as e:
+            raise Exception(f"Project Unknown time zone error: {e}")
         self.task_start_time = datetime.datetime.now(tz=project_tz).strftime("%Y-%m-%d %H:%M:%S")
         # 任务URL
         self.task_url = (
