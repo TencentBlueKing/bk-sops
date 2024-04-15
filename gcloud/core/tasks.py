@@ -152,11 +152,11 @@ def cmdb_business_sync_shutdown_period_task():
 
 
 @task
-def send_period_task_notify(executor, notify_type, receivers, title, content):
+def send_periodic_task_notify(executor, notify_type, receivers, title, content):
     try:
         send_message(executor, notify_type, receivers, title, content)
     except Exception as e:
-        logger.exception(f"send period task notify error: {e}")
+        logger.exception(f"send periodic task notify error: {e}")
 
 
 @periodic_task(run_every=TzAwareCrontab(**settings.PERIODIC_TASK_REMINDER_SCAN_CRON))
@@ -215,7 +215,7 @@ def scan_periodic_task(is_send_notify: bool = True):
                         "task_projects": tasks,
                     },
                 )
-                send_period_task_notify.delay(
+                send_periodic_task_notify.delay(
                     "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, "liujun", title, mail_content
                 )
             except Exception as e:
