@@ -160,7 +160,7 @@ def send_period_task_notify(executor, notify_type, receivers, title, content):
 
 
 @periodic_task(run_every=TzAwareCrontab(**settings.PERIODIC_TASK_REMINDER_SCAN_CRON))
-def scan_period_task():
+def scan_periodic_task(is_send_notify: bool = True):
     title = "【标准运维 APP 提醒】请确认您正在运行的周期任务状态"
     # 以执行人维度发邮件通知
     periodic_tasks = (
@@ -179,13 +179,13 @@ def scan_period_task():
     )
     data = {}
     for p_task in periodic_tasks:
-        creator = p_task["task__creator"]
-        project_name = p_task["project__name"]
         last_month_time = datetime.datetime.now() + dateutil.relativedelta.relativedelta(
             months=-int(settings.PERIODIC_TASK_REMINDER_TIME)
         )
         if last_month_time.timestamp() < p_task["edit_time"].timestamp():
             continue
+        creator = p_task["task__creator"]
+        project_name = p_task["project__name"]
         task_dict = {
             "edit_time": p_task["edit_time"],
             "last_run_at": p_task["task__last_run_at"],
@@ -195,29 +195,29 @@ def scan_period_task():
             + f"/taskflow/home/periodic/{p_task['project__id']}/?limit=15&page=1&task_id={p_task['id']}",
         }
         if creator in data:
-            for item in data[creator]:
-                if project_name == item["project_name"]:
-                    item["tasks"].append(task_dict)
-                    break
+            if project_name in data[creator]:
+                data[creator][project_name].append(task_dict)
             else:
-                data[creator].append({"project_name": project_name, "tasks": [task_dict]})
+                data[creator][project_name] = [task_dict]
         else:
-            data[creator] = [{"project_name": project_name, "tasks": [task_dict]}]
+            data[creator] = {project_name: [task_dict]}
     # 发送通知
-    for notifier, tasks in data.items():
-        user_info = get_user_info(notifier)
-        mail_content = render_to_string(
-            "core/period_task_notice_mail.html",
-            {
-                "notifier": notifier,
-                "ch_notifier": user_info["data"]["bk_username"],
-                "period_task_times": settings.PERIODIC_TASK_REMINDER_TIME,
-                "task_projects": tasks,
-            },
-        )
-        try:
-            send_period_task_notify.delay(
-                "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
-            )
-        except Exception as e:
-            logger.exception(f"send period task notify error: {e}")
+    if is_send_notify:
+        for notifier, tasks in data.items():
+            try:
+                user_info = get_user_info(notifier)
+                mail_content = render_to_string(
+                    "core/period_task_notice_mail.html",
+                    {
+                        "notifier": notifier,
+                        "ch_notifier": user_info["data"]["bk_username"],
+                        "period_task_times": settings.PERIODIC_TASK_REMINDER_TIME,
+                        "task_projects": tasks,
+                    },
+                )
+                send_period_task_notify.delay(
+                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, "liujun", title, mail_content
+                )
+            except Exception as e:
+                logger.exception(f"send periodic task notify error: {e}")
+    return data

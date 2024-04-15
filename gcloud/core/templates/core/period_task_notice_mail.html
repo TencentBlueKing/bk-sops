@@ -215,10 +215,10 @@
                         <span style="color: #ff9c01;">{{ period_task_times }}</span>
                         个月的检测周期内没有进行任何更新,请核查这些周期任务是否仍在使用
                     </div>
-                    {% for task_project in task_projects %}
+                    {% for project_name, task_project in task_projects.items %}
                         <label class="table-item-lable" style="margin-top: 50px;">
                             <span></span>
-                            {{ task_project.project_name }}({{ task_project.tasks|length }})
+                            {{ project_name }}({{ task_project|length }})
                         </label>
                         <table align="center" border="0" cellpadding="0" cellspacing="0" width="864" style="background:#fff;">
                             <tr class="blank">
@@ -248,7 +248,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for task in task_project.tasks %}
+                                            {% for task in task_project %}
                                             <tr>
                                                 <td style="padding:15px 15px 15px 30px;color: #555; max-width: 180px; word-wrap:break-word; word-break:break-all;">
                                                     {{ task.name }}
