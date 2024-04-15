@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>【标准运维 APP 提醒】请确认您正在运行的周期任务状态</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <style type="text/css">
+        * {
+            padding: 0;
+            margin: 0;
+            font-family: 'Microsoft YaHei';
+            font-size: 13px;
+        }
+
+        body {
+            background: #fff;
+            color: #63656e;
+        }
+
+        img {
+            outline: none;
+            border: none;
+            text-decoration: none;
+        }
+
+        a {
+            border: none;
+            text-decoration: none !important;
+            color: #000;
+        }
+
+        a:hover {
+            color: blue;
+            text-decoration: none !important;
+        }
+
+        .table {
+            border-collapse: collapse;
+            border-spacing: 0px;
+            table-layout: auto;
+        }
+
+        .data-table {
+            border-left: none !important;
+            border-right: none !important;
+        }
+
+        .data-table thead tr th {
+            padding: 13px;
+            border-bottom: 1px solid #eee;
+            color: #000;
+            font-weight: normal;
+            background: #f5f6fa;
+            text-align: left;
+        }
+
+        .data-table tbody tr td {
+            padding: 13px;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            color: #555;
+            max-width: 180px;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .blank {
+            height: 25px;
+            font-style: normal;
+            font-variant: normal;
+            font-size: 12px;
+            line-height: 22px;
+            font-weight: normal;
+            padding: 0px;
+            margin: 0px;
+            border: 0px;
+        }
+
+        .content {
+            width: 1000px;
+            margin: 0 auto;
+            background: #f0f1f5;
+        }
+
+        .header {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(180deg,#2e3959, #5b6b92);
+        }
+
+        .header .header-info {
+            position: relative;
+            top: 30px;
+            left: 32px;
+            line-height: 32px;
+        }
+
+        .user-info {
+            font-size: 14px;
+        }
+
+        .user-info p {
+            line-height: 24px;
+        }
+
+        .header .header-info .logo {
+            width: 32px;
+            vertical-align: top;
+        }
+
+        .header .header-info .text {
+            position: relative;
+            left: 5px;
+            font-size: 22px;
+            color: #fff;
+        }
+
+        .table-item-lable {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            font-family: MicrosoftYaHei, MicrosoftYaHei-Bold;
+            font-weight: 700;
+            text-align: left;
+            color: #63656e;
+            line-height: 20px;
+        }
+        
+        .table-item-lable span {
+            display: inline-block;
+            position: relative;
+            top: 2px;
+            width: 4px;
+            height: 16px;
+            background: #699df4;
+            border-radius: 1px;
+        }
+
+        .current-content {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .current-info {
+            position: relative;
+            top: 30px;
+            text-align: left;
+            color: #c4c6cc; 
+        }
+
+        .current-date {
+            position: relative;
+            top: 30px;
+            text-align: right;
+            color: #c4c6cc;
+        }
+
+        .renewal-action-flex{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            top: 75px;
+        }
+
+        .renewal-action {
+            margin-right: 40px;
+            width: 144px;
+            height: 32px;
+            line-height: 32px;
+            background: #3a84ff;
+            border-radius: 16px;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .renewal-action a {
+            border: none;
+            text-decoration: none !important;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <div class="header">
+            <div class="header-info">
+                <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjhweCIgaGVpZ2h0PSIyOHB4IiB2aWV3Qm94PSIwIDAgMjggMjgiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDUyLjIgKDY3MTQ1KSAtIGh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaCAtLT4KICAgIDx0aXRsZT5sb2dvPC90aXRsZT4KICAgIDxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPgogICAgPGcgaWQ9IlN5bWJvbHMiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxnIGlkPSLpobbpg6jmoI8t5peg5p2D6ZmQIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjUuMDAwMDAwLCAtMTEuMDAwMDAwKSIgZmlsbD0iIzIyODZGRiI+CiAgICAgICAgICAgIDxnIGlkPSLpobbpg6jmoI8iPgogICAgICAgICAgICAgICAgPGcgaWQ9IkxPR08iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1LjAwMDAwMCwgMTEuMDAwMDAwKSI+CiAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTI3LjkwNywxMi40MzggQzI3Ljc1MiwxMi4zNyAyNy41ODcsMTIuMzAyIDI3LjQwNywxMi4yMzggTDI3LjIxNCwxMi4xNjUgQzI1LjY5MiwxMS42ODUgMjIuNDkxLDkuNzc4IDI1LjIwNywyLjQxMiBMOC4yLDEyLjMgTDguMDMyLDEyLjQgTDEzLjc5MSwxNS42OTEgTDcuMjY1LDE5LjQ1NiBMNy4yMDgsMTkuMzgzIEM3LjE1NCwxOS4zMTUgNy4xMDIsMTkuMjUgNy4wNTEsMTkuMTgzIEM3LjAyOSwxOS4xNTYgNy4wMSwxOS4xMjYgNi45OTEsMTkuMDk5IEM2LjkzOSwxOS4wMjggNi44OTEsMTguOTYxIDYuODQyLDE4Ljg5IEw2Ljc4NSwxOC44IEM2LjczNiwxOC43MjkgNi42OSwxOC42NTYgNi42NDQsMTguNTgzIEM2LjYyNSwxOC41NTMgNi42MDksMTguNTIzIDYuNTksMTguNDkzIEM2LjU0NywxOC40MiA2LjUsMTguMzQ3IDYuNDU3LDE4LjI3MSBDNi40MzgsMTguMjM4IDYuNDIyLDE4LjIwNiA2LjQwNSwxOC4xNzYgQzYuMzY0LDE4LjEwMyA2LjMyNCwxOC4wMjcgNi4yODMsMTcuOTUxIEw2LjIzNCwxNy44NTEgQzYuMTk2LDE3Ljc3NSA2LjE1OCwxNy42OTkgNi4xMjMsMTcuNjIzIEM2LjEwNywxNy41ODggNi4wOTMsMTcuNTUyIDYuMDc3LDE3LjUxNyBDNi4wNDQsMTcuNDQxIDYuMDA5LDE3LjM2NSA1Ljk3NywxNy4yODkgQzUuOTYxLDE3LjI1MSA1Ljk0NywxNy4yMSA1LjkzMSwxNy4xNzIgQzUuOTAxLDE3LjA5NiA1Ljg3MSwxNy4wMjMgNS44NDQsMTYuOTQ3IEw1LjgsMTYuODI4IEM1Ljc3MywxNi43NTIgNS43NDgsMTYuNjc5IDUuNzI0LDE2LjYwMyBDNS43MSwxNi41NiA1LjY5NywxNi41MTMgNS42ODMsMTYuNDY3IEw1LjYxOCwxNi4yNDcgQzUuNjA0LDE2LjE5OCA1LjU5NCwxNi4xNDcgNS41OCwxNi4wOTggQzUuNTYxLDE2LjAyNyA1LjU0NSwxNS45NTcgNS41MjgsMTUuODg2IEw1LjUsMTUuNzI0IEM1LjQ4NiwxNS42NTYgNS40NywxNS41ODggNS40NTksMTUuNTE4IEM1LjQ0OCwxNS40NDggNS40NCwxNS4zOTkgNS40MzIsMTUuMzM2IEM1LjQyNCwxNS4yNzMgNS40MSwxNS4yMDggNS40MDIsMTUuMTQzIEM1LjM5NCwxNS4wNzggNS4zODYsMTUuMDEgNS4zOCwxNC45NDMgQzUuMzc0LDE0Ljg3NiA1LjM2NiwxNC44MjQgNS4zNjEsMTQuNzY0IEM1LjM1MywxNC42ODMgNS4zNSwxNC42MDEgNS4zNDUsMTQuNTIgQzUuMzQ1LDE0LjQ3NCA1LjMzNywxNC40MjggNS4zMzcsMTQuMzgyIEM1LjMzMiwxNC4yNTQgNS4zMjksMTQuMTI0IDUuMzI5LDEzLjk5NCBDNS4zMjksOS4yMDUxMzg5MyA5LjIxMTEzODkzLDUuMzIzIDE0LDUuMzIzIEMxNC4xNDksNS4zMjMgMTQuMyw1LjMyMyAxNC40NDIsNS4zMzQgQzE0LjUxMyw1LjMzNCAxNC41ODMsNS4zNDUgMTQuNjUxLDUuMzUgTDE0Ljg3Niw1LjM2NiBDMTQuOTcxLDUuMzc0IDE1LjA2Myw1LjM4OCAxNS4xNTUsNS40MDEgQzE1LjIwNCw1LjQwNiAxNS4yNTUsNS40MTIgMTUuMzA0LDUuNDIgQzE1LjQxMyw1LjQzNiAxNS41MTgsNS40NTUgMTUuNjI0LDUuNDc3IEMxNS42NTcsNS40ODIgMTUuNjkyLDUuNDg4IDE1LjcyNCw1LjQ5NiBDMTUuODM4LDUuNTIgMTUuOTUyLDUuNTQ1IDE2LjA2Niw1LjU3NSBMMTYuMTM5LDUuNTkxIEMxNi4yNTU2NjY3LDUuNjIxIDE2LjM3MjMzMzMsNS42NTQzMzMzMyAxNi40ODksNS42OTEgTDE2LjU0Niw1LjcwNyBDMTYuNjYzLDUuNzQyIDE2Ljc3Nyw1Ljc4MyAxNi44OTEsNS44MjEgQzE2LjkwOTQwMTIsNS44MjYxMjk2NCAxNi45Mjc0NDA5LDUuODMyNDc2OTcgMTYuOTQ1LDUuODQgQzE3LjA1Niw1Ljg4MSAxNy4xNjcsNS45MjQgMTcuMjc2LDUuOTY4IEwxNy4zODIsNi4wMDkgTDIxLjgxMiwzLjQ1NCBDMjEuNjk4LDMuNDk3IDIxLjU4MSwzLjUzIDIxLjQ2NSwzLjU2MyBDMjEuMzg5LDMuNTg1IDIxLjMxMywzLjYwNiAyMS4yMzQsMy42MjUgQzIxLjE1NSwzLjY0NCAyMS4wNzksMy42NiAyMS4wMDEsMy42NzQgQzIwLjkyMywzLjY4OCAyMC44NDYsMy43MDEgMjAuNzcsMy43MTIgQzIwLjY5NCwzLjcyMyAyMC42MTUsMy43MzEgMjAuNTM5LDMuNzM2IEMyMC40NjMsMy43NDEgMjAuMzg3LDMuNzUgMjAuMzExLDMuNzUyIEMyMC4yMzUsMy43NTQgMjAuMTU5LDMuNzUyIDIwLjA4MywzLjc1MiBDMjAuMDA3LDMuNzUyIDE5LjkzMSwzLjc1MiAxOS44NTgsMy43NDcgQzE5Ljc4NSwzLjc0MiAxOS43MDksMy43MzMgMTkuNjMzLDMuNzI1IEMxOS41NTcsMy43MTcgMTkuNDg0LDMuNzA5IDE5LjQxMSwzLjY5OCBDMTkuMzM4LDMuNjg3IDE5LjI2MiwzLjY3MSAxOS4xODksMy42NTUgQzE5LjExNiwzLjYzOSAxOS4wNDUsMy42MjUgMTguOTc1LDMuNjA2IEMxOC45MDUsMy41ODcgMTguODMxLDMuNTY1IDE4Ljc1OCwzLjU0MSBDMTguNjg1LDMuNTE3IDE4LjYyLDMuNDk4IDE4LjU1MiwzLjQ3MyBDMTguNDg0LDMuNDQ4IDE4LjQxMSwzLjQxNiAxOC4zNCwzLjM4NiBDMTguMjY5LDMuMzU2IDE4LjIwNywzLjMzMiAxOC4xNCwzLjI5OSBDMTguMDczLDMuMjY2IDE4LjAwNCwzLjIyOCAxNy45NCwzLjE5IEwxNy43NTMsMy4wOSBDMTcuNjg1LDMuMDQ5IDE3LjYyMywzLjAwMyAxNy41NTMsMi45NiBDMTcuNDgzLDIuOTE3IDE3LjQzNiwyLjg4MSAxNy4zNzksMi44NDEgQzE3LjMyMiwyLjgwMSAxNy4yNTQsMi43NDEgMTcuMTkyLDIuNjg2IEMxNy4xMywyLjYzMSAxNy4wODMsMi41OTkgMTcuMDMyLDIuNTUgQzE2Ljk4MSwyLjUwMSAxNi45MTMsMi40MzMgMTYuODU2LDIuMzc0IEMxNi43OTksMi4zMTUgMTYuNzU2LDIuMjc5IDE2LjcxMiwyLjIyOCBDMTYuNjY4LDIuMTc3IDE2LjYwMSwyLjA5MiAxNi41NDcsMi4wMjggQzE2LjUwNiwxLjk3NiAxNi40NjMsMS45MjggMTYuNDIyLDEuODczIEMxNi4zNjgsMS43OTcgMTYuMzE2LDEuNzE2IDE2LjI2NSwxLjYzNyBDMTYuMjMsMS41ODUgMTYuMTk0LDEuNTM3IDE2LjE2NSwxLjQ4IEMxNi4xMTEsMS4zODggMTYuMDY1LDEuMjkgMTYuMDEzLDEuMTk1IEMxNS45ODksMS4xNDYgMTUuOTYxLDEuMTAzIDE1Ljk0LDEuMDU0IEMxNS44NzAwMTA0LDAuOTA0NTcyNDk4IDE1LjgwNzU5NzksMC43NTE3MTE4NjEgMTUuNzUzLDAuNTk2IEMxNS42OTEsMC40MTcgMTUuNjIzLDAuMjUxIDE1LjU1MywwLjA5NiBDMTUuMjk3NjY2NywwLjA2NDY2NjY2NjcgMTUuMDM5NjY2NywwLjA0MDY2NjY2NjcgMTQuNzc5LDAuMDI0IEMxNC41MjIsMC4wMDggMTQuMjU5LDAgMTQsMCBDMTMuNzQxLDAgMTMuNDc2LDAuMDA4IDEzLjIxNiwwLjAyMiBDMTIuOTU2LDAuMDM2IDEyLjY5OCwwLjA1NyAxMi40NDMsMC4wODcgQzEyLjM3NSwwLjI0MiAxMi4zMDcsMC40MDcgMTIuMjQzLDAuNTg3IEMxMS44MTc4MjY0LDEuODY2MTMwOSAxMC44NTc3NTA5LDIuODk3MzQ4NjUgOS42MTIyMjI1LDMuNDEyNzE5ODUgQzguMzY2Njk0MTEsMy45MjgwOTEwNSA2Ljk1ODY3NTAxLDMuODc2NzM2NzcgNS43NTQsMy4yNzIgQzUuNTgzLDMuMTkxIDUuNDIsMy4xMiA1LjI2MywzLjA2IEM0LjQ1MDc1NjUyLDMuNzA5OTMyNTkgMy43MTI5MzI1OSw0LjQ0Nzc1NjUyIDMuMDYzLDUuMjYgQzMuMTI1LDUuNDE3IDMuMTkzLDUuNTggMy4yNzUsNS43NTEgQzMuNTg0NjAwNiw2LjM5NDk2MTk0IDMuNzUwNDMzNTQsNy4wOTg1NTc2NiAzLjc2MSw3LjgxMyBDMy43NjQ3MTAwMyw4LjIxNzY0NjI3IDMuNzE1NjI5NDQsOC42MjEwNDgzNyAzLjYxNSw5LjAxMyBDMy41ODIsOS4xMzggMy41NDcsOS4yNiAzLjUwNCw5LjM3OSBDMy41MDQsOS4zNzkgMy41MDQsOS4zNzkgMy41MDQsOS4zODQgQzMuNDkzLDkuNDE0IDMuNDgyLDkuNDQ0IDMuNDcxLDkuNDcxIEMzLjQ1Miw5LjUyMyAzLjQzMyw5LjU3MSAzLjQxMSw5LjYyMyBDMi44ODQ3ODk2OCwxMC44NTcyNTkyIDEuODU3MTUyMTksMTEuODA4NTA1OSAwLjU4NiwxMi4yMzggQzAuNDA3LDEyLjMgMC4yNDEsMTIuMzY4IDAuMDg2LDEyLjQzOCBDMC4wNjIsMTIuNjUyIDAuMDQ1LDEyLjg2NyAwLjAzMiwxMy4wODEgQzAuMDE0LDEzLjM4NSAwLDEzLjY4OSAwLDE0IEMwLjAwMDEzMjU3MjYzLDE0LjUyMDIxMSAwLjAyOTE3NzM2MiwxNS4wNDAwMTI2IDAuMDg3LDE1LjU1NyBDMC4yNDIsMTUuNjI1IDAuNDA3LDE1LjY5MyAwLjU4NywxNS43NTcgTDAuNzgsMTUuODMgQzIuMywxNi4zIDUuNSwxOC4yMTEgMi43ODYsMjUuNTc2IEwxOS44LDE1LjY5MSBMMTkuOTY4LDE1LjU5MSBMMTQuMjA3LDEyLjMgTDIwLjcyNiw4LjUzNSBMMjAuNzgzLDguNjA4IEMyMC44MzcsOC42NzYgMjAuODg5LDguNzQxIDIwLjk0LDguODA4IEMyMC45NjIsOC44MzUgMjAuOTgxLDguODY1IDIxLDguODkyIEMyMS4wNTIsOC45NjMgMjEuMSw5LjAzIDIxLjE0OSw5LjEwMSBMMjEuMjA2LDkuMTg4IEMyMS4yNTUsOS4yNTkgMjEuMzAxLDkuMzMyIDIxLjM0Nyw5LjQwNSBDMjEuMzY2LDkuNDM1IDIxLjM4Miw5LjQ2NSAyMS40MDEsOS40OTUgQzIxLjQ0NCw5LjU2OCAyMS40OTEsOS42NDEgMjEuNTM0LDkuNzE3IEMyMS41NTMsOS43NSAyMS41NjksOS43ODIgMjEuNTg2LDkuODEyIEMyMS42MjcsOS44ODUgMjEuNjY3LDkuOTYxIDIxLjcwOCwxMC4wMzcgTDIxLjc1NywxMC4xMzcgQzIxLjc5NSwxMC4yMTMgMjEuODMzLDEwLjI4OSAyMS44NjgsMTAuMzY1IEMyMS44ODQsMTAuNCAyMS44OTgsMTAuNDM2IDIxLjkxNCwxMC40NzEgQzIxLjk0NywxMC41NDcgMjEuOTgyLDEwLjYyMyAyMi4wMTQsMTAuNjk5IEMyMi4wMywxMC43MzcgMjIuMDQ0LDEwLjc3OCAyMi4wNiwxMC44MTYgQzIyLjA5LDEwLjg5MiAyMi4xMiwxMC45NjUgMjIuMTQ3LDExLjA0MSBMMjIuMTg4LDExLjE2MyBDMjIuMjE1LDExLjIzOSAyMi4yNCwxMS4zMTIgMjIuMjY0LDExLjM4OCBDMjIuMjc4LDExLjQzMSAyMi4yOTEsMTEuNDc4IDIyLjMwNSwxMS41MjQgTDIyLjM3LDExLjc0NCBDMjIuMzg0LDExLjc5MyAyMi4zOTQsMTEuODQ0IDIyLjQwOCwxMS44OTMgQzIyLjQyNywxMS45NjQgMjIuNDQzLDEyLjAzNCAyMi40NiwxMi4xMDUgTDIyLjQ5MywxMi4yNjggQzIyLjUwNywxMi4zMzYgMjIuNTIzLDEyLjQwNCAyMi41MzQsMTIuNDc0IEMyMi41NDUsMTIuNTQ0IDIyLjU1MywxMi41OTMgMjIuNTYxLDEyLjY1NiBDMjIuNTY5LDEyLjcxOSAyMi41ODMsMTIuNzg0IDIyLjU5MSwxMi44NDkgQzIyLjU5OSwxMi45MTQgMjIuNjA3LDEyLjk4MiAyMi42MTMsMTMuMDQ5IEMyMi42MTksMTMuMTE2IDIyLjYyNywxMy4xNjggMjIuNjMyLDEzLjIyOCBDMjIuNjQsMTMuMzA5IDIyLjY0MywxMy4zOTEgMjIuNjQ4LDEzLjQ3MiBDMjIuNjQ4LDEzLjUxOCAyMi42NTYsMTMuNTY0IDIyLjY1NiwxMy42MSBDMjIuNjYxLDEzLjczOCAyMi42NjQsMTMuODY4IDIyLjY2NCwxMy45OTggQzIyLjY2MzQ0NzgsMTguNzg2MDggMTguNzgyMDgsMjIuNjY3NDQ3OCAxMy45OTQsMjIuNjY4IEMxMy44NDUsMjIuNjY4IDEzLjY5NCwyMi42NjggMTMuNTUyLDIyLjY1NyBDMTMuNDgxLDIyLjY1NyAxMy40MTEsMjIuNjQ2IDEzLjM0MywyMi42NDEgTDEzLjExOCwyMi42MjUgQzEzLjAyMywyMi42MTcgMTIuOTMxLDIyLjYwMyAxMi44MzksMjIuNTkgQzEyLjc5LDIyLjU4NSAxMi43MzksMjIuNTc5IDEyLjY5LDIyLjU3MSBDMTIuNTg0LDIyLjU1NSAxMi40NzgsMjIuNTM2IDEyLjM3NSwyMi41MTcgQzEyLjM0LDIyLjUxMiAxMi4zMDQsMjIuNTA2IDEyLjI2OSwyMi40OTggQzEyLjE1NSwyMi40NzQgMTIuMDQxLDIyLjQ0OSAxMS45MywyMi40MTkgTDExLjg1NywyMi40MDMgQzExLjc0MDMzMzMsMjIuMzczIDExLjYyMzY2NjcsMjIuMzM5NjY2NyAxMS41MDcsMjIuMzAzIEwxMS40NSwyMi4yODcgQzExLjMzMywyMi4yNTIgMTEuMjE5LDIyLjIxMSAxMS4xMDUsMjIuMTczIEMxMS4wODY1OTg4LDIyLjE2Nzg3MDQgMTEuMDY4NTU5MSwyMi4xNjE1MjMgMTEuMDUxLDIyLjE1NCBDMTAuOTQsMjIuMTEzIDEwLjgyOSwyMi4wNyAxMC43MiwyMi4wMjYgTDEwLjYxNCwyMS45ODUgTDYuMTgsMjQuNTQ4IEM2LjI5NCwyNC41MDUgNi40MTEsMjQuNDcyIDYuNTI3LDI0LjQzOSBDNi42MDMsMjQuNDE3IDYuNjc5LDI0LjM5NiA2Ljc1OCwyNC4zNzcgQzYuODM3LDI0LjM1OCA2LjkxMywyNC4zNDIgNi45OTEsMjQuMzI4IEM3LjA2OSwyNC4zMTQgNy4xNDYsMjQuMzAxIDcuMjIyLDI0LjI5IEM3LjI5OCwyNC4yNzkgNy4zNzcsMjQuMjcxIDcuNDUzLDI0LjI2NiBDNy41MjksMjQuMjYxIDcuNjA1LDI0LjI1MiA3LjY4MSwyNC4yNSBDNy43NTcsMjQuMjQ4IDcuODMzLDI0LjI1IDcuOTA5LDI0LjI1IEM3Ljk4NSwyNC4yNSA4LjA2MSwyNC4yNSA4LjEzNCwyNC4yNTUgQzguMjA3LDI0LjI2IDguMjg2LDI0LjI2OSA4LjM1OSwyNC4yNzcgQzguNDMyLDI0LjI4NSA4LjUwOCwyNC4yOTMgOC41ODEsMjQuMzA0IEM4LjY1NCwyNC4zMTUgOC43MywyNC4zMzEgOC44MDMsMjQuMzQ3IEM4Ljg3NiwyNC4zNjMgOC45NDcsMjQuMzc3IDkuMDE3LDI0LjM5NiBDOS4wODcsMjQuNDE1IDkuMTYxLDI0LjQzNyA5LjIzNCwyNC40NjEgQzkuMzA3LDI0LjQ4NSA5LjM3MiwyNC41MDQgOS40NCwyNC41MjkgQzkuNTA4LDI0LjU1NCA5LjU4MSwyNC41ODYgOS42NTIsMjQuNjE2IEM5LjcyMywyNC42NDYgOS43ODUsMjQuNjcgOS44NTIsMjQuNzAzIEM5LjkxOSwyNC43MzYgOS45ODgsMjQuNzc0IDEwLjA1MiwyNC44MTIgTDEwLjIzOSwyNC45MTIgQzEwLjMwNywyNC45NTMgMTAuMzY5LDI0Ljk5OSAxMC40MzksMjUuMDQyIEMxMC41MDksMjUuMDg1IDEwLjU1NiwyNS4xMjEgMTAuNjEzLDI1LjE2MSBDMTAuNjcsMjUuMjAxIDEwLjczOCwyNS4yNjEgMTAuOCwyNS4zMTYgQzEwLjg2MiwyNS4zNzEgMTAuOTA5LDI1LjQwMyAxMC45NiwyNS40NTIgQzExLjAxMSwyNS41MDEgMTEuMDc5LDI1LjU2OSAxMS4xMzYsMjUuNjI4IEMxMS4xOTMsMjUuNjg3IDExLjIzNiwyNS43MjMgMTEuMjgsMjUuNzc0IEMxMS4zMjQsMjUuODI1IDExLjM5MSwyNS45MSAxMS40NDUsMjUuOTc0IEMxMS40ODYsMjYuMDI2IDExLjUyOSwyNi4wNzQgMTEuNTcsMjYuMTI5IEMxMS42MjQsMjYuMjA1IDExLjY3NiwyNi4yODYgMTEuNzI3LDI2LjM2NSBDMTEuNzYyLDI2LjQxNyAxMS43OTgsMjYuNDY1IDExLjgyNywyNi41MjIgQzExLjg4MSwyNi42MTQgMTEuOTI3LDI2LjcxMiAxMS45NzksMjYuODA3IEMxMi4wMDMsMjYuODU2IDEyLjAzMSwyNi44OTkgMTIuMDUyLDI2Ljk0OCBDMTIuMTIxOTkxMSwyNy4wOTc0MjY4IDEyLjE4NDQwMzcsMjcuMjUwMjg3NSAxMi4yMzksMjcuNDA2IEMxMi4zMDEsMjcuNTg1IDEyLjM2OSwyNy43NTEgMTIuNDM5LDI3LjkwNiBDMTIuNjk0MzMzMywyNy45MzMzMzMzIDEyLjk1MiwyNy45NTUgMTMuMjEyLDI3Ljk3MSBDMTMuNDcyLDI3Ljk4NSAxMy43MzMsMjcuOTkzIDEzLjk5NiwyNy45OTMgQzE0LjI1OSwyNy45OTMgMTQuNTIsMjcuOTg1IDE0Ljc4LDI3Ljk3MSBDMTUuMDQsMjcuOTU3IDE1LjI5OCwyNy45MzYgMTUuNTUzLDI3LjkwNiBDMTUuNjIxLDI3Ljc1MSAxNS42ODksMjcuNTg2IDE1Ljc1MywyNy40MDYgQzE2LjE3ODA5ODEsMjYuMTI3NTE1NyAxNy4xMzc1ODA3LDI1LjA5NjczMTQgMTguMzgyMzY4MSwyNC41ODEyMzY2IEMxOS42MjcxNTU1LDI0LjA2NTc0MTggMjEuMDM0NDc4OSwyNC4xMTYzNzggMjIuMjM5LDI0LjcyIEMyMi40MSwyNC44MDEgMjIuNTczLDI0Ljg3MiAyMi43MywyNC45MzIgQzIzLjU0MjI0MzUsMjQuMjgyMDY3NCAyNC4yODAwNjc0LDIzLjU0NDI0MzUgMjQuOTMsMjIuNzMyIEMyNC44NjgsMjIuNTc1IDI0LjgsMjIuNDEyIDI0LjcxOCwyMi4yNDEgQzI0LjQwODM5OTQsMjEuNTk3MDM4MSAyNC4yNDI1NjY1LDIwLjg5MzQ0MjMgMjQuMjMyLDIwLjE3OSBDMjQuMjI4MjksMTkuNzc0MzUzNyAyNC4yNzczNzA2LDE5LjM3MDk1MTYgMjQuMzc4LDE4Ljk3OSBDMjQuNDExLDE4Ljg1NCAyNC40NDYsMTguNzMyIDI0LjQ4OSwxOC42MTMgQzI0LjQ4OSwxOC42MTMgMjQuNDg5LDE4LjYxMyAyNC40ODksMTguNjA4IEMyNC45NzUxNjU3LDE3LjI2NDc5MjYgMjYuMDQ2NjM4OSwxNi4yMTYxNDAyIDI3LjQsMTUuNzU5IEMyNy41NzksMTUuNjk3IDI3Ljc0NSwxNS42MjkgMjcuOSwxNS41NTkgQzI3LjkyNCwxNS4zNDUgMjcuOTQxLDE1LjEzIDI3Ljk1NCwxNC45MTYgQzI3Ljk3MywxNC42MTYgMjcuOTg3LDE0LjMxNiAyNy45ODcsMTQuMDAyIEMyNy45OTA2NDY1LDEzLjQ3OTU1NzMgMjcuOTYzOTM0OCwxMi45NTczNDQgMjcuOTA3LDEyLjQzOCBaIiBpZD0ibG9nbyI+PC9wYXRoPgogICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICA8L2c+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4=" alt="" class="logo">
+                <span class="text">标准运维</span>
+            </div>
+        </div>
+        <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="928"
+            style="background:#fff;
+                border-collapse: collapse;
+                border-spacing: 0px;
+                table-layout: auto;
+                border-radius: 2px;
+                box-shadow: 0px 2px 10px 2px rgba(151, 155, 165, 0.3);
+                margin: 0 auto;
+                position: relative;
+                top: -55px;">
+            <tr>
+                <td style="font-family: '微软雅黑', Arial, '宋体'; padding: 32px;">
+                    <div>你好，<span style="color: #ff9c01;"> {{ notifier }}({{ ch_notifier }})</span>：</div>
+                    <div>
+                        检测到你有以下周期任务在过去
+                        <span style="color: #ff9c01;">{{ period_task_times }}</span>
+                        个月的检测周期内没有进行任何更新,请核查这些周期任务是否仍在使用
+                    </div>
+                    {% for project_name, task_project in task_projects.items %}
+                        <label class="table-item-lable" style="margin-top: 50px;">
+                            <span></span>
+                            {{ project_name }}({{ task_project|length }})
+                        </label>
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="864" style="background:#fff;">
+                            <tr class="blank">
+                                <td height="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" class="table data-table" style="width:100%;">
+                                        <thead>
+                                            <tr>
+                                                <th style="padding:15px 15px 15px 30px; color: #000; font-weight: normal; background: #f5f6fa; text-align: left; width: 250px;">
+                                                    任务名称
+                                                </th>
+                                                <th style="padding:13px; color: #000; font-weight: normal; background: #f5f6fa; text-align: left; width: 360px;">
+                                                    更新时间
+                                                </th>
+                                                <th style="padding:13px; color: #000; font-weight: normal; background: #f5f6fa; text-align: left; width: 360px;">
+                                                    上次运行时间
+                                                </th>
+                                                <th style="padding:13px; color: #000; font-weight: normal; background: #f5f6fa; text-align: left; width: 360px;">
+                                                    检测周期运行次数
+                                                </th>
+                                                <th style="padding:13px; color: #000; font-weight: normal; background: #f5f6fa; text-align: left; width: 360px;">
+                                                    任务查看链接
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for task in task_project %}
+                                            <tr>
+                                                <td style="padding:15px 15px 15px 30px;color: #555; max-width: 180px; word-wrap:break-word; word-break:break-all;">
+                                                    {{ task.name }}
+                                                </td>
+                                                <td style="padding:13px;color: #555; max-width: 180px; word-wrap:break-word; word-break:break-all;">
+                                                    {{ task.edit_time }}
+                                                </td>
+                                                <td style="padding:13px;color: #555; max-width: 180px; word-wrap:break-word; word-break:break-all;">
+                                                    {{ task.last_run_at }}
+                                                </td>
+                                                <td style="padding:13px;color: #555; max-width: 180px; word-wrap:break-word; word-break:break-all;">
+                                                    {{ task.total_run_count }}
+                                                </td>
+                                                <td style="padding:13px;color: #555; max-width: 180px; word-wrap:break-word; word-break:break-all;">
+                                                    <a href={{ task.task_link }}>{{ task.task_link }}</a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
