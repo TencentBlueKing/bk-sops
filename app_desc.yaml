@@ -46,7 +46,7 @@ modules:
               value: 10
               description: GunicornThread数量
             - key: C_FORCE_ROOT
-              value: true
+              value: 1
               description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
@@ -114,7 +114,7 @@ modules:
               value: 10
               description: GunicornThread数量
             - key: C_FORCE_ROOT
-              value: true
+              value: 1
               description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
@@ -175,7 +175,7 @@ modules:
               value: 5001
               description: celery-exporter 监听端口
             - key: C_FORCE_ROOT
-              value: true
+              value: 1
               description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
@@ -281,7 +281,7 @@ modules:
               value: 10
               description: GunicornThread数量
             - key: C_FORCE_ROOT
-              value: true
+              value: 1
               description: celery5 fit
             - key: ENABLE_METRICS
               value: 1
