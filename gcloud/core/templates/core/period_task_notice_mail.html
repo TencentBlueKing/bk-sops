@@ -28,7 +28,7 @@
         a {
             border: none;
             text-decoration: none !important;
-            color: #000;
+            color: blue;
         }
 
         a:hover {
@@ -209,11 +209,13 @@
                 top: -55px;">
             <tr>
                 <td style="font-family: '微软雅黑', Arial, '宋体'; padding: 32px;">
-                    <div>你好，<span style="color: #ff9c01;"> {{ notifier }}({{ ch_notifier }})</span>：</div>
+                    <div>你好，<span style="color: #ff9c01;"> {{ notifier }}</span>：</div>
                     <div>
-                        检测到你有以下周期任务在过去
+                        检测到您以下周期任务超过
                         <span style="color: #ff9c01;">{{ period_task_times }}</span>
-                        个月的检测周期内没有进行任何更新,请核查这些周期任务是否仍在使用
+                        个月 未操作，请核实是否仍在使用。
+                        </br>
+                        如不再使用，请暂停或删除任务，以免造成资源浪费。
                     </div>
                     {% for project_name, task_project in task_projects.items %}
                         <label class="table-item-lable" style="margin-top: 50px;">
@@ -263,7 +265,7 @@
                                                     {{ task.total_run_count }}
                                                 </td>
                                                 <td style="padding:13px;color: #555; max-width: 180px; word-wrap:break-word; word-break:break-all;">
-                                                    <a href={{ task.task_link }}>{{ task.task_link }}</a>
+                                                    <a href={{ task.task_link }}>任务链接</a>
                                                 </td>
                                             </tr>
                                             {% endfor %}

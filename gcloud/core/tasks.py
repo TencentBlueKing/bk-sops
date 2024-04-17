@@ -32,7 +32,6 @@ from pipeline.engine.core.data.redis_backend import RedisDataBackend
 
 from gcloud import exceptions
 from gcloud.conf import settings
-from gcloud.core.api_adapter.user_info import get_user_info
 from gcloud.core.project import sync_projects_from_cmdb
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.send_msg import send_message
@@ -180,6 +179,7 @@ def scan_periodic_task(is_send_notify: bool = True):
         .order_by("-edit_time")
     )
     data = {}
+    user_task_id = {}
     for p_task in periodic_tasks:
         last_month_time = datetime.datetime.now() + dateutil.relativedelta.relativedelta(
             months=-int(settings.PERIODIC_TASK_REMINDER_TIME)
@@ -193,7 +193,7 @@ def scan_periodic_task(is_send_notify: bool = True):
             "last_run_at": p_task["task__last_run_at"],
             "name": p_task["task__name"],
             "total_run_count": p_task["task__total_run_count"],
-            "task_link": settings.BK_SOPS_HOST
+            "task_link": settings.BK_SOPS_HOST.rstrip("/")
             + f"/taskflow/home/periodic/{p_task['project__id']}/?limit=15&page=1&task_id={p_task['id']}",
         }
         if creator in data:
@@ -201,18 +201,19 @@ def scan_periodic_task(is_send_notify: bool = True):
                 data[creator][project_name].append(task_dict)
             else:
                 data[creator][project_name] = [task_dict]
+            user_task_id[creator].add(p_task["id"])
         else:
             data[creator] = {project_name: [task_dict]}
+            user_task_id[creator] = {p_task["id"]}
     # 发送通知
     if is_send_notify:
         for notifier, tasks in data.items():
+            logger.info(f"{notifier} has {user_task_id[notifier]} tasks")
             try:
-                user_info = get_user_info(notifier)
                 mail_content = render_to_string(
                     "core/period_task_notice_mail.html",
                     {
                         "notifier": notifier,
-                        "ch_notifier": user_info["data"]["bk_username"],
                         "period_task_times": settings.PERIODIC_TASK_REMINDER_TIME,
                         "task_projects": tasks,
                     },
