@@ -219,7 +219,7 @@ def scan_periodic_task(is_send_notify: bool = True):
                     },
                 )
                 send_periodic_task_notify.delay(
-                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, "liujun", title, mail_content
+                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
                 )
             except Exception as e:
                 logger.exception(f"send periodic task notify error: {e}")
