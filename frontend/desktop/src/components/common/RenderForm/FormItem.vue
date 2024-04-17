@@ -405,6 +405,11 @@
                     return '******'
                 }
 
+                // 元变量表单数据为Object格式时，取默认值
+                if (this.constants[this.scheme.tag_code]?.is_meta && checkDataType(val) === 'Object') {
+                    return val.default
+                }
+
                 if (defaultValueType.includes(valueType)) {
                     formValue = tools.deepClone(val)
                 } else {
