@@ -161,6 +161,8 @@ def send_periodic_task_notify(executor, notify_type, receivers, title, content):
 
 @periodic_task(run_every=TzAwareCrontab(**settings.PERIODIC_TASK_REMINDER_SCAN_CRON))
 def scan_periodic_task(is_send_notify: bool = True):
+    if not settings.PERIODIC_TASK_REMINDER_SWITCH:
+        return
     title = "【标准运维 APP 提醒】请确认您正在运行的周期任务状态"
     # 以执行人维度发邮件通知
     periodic_tasks = (
@@ -216,7 +218,7 @@ def scan_periodic_task(is_send_notify: bool = True):
                     },
                 )
                 send_periodic_task_notify.delay(
-                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, "liujun", title, mail_content
+                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
                 )
             except Exception as e:
                 logger.exception(f"send periodic task notify error: {e}")

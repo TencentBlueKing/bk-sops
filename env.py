@@ -131,9 +131,12 @@ REMOTE_PLUGIN_FIX_INTERVAL = int(os.getenv("BKAPP_REMOTE_PLUGIN_FIX_INTERVAL", 6
 # 周期任务自动关闭扫描频率(单位：月)
 PERIODIC_TASK_REMINDER_TIME = int(os.getenv("BKAPP_PERIODIC_TASK_REMINDER_TIME", 1))
 
+# 发送周期任务消息通知开关
+PERIODIC_TASK_REMINDER_SWITCH = int(os.getenv("BKAPP_PERIODIC_TASK_REMINDER_SWITCH", 0))
+
 # 周期任务自动关闭扫描周期
 PERIODIC_TASK_REMINDER_SCAN_CRON = json.loads(
-    os.getenv("BKAPP_PERIODIC_TASK_REMINDER_SCAN_CRON", '{"hour": "23", "minute": "0"}')
+    os.getenv("BKAPP_PERIODIC_TASK_REMINDER_SCAN_CRON", '{"hour": "10", "minute": "20"}')
 )
 
 # 周期任务消息通知类型
