@@ -193,7 +193,7 @@ def scan_periodic_task(is_send_notify: bool = True):
             "last_run_at": p_task["task__last_run_at"],
             "name": p_task["task__name"],
             "total_run_count": p_task["task__total_run_count"],
-            "task_link": settings.BK_SOPS_HOST
+            "task_link": settings.BK_SOPS_HOST.rstrip("/")
             + f"/taskflow/home/periodic/{p_task['project__id']}/?limit=15&page=1&task_id={p_task['id']}",
         }
         if creator in data:
@@ -206,6 +206,7 @@ def scan_periodic_task(is_send_notify: bool = True):
     # 发送通知
     if is_send_notify:
         for notifier, tasks in data.items():
+            logger.info(f"send a message to {notifier}")
             try:
                 user_info = get_user_info(notifier)
                 mail_content = render_to_string(
@@ -218,7 +219,7 @@ def scan_periodic_task(is_send_notify: bool = True):
                     },
                 )
                 send_periodic_task_notify.delay(
-                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
+                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, "liujun", title, mail_content
                 )
             except Exception as e:
                 logger.exception(f"send periodic task notify error: {e}")
