@@ -11,25 +11,30 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import datetime
 import logging
 import time
 import traceback
 from contextlib import contextmanager
 
-from django.contrib.sessions.models import Session
-from django.core.cache import cache
+import dateutil.relativedelta
 from celery import task
 from celery.five import monotonic
 from celery.task import periodic_task
+from django.contrib.sessions.models import Session
+from django.core.cache import cache
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django_celery_beat.models import PeriodicTask as DjangoCeleryBeatPeriodicTask
+from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
+from pipeline.engine.core.data.api import _backend, _candidate_backend
+from pipeline.engine.core.data.redis_backend import RedisDataBackend
 
 from gcloud import exceptions
 from gcloud.conf import settings
 from gcloud.core.project import sync_projects_from_cmdb
-
-from pipeline.engine.core.data.api import _backend, _candidate_backend
-from pipeline.engine.core.data.redis_backend import RedisDataBackend
-from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
+from gcloud.periodictask.models import PeriodicTask
+from gcloud.shortcuts.message.send_msg import send_message
 
 logger = logging.getLogger("celery")
 
@@ -121,3 +126,101 @@ def migrate_pipeline_parent_data_task():
             logger.exception("[migrate_pipeline_parent_data] {} key migrate err.".format(i))
 
     logger.info("[migrate_pipeline_parent_data] migrate done!")
+
+
+@periodic_task(run_every=TzAwareCrontab(minute=0, hour="*/2"))
+def cmdb_business_sync_shutdown_period_task():
+    task_id = cmdb_business_sync_shutdown_period_task.request.id
+    with redis_lock(LOCK_ID, task_id) as acquired:
+        if acquired:
+            logger.info("Start sync business from cmdb...")
+            try:
+                task_ids = [
+                    item["task__celery_task__id"]
+                    for item in PeriodicTask.objects.filter(project__is_disable=True).values("task__celery_task__id")
+                ]
+                DjangoCeleryBeatPeriodicTask.objects.filter(id__in=task_ids).update(enabled=False)
+            except exceptions.APIError as e:
+                logger.error(
+                    "An error occurred when sync cmdb business, message: {msg}, trace: {trace}".format(
+                        msg=str(e), trace=traceback.format_exc()
+                    )
+                )
+        else:
+            logger.info("Can not get sync_business lock, sync operation abandon")
+
+
+@task
+def send_periodic_task_notify(executor, notify_type, receivers, title, content):
+    try:
+        send_message(executor, notify_type, receivers, title, content)
+    except Exception as e:
+        logger.exception(f"send periodic task notify error: {e}")
+
+
+@periodic_task(run_every=TzAwareCrontab(**settings.PERIODIC_TASK_REMINDER_SCAN_CRON))
+def scan_periodic_task(is_send_notify: bool = True):
+    if not settings.PERIODIC_TASK_REMINDER_SWITCH:
+        return
+    title = "【标准运维 APP 提醒】请确认您正在运行的周期任务状态"
+    # 以执行人维度发邮件通知
+    periodic_tasks = (
+        PeriodicTask.objects.filter(task__celery_task__enabled=True)
+        .values(
+            "id",
+            "task__creator",
+            "project__id",
+            "project__name",
+            "edit_time",
+            "task__last_run_at",
+            "task__name",
+            "task__total_run_count",
+        )
+        .order_by("-edit_time")
+    )
+    data = {}
+    user_task_id = {}
+    for p_task in periodic_tasks:
+        last_month_time = datetime.datetime.now() + dateutil.relativedelta.relativedelta(
+            months=-int(settings.PERIODIC_TASK_REMINDER_TIME)
+        )
+        if last_month_time.timestamp() < p_task["edit_time"].timestamp():
+            continue
+        creator = p_task["task__creator"]
+        project_name = p_task["project__name"]
+        task_dict = {
+            "edit_time": p_task["edit_time"],
+            "last_run_at": p_task["task__last_run_at"],
+            "name": p_task["task__name"],
+            "total_run_count": p_task["task__total_run_count"],
+            "task_link": settings.BK_SOPS_HOST.rstrip("/")
+            + f"/taskflow/home/periodic/{p_task['project__id']}/?limit=15&page=1&task_id={p_task['id']}",
+        }
+        if creator in data:
+            if project_name in data[creator]:
+                data[creator][project_name].append(task_dict)
+            else:
+                data[creator][project_name] = [task_dict]
+            user_task_id[creator].add(p_task["id"])
+        else:
+            data[creator] = {project_name: [task_dict]}
+            user_task_id[creator] = {p_task["id"]}
+    # 发送通知
+    if is_send_notify:
+        for notifier, tasks in data.items():
+            logger.info(f"{notifier} has {user_task_id[notifier]} tasks")
+            try:
+                mail_content = render_to_string(
+                    "core/period_task_notice_mail.html",
+                    {
+                        "notifier": notifier,
+                        "period_task_times": settings.PERIODIC_TASK_REMINDER_TIME,
+                        "task_projects": tasks,
+                    },
+                )
+                send_periodic_task_notify.delay(
+                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
+                )
+            except Exception as e:
+                logger.exception(f"send periodic task notify error: {e}")
+    return data

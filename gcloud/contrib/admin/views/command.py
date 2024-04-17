@@ -27,7 +27,7 @@ from gcloud import err_code
 from gcloud.contrib.admin.utils import force_tasks
 from gcloud.core.decorators import check_is_superuser
 from gcloud.core.models import ProjectBasedComponent
-from gcloud.core.tasks import migrate_pipeline_parent_data_task
+from gcloud.core.tasks import migrate_pipeline_parent_data_task, scan_periodic_task
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.taskflow3.models import TaskFlowInstance, TaskFlowRelation
 
@@ -197,3 +197,10 @@ def batch_revoke_task(request):
         return JsonResponse({"result": False, "data": [], "message": "存在终止异常的任务 = {}".format(revoke_failed_tasks)})
 
     return JsonResponse({"result": True, "data": [], "message": f"revoked -> {tasks.count()}"})
+
+
+@check_is_superuser()
+def get_enabled_periodic_task(request):
+    is_send_notify = True if request.GET.get("is_send_notify", "false") == "true" else False
+    data = scan_periodic_task(is_send_notify)
+    return JsonResponse({"result": True, "code": err_code.SUCCESS.code, "data": data})
