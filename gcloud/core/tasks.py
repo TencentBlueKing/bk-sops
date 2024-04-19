@@ -20,6 +20,7 @@ from contextlib import contextmanager
 import dateutil.relativedelta
 from celery import task
 from celery.five import monotonic
+from celery.schedules import crontab
 from celery.task import periodic_task
 from django.contrib.sessions.models import Session
 from django.core.cache import cache
@@ -128,26 +129,24 @@ def migrate_pipeline_parent_data_task():
     logger.info("[migrate_pipeline_parent_data] migrate done!")
 
 
-@periodic_task(run_every=TzAwareCrontab(minute=0, hour="*/2"))
-def cmdb_business_sync_shutdown_period_task():
-    task_id = cmdb_business_sync_shutdown_period_task.request.id
+@periodic_task(run_every=TzAwareCrontab(minute=1, hour="*/4"))
+def cmdb_business_sync_shutdown_periodic_task():
+    task_id = cmdb_business_sync_shutdown_periodic_task.request.id
     with redis_lock(LOCK_ID, task_id) as acquired:
         if acquired:
-            logger.info("Start sync business from cmdb...")
             try:
                 task_ids = [
                     item["task__celery_task__id"]
                     for item in PeriodicTask.objects.filter(project__is_disable=True).values("task__celery_task__id")
                 ]
+                logger.info("[shutdown_periodic_task] disabled the deleted periodic task: {}".format(task_ids))
                 DjangoCeleryBeatPeriodicTask.objects.filter(id__in=task_ids).update(enabled=False)
-            except exceptions.APIError as e:
-                logger.error(
-                    "An error occurred when sync cmdb business, message: {msg}, trace: {trace}".format(
-                        msg=str(e), trace=traceback.format_exc()
-                    )
+            except Exception as e:
+                logger.exception(
+                    "[shutdown_periodic_task] closing periodic task from cmdb, message: {msg}".format(msg=str(e))
                 )
         else:
-            logger.info("Can not get sync_business lock, sync operation abandon")
+            logger.info("[shutdown_periodic_task] Can not get sync_business lock, sync operation abandon")
 
 
 @task
@@ -158,7 +157,7 @@ def send_periodic_task_notify(executor, notify_type, receivers, title, content):
         logger.exception(f"send periodic task notify error: {e}")
 
 
-@periodic_task(run_every=TzAwareCrontab(**settings.PERIODIC_TASK_REMINDER_SCAN_CRON))
+@periodic_task(run_every=(crontab(*settings.PERIODIC_TASK_REMINDER_SCAN_CRON)))
 def scan_periodic_task(is_send_notify: bool = True):
     if not settings.PERIODIC_TASK_REMINDER_SWITCH:
         return
