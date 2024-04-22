@@ -141,6 +141,6 @@ nodeman_urlpatterns = [
     url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
     url(r"^nodeman_is_support_tjj/$", nodeman_is_support_tjj),
     url(r"^nodeman_get_plugin_list/(?P<category>\w+)/$", nodeman_get_plugin_list),
-    url(r"^nodeman_get_plugin_version/(?P<plugin>\w+)/(?P<os_type>\w+)/$", nodeman_get_plugin_version),
+    url(r"^nodeman_get_plugin_version/(?P<plugin>[\w-]+)/(?P<os_type>\w+)/$", nodeman_get_plugin_version),
     url(r"^nodeman_get_install_channel/(?P<cloud_id>\w+)/$", nodeman_get_install_channel),
 ]
