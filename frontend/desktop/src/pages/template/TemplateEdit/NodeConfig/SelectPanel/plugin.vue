@@ -428,7 +428,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .bk-tab {
-    >>> .bk-tab-section {
+    /deep/ .bk-tab-section {
         padding: 0;
         .bk-tab-content {
             height: calc(100vh - 110px);
