@@ -15,9 +15,10 @@ import logging
 
 import ujson as json
 
-from .exceptions import ComponentAPIException
-from .conf import COMPONENT_SYSTEM_HOST
+from gcloud.utils.handlers import handle_plain_log
 
+from .conf import COMPONENT_SYSTEM_HOST
+from .exceptions import ComponentAPIException
 
 logger = logging.getLogger("component")
 
@@ -95,12 +96,12 @@ class ComponentAPI(object):
             log_level = logging.DEBUG if json_resp["result"] else logging.ERROR
             logger.log(
                 log_level,
-                u"Component return message: %s, request_id=%s, url=%s, params=%s, data=%s, response=%s",
+                "Component return message: %s, request_id=%s, url=%s, params=%s, data=%s, response=%s",
                 json_resp["message"],
                 json_resp.get("request_id"),
                 self.url,
                 params,
-                data,
+                handle_plain_log(data),
                 resp.text,
             )
 
