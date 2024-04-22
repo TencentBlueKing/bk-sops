@@ -213,7 +213,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.31.25"
+STATIC_VERSION = "3.32.0"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -846,3 +846,15 @@ REMOTE_PLUGIN_FIX_INTERVAL = env.REMOTE_PLUGIN_FIX_INTERVAL
 
 # 通知中心
 BK_NOTICE = {"BK_API_URL_TMPL": env.BK_APIGW_URL_TMPL or ""}
+
+# 周期任务自动关闭扫描频率
+PERIODIC_TASK_REMINDER_TIME = env.PERIODIC_TASK_REMINDER_TIME
+
+# 发送周期任务消息通知开关(默认关)
+PERIODIC_TASK_REMINDER_SWITCH = env.PERIODIC_TASK_REMINDER_SWITCH
+
+# 周期任务自动关闭扫描周期
+PERIODIC_TASK_REMINDER_SCAN_CRON = env.PERIODIC_TASK_REMINDER_SCAN_CRON
+
+# 周期任务消息通知类型
+PERIODIC_TASK_REMINDER_NOTIFY_TYPE = env.PERIODIC_TASK_REMINDER_NOTIFY_TYPE
