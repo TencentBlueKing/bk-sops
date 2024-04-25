@@ -156,7 +156,8 @@
                     if (this.variableList.length === 1) {
                         this.$bkMessage({
                             message: i18n.t('至少保留一条全局变量'),
-                            theme: 'warning'
+                            theme: 'warning',
+                            offsetY: 108
                         })
                     } else {
                         this.$refs.variableForm[index].clearError()

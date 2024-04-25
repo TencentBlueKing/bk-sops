@@ -189,8 +189,8 @@
             content: '';
             position: absolute;
             bottom: -6px;
-            right: -6px;
-            width: 100%;
+            right: -2px;
+            width: 150px;
             height: 100%;
             background: #b5c0d599;
             border: 1px solid #B5C0D5;

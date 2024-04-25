@@ -243,7 +243,8 @@
                             this.rootState = 'SUSPENDED'
                             this.$bkMessage({
                                 message: i18n.t('任务已暂停执行'),
-                                theme: 'success'
+                                theme: 'success',
+                                offsetY: 108
                             })
                         }
                         // 允许修改参数
@@ -323,7 +324,8 @@
                     }
                     this.$bkMessage({
                         message: i18n.t('参数未修改'),
-                        theme: 'warning'
+                        theme: 'warning',
+                        offsetY: 108
                     })
                     this.$emit('packUp')
                     return
@@ -396,7 +398,8 @@
                         }
                         this.$bkMessage({
                             message: this.$t('参数修改成功'),
-                            theme: 'success'
+                            theme: 'success',
+                            offsetY: 108
                         })
                         this.$emit('packUp')
                     }
@@ -436,7 +439,8 @@
                                 if (resp.result) {
                                     this.$bkMessage({
                                         message: this.$t('任务已继续执行'),
-                                        theme: 'success'
+                                        theme: 'success',
+                                        offsetY: 108
                                     })
                                     this.$parent.$parent.state = 'RUNNING'
                                     this.$parent.$parent.setTaskStatusTimer()

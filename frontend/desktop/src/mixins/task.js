@@ -21,16 +21,16 @@ const task = {
                     status.cls = 'expired bk-icon icon-clock-shape'
                     status.text = i18n.t('已过期')
                 } else if (item.is_finished) {
-                    status.cls = 'finished bk-icon icon-check-circle-shape'
+                    status.cls = 'finished common-icon-task-finished'
                     status.text = i18n.t('完成')
                 } else if (item.is_revoked) {
-                    status.cls = 'revoke common-icon-dark-stop'
+                    status.cls = 'revoke common-icon-task-revoke'
                     status.text = i18n.t('终止')
                 } else if (item.is_started) {
                     status.cls = 'loading common-icon-loading'
                     this.getExecuteDetail(acceptVarName, item)
                 } else {
-                    status.cls = 'created common-icon-waitting'
+                    status.cls = 'created common-icon-task-ready'
                     status.text = i18n.t('未执行')
                 }
                 statusMap[item.id] = status
@@ -58,7 +58,7 @@ const task = {
                             status.text = i18n.t('排队中')
                             break
                         case 'SUSPENDED':
-                            status.cls = 'execute common-icon-dark-circle-pause'
+                            status.cls = 'execute common-icon-task-pause'
                             status.text = i18n.t('已暂停')
                             break
                         case 'NODE_SUSPENDED':
@@ -66,11 +66,11 @@ const task = {
                             status.text = i18n.t('节点暂停')
                             break
                         case 'FAILED':
-                            status.cls = 'failed common-icon-dark-circle-close'
+                            status.cls = 'failed common-icon-task-failed'
                             status.text = i18n.t('失败')
                             break
                         case 'PENDING_PROCESSING':
-                            status.cls = 'pending common-icon-dark-circle-pending-process'
+                            status.cls = 'pending common-icon-task-pending-process'
                             status.text = i18n.t('等待处理')
                             break
                         default:

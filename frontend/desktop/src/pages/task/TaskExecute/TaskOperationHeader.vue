@@ -13,10 +13,24 @@
     <page-header class="operation-header">
         <div class="head-left-area">
             <i class="bk-icon icon-arrows-left back-icon" @click="onBack"></i>
+            <div class="bread-crumbs-wrapper">
+                <span
+                    class="path-item name-ellipsis"
+                    v-for="(path, index) in nodeNav"
+                    :key="path.id"
+                    v-bk-overflow-tips
+                    :title="showNodeList.includes(index) ? path.name : ''">
+                    <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
+                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
+                        {{path.name}}
+                    </span>
+                    <span class="node-ellipsis" v-else-if="index === 1">...</span>
+                </span>
+            </div>
             <bk-popover theme="light" placement="bottom-start" :disabled="!isStateDetailShow" ext-cls="state-detail-tips">
                 <span v-if="stateStr" :class="['task-state', state]">
-                    {{ stateStr }}
                     <i v-if="isStateDetailShow" class="common-icon-info"></i>
+                    {{ stateStr }}
                 </span>
                 <dl slot="content" class="task-state-detail" id="task-state-detail">
                     <dt>{{$t('状态明细')}}</dt>
@@ -32,27 +46,13 @@
                     <dd v-else>{{ '--' }}</dd>
                 </dl>
             </bk-popover>
-            <div class="bread-crumbs-wrapper">
-                <span
-                    class="path-item name-ellipsis"
-                    v-for="(path, index) in nodeNav"
-                    :key="path.id"
-                    v-bk-overflow-tips
-                    :title="showNodeList.includes(index) ? path.name : ''">
-                    <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
-                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
-                        {{path.name}}
-                    </span>
-                    <span class="node-ellipsis" v-else-if="index === 1">...</span>
-                </span>
-            </div>
             <div class="task-operation-btns">
                 <div
                     v-for="operation in taskOperationBtns"
                     :key="operation.action"
                     v-bk-tooltips.top="{
-                        content: $t('使用当前任务数据（节点选择、入参）再次创建任务'),
-                        disabled: operation.action !== 'reExecute'
+                        content: getTipsContent(operation),
+                        disabled: judgeTipsDisabled(operation)
                     }"
                     class="operation-btn">
                     <bk-button
@@ -227,6 +227,14 @@
             hasOperatePerm (operation) {
                 const requestPerm = operation.action !== 'reExecute' ? 'task_operate' : this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
                 return this.hasPermission([requestPerm], this.instanceActions)
+            },
+            getTipsContent (operation) {
+                return operation.action === 'reExecute'
+                    ? this.$t('使用当前任务数据（节点选择、入参）再次创建任务')
+                    : this.$t('任务等待处理中，无需暂停')
+            },
+            judgeTipsDisabled (operation) {
+                return operation.action !== 'reExecute' && this.state !== 'PENDING_PROCESSING'
             }
         }
     }

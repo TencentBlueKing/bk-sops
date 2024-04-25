@@ -220,7 +220,8 @@
                         break
                     case 'FINISHED':
                         const { skip, error_ignored } = this.realTimeState
-                        state = skip || error_ignored ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
+                        state = skip ? 'common-icon-manual-skip' : 'bk-icon icon-check-circle-shape'
+                        state = error_ignored ? 'common-icon-auto-skip' : state
                         break
                     case 'FAILED':
                         state = 'common-icon-dark-circle-close'
@@ -725,9 +726,10 @@
             font-size: 16px;
             color: #dcdee5;
         }
-        .common-icon-fail-skip {
+        .common-icon-manual-skip,
+        .common-icon-auto-skip {
             font-size: 14px;
-            color: #f7b6b6;
+            color: #f0a0a0;
         }
         .icon-circle-shape {
             display: inline-block;

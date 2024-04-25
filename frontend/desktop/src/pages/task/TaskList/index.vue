@@ -1146,10 +1146,6 @@
         color: $blueDefault;
     }
     .task-status {
-        span:first-child {
-            position: relative;
-            top: 1px;
-        }
         @include ui-task-status;
     }
     .task-operation {
