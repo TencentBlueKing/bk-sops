@@ -57,4 +57,5 @@ urlpatterns = [
     url(r"^batch_insert_project_based_component/$", batch_insert_project_based_component),
     url(r"^batch_delete_project_based_component/$", batch_delete_project_based_component),
     url(r"^batch_revoke_task/$", batch_revoke_task),
+    url(r"^command/get_enabled_periodic_task/$", views.get_enabled_periodic_task),
 ]

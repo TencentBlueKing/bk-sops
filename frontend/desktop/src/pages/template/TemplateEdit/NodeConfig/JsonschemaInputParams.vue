@@ -53,7 +53,7 @@
 </script>
 <style lang="scss" scoped>
     .jsonschema-input-params {
-        >>> {
+        /deep/ {
             .bk-form-item {
                 .bk-label {
                     width: 130px !important;

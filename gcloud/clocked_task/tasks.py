@@ -13,16 +13,12 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
-from celery import task
+from celery import current_app
 from django.db import transaction
 from pipeline.models import MAX_LEN_OF_NAME
 
 from gcloud.clocked_task.models import ClockedTask
-from gcloud.constants import (
-    CLOCKED_TASK_START_FAILED,
-    CLOCKED_TASK_STARTED,
-    TaskCreateMethod,
-)
+from gcloud.constants import CLOCKED_TASK_START_FAILED, CLOCKED_TASK_STARTED, TaskCreateMethod
 from gcloud.core.models import EngineConfig, Project
 from gcloud.shortcuts.message import send_clocked_task_message
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
@@ -48,7 +44,7 @@ def parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params):
     return exclude_task_nodes_id
 
 
-@task
+@current_app.task
 def clocked_task_start(clocked_task_id, *args, **kwargs):
     logger.info(f"[clocked_task_start] starting clocked task {clocked_task_id}")
     try:

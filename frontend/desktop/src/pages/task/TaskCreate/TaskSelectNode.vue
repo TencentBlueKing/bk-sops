@@ -101,7 +101,7 @@
 </template>
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import XLSX from 'xlsx'
+    import * as XLSX from 'xlsx'
     import TaskScheme from './TaskScheme.vue'
     import EditTaskScheme from './EditTaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'

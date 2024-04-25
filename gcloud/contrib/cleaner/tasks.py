@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from blueapps.contrib.celery_tools.periodic import periodic_task
 from celery.schedules import crontab
-from celery.task import periodic_task
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone

@@ -14,7 +14,7 @@ import logging
 import socket
 import time
 
-from celery import task
+from celery import current_app
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -42,7 +42,7 @@ logger = logging.getLogger("celery")
 HOST_NAME = socket.gethostname()
 
 
-@task
+@current_app.task
 def send_taskflow_message(task_id, msg_type, node_name="", use_root=False):
     try:
         taskflow = TaskFlowInstance.objects.get(id=task_id)
@@ -61,7 +61,7 @@ def send_taskflow_message(task_id, msg_type, node_name="", use_root=False):
         logger.info("send_taskflow_message[taskflow_id=%s] task finished" % task_id)
 
 
-@task
+@current_app.task
 def prepare_and_start_task(task_id, project_id, username):
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
@@ -97,7 +97,7 @@ def _ensure_node_can_retry(node_id, engine_ver):
     return False
 
 
-@task
+@current_app.task
 @metrics.setup_histogram(metrics.TASKFLOW_NODE_AUTO_RETRY_TASK_DURATION)
 def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_ver):
     lock_name = "%s-%s-%s" % (root_pipeline_id, node_id, retry_times)
@@ -135,7 +135,7 @@ def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_
     settings.redis_inst.delete(lock_name)
 
 
-@task(acks_late=True)
+@current_app.task(acks_late=True)
 def dispatch_timeout_nodes(record_id: int):
     record = TimeoutNodesRecord.objects.get(id=record_id)
     nodes = json.loads(record.timeout_nodes)
@@ -150,7 +150,7 @@ def dispatch_timeout_nodes(record_id: int):
         )
 
 
-@task(ignore_result=True)
+@current_app.task(ignore_result=True)
 @metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME)
 def execute_node_timeout_strategy(node_id, version):
     timeout_config = (
@@ -185,7 +185,7 @@ def execute_node_timeout_strategy(node_id, version):
     return action_result
 
 
-@task
+@current_app.task
 def task_callback(task_id, retry_times=0, *args, **kwargs):
     tcb = TaskCallBacker(task_id, *args, **kwargs)
     if not tcb.check_record_existence():

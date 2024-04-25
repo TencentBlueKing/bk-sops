@@ -2166,7 +2166,9 @@
             },
             // 记录缩放点
             onCanvasMouseMove (e) {
-                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const dom = document.querySelector('.canvas-flow-wrap')
+                if (!dom) return
+                const { x: offsetX, y: offsetY } = dom.getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
             },
