@@ -11,7 +11,7 @@
 */
 const path = require('path')
 const webpack = require('webpack')
-const merge = require('webpack-merge')
+const { merge } = require('webpack-merge')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
@@ -65,9 +65,7 @@ module.exports = merge(webpackBaseConfig, {
     optimization: {
         minimizer: [
             new TerserPlugin({
-                cache: true,
                 parallel: true,
-                sourceMap: false,
                 extractComments: false
             })
         ]
@@ -87,5 +85,5 @@ module.exports = merge(webpackBaseConfig, {
         // maxEntrypointSize: 500000,
         // hints: "error"
     },
-    devtool: false
+    devtool: 'source-map'
 })
