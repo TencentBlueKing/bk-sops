@@ -126,12 +126,12 @@ def preview_node_inputs(
         need_render_context_keys = get_need_render_context_keys()
     else:
         need_render_context_keys = list(pipeline["data"].get("inputs", {}).keys()) + list(parent_params.keys())
-    need_render_keys = {
+    no_need_render_keys = {
         "${%s}" % key
-        for key, val in pipeline["activities"][node_id]["component"]["inputs"].items()
-        if not val["need_render"]
+        for key, val in pipeline["activities"].get(node_id, {}).get("component", {}).get("inputs", {}).items()
+        if not val.get("need_render")
     }
-    need_render_context_keys = need_render_context_keys.difference(need_render_keys)
+    need_render_context_keys = need_render_context_keys.difference(no_need_render_keys)
     context_values = [
         ContextValue(key=key, type=VAR_CONTEXT_MAPPING[info["type"]], value=info["value"], code=info.get("custom_type"))
         for key, info in list(pipeline["data"].get("inputs", {}).items()) + list(parent_params.items())
