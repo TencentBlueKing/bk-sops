@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from iam import Request, MultiActionRequest, Subject, Action
+from iam import Action, MultiActionRequest, Request, Subject
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import MultiAuthFailedException, AuthFailedException, RawAuthFailedException
+from iam.exceptions import AuthFailedException, MultiAuthFailedException, RawAuthFailedException
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.core.models import Project
@@ -22,7 +22,6 @@ from gcloud.core.models import Project
 from . import res_factory
 from .conf import IAMMeta
 from .shortcuts import get_iam_client
-
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -164,3 +163,17 @@ def check_and_raise_raw_auth_fail_exception(result: dict, message=None):
     if result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
         logger.warning(message or result.get("message", "[check_and_raise_raw_auth_fail_exception]"))
         raise RawAuthFailedException(permissions=result.get("permission", {}))
+
+
+def get_common_flow_allowed_actions_for_user_and_project(username, actions, common_flow_id_list, project_id):
+    resources_list = res_factory.resources_list_for_common_flows_project(common_flow_id_list, project_id)
+
+    if not resources_list:
+        return {}
+
+    return get_resources_allowed_actions_for_user(
+        username,
+        IAMMeta.SYSTEM_ID,
+        actions,
+        resources_list,
+    )

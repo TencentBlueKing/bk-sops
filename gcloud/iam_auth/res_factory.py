@@ -14,13 +14,13 @@ specific language governing permissions and limitations under the License.
 from iam import Resource
 
 from gcloud.clocked_task.models import ClockedTask
-from gcloud.core.models import Project
 from gcloud.common_template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.periodictask.models import PeriodicTask
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta
+from gcloud.periodictask.models import PeriodicTask
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
 
 # flow
 
@@ -344,4 +344,26 @@ def resources_for_function_task_obj(task_obj):
                 "type": task_obj.task.flow_type,
             },
         )
+    ]
+
+
+def resources_list_for_common_flows_project(common_flow_id_list, project_id):
+    qs = CommonTemplate.objects.filter(id__in=common_flow_id_list, is_deleted=False).values(
+        "id", "pipeline_template__creator", "pipeline_template__name"
+    )
+
+    return [
+        [
+            Resource(
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.COMMON_FLOW_RESOURCE,
+                str(value["id"]),
+                {
+                    "iam_resource_owner": value["pipeline_template__creator"],
+                    "_bk_iam_path_": "/project,{}/".format(project_id),
+                    "name": value["pipeline_template__name"],
+                },
+            )
+        ]
+        for value in qs
     ]
