@@ -65,7 +65,10 @@ from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.models import EngineConfig
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
-from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
+from gcloud.iam_auth.utils import (
+    get_common_flow_allowed_actions_for_user_and_project,
+    get_flow_allowed_actions_for_user,
+)
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -336,10 +339,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             for instance in data
             if instance["template_id"] and instance["template_source"] == "common"
         ]
-        common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
+        common_templates_allowed_actions = get_common_flow_allowed_actions_for_user_and_project(
             request.user.username,
             [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION],
             common_template_ids,
+            request.query_params.get("project_id"),
         )
         common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids).values(
             "id", "pipeline_template__name", "is_deleted"
