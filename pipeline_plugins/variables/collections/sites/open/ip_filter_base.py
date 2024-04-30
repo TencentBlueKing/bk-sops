@@ -16,6 +16,7 @@ from abc import ABCMeta, abstractmethod
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
+from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings as gcloud_settings
 from gcloud.constants import GseAgentStatus
 from gcloud.core.models import Project
@@ -24,7 +25,7 @@ from gcloud.utils import cmdb
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import IpRegexType, extract_ip_from_ip_str, get_ip_by_regex_type
 from pipeline_plugins.base.utils.inject import supplier_account_for_business, supplier_id_for_project
-from pipeline_plugins.cmdb_ip_picker.utils import get_gse_agent_status_ipv6
+from pipeline_plugins.cmdb_ip_picker.utils import format_agent_data, get_gse_agent_status_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 
 logger = logging.getLogger("root")
@@ -95,18 +96,27 @@ class GseAgentStatusIpFilter(IpFilterBase):
     def match_gse_v1(self, gse_agent_status, username, bk_biz_id, bk_supplier_id, origin_ip_list):
         match_ip = origin_ip_list
         if gse_agent_status in [GseAgentStatus.ONlINE.value, GseAgentStatus.OFFLINE.value]:
-            client = get_client_by_user(username)
+            client = BKNodeManClient(username=username)
             agent_kwargs = {
-                "bk_biz_id": bk_biz_id,
-                "bk_supplier_id": bk_supplier_id,
-                "hosts": origin_ip_list,
+                "all_scope": True,
+                "host_list": [
+                    {
+                        "cloud_id": host["bk_cloud_id"],
+                        "ip": host["ip"],
+                        "meta": {"bk_biz_id": bk_biz_id, "scope_type": "biz", "scope_id": bk_biz_id},
+                    }
+                    for host in origin_ip_list
+                    if host["ip"] != ""
+                ],
             }
-            agent_result = client.gse.get_agent_status(agent_kwargs)
-            if not agent_result["result"]:
-                message = handle_api_error(_("管控平台(GSE)"), "gse.get_agent_status", agent_kwargs, agent_result)
-                raise ApiRequestError(f"ERROR:{message}")
+            agent_result = client.get_ipchooser_host_details(agent_kwargs)
 
-            agent_data = agent_result["data"]
+            if not agent_result["result"]:
+                message = handle_api_error(
+                    _("节点管理(nodeman)"), "nodeman.get_ipchooser_host_details", agent_kwargs, agent_result
+                )
+                raise ApiRequestError(f"ERROR:{message}")
+            agent_data = format_agent_data(agent_result["data"])
             agent_online_ip_list = []
             agent_offline_ip_list = []
             for plat_ip, info in agent_data.items():
