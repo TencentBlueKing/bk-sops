@@ -106,7 +106,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
                         "meta": {"bk_biz_id": bk_biz_id, "scope_type": "biz", "scope_id": bk_biz_id},
                     }
                     for host in origin_ip_list
-                    if host["ip"] != ""
+                    if host.get("ip") and host.get("bk_cloud_id")
                 ],
             }
             agent_result = client.get_ipchooser_host_details(agent_kwargs)

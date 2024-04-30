@@ -63,7 +63,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 set、module、cloud、agent等信息
     @return:
     """
-    default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip", "module"]
+    default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip"]
     if settings.ENABLE_IPV6 or settings.ENABLE_GSE_V2:
         # IPV6环境下或者开启了GSE 2.0 版本
         default_host_fields.append("bk_agent_id")
