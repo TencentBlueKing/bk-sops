@@ -127,4 +127,4 @@ class BKNodeManClient(BKComponentClient):
         return self._request(method="get", url=_get_nodeman_api_v2("install_channel"), data={})
 
     def get_ipchooser_host_details(self, params: dict):
-        return self._request(method="post", url=_get_nodeman_api("core/api/ipchooser_host/details/"), data=params)
+        return self._request(method="post", url=_get_nodeman_api("core/api/ipchooser_host/details"), data=params)
