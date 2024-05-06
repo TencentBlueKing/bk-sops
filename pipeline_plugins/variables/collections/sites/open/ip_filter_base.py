@@ -30,6 +30,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_ho
 
 logger = logging.getLogger("root")
 get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
+get_nodeman_client_by_user = BKNodeManClient
 
 
 class IpFilterBase(metaclass=ABCMeta):

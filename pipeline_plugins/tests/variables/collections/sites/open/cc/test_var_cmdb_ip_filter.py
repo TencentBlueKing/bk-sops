@@ -29,12 +29,12 @@ class VarCmdbIpSelectorTestCase(TestCase):
         get_agent_status_result = {
             "result": True,
             "code": 0,
-            "data": {
-                "0:1.1.1.1": {"ip": "1.1.1.1", "bk_cloud_id": 0, "bk_agent_alive": 1},
-                "0:2.2.2.2": {"ip": "2.2.2.2", "bk_cloud_id": 0, "bk_agent_alive": 0},
-                "1:3.3.3.3": {"ip": "3.3.3.3", "bk_cloud_id": 1, "bk_agent_alive": 1},
-                "2:4.4.4.4": {"ip": "4.4.4.4", "bk_cloud_id": 2, "bk_agent_alive": 0},
-            },
+            "dat": [
+                {"ip": "1.1.1.1", "alive": 1, "cloud_area": {"id": 0, "ip": "1.1.1.1"}},
+                {"ip": "2.2.2.2", "alive": 0, "cloud_area": {"id": 0, "ip": "2.2.2.2"}},
+                {"ip": "3.3.3.3", "alive": 1, "cloud_area": {"id": 1, "ip": "3.3.3.3"}},
+                {"ip": "4.4.4.4", "alive": 0, "cloud_area": {"id": 2, "ip": "3.3.3.3"}},
+            ],
         }
         mock_project_obj = MagicMock()
         mock_project_obj.from_cmdb = True
@@ -43,7 +43,7 @@ class VarCmdbIpSelectorTestCase(TestCase):
         mock_project.objects.get = MagicMock(return_value=mock_project_obj)
 
         client = MagicMock()
-        client.gse.get_agent_status = MagicMock(return_value=get_agent_status_result)
+        client.get_ipchooser_host_details = MagicMock(return_value=get_agent_status_result)
 
         self.supplier_account_for_project_patcher = patch(
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.supplier_id_for_project",
@@ -53,7 +53,7 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.Project", mock_project
         )
         self.client = patch(
-            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_client_by_user",
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_nodeman_client_by_user",
             MagicMock(return_value=client),
         )
 
