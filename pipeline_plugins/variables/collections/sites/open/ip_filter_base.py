@@ -97,7 +97,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
     def match_gse_v1(self, gse_agent_status, username, bk_biz_id, bk_supplier_id, origin_ip_list):
         match_ip = origin_ip_list
         if gse_agent_status in [GseAgentStatus.ONlINE.value, GseAgentStatus.OFFLINE.value]:
-            client = BKNodeManClient(username=username)
+            client = get_nodeman_client_by_user(username=username)
             agent_kwargs = {
                 "all_scope": True,
                 "host_list": [

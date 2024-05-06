@@ -29,7 +29,7 @@ class VarCmdbIpSelectorTestCase(TestCase):
         get_agent_status_result = {
             "result": True,
             "code": 0,
-            "dat": [
+            "data": [
                 {"ip": "1.1.1.1", "alive": 1, "cloud_area": {"id": 0, "ip": "1.1.1.1"}},
                 {"ip": "2.2.2.2", "alive": 0, "cloud_area": {"id": 0, "ip": "2.2.2.2"}},
                 {"ip": "3.3.3.3", "alive": 1, "cloud_area": {"id": 1, "ip": "3.3.3.3"}},
