@@ -71,12 +71,15 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
                 apps.get_model("template", "CommonTemplate") if act.get("template_source") == COMMON else template_model
             )
             if not reverse:
-                act["template_id"] = subprocess_template_model.objects.get(
-                    pk=act["template_id"]
-                ).pipeline_template.template_id
+                template = subprocess_template_model.objects.filter(pk=act["template_id"]).first()
+                if template:
+                    act["template_id"] = template.pipeline_template.template_id
             else:
-                template = subprocess_template_model.objects.get(pipeline_template__template_id=act["template_id"])
-                act["template_id"] = str(template.pk)
+                template = subprocess_template_model.objects.filter(
+                    pipeline_template__template_id=act["template_id"]
+                ).first()
+                if template:
+                    act["template_id"] = str(template.pk)
 
 
 def inject_template_node_id(pipeline_tree: dict):
