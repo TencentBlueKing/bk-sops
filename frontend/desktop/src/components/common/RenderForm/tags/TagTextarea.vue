@@ -12,42 +12,45 @@
 <template>
     <div class="tag-textarea">
         <div class="rf-form-wrapper">
-            <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled, 'text-view-mode': !formMode }">
-                <div
-                    ref="input"
-                    class="div-input"
-                    :class="{
-                        'input-before': !input.value
-                    }"
-                    :contenteditable="!isDisabled"
-                    :data-placeholder="placeholder"
-                    data-test-name="formTag_textarea_divInput"
-                    v-bk-clickoutside="handleClickOutSide"
-                    @mouseup="handleInputMouseUp"
-                    @focus="handleInputFocus"
-                    @keydown="handleInputKeyDown"
-                    @input="handleInputChange"
-                    @blur="handleBlur">
+            <template v-if="formMode">
+                <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
+                    <div
+                        ref="input"
+                        class="div-input"
+                        :class="{
+                            'input-before': !input.value
+                        }"
+                        :contenteditable="!isDisabled"
+                        :data-placeholder="placeholder"
+                        data-test-name="formTag_textarea_divInput"
+                        v-bk-clickoutside="handleClickOutSide"
+                        @mouseup="handleInputMouseUp"
+                        @focus="handleInputFocus"
+                        @keydown="handleInputKeyDown"
+                        @input="handleInputChange"
+                        @blur="handleBlur">
+                    </div>
                 </div>
-            </div>
-            <transition>
-                <div
-                    class="rf-select-list"
-                    :style="`${varListPosition}`"
-                    v-show="showVarList && isListOpen">
-                    <ul class="rf-select-content">
-                        <li
-                            class="rf-select-item"
-                            v-for="item in varList"
-                            :key="item.key"
-                            :class="{ 'is-hover': hoverKey === item.key }"
-                            @click.stop="onSelectVal(item.key)">
-                            <span class="key">{{ item.key }}</span>
-                            <span class="name" v-bk-overflow-tips>{{ item.name }}</span>
-                        </li>
-                    </ul>
-                </div>
-            </transition>
+                <transition>
+                    <div
+                        class="rf-select-list"
+                        :style="`${varListPosition}`"
+                        v-show="showVarList && isListOpen">
+                        <ul class="rf-select-content">
+                            <li
+                                class="rf-select-item"
+                                v-for="item in varList"
+                                :key="item.key"
+                                :class="{ 'is-hover': hoverKey === item.key }"
+                                @click.stop="onSelectVal(item.key)">
+                                <span class="key">{{ item.key }}</span>
+                                <span class="name" v-bk-overflow-tips>{{ item.name }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </transition>
+            </template>
+            <span v-else class="rf-view-value">{{ viewValue }}</span>
         </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
@@ -118,6 +121,12 @@
                 set (val) {
                     this.varList = val
                 }
+            },
+            viewValue () {
+                if (this.value === '' || this.value === undefined) {
+                    return '--'
+                }
+                return this.value
             },
             isDisabled () {
                 return !this.editable || !this.formMode || this.disable || this.scheme.attrs?.disabled
@@ -626,14 +635,6 @@
         >div {
             width: 100%;
         }
-    }
-    .text-view-mode {
-        padding-left: 0;
-        padding-right: 0;
-        border: none;
-        background: inherit !important;
-        color: inherit !important;
-        cursor: text !important;
     }
 }
 </style>
