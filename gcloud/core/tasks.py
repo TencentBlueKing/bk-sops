@@ -170,6 +170,7 @@ def scan_periodic_task(is_send_notify: bool = True):
             "task__creator",
             "project__id",
             "project__name",
+            "create_time",
             "edit_time",
             "task__last_run_at",
             "task__name",
@@ -183,7 +184,8 @@ def scan_periodic_task(is_send_notify: bool = True):
         last_month_time = datetime.datetime.now() + dateutil.relativedelta.relativedelta(
             months=-int(settings.PERIODIC_TASK_REMINDER_TIME)
         )
-        if last_month_time.timestamp() < p_task["edit_time"].timestamp():
+        edit_time = p_task["edit_time"] if p_task["edit_time"] else p_task["create_time"]
+        if last_month_time.timestamp() < edit_time.timestamp():
             continue
         creator = p_task["task__creator"]
         project_name = p_task["project__name"]
