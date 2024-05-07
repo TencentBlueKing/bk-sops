@@ -21,6 +21,7 @@
     .common-icon-task-failed {
         @include status-icon-style(#ff5757);
     }
+    .common-icon-task-pause,
     .common-icon-task-pending-process,
     .common-icon-dark-circle-circle-pause {
         @include status-icon-style(#ff9c01);

@@ -234,7 +234,7 @@
                     : this.$t('任务等待处理中，无需暂停')
             },
             judgeTipsDisabled (operation) {
-                return operation.action !== 'reExecute' && this.state !== 'PENDING_PROCESSING'
+                return operation.action !== 'pause' || this.state !== 'PENDING_PROCESSING'
             }
         }
     }

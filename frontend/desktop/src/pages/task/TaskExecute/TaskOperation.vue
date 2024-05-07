@@ -749,7 +749,7 @@
                             }
                         })
                         if (atom) {
-                            this.$refs.templateCanvas.onUpdateNodeInfo(node.id, { phase: atom.phase })
+                            this.setTaskNodeStatus(node.id, { phase: atom.phase })
                         }
                     }
                 })
