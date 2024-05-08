@@ -391,6 +391,7 @@
         computed: {
             ...mapState({
                 view_mode: state => state.view_mode,
+                appId: state => state.app_id,
                 hasAdminPerm: state => state.hasAdminPerm,
                 infoBasicConfig: state => state.infoBasicConfig,
                 username: state => state.username,
@@ -941,9 +942,9 @@
             // 任务重新执行
             taskReExecute () {
                 const url = {
-                    name: 'taskCreate',
+                    name: this.view_mode === 'appmaker' ? 'appmakerTaskCreate' : 'taskCreate',
                     query: { template_id: this.template_id, task_id: this.instance_id, entrance: 'taskflow' },
-                    params: { project_id: this.projectId, step: 'selectnode' }
+                    params: { project_id: this.projectId, step: 'selectnode', app_id: this.appId }
                 }
                 if (this.templateSource === 'common') {
                     url.query.common = 1
