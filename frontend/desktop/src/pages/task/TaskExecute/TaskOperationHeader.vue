@@ -225,7 +225,9 @@
                 })
             },
             hasOperatePerm (operation) {
-                const requestPerm = operation.action !== 'reExecute' ? 'task_operate' : this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                let requestPerm = this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                requestPerm = this.view_mode === 'appmaker' ? 'mini_app_create_task' : requestPerm
+                requestPerm = operation.action !== 'reExecute' ? 'task_operate' : requestPerm
                 return this.hasPermission([requestPerm], this.instanceActions)
             },
             getTipsContent (operation) {
@@ -234,7 +236,7 @@
                     : this.$t('任务等待处理中，无需暂停')
             },
             judgeTipsDisabled (operation) {
-                return operation.action !== 'reExecute' && this.state !== 'PENDING_PROCESSING'
+                return operation.action !== 'pause' || this.state !== 'PENDING_PROCESSING'
             }
         }
     }

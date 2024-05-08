@@ -290,7 +290,7 @@
             instanceFlow: String,
             instanceName: String,
             template_id: [Number, String],
-            templateName: [Number, String],
+            template_name: [Number, String],
             primitiveTplId: [Number, String],
             primitiveTplSource: String,
             templateSource: String,
@@ -393,7 +393,8 @@
                 view_mode: state => state.view_mode,
                 hasAdminPerm: state => state.hasAdminPerm,
                 infoBasicConfig: state => state.infoBasicConfig,
-                username: state => state.username
+                username: state => state.username,
+                appmakerDetail: state => state.appmaker.appmakerDetail
             }),
             ...mapState('project', {
                 projectId: state => state.project_id,
@@ -749,7 +750,7 @@
                             }
                         })
                         if (atom) {
-                            this.$refs.templateCanvas.onUpdateNodeInfo(node.id, { phase: atom.phase })
+                            this.setTaskNodeStatus(node.id, { phase: atom.phase })
                         }
                     }
                 })
@@ -1665,7 +1666,9 @@
                     return
                 }
 
-                const requestPerm = action !== 'reExecute' ? 'task_operate' : this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                let requestPerm = this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                requestPerm = this.view_mode === 'appmaker' ? 'mini_app_create_task' : requestPerm
+                requestPerm = action !== 'reExecute' ? 'task_operate' : requestPerm
                 if (!this.hasPermission([requestPerm], this.instanceActions)) {
                     const resourceData = {
                         task: [{
@@ -1677,11 +1680,15 @@
                             name: this.projectName
                         }]
                     }
+                    if (this.view_mode === 'appmaker') {
+                        const { id, name } = this.appmakerDetail
+                        resourceData.mini_app = [{ id, name }]
+                    }
                     if (action === 'reExecute') {
                         const flowKey = this.templateSource === 'project' ? 'flow' : 'common_flow'
                         resourceData[flowKey] = [{
                             id: this.template_id,
-                            name: this.templateName
+                            name: this.template_name
                         }]
                     }
                     this.applyForPermission([requestPerm], this.instanceActions, resourceData)

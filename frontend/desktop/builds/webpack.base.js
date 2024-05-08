@@ -64,27 +64,42 @@ module.exports = {
             },
             {
                 test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-                type: 'asset/resource',
+                type: 'asset',
                 generator: {
                     filename: path.posix.join('images/[name].[contenthash:10].[ext]')
+                },
+                parser: {
+                    dataUrlCondition: {
+                        maxSize: 10 * 1024
+                    }
                 }
             },
             {
                 test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
-                type: 'asset/resource',
+                type: 'asset',
                 generator: {
                     filename: path.posix.join('videos/[name].[contenthash:10].[ext]')
+                },
+                parser: {
+                    dataUrlCondition: {
+                        maxSize: 10 * 1024
+                    }
                 }
             },
             {
                 test: /\.(woff2?|eot|ttf|otf|svg)(\?.*)?$/,
-                type: 'asset/resource',
+                type: 'asset',
                 exclude: [
                     path.join(__dirname, '../src/assets/images/'),
                     path.join(__dirname, '../src/assets/bk-magic/images/')
                 ],
                 generator: {
                     filename: path.posix.join('fonts/[name].[contenthash:10].[ext]')
+                },
+                parser: {
+                    dataUrlCondition: {
+                        maxSize: 10 * 1024
+                    }
                 }
             }
         ]
