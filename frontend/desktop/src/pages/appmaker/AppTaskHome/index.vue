@@ -640,9 +640,9 @@
             getCreateTaskUrl (task) {
                 const { id, template_id, template_source } = task
                 const url = {
-                    name: 'taskCreate',
+                    name: 'appmakerTaskCreate',
                     query: { template_id: template_id, task_id: id, entrance: 'taskflow' },
-                    params: { project_id: this.project_id, step: 'selectnode' }
+                    params: { project_id: this.project_id, step: 'selectnode', app_id: this.app_id }
                 }
                 if (template_source === 'common') {
                     url.query.common = 1
