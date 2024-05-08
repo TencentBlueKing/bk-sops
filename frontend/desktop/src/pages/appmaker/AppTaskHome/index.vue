@@ -94,15 +94,15 @@
                                     v-if="props.row.template_deleted || props.row.template_source === 'onetime'"
                                     class="task-operation-btn disabled"
                                     data-test-id="taskList_table_reexecuteBtn">
-                                    {{$t('重新执行')}}
+                                    {{$t('再次执行')}}
                                 </a>
                                 <a
                                     v-else-if="!hasCreateTaskPerm(props.row)"
                                     v-cursor
                                     class="text-permission-disable task-operation-btn"
                                     data-test-id="taskList_table_reexecuteBtn"
-                                    @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
-                                    {{$t('重新执行')}}
+                                    @click="onTaskPermissonCheck(['mini_app_create_task'], props.row)">
+                                    {{$t('再次执行')}}
                                 </a>
                                 <a
                                     v-else
@@ -110,7 +110,7 @@
                                     class="task-operation-btn"
                                     data-test-id="taskList_table_reexecuteBtn"
                                     @click="getCreateTaskUrl(props.row)">
-                                    {{$t('重新执行')}}
+                                    {{$t('再次执行')}}
                                 </a>
                             </template>
                         </bk-table-column>
@@ -287,7 +287,10 @@
         },
         computed: {
             ...mapState({
-                businessTimezone: state => state.businessTimezone
+                businessTimezone: state => state.businessTimezone,
+                viewMode: state => state.view_mode,
+                appmakerDetail: state => state.appmaker.appmakerDetail,
+                authActions: state => state.project.authActions
             })
         },
         async created () {
@@ -531,6 +534,10 @@
                         name: task.project.name
                     }]
                 }
+                if (this.viewMode === 'appmaker') {
+                    const { id, name } = this.appmakerDetail
+                    resourceData.mini_app = [{ id, name }]
+                }
                 const flowKey = task.template_source === 'project' ? 'flow' : 'common_flow'
                 resourceData[flowKey] = [{
                     id: task.template_id,
@@ -627,8 +634,8 @@
                 this.$router.replace({ name: 'appmakerTaskHome', params: { project_id: this.project_id }, query })
             },
             hasCreateTaskPerm (task) {
-                const authActions = [...task.auth_actions, ...this.$store.state.project.authActions]
-                return this.hasPermission(['flow_create_task'], authActions)
+                const authActions = [...task.auth_actions, ...this.authActions, ...this.appmakerDetail.auth_actions]
+                return this.hasPermission(['mini_app_create_task'], authActions)
             },
             getCreateTaskUrl (task) {
                 const { id, template_id, template_source } = task

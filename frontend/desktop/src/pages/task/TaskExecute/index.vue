@@ -83,7 +83,9 @@
         },
         computed: {
             ...mapState({
-                'msgInstance': state => state.msgInstance
+                'msgInstance': state => state.msgInstance,
+                viewMode: state => state.view_mode,
+                appmakerDetail: state => state.appmaker.appmakerDetail
             })
         },
         created () {
@@ -129,6 +131,10 @@
                     // 将节点树存起来
                     const pipelineData = JSON.parse(pipeline_tree)
                     this.setPipelineTree(pipelineData)
+                    // 添加轻应用权限
+                    if (this.viewMode === 'appmaker') {
+                        this.instanceActions.push(...this.appmakerDetail.auth_actions)
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
