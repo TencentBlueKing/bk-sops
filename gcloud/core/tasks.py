@@ -185,7 +185,7 @@ def scan_periodic_task(is_send_notify: bool = True):
             months=-int(settings.PERIODIC_TASK_REMINDER_TIME)
         )
         edit_time = p_task["edit_time"] if p_task["edit_time"] else p_task["create_time"]
-        if last_month_time.timestamp() < edit_time.timestamp():
+        if edit_time and last_month_time.timestamp() < edit_time.timestamp():
             continue
         creator = p_task["task__creator"]
         project_name = p_task["project__name"]
