@@ -6,6 +6,7 @@
             :value="inputFormData"
             :schema="inputs"
             :readonly="isViewMode"
+            :context="context"
             :layout="{ group: [], container: { gap: '14px' } }"
             @change="$emit('update', $event)">
         </bkui-form>
@@ -36,7 +37,11 @@
         },
         data () {
             return {
-                inputFormData: tools.deepClone(this.value)
+                inputFormData: tools.deepClone(this.value),
+                context: {
+                    site_url: $.context.site_url,
+                    project_id: $.context.project?.id
+                }
             }
         },
         watch: {
@@ -53,7 +58,10 @@
 </script>
 <style lang="scss" scoped>
     .jsonschema-input-params {
-        /deep/ {
+        >>> {
+            .bk-schema-form-group-content {
+                grid-auto-columns: 100%;
+            }
             .bk-form-item {
                 .bk-label {
                     width: 130px !important;
