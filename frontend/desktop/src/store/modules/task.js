@@ -461,7 +461,7 @@ const task = {
             const { project_id } = store.state.project
             const { node_id, task_id } = data
             const action = 'forced_fail'
-            return axios.post(`taskflow/api/v4/node_action/${project_id}/${task_id}/${node_id}/`, { action }, {
+            return axios.post(`taskflow/api/v4/node_action/${project_id}/${task_id}/${node_id}/`, JSON.stringify({ action }), {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
