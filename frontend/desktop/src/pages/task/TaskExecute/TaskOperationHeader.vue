@@ -13,21 +13,8 @@
     <page-header class="operation-header">
         <div class="head-left-area">
             <i class="bk-icon icon-arrows-left back-icon" @click="onBack"></i>
-            <div class="bread-crumbs-wrapper">
-                <span
-                    class="path-item name-ellipsis"
-                    v-for="(path, index) in nodeNav"
-                    :key="path.id"
-                    v-bk-overflow-tips
-                    :title="showNodeList.includes(index) ? path.name : ''">
-                    <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
-                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
-                        {{path.name}}
-                    </span>
-                    <span class="node-ellipsis" v-else-if="index === 1">...</span>
-                </span>
-            </div>
-            <bk-popover theme="light" placement="bottom-start" :disabled="!isStateDetailShow" ext-cls="state-detail-tips">
+            <div class="task-name" v-bk-overflow-tips>{{ nodeNav[0].name }}</div>
+            <bk-popover theme="light" placement="bottom-start" :disabled="!isStateDetailShow" class="state-popover" ext-cls="state-detail-tips">
                 <span v-if="stateStr" :class="['task-state', state]">
                     <i v-if="isStateDetailShow" class="common-icon-info"></i>
                     {{ stateStr }}
@@ -251,47 +238,23 @@
     .head-left-area {
         display: flex;
         align-items: center;
+        margin-right: 20px;
         .back-icon {
             font-size: 28px;
             color: #3a84ff;
             cursor: pointer;
         }
     }
-    .bread-crumbs-wrapper {
-        font-size: 0;
-        .path-item {
-            display: inline-block;
-            font-size: 14px;
-            overflow: hidden;
-            &.name-ellipsis {
-                max-width: 700px;
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-            }
-            .node-name {
-                margin: 0 4px;
-                font-size: 14px;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-            .node-ellipsis {
-                margin-right: 4px;
-            }
-            &:first-child {
-                .node-name {
-                    margin-left: 0px;
-                }
-            }
-            &:last-child {
-                .node-name {
-                    &:last-child {
-                        color: #313238;
-                        cursor: text;
-                    }
-                }
-            }
-        }
+    .task-name {
+        max-width: 700px;
+        margin: 0 4px;
+        font-size: 14px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .state-popover {
+        flex-shrink: 0;
     }
     .task-state {
         flex-shrink: 0;
@@ -378,6 +341,7 @@
         height: 100%;
         .tab-operate {
             display: flex;
+            flex-shrink: 0;
             align-items: center;
             position: relative;
             font-size: 14px;
