@@ -1514,7 +1514,8 @@
                         if (stack.length > 0) {
                             params.subprocess_id = stack.join(',')
                         }
-                        await this.itsmTransition(params)
+                        const resp = await this.itsmTransition(params)
+                        if (!resp.result) return
                         this.approval.id = ''
                         this.approval.is_passed = true
                         this.approval.message = ''
