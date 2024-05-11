@@ -314,7 +314,7 @@
             getFormsHookState () {
                 const hooked = {}
                 const keys = Object.keys(this.constants)
-                this.inputs.forEach(form => {
+                Array.isArray(this.inputs) && this.inputs.forEach(form => {
                     // 已勾选到全局变量中, 判断勾选的输入参数生成的变量及自定义全局变量source_info是否包含该节点对应表单tag_code
                     // 可能存在表单勾选时已存在相同key的变量，选择复用自定义变量
                     const isHooked = keys.some(item => {
@@ -437,46 +437,7 @@
                     }
                     // 第三方插件
                     if (isThird) {
-                        const resp = await this.loadPluginServiceDetail({
-                            plugin_code: plugin,
-                            plugin_version: version,
-                            with_app_detail: true
-                        })
-                        if (!resp.result) return
-                        // 获取参数
-                        const { outputs: respsOutputs, forms, inputs } = resp.data
-                        if (forms.renderform) {
-                            if (!this.isLegacySubProcess) {
-                                // 获取第三方插件公共输出参数
-                                if (!this.pluginOutput['remote_plugin']) {
-                                    await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
-                                }
-                                // 输出参数
-                                const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                                const outputs = []
-                                for (const [key, val] of Object.entries(respsOutputs.properties)) {
-                                    outputs.push({
-                                        name: val.title,
-                                        key,
-                                        type: val.type,
-                                        schema: { description: val.description || '--' }
-                                    })
-                                }
-                                this.outputs = [...storeOutputs, ...outputs]
-                            }
-                            // 获取host
-                            const { origin } = window.location
-                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
-                            $.context.bk_plugin_api_host[plugin] = hostUrl
-                            // 输入参数
-                            $.atoms[plugin] = {}
-                            const renderFrom = forms.renderform
-                            /* eslint-disable-next-line */
-                            eval(renderFrom)
-                        } else {
-                            $.atoms[plugin] = inputs
-                            this.outputs = [] // jsonschema form输出参数
-                        }
+                        await this.getThirdConfig(plugin, version)
                     } else {
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id, scope: 'task' })
                         this.outputs = this.pluginOutput[plugin][version]
@@ -485,6 +446,51 @@
                     return config
                 } catch (e) {
                     console.log(e)
+                }
+            },
+            // 第三方插件输入输出配置
+            async getThirdConfig (plugin, version) {
+                try {
+                    const resp = await this.loadPluginServiceDetail({
+                        plugin_code: plugin,
+                        plugin_version: version,
+                        with_app_detail: true
+                    })
+                    if (!resp.result) return
+                    // 获取参数
+                    const { outputs: respOutputs, forms, inputs } = resp.data
+                    if (forms.renderform) {
+                        // 获取host
+                        const { origin } = window.location
+                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                        $.context.bk_plugin_api_host[plugin] = hostUrl
+                        // 输入参数
+                        $.atoms[plugin] = {}
+                        const renderFrom = forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                    } else {
+                        $.atoms[plugin] = inputs
+                    }
+
+                    // 输出参数
+                    const outputs = []
+                    // 获取第三方插件公共输出参数
+                    if (!this.pluginOutput['remote_plugin']) {
+                        await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                    }
+                    const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                    for (const [key, val] of Object.entries(respOutputs.properties)) {
+                        outputs.push({
+                            name: val.title || key,
+                            key,
+                            type: val.type,
+                            schema: { description: val.description }
+                        })
+                    }
+                    this.outputs = [...storeOutputs, ...outputs]
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             /**
