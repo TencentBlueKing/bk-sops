@@ -5,6 +5,7 @@
             :readonly="true"
             :value="formData"
             :schema="schema"
+            :context="context"
             :layout="{ group: [], container: { gap: '14px' } }">
         </bkui-form>
     </div>
@@ -33,7 +34,11 @@
         },
         data () {
             return {
-                formData: tools.deepClone(this.value)
+                formData: tools.deepClone(this.value),
+                context: {
+                    site_url: $.context.site_url,
+                    project_id: $.context.project?.id
+                }
             }
         },
         watch: {
@@ -45,28 +50,33 @@
 </script>
 <style lang="scss" scoped>
     .jsonschema-input-params {
-        /deep/ .bk-form-item {
-            .bk-label {
-                width: 100px !important;
-                font-size: 12px;
+        >>> {
+            .bk-schema-form-group-content {
+                grid-auto-columns: 100%;
             }
-            .bk-form-content {
-                margin-left: 100px !important;
-            }
-            .bk-form-radio {
-                margin-right: 30px;
-                .bk-radio-text {
+            .bk-form-item {
+                .bk-label {
+                    width: 100px !important;
                     font-size: 12px;
                 }
-            }
-            .bk-form-checkbox {
-                margin-right: 30px;
-                .bk-checkbox-text {
-                    font-size: 12px;
+                .bk-form-content {
+                    margin-left: 100px !important;
                 }
-            }
-            & + .bk-form-item {
-                margin-top: 0;
+                .bk-form-radio {
+                    margin-right: 30px;
+                    .bk-radio-text {
+                        font-size: 12px;
+                    }
+                }
+                .bk-form-checkbox {
+                    margin-right: 30px;
+                    .bk-checkbox-text {
+                        font-size: 12px;
+                    }
+                }
+                & + .bk-form-item {
+                    margin-top: 0;
+                }
             }
         }
     }
