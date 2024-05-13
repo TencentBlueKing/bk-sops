@@ -145,7 +145,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
                     properties[cc_host_property] = cc_host_prop_value
 
             for host_id in host_result["data"]:
-                update_host_message.append({"properties": properties, "bk_host_id": int(host_id)})
+                update_host_message.append({"bk_host_id": int(host_id), "properties": properties})
 
         cc_kwargs = {"bk_supplier_account": supplier_account, "update": update_host_message}
 
