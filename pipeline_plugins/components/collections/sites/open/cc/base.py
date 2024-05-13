@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from abc import ABCMeta
-from collections import Counter
 from enum import Enum
 from functools import partial
 
@@ -108,7 +107,7 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         executor,
         bk_biz_id,
         supplier_account,
-        ["bk_host_id", "bk_host_innerip"],
+        ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
         ip_list,
     )
 
@@ -119,14 +118,20 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
 
     if len(host_list) > len(ip_list):
         # find repeat innerip host
-        host_counter = Counter([host["bk_host_innerip"] for host in host_list])
-        mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
-        message = _(f"IP [{', '.join(mutiple_innerip_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
-        logger.error(message)
-        return {
-            "result": False,
-            "message": message,
-        }
+        hosts = []
+        c_hosts = []
+        for host in host_list:
+            if {host["bk_host_innerip"]: host["bk_cloud_id"]} in hosts:
+                c_hosts.append(host["bk_host_innerip"])
+            else:
+                hosts.append({host["bk_host_innerip"]: host["bk_cloud_id"]})
+        if len(c_hosts) > 0:
+            message = _(f"IP [{', '.join(c_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+            logger.error(message)
+            return {
+                "result": False,
+                "message": message,
+            }
 
     if len(host_list) < len(ip_list):
         return_innerip_set = {host["bk_host_innerip"] for host in host_list}

@@ -131,8 +131,6 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
             if not host_result["result"]:
                 data.outputs.ex_data = host_result.get("message")
                 return False
-            host_id = int(host_result["data"][0])
-            host_update = {"bk_host_id": host_id}
             host_property_dir.pop("bk_host_innerip")
             properties = {}
             for cc_host_property, cc_host_prop_value in host_property_dir.items():
@@ -145,8 +143,9 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
                         self.logger.error(ex_data)
                         return False
                     properties[cc_host_property] = cc_host_prop_value
-            host_update["properties"] = properties
-            update_host_message.append(host_update)
+
+            for host_id in host_result["data"]:
+                update_host_message.append({"properties": properties, "bk_host_id": int(host_id)})
 
         cc_kwargs = {"bk_supplier_account": supplier_account, "update": update_host_message}
 
