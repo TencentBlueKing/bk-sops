@@ -121,10 +121,10 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         hosts = []
         c_hosts = []
         for host in host_list:
-            if {host["bk_host_innerip"]: host["bk_cloud_id"]} in hosts:
+            if {host["bk_host_innerip"]: host.get("bk_cloud_id", "")} in hosts:
                 c_hosts.append(host["bk_host_innerip"])
             else:
-                hosts.append({host["bk_host_innerip"]: host["bk_cloud_id"]})
+                hosts.append({host["bk_host_innerip"]: host.get("bk_cloud_id", "")})
         if len(c_hosts) > 0:
             message = _(f"IP [{', '.join(c_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
             logger.error(message)
