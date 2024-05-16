@@ -14,6 +14,7 @@ import axiosDefaults from 'axios/lib/defaults'
 import bus from '@/utils/bus.js'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
 import { generateTraceId } from '@/utils/uuid.js'
+import { showLoginModal } from '@blueking/login-modal'
 
 axiosDefaults.baseURL = window.SITE_URL
 axiosDefaults.xsrfCookieName = window.APP_CODE + '_csrftoken'
@@ -84,15 +85,12 @@ axios.interceptors.response.use(
                     if (isMatch) {
                         bus.$emit('createSnapshot', true) // 创建模板快照
                     }
-                    const { login_url: src, width, height } = data
-                    const { availHeight, availWidth } = window.screen
-                    const left = (availWidth - width) / 2
-                    const top = (availHeight - height) / 2
-                    window.loginWindow = window.open(src, '_blank', `
-                        width=` + width + `,
-                        height=` + height + `,
-                        left=` + left + `,
-                        top=` + top + `,`)
+
+                    const successUrl = `${window.location.origin}${window.SITE_URL}static/bk_sops/login_success.html`
+                    let [loginUrl] = data.login_url.split('?')
+                    loginUrl = `${loginUrl}?c_url=${encodeURIComponent(successUrl)}`
+
+                    showLoginModal({ loginUrl })
                 }
                 break
             case 499:
