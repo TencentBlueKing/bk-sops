@@ -17,6 +17,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpackBaseConfig = require('./webpack.base.js')
+const CopyPlugin = require('copy-webpack-plugin')
 
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
@@ -59,7 +60,13 @@ module.exports = merge(webpackBaseConfig, {
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
             filename: 'css/[name].[contenthash:10].css'
-        })
+        }),
+        new CopyPlugin([
+            {
+                from: path.resolve(__dirname, '../src/assets/html/login_success.html'),
+                to: path.resolve(__dirname, '../static/')
+            }
+        ])
         // new BundleAnalyzerPlugin()
     ],
     optimization: {
