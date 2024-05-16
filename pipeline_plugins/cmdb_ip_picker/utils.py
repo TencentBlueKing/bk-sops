@@ -336,7 +336,11 @@ class IPPickerHandler:
             fields.append("bk_host_innerip_v6")
 
         host_info = cmdb.get_business_host_topo(
-            self.username, self.bk_biz_id, self.bk_supplier_account, fields, property_filters=self.property_filters,
+            self.username,
+            self.bk_biz_id,
+            self.bk_supplier_account,
+            fields,
+            property_filters=self.property_filters,
         )
         logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
 
@@ -761,3 +765,12 @@ def get_gse_agent_status_ipv6(bk_agent_id_list):
         agent_id_status_map[item["bk_agent_id"]] = status_code
 
     return agent_id_status_map
+
+
+def format_agent_data(agents):
+    agent_data = {}
+    for agent in agents:
+        key = f"{agent['cloud_area']['id']}:{agent['ip']}"
+        val = {"ip": agent["ip"], "bk_cloud_id": agent["cloud_area"]["id"], "bk_agent_alive": agent["alive"]}
+        agent_data[key] = val
+    return agent_data
