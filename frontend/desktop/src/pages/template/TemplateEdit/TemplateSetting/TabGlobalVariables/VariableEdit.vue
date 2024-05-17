@@ -1045,7 +1045,7 @@
             margin-right: 10px;
             padding: 0 25px;
         }
-        
+
     }
     .textarea-wrap {
         height: 88px;
