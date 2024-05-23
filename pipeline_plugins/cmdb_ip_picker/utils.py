@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import math
 import re
 
 import requests
@@ -774,3 +775,24 @@ def format_agent_data(agents):
         val = {"ip": agent["ip"], "bk_cloud_id": agent["cloud_area"]["id"], "bk_agent_alive": agent["alive"]}
         agent_data[key] = val
     return agent_data
+
+
+def agent_params_pagination(data, bk_biz_id):
+    params_list = []
+    page_size = 1000
+    page = math.ceil(len(data) / page_size)
+    for i in range(page):
+        agent_kwargs = {
+            "all_scope": True,
+            "host_list": [
+                {
+                    "cloud_id": host["bk_cloud_id"],
+                    "ip": host["bk_host_innerip"],
+                    "meta": {"bk_biz_id": bk_biz_id, "scope_type": "biz", "scope_id": bk_biz_id},
+                }
+                for host in data[i * page_size : (i + 1) * page_size]
+                if host.get("bk_host_innerip", "") != ""
+            ],
+        }
+        params_list.append(agent_kwargs)
+    return params_list
