@@ -35,10 +35,7 @@
         data () {
             return {
                 formData: tools.deepClone(this.value),
-                context: {
-                    site_url: $.context.site_url,
-                    project_id: $.context.project?.id
-                }
+                context: { ...$.context }
             }
         },
         watch: {
