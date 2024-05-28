@@ -619,7 +619,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             }
         need_render_data = node_info.get("component", {}).get("data", {})
         for k, v in need_render_data.items():
-            if "need_render" in v and not v["need_render"] and k in inputs:
+            if v.get("need_render") is False and k in inputs:
                 inputs[k] = v["value"]
         data = {"inputs": inputs, "outputs": outputs_table, "ex_data": outputs.pop("ex_data", "")}
         return {
