@@ -23,8 +23,10 @@ from api.collections.nodeman import BKNodeManClient
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.utils import cmdb
+from gcloud.utils.data_handler import chunk_data
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import format_sundry_ip
+from pipeline_plugins.components.utils.common import batch_execute_func
 
 from .constants import ERROR_CODES, NO_ERROR
 from .utils import (
@@ -38,6 +40,17 @@ from .utils import (
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+
+
+def format_agent_ip(data, *args, **kwargs):
+    bk_biz_id = kwargs["bk_biz_id"]
+    return [
+        {
+            "host_id": host["bk_host_id"],
+            "meta": {"bk_biz_id": bk_biz_id, "scope_type": "biz", "scope_id": bk_biz_id},
+        }
+        for host in data
+    ]
 
 
 def cmdb_search_topo_tree(request, bk_biz_id, bk_supplier_account=""):
@@ -162,27 +175,21 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                     host["agent"] = agent_id_status_map.get(bk_agent_id, -1)
             else:
                 client = BKNodeManClient(username=request.user.username)
-                agent_kwargs = {
-                    "all_scope": True,
-                    "host_list": [
-                        {
-                            "cloud_id": host["bk_cloud_id"],
-                            "ip": host["bk_host_innerip"],
-                            "meta": {"bk_biz_id": bk_biz_id, "scope_type": "biz", "scope_id": bk_biz_id},
-                        }
-                        for host in data
-                        if host["bk_host_innerip"] != ""
-                    ],
-                }
-                agent_result = client.get_ipchooser_host_details(agent_kwargs)
-                if not agent_result["result"]:
-                    message = handle_api_error(
-                        _("节点管理(nodeman)"), "nodeman.get_ipchooser_host_details", agent_kwargs, agent_result
-                    )
-                    result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
-                    return JsonResponse(result)
+                host_list = chunk_data(data, 1000, format_agent_ip, bk_biz_id=bk_biz_id)
+                agent_kwargs = [{"all_scope": True, "host_list": host} for host in host_list]
+                results = batch_execute_func(client.get_ipchooser_host_details, agent_kwargs, interval_enabled=True)
 
-                agent_data = format_agent_data(agent_result["data"])
+                agent_data = []
+                for result in results:
+                    agent_result = result["result"]
+                    if not agent_result["result"]:
+                        message = handle_api_error(
+                            _("节点管理(nodeman)"), "nodeman.get_ipchooser_host_details", agent_kwargs, agent_result
+                        )
+                        result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
+                        return JsonResponse(result)
+                    agent_data.extend(agent_result["data"])
+                agent_data = format_agent_data(agent_data)
                 for host in data:
                     # agent在线状态，0为不在线，1为在线，-1为未知
                     agent_info = agent_data.get(
