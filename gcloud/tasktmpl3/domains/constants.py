@@ -130,7 +130,7 @@ def preview_node_inputs(
         {
             "${%s}" % key
             for key, val in pipeline["activities"].get(node_id, {}).get("component", {}).get("inputs", {}).items()
-            if not val.get("need_render")
+            if val.get("need_render") is False
         }
     )
 
