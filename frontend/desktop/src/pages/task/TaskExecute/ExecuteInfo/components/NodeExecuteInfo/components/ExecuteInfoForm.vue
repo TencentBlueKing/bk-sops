@@ -473,11 +473,11 @@
                     if (!resp.result) return
                     // 获取参数
                     const { outputs: respOutputs, forms, inputs } = resp.data
+                    // 获取host
+                    const { origin } = window.location
+                    const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                    $.context.bk_plugin_api_host[plugin] = hostUrl
                     if (forms.renderform) {
-                        // 获取host
-                        const { origin } = window.location
-                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
-                        $.context.bk_plugin_api_host[plugin] = hostUrl
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
