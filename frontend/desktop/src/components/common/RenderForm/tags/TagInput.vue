@@ -28,7 +28,7 @@
                         ref="input"
                         class="div-input"
                         :class="{
-                            'input-before': !input.value
+                            'input-before': !input.value && !pasteIng
                         }"
                         :contenteditable="!isDisabled"
                         :data-placeholder="placeholder"
@@ -114,7 +114,8 @@
                 varList: [],
                 varListPosition: '',
                 hoverKey: '',
-                selection: {}
+                selection: {},
+                pasteIng: false // 粘贴中
             }
         },
         computed: {
@@ -314,6 +315,7 @@
             },
             // 文本框输入
             handleInputChange (e, selection) {
+                if (this.pasteIng) return
                 if (!selection) {
                     // 实时更新
                     this.updateInputValue()
@@ -512,7 +514,7 @@
                 this.emit_event(this.tagCode, 'blur', this.value)
                 this.$emit('blur', this.value)
             },
-            handlePaste (e) {
+            async handlePaste (e) {
                 event.preventDefault()
                 let text = ''
                 const clp = (e.originalEvent || e).clipboardData
@@ -531,7 +533,21 @@
                 } else {
                     text = clp.getData('text/plain') || ''
                     text = text.replace(/(\n|\r|\r\n)/g, ' ')
-                    text && document.execCommand('insertText', false, text)
+                    this.pasteIng = true
+                    await this.insertTextAsync(text)
+                    this.pasteIng = false
+                    this.handleInputChange(e, false)
+                }
+            },
+            async insertTextAsync (text) {
+                const chunkSize = 1000
+                for (let i = 0; i < text.length; i += chunkSize) {
+                    const part = text.slice(i, i + chunkSize)
+                    // 创建一个Promise用于管理setTimeout的异步行为
+                    await new Promise((resolve) => setTimeout(() => {
+                        document.execCommand('insertText', false, part)
+                        resolve()
+                    }, 0))
                 }
             }
         }
