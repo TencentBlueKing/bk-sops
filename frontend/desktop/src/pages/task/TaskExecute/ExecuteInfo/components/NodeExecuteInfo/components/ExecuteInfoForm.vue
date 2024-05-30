@@ -328,7 +328,7 @@
             getFormsHookState () {
                 const hooked = {}
                 const keys = Object.keys(this.constants)
-                this.inputs.forEach(form => {
+                Array.isArray(this.inputs) && this.inputs.forEach(form => {
                     // 已勾选到全局变量中, 判断勾选的输入参数生成的变量及自定义全局变量source_info是否包含该节点对应表单tag_code
                     // 可能存在表单勾选时已存在相同key的变量，选择复用自定义变量
                     const isHooked = keys.some(item => {
@@ -486,6 +486,7 @@
                     } else {
                         $.atoms[plugin] = inputs
                     }
+
                     // 输出参数
                     const outputs = []
                     // 获取第三方插件公共输出参数

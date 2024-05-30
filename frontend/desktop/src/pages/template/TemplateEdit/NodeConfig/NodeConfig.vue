@@ -666,6 +666,7 @@
                     } else {
                         $.atoms[plugin] = inputs
                     }
+
                     // 输出参数
                     const outputs = []
                     // 获取第三方插件公共输出参数
