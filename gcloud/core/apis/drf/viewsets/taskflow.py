@@ -441,10 +441,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         template_id__allowed_actions_map = {}
 
         if data["template_source"] == COMMON:
-            template_id__allowed_actions_map = get_common_flow_allowed_actions_for_user(
+            template_id__allowed_actions_map = get_common_flow_allowed_actions_for_user_and_project(
                 request.user.username,
                 [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_ACTION],
                 [data["template_id"]],
+                str(instance.project_id),
             )
         elif data["template_source"] == PROJECT:
             template_id__allowed_actions_map = get_flow_allowed_actions_for_user(
