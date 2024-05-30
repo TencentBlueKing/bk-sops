@@ -14,18 +14,21 @@ specific language governing permissions and limitations under the License.
 import os
 import traceback
 
-from django.core.management.base import BaseCommand
 from django.core.management import call_command
+from django.core.management.base import BaseCommand
 
 import env
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument("-s", "--stage", default=["stage", "prod"], nargs="+", help="release stages")
+
     def handle(self, *args, **kwargs):
         if not env.IS_PAAS_V3:
             print("[bk-sops]current version is not open v3,skip sync_saas_apigw")
             return
-
+        stage = kwargs.get("stage")
         definition_file_path = os.path.join(__file__.rsplit("/", 1)[0], "data/api-definition.yml")
         resources_file_path = os.path.join(__file__.rsplit("/", 1)[0], "data/api-resources.yml")
 
@@ -42,7 +45,7 @@ class Command(BaseCommand):
         call_command("sync_resource_docs_by_archive", file=definition_file_path)
 
         print("[bk-sops]call create_version_and_release_apigw with definition: %s" % definition_file_path)
-        call_command("create_version_and_release_apigw", "--generate-sdks", file=definition_file_path)
+        call_command("create_version_and_release_apigw", "--generate-sdks", file=definition_file_path, stage=stage)
 
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
