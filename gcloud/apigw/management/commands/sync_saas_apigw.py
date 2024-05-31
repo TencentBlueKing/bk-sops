@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import os
 import traceback
 
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
@@ -21,14 +22,11 @@ import env
 
 
 class Command(BaseCommand):
-    def add_arguments(self, parser):
-        parser.add_argument("-s", "--stage", default=["stage", "prod"], nargs="+", help="release stages")
-
     def handle(self, *args, **kwargs):
         if not env.IS_PAAS_V3:
             print("[bk-sops]current version is not open v3,skip sync_saas_apigw")
             return
-        stage = kwargs.get("stage")
+        stage = [settings.BK_APIGW_STAGE_NAME]
         definition_file_path = os.path.join(__file__.rsplit("/", 1)[0], "data/api-definition.yml")
         resources_file_path = os.path.join(__file__.rsplit("/", 1)[0], "data/api-resources.yml")
 
