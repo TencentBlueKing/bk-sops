@@ -35,4 +35,4 @@ release:
 
 
 grant_permissions:
-  - bk_app_code: bk-audit
+  - bk_app_code: bk_audit
