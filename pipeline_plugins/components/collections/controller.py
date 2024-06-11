@@ -37,6 +37,7 @@ class PauseService(Service):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
+        print("hello")
         if callback_data is not None:
             data.outputs.callback_data = callback_data
             self.finish_schedule()
@@ -45,7 +46,10 @@ class PauseService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("描述"), key="description", type="string", schema=StringItemSchema(description=_("描述")),
+                name=_("描述"),
+                key="description",
+                type="string",
+                schema=StringItemSchema(description=_("描述")),
             )
         ]
 
@@ -55,7 +59,10 @@ class PauseService(Service):
                 name=_("API回调数据"),
                 key="callback_data",
                 type="object",
-                schema=ObjectItemSchema(description=_("通过node_callback API接口回调并传入数据,支持dict数据"), property_schemas={},),
+                schema=ObjectItemSchema(
+                    description=_("通过node_callback API接口回调并传入数据,支持dict数据"),
+                    property_schemas={},
+                ),
             ),
         ]
 

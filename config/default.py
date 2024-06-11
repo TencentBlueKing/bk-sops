@@ -790,6 +790,10 @@ TEMPLATE_MAX_RECURSIVE_NUMBER = env.TEMPLATE_MAX_RECURSIVE_NUMBER
 # 节点历史最大执行记录数
 MAX_RECORDED_NODE_EXECUTION_TIMES = env.MAX_RECORDED_NODE_EXECUTION_TIMES
 
+# 节点最大执行时间限制（需要插件实现中进行主动失败）
+WITHOUT_NODE_MAX_EXECUTION_DAYS_TAG = env.WITHOUT_NODE_MAX_EXECUTION_DAYS_TAG
+NODE_MAX_EXECUTION_DAYS = env.NODE_MAX_EXECUTION_DAYS
+
 
 # engine admin permission settings
 def check_engine_admin_permission(request, *args, **kwargs):
