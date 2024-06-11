@@ -37,7 +37,6 @@ class PauseService(Service):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        print("hello")
         if callback_data is not None:
             data.outputs.callback_data = callback_data
             self.finish_schedule()
