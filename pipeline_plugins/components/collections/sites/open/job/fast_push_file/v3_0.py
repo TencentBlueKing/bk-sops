@@ -153,7 +153,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                     }
                 )
         else:
-            data.outputs.requests_error = "Request Error:\n{}".format("只支持服务器和源文件类型")
+            data.outputs.ex_data = "只支持服务器和源文件类型"
             return False
 
         select_method = data.get_one_of_inputs("select_method")
