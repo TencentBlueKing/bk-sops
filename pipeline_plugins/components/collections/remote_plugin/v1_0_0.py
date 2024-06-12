@@ -11,12 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+from datetime import datetime, timedelta
+from typing import Union
 
+from dateutil import tz
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import AbstractIntervalGenerator, Service
 from pipeline.core.flow.io import StringItemSchema
+from pipeline.eri.runtime import BambooDjangoRuntime
 
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 from plugin_service.conf import PLUGIN_LOGGER
@@ -50,6 +54,7 @@ class StepIntervalGenerator(AbstractIntervalGenerator):
 
 class RemotePluginService(Service):
     interval = StepIntervalGenerator()
+    runtime = BambooDjangoRuntime()
 
     def outputs_format(self):
         return [
@@ -123,6 +128,18 @@ class RemotePluginService(Service):
         if plugin_code in settings.REMOTE_PLUGIN_FIX_INTERVAL_CODES:
             self.interval.fix_interval = settings.REMOTE_PLUGIN_FIX_INTERVAL
 
+        task_start_time = parent_data.get_one_of_inputs("task_start_time")
+        # 如果插件是轮询模式且任务和节点执行时间均已经过期，则直接失败，通过先计算任务时间减少 DB 查询次数
+        if (
+            self.interval
+            and self._is_start_time_expired(task_start_time)
+            and self._is_start_time_expired(start_time=self._get_node_start_time())
+        ):
+            message = _(f"第三方插件执行时间超过最大限制时长：{settings.NODE_MAX_EXECUTION_DAYS} 天")
+            logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
+
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
@@ -162,6 +179,26 @@ class RemotePluginService(Service):
         outputs = result_data.get("outputs") or {}
         for key, output in outputs.items():
             data.set_outputs(key, output)
+
+    @staticmethod
+    def _is_start_time_expired(start_time: Union[str, datetime]) -> bool:
+        if not start_time or settings.NODE_MAX_EXECUTION_DAYS == settings.WITHOUT_NODE_MAX_EXECUTION_DAYS_TAG:
+            # 如果没有起始时间，无法比较，当作不会过期处理
+            return False
+
+        if isinstance(start_time, str):
+            # 如果是 str 格式，忽略时区
+            start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            now_time = datetime.now()
+        else:
+            now_time = datetime.now().astimezone(tz.tzutc())
+
+        delta_time = now_time - start_time
+        return delta_time > timedelta(days=settings.NODE_MAX_EXECUTION_DAYS)
+
+    def _get_node_start_time(self) -> datetime:
+        node_state = self.runtime.get_state(self.id)
+        return node_state.started_time
 
 
 class RemotePluginComponent(Component):
