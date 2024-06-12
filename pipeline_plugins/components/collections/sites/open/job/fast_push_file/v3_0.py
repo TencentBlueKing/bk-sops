@@ -142,8 +142,8 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                         "file_type": 1,
                     }
                 )
-        else:
-            original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
+        elif job_source_files_origin == "file_source":
+            original_source_files = data.get_one_of_inputs("job_source_files", [])
             for item in original_source_files:
                 file_source.append(
                     {
@@ -152,6 +152,9 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                         "file_type": 3,
                     }
                 )
+        else:
+            data.outputs.requests_error = "Request Error:\n{}".format("只支持服务器和源文件类型")
+            return False
 
         select_method = data.get_one_of_inputs("select_method")
         break_line = data.get_one_of_inputs("break_line") or ","
@@ -284,5 +287,5 @@ class JobFastPushFileComponent(Component):
         "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，"
         '插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4\n'
         "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据\n"
-        "4. V3.0版本新增文件源的支持，要求作业平台版本>=3.6.0.0"
+        "4. v3.0版本新增文件源的支持，要求作业平台版本>=3.6.0.0"
     )
