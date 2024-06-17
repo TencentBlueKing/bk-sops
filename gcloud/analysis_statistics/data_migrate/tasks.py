@@ -14,31 +14,29 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-
-from django.db.models import Q
-from django.db import transaction
 from celery.task import periodic_task
-
+from django.db import transaction
+from django.db.models import Q
+from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
 from pipeline.contrib.statistics.models import (
-    TemplateInPipeline,
+    ComponentExecuteData,
     ComponentInTemplate,
     InstanceInPipeline,
-    ComponentExecuteData,
+    TemplateInPipeline,
 )
-from pipeline.models import PipelineInstance, PipelineTemplate
 from pipeline.core.constants import PE
 from pipeline.engine.utils import calculate_elapsed_time
-from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
+from pipeline.models import PipelineInstance, PipelineTemplate
 
+from gcloud.analysis_statistics.data_migrate.models import MigrateLog
 from gcloud.analysis_statistics.models import (
-    TemplateStatistics,
-    TemplateNodeStatistics,
     TaskflowExecutedNodeStatistics,
     TaskflowStatistics,
+    TemplateNodeStatistics,
+    TemplateStatistics,
 )
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.analysis_statistics.data_migrate.models import MigrateLog
+from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("celery")
 
@@ -338,9 +336,16 @@ def format_process(process_num):
     return process_num
 
 
-@periodic_task(run_every=TzAwareCrontab(minute="*/2"))
+@periodic_task(run_every=TzAwareCrontab(minute="*/10"))
 def migrate_schedule():
     logger.info("[migrate_schedule] start the statistics migrate schedule ·········")
+
+    migrate_log = MigrateLog.objects.filter(id=1).first()
+    # 判断是否允许迁移
+    if migrate_log and migrate_log.migrate_switch:
+        logger.info("[migrate_schedule] the migrate_switch is closed!")
+        return
+
     # 获取迁移上下文
     migrate_log, created = MigrateLog.objects.get_or_create(
         id=1,
@@ -356,12 +361,7 @@ def migrate_schedule():
     else:
         logger.info("[migrate_schedule] continue the statistics migrate ·········")
 
-    # 判断是否允许迁移
-    if not migrate_log.migrate_switch:
-        logger.info("[migrate_schedule] the migrate_switch is closed!")
-        return
     # 打印开始迁移日志
-
     logger.info("[migrate_schedule] migrate process have started.")
 
     # TemplateInPipeline迁移并更新上下文
