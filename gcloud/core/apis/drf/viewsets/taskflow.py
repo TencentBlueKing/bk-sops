@@ -275,7 +275,12 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        start_time = datetime.now() - timedelta(days=settings.TASK_LIST_STATUS_FILTER_DAYS)
+        delta_time = (
+            settings.MY_DYNAMIC_LIST_FILTER_DAYS
+            if "creator_or_executor" in request.query_params
+            else settings.TASK_LIST_STATUS_FILTER_DAYS
+        )
+        start_time = datetime.now() - timedelta(days=delta_time)
         queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
         task_instance_status = request.query_params.get("task_instance_status")
         if task_instance_status:
