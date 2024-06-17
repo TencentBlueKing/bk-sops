@@ -342,7 +342,7 @@ def migrate_schedule():
 
     migrate_log = MigrateLog.objects.filter(id=1).first()
     # 判断是否允许迁移
-    if migrate_log and migrate_log.migrate_switch:
+    if migrate_log and not migrate_log.migrate_switch:
         logger.info("[migrate_schedule] the migrate_switch is closed!")
         return
 
