@@ -258,7 +258,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
                 self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
-        elif view.action in ["list", "list_children_taskflow", "root_task_info"]:
+        elif view.action in ["list", "list_children_taskflow", "root_task_info", "task_count"]:
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
         return super().has_permission(request, view)
@@ -273,7 +273,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
 
-    def list(self, request, *args, **kwargs):
+    def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         delta_time = (
             settings.MY_DYNAMIC_LIST_FILTER_DAYS
@@ -289,17 +289,21 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
             )
             queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
+        return queryset
 
+    def list(self, request, *args, **kwargs):
+        queryset = self._get_queryset(request)
+        # 不需要翻页，不调用qs.count()优化查询效率
+        self.paginator.limit = self.paginator.get_limit(request)
+        self.paginator.offset = self.paginator.get_offset(request)
+        self.paginator.count = -1
+        self.paginator.request = request
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
             queryset = queryset.filter(
                 Q(pipeline_instance__executor=request.user.username)
                 | Q(pipeline_instance__creator=request.user.username)
             )
-            # 该场景不需要翻页，不调用qs.count()优化查询效率
-            self.paginator.limit = self.paginator.get_limit(request)
-            self.paginator.offset = self.paginator.get_offset(request)
-            self.paginator.count = -1
             create_method = request.query_params.get("create_method")
 
             queryset = self._optimized_my_dynamic_query(
@@ -308,13 +312,22 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
             page = list(queryset)
         else:
-            page = self.paginate_queryset(queryset)
+            page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
 
         serializer = self.get_serializer(page, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
         self._inject_template_related_info(request, data)
         return self.get_paginated_response(data) if page is not None else Response(data)
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="获取任务总数",
+    )
+    @action(methods=["GET"], detail=False)
+    def task_count(self, request, *args, **kwargs):
+        queryset = self._get_queryset(request)
+        return Response({"count": queryset.count()})
 
     @staticmethod
     def _inject_template_related_info(request, data):
