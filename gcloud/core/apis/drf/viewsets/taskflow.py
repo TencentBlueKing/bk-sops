@@ -478,7 +478,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             "FROM `pipeline_pipelineinstance` STRAIGHT_JOIN `taskflow3_taskflowinstance` ON",
             original_query,
         )
-        new_query = re.sub("ORDER BY (.*?) DESC", "ORDER BY `pipeline_pipelineinstance`.`id` DESC", new_query)
+        new_query = re.sub("ORDER BY (.*?) DESC", "ORDER BY `pipeline_pipelineinstance`.`create_time` DESC", new_query)
         new_query += f" LIMIT {limit} OFFSET {offset}"
         return TaskFlowInstance.objects.raw(new_query, params)
 
