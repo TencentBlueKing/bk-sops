@@ -125,6 +125,7 @@ def mysetting(request):
         "BK_DOMAIN": env.BKPAAS_BK_DOMAIN,
         # 是否开启通知中心
         "ENABLE_NOTICE_CENTER": enable_notice_center,
+        "BK_PAAS_SHARED_RES_URL": env.BKPAAS_SHARED_RES_URL,
         "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
     }
 

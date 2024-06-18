@@ -113,6 +113,8 @@ NODE_MAX_EXECUTION_DAYS = int(os.getenv("BKAPP_NODE_MAX_EXECUTION_DAYS", WITHOUT
 # 获取 PaaS 注入的蓝鲸域名
 BKPAAS_BK_DOMAIN = os.getenv("BKPAAS_BK_DOMAIN", "") or os.getenv("BK_DOMAIN", "")
 
+# PaaS 注入的蓝鲸共享资源域名
+BKPAAS_SHARED_RES_URL = os.getenv("BKPAAS_SHARED_RES_URL", "")
 
 # 获取加密类型
 BKPAAS_BK_CRYPTO_TYPE = (

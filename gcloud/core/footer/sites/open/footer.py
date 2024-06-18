@@ -37,4 +37,10 @@ def i18n_footer(language):
     return EnvironmentVariables.objects.get_var(footer_key, default)
 
 
+FOOTER_INFO = {
+    "tech_support_url": "https://wpa1.qq.com/KziXGWJs?_type=wpa&qidian=true",
+    "smart_url": "http://bk.tencent.com/s-mart/community/",
+    "bk_tencent_url": "http://bk.tencent.com/index",
+}
+
 FOOTER = i18n_footer
