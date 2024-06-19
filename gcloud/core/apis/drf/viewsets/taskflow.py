@@ -293,17 +293,17 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self._get_queryset(request)
-        # 不需要翻页，不调用qs.count()优化查询效率
-        self.paginator.limit = self.paginator.get_limit(request)
-        self.paginator.offset = self.paginator.get_offset(request)
-        self.paginator.count = -1
-        self.paginator.request = request
+
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
             queryset = queryset.filter(
                 Q(pipeline_instance__executor=request.user.username)
                 | Q(pipeline_instance__creator=request.user.username)
             )
+            # 该场景不需要翻页，不调用qs.count()优化查询效率
+            self.paginator.limit = self.paginator.get_limit(request)
+            self.paginator.offset = self.paginator.get_offset(request)
+            self.paginator.count = -1
             create_method = request.query_params.get("create_method")
 
             queryset = self._optimized_my_dynamic_query(
@@ -311,8 +311,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             )
 
             page = list(queryset)
-        else:
+        elif "no_count" in request.query_params:
+            # 该场景不需要翻页，不调用qs.count()优化查询效率
+            self.paginator.limit = self.paginator.get_limit(request)
+            self.paginator.offset = self.paginator.get_offset(request)
+            self.paginator.count = -1
+            self.paginator.request = request
             page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
+        else:
+            page = self.paginate_queryset(queryset)
 
         serializer = self.get_serializer(page, many=True)
         # 注入权限

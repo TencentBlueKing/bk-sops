@@ -369,3 +369,13 @@
   comp_codename: generic.v2.sops.sops_component
   dest_path: /o/bk_sops/apigw/create_and_start_task/{template_id}/{bk_biz_id}/
   dest_http_method: POST
+
+- path: /v2/sops/get_task_count/
+  name: get_task_count
+  label: 获取业务下的任务总数
+  label_en: Get tasks count for a business
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_task_count/{bk_biz_id}/
+  dest_http_method: GET
