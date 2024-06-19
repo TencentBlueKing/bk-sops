@@ -1,7 +1,7 @@
 <template>
     <bk-navigation
         navigation-type="left-right"
-        :side-title="platformInfo.i18n.name"
+        :side-title="platformInfo.name"
         :need-menu="true"
         :class="$route.name === 'taskList' ? 'hide-header-border' : ''"
         :default-open="sideNavOpen"
