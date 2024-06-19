@@ -1,13 +1,13 @@
 <template>
     <bk-navigation
         navigation-type="left-right"
-        :side-title="$t('标准运维')"
+        :side-title="platformInfo.i18n.name"
         :need-menu="true"
         :class="$route.name === 'taskList' ? 'hide-header-border' : ''"
         :default-open="sideNavOpen"
         @toggle="toggleSideNav">
         <div slot="side-icon" class="logo-area">
-            <img :src="logo" class="logo" />
+            <img :src="platformInfo.appLogo || logo" class="logo" />
         </div>
         <template slot="header">
             <div class="header-title">{{ title }}</div>
@@ -98,6 +98,7 @@
         },
         computed: {
             ...mapState({
+                platformInfo: state => state.platformInfo,
                 hasAdminPerm: state => state.hasAdminPerm,
                 hasStatisticsPerm: state => state.hasStatisticsPerm,
                 app_id: state => state.app_id,

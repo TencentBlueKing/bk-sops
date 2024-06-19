@@ -14,6 +14,7 @@ import Vuex from 'vuex'
 import modules from './modules/index.js'
 import axios from 'axios'
 import i18n from '@/config/i18n/index.js'
+import { getPlatformConfig, setDocumentTitle, setShortcutIcon } from '@blueking/platform-config'
 
 Vue.use(Vuex)
 
@@ -21,11 +22,27 @@ const getAppLang = () => {
     return getCookie('blueking_language') === 'en' ? 'en' : 'zh-cn'
 }
 
+const getStateFavicon = () => {
+    const states = ['failed', 'finished', 'running', 'created', 'suspended']
+    return states.reduce((acc, cur) => {
+        acc[`${cur}Img`] = `${window.SITE_URL}static/core/images/bk_sops_${cur}.png`
+        return acc
+    }, { favicon: `${window.SITE_URL}static/core/images/bk_sops.png` })
+}
+
 const store = new Vuex.Store({
     strict: process.env.NODE_ENV !== 'production',
     state: {
         username: window.USERNAME,
-        footer: '',
+        footerInfo: {},
+        platformInfo: { // 项目全局配置
+            bkAppCode: window.APP_CODE,
+            name: window.APP_NAME,
+            ...getStateFavicon(),
+            i18n: {
+                name: window.APP_NAME
+            }
+        },
         hasAdminPerm: null, // 是否有管理员查看权限
         hasStatisticsPerm: null, // 是否有运营数据查看权限
         hideHeader: window.HIDE_HEADER === 1,
@@ -59,8 +76,11 @@ const store = new Vuex.Store({
         setAppId (state, id) {
             state.app_id = id
         },
-        setPageFooter (state, content) {
-            state.footer = content
+        setFooterInfo (state, content) {
+            state.footerInfo = content
+        },
+        setPlatformInfo (state, content) {
+            state.platformInfo = content
         },
         setAdminPerm (state, perm) {
             state.hasAdminPerm = perm
@@ -219,6 +239,49 @@ const store = new Vuex.Store({
          */
         getIamUrl ({ commit }, data) {
             return axios.post('iam/api/apply_perms_url/', data).then(response => response.data)
+        },
+        // 退出登录
+        logout () {
+            return axios.get('logout').then(response => response.data)
+        },
+        getFooterInfo () {
+            return axios.get('core/footer_info/').then(response => response.data)
+        },
+        /**
+         * 获取当前用户的全局设置
+         * @returns {Object}
+         */
+        async getGlobalConfig ({ state, commit }) {
+            const { bk_tencent_url, env, smart_url, sops_version, tech_support_url, bk_helper_url, bk_desktop_url } = state.footerInfo
+            // 默认配置
+            const config = {
+                ...state.platformInfo,
+                version: sops_version
+            }
+
+            if (env) {
+                config.i18n.footerInfoHTML = `
+                    <a target="_blank" class="link-item" href="${tech_support_url}">${i18n.t('技术支持')}</a>
+                    | <a target="_blank" class="link-item" href="${smart_url}">${i18n.t('社区论坛')}</a>
+                    | <a target="_blank" class="link-item" href="${bk_tencent_url}">${i18n.t('产品官网')}</a>
+                `
+            } else {
+                config.i18n.footerInfoHTML = `
+                    <a target="_blank" class="link-item" href="${bk_helper_url}">${i18n.t('联系bk助手')}</a>
+                    | <a target="_blank" class="link-item" href="${bk_desktop_url}">${i18n.t('蓝鲸桌面')}</a>
+                `
+            }
+            let resp
+            const bkRepoUrl = `${window.BK_PAAS_SHARED_RES_URL}/bk_sops/base.js`
+            if (bkRepoUrl) {
+                resp = await getPlatformConfig(bkRepoUrl, config)
+            } else {
+                resp = await getPlatformConfig(config)
+            }
+            setDocumentTitle(resp.name, window.RUN_VER_NAME)
+            setShortcutIcon(resp.favicon)
+            commit('setPlatformInfo', resp)
+            return resp
         }
     },
     modules

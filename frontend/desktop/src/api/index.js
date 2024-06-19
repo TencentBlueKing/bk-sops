@@ -86,11 +86,14 @@ axios.interceptors.response.use(
                         bus.$emit('createSnapshot', true) // 创建模板快照
                     }
 
-                    const successUrl = `${window.location.origin}${window.SITE_URL}static/bk_sops/login_success.html`
-                    let [loginUrl] = data.login_url.split('?')
-                    loginUrl = `${loginUrl}?c_url=${encodeURIComponent(successUrl)}`
-
-                    showLoginModal({ loginUrl })
+                    // 退出登录接口不打开登录弹框
+                    if (response.config.url !== '/logout') {
+                        const successUrl = `${window.location.origin}${window.SITE_URL}static/bk_sops/login_success.html`
+                        let [loginUrl] = data.login_url.split('?')
+                        loginUrl = `${loginUrl}?c_url=${encodeURIComponent(successUrl)}`
+    
+                        showLoginModal({ loginUrl })
+                    }
                 }
                 break
             case 499:

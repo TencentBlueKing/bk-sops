@@ -1828,7 +1828,12 @@ const en = {
     'exFailedText_调用日志': 'call log',
     '任务还未执行，暂无执行历史': 'Task not executed, no history available.',
     '空分支': 'Empty branch',
-    '代理人仅可设置为本人': 'The agent can only be set as yourself.'
+    '代理人仅可设置为本人': 'The agent can only be set as yourself.',
+    '技术支持': 'Technical Support',
+    '社区论坛': 'Community Forum',
+    '产品官网': 'Product Website',
+    '联系bk助手': 'Contact BK Assistant',
+    '蓝鲸桌面': 'BlueWhale Desktop'
 }
 
 export default en
