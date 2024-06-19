@@ -311,7 +311,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             )
 
             page = list(queryset)
-        elif "no_pagination" in request.query_params:
+        elif "without_count" in request.query_params:
             # 该场景不需要翻页，不调用qs.count()优化查询效率
             self.paginator.limit = self.paginator.get_limit(request)
             self.paginator.offset = self.paginator.get_offset(request)

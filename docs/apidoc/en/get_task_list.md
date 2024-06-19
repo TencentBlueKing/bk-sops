@@ -15,6 +15,7 @@ Get tasks list for a business, support task name keyword searching
 | expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
 |   limit       |   int        | NO | pagination, the number of tasks in the task list in each result. default is 100 |
 |   offset      |   int        | NO |  pagination, the start index of task in the task list in each result. default is 0 |
+| without_count  | bool |   NO   |  without count，default is yes |
 
 ### Request Parameters Example
 
