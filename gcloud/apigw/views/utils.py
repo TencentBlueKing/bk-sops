@@ -180,7 +180,7 @@ def paginate_list_data(request, queryset):
         limit = int(request.GET.get("limit", 100))
         # limit 最大数量为200
         limit = 200 if limit > 200 else limit
-        if request.GET.get("no_count"):
+        if request.GET.get("no_pagination"):
             count = -1
         else:
             count = queryset.count()
