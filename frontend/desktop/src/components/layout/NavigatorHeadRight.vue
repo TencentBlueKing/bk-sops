@@ -154,6 +154,7 @@
         },
         methods: {
             ...mapActions([
+                'logout',
                 'queryNewVersion',
                 'getVersionList',
                 'getVersionDetail'
@@ -230,9 +231,14 @@
             reloadHome () {
                 this.reload()
             },
-            handleLogout () {
-                const newUrl = window.location.origin + (window.SITE_URL || '/') + 'logout'
-                window.location.replace(newUrl)
+            async handleLogout () {
+                try {
+                    await this.logout()
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    window.location.replace(`${window.LOGIN_URL}/?is_from_logout=1&c_url=${window.location.href}`)
+                }
             }
         }
     }
