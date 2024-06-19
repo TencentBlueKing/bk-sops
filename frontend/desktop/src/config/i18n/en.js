@@ -1833,7 +1833,8 @@ const en = {
     '社区论坛': 'Community Forum',
     '产品官网': 'Product Website',
     '联系bk助手': 'Contact BK Assistant',
-    '蓝鲸桌面': 'BlueWhale Desktop'
+    '蓝鲸桌面': 'BlueWhale Desktop',
+    '蓝鲸': 'BlueKing'
 }
 
 export default en

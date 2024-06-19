@@ -14,7 +14,7 @@ import Vuex from 'vuex'
 import modules from './modules/index.js'
 import axios from 'axios'
 import i18n from '@/config/i18n/index.js'
-import { getPlatformConfig, setDocumentTitle, setShortcutIcon } from '@blueking/platform-config'
+import { getPlatformConfig, setShortcutIcon } from '@blueking/platform-config'
 
 Vue.use(Vuex)
 
@@ -37,11 +37,10 @@ const store = new Vuex.Store({
         footerInfo: {},
         platformInfo: { // 项目全局配置
             bkAppCode: window.APP_CODE,
-            name: window.APP_NAME,
+            name: window.APP_NAME || i18n.t('标准运维'),
+            brandName: window.RUN_VER_NAME || i18n.t('蓝鲸'),
             ...getStateFavicon(),
-            i18n: {
-                name: window.APP_NAME
-            }
+            i18n: {}
         },
         hasAdminPerm: null, // 是否有管理员查看权限
         hasStatisticsPerm: null, // 是否有运营数据查看权限
@@ -278,7 +277,7 @@ const store = new Vuex.Store({
             } else {
                 resp = await getPlatformConfig(config)
             }
-            setDocumentTitle(resp.name, window.RUN_VER_NAME)
+            document.title = `${resp.name} | ${resp.brandName}`
             setShortcutIcon(resp.favicon)
             commit('setPlatformInfo', resp)
             return resp
