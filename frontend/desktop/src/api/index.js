@@ -87,7 +87,7 @@ axios.interceptors.response.use(
                     }
 
                     // 退出登录接口不打开登录弹框
-                    if (response.config.url !== '/logout') {
+                    if (response.config.url.indexOf('/logout') === -1) {
                         const successUrl = `${window.location.origin}${window.SITE_URL}static/bk_sops/login_success.html`
                         let [loginUrl] = data.login_url.split('?')
                         loginUrl = `${loginUrl}?c_url=${encodeURIComponent(successUrl)}`
