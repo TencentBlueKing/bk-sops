@@ -10,7 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <footer id="page-footer-wrapper" v-html="footer"></footer>
+    <footer id="page-footer-wrapper">
+        <p class="link-list" v-html="platformInfo.i18n.footerInfoHTML"></p>
+        <p class="copyright" v-if="footerInfo.year">
+            {{ `Copyright © ${footerInfo.year} Tencent BlueKing. All Rights Reserved. ${footerInfo.sops_version}` }}
+        </p>
+    </footer>
 </template>
 <script>
     import { mapState } from 'vuex'
@@ -19,7 +24,8 @@
         name: 'CopyrightFooter',
         computed: {
             ...mapState({
-                footer: state => state.footer
+                footerInfo: state => state.footerInfo,
+                platformInfo: state => state.platformInfo
             })
         }
     }
@@ -34,18 +40,15 @@
         text-align: center;
     }
     .link-list {
+        text-align: center;
         margin-bottom: 6px;
+        font-size: 12px;
     }
     .link-item {
         display: inline-block;
-        margin-left: -4px;
         padding: 0 4px;
         line-height: 1;
         color: #3480fe;
-        border-right: 1px solid #3480fe;
-        &:last-child {
-            border-right: none;
-        }
     }
     .desc {
         margin-bottom: 8px;

@@ -10,14 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from blueapps.account.decorators import login_exempt
 from django.apps import apps
 from django.conf.urls import include, url
 from django.views.i18n import JavaScriptCatalog
+from version_log import config as version_log_config
 
-from blueapps.account.decorators import login_exempt
 from gcloud.core import api, views
 from gcloud.iam_auth.resource_api import dispatcher
-from version_log import config as version_log_config
 
 javascript_catalog = JavaScriptCatalog.as_view(
     packages=[app_config.name for app_config in apps.get_app_configs() if app_config.name.startswith("gcloud")]
@@ -31,6 +31,7 @@ urlpatterns = [
     url(r"^core/api/get_roles_and_personnel/(?P<biz_cc_id>\d+)/$", api.get_roles_and_personnel),
     url(r"^core/api/get_basic_info/$", api.get_basic_info),
     url(r"^core/footer/$", api.get_footer),
+    url(r"^core/footer_info/$", api.get_footer_info),
     url(r"^core/api/get_user_list/$", api.get_user_list),
     url(r"^core/api/get_msg_types/$", api.get_msg_types),
     url(r"^core/healthz", api.healthz),

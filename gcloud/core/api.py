@@ -15,26 +15,23 @@ import logging
 import re
 from datetime import datetime
 
-from django.http import JsonResponse
+from blueapps.account.decorators import login_exempt
 from django.contrib.auth.models import Group
-from django.views.decorators.http import require_POST, require_GET
+from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
-
 from mako.template import Template
 from rest_framework.decorators import api_view
 
-from blueapps.account.decorators import login_exempt
-from gcloud.core import roles
+import env
 from gcloud.conf import settings
-from gcloud.core.footer import FOOTER
-from gcloud.constants import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
-from gcloud.core.models import (
-    UserDefaultProject,
-    ProjectCounter,
-)
-from gcloud.core.utils import convert_group_name
+from gcloud.constants import NOTIFY_TYPE, TASK_CATEGORY, TASK_FLOW_TYPE
+from gcloud.core import roles
 from gcloud.core.api_adapter import get_all_users
+from gcloud.core.footer import FOOTER, FOOTER_INFO
+from gcloud.core.models import ProjectCounter, UserDefaultProject
+from gcloud.core.utils import convert_group_name
 from gcloud.openapi.schema import AnnotationAutoSchema
 
 logger = logging.getLogger("root")
@@ -137,6 +134,24 @@ def get_footer(request):
                 sops_version=settings.STATIC_VERSION,
                 static_url=settings.STATIC_URL,
             ),
+        }
+    )
+
+
+@require_GET
+def get_footer_info(request):
+    """
+    @summary: 获取当前环境的页面 footer 信息
+    """
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {
+                "env": env.RUN_VER,
+                "sops_version": settings.STATIC_VERSION,
+                "year": datetime.now().year,
+                **FOOTER_INFO,
+            },
         }
     )
 

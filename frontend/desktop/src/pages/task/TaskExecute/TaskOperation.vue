@@ -208,7 +208,6 @@
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
-    import dom from '@/utils/dom.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
     import ExecuteInfo from './ExecuteInfo/index.vue'
@@ -224,6 +223,7 @@
     import TemplateData from './TemplateData'
     import injectVariableDialog from './InjectVariableDialog.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
+    import { setShortcutIcon } from '@blueking/platform-config'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -390,6 +390,7 @@
         },
         computed: {
             ...mapState({
+                platformInfo: state => state.platformInfo,
                 view_mode: state => state.view_mode,
                 appId: state => state.app_id,
                 hasAdminPerm: state => state.hasAdminPerm,
@@ -2008,32 +2009,31 @@
             },
             // 根据当前任务的状态修改页面对应浏览器tab的icon
             modifyPageIcon () {
-                let nameSuffix = ''
+                let namePrefix = ''
                 switch (this.state) {
                     case 'CREATED':
-                        nameSuffix = 'created'
+                        namePrefix = 'created'
                         break
                     case 'FINISHED':
-                        nameSuffix = 'finished'
+                        namePrefix = 'finished'
                         break
                     case 'FAILED':
                     case 'REVOKED':
-                        nameSuffix = 'failed'
+                        namePrefix = 'failed'
                         break
                     case 'RUNNING':
                     case 'READY':
-                        nameSuffix = 'running'
+                        namePrefix = 'running'
                         if (this.tabIconState === 'SUSPENDED') {
-                            nameSuffix = 'suspended'
+                            namePrefix = 'suspended'
                         }
                         break
                     case 'SUSPENDED':
                     case 'NODE_SUSPENDED':
-                        nameSuffix = 'suspended'
+                        namePrefix = 'suspended'
                 }
-                const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
-                const path = `${window.SITE_URL}static/core/images/${picName}.png`
-                dom.setPageTabIcon(path)
+                const picName = namePrefix ? `${namePrefix}Img` : 'bk_sops'
+                setShortcutIcon(this.platformInfo[picName])
             },
             // 下次画布组件更新后执行队列
             onTemplateCanvasMounted () {

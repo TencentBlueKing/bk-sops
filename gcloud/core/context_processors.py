@@ -78,7 +78,7 @@ def mysetting(request):
         "BK_USER_MANAGE_HOST": settings.BK_USER_MANAGE_HOST,
         "BK_PAAS_ESB_HOST": settings.BK_PAAS_ESB_API_HOST,
         "APP_PATH": request.get_full_path(),  # 当前页面，主要为了login_required做跳转用
-        "LOGIN_URL": settings.LOGIN_URL,  # 登录链接
+        "LOGIN_URL": settings.BK_LOGIN_URL,  # 登录链接
         "RUN_MODE": settings.RUN_MODE,  # 运行模式
         "APP_CODE": settings.APP_CODE,  # 在蓝鲸系统中注册的  "应用编码"
         "APP_NAME": settings.APP_NAME,  # 应用名称
@@ -125,6 +125,7 @@ def mysetting(request):
         "BK_DOMAIN": env.BKPAAS_BK_DOMAIN,
         # 是否开启通知中心
         "ENABLE_NOTICE_CENTER": enable_notice_center,
+        "BK_PAAS_SHARED_RES_URL": env.BKPAAS_SHARED_RES_URL,
         "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
         "MESSAGE_HELPER_URL": settings.MESSAGE_HELPER_URL,
         "TASK_STATUS_DISPLAY_VERSION": settings.TASK_STATUS_DISPLAY_VERSION,

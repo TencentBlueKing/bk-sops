@@ -375,7 +375,7 @@
             },
             // 文本框失焦
             handleInputBlur  (e) {
-                this.$emit('blur')
+                this.$emit('blur', this.input.value)
                 this.input.focus = false
                 // 更新文本框结构，生成tag标签
                 this.updateInputHtml()
