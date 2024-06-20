@@ -1862,7 +1862,14 @@ const en = {
     '返回首页': 'Return to Home',
     '请至少选择一个节点': 'Please select at least one node',
     '代理人仅可设置为本人': 'The executor proxy can only set yourself',
-    '任务等待处理中，无需暂停': 'The task is waiting for processing, no need to pause'
+    '任务等待处理中，无需暂停': 'The task is waiting for processing, no need to pause',
+    '代理人仅可设置为本人': 'The agent can only be set as yourself.',
+    '技术支持': 'Technical Support',
+    '社区论坛': 'Community Forum',
+    '产品官网': 'Product Website',
+    '联系bk助手': 'Contact BK Assistant',
+    '蓝鲸桌面': 'BlueWhale Desktop',
+    '蓝鲸': 'BlueKing'
 }
 
 export default en

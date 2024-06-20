@@ -136,7 +136,7 @@
                 }
             }
         },
-        created () {
+        async created () {
             window.msg_list = []
             bus.$on('showLoginModal', args => {
                 const { has_plain, login_url, width, height, method } = args
@@ -193,7 +193,8 @@
                     })
                 })
             }
-            this.getPageFooter()
+            await this.getPageFooter()
+            this.getGlobalConfig()
             window.addEventListener('message', this.messageHandler, false)
         },
         mounted () {
@@ -203,7 +204,9 @@
             ...mapActions([
                 'getPermissionMeta',
                 'queryUserPermission',
-                'getFooterContent'
+                'getFooterContent',
+                'getFooterInfo',
+                'getGlobalConfig'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -229,7 +232,7 @@
                 'setProjectConfig'
             ]),
             ...mapMutations([
-                'setPageFooter',
+                'setFooterInfo',
                 'setAdminPerm',
                 'setStatisticsPerm'
             ]),
@@ -309,12 +312,11 @@
             async getPageFooter () {
                 try {
                     this.footerLoading = true
-                    const resp = await this.getFooterContent()
+                    const resp = await this.getFooterInfo()
                     if (resp.result) {
-                        this.setPageFooter(resp.data)
+                        this.setFooterInfo(resp.data)
                     }
                 } catch (e) {
-                    this.setPageFooter(`<div class="copyright"><div>蓝鲸智云 版权所有</div></div>`)
                     console.log(e)
                 } finally {
                     this.footerLoading = false

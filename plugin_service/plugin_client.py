@@ -254,9 +254,11 @@ class PluginServiceApiClient:
 
     def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = None):
         """插件服务APIGW接口请求信息准备"""
-        url = os.path.join(
-            env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name), env.APIGW_ENVIRONMENT, *path_params,
-        )
+        try:
+            base_url = env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name)
+        except KeyError:
+            base_url = env.PLUGIN_APIGW_API_HOST_FORMAT.format(api_name=self.plugin_apigw_name)
+        url = os.path.join(base_url, env.APIGW_ENVIRONMENT, *path_params)
         authorization_info = {
             "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
             "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,

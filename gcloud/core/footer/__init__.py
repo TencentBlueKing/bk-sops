@@ -18,3 +18,5 @@ from django.conf import settings
 footer_module = importlib.import_module("gcloud.core.footer.sites.{}.footer".format(settings.RUN_VER))
 
 FOOTER = footer_module.FOOTER  # noqa
+
+FOOTER_INFO = footer_module.FOOTER_INFO  # noqa
