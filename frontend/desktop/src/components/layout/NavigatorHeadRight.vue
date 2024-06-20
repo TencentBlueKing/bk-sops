@@ -237,7 +237,9 @@
                 } catch (error) {
                     console.warn(error)
                 } finally {
-                    window.location.replace(`${window.LOGIN_URL}?is_from_logout=1&c_url=${window.location.href}`)
+                    let loginUrl = window.LOGIN_URL
+                    loginUrl = /\/$/.test(loginUrl) ? loginUrl : `${loginUrl}/`
+                    window.location.replace(`${loginUrl}?is_from_logout=1&c_url=${window.location.href}`)
                 }
             }
         }
