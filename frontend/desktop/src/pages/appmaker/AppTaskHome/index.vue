@@ -68,7 +68,7 @@
                                         :title="props.row.name"
                                         :to="{
                                             name: 'appmakerTaskExecute',
-                                            params: { app_id: props.row.create_info, project_id: props.row.project.id },
+                                            params: { app_id: app_id, project_id: props.row.project.id },
                                             query: { instance_id: props.row.id, template_id: props.row.template_id }
                                         }">
                                         {{props.row.name}}
