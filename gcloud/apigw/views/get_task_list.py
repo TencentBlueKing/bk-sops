@@ -45,7 +45,7 @@ def get_task_list(request, project_id):
         "is_finished": "pipeline_instance__is_finished",
         "executor": "pipeline_instance__executor",
         "create_method": "create_method",
-        "template_id": "template_id"
+        "template_id": "template_id",
     }
     filter_kwargs = dict(is_deleted=Value(0), project_id=project.id)
     for param, filter_key in param_mappings.items():
@@ -55,7 +55,8 @@ def get_task_list(request, project_id):
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 
     try:
-        tasks, count = paginate_list_data(request, tasks)
+        without_count = params_validator.cleaned_data["without_count"]
+        tasks, count = paginate_list_data(request, tasks, without_count)
     except Exception as e:
         return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
 

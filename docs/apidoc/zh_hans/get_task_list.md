@@ -15,7 +15,7 @@
 | expected_timezone | string |   否   |  任务时间相关字段期望返回的时区，形如Asia/Shanghai |
 | limit       | int |   否   |  分页，返回任务列表任务数，默认为100 |
 | offset      | int |   否   |  分页，返回任务列表起始任务下标，默认为0 |
-| without_count  | bool |   否   |  有无count，默认有 |
+| without_count  | bool |   否   |  有无count，默认返回count |
 
 ### 请求参数示例
 
