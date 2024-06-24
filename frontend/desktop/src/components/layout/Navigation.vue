@@ -1,7 +1,7 @@
 <template>
     <bk-navigation
         navigation-type="left-right"
-        :side-title="platformInfo.name"
+        :side-title="appName"
         :need-menu="true"
         :class="$route.name === 'taskList' ? 'hide-header-border' : ''"
         :default-open="sideNavOpen"
@@ -143,6 +143,10 @@
                     return this.$t('拥有流程管理权限的人员，通过设置“执行代理人”功能，将流程任务的执行操作交由第三方人员（如：外包、外聘人员），帮助流程管理人员从繁重的执行工作中解放。')
                 }
                 return ''
+            },
+            appName () {
+                const { i18n, name } = this.platformInfo
+                return i18n.name || name
             }
         },
         watch: {
