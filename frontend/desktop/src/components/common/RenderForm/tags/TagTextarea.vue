@@ -537,7 +537,7 @@
                     this.pasteIng = true
                     await this.insertTextAsync(text)
                     this.pasteIng = false
-                    this.handleInputChange(e, false)
+                    this.handleInputChange(e)
                 }
             },
             async insertTextAsync (text) {
