@@ -55,14 +55,15 @@ class PluginServiceApiClient:
         # 上传文件的情况
         if any([isinstance(data, UploadedFile) for data in request_params["data"].values()]):
             headers.pop("Content-Type")
-            files = dict(
-                [
-                    (key, (value.name, value.file.read()))
-                    for key, value in request_params["data"].items()
-                    if isinstance(value, UploadedFile)
-                ]
-            )
-            request_params.pop("data")
+            params, files = {}, {}
+            for key, value in request_params["data"].items():
+                if isinstance(value, UploadedFile):
+                    files[key] = (value.name, value.file.read())
+                else:
+                    params[key] = value
+            # form-data 形式不支持嵌套键值对
+            request_params.pop("data", None)
+            request_params["dumped_data"] = json.dumps(params)
             return PluginServiceApiClient._request_api_and_error_retry(
                 url, method="post", data=request_params, headers=headers, files=files
             )
