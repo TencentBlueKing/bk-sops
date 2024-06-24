@@ -738,7 +738,7 @@
                 this.constantsLoading = true
                 const variables = Object.keys(this.subflowForms)
                     .map(key => this.subflowForms[key])
-                    .filter(item => item.show_type === 'show')
+                    .filter(item => item.show_type === 'show' || item.is_meta) // meta变量特殊处理
                     .sort((a, b) => a.index - b.index)
 
                 const inputs = await Promise.all(variables.map(async (variable) => {
@@ -777,10 +777,13 @@
                             }
                         })
                     }
+                    if (variable.show_type === 'hide') {
+                        return
+                    }
                     return formItemConfig
                 }))
                 this.constantsLoading = false
-                return inputs
+                return inputs.filter(item => item)
             },
             /**
              * 获取任务节点基础信息数据
