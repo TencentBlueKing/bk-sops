@@ -13,18 +13,19 @@ specific language governing permissions and limitations under the License.
 
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_GET, require_POST
 
-from gcloud.contrib.analysis.decorators import standardize_params
-from gcloud.constants import AE
-from gcloud.constants import TASK_CATEGORY
+from gcloud.constants import AE, TASK_CATEGORY
 from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.contrib.analysis.decorators import standardize_params
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.core.models import Project
+from gcloud.err_code import REQUEST_PARAM_INVALID
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.statistics import StatisticsViewInpterceptor
-from gcloud.err_code import REQUEST_PARAM_INVALID
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.components import get_all_components
 
 
@@ -70,6 +71,7 @@ def analysis_home(request):
     context = {
         "view_mode": "analysis",
     }
+    bk_audit_add_event(username=request.user.username, action_id=IAMMeta.STATISTICS_VIEW_ACTION)
     return render(request, "core/base_vue.html", context)
 
 

@@ -11,16 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import mixins, permissions
+from rest_framework.pagination import LimitOffsetPagination
 
-from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.core.apis.drf.serilaziers.appmaker import AppmakerSerializer
+from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import IAMMeta
-from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.serilaziers.appmaker import AppmakerSerializer
+from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
+from gcloud.iam_auth import IAMMeta, res_factory
 
 
 class AppmakerPermission(IamPermission):
@@ -52,3 +52,23 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
     permission_classes = [permissions.IsAuthenticated, AppmakerPermission]
     filter_fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"], "name": ["icontains"]}
     pagination_class = LimitOffsetPagination
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.MINI_APP_VIEW_ACTION,
+            resource_id=IAMMeta.MINI_APP_RESOURCE,
+            instance=instance,
+        )
+        return super(AppmakerListViewSet, self).retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.MINI_APP_DELETE_ACTION,
+            resource_id=IAMMeta.MINI_APP_RESOURCE,
+            instance=instance,
+        )
+        return super(AppmakerListViewSet, self).destroy(request, *args, **kwargs)

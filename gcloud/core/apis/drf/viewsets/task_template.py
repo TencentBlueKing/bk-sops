@@ -27,6 +27,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud import err_code
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -203,6 +204,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, instance)
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.FLOW_VIEW_ACTION,
+            resource_id=IAMMeta.FLOW_RESOURCE,
+            instance=instance,
+        )
         return Response(data)
 
     def create(self, request, *args, **kwargs):
@@ -244,6 +251,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             operate_source=OperateSource.project.name,
             instance_id=serializer.instance.id,
             project_id=serializer.instance.project.id,
+        )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.FLOW_CREATE_ACTION,
+            resource_id=IAMMeta.FLOW_RESOURCE,
+            instance=serializer.instance,
         )
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -295,6 +308,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             instance_id=serializer.instance.id,
             project_id=serializer.instance.project.id,
         )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.FLOW_EDIT_ACTION,
+            resource_id=IAMMeta.FLOW_RESOURCE,
+            instance=template,
+        )
         return Response(data)
 
     def destroy(self, request, *args, **kwargs):
@@ -323,6 +342,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             operate_source=OperateSource.project.name,
             instance_id=template.id,
             project_id=template.project.id,
+        )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.FLOW_DELETE_ACTION,
+            resource_id=IAMMeta.FLOW_RESOURCE,
+            instance=template,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
