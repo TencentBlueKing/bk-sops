@@ -27,6 +27,7 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
 from gcloud.common_template.signals import post_template_save_commit
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -169,6 +170,16 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
         return allowed_template_ids
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.COMMON_FLOW_VIEW_ACTION,
+            resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
+            instance=instance,
+        )
+        return super().retrieve(request, *args, **kwargs)
+
     def create(self, request, *args, **kwargs):
         serializer = CreateCommonTemplateSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
@@ -204,6 +215,12 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             operate_type=OperateType.create.name,
             operate_source=OperateSource.common.name,
             instance_id=serializer.instance.id,
+        )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.COMMON_FLOW_CREATE_ACTION,
+            resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
+            instance=serializer.instance,
         )
         headers = self.get_success_headers(serializer.data)
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
@@ -248,6 +265,12 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             operate_source=OperateSource.common.name,
             instance_id=serializer.instance.id,
         )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.COMMON_FLOW_EDIT_ACTION,
+            resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
+            instance=template,
+        )
         return Response(data)
 
     def destroy(self, request, *args, **kwargs):
@@ -266,6 +289,12 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             operate_type=OperateType.delete.name,
             operate_source=OperateSource.common.name,
             instance_id=template.id,
+        )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.COMMON_FLOW_DELETE_ACTION,
+            resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
+            instance=template,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 

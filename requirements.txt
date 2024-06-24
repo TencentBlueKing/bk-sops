@@ -84,6 +84,9 @@ apigw-manager[cryptography]==1.1.5
 # rsa
 pyCryptodome==3.9.7
 
+# audit
+bk-audit==1.1.1
+
 # opentelemetry
 opentelemetry-api==1.11.1
 opentelemetry-sdk==1.11.1

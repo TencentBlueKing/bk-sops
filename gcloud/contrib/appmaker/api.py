@@ -13,17 +13,19 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import magic
 import jsonschema
+import magic
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_GET
 
 from gcloud.conf import settings
+from gcloud.contrib.analysis.analyse_items import app_maker
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.schema import APP_MAKER_PARAMS_SCHEMA
+from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.iam_auth import IAMMeta
 from gcloud.utils.strings import check_and_rename_params
-from gcloud.contrib.analysis.analyse_items import app_maker
 
 logger = logging.getLogger("root")
 
@@ -86,6 +88,13 @@ def save(request, project_id):
     result, data = AppMaker.objects.save_app_maker(project_id, params, fake)
     if not result:
         return JsonResponse({"result": False, "message": data})
+
+    bk_audit_add_event(
+        username=request.user.username,
+        action_id=IAMMeta.MINI_APP_EDIT_ACTION if params.get("id") else IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
+        resource_id=IAMMeta.MINI_APP_RESOURCE,
+        instance=data,
+    )
 
     data = {
         "id": data.id,

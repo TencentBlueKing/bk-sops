@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 from django.db.models import Value
 from rest_framework import permissions
 
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -49,3 +50,7 @@ class FunctionTaskViewSet(GcloudListViewSet):
         "create_time": ["gte", "lte"],
         "claim_time": ["gte", "lte"],
     }
+
+    def list(self, request, *args, **kwargs):
+        bk_audit_add_event(username=request.user.username, action_id=IAMMeta.FUNCTION_VIEW_ACTION)
+        return super(FunctionTaskViewSet, self).list(request, *args, **kwargs)

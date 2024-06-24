@@ -12,15 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 from rest_framework import permissions
 
-from gcloud.iam_auth import IAMMeta, res_factory
-from gcloud.core.models import Project
-
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
-from gcloud.core.apis.drf.serilaziers import ProjectSerializer
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
-
+from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet, GcloudUpdateViewSet
+from gcloud.core.models import Project
+from gcloud.iam_auth import IAMMeta, res_factory
 
 
 class ProjectPermission(IamPermission):
@@ -65,3 +64,23 @@ class ProjectSetViewSet(GcloudUpdateViewSet, GcloudListViewSet):
             IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
         ],
     )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.PROJECT_VIEW_ACTION,
+            resource_id=IAMMeta.PROJECT_RESOURCE,
+            instance=instance,
+        )
+        return super(ProjectSetViewSet, self).retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.PROJECT_EDIT_ACTION,
+            resource_id=IAMMeta.PROJECT_RESOURCE,
+            instance=instance,
+        )
+        return super(ProjectSetViewSet, self).update(request, *args, **kwargs)
