@@ -162,7 +162,9 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
 
         meta_values = json.loads(self.value["meta_data"])
         info_values = TextValueSelect.process_info_value(self.value["info_value"])
-        text_values = [meta["text"] for meta in meta_values if meta["value"] in info_values]
+        text_values = [
+            meta["text"] for value in info_values for meta in meta_values if meta["value"] == value and meta["text"]
+        ]
         text_not_selected_values = [meta["text"] for meta in meta_values if meta["value"] not in info_values]
         info_not_selected_values = [meta["value"] for meta in meta_values if meta["value"] not in info_values]
 
