@@ -170,7 +170,7 @@ def format_function_task_list_data(function_tasks, tz=None):
     return data
 
 
-def paginate_list_data(request, queryset):
+def paginate_list_data(request, queryset, without_count: bool = False):
     """
     @summary: 读取request中的offset和limit参数，对筛选出的queryset进行分页
     @return: 分页结果列表, 分页前数据总数
@@ -180,7 +180,7 @@ def paginate_list_data(request, queryset):
         limit = int(request.GET.get("limit", 100))
         # limit 最大数量为200
         limit = 200 if limit > 200 else limit
-        count = queryset.count()
+        count = -1 if without_count else queryset.count()
 
         if offset < 0 or limit < 0:
             raise Exception("offset and limit must be greater or equal to 0.")

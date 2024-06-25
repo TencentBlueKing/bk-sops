@@ -25,6 +25,7 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import COMMON, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
@@ -229,6 +230,26 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             inst["collection_id"] = collection_task_map.get(inst["id"], -1)
         return self.get_paginated_response(instances) if page is not None else Response(instances)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.PERIODIC_TASK_VIEW_ACTION,
+            resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+            instance=instance,
+        )
+        return super(PeriodicTaskViewSet, self).retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.PERIODIC_TASK_DELETE_ACTION,
+            resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+            instance=instance,
+        )
+        return super(PeriodicTaskViewSet, self).destroy(request, *args, **kwargs)
+
     def create(self, request, *args, **kwargs):
         serializer = CreatePeriodicTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -239,6 +260,12 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             raise ValidationException(e)
         instance.set_enabled(True)
         headers = self.get_success_headers(serializer.data)
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
+            resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+            instance=instance,
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
@@ -250,6 +277,12 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             instance = PeriodicTask.objects.update(instance, **serializer.validated_data)
         except PipelineException as e:
             raise ValidationException(e)
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+            resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+            instance=instance,
+        )
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
 
     def partial_update(self, request, *args, **kwargs):
@@ -270,5 +303,12 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             instance.save(update_fields=["editor", "edit_time"])
             instance.task.creator = request.user.username
             instance.task.save()
+
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+            resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+            instance=instance,
+        )
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)

@@ -32,9 +32,11 @@ from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.constants import PROJECT, TASK_CREATE_METHOD, JobBizScopeType
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.operate_record.constants import OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     BatchStatusViewInterceptor,
@@ -299,6 +301,12 @@ def task_action(request, action, project_id):
         return JsonResponse({"result": False, "message": message, "code": err_code.INVALID_OPERATION.code})
 
     ctx = task.task_action(action, username)
+    bk_audit_add_event(
+        username=request.user.username,
+        action_id=IAMMeta.TASK_OPERATE_ACTION,
+        resource_id=IAMMeta.TASK_RESOURCE,
+        instance=task,
+    )
     return JsonResponse(ctx)
 
 
@@ -394,8 +402,11 @@ def task_clone(request, project_id):
             pipeline_tree=task.pipeline_instance.execution_data,
         )
 
-    ctx = {"result": True, "data": {"new_instance_id": new_task.id}, "message": "", "code": err_code.SUCCESS.code}
+    bk_audit_add_event(
+        username=username, action_id=IAMMeta.TASK_CLONE_ACTION, resource_id=IAMMeta.TASK_RESOURCE, instance=new_task
+    )
 
+    ctx = {"result": True, "data": {"new_instance_id": new_task.id}, "message": "", "code": err_code.SUCCESS.code}
     return JsonResponse(ctx)
 
 
@@ -410,7 +421,12 @@ def task_func_claim(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.task_claim(request.user.username, constants, name)
-
+    bk_audit_add_event(
+        username=request.user.username,
+        action_id=IAMMeta.TASK_CLAIM_ACTION,
+        resource_id=IAMMeta.TASK_RESOURCE,
+        instance=task,
+    )
     return JsonResponse(ctx)
 
 
