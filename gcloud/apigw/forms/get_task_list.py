@@ -21,3 +21,4 @@ class GetTaskListForm(forms.Form):
     executor = forms.CharField(required=False)
     create_method = forms.CharField(required=False)
     template_id = forms.CharField(required=False)
+    without_count = forms.BooleanField(required=False)

@@ -18,10 +18,7 @@ from django.views.decorators.http import require_GET
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response, timezone_inject
 from gcloud.apigw.forms import GetTaskListForm
-from gcloud.apigw.views.utils import format_task_list_data, paginate_list_data
-from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.utils import get_task_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -34,7 +31,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @project_inject
 @timezone_inject
 @iam_intercept(ProjectViewInterceptor())
-def get_task_list(request, project_id):
+def get_task_count(request, project_id):
     project = request.project
     params_validator = GetTaskListForm(data=request.GET)
     if not params_validator.is_valid():
@@ -55,26 +52,13 @@ def get_task_list(request, project_id):
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 
     try:
-        without_count = params_validator.cleaned_data["without_count"]
-        tasks, count = paginate_list_data(request, tasks, without_count)
+        count = tasks.count()
     except Exception as e:
         return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
 
-    task_list, task_id_list = format_task_list_data(tasks, project, True, request.tz)
-    # 注入用户有权限的action
-
-    task_allowed_actions = get_task_allowed_actions_for_user(request.user.username, TASK_ACTIONS, task_id_list)
-    for task_info in task_list:
-        task_id = task_info["id"]
-        task_info.setdefault("auth_actions", [])
-        for action, allowed in task_allowed_actions.get(str(task_id), {}).items():
-            if allowed:
-                task_info["auth_actions"].append(action)
-
     response = {
         "result": True,
-        "data": task_list,
-        "count": count,
+        "data": {"count": count},
         "code": err_code.SUCCESS.code,
     }
     return response

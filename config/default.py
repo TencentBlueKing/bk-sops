@@ -115,6 +115,7 @@ INSTALLED_APPS += (
     "blueapps.opentelemetry.instrument_app",
     "apigw_manager.apigw",
     "bk_notice_sdk",
+    "bk_audit.contrib.bk_audit",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -876,3 +877,13 @@ ALLOWED_LIMITED_API_APPS = env.ALLOWED_LIMITED_API_APPS
 
 # 报错联系助手链接
 MESSAGE_HELPER_URL = env.MESSAGE_HELPER_URL
+
+# bk_audit
+ENABLE_BK_AUDIT = True if env.BK_AUDIT_DATA_TOKEN else False
+BK_AUDIT_SETTINGS = {
+    "log_queue_limit": 50000,
+    "exporters": ["bk_audit.contrib.opentelemetry.exporters.OTLogExporter"],
+    "service_name_handler": "bk_audit.contrib.opentelemetry.utils.ServiceNameHandler",
+    "ot_endpoint": env.BK_AUDIT_ENDPOINT,
+    "bk_data_token": env.BK_AUDIT_DATA_TOKEN,
+}

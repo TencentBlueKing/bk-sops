@@ -33,8 +33,9 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, PROJECT, TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
+from gcloud.constants import COMMON, ONETIME, PROJECT, TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -316,7 +317,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
                 self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
-        elif view.action in ["list", "list_children_taskflow", "root_task_info"]:
+        elif view.action in ["list", "list_children_taskflow", "root_task_info", "task_count"]:
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
         return super().has_permission(request, view)
@@ -331,7 +332,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
 
-    def list(self, request, *args, **kwargs):
+    def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         delta_time = (
             settings.MY_DYNAMIC_LIST_FILTER_DAYS
@@ -348,6 +349,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         #         pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
         #     )
         #     queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self._get_queryset(request)
 
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
@@ -366,6 +371,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             )
 
             page = list(queryset)
+        elif "without_count" in request.query_params:
+            # 该场景不需要翻页，不调用qs.count()优化查询效率
+            self.paginator.limit = self.paginator.get_limit(request)
+            self.paginator.offset = self.paginator.get_offset(request)
+            self.paginator.count = -1
+            self.paginator.request = request
+            page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
         else:
             page = self.paginate_queryset(queryset)
 
@@ -374,6 +386,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         data = self.injection_auth_actions(request, serializer.data, page)
         self._inject_template_related_info(request, data)
         return self.get_paginated_response(data) if page is not None else Response(data)
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="获取任务总数",
+    )
+    @action(methods=["GET"], detail=False)
+    def task_count(self, request, *args, **kwargs):
+        queryset = self._get_queryset(request)
+        return Response({"count": queryset.count()})
 
     @staticmethod
     def _inject_template_related_info(request, data):
@@ -459,6 +480,12 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             if allowed:
                 data["auth_actions"].append(act)
 
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.TASK_VIEW_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=instance,
+        )
         return Response(data)
 
     @staticmethod
@@ -470,9 +497,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         template = serializer.validated_data.pop("template")
         project = serializer.validated_data["project"]
         # create pipeline_instance
+        creator = serializer.validated_data.pop("creator")
         pipeline_instance_kwargs = {
             "name": serializer.validated_data.pop("name"),
-            "creator": serializer.validated_data.pop("creator"),
+            "creator": creator,
             "pipeline_tree": serializer.validated_data.pop("pipeline_tree"),
             "description": serializer.validated_data.pop("description"),
         }
@@ -519,6 +547,25 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             project_id=serializer.instance.project.id,
             extra_info=extra_info,
         )
+        action_id_mappings = {
+            PROJECT: IAMMeta.FLOW_CREATE_TASK_ACTION,
+            COMMON: IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION,
+            ONETIME: IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
+        }
+        if serializer.validated_data.get("create_method") == "app_maker":
+            bk_audit_add_event(
+                username=creator,
+                action_id=IAMMeta.MINI_APP_CREATE_TASK_ACTION,
+                resource_id=IAMMeta.TASK_RESOURCE,
+                instance=serializer.instance,
+            )
+        elif serializer.validated_data.get("template_source") in action_id_mappings:
+            bk_audit_add_event(
+                username=creator,
+                action_id=action_id_mappings[serializer.validated_data["template_source"]],
+                resource_id=IAMMeta.TASK_RESOURCE,
+                instance=serializer.instance,
+            )
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -536,6 +583,12 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             operate_source=OperateSource.app.name,
             instance_id=instance.id,
             project_id=instance.project.id,
+        )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.TASK_DELETE_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=instance,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -13,15 +13,18 @@ specific language governing permissions and limitations under the License.
 
 import functools
 
-from django.http import JsonResponse
 import ujson as json
+from django.http import JsonResponse
 
+from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.iam_auth import IAMMeta
 from gcloud.utils.strings import check_and_rename_params
 
 
 def standardize_params(func):
     @functools.wraps(func)
     def wrapper(request):
+        bk_audit_add_event(username=request.user.username, action_id=IAMMeta.STATISTICS_VIEW_ACTION)
         params = json.loads(request.body)
         conditions = params.get("conditions", {})
         page_index = int(params.get("pageIndex", 1))

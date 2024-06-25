@@ -162,3 +162,7 @@ ALLOWED_LIMITED_API_APPS = [app for app in os.getenv("BKAPP_ALLOWED_LIMITED_API_
 
 # 报错联系助手链接
 MESSAGE_HELPER_URL = os.getenv("BKAPP_MESSAGE_HELPER_URL", "")
+
+# bk_audit
+BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
+BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)

@@ -36,10 +36,7 @@ from gcloud.constants import AE, TASK_CATEGORY, TASK_FLOW_TYPE
 from gcloud.core.models import Project
 from gcloud.shortcuts.cmdb import get_business_attrinfo
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
-from gcloud.template_base.utils import (
-    fill_default_version_to_service_activities,
-    replace_biz_id_value,
-)
+from gcloud.template_base.utils import fill_default_version_to_service_activities, replace_biz_id_value
 from gcloud.utils.components import format_component_name_with_remote
 from gcloud.utils.dates import format_datetime
 from gcloud.utils.managermixins import ClassificationCountMixin
@@ -123,11 +120,18 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                 is_remote=is_remote,
             )
         else:
-            template_node_template_data = TemplateNodeStatistics.objects.filter(task_template_id__in=tasktmpl_id_list,)
+            template_node_template_data = TemplateNodeStatistics.objects.filter(
+                task_template_id__in=tasktmpl_id_list,
+            )
         # 查询数据去重处理
         distinct_template_data = (
             template_node_template_data.values(
-                "template_id", "task_template_id", "project_id", "category", "template_create_time", "template_creator",
+                "template_id",
+                "task_template_id",
+                "project_id",
+                "category",
+                "template_create_time",
+                "template_creator",
             )
             .distinct()
             .order_by(order_by)
@@ -167,7 +171,11 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         template_node_template_list = TemplateNodeStatistics.objects.filter(component_code=component_code)
         total = template_node_template_list.count()
         atom_template_data = template_node_template_list.values(
-            "template_id", "project_id", "category", "template_edit_time", "template_creator",
+            "template_id",
+            "project_id",
+            "category",
+            "template_edit_time",
+            "template_creator",
         )[(page - 1) * limit : page * limit]
         # 获取project_name、template_name数据
         project_id_list = template_node_template_list.values_list("project_id", flat=True)
@@ -536,6 +544,10 @@ class TaskTemplate(BaseTemplate):
     default_flow_type = models.CharField(_("偏好任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common")
 
     objects = TaskTemplateManager()
+
+    @property
+    def instance_id(self):
+        return self.id
 
     def __unicode__(self):
         return "%s_%s" % (self.project, self.pipeline_template)

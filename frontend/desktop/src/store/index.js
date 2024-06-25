@@ -77,6 +77,23 @@ const store = new Vuex.Store({
         },
         setFooterInfo (state, content) {
             state.footerInfo = content
+            
+            const { bk_tencent_url, env, smart_url, sops_version, tech_support_url, bk_helper_url, bk_desktop_url } = content
+            // 默认配置
+            const config = state.platformInfo
+            config.version = sops_version
+            if (env) {
+                config.i18n.footerInfoHTML = `
+                    <a target="_blank" class="link-item" href="${tech_support_url}">${i18n.t('技术支持')}</a>
+                    | <a target="_blank" class="link-item" href="${smart_url}">${i18n.t('社区论坛')}</a>
+                    | <a target="_blank" class="link-item" href="${bk_tencent_url}">${i18n.t('产品官网')}</a>
+                `
+            } else {
+                config.i18n.footerInfoHTML = `
+                    <a target="_blank" class="link-item" href="${bk_helper_url}">${i18n.t('联系bk助手')}</a>
+                    | <a target="_blank" class="link-item" href="${bk_desktop_url}">${i18n.t('蓝鲸桌面')}</a>
+                `
+            }
         },
         setPlatformInfo (state, content) {
             state.platformInfo = content
@@ -251,33 +268,17 @@ const store = new Vuex.Store({
          * @returns {Object}
          */
         async getGlobalConfig ({ state, commit }) {
-            const { bk_tencent_url, env, smart_url, sops_version, tech_support_url, bk_helper_url, bk_desktop_url } = state.footerInfo
             // 默认配置
-            const config = {
-                ...state.platformInfo,
-                version: sops_version
-            }
-
-            if (env) {
-                config.i18n.footerInfoHTML = `
-                    <a target="_blank" class="link-item" href="${tech_support_url}">${i18n.t('技术支持')}</a>
-                    | <a target="_blank" class="link-item" href="${smart_url}">${i18n.t('社区论坛')}</a>
-                    | <a target="_blank" class="link-item" href="${bk_tencent_url}">${i18n.t('产品官网')}</a>
-                `
-            } else {
-                config.i18n.footerInfoHTML = `
-                    <a target="_blank" class="link-item" href="${bk_helper_url}">${i18n.t('联系bk助手')}</a>
-                    | <a target="_blank" class="link-item" href="${bk_desktop_url}">${i18n.t('蓝鲸桌面')}</a>
-                `
-            }
+            const config = { ...state.platformInfo }
             let resp
-            const bkRepoUrl = `${window.BK_PAAS_SHARED_RES_URL}/bk_sops/base.js`
+            const bkRepoUrl = window.BK_PAAS_SHARED_RES_URL
             if (bkRepoUrl) {
-                resp = await getPlatformConfig(bkRepoUrl, config)
+                resp = await getPlatformConfig(`${bkRepoUrl}/bk_sops/base.js`, config)
             } else {
                 resp = await getPlatformConfig(config)
             }
-            document.title = `${resp.name} | ${resp.brandName}`
+            const { name, brandName, i18n } = config
+            document.title = `${i18n.name || name} | ${i18n.brandName || brandName}`
             setShortcutIcon(resp.favicon)
             commit('setPlatformInfo', resp)
             return resp
