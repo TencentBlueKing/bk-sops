@@ -11,18 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import time
-import random
 import logging
-import urllib.request
-import urllib.parse
+import random
+import time
 import urllib.error
+import urllib.parse
+import urllib.request
 
 import requests
 import ujson as json
 
-from . import conf
-from . import collections
+from . import collections, conf
 from .utils import get_signature
 
 # shutdown urllib3's warning
@@ -92,28 +91,28 @@ class BaseComponentClient(object):
 
     def merge_params_data_with_common_args(self, method, params, data, enable_app_secret=False):
         """get common args when request"""
-        common_args = dict(bk_app_code=self.app_code, **self.common_args)
-        if enable_app_secret:
-            common_args["bk_app_secret"] = self.app_secret
-        if method == "GET":
-            _params = common_args.copy()
-            _params.update(params or {})
-            params = _params
-        elif method == "POST":
-            _data = common_args.copy()
-            _data.update(data or {})
-            data = json.dumps(_data)
+        if method == "POST":
+            data = json.dumps(data)
         return params, data
 
-    def request(self, method, url, params=None, data=None, **kwargs):
-        """Send request"""
-        # determine whether access test environment of third-party system
-        headers = kwargs.pop("headers", {})
+    def _pre_process_headers(self, headers):
         if self.use_test_env:
             headers["x-use-test-env"] = "1"
         if self.language:
             headers["blueking-language"] = self.language
 
+        if "X-Bkapi-Authorization" not in headers:
+            headers["X-Bkapi-Authorization"] = json.dumps({
+                "bk_app_code": self.app_code,
+                "bk_app_secret": self.app_secret,
+                **self.common_args
+            })
+
+    def request(self, method, url, params=None, data=None, **kwargs):
+        """Send request"""
+        # determine whether access test environment of third-party system
+        headers = kwargs.pop("headers", {})
+        self._pre_process_headers(headers)
         params, data = self.merge_params_data_with_common_args(method, params, data, enable_app_secret=True)
         logger.debug("Calling %s %s with params=%s, data=%s, headers=%s", method, url, params, data, headers)
         return requests.request(method, url, params=params, data=data, verify=False, headers=headers, **kwargs)

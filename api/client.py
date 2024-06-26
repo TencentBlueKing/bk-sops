@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 
 from django.conf import settings
 from django.utils import translation
@@ -37,19 +38,20 @@ class BKComponentClient(object):
         if self.use_test_env:
             headers["x-use-test-env"] = "1"
 
-        return headers
+        # 为 headers 注入认证头
+        if "X-Bkapi-Authorization" not in headers:
+            headers["X-Bkapi-Authorization"] = json.dumps({
+                "bk_app_code": self.app_code,
+                "bk_app_secret": self.app_secret,
+                "bk_username": self.username,
+            })
 
-    def _pre_process_data(self, data):
-        data["bk_username"] = self.username
-        data["bk_app_code"] = self.app_code
-        data["bk_app_secret"] = self.app_secret
+        return headers
 
     def _request(self, method, url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
 
         headers = headers or {}
-        self._pre_process_headers(headers)
-
-        self._pre_process_data(data)
+        headers = self._pre_process_headers(headers)
 
         return getattr(http, method.lower())(
             url=url, data=data, headers=headers, verify=verify, cert=cert, timeout=timeout, cookies=cookies
