@@ -11,40 +11,37 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import logging
 from copy import deepcopy
 from datetime import datetime
 
 import ujson as json
-from celery import task
-from celery.task import periodic_task
-from celery.schedules import crontab
 from bamboo_engine import api as bamboo_engine_api
-
+from celery import task
+from celery.schedules import crontab
+from celery.task import periodic_task
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.contrib.statistics.utils import count_pipeline_tree_nodes
 from pipeline.core.constants import PE
-from pipeline.models import PipelineTemplate
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import states
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
+from pipeline.models import PipelineTemplate
 
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.common_template.models import CommonTemplate
 from gcloud.analysis_statistics import variable
 from gcloud.analysis_statistics.models import (
+    TaskflowExecutedNodeStatistics,
     TaskflowStatistics,
+    TemplateCustomVariableSummary,
     TemplateNodeStatistics,
     TemplateStatistics,
-    TaskflowExecutedNodeStatistics,
     TemplateVariableStatistics,
-    TemplateCustomVariableSummary,
 )
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.common_template.models import CommonTemplate
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
-
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("celery")
 
@@ -67,10 +64,9 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
     instance = task_instance.pipeline_instance
     trigger_template_id = task_instance.template_id
     task_instance_id = task_instance.id
-    task_template = (
-        TaskTemplate.objects.filter(pipeline_template=instance.template).first()
-        or CommonTemplate.objects.filter(pipeline_template=instance.template).first()
-    )
+    task_template = (TaskTemplate.objects.filter(pipeline_template=instance.template).first()
+                     or CommonTemplate.objects.filter(pipeline_template=instance.template).first())
+
     if not task_template:
         raise Exception(f"task_template with template_id {instance.template.template_id} not found")
     if stack is None:
@@ -165,15 +161,20 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
     return component_list
 
 
-@task
+@task(queue="analysis_statistics")
 def taskflowinstance_post_save_statistics_task(task_instance_id, created):
     try:
         taskflow_instance = TaskFlowInstance.objects.get(id=task_instance_id)
         # pipeline数据
         pipeline_instance = taskflow_instance.pipeline_instance
         # template数据
+
+        # 忽略一次性任务的统计
+        if not taskflow_instance.template_id:
+            return
+
         task_template = TaskTemplate.objects.get(id=taskflow_instance.template_id)
-        # 统计流程标准插件个数，子流程个数，网关个数
+        # 统计流程标准插件个数，子流程个数，网关个数】
         kwargs = {
             "instance_id": pipeline_instance.id,
             "project_id": taskflow_instance.project.id,
@@ -205,7 +206,7 @@ def taskflowinstance_post_save_statistics_task(task_instance_id, created):
         return False
 
 
-@task
+@task(queue="analysis_statistics")
 def tasktemplate_post_save_statistics_task(template_id):
     template = TaskTemplate.objects.get(id=template_id)
     task_template_id = template.id
@@ -307,7 +308,7 @@ def tasktemplate_post_save_statistics_task(template_id):
     return True
 
 
-@task
+@task(queue="analysis_statistics")
 def pipeline_archive_statistics_task(instance_id):
     taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance__instance_id=instance_id)
     # 更新taskflowinstance统计数据start_time finish_time elapsed_time
@@ -349,8 +350,8 @@ def pipeline_archive_statistics_task(instance_id):
     return True
 
 
-@task
-@periodic_task(run_every=crontab(hour="0"))
+@task(queue="analysis_statistics")
+@periodic_task(run_every=crontab(hour="0"), queue="analysis_statistics")
 def backfill_template_variable_statistics_task():
     custom_variables_records = {}
 
