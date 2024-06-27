@@ -9,7 +9,6 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import serialize from 'serialize-javascript'
 
 const DEFAULT_OPTIONS = {
     space: 4
@@ -17,5 +16,5 @@ const DEFAULT_OPTIONS = {
 
 export default function serializeObj (obj, options = {}) {
     options = Object.assign({}, DEFAULT_OPTIONS, options)
-    return serialize(obj, options)
+    return JSON.stringify(obj, null, options.space)
 }
