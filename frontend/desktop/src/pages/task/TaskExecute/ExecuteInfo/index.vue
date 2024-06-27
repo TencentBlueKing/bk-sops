@@ -71,6 +71,7 @@
                 </div>
                 <NodeAction
                     v-if="!loading && !executeInfoLoading"
+                    :state="state"
                     :real-time-state="realTimeState"
                     :node-detail-config="nodeDetailConfig"
                     :node-state-mapping="nodeStateMapping"

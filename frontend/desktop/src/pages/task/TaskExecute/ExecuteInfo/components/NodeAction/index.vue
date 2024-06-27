@@ -67,6 +67,10 @@
     export default {
         name: 'nodeAction',
         props: {
+            state: {
+                type: String,
+                default: ''
+            },
             realTimeState: {
                 type: Object,
                 default: () => ({})
