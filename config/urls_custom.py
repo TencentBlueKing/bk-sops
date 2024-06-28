@@ -10,12 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
-from django.conf.urls import include, url
 from django.conf import settings
-
+from django.conf.urls import include, url
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
 # 用户自定义 urlconf
 urlpatterns_custom = [
@@ -41,6 +40,7 @@ urlpatterns_custom = [
     url(r"^plugin_service/", include("plugin_service.urls")),
     url(r"^mako_operations/", include("gcloud.mako_template_helper.urls")),
     url(r"^engine_admin/", include("pipeline.contrib.engine_admin.urls")),
+    url(r"^monitor/", include("gcloud.contrib.monitor.urls")),
 ]
 
 schema_view = get_schema_view(

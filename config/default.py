@@ -115,6 +115,7 @@ INSTALLED_APPS += (
     "blueapps.opentelemetry.instrument_app",
     "apigw_manager.apigw",
     "bk_notice_sdk",
+    "gcloud.contrib.monitor",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
