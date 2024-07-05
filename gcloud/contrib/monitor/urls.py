@@ -19,4 +19,6 @@ urlpatterns = [
     url(r"^get_failed_task/$", views.get_failed_task),
     url(r"^get_executing_task/$", views.get_executing_task),
     url(r"^get_schedule_times/$", views.get_schedule_times),
+    url(r"^get_mq_overview/$", views.get_mq_overview),
+    url(r"^get_mq_data/$", views.get_mq_data),
 ]
