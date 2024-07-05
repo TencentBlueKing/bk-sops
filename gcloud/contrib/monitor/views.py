@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import pyrabbit2
 from django.db.models import Q
 from django.http import JsonResponse
 from django.utils import timezone
@@ -20,7 +21,7 @@ from pipeline.eri.models import Schedule, State
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.statistics import StatisticsViewInpterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
-import pyrabbit2
+
 
 @require_GET
 @iam_intercept(StatisticsViewInpterceptor())
@@ -152,6 +153,7 @@ def get_schedule_times(request):
     ]
     return JsonResponse({"result": True, "data": schedule_times})
 
+
 @require_GET
 @iam_intercept(StatisticsViewInpterceptor())
 def get_mq_overview(request):
@@ -162,15 +164,16 @@ def get_mq_overview(request):
     cl = pyrabbit2.Client("localhost:15672", "guest", "guest")
     overview = cl.get_overview()
     data = {
-        "totals":{
+        "totals": {
             "ready": overview["queue_totals"]["messages_ready"],
             "unacked": overview["queue_totals"]["messages_unacknowledged"],
-            "total": overview["queue_totals"]["messages"]
+            "total": overview["queue_totals"]["messages"],
         },
         "global_totals": overview["object_totals"],
-        "nodes": cl.get_nodes()
+        "nodes": cl.get_nodes(),
     }
     return JsonResponse({"result": True, "data": data})
+
 
 @require_GET
 @iam_intercept(StatisticsViewInpterceptor())
@@ -180,5 +183,16 @@ def get_mq_data(request):
     """
     cl = pyrabbit2.Client("localhost:15672", "guest", "guest")
     data = {
-        vhost: [{"vhost": vhost, "queue_name": queue["name"], "message_count": queue["messages"], "queue_state": queue["state"], "messages": cl.get_messages(vhost, queue["name"], count=queue["messages"], requeue=True)} for queue in cl.get_queues(vhost=vhost)] for vhost in cl.get_vhost_names()}
+        vhost: [
+            {
+                "vhost": vhost,
+                "queue_name": queue["name"],
+                "message_count": queue["messages"],
+                "queue_state": queue["state"],
+                "messages": cl.get_messages(vhost, queue["name"], count=queue["messages"], requeue=True),
+            }
+            for queue in cl.get_queues(vhost=vhost)
+        ]
+        for vhost in cl.get_vhost_names()
+    }
     return JsonResponse({"result": True, "data": data})

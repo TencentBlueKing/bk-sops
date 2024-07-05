@@ -38,6 +38,7 @@ django-dbconn-retry==0.1.5
 pydantic==1.9.1
 pyrabbit2==1.0.7
 
+
 # monitor
 django-prometheus==2.1.0
 celery-prometheus-exporter==1.7.0
