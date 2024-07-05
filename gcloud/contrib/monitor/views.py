@@ -179,5 +179,6 @@ def get_mq_data(request):
     获取mq数据
     """
     cl = pyrabbit2.Client("localhost:15672", "guest", "guest")
-    data = {vhost: [{"vhost": vhost, "queue_name": queue["name"], "message_count": queue["messages"], "queue_state": queue["state"], "messages": cl.get_messages(vhost, queue["name"], count=queue["messages"], requeue=True)} for queue in cl.get_queues(vhost=vhost)] for vhost in cl.get_vhost_names()}
+    data = {
+        vhost: [{"vhost": vhost, "queue_name": queue["name"], "message_count": queue["messages"], "queue_state": queue["state"], "messages": cl.get_messages(vhost, queue["name"], count=queue["messages"], requeue=True)} for queue in cl.get_queues(vhost=vhost)] for vhost in cl.get_vhost_names()}
     return JsonResponse({"result": True, "data": data})
