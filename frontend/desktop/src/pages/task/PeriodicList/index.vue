@@ -406,7 +406,7 @@
                 selectedPeriodicId: undefined,
                 periodicList: [],
                 collectingId: '', // 正在被收藏/取消收藏的周期任务id
-                selectedCron: '*/5 * * * *',
+                selectedCron: '*/30 * * * *',
                 constants: {},
                 modifyDialogLoading: false,
                 periodEntrance: '',
@@ -849,7 +849,7 @@
                 this.curRow = {}
                 this.constants = {}
                 this.editTask = false
-                this.selectedCron = '*/5 * * * *'
+                this.selectedCron = '*/30 * * * *'
                 this.isModifyDialogShow = true
             },
             onCreateTaskCancel () {

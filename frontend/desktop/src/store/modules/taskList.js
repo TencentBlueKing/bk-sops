@@ -41,6 +41,10 @@ const taskList = {
                 create_info: app_id
             }
             return axios.post(`taskflow/api/clone/${projectId}/`, dataJson).then(response => response.data)
+        },
+        loadTaskCount ({ commit }, data) {
+            const { params, config = {} } = data
+            return axios.get('api/v3/taskflow/task_count/', { params, ...config }).then(response => response.data.data)
         }
     }
 }
