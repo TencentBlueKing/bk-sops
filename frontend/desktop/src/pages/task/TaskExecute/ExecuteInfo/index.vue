@@ -386,6 +386,7 @@
                     console.warn(e)
                 } finally {
                     this.loading = false
+                    this.subprocessLoading = false
                 }
             },
             async getTaskNodeDetail (nodeConfig = this.nodeDetailConfig) {
