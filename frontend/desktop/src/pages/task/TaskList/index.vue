@@ -37,15 +37,11 @@
                         <bk-table
                             ref="templateTable"
                             :data="taskList"
-                            :pagination="pagination"
                             :size="setting.size"
                             :max-height="tableMaxHeight"
                             :row-class-name="getRowClassName"
-                            :key="listLoading"
                             v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: !firstLoading && taskList.length ? 0.6 : 1, zIndex: 100 }"
-                            @row-click="selectedTaskId = ''"
-                            @page-change="onPageChange"
-                            @page-limit-change="onPageLimitChange">
+                            @row-click="selectedTaskId = ''">
                             <bk-table-column
                                 v-for="item in setting.selectedFields"
                                 :key="item.id"
@@ -170,6 +166,18 @@
                                 </NoData>
                             </div>
                         </bk-table>
+                        <bk-pagination
+                            class="bk-table-pagination-wrapper"
+                            v-bkloading="{ isLoading: countLoading || listLoading, zIndex: 100 }"
+                            size="small"
+                            v-bind="pagination"
+                            :location="'left'"
+                            :align="'right'"
+                            :show-limit="true"
+                            :show-total-count="true"
+                            @change="onPageChange"
+                            @limit-change="onPageLimitChange">
+                        </bk-pagination>
                     </div>
                 </div>
             </skeleton>
@@ -364,6 +372,7 @@
             return {
                 firstLoading: true,
                 listLoading: false,
+                countLoading: false,
                 templateId: this.$route.query.template_id,
                 searchStr: '',
                 executeStatus: {}, // 任务执行状态
@@ -413,7 +422,7 @@
                 deletaLoading: false,
                 initOpenTask: [],
                 selectedTaskId: '',
-                tableMaxHeight: window.innerHeight - 180
+                tableMaxHeight: window.innerHeight - 180 - 63 // 63为分页高度
             }
         },
         computed: {
@@ -444,7 +453,8 @@
             ]),
             ...mapActions('taskList/', [
                 'loadTaskList',
-                'deleteTask'
+                'deleteTask',
+                'loadTaskCount'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -456,87 +466,11 @@
                 // 空字符串需要转换为undefined，undefined数据在axios请求发送过程中会被删除
                 this.listLoading = true
                 try {
-                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
-                    let pipeline_instance__is_started
-                    let pipeline_instance__is_finished
-                    let pipeline_instance__is_revoked
-                    let task_instance_status
-                    switch (statusSync) {
-                        case 'nonExecution':
-                            pipeline_instance__is_started = false
-                            break
-                        // case 'failed':
-                        // case 'pause':
-                        case 'running':
-                            pipeline_instance__is_started = true
-                            pipeline_instance__is_finished = false
-                            pipeline_instance__is_revoked = false
-                            // task_instance_status = statusSync
-                            break
-                        case 'revoked':
-                            pipeline_instance__is_revoked = true
-                            break
-                        case 'finished':
-                            pipeline_instance__is_finished = true
-                            break
-                        case 'pending_processing':
-                            pipeline_instance__is_started = true
-                            pipeline_instance__is_finished = false
-                            pipeline_instance__is_revoked = false
-                            task_instance_status = 'pending_processing'
-                            break
-                    }
-
-                    const data = {
-                        limit: this.pagination.limit,
-                        offset: (this.pagination.current - 1) * this.pagination.limit,
-                        template_id: this.templateId || undefined,
-                        pipeline_instance__creator__contains: creator || undefined,
-                        pipeline_instance__executor__contains: executor || undefined,
-                        pipeline_instance__name__icontains: taskName || undefined,
-                        pipeline_instance__is_started,
-                        pipeline_instance__is_finished,
-                        pipeline_instance__is_revoked,
-                        create_info: this.createInfo || undefined,
-                        project__id: this.project_id,
-                        template_source: this.templateSource || undefined,
-                        id: task_id || undefined,
-                        create_method: create_method || undefined,
-                        recorded_executor_proxy: recorded_executor_proxy || undefined,
-                        is_child_taskflow: false,
-                        task_instance_status: task_instance_status || undefined
-                    }
-
-                    if (start_time && start_time[0] && start_time[1]) {
-                        if (this.template_source === 'common') {
-                            data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).format('YYYY-MM-DD HH:mm:ss')
-                        } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        }
-                    }
-                    if (create_time && create_time[0] && create_time[1]) {
-                        if (this.template_source === 'common') {
-                            data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__create_time__lte'] = moment(create_time[1]).format('YYYY-MM-DD HH:mm:ss')
-                        } else {
-                            data['pipeline_instance__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        }
-                    }
-                    if (finish_time && finish_time[0] && finish_time[1]) {
-                        if (this.template_source === 'common') {
-                            data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).format('YYYY-MM-DD HH:mm:ss')
-                        } else {
-                            data['pipeline_instance__finish_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        }
-                    }
+                    const params = this.getQuery()
+                    params.without_count = true
                     const source = new CancelRequest()
                     const taskListData = await this.loadTaskList({
-                        params: data,
+                        params,
                         config: { cancelToken: source.token }
                     })
                     const list = taskListData.results
@@ -544,14 +478,7 @@
                     list.forEach(item => {
                         item.level = 0
                     })
-                    this.pagination.count = taskListData.count
-                    this.totalCount = taskListData.count
-                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
-                    if (!totalPage) {
-                        this.totalPage = 1
-                    } else {
-                        this.totalPage = totalPage
-                    }
+
                     const result = await this.setListHaveChild(list)
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', result)
@@ -569,6 +496,111 @@
                 } finally {
                     this.listLoading = false
                 }
+            },
+            async getTaskCount () {
+                this.countLoading = true
+                try {
+                    const params = this.getQuery()
+                    const source = new CancelRequest('task-count')
+                    const resp = await this.loadTaskCount({
+                        params,
+                        config: { cancelToken: source.token }
+                    })
+                    this.pagination.count = resp.count
+                    this.totalCount = resp.count
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
+                } catch (error) {
+                    this.countLoading = error.message === 'cancelled'
+                    console.warn(error)
+                } finally {
+                    this.countLoading = false
+                }
+            },
+            getQuery () {
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
+                let pipeline_instance__is_started
+                let pipeline_instance__is_finished
+                let pipeline_instance__is_revoked
+                let task_instance_status
+                switch (statusSync) {
+                    case 'nonExecution':
+                        pipeline_instance__is_started = false
+                        break
+                    // case 'failed':
+                    // case 'pause':
+                    case 'running':
+                        pipeline_instance__is_started = true
+                        pipeline_instance__is_finished = false
+                        pipeline_instance__is_revoked = false
+                        // task_instance_status = statusSync
+                        break
+                    case 'revoked':
+                        pipeline_instance__is_revoked = true
+                        break
+                    case 'finished':
+                        pipeline_instance__is_finished = true
+                        break
+                    case 'pending_processing':
+                        pipeline_instance__is_started = true
+                        pipeline_instance__is_finished = false
+                        pipeline_instance__is_revoked = false
+                        task_instance_status = 'pending_processing'
+                        break
+                }
+
+                const data = {
+                    limit: this.pagination.limit,
+                    offset: (this.pagination.current - 1) * this.pagination.limit,
+                    template_id: this.templateId || undefined,
+                    pipeline_instance__creator__contains: creator || undefined,
+                    pipeline_instance__executor__contains: executor || undefined,
+                    pipeline_instance__name__icontains: taskName || undefined,
+                    pipeline_instance__is_started,
+                    pipeline_instance__is_finished,
+                    pipeline_instance__is_revoked,
+                    create_info: this.createInfo || undefined,
+                    project__id: this.project_id,
+                    template_source: this.templateSource || undefined,
+                    id: task_id || undefined,
+                    create_method: create_method || undefined,
+                    recorded_executor_proxy: recorded_executor_proxy || undefined,
+                    is_child_taskflow: false,
+                    task_instance_status: task_instance_status || undefined
+                }
+
+                if (start_time && start_time[0] && start_time[1]) {
+                    if (this.template_source === 'common') {
+                        data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD HH:mm:ss')
+                        data['pipeline_template__start_time__lte'] = moment(start_time[1]).format('YYYY-MM-DD HH:mm:ss')
+                    } else {
+                        data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                        data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                    }
+                }
+                if (create_time && create_time[0] && create_time[1]) {
+                    if (this.template_source === 'common') {
+                        data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD HH:mm:ss')
+                        data['pipeline_template__create_time__lte'] = moment(create_time[1]).format('YYYY-MM-DD HH:mm:ss')
+                    } else {
+                        data['pipeline_instance__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                        data['pipeline_instance__create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                    }
+                }
+                if (finish_time && finish_time[0] && finish_time[1]) {
+                    if (this.template_source === 'common') {
+                        data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD HH:mm:ss')
+                        data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).format('YYYY-MM-DD HH:mm:ss')
+                    } else {
+                        data['pipeline_instance__finish_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                        data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                    }
+                }
+                return data
             },
             // 设置每条记录是否有子流程
             async setListHaveChild (list) {
@@ -781,7 +813,8 @@
                     ) {
                         this.pagination.current -= 1
                     }
-                    await this.getTaskList()
+                    this.getTaskList()
+                    this.getTaskCount()
                     this.$bkMessage({
                         message: i18n.t('任务') + i18n.t('删除成功！'),
                         theme: 'success'
@@ -949,12 +982,14 @@
                 this.pagination.current = page
                 this.updateUrl()
                 this.getTaskList()
+                this.getTaskCount()
             },
             onPageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTaskList()
+                this.getTaskCount()
             },
             updateUrl () {
                 const { current, limit } = this.pagination
@@ -1008,6 +1043,7 @@
             async getData () {
                 Promise.all([
                     this.getTaskList(),
+                    this.getTaskCount(),
                     this.getCreateMethod(),
                     this.getBizBaseInfo()
                 ]).catch(e => {
@@ -1055,6 +1091,7 @@
                 this.templateSource = ''
                 this.updateUrl()
                 this.getTaskList()
+                this.getTaskCount()
             }
         }
     }

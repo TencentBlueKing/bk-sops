@@ -214,7 +214,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.33.0"
+STATIC_VERSION = "3.33.1"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -887,3 +887,9 @@ BK_AUDIT_SETTINGS = {
     "ot_endpoint": env.BK_AUDIT_ENDPOINT,
     "bk_data_token": env.BK_AUDIT_DATA_TOKEN,
 }
+
+
+# 自定义 Broker
+if "BKAPP_SOPS_BROKER_URL" in os.environ:
+    BROKER_URL = os.getenv("BKAPP_SOPS_BROKER_URL")
+    print(f"BROKER_URL: {BROKER_URL}")
