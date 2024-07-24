@@ -887,3 +887,9 @@ BK_AUDIT_SETTINGS = {
     "ot_endpoint": env.BK_AUDIT_ENDPOINT,
     "bk_data_token": env.BK_AUDIT_DATA_TOKEN,
 }
+
+
+# 自定义 Broker
+if "BKAPP_SOPS_BROKER_URL" in os.environ:
+    BROKER_URL = os.getenv("BKAPP_SOPS_BROKER_URL")
+    print(f"BROKER_URL: {BROKER_URL}")
