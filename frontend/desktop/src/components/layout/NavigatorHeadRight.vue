@@ -142,9 +142,10 @@
         async created () {
             this.curLanguage = getCookie('blueking_language') === 'en' ? 'english' : 'chinese'
             if (this.view_mode !== 'appmaker') {
-                await this.loadUserProjectList({
+                const resp = await this.loadUserProjectList({
                     params: { is_disable: false }
                 })
+                this.setUserProjectList(resp.results)
                 if (this.projectList.length && !this.project_id) {
                     const projectId = this.projectList[0].id
                     this.setProjectId(projectId)
@@ -163,7 +164,8 @@
                 'loadUserProjectList'
             ]),
             ...mapMutations('project', [
-                'setProjectId'
+                'setProjectId',
+                'setUserProjectList'
             ]),
             async toggleLanguage (language) {
                 this.curLanguage = language
