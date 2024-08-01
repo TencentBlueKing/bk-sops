@@ -11,29 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific lan
 """
 
-import logging
 import itertools
+import logging
 
-from rest_framework.views import APIView
-from rest_framework.decorators import action
-from rest_framework import permissions
-from rest_framework.response import Response
-
-from pipeline.models import TemplateScheme
-
-from gcloud.constants import PROJECT
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.common_template.models import CommonTemplate
-from gcloud.tasktmpl3.apis.drf.serilaziers.batch_form_with_schemes import (
-    BatchTemplateFormWithSchemesSerializer,
-    BatchTemplateFormResponseSerializer,
-)
-from gcloud.tasktmpl3.apis.drf.permissions import BatchTemplateFormWithSchemesPermissions
-
-from drf_yasg.utils import swagger_auto_schema
-
-from pipeline_web.preview import preview_template_tree_with_schemes
 from django.utils.translation import ugettext_lazy as _
+from drf_yasg.utils import swagger_auto_schema
+from pipeline.models import TemplateScheme
+from rest_framework import permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import PROJECT
+from gcloud.tasktmpl3.apis.drf.permissions import BatchTemplateFormWithSchemesPermissions
+from gcloud.tasktmpl3.apis.drf.serilaziers.batch_form_with_schemes import (
+    BatchTemplateFormResponseSerializer,
+    BatchTemplateFormWithSchemesSerializer,
+)
+from gcloud.tasktmpl3.models import TaskTemplate
+from pipeline_web.preview import preview_template_tree_with_schemes
 
 logger = logging.getLogger("root")
 
@@ -59,9 +56,12 @@ class BatchTemplateFormWithSchemesView(APIView):
         template_data = {}
         project_template_ids = []
         common_template_ids = []
+        scheme_id_list = []
         for template in template_list:
             template_id = template["id"]
-            template_data[template_id] = template
+            template_data[template_id] = template_data.get(template_id, {})
+            template_data[template_id][template["version"]] = template
+            scheme_id_list.extend(template["scheme_id_list"])
             if template["template_source"] == PROJECT:
                 project_template_ids.append(template_id)
             else:
@@ -83,6 +83,11 @@ class BatchTemplateFormWithSchemesView(APIView):
         pipeline_template_ids = []
         for template in queryset:
             template_dict[template.id] = template
+            template_data[template.id][template.version] = {
+                "id": template.id,
+                "version": template.version,
+                "scheme_id_list": scheme_id_list,
+            }
             pipeline_template_ids.append(template.pipeline_template.id)
 
         # 获取各流程对应的执行方案列表
@@ -102,15 +107,11 @@ class BatchTemplateFormWithSchemesView(APIView):
             data[template_id] = []
             # 每个模板要获取当前版本的和最新版本的表单数据
             # 两次获取数据只有模版版本不同，使用for循环减少重复逻辑,使用is_current标识是否是当前版本的表单数据
-            for index in range(2):
-                if index == 0:
-                    version = template.version
+            for version, temp in template_data[template_id].items():
+                is_current = False
+                if version == template.version:
                     is_current = True
-                else:
-                    version = template_data[template_id]["version"]
-                    is_current = False
-
-                scheme_id_list = template_data[template_id]["scheme_id_list"]
+                scheme_id_list = temp["scheme_id_list"]
                 try:
                     preview_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
                 except Exception as e:
