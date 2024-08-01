@@ -56,10 +56,12 @@ class BatchTemplateFormWithSchemesView(APIView):
         template_data = {}
         project_template_ids = []
         common_template_ids = []
+        scheme_id_list = []
         for template in template_list:
             template_id = template["id"]
             template_data[template_id] = template_data.get(template_id, {})
             template_data[template_id][template["version"]] = template
+            scheme_id_list.extend(template["scheme_id_list"])
             if template["template_source"] == PROJECT:
                 project_template_ids.append(template_id)
             else:
@@ -84,7 +86,7 @@ class BatchTemplateFormWithSchemesView(APIView):
             template_data[template.id][template.version] = {
                 "id": template.id,
                 "version": template.version,
-                "scheme_id_list": next(iter(template_data[template.id].values()))["scheme_id_list"],
+                "scheme_id_list": scheme_id_list,
             }
             pipeline_template_ids.append(template.pipeline_template.id)
 
