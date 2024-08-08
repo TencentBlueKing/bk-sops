@@ -795,9 +795,6 @@
                         position: initial;
                     }
                 }
-                .rf-tag-form {
-                    margin-left: 100px;
-                }
                 &:last-child {
                     margin-bottom: 0;
                 }

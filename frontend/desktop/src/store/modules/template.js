@@ -16,6 +16,7 @@ import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
 import axios from 'axios'
 import i18n from '@/config/i18n/index.js'
+import { STRING_LENGTH } from '@/constants/index.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
@@ -784,7 +785,13 @@ const template = {
                             Vue.set(source_info, location.id, info)
                         } else if (source_type === 'component_outputs') { // 新建输出变量
                             const constantsLen = Object.keys(state.constants).length
-                            const varId = '${' + info[0] + '_' + random4() + '}'
+                            let varId = ''
+                            const length = STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH - key.length
+                            if (length >= 5) {
+                                varId = `${key.slice(0, -1)}_${random4()}}`
+                            } else {
+                                varId = `${key.slice(0, 5 - length - 1)}_${random4()}}`
+                            }
                             const varValue = tools.deepClone(item)
                             const changeObj = {
                                 source_info: { [location.id]: info },
