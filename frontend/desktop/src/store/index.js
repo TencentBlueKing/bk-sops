@@ -38,7 +38,7 @@ const store = new Vuex.Store({
         platformInfo: { // 项目全局配置
             bkAppCode: window.APP_CODE,
             name: window.APP_NAME || i18n.t('标准运维'),
-            brandName: window.RUN_VER_NAME || i18n.t('蓝鲸'),
+            brandName: window.RUN_VER_NAME || i18n.t('蓝鲸智云'),
             ...getStateFavicon(),
             i18n: {}
         },

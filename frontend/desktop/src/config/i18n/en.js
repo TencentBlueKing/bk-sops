@@ -1868,7 +1868,7 @@ const en = {
     '产品官网': 'Product Website',
     '联系bk助手': 'Contact BK Assistant',
     '蓝鲸桌面': 'BlueWhale Desktop',
-    '蓝鲸': 'BlueKing'
+    '蓝鲸智云': 'Tencent BlueKing'
 }
 
 export default en
