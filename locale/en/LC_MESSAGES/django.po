@@ -481,7 +481,7 @@ msgstr "Common Template"
 
 #: gcloud/conf/sites/community/ver_settings.py:20
 #: gcloud/conf/sites/enterprise/ver_settings.py:20
-msgid "腾讯蓝鲸智云"
+msgid "蓝鲸智云"
 msgstr "Tencent BlueKing"
 
 #: gcloud/contrib/appmaker/api.py:56
