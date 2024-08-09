@@ -171,7 +171,8 @@
                 'loadUserProjectList'
             ]),
             ...mapMutations('project', [
-                'setProjectId'
+                'setProjectId',
+                'setUserProjectList'
             ]),
             setNavigationTitle (route) {
                 const nav = this.findCurrentNav(route)
@@ -243,9 +244,10 @@
                     const routeInfo = this.routerList[groupIndex][routeIndex]
                     // 如果没有项目列表，切换路由时则去拉取用户项目列表
                     if (!this.projectList.length && (routeInfo.hasProjectId || routeInfo.id === 'home')) {
-                        await this.loadUserProjectList({
+                        const resp = await this.loadUserProjectList({
                             params: { is_disable: false }
                         })
+                        this.setUserProjectList(resp.results)
                         if (this.projectList.length && !this.project_id) {
                             const projectId = this.projectList[0].id
                             this.setProjectId(projectId)

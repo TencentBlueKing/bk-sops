@@ -64,7 +64,6 @@ const project = {
             return axios.get(`api/v3/user_project/`, { params, ...config }).then((response) => {
                 // 不传limit代表拉取全量列表
                 if (!('limit' in params)) { // 拉全量项目时更新项目列表，区分项目管理页面的分页数据
-                    commit('setUserProjectList', response.data.data)
                     return { results: response.data.data }
                 }
                 return response.data.data

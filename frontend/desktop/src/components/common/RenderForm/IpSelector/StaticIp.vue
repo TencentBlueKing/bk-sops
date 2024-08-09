@@ -42,8 +42,8 @@
                         @focus="onStaticIpFocus"
                         @search="onStaticIpSearch">
                     </ip-search-input>
+                    <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ $t('返回') }}</span>
                 </template>
-                <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ $t('返回') }}</span>
             </div>
             <div class="selected-ip-table-wrap">
                 <IpSelectorTable
