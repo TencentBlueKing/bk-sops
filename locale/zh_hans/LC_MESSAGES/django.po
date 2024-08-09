@@ -500,8 +500,8 @@ msgstr "公共流程模板 CommonTemplate"
 
 #: gcloud/conf/sites/community/ver_settings.py:20
 #: gcloud/conf/sites/enterprise/ver_settings.py:20
-msgid "腾讯蓝鲸智云"
-msgstr "腾讯蓝鲸智云"
+msgid "蓝鲸智云"
+msgstr "蓝鲸智云"
 
 #: gcloud/contrib/appmaker/api.py:56
 msgid "轻应用保存失败: 非法的图片格式, 请使用不超过100KB的JPG / PNG 图片作为应用LOGO | appmaker save"
