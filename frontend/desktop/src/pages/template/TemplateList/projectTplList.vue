@@ -69,7 +69,7 @@
                     <search-select
                         ref="searchSelect"
                         id="templateList"
-                        :placeholder="$t('ID/流程名称/标签/更新人/创建人/子流程更新')"
+                        :placeholder="$t('ID/流程名称/标签/更新人/创建人/子流程更新/执行代理人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -455,6 +455,10 @@
         {
             id: 'editor',
             name: i18n.t('更新人')
+        },
+        {
+            id: 'executor_proxy',
+            name: i18n.t('执行代理人')
         }
     ]
 
@@ -499,6 +503,11 @@
             min_width: 180
         },
         {
+            id: 'executor_proxy',
+            label: i18n.t('执行代理人'),
+            width: 120
+        },
+        {
             id: 'creator_name',
             label: i18n.t('创建人'),
             width: 160
@@ -537,7 +546,8 @@
                 editor = '',
                 flowName = '',
                 label_ids = '',
-                template_id = ''
+                template_id = '',
+                executor_proxy = ''
             } = this.$route.query
             const searchList = [
                 ...SEARCH_LIST,
@@ -624,7 +634,8 @@
                     edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     label_ids: label_ids ? label_ids.split(',') : [],
                     flowName,
-                    template_id
+                    template_id,
+                    executor_proxy
                 },
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 totalPage: 1,
@@ -819,7 +830,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, label_ids, template_id, editor } = this.requestData
+                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, label_ids, template_id, editor, executor_proxy } = this.requestData
 
                 /**
                  * 无子流程 has_subprocess=false
@@ -841,7 +852,8 @@
                     project__id: this.project_id,
                     new: true,
                     id__in: tplIds,
-                    pipeline_template__editor: editor || undefined
+                    pipeline_template__editor: editor || undefined,
+                    executor_proxy
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -1478,7 +1490,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, create_time, edit_time, subprocessUpdateVal, creator, label_ids, flowName, template_id, editor } = this.requestData
+                const { category, create_time, edit_time, subprocessUpdateVal, creator, label_ids, flowName, template_id, editor, executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
                     category,
@@ -1490,7 +1502,8 @@
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : '',
                     flowName: flowName,
                     template_id,
-                    editor
+                    editor,
+                    executor_proxy
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
