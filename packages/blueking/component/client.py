@@ -95,26 +95,30 @@ class BaseComponentClient(object):
             data = json.dumps(data)
         return params, data
 
-    def _pre_process_headers(self, headers):
+    def _pre_process_headers(self, method, headers, params, data):
         if self.use_test_env:
             headers["x-use-test-env"] = "1"
         if self.language:
             headers["blueking-language"] = self.language
 
         if "X-Bkapi-Authorization" not in headers:
-            headers["X-Bkapi-Authorization"] = json.dumps(
-                {
-                    "bk_app_code": self.app_code,
-                    "bk_app_secret": self.app_secret,
-                    **{k: v for k, v in self.common_args.items() if v},  # filter item with empty value
-                }
-            )
+            auth_header = {
+                "bk_app_code": self.app_code,
+                "bk_app_secret": self.app_secret,
+                **self.common_args,
+            }
+            for auth_key in ["bk_username", "bk_token", "access_token"]:
+                if method == "GET" and auth_key in (params or {}):
+                    auth_header[auth_key] = params[auth_key]
+                if method == "POST" and auth_key in (data or {}):
+                    auth_header[auth_key] = data[auth_key]
+            headers["X-Bkapi-Authorization"] = json.dumps(auth_header)
 
     def request(self, method, url, params=None, data=None, **kwargs):
         """Send request"""
         # determine whether access test environment of third-party system
         headers = kwargs.pop("headers", {})
-        self._pre_process_headers(headers)
+        self._pre_process_headers(method, headers, params, data)
         params, data = self.merge_params_data_with_common_args(method, params, data, enable_app_secret=True)
         logger.debug("Calling %s %s with params=%s, data=%s, headers=%s", method, url, params, data, headers)
         return requests.request(method, url, params=params, data=data, verify=False, headers=headers, **kwargs)
