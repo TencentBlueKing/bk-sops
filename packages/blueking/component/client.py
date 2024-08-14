@@ -102,11 +102,13 @@ class BaseComponentClient(object):
             headers["blueking-language"] = self.language
 
         if "X-Bkapi-Authorization" not in headers:
-            headers["X-Bkapi-Authorization"] = json.dumps({
-                "bk_app_code": self.app_code,
-                "bk_app_secret": self.app_secret,
-                **self.common_args
-            })
+            headers["X-Bkapi-Authorization"] = json.dumps(
+                {
+                    "bk_app_code": self.app_code,
+                    "bk_app_secret": self.app_secret,
+                    **{k: v for k, v in self.common_args.items() if v},  # filter item with empty value
+                }
+            )
 
     def request(self, method, url, params=None, data=None, **kwargs):
         """Send request"""
