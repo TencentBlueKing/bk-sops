@@ -90,7 +90,7 @@ class ModuleCreateMethod(Enum):
 
 
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
-    """根据主机内网cloud_id:IP 获取主机 ID
+    """根据主机内网 IP 获取主机 ID
 
     :param executor: API 请求用户身份
     :type executor: string
@@ -152,7 +152,7 @@ def cc_get_host_id_by_str(executor, bk_biz_id, ip_str, supplier_account):
     :return: 主机 id 列表
     @note: 需要兼容的ip_str格式有
         1： IP，纯IP格式
-        3： 管控区域ID:IP
+        2： 管控区域ID:IP
     :return: 主机 id 列表
     :rtype: list
     ["1", "2", "3", ...]
@@ -169,7 +169,7 @@ def cc_get_host_id_by_str(executor, bk_biz_id, ip_str, supplier_account):
         )
 
         if not host_list:
-            message = _(f"IP {ip_list} 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+            message = _(f"IP {ip_list} 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_str")
             logger.error(message)
             return {"result": False, "message": message}
 
@@ -183,7 +183,7 @@ def cc_get_host_id_by_str(executor, bk_biz_id, ip_str, supplier_account):
                 else:
                     hosts.append({host["bk_host_innerip"]: host.get("bk_cloud_id", "")})
             if len(c_hosts) > 0:
-                message = _(f"IP [{', '.join(c_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+                message = _(f"IP [{', '.join(c_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_str")
                 logger.error(message)
                 return {
                     "result": False,
@@ -193,7 +193,7 @@ def cc_get_host_id_by_str(executor, bk_biz_id, ip_str, supplier_account):
         if len(host_list) < len(ip_list):
             return_innerip_set = {host["bk_host_innerip"] for host in host_list}
             absent_innerip = set(ip_list).difference(return_innerip_set)
-            message = _(f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+            message = _(f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_str")
             logger.error(message)
             return {"result": False, "message": message}
 
