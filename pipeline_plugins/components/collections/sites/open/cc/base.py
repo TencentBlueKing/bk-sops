@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from abc import ABCMeta
+from collections import Counter
 from enum import Enum
 from functools import partial
 
@@ -31,6 +32,7 @@ from gcloud.utils.ip import (
     get_ip_by_regex_type,
     ip_pattern,
     ipv6_pattern,
+    plat_ip_reg,
 )
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
     get_hosts_by_hosts_ids,
@@ -88,7 +90,7 @@ class ModuleCreateMethod(Enum):
 
 
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
-    """根据主机内网 IP 获取主机 ID
+    """根据主机内网cloud_id:IP 获取主机 ID
 
     :param executor: API 请求用户身份
     :type executor: string
@@ -107,7 +109,7 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         executor,
         bk_biz_id,
         supplier_account,
-        ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
+        ["bk_host_id", "bk_host_innerip"],
         ip_list,
     )
 
@@ -118,20 +120,14 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
 
     if len(host_list) > len(ip_list):
         # find repeat innerip host
-        hosts = []
-        c_hosts = []
-        for host in host_list:
-            if {host["bk_host_innerip"]: host.get("bk_cloud_id", "")} in hosts:
-                c_hosts.append(host["bk_host_innerip"])
-            else:
-                hosts.append({host["bk_host_innerip"]: host.get("bk_cloud_id", "")})
-        if len(c_hosts) > 0:
-            message = _(f"IP [{', '.join(c_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
-            logger.error(message)
-            return {
-                "result": False,
-                "message": message,
-            }
+        host_counter = Counter([host["bk_host_innerip"] for host in host_list])
+        mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
+        message = _(f"IP [{', '.join(mutiple_innerip_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+        logger.error(message)
+        return {
+            "result": False,
+            "message": message,
+        }
 
     if len(host_list) < len(ip_list):
         return_innerip_set = {host["bk_host_innerip"] for host in host_list}
@@ -141,6 +137,70 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         return {"result": False, "message": message}
 
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
+
+
+def cc_get_host_id_by_str(executor, bk_biz_id, ip_str, supplier_account):
+    """
+    :param executor: API 请求用户身份
+    :type executor: string
+    :param bk_biz_id: 业务 CC ID
+    :type bk_biz_id: int
+    :param ip_list: 主机内网 IP 列表
+    :type ip_list: list
+    :param supplier_account: 开发商账号
+    :type supplier_account: int
+    :return: 主机 id 列表
+    @note: 需要兼容的ip_str格式有
+        1： IP，纯IP格式
+        3： 管控区域ID:IP
+    :return: 主机 id 列表
+    :rtype: list
+    ["1", "2", "3", ...]
+    """
+    ip_list = get_ip_by_regex(ip_str)
+    # 格式2 管控区域ID:IP
+    if plat_ip_reg.match(ip_str):
+        host_list = cmdb.get_business_host(
+            executor,
+            bk_biz_id,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
+            ip_list,
+        )
+
+        if not host_list:
+            message = _(f"IP {ip_list} 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+            logger.error(message)
+            return {"result": False, "message": message}
+
+        if len(host_list) > len(ip_list):
+            # find repeat innerip host
+            hosts = []
+            c_hosts = []
+            for host in host_list:
+                if {host["bk_host_innerip"]: host.get("bk_cloud_id", "")} in hosts:
+                    c_hosts.append(host["bk_host_innerip"])
+                else:
+                    hosts.append({host["bk_host_innerip"]: host.get("bk_cloud_id", "")})
+            if len(c_hosts) > 0:
+                message = _(f"IP [{', '.join(c_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+                logger.error(message)
+                return {
+                    "result": False,
+                    "message": message,
+                }
+
+        if len(host_list) < len(ip_list):
+            return_innerip_set = {host["bk_host_innerip"] for host in host_list}
+            absent_innerip = set(ip_list).difference(return_innerip_set)
+            message = _(f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+            logger.error(message)
+            return {"result": False, "message": message}
+
+        return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
+    # 格式1 纯IP格式
+    else:
+        return cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account)
 
 
 def cc_get_host_by_innerip_with_ipv6(
@@ -463,8 +523,7 @@ class CCPluginIPMixin:
             if not host_result["result"]:
                 return host_result
             return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}
-        ip_list = get_ip_by_regex(ip_str)
-        return cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        return cc_get_host_id_by_str(executor, biz_cc_id, ip_str, supplier_account)
 
     def get_ip_info_list(self, executor, biz_cc_id, ip_str, supplier_account):
         """
