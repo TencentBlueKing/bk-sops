@@ -145,8 +145,8 @@ def cc_get_host_id_by_str(executor, bk_biz_id, ip_str, supplier_account):
     :type executor: string
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param ip_list: 主机内网 IP 列表
-    :type ip_list: list
+    :param ip_str: 主机内网 IP
+    :type ip_str: string
     :param supplier_account: 开发商账号
     :type supplier_account: int
     :return: 主机 id 列表

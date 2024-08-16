@@ -32,11 +32,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             data = cc_get_host_id_by_innerip(self.executor, self.bk_biz_id, self.ip_list, self.supplier_account)
 
         mock_cmdb.get_business_host.assert_called_once_with(
-            self.executor,
-            self.bk_biz_id,
-            self.supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
-            self.ip_list,
+            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertFalse(data["result"])
         self.assertEqual(
@@ -58,11 +54,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             data = cc_get_host_id_by_innerip(self.executor, self.bk_biz_id, self.ip_list, self.supplier_account)
 
         mock_cmdb.get_business_host.assert_called_once_with(
-            self.executor,
-            self.bk_biz_id,
-            self.supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
-            self.ip_list,
+            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertFalse(data["result"])
         self.assertEqual(data["message"], "IP [1.1.1.1, 2.2.2.2] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
@@ -76,11 +68,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             data = cc_get_host_id_by_innerip(self.executor, self.bk_biz_id, self.ip_list, self.supplier_account)
 
         mock_cmdb.get_business_host.assert_called_once_with(
-            self.executor,
-            self.bk_biz_id,
-            self.supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
-            self.ip_list,
+            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertFalse(data["result"])
         self.assertEqual(data["message"], "IP [3.3.3.3] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
@@ -98,11 +86,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             data = cc_get_host_id_by_innerip(self.executor, self.bk_biz_id, self.ip_list, self.supplier_account)
 
         mock_cmdb.get_business_host.assert_called_once_with(
-            self.executor,
-            self.bk_biz_id,
-            self.supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
-            self.ip_list,
+            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertTrue(data["result"])
         self.assertEqual(data["data"], ["1", "2", "3"])
