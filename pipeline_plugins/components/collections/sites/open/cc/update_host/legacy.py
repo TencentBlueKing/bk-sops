@@ -16,19 +16,16 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
+from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
-from pipeline.component_framework.component import Component
-
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import (
-    cc_format_prop_data,
-    CCPluginIPMixin,
-)
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_prop_data
+from pipeline_plugins.components.utils.common import chunk_table_data
+from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -79,12 +76,28 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
-        ip_list = data.get_one_of_inputs("cc_host_ip")
-        host_result = self.get_host_list(executor, biz_cc_id, ip_list, supplier_account)
-        if not host_result["result"]:
-            data.set_outputs("ex_data", host_result["message"])
+        host_property = []
+        host_ip = data.get_one_of_inputs("cc_host_ip")
+        # 根据换行符分割
+        column_result = chunk_table_data({"bk_host_innerip": host_ip}, "\n")
+        if not column_result["result"]:
+            message = _(f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}")
+            data.outputs.ex_data = message
+            self.logger.error(message)
             return False
-
+        host_property.extend(column_result["data"])
+        hosts = []
+        for host_property_dir in host_property:
+            inner_host_ip = host_property_dir["bk_host_innerip"]
+            # 兼容填写管控区域ID：IP的情况, 只获取对应IP, 判断ipv4
+            if plat_ip_reg.match(inner_host_ip) and ":" in inner_host_ip:
+                host_result = self.get_host_list_by_cloud_id(executor, biz_cc_id, inner_host_ip, supplier_account)
+            else:
+                host_result = self.get_host_list(executor, biz_cc_id, inner_host_ip, supplier_account)
+            if not host_result["result"]:
+                data.set_outputs("ex_data", host_result["message"])
+                return False
+            hosts.extend(host_result["data"])
         # 更新主机属性
         cc_host_property = data.get_one_of_inputs("cc_host_property")
         if cc_host_property == "bk_isp_name":
@@ -142,7 +155,7 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
                 break
 
         cc_kwargs = {
-            "bk_host_id": ",".join(host_result["data"]),
+            "bk_host_id": ",".join(hosts),
             "bk_supplier_account": supplier_account,
             "data": {cc_host_property: cc_host_prop_value},
         }
