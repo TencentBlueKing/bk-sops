@@ -24,7 +24,6 @@ from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_prop_data
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -123,14 +122,12 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
         update_host_message = []
         for host_property_dir in host_property_copy:
             inner_host_ip = host_property_dir["bk_host_innerip"]
-            # 兼容填写管控区域ID：IP的情况, 只获取对应IP, 判断ipv4
-            if plat_ip_reg.match(inner_host_ip) and ":" in inner_host_ip:
-                host_result = self.get_host_list_by_cloud_id(executor, biz_cc_id, inner_host_ip, supplier_account)
-            else:
-                host_result = self.get_host_list(executor, biz_cc_id, inner_host_ip, supplier_account)
+            host_result = self.get_host_list_with_cloud_id(executor, biz_cc_id, inner_host_ip, supplier_account)
             if not host_result["result"]:
                 data.outputs.ex_data = host_result.get("message")
                 return False
+            host_id = int(host_result["data"][0])
+            host_update = {"bk_host_id": host_id}
             host_property_dir.pop("bk_host_innerip")
             properties = {}
             for cc_host_property, cc_host_prop_value in host_property_dir.items():
@@ -143,9 +140,8 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
                         self.logger.error(ex_data)
                         return False
                     properties[cc_host_property] = cc_host_prop_value
-
-            for host_id in host_result["data"]:
-                update_host_message.append({"bk_host_id": int(host_id), "properties": properties})
+            host_update["properties"] = properties
+            update_host_message.append(host_update)
 
         cc_kwargs = {"bk_supplier_account": supplier_account, "update": update_host_message}
 
