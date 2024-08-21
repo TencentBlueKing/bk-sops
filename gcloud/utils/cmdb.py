@@ -123,7 +123,7 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     # 带管控区域的主机数据查询
-    if ip_list and bk_cloud_id:
+    if ip_list and bk_cloud_id is not None:
         kwargs["host_property_filter"] = {
             "condition": "AND",
             "rules": [
