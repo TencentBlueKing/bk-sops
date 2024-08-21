@@ -12,45 +12,42 @@
 <template>
     <div class="tag-textarea">
         <div class="rf-form-wrapper">
-            <template v-if="formMode">
-                <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
-                    <div
-                        ref="input"
-                        class="div-input"
-                        :class="{
-                            'input-before': !input.value && !pasteIng
-                        }"
-                        :contenteditable="!isDisabled"
-                        :data-placeholder="placeholder"
-                        data-test-name="formTag_textarea_divInput"
-                        v-bk-clickoutside="handleClickOutSide"
-                        @mouseup="handleInputMouseUp"
-                        @focus="handleInputFocus"
-                        @keydown="handleInputKeyDown"
-                        @input="handleInputChange"
-                        @blur="handleBlur">
-                    </div>
+            <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled, 'view-mode': !formMode }">
+                <div
+                    ref="input"
+                    class="div-input"
+                    :class="{
+                        'input-before': !input.value && !pasteIng
+                    }"
+                    :contenteditable="!isDisabled"
+                    :data-placeholder="placeholder"
+                    data-test-name="formTag_textarea_divInput"
+                    v-bk-clickoutside="handleClickOutSide"
+                    @mouseup="handleInputMouseUp"
+                    @focus="handleInputFocus"
+                    @keydown="handleInputKeyDown"
+                    @input="handleInputChange"
+                    @blur="handleBlur">
                 </div>
-                <transition>
-                    <div
-                        class="rf-select-list"
-                        :style="`${varListPosition}`"
-                        v-show="showVarList && isListOpen">
-                        <ul class="rf-select-content">
-                            <li
-                                class="rf-select-item"
-                                v-for="item in varList"
-                                :key="item.key"
-                                :class="{ 'is-hover': hoverKey === item.key }"
-                                @click.stop="onSelectVal(item.key)">
-                                <span class="key">{{ item.key }}</span>
-                                <span class="name" v-bk-overflow-tips>{{ item.name }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                </transition>
-            </template>
-            <span v-else class="rf-view-value">{{ viewValue }}</span>
+            </div>
+            <transition>
+                <div
+                    class="rf-select-list"
+                    :style="`${varListPosition}`"
+                    v-show="showVarList && isListOpen">
+                    <ul class="rf-select-content">
+                        <li
+                            class="rf-select-item"
+                            v-for="item in varList"
+                            :key="item.key"
+                            :class="{ 'is-hover': hoverKey === item.key }"
+                            @click.stop="onSelectVal(item.key)">
+                            <span class="key">{{ item.key }}</span>
+                            <span class="name" v-bk-overflow-tips>{{ item.name }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </transition>
         </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
@@ -170,8 +167,8 @@
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
                 const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
-                divInputDom.innerText = value
-                if (this.render && value) {
+                divInputDom.innerText = this.formMode ? value : this.viewValue
+                if (this.formMode && this.render && value) {
                     this.updateInputHtml()
                 }
                 divInputDom.addEventListener('paste', this.handlePaste)
@@ -286,8 +283,10 @@
                     const lastNode = textNode.childNodes[startOffset - 1]
                     previousText = lastNode.textContent
                 }
-                // 如果不包含$则不进行后续计算、 如果是完整全局变量则不进行后续操作
-                if (previousText.indexOf('$') === -1 || /\${[a-zA-Z_][\w|.]*}/.test(previousText)) {
+                // 过滤掉完整变量结构，取最后面一段的纯文本
+                previousText = previousText.split(/\${[a-zA-Z_][\w|.]*}/).pop()
+                // 如果不包含$则不进行后续计算
+                if (previousText.indexOf('$') === -1) {
                     this.isListOpen = false
                     return
                 }
@@ -390,13 +389,7 @@
                 const varRegexp = /\${([^${}]+)}/g
                 const divInputDom = this.$el.querySelector('.div-input')
                 const childNodes = Array.from(divInputDom.childNodes).filter(item => item.nodeName !== 'TEXT')
-                const deleteMap = {} // 需要删除的br下标
                 childNodes.forEach((dom, index) => {
-                    // 删除多余的br标签
-                    if (deleteMap[index]) {
-                        divInputDom.removeChild(dom)
-                        return
-                    }
                     // 获取行内纯文本
                     let domValue = dom.textContent
                     if (dom.childNodes.length) {
@@ -437,25 +430,19 @@
                     })
                     // 初始化时\n会转化为【独占一行】的<br>标签，导致渲染异常。当我们手动把text标签转为div标签时需要删除【紧挨】着的<br>标签
                     if (dom.nodeName === '#text') {
-                        // 记录需要被删除的br标签下标
-                        if (dom.nextSibling?.nodeName === 'BR') {
-                            deleteMap[index + 1] = true
-                        }
                         const newDom = document.createElement('div')
                         newDom.innerHTML = innerHtml
                         divInputDom.replaceChild(newDom, dom)
                     } else if (dom.nodeName === 'DIV' && innerHtml) {
                         dom.innerHTML = innerHtml
                     } else if (dom.nodeName === 'BR') {
-                        // br标签实际上是初始化时\n转化的，\n表示当前行换行了，那么br标签必定会有下一行!!!
-                        if (!dom.nextSibling) {
-                            const appendDom = document.createElement('div')
-                            appendDom.innerHTML = '<br>'
-                            divInputDom.appendChild(appendDom)
+                        if (dom.previousSibling && dom.nextSibling && dom.nextSibling?.nodeName !== 'BR') {
+                            divInputDom.removeChild(dom)
+                        } else {
+                            const newDom = document.createElement('div')
+                            newDom.innerHTML = '<br>'
+                            divInputDom.replaceChild(newDom, dom)
                         }
-                        const newDom = document.createElement('div')
-                        newDom.innerHTML = '<br>'
-                        divInputDom.replaceChild(newDom, dom)
                     }
                 })
             },
@@ -563,6 +550,7 @@
             position: absolute;
             top: 40px;
             right: 0;
+            width: max-content;
             max-width: 600px;
             background: #ffffff;
             border: 1px solid #dcdee5;
@@ -618,6 +606,12 @@
                 cursor: not-allowed;
             }
         }
+        &.view-mode {
+            padding: 0;
+            border: none;
+            background: inherit;
+            cursor: default;
+        }
     }
     .div-input {
         min-height: 36px;
@@ -644,6 +638,7 @@
             word-break: break-all;
         }
         &.input-before::before {
+            position: absolute;
             content: attr(data-placeholder);
             color: #c4c6cc;
         }

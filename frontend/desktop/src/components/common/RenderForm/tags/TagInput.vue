@@ -566,6 +566,7 @@
             position: absolute;
             top: 30px;
             right: 0;
+            width: max-content;
             max-width: 600px;
             background: #ffffff;
             border: 1px solid #dcdee5;
@@ -645,6 +646,7 @@
             }
         }
         &.input-before::before {
+            position: absolute;
             content: attr(data-placeholder);
             color: #c4c6cc;
         }
