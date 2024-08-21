@@ -14,7 +14,6 @@ import ipaddress
 import logging
 import re
 from enum import Enum
-from typing import List
 
 ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 plat_ip_reg = re.compile(r"\d+:((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
@@ -42,30 +41,6 @@ def get_ip_by_regex(ip_str):
     ret = []
     for match in ip_pattern.finditer(ip_str):
         ret.append(match.group())
-    return ret
-
-
-def get_ip_or_cloudid_ip_by_regex(ip_list: List[str]) -> dict:
-    """从给定文本中匹配couldID:IP 或纯IP 并返回
-
-    :param ip_list: couldID:IP 或纯IP 的文本
-    :type ip_list: list
-    :return: couldID:ip_list
-    :rtype: dict
-    """
-    ret = {}
-    for ip in ip_list:
-        if plat_ip_reg.match(ip) and ":" in ip:
-            cloudIP = ip.split(":")
-            if int(cloudIP[0]) not in ret:
-                ret[int(cloudIP[0])] = [cloudIP[1]]
-            else:
-                ret[int[cloudIP[0]]].append(cloudIP[1])
-        else:
-            if None not in ret:
-                ret[None] = [ip]
-            else:
-                ret[None].append(ip)
     return ret
 
 
