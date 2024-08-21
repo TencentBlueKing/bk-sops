@@ -21,80 +21,106 @@ class CCGetHostIdByCloudIdInnerIpTestCase(TestCase):
     def setUp(self):
         self.executor = "executor_token"
         self.bk_biz_id = "bk_biz_id_token"
-        self.ip_list = "ip_list_token"
         self.supplier_account = "supplier_account_token"
-        self.ip_list = ["0:1.1.1.1", "2.2.2.2", "1:3.3.3.3"]
+        self.ip_str = "1.1.1.1"
 
     def test__get_business_host_return_empty(self):
         mock_cmdb = MagicMock()
         mock_cmdb.get_business_host = MagicMock(return_value=[])
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
             data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_list, self.supplier_account
+                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
             )
 
-        assert mock_cmdb.get_business_host.call_count == len(self.ip_list)
+        mock_cmdb.get_business_host.assert_called_once_with(
+            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
+        )
         self.assertFalse(data["result"])
         self.assertEqual(
-            data["message"],
-            "IP ['0:1.1.1.1', '2.2.2.2', '1:3.3.3.3'] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid",
+            data["message"], "IP ['1.1.1.1'] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
         )
 
     def test__return_host_list_gt_ip_list(self):
         mock_cmdb = MagicMock()
         mock_cmdb.get_business_host = MagicMock(
             return_value=[
-                {"bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
-                {"bk_host_innerip": "2.2.2.2"},
-                {"bk_host_innerip": "2.2.2.2"},
-                {"bk_host_innerip": "3.3.3.3", "bk_cloud_id": 1},
+                {"bk_host_innerip": "1.1.1.1"},
+                {"bk_host_innerip": "1.1.1.1"},
             ]
         )
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
             data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_list, self.supplier_account
+                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
             )
 
-        assert mock_cmdb.get_business_host.call_count == len(self.ip_list)
+        mock_cmdb.get_business_host.assert_called_once_with(
+            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
+        )
         self.assertFalse(data["result"])
         self.assertEqual(
-            data["message"], "IP [2.2.2.2] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+            data["message"], "IP [1.1.1.1] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
         )
 
-    def test__return_host_list_lt_ip_list(self):
+    def test__return_host_list_lt_cloudid_with_ip_list(self):
+        self.ip_str = "0:1.1.1.1"
+        mock_cmdb = MagicMock()
+        mock_cmdb.get_business_host = MagicMock(return_value=[])
+        with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
+            data = cc_get_host_id_by_innerip_and_cloudid(
+                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
+            )
+
+        mock_cmdb.get_business_host.assert_called_once_with(
+            self.executor,
+            self.bk_biz_id,
+            self.supplier_account,
+            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
+            [self.ip_str.split(":")[1]],
+            0,
+        )
+        self.assertFalse(data["result"])
+        self.assertEqual(
+            data["message"], "IP ['1.1.1.1'] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+        )
+
+    def test__ip_normal(self):
         mock_cmdb = MagicMock()
         mock_cmdb.get_business_host = MagicMock(
             return_value=[
-                {"bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
-                {"bk_host_innerip": "2.2.2.2"},
+                {"bk_host_innerip": "1.1.1.1", "bk_host_id": 1},
             ]
         )
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
             data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_list, self.supplier_account
+                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
             )
 
-        assert mock_cmdb.get_business_host.call_count == len(self.ip_list)
-        self.assertFalse(data["result"])
-        self.assertEqual(
-            data["message"],
-            "IP [1:3.3.3.3] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid",
+        mock_cmdb.get_business_host.assert_called_once_with(
+            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
         )
+        self.assertTrue(data["result"])
+        self.assertEqual(data["data"], ["1"])
 
-    def test__normal(self):
+    def test__cloudid_with_ip_normal(self):
+        self.ip_str = "0:1.1.1.1"
         mock_cmdb = MagicMock()
         mock_cmdb.get_business_host = MagicMock(
             return_value=[
                 {"bk_host_innerip": "1.1.1.1", "bk_host_id": 1, "bk_cloud_id": 0},
-                {"bk_host_innerip": "2.2.2.2", "bk_host_id": 2},
-                {"bk_host_innerip": "3.3.3.3", "bk_host_id": 3, "bk_cloud_id": 1},
             ]
         )
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
             data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_list, self.supplier_account
+                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
             )
 
-        assert mock_cmdb.get_business_host.call_count == len(self.ip_list)
+        mock_cmdb.get_business_host.assert_called_once_with(
+            self.executor,
+            self.bk_biz_id,
+            self.supplier_account,
+            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
+            [self.ip_str.split(":")[1]],
+            0,
+        )
         self.assertTrue(data["result"])
-        self.assertEqual(data["data"], ["1", "2", "3"])
+        self.assertEqual(data["data"], ["1"])

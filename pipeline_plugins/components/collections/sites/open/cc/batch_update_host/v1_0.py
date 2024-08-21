@@ -121,8 +121,8 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
         host_property_copy = deepcopy(host_property_custom)
         update_host_message = []
         for host_property_dir in host_property_copy:
-            inner_host_ip = host_property_dir["bk_host_innerip"]
-            host_result = self.get_host_list_with_cloud_id(executor, biz_cc_id, inner_host_ip, supplier_account)
+            ip_str = host_property_dir["bk_host_innerip"]
+            host_result = self.get_host_list_with_cloud_id(executor, biz_cc_id, ip_str, supplier_account)
             if not host_result["result"]:
                 data.outputs.ex_data = host_result.get("message")
                 return False

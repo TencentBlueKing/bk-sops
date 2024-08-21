@@ -12,15 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0 import CCBatchUpdateHostComponent
 
 
@@ -47,7 +47,9 @@ BATCH_UPDATE_HOST_FAIL_CLIENT = MockClient(
 )
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
+CC_GET_IPS_INFO_BY_STR = (
+    "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip_and_cloudid"
+)
 VERIFY_HOST_PROPERTY = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.verify_host_property"
 )
@@ -126,7 +128,10 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, ["1.1.1.1"], 0)],),
+        CallAssertion(
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call("executor", 1, "1.1.1.1", 0)],
+        ),
         CallAssertion(
             func=BATCH_UPDATE_HOST_SUCCESS_CLIENT.cc.batch_update_host,
             calls=[
@@ -168,7 +173,10 @@ BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, ["1.1.1.1"], 0)],),
+        CallAssertion(
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call("executor", 1, "1.1.1.1", 0)],
+        ),
         CallAssertion(
             func=BATCH_UPDATE_HOST_FAIL_CLIENT.cc.batch_update_host,
             calls=[

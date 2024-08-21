@@ -74,8 +74,8 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
-        ip_list = data.get_one_of_inputs("cc_host_ip")
-        host_result = self.get_host_list_with_cloud_id(executor, biz_cc_id, ip_list, supplier_account)
+        ip_str = data.get_one_of_inputs("cc_host_ip")
+        host_result = self.get_host_list_with_cloud_id(executor, biz_cc_id, ip_str, supplier_account)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False
