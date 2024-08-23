@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import re
+
 import jsonschema
 import ujson as json
 from apigw_manager.apigw.decorators import apigw_require
@@ -20,22 +22,14 @@ from django.views.decorators.http import require_POST
 
 import env
 from gcloud import err_code
-from gcloud.apigw.decorators import (
-    mark_request_whether_is_trust,
-    project_inject,
-    return_json_response,
-)
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import BUSINESS, COMMON, TaskCreateMethod
-from gcloud.contrib.operate_record.constants import (
-    OperateSource,
-    OperateType,
-    RecordType,
-)
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
 from gcloud.iam_auth.intercept import iam_intercept
@@ -43,7 +37,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.throttle import check_task_operation_throttle
@@ -76,6 +70,15 @@ def create_and_start_task(request, template_id, project_id):
             template_id=template_id, project_id=project.id, params=params
         )
     )
+
+    callback_url = params.pop("callback_url", None)
+    CALLBACK_URL_PATTERN = r"^https?://\w.+$"
+    if callback_url and not (isinstance(callback_url, str) and re.match(CALLBACK_URL_PATTERN, callback_url)):
+        return {
+            "result": False,
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+            "message": f"callback_url format error, must match {CALLBACK_URL_PATTERN}",
+        }
 
     # 根据template_id获取template
     if template_source == BUSINESS:
@@ -152,6 +155,11 @@ def create_and_start_task(request, template_id, project_id):
         )
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
+
+    # create callback url record
+    if callback_url:
+        TaskCallBackRecord.objects.create(task_id=task.id, url=callback_url)
+
     # 开始执行task
     queue, routing_key = PrepareAndStartTaskQueueResolver(
         settings.API_TASK_QUEUE_NAME_V2
