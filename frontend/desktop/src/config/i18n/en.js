@@ -1473,7 +1473,7 @@ const en = {
     '留在此页': 'Stay on this page',
     '直接离开': 'Just leave',
     '流程名': 'Flow Name',
-    'ID/流程名称/标签/更新人/创建人/子流程更新': 'ID/Flow Name/Tags/Modified By/Created By/Subflow Changed',
+    'ID/流程名称/标签/更新人/创建人/子流程更新/执行代理人': 'ID/Flow Name/Tags/Modified By/Created By/Subflow Changed/Representative',
     'ID/流程名/创建人/更新人': 'ID/Flow Name/Created By/Modified By',
     '任务名': 'Task Name',
     'task_任务名': 'Name',

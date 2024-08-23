@@ -100,6 +100,7 @@ class TaskTemplateFilter(PropertyFilterSet):
             "pipeline_template__edit_time": ["gte", "lte"],
             "pipeline_template__create_time": ["gte", "lte"],
             "project__id": ["exact"],
+            "executor_proxy": ["exact"],
         }
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
 

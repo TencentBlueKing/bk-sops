@@ -138,6 +138,76 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
 
 
+def cc_get_host_id_by_innerip_and_cloudid(executor, bk_biz_id, ip_str, supplier_account):
+    """根据主机内网 IP 获取主机 ID
+
+    :param executor: API 请求用户身份
+    :type executor: string
+    :param bk_biz_id: 业务 CC ID
+    :type bk_biz_id: int
+    :param ip_list: 主机内网 IP 或 cloudID:IP 列表
+    :type ip_str: string
+    :param supplier_account: 开发商账号
+    :type supplier_account: int
+    :return: 主机 id 列表
+    :rtype: list
+    ["1", "2", "3", ...]
+    """
+    ipv4_list_with_cloud_id, ip_str_without_ipv4_with_cloud_id = get_ip_by_regex_type(
+        IpRegexType.IPV4_WITH_CLOUD_ID.value, ip_str
+    )
+    ipv4_list, _ = get_ip_by_regex_type(IpRegexType.IPV4.value, ip_str_without_ipv4_with_cloud_id)
+    ip_dict = {None: ipv4_list} if ipv4_list else {}
+    [ip_dict.setdefault(int(ipv4.split(":")[0]), []).append(ipv4.split(":")[1]) for ipv4 in ipv4_list_with_cloud_id]
+    # TODO 待优化
+    hosts = []
+    for cloud_id, ipv4s in ip_dict.items():
+        if cloud_id is None:
+            host_fields = ["bk_host_id", "bk_host_innerip"]
+        else:
+            host_fields = ["bk_host_id", "bk_host_innerip", "bk_cloud_id"]
+        host_list = cmdb.get_business_host(
+            executor,
+            bk_biz_id,
+            supplier_account,
+            host_fields,
+            ipv4s,
+            cloud_id,
+        )
+
+        if not host_list:
+            message = f"IP {ipv4s} 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+            logger.error(message)
+            return {"result": False, "message": message}
+
+        if len(host_list) > len(ipv4s):
+            # find repeat innerip host
+            host_counter = Counter([host["bk_host_innerip"] for host in host_list])
+            mutiple_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
+            message = f"IP [{', '.join(mutiple_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+            logger.error(message)
+            return {
+                "result": False,
+                "message": message,
+            }
+
+        if len(host_list) < len(ipv4s):
+            return_innerip_set = set()
+            for host in host_list:
+                if host.get("bk_cloud_id") is not None:
+                    return_innerip_set.add(f"{host['bk_cloud_id']}:{host['bk_host_innerip']}")
+                else:
+                    return_innerip_set.add(host["bk_host_innerip"])
+            absent_innerip = set(ipv4s).difference(return_innerip_set)
+            message = (
+                f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+            )
+            logger.error(message)
+            return {"result": False, "message": message}
+        hosts.extend(host_list)
+    return {"result": True, "data": list({str(host["bk_host_id"]) for host in hosts})}
+
+
 def cc_get_host_by_innerip_with_ipv6(
     executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False, host_id_detail=False
 ):
@@ -518,6 +588,23 @@ class CCPluginIPMixin:
         return cmdb.get_business_host_topo(
             executor, biz_cc_id, supplier_account, host_attrs, ip_list=None, property_filters=property_filters
         )
+
+    def get_host_list_with_cloud_id(self, executor, biz_cc_id, ip_str, supplier_account):
+        """
+        获取host_list
+        @param executor: executor 执行人
+        @param biz_cc_id: biz_cc_id 业务id
+        @param ip_str: ip_str ip字符串
+        @param supplier_account: supplier_account
+        @return:
+        """
+        # 如果开启IPV6
+        if settings.ENABLE_IPV6:
+            host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
+            if not host_result["result"]:
+                return host_result
+            return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}
+        return cc_get_host_id_by_innerip_and_cloudid(executor, biz_cc_id, ip_str, supplier_account)
 
 
 class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMeta):
