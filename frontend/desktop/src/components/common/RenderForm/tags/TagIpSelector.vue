@@ -194,33 +194,37 @@
                 Promise.all(requestList).then(values => {
                     let hasDiff = false
                     const { ip, group } = this.value
-                    values.forEach((v) => {
-                        switch (selectorInfo.id) {
-                            case 'ip':
-                                this.staticIpList = v.data
-                                if (!this.hook) { // 表单没有被勾选
-                                    ip.forEach(value => {
-                                        // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则提示用户手动更新
-                                        hasDiff = this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
+                    values.forEach((v, index) => {
+                        if (index === 0) {
+                            switch (selectorInfo.id) {
+                                case 'ip':
+                                    this.staticIpList = v.data
+                                    if (!this.hook) { // 表单没有被勾选
+                                        ip.forEach(value => {
+                                            // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则提示用户手动更新
+                                            hasDiff = this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
+                                            this.$set(value, 'diff', hasDiff)
+                                        })
+                                    }
+                                    break
+                                case 'topo':
+                                    this.dynamicIpList = v.data
+                                    break
+                                case 'group':
+                                    this.dynamicGroupList = v.data.info
+                                    // 判断动态分组数据与最新的CMDB动态分组配置是否存在差异
+                                    const dynamicGroups = group || []
+                                    dynamicGroups.some(value => {
+                                        hasDiff = this.dynamicGroupList.every(item => item.id !== value.id)
                                         this.$set(value, 'diff', hasDiff)
                                     })
-                                }
-                                break
-                            case 'topo':
-                                this.dynamicIpList = v.data
-                                break
-                            case 'group':
-                                this.dynamicGroupList = v.data.info
-                                // 判断动态分组数据与最新的CMDB动态分组配置是否存在差异
-                                const dynamicGroups = group || []
-                                dynamicGroups.some(value => {
-                                    hasDiff = this.dynamicGroupList.every(item => item.id !== value.id)
-                                    this.$set(value, 'diff', hasDiff)
-                                })
-                                break
-                            default:
-                                this.topoModelList = v.data
-                                break
+                                    break
+                                default:
+                                    this.topoModelList = v.data
+                                    break
+                            }
+                        } else {
+                            this.topoModelList = v.data
                         }
                     })
                     this.loading = false
