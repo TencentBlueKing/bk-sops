@@ -75,22 +75,26 @@
         {
             type: 'staticIp',
             id: 'ip',
-            name: i18n.t('静态 IP')
+            name: i18n.t('静态 IP'),
+            load: false
         },
         {
             type: 'dynamicIp',
             id: 'topo',
-            name: i18n.t('动态拓扑')
+            name: i18n.t('动态拓扑'),
+            load: false
         },
         {
             type: 'dynamicGroup',
             id: 'group',
-            name: i18n.t('动态分组')
+            name: i18n.t('动态分组'),
+            load: false
         },
         {
             type: 'manualInput',
             id: 'manual',
-            name: i18n.t('手动输入')
+            name: i18n.t('手动输入'),
+            load: false
         }
     ]
     export default {
@@ -139,9 +143,13 @@
                 return !this.validateSet.includes('required')
             }
         },
-        mounted () {
-            if (!this.scheme.attrs.usedValue) {
-                this.getData()
+        watch: {
+            'ipValue.selectors': {
+                handler (val, oldVal) {
+                    if (!val.length || tools.isDataEqual(val, oldVal)) return
+                    this.getData()
+                },
+                immediate: true
             }
         },
         methods: {
@@ -152,61 +160,71 @@
                 'getDynamicGroup'
             ]),
             getData () {
+                // 只展示文本时无需发起请求
+                if (this.scheme.attrs.usedValue) return
+
                 const staticIpExtraFields = ['agent', 'bk_host_innerip_v6']
                 const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
                 if (!urls['cc_search_host'] || !urls['cc_search_topo_tree'] || !urls['cc_get_mainline_object_topo']) {
                     return
                 }
+                // 已经加载的tab，无需再次请求接口
+                const selectorInfo = this.selectorTabs.find(item => item.id === this.ipValue.selectors[0])
+                if (selectorInfo.load) return
+
                 this.loading = true
-                Promise.all([
-                    this.getHostInCC({
-                        url: urls['cc_search_host'],
-                        fields: staticIpExtraFields
-                    }),
-                    this.getTopoTreeInCC({
-                        url: urls['cc_search_topo_tree']
-                    }),
-                    this.getTopoModelInCC({
-                        url: urls['cc_get_mainline_object_topo']
-                    }),
-                    this.getDynamicGroup({
-                        url: urls['cc_dynamic_group_list']
-                    })
-                ]).then(values => {
-                    if (Array.isArray(values)) {
-                        let hasDiff = false
-                        const { ip, group } = this.value
-                        values.forEach((v, index) => {
-                            switch (index) {
-                                case 0:
-                                    this.staticIpList = v.data
-                                    if (!this.hook) { // 表单没有被勾选
-                                        ip.forEach(value => {
-                                            // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则提示用户手动更新
-                                            hasDiff = this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
-                                            this.$set(value, 'diff', hasDiff)
-                                        })
-                                    }
-                                    break
-                                case 1:
-                                    this.dynamicIpList = v.data
-                                    break
-                                case 2:
-                                    this.topoModelList = v.data
-                                    break
-                                case 3:
-                                    this.dynamicGroupList = v.data.info
-                                    // 判断动态分组数据与最新的CMDB动态分组配置是否存在差异
-                                    const dynamicGroups = group || []
-                                    dynamicGroups.some(value => {
-                                        hasDiff = this.dynamicGroupList.every(item => item.id !== value.id)
+                const requestList = []
+                switch (selectorInfo.id) {
+                    case 'ip':
+                        requestList.push(this.getHostInCC({ url: urls['cc_search_host'], fields: staticIpExtraFields }))
+                        break
+                    case 'topo':
+                        requestList.push(this.getTopoTreeInCC({ url: urls['cc_search_topo_tree'] }))
+                        break
+                    case 'group':
+                        requestList.push(this.getDynamicGroup({ url: urls['cc_dynamic_group_list'] }))
+                        break
+                }
+                // 这个接口只在初始化的时候调一次
+                const isInit = this.selectorTabs.every(item => !item.load)
+                if (isInit) {
+                    requestList.push(this.getTopoModelInCC({ url: urls['cc_get_mainline_object_topo'] }))
+                }
+
+                Promise.all(requestList).then(values => {
+                    let hasDiff = false
+                    const { ip, group } = this.value
+                    values.forEach((v) => {
+                        switch (selectorInfo.id) {
+                            case 'ip':
+                                this.staticIpList = v.data
+                                if (!this.hook) { // 表单没有被勾选
+                                    ip.forEach(value => {
+                                        // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则提示用户手动更新
+                                        hasDiff = this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
                                         this.$set(value, 'diff', hasDiff)
                                     })
-                                    break
-                            }
-                        })
-                    }
+                                }
+                                break
+                            case 'topo':
+                                this.dynamicIpList = v.data
+                                break
+                            case 'group':
+                                this.dynamicGroupList = v.data.info
+                                // 判断动态分组数据与最新的CMDB动态分组配置是否存在差异
+                                const dynamicGroups = group || []
+                                dynamicGroups.some(value => {
+                                    hasDiff = this.dynamicGroupList.every(item => item.id !== value.id)
+                                    this.$set(value, 'diff', hasDiff)
+                                })
+                                break
+                            default:
+                                this.topoModelList = v.data
+                                break
+                        }
+                    })
                     this.loading = false
+                    selectorInfo.load = true
                 }).catch(e => {
                     this.loading = false
                     console.log(e)
