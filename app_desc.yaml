@@ -279,7 +279,7 @@ modules:
               value: 0
               description: 是否自动更新插件模型
             - key: CELERY_EXPORTER_PORT
-              value: 5001
+              value: 5000
               description: celery-exporter 监听端口
             - key: ENABLE_METRICS
               value: 1
