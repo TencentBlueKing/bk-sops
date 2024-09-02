@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.32.1-d1"
+app_version: "3.32.1-d2"
 app:
     region: default
     bk_app_code: bk_sops
@@ -329,7 +329,7 @@ modules:
                 command: celery worker -A blueapps.core.celery -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
-            exporter:
+            web:
                 command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr :$CELERY_EXPORTER_PORT --queue-list $CELERY_EXPORTER_QUEUE
                 plan: 4C1G5R
                 replicas: 1
