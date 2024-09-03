@@ -122,7 +122,10 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                         auth_params["key"] = auth_key
 
                 # 额外配置参数
-                extra_config_params = {"peer_exchange_switch_for_agent": host.get("peer_exchange_switch_for_agent", 0)}
+                extra_config_params = {
+                    "peer_exchange_switch_for_agent": host.get("peer_exchange_switch_for_agent", 0),
+                    "force_update_agent_id": host.get("force_update_agent_id", False),
+                }
                 speed_limit = host.get("speed_limit")
                 if speed_limit:
                     extra_config_params.update({"bt_speed_limit": int(speed_limit)})

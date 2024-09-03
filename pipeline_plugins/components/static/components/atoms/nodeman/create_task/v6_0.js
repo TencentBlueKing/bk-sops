@@ -320,6 +320,23 @@
                     ]
                 },
             },
+            {
+                tag_code: "force_update_agent_id",
+                type: "radio",
+                attrs: {
+                    name: gettext("重新注册Agent_id"),
+                    items: [
+                        {value: true, name: gettext("是")},
+                        {value: false, name: gettext("否")}
+                    ],
+                    default: false,
+                    validation: [
+                        {
+                            type: "required"
+                        },
+                    ]
+                },
+            },
         ];
 
         self.columns = common_columns;
