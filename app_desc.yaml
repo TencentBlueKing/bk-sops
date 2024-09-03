@@ -172,7 +172,7 @@ modules:
               value: 0
               description: 是否自动更新插件模型
             - key: CELERY_EXPORTER_PORT
-              value: 5001
+              value: 5000
               description: celery-exporter 监听端口
             - key: C_FORCE_ROOT
               value: 1
@@ -225,7 +225,7 @@ modules:
                 command: celery -A blueapps.core.celery worker -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
-            exporter:
+            web:
                 command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr :$CELERY_EXPORTER_PORT --queue-list $CELERY_EXPORTER_QUEUE
                 plan: 4C1G5R
                 replicas: 1
