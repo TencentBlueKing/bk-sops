@@ -249,6 +249,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
+                                "force_update_agent_id": False,
                             }
                         ],
                     }
@@ -341,6 +342,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
                                 "bk_host_id": 1,
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -358,6 +360,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "login_ip": "6.6.6.6",
                                 "data_ip": "8.8.8.8",
                                 "bk_host_id": 2,
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -375,6 +378,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "login_ip": "7.7.7.7",
                                 "data_ip": "9.9.9.9",
                                 "bk_host_id": 3,
+                                "force_update_agent_id": False,
                             },
                         ],
                     }
@@ -419,6 +423,7 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
                     "os_type": "LINUX",
                     "peer_exchange_switch_for_agent": 0,
                     "speed_limit": "100",
+                    "force_update_agent_id": False,
                 },
                 {
                     "bk_biz_id": "1",
@@ -428,6 +433,7 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
                     "inner_ip": "2.2.2.2,3.3.3.3",
                     "peer_exchange_switch_for_agent": 0,
                     "speed_limit": "100",
+                    "force_update_agent_id": False,
                 },
             ],
         },
@@ -458,6 +464,7 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
                                 "bt_speed_limit": 100,
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
                                 "bk_host_id": 1,
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -469,6 +476,7 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
                                 "bt_speed_limit": 100,
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
                                 "bk_host_id": 2,
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -480,6 +488,7 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
                                 "bt_speed_limit": 100,
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
                                 "bk_host_id": 3,
+                                "force_update_agent_id": False,
                             },
                         ],
                     }
@@ -561,6 +570,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
                                 "bk_host_id": 1,
+                                "force_update_agent_id": False,
                             }
                         ],
                     }
@@ -749,6 +759,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "login_ip": "5.5.5.5",
                                 "data_ip": "7.7.7.7",
                                 "bk_host_id": 1,
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -766,6 +777,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "login_ip": "6.6.6.6",
                                 "data_ip": "8.8.8.8",
                                 "bk_host_id": 1,
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -783,6 +795,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "login_ip": "5.5.5.5",
                                 "data_ip": "7.7.7.7",
                                 "bk_host_id": 1,
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -798,6 +811,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "password": "encrypt_auth_key",
                                 "data_ip": "7.7.7.7",
                                 "bk_host_id": 1,
+                                "force_update_agent_id": False,
                             },
                         ],
                     }
@@ -882,6 +896,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
+                                "force_update_agent_id": False,
                             }
                         ],
                     }
@@ -1021,6 +1036,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
+                                "force_update_agent_id": False,
                             },
                             {
                                 "bk_biz_id": "1",
@@ -1037,6 +1053,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
                                 "outer_ip": "2.2.2.2",
                                 "login_ip": "2.2.2.2",
                                 "data_ip": "2.2.2.2",
+                                "force_update_agent_id": False,
                             },
                         ],
                     }
