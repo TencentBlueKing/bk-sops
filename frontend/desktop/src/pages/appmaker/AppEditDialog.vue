@@ -528,6 +528,7 @@
             onCancel () {
                 this.$emit('onEditCancel')
                 this.veeErrors.clear()
+                this.pagination.current = 1
                 this.appTemplateEmpty = false
             },
             resetAppData () {
