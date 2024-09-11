@@ -20,7 +20,7 @@ const en = {
     '运营数据': 'Analysis',
     '插件开发': 'Develop Plugin',
     '产品文档': 'Documentation',
-    '版本日志': 'Release Note',
+    '版本日志': 'Release Notes',
     '问题反馈': 'Feedback',
     '任务管理': 'Tasks', // 废弃
     '职能化中心': 'Functional', // 废弃
