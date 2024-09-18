@@ -94,7 +94,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             return api_result
         if "__executor_proxy" in api_result.data["inputs"] and kwargs["inputs"]:
             kwargs["inputs"]["__executor_proxy"] = api_result.data["inputs"]["__executor_proxy"]["value"]
-
+        if kwargs["inputs"]:
+            render_keys = kwargs["inputs"].get("_escape_render_keys", [])
+            for k, v in api_result.data["inputs"].items():
+                if v.get("need_render") is False and k not in render_keys:
+                    render_keys.append(k)
+            if render_keys:
+                kwargs["inputs"]["_escape_render_keys"] = render_keys
         # 数据为空的情况传入 None, v2 engine api 不认为 {} 是空数据
         return bamboo_engine_api.retry_node(runtime=runtime, node_id=self.node_id, data=kwargs["inputs"] or None)
 
