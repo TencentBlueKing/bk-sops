@@ -2387,7 +2387,6 @@
     }
 }
 /deep/.bk-sideslider {
-    min-width: 1360px;
     .bk-sideslider-content {
         height: calc(100% - 60px);
     }

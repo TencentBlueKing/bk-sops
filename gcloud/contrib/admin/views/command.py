@@ -156,9 +156,9 @@ def batch_revoke_task(request):
     批量 终止某批任务，并终止该任务下面正在执行的节点
     body: data
     {
-        "project_id": 任务 id
+        "project_id": "任务 id",
         "task_id(optional)": "任务 id ",
-        "task_ids(optional)": "任务 ID 列表(list)",
+        "task_ids(optional)": "任务 ID 列表(list)"
     }
     """
 
