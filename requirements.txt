@@ -1,7 +1,6 @@
 # Base
 Django==3.2.25
-PyMySQL==0.6.7
-mysqlclient==2.0.3
+pymysql==1.0.2
 requests==2.27.1
 httplib2==0.19.0
 Mako==1.1.4
@@ -59,7 +58,7 @@ importlib-metadata==3.7.3
 protobuf==3.19.4
 
 # blueapps
-blueapps[opentelemetry,bkcrypto]==4.13.1
+blueapps[opentelemetry,bkcrypto]==4.14.0
 whitenoise==5.2.0
 raven==6.5.0
 python-json-logger==2.0.1
