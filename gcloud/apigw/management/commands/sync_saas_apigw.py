@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License.
 import os
 import traceback
 
-from django.core.management.base import BaseCommand
 from django.core.management import call_command
+from django.core.management.base import BaseCommand
 
 import env
 
@@ -43,6 +43,9 @@ class Command(BaseCommand):
 
         print("[bk-sops]call create_version_and_release_apigw with definition: %s" % definition_file_path)
         call_command("create_version_and_release_apigw", "--generate-sdks", file=definition_file_path)
+
+        print("[bk-sops] call grant_apigw_permissions with definition: %s" % definition_file_path)
+        call_command("grant_apigw_permissions", file=definition_file_path)
 
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
