@@ -13,14 +13,14 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.common import (
     title_and_content_for_atom_failed,
+    title_and_content_for_clocked_task_create_fail,
     title_and_content_for_flow_finished,
     title_and_content_for_periodic_task_start_fail,
-    title_and_content_for_clocked_task_create_fail,
 )
 from gcloud.shortcuts.message.send_msg import send_message
-from gcloud.periodictask.models import PeriodicTask
 
 logger = logging.getLogger("root")
 
@@ -29,6 +29,10 @@ TASK_FINISHED = "task_finished"
 
 
 def send_task_flow_message(taskflow, msg_type, node_name=""):
+
+    # 有可能是一次性执行任务，此时应当跳过发通知
+    if not taskflow.template:
+        return False
 
     notify_types = taskflow.get_notify_type()
     receivers_list = taskflow.get_stakeholders()
@@ -77,7 +81,6 @@ def send_periodic_task_message(periodic_task, history):
 
 
 def send_clocked_task_message(clocked_task, ex_data):
-
     notify_types = clocked_task.get_notify_type()
     receivers_list = clocked_task.get_stakeholders()
     receivers = ",".join(receivers_list)
