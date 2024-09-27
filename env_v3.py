@@ -47,7 +47,7 @@ for item in BK_SAAS_HOSTS_DICT:
 
 
 def get_app_host(app_code):
-    app_host_key = "%s_HOTS" % app_code.upper()
+    app_host_key = "%s_HOST" % app_code.upper()
     app_host = os.getenv(app_host_key)
     if app_host:
         return app_host
