@@ -27,7 +27,7 @@ ESB_GET_OLD_CLIENT_BY_USER = get_client_by_user
 
 APP_HOST = env.BK_SOPS_HOST
 ESB_GET_ALL_USER = "{}/api/c/compapi/v2/usermanage/fe_list_users/".format(settings.BK_PAAS_ESB_HOST)
-BK_DOC_URL = "{}/markdown/SOPS/UserGuide/Overview/README.md".format(env.BK_DOC_CENTER_HOST)
+BK_DOC_URL = "{}/markdown/ZH/SOPS/3.33/UserGuide/Overview/README.md".format(env.BK_DOC_CENTER_HOST)
 FEEDBACK_URL = "https://bk.tencent.com/s-mart/community"
 APP_MAKER_UPLOAD_LOGO_USER_UIN = "bk_token"
 APP_MAKER_UPLOAD_LOGO_USER_KEY = "bk_token_null"
