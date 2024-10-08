@@ -49,6 +49,7 @@ def get_cur_pos_from_url(request):
 def mysetting(request):
     # 嵌入CICD，隐藏头部
     language = request.COOKIES.get("blueking_language", "zh-cn")
+    doc_lang_mappings = {"zh-cn": "ZH", "en": "EN"}
     run_ver_key = "BKAPP_RUN_VER_NAME" if language == "zh-cn" else "BKAPP_RUN_VER_NAME_{}".format(language.upper())
     file_manager_type = "BKAPP_FILE_MANAGER_TYPE"
     hide_header = int(request.GET.get("hide_header", "0") == "1")
@@ -117,7 +118,7 @@ def mysetting(request):
         "FILE_UPLOAD_ENTRY": env.BKAPP_FILE_UPLOAD_ENTRY,
         "MEMBER_SELECTOR_DATA_HOST": settings.BK_MEMBER_SELECTOR_DATA_HOST,
         "BK_STATIC_URL": frontend_entry_url,
-        "BK_DOC_URL": settings.BK_DOC_URL,
+        "BK_DOC_URL": settings.BK_DOC_URL.format(doc_lang_mappings.get(language, "ZH")),
         "FEEDBACK_URL": settings.FEEDBACK_URL,
         "FILE_MANAGER_TYPE": EnvironmentVariables.objects.get_var(file_manager_type, env.BKAPP_FILE_MANAGER_TYPE),
         "MAX_NODE_EXECUTE_TIMEOUT": settings.MAX_NODE_EXECUTE_TIMEOUT,
