@@ -45,23 +45,34 @@ for item in BK_SAAS_HOSTS_DICT:
         os.getenv("BKPAAS_ENVIRONMENT", "prod")
     ]
 
+
+def get_app_host(app_code):
+    app_host_key = "%s_HOST" % app_code.upper()
+    app_host = os.getenv(app_host_key)
+    if app_host:
+        return app_host
+    if app_code in BK_SAAS_HOSTS:
+        return BK_SAAS_HOSTS[app_code][BKSAAS_DEFAULT_MODULE_NAME]
+    return None
+
+
 BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
 
-BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", BK_SAAS_HOSTS["bk_nodeman"][BKSAAS_DEFAULT_MODULE_NAME])
+BK_NODEMAN_HOST = get_app_host("bk_nodeman")
 
-BK_SOPS_HOST = os.getenv("BK_SOPS_HOST", BK_SAAS_HOSTS["bk_sops"][BKSAAS_DEFAULT_MODULE_NAME])
+BK_SOPS_HOST = get_app_host("bk_sops")
 
 # 兼容没有部署 GSEKIT 的情况
 BK_GSE_KIT_PAGE_URL_TEMPLATE = os.getenv(
     "BK_GSEKIT_PAGE_URL_TEMPLATE",
-    str(BK_SAAS_HOSTS["bk_gsekit"][BKSAAS_DEFAULT_MODULE_NAME]).rstrip("/")
+    BK_SAAS_HOSTS.get("bk_gsekit", {}).get(BKSAAS_DEFAULT_MODULE_NAME, "").rstrip("/")
     + "/task-history/detail/{job_id}?biz={bk_biz_id}",
 )
 
 # 用户管理配置
-BK_USER_MANAGE_HOST = os.getenv("BK_USER_MANAGE_HOST", BK_SAAS_HOSTS["bk_user_manage"][BKSAAS_DEFAULT_MODULE_NAME])
+BK_USER_MANAGE_HOST = get_app_host("bk_user_manage")
 
 # 文档中心
 BK_DOC_CENTER_HOST = os.getenv("BK_DOC_CENTER_HOST", os.getenv("BK_DOCS_URL_PREFIX"))
@@ -147,15 +158,18 @@ BKAPP_REDIS_SENTINEL_PASSWORD = os.getenv("REDIS_SENTINEL_PASSWORD")
 
 # CALLBACK 回调地址
 BKAPP_INNER_CALLBACK_HOST = os.getenv(
-    "BKAPP_INNER_CALLBACK_HOST", BK_SAAS_HOSTS[APP_CODE][SOPS_CALLBACK_MODULE_NAME] or BK_PAAS_INNER_HOST + SITE_URL
+    "BKAPP_INNER_CALLBACK_HOST",
+    BK_SAAS_HOSTS[APP_CODE][SOPS_CALLBACK_MODULE_NAME] if BK_SAAS_HOSTS else BK_PAAS_INNER_HOST + SITE_URL,
 )
 # APIGW CALLBACK SERVER服务地址
 BKAPP_APIGW_CALLBACK_HOST = os.getenv(
-    "BKAPP_APIGW_CALLBACK_HOST", BK_SAAS_HOSTS[APP_CODE][SOPS_CALLBACK_MODULE_NAME] or BK_PAAS_INNER_HOST + SITE_URL
+    "BKAPP_APIGW_CALLBACK_HOST",
+    BK_SAAS_HOSTS[APP_CODE][SOPS_CALLBACK_MODULE_NAME] if BK_SAAS_HOSTS else BK_PAAS_INNER_HOST + SITE_URL,
 )
 # API SERVER服务地址
 BKAPP_APIGW_API_HOST = os.getenv(
-    "BKAPP_APIGW_API_HOST", BK_SAAS_HOSTS[APP_CODE][SOPS_API_SERVER_MODULE_NAME] or BK_PAAS_INNER_HOST + SITE_URL
+    "BKAPP_APIGW_API_HOST",
+    BK_SAAS_HOSTS[APP_CODE][SOPS_API_SERVER_MODULE_NAME] if BK_SAAS_HOSTS else BK_PAAS_INNER_HOST + SITE_URL,
 )
 
 BKAPP_FILE_UPLOAD_ENTRY = os.getenv("BKAPP_FILE_UPLOAD_ENTRY", "")
