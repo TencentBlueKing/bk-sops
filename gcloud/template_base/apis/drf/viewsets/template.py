@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
@@ -21,8 +21,8 @@ from rest_framework.response import Response
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.viewsets import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.template_base.apis.drf.permission import ProjectTemplatePermission, CommonTemplatePermission
-from gcloud.template_base.apis.drf.serilaziers.template import TemplateIdsSerializer, BatchDeleteSerialzer
+from gcloud.template_base.apis.drf.permission import CommonTemplatePermission, ProjectTemplatePermission
+from gcloud.template_base.apis.drf.serilaziers.template import BatchDeleteSerialzer, TemplateIdsSerializer
 from gcloud.template_base.domains.template_manager import TemplateManager
 
 logger = logging.getLogger("root")
@@ -49,13 +49,13 @@ class TemplateViewSet(ApiMixin, viewsets.GenericViewSet):
 
 class ProjectTemplateViewSet(TemplateViewSet):
     queryset = TaskTemplate.objects.all()
-    permission_classes = [permissions.IsAuthenticated | ProjectTemplatePermission]
+    permission_classes = [ProjectTemplatePermission]
     template_type = "project"
     tmpl_model = TaskTemplate
 
 
 class CommonTemplateViewSet(TemplateViewSet):
     queryset = CommonTemplate.objects.all()
-    permission_classes = [permissions.IsAuthenticated | CommonTemplatePermission]
+    permission_classes = [CommonTemplatePermission]
     template_type = "common"
     tmpl_model = CommonTemplate

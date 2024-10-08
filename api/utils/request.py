@@ -10,13 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
 import logging
+
+from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
+
 from .thread import ThreadPool
 
 logger = logging.getLogger("root")
@@ -126,6 +128,11 @@ def batch_request(
                 check_and_raise_raw_auth_fail_exception(result, message)
             raise ApiRequestError(message)
 
-        data.extend(get_data(result))
+        try:
+            data.extend(get_data(result))
+        except Exception as e:
+            message = handle_api_error("[batch_request get_data]", func.path, params_and_future["params"], result)
+            logger.exception(f"{e}: {message}")
+            raise ApiRequestError(message)
 
     return data
