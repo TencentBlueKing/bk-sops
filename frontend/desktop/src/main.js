@@ -12,6 +12,7 @@
 import './public-path.js'
 import Vue from 'vue'
 import VeeValidate, { Validator } from 'vee-validate'
+import filterXSS from 'xss'
 import router from './routers/index.js'
 import store from './store/index.js'
 import './directives/index.js'
@@ -208,6 +209,12 @@ Validator.localize({
                 regex: i18n.t('请输入 test 之间的数')
             }
         }
+    }
+})
+
+Vue.prototype.filterXSS = input => filterXSS(input, {
+    whiteList: {
+        a: ['href']
     }
 })
 
