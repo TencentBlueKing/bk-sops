@@ -113,11 +113,11 @@
                 if (output.value === 'undefined' || output.value === '') {
                     return '--'
                 } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
-                    return output.value
+                    return this.filterXSS(JSON.stringify(output.value))
                 } else if (Array.isArray(output.value)) {
                     if (!output.value.length) return '--'
                     return output.value.reduce((acc, cur) => {
-                        let str = cur
+                        let str = this.filterXSS(cur)
                         if (this.isUrl(cur)) {
                             str = `<a style="color: #3a84ff; word-break: break-all;" target="_blank" href="${cur}">${cur}</a>`
                         }
@@ -128,7 +128,7 @@
                     if (this.isUrl(output.value)) {
                         return `<a style="color: #3a84ff; word-break: break-all;" target="_blank" href="${output.value}">${output.value}</a>`
                     }
-                    return output.value
+                    return this.filterXSS(JSON.stringify(output.value))
                 }
             }
         }
