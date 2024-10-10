@@ -561,7 +561,14 @@
                     return ''
                 }
                 if (typeof data === 'string') {
-                    const info = data.replace(/\n/g, '<br>')
+                    // 只渲染a标签，不过滤换行
+                    let info = data.replace(/\n/g, '<br>')
+                    info = this.filterXSS(info, {
+                        whiteList: {
+                            a: ['href'],
+                            br: []
+                        }
+                    })
                     return info
                 } else {
                     return data

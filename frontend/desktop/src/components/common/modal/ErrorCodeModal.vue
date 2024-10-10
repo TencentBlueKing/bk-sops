@@ -28,7 +28,7 @@
             <ErrorCode406 v-if="code === 406"></ErrorCode406>
             <ErrorCode407 v-if="code === 407"></ErrorCode407>
             <ErrorCode500 v-if="code === 500" :response-text="responseText"></ErrorCode500>
-            <div class="default-modal" v-if="code === 'default'" v-html="responseText"></div>
+            <div class="default-modal" v-if="code === 'default'" v-html="filterXSS(responseText)"></div>
         </div>
     </bk-dialog>
 </template>
