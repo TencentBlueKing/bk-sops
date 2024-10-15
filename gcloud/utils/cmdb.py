@@ -25,7 +25,9 @@ logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None):
+def get_business_host_topo(
+    username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None, page=None
+):
     """获取业务下所有主机信息
     :param username: 请求用户名
     :type username: str
@@ -76,7 +78,12 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
             "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
         }
 
-    result = batch_request(client.cc.list_biz_hosts_topo, kwargs)
+    if page:
+        kwargs["page"] = page
+        data = client.cc.list_biz_hosts_topo(kwargs)
+        result = data["data"]["info"]
+    else:
+        result = batch_request(client.cc.list_biz_hosts_topo, kwargs)
 
     host_info_list = []
     for host_topo in result:
