@@ -65,7 +65,7 @@ def cmdb_search_topo_tree(request, bk_biz_id, bk_supplier_account=""):
     return JsonResponse(result)
 
 
-def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=0):
+def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=0, page=None):
     """
     @summary: 获取 CMDB 上业务的 IP 列表，以及 agent 状态等信息
     @param request:
@@ -84,11 +84,12 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     client = get_client_by_user(request.user.username)
 
     topo_modules_id = set()
+    ip_list = json.loads(request.GET.get("ip_list", "[]"))
 
     # get filter module id
     if request.GET.get("topo", None):
         topo = json.loads(request.GET.get("topo"))
-        topo_result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account)
+        topo_result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account,)
         if not topo_result["result"]:
             return JsonResponse(topo_result)
 
@@ -109,7 +110,8 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
 
-    raw_host_info_list = cmdb.get_business_host_topo(request.user.username, bk_biz_id, bk_supplier_account, fields)
+    raw_host_info_list = cmdb.get_business_host_topo(request.user.username, bk_biz_id, bk_supplier_account, fields,
+                                                     ip_list=ip_list, page=page)
 
     # map cloud_area_id to cloud_area
     cloud_area_dict = {}

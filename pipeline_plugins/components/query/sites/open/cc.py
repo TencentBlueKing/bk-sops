@@ -341,7 +341,11 @@ def cc_search_topo_tree(request, biz_cc_id, supplier_account):
 @supplier_account_inject
 @supplier_id_inject
 def cc_search_host(request, biz_cc_id, supplier_account, supplier_id):
-    return cmdb_search_host(request, biz_cc_id, supplier_account, supplier_id)
+    page = {
+        "start": int(request.GET.get("start", 0)),
+        "limit": int(request.GET.get("limit", 10)),
+    }
+    return cmdb_search_host(request, biz_cc_id, supplier_account, supplier_id, page)
 
 
 @supplier_account_inject
