@@ -89,7 +89,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     # get filter module id
     if request.GET.get("topo", None):
         topo = json.loads(request.GET.get("topo"))
-        topo_result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account,)
+        topo_result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account)
         if not topo_result["result"]:
             return JsonResponse(topo_result)
 
