@@ -61,6 +61,10 @@ modules:
                 command: python manage.py celery worker -Q default -n default@%h -P threads -c 10 -l info
                 plan: 4C2G5R
                 replicas: 5
+            analysis_worker:
+              command: python manage.py celery worker -Q analysis_statistics -n analysis_statistics@%h -P threads -c 10 -l info
+              plan: 4C2G5R
+              replicas: 5
         svc_discovery:
             bk_saas:
                 - bk_app_code: "bk_iam"
