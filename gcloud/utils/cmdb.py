@@ -26,7 +26,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def get_business_host_topo(
-    username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None, page=None
+    username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None, page=None, operator=None
 ):
     """获取业务下所有主机信息
     :param username: 请求用户名
@@ -41,6 +41,10 @@ def get_business_host_topo(
     :type ip_list: list
     :param property_filters: 查询主机时的相关属性过滤条件, 当传递该参数时，ip_list参数生成的过滤条件失效
     :type property_filters: dict
+    :param page: 分页参数，例如：{"start":0,"limit":2}
+    :type page: dict
+    :param operator: 查询方法，"in"代表精准匹配，"contains"代表模糊查询
+    :type operator: str
     :return: [
         {
             "host": {
@@ -75,7 +79,7 @@ def get_business_host_topo(
     elif ip_list:
         kwargs["host_property_filter"] = {
             "condition": "AND",
-            "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
+            "rules": [{"field": "bk_host_innerip", "operator": operator, "value": ip_list}],
         }
 
     if page:

@@ -84,11 +84,20 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     client = get_client_by_user(request.user.username)
 
     topo_modules_id = set()
-    page = {
-        "start": int(request.GET.get("start", 0)),
-        "limit": int(request.GET.get("limit", 10)),
-    }
-    ip_list = json.loads(request.GET.get("ip_list", "[]"))
+
+    operator = request.GET.get("operator", None)
+    if operator == "in":
+        ip_list = json.loads(request.GET.get("ip_list", "[]"))
+    elif operator == "contains":
+        ip_list = json.loads(request.GET.get("ip_list", ""))
+    else:
+        ip_list = None
+
+    start = request.GET.get("start", None)
+    if start:
+        page = {"start": int(start), "limit": int(request.GET.get("limit", 10))}
+    else:
+        page = None
 
     # get filter module id
     if request.GET.get("topo", None):
@@ -115,7 +124,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         return JsonResponse(result)
 
     raw_host_info_list = cmdb.get_business_host_topo(
-        request.user.username, bk_biz_id, bk_supplier_account, fields, ip_list=ip_list, page=page
+        request.user.username, bk_biz_id, bk_supplier_account, fields, ip_list=ip_list, page=page, operator=operator
     )
 
     # map cloud_area_id to cloud_area
