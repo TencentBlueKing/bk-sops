@@ -158,12 +158,7 @@ class GetBusinessHostTopoTestCase(TestCase):
         mock_batch_request = MagicMock(return_value=self.list_biz_hosts_topo_return)
         with patch("gcloud.utils.cmdb.batch_request", mock_batch_request):
             hosts_topo = get_business_host_topo(
-                self.username,
-                self.bk_biz_id,
-                self.supplier_account,
-                self.host_fields,
-                self.ip_list,
-                operator="in",
+                self.username, self.bk_biz_id, self.supplier_account, self.host_fields, self.ip_list, operator="in"
             )
 
         self.assertEqual(hosts_topo, self.get_business_host_topo_expect_return)
