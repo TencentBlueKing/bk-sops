@@ -25,7 +25,9 @@ logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None):
+def get_business_host_topo(
+    username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None, **kwargs
+):
     """获取业务下所有主机信息
     :param username: 请求用户名
     :type username: str
@@ -39,6 +41,7 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     :type ip_list: list
     :param property_filters: 查询主机时的相关属性过滤条件, 当传递该参数时，ip_list参数生成的过滤条件失效
     :type property_filters: dict
+    :param kwargs: 其他关键字参数
     :return: [
         {
             "host": {
@@ -66,17 +69,19 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     :rtype: list
     """
     client = get_client_by_user(username)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
+    params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     if property_filters is not None:
-        kwargs.update(property_filters)
-    elif ip_list:
-        kwargs["host_property_filter"] = {
-            "condition": "AND",
-            "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
-        }
+        params.update(property_filters)
+    elif kwargs.get("operator"):
+        params["host_property_filter"] = create_host_property_filter(kwargs.get("operator"), ip_list)
 
-    result = batch_request(client.cc.list_biz_hosts_topo, kwargs)
+    if kwargs.get("start"):
+        params["page"] = {"start": int(kwargs.get("start")), "limit": int(kwargs.get("limit"))}
+        data = client.cc.list_biz_hosts_topo(params)
+        result = data["data"]["info"]
+    else:
+        result = batch_request(client.cc.list_biz_hosts_topo, params)
 
     host_info_list = []
     for host_topo in result:
@@ -91,6 +96,26 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
         host_info_list.append(host_info)
 
     return host_info_list
+
+
+def create_host_property_filter(operator, ip_list):
+    """创建主机属性过滤条件
+    :param operator: 过滤操作符
+    :type operator: str
+    :param ip_list: 主机内网 IP 列表
+    :type ip_list: list
+    """
+    if operator == "in":
+        return {
+            "condition": "AND",
+            "rules": [{"field": "bk_host_innerip", "operator": operator, "value": ip_list}],
+        }
+    elif operator == "contains":
+        return {
+            "condition": "AND",
+            "rules": [{"field": "bk_host_innerip", "operator": operator, "value": ip_list[0]}],
+        }
+    return None
 
 
 def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):

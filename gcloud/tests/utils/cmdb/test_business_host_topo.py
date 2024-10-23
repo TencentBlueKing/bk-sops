@@ -19,10 +19,10 @@ from gcloud.utils.cmdb import get_business_host_topo
 
 class GetBusinessHostTopoTestCase(TestCase):
     def setUp(self):
-        mock_client = MagicMock()
-        mock_client.cc.list_biz_hosts_topo = "list_biz_hosts_topo"
+        self.mock_client = MagicMock()
+        self.mock_client.cc.list_biz_hosts_topo = "list_biz_hosts_topo"
         self.get_client_by_user_patcher = patch(
-            "gcloud.utils.cmdb.get_client_by_user", MagicMock(return_value=mock_client)
+            "gcloud.utils.cmdb.get_client_by_user", MagicMock(return_value=self.mock_client)
         )
         self.get_client_by_user_patcher.start()
 
@@ -30,7 +30,7 @@ class GetBusinessHostTopoTestCase(TestCase):
         self.bk_biz_id = "biz_id_token"
         self.supplier_account = "supplier_account_token"
         self.host_fields = ["host_fields_token"]
-        self.ip_list = "ip_list_token"
+        self.ip_list = ["ip_list_token"]
         self.list_biz_hosts_topo_return = [
             {
                 "host": {
@@ -65,6 +65,52 @@ class GetBusinessHostTopoTestCase(TestCase):
                 ],
             },
         ]
+        self.list_biz_hosts_page_topo_return = {
+            "data": {
+                "info": [
+                    {
+                        "host": {
+                            "bk_cloud_id": 0,
+                            "bk_host_id": 1,
+                            "bk_host_innerip": "127.0.0.1",
+                            "bk_mac": "",
+                            "bk_os_type": None,
+                        },
+                        "topo": [
+                            {
+                                "bk_set_id": 11,
+                                "bk_set_name": "set1",
+                                "module": [{"bk_module_id": 56, "bk_module_name": "m1"}],
+                            }
+                        ],
+                    },
+                    {
+                        "host": {
+                            "bk_cloud_id": 0,
+                            "bk_host_id": 3,
+                            "bk_host_innerip": "127.0.0.3",
+                            "bk_mac": "",
+                            "bk_os_type": None,
+                        },
+                        "topo": [
+                            {
+                                "bk_set_id": 10,
+                                "bk_set_name": "空闲机池",
+                                "module": [
+                                    {"bk_module_id": 54, "bk_module_name": "空闲机"},
+                                    {"bk_module_id": 55, "bk_module_name": "空闲机1"},
+                                ],
+                            },
+                            {
+                                "bk_set_id": 11,
+                                "bk_set_name": "set1",
+                                "module": [{"bk_module_id": 56, "bk_module_name": "m1"}],
+                            },
+                        ],
+                    },
+                ]
+            },
+        }
         self.get_business_host_topo_expect_return = [
             {
                 "host": {
@@ -98,7 +144,6 @@ class GetBusinessHostTopoTestCase(TestCase):
         self.get_client_by_user_patcher.stop()
 
     def test__list_biz_hosts_topo_return_empty(self):
-
         mock_batch_request = MagicMock(return_value=[])
         with patch("gcloud.utils.cmdb.batch_request", mock_batch_request):
             hosts_topo = get_business_host_topo(self.username, self.bk_biz_id, self.supplier_account, self.host_fields)
@@ -113,7 +158,7 @@ class GetBusinessHostTopoTestCase(TestCase):
         mock_batch_request = MagicMock(return_value=self.list_biz_hosts_topo_return)
         with patch("gcloud.utils.cmdb.batch_request", mock_batch_request):
             hosts_topo = get_business_host_topo(
-                self.username, self.bk_biz_id, self.supplier_account, self.host_fields, self.ip_list
+                self.username, self.bk_biz_id, self.supplier_account, self.host_fields, self.ip_list, operator="in"
             )
 
         self.assertEqual(hosts_topo, self.get_business_host_topo_expect_return)
@@ -139,4 +184,46 @@ class GetBusinessHostTopoTestCase(TestCase):
         mock_batch_request.assert_called_once_with(
             "list_biz_hosts_topo",
             {"bk_biz_id": self.bk_biz_id, "bk_supplier_account": self.supplier_account, "fields": self.host_fields},
+        )
+
+    def test__get_contains_with_ip_list(self):
+        mock_batch_request = MagicMock(return_value=self.list_biz_hosts_topo_return)
+        with patch("gcloud.utils.cmdb.batch_request", mock_batch_request):
+            hosts_topo = get_business_host_topo(
+                self.username,
+                self.bk_biz_id,
+                self.supplier_account,
+                self.host_fields,
+                self.ip_list,
+                operator="contains",
+            )
+
+        self.assertEqual(hosts_topo, self.get_business_host_topo_expect_return)
+        mock_batch_request.assert_called_once_with(
+            "list_biz_hosts_topo",
+            {
+                "bk_biz_id": self.bk_biz_id,
+                "bk_supplier_account": self.supplier_account,
+                "fields": self.host_fields,
+                "host_property_filter": {
+                    "condition": "AND",
+                    "rules": [{"field": "bk_host_innerip", "operator": "contains", "value": self.ip_list[0]}],
+                },
+            },
+        )
+
+    def test__get_with_page_list(self):
+        self.mock_client.cc.list_biz_hosts_topo = MagicMock(return_value=self.list_biz_hosts_page_topo_return)
+        hosts_topo = get_business_host_topo(
+            self.username, self.bk_biz_id, self.supplier_account, self.host_fields, start="0", limit="10"
+        )
+
+        self.assertEqual(hosts_topo, self.get_business_host_topo_expect_return)
+        self.mock_client.cc.list_biz_hosts_topo.assert_called_once_with(
+            {
+                "bk_biz_id": self.bk_biz_id,
+                "bk_supplier_account": self.supplier_account,
+                "fields": self.host_fields,
+                "page": {"start": 0, "limit": 10},
+            },
         )
