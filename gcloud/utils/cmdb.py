@@ -143,7 +143,7 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
 
     params["page"] = {"start": start, "limit": limit}
     data = client.cc.list_biz_hosts_topo(params)
-    if not data:
+    if not data["result"]:
         raise Exception(_("查询主机列表失败, 请确认业务[{}]是否存在！".format(bk_biz_id)))
 
     result = data["data"]["info"]
