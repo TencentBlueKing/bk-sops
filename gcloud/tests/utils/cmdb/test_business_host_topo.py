@@ -68,6 +68,7 @@ class GetBusinessHostTopoTestCase(TestCase):
             },
         ]
         self.list_biz_hosts_page_topo_return = {
+            "result": True,
             "data": {
                 "info": [
                     {
