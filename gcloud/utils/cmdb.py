@@ -93,6 +93,76 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     return host_info_list
 
 
+def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fields, start, limit, ip_str=None):
+    """获取业务下所有主机信息
+    :param username: 请求用户名
+    :type username: str
+    :param bk_biz_id: 业务 CC ID
+    :type bk_biz_id: int
+    :param supplier_account: 开发商账号, defaults to 0
+    :type supplier_account: int
+    :param host_fields: 主机过滤字段
+    :type host_fields: list
+    :param start: 起始页数
+    :type start: int
+    :param limit: 每页数量，最大数量限制为 500
+    :type limit: int
+    :param ip_str: 主机内网 IP
+    :type ip_str: str
+    :return: [
+        {
+            "host": {
+                "bk_host_id": 4,
+                "bk_host_innerip": "127.0.0.1",
+                "bk_cloud_id": 0,
+                ...
+            },
+            "module": [
+                {
+                    "bk_module_id": 2,
+                    "bk_module_name": "module_name"
+                },
+                ...
+            ],
+            "set": [
+                {
+                    "bk_set_name": "set_name",
+                    "bk_set_id": 1
+                },
+                ...
+            ]
+        }
+    ]
+    :rtype: list
+    """
+    client = get_client_by_user(username)
+    params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
+    if ip_str:
+        rules = [{"field": "bk_host_innerip", "operator": "contains", "value": ip} for ip in ip_str.split(",")]
+        params["host_property_filter"] = {"condition": "OR", "rules": rules}
+
+    params["page"] = {"start": start, "limit": limit}
+    data = client.cc.list_biz_hosts_topo(params)
+    if not data["result"]:
+        raise Exception(_("查询主机列表失败, 请确认业务[{}]是否存在！".format(bk_biz_id)))
+
+    result = data["data"]["info"]
+
+    host_info_list = []
+    for host_topo in result:
+        host_info = {"host": host_topo["host"], "module": [], "set": []}
+        for parent_set in host_topo["topo"]:
+            host_info["set"].append({"bk_set_id": parent_set["bk_set_id"], "bk_set_name": parent_set["bk_set_name"]})
+            for parent_module in parent_set["module"]:
+                host_info["module"].append(
+                    {"bk_module_id": parent_module["bk_module_id"], "bk_module_name": parent_module["bk_module_name"]}
+                )
+
+        host_info_list.append(host_info)
+
+    return host_info_list, data["data"]["count"]
+
+
 def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
     """根据主机内网 IP 过滤业务下的主机
     :param username: 请求用户名
