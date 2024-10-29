@@ -160,7 +160,7 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
 
         host_info_list.append(host_info)
 
-    return host_info_list
+    return host_info_list, data["data"]["count"]
 
 
 def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
