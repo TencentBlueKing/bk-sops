@@ -111,8 +111,7 @@ class GetBusinessHostTopoTestCase(TestCase):
                             },
                         ],
                     },
-                ],
-                "count": 2,
+                ]
             },
         }
         self.get_business_host_topo_expect_return = [
@@ -143,37 +142,6 @@ class GetBusinessHostTopoTestCase(TestCase):
                 ],
             },
         ]
-        self.get_filter_business_host_topo_expect_return = (
-            [
-                {
-                    "host": {
-                        "bk_cloud_id": 0,
-                        "bk_host_id": 1,
-                        "bk_host_innerip": "127.0.0.1",
-                        "bk_mac": "",
-                        "bk_os_type": None,
-                    },
-                    "set": [{"bk_set_id": 11, "bk_set_name": "set1"}],
-                    "module": [{"bk_module_id": 56, "bk_module_name": "m1"}],
-                },
-                {
-                    "host": {
-                        "bk_cloud_id": 0,
-                        "bk_host_id": 3,
-                        "bk_host_innerip": "127.0.0.3",
-                        "bk_mac": "",
-                        "bk_os_type": None,
-                    },
-                    "set": [{"bk_set_id": 10, "bk_set_name": "空闲机池"}, {"bk_set_id": 11, "bk_set_name": "set1"}],
-                    "module": [
-                        {"bk_module_id": 54, "bk_module_name": "空闲机"},
-                        {"bk_module_id": 55, "bk_module_name": "空闲机1"},
-                        {"bk_module_id": 56, "bk_module_name": "m1"},
-                    ],
-                },
-            ],
-            2,
-        )
 
     def tearDown(self):
         self.get_client_by_user_patcher.stop()
@@ -234,7 +202,7 @@ class GetBusinessHostTopoTestCase(TestCase):
             ip_str=self.ip_str,
         )
 
-        self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
+        self.assertEqual(hosts_topo, self.get_business_host_topo_expect_return)
         self.mock_client.cc.list_biz_hosts_topo.assert_called_once_with(
             {
                 "bk_biz_id": self.bk_biz_id,
@@ -260,7 +228,7 @@ class GetBusinessHostTopoTestCase(TestCase):
             ip_str=self.ip_strs,
         )
 
-        self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
+        self.assertEqual(hosts_topo, self.get_business_host_topo_expect_return)
         self.mock_client.cc.list_biz_hosts_topo.assert_called_once_with(
             {
                 "bk_biz_id": self.bk_biz_id,
@@ -283,7 +251,7 @@ class GetBusinessHostTopoTestCase(TestCase):
             self.username, self.bk_biz_id, self.supplier_account, self.host_fields, start=0, limit=10
         )
 
-        self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
+        self.assertEqual(hosts_topo, self.get_business_host_topo_expect_return)
         self.mock_client.cc.list_biz_hosts_topo.assert_called_once_with(
             {
                 "bk_biz_id": self.bk_biz_id,

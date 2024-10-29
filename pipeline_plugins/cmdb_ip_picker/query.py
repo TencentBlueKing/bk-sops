@@ -112,9 +112,9 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         message = handle_api_error(_("配置平台(CMDB)"), "cc.search_cloud_area", {}, cloud_area_result)
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
-    count = None
+
     if start and limit:
-        raw_host_info_list, count = cmdb.get_filter_business_host_topo(
+        raw_host_info_list = cmdb.get_filter_business_host_topo(
             request.user.username, bk_biz_id, bk_supplier_account, fields, int(start), int(limit), ip_str
         )
     else:
@@ -219,10 +219,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 host_lock_status = host_lock_status_data.get(host_detail["bk_host_id"])
                 if host_lock_status is not None:
                     host_detail["bk_host_lock_status"] = host_lock_status
-    if count:
-        result = {"result": True, "code": NO_ERROR, "data": {"data": data, "count": count}}
-    else:
-        result = {"result": True, "code": NO_ERROR, "data": data}
+    result = {"result": True, "code": NO_ERROR, "data": data}
     return JsonResponse(result)
 
 
