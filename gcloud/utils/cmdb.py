@@ -95,9 +95,9 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
 
 
 def get_filter_business_host_topo(
-    username, bk_biz_id, supplier_account, host_fields, start=None, limit=None, ip_str=None, bk_host_id=None
+    username, bk_biz_id, supplier_account, host_fields, start=None, limit=None, ip_str=None, host_id=None
 ):
-    """获取业务下所有主机信息
+    """获取业务下所有符合条件的主机信息
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
@@ -112,8 +112,8 @@ def get_filter_business_host_topo(
     :type limit: str
     :param ip_str: 主机内网 IP
     :type ip_str: str
-    :param bk_host_id: 主机 id
-    :type bk_host_id: str
+    :param host_id: 主机 id
+    :type host_id: str
     :return: [
         {
             "host": {
@@ -144,11 +144,13 @@ def get_filter_business_host_topo(
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     rules = []
-    if bk_host_id:
-        rules.extend(
-            [{"field": "bk_host_id", "operator": "equal", "value": int(host_id)} for host_id in bk_host_id.split(",")]
-        )
+    # 根据host_id进行精准匹配
+    if host_id:
+        host_id_list = [int(id) for id in host_id.split(",")]
+        rules.extend([{"field": "bk_host_id", "operator": "in", "value": host_id_list}])
+    # 根据ip_str进行模糊匹配
     elif ip_str:
+        # 如果搜索IP是ipv4地址，就匹配bk_host_innerip字段，如果是ipv6地址就匹配bk_host_innerip_v6字段
         rules.extend(
             [
                 {

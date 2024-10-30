@@ -33,8 +33,8 @@ class GetBusinessHostTopoTestCase(TestCase):
         self.ip_list = "ip_list_token"
         self.ip_str = "ip_str_token"
         self.ip_strs = "ip1_str_token, ip2_str_token"
-        self.bk_host_id = "225"
-        self.bk_host_ids = "225,286"
+        self.host_id = "225"
+        self.host_ids = "225,286"
         self.list_biz_hosts_topo_return = [
             {
                 "host": {
@@ -303,7 +303,7 @@ class GetBusinessHostTopoTestCase(TestCase):
             self.host_fields,
             start="0",
             limit="10",
-            bk_host_id=self.bk_host_id,
+            host_id=self.host_id,
         )
 
         self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
@@ -314,7 +314,7 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "fields": self.host_fields,
                 "host_property_filter": {
                     "condition": "OR",
-                    "rules": [{"field": "bk_host_id", "operator": "equal", "value": int(self.bk_host_id)}],
+                    "rules": [{"field": "bk_host_id", "operator": "in", "value": [int(self.host_id)]}],
                 },
                 "page": {"start": 0, "limit": 10},
             }
@@ -329,7 +329,7 @@ class GetBusinessHostTopoTestCase(TestCase):
             self.host_fields,
             start="0",
             limit="10",
-            bk_host_id=self.bk_host_ids,
+            host_id=self.host_ids,
         )
 
         self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
@@ -341,8 +341,11 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "host_property_filter": {
                     "condition": "OR",
                     "rules": [
-                        {"field": "bk_host_id", "operator": "equal", "value": int(host_id)}
-                        for host_id in self.bk_host_ids.split(",")
+                        {
+                            "field": "bk_host_id",
+                            "operator": "in",
+                            "value": [int(host_id) for host_id in self.host_ids.split(",")],
+                        }
                     ],
                 },
                 "page": {"start": 0, "limit": 10},
