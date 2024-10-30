@@ -19,6 +19,7 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import ipv6_pattern
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -93,7 +94,9 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     return host_info_list
 
 
-def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fields, start, limit, ip_str=None):
+def get_filter_business_host_topo(
+    username, bk_biz_id, supplier_account, host_fields, start=None, limit=None, ip_str=None, bk_host_id=None
+):
     """获取业务下所有主机信息
     :param username: 请求用户名
     :type username: str
@@ -104,11 +107,13 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
     :param host_fields: 主机过滤字段
     :type host_fields: list
     :param start: 起始页数
-    :type start: int
+    :type start: str
     :param limit: 每页数量，最大数量限制为 500
-    :type limit: int
+    :type limit: str
     :param ip_str: 主机内网 IP
     :type ip_str: str
+    :param bk_host_id: 主机 id
+    :type bk_host_id: str
     :return: [
         {
             "host": {
@@ -137,16 +142,36 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
     """
     client = get_client_by_user(username)
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
-    if ip_str:
-        rules = [{"field": "bk_host_innerip", "operator": "contains", "value": ip} for ip in ip_str.split(",")]
+
+    rules = []
+    if bk_host_id:
+        rules.extend(
+            [{"field": "bk_host_id", "operator": "equal", "value": int(host_id)} for host_id in bk_host_id.split(",")]
+        )
+    elif ip_str:
+        rules.extend(
+            [
+                {
+                    "field": "bk_host_innerip_v6" if ipv6_pattern.match(ip) else "bk_host_innerip",
+                    "operator": "contains",
+                    "value": ip,
+                }
+                for ip in ip_str.split(",")
+            ]
+        )
+    if rules:
         params["host_property_filter"] = {"condition": "OR", "rules": rules}
 
-    params["page"] = {"start": start, "limit": limit}
-    data = client.cc.list_biz_hosts_topo(params)
-    if not data["result"]:
-        raise Exception(_("查询主机列表失败, 请确认业务[{}]是否存在！".format(bk_biz_id)))
-
-    result = data["data"]["info"]
+    count = None
+    if start and limit is not None:
+        params["page"] = {"start": int(start), "limit": int(limit)}
+        data = client.cc.list_biz_hosts_topo(params)
+        if not data["result"]:
+            raise Exception(_("查询主机列表失败, 请确认业务[{}]是否存在！".format(bk_biz_id)))
+        count = data["data"]["count"]
+        result = data["data"]["info"]
+    else:
+        result = batch_request(client.cc.list_biz_hosts_topo, params)
 
     host_info_list = []
     for host_topo in result:
@@ -160,7 +185,7 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
 
         host_info_list.append(host_info)
 
-    return host_info_list, data["data"]["count"]
+    return host_info_list, count
 
 
 def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
