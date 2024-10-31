@@ -145,15 +145,18 @@ def get_filter_business_host_topo(
     rules = []
     # 根据host_id_str进行精准匹配
     if host_id_str:
-        host_id_list = [int(host_id) for host_id in host_id_str.split(",") if host_id]
+        host_id_list = [int(host_id) for host_id in host_id_str.strip(",").split(",")]
         rules.extend([{"field": "bk_host_id", "operator": "in", "value": host_id_list}])
     # 根据ip_str进行模糊匹配
     elif ip_str:
         rules.extend(
-            [{"field": "bk_host_innerip_v6", "operator": "contains", "value": ip} for ip in ip_str.split(",") if ip]
+            [
+                {"field": "bk_host_innerip_v6", "operator": "contains", "value": ip}
+                for ip in ip_str.strip(",").split(",")
+            ]
         )
         rules.extend(
-            [{"field": "bk_host_innerip", "operator": "contains", "value": ip} for ip in ip_str.split(",") if ip]
+            [{"field": "bk_host_innerip", "operator": "contains", "value": ip} for ip in ip_str.strip(",").split(",")]
         )
     if rules:
         params["host_property_filter"] = {"condition": "OR", "rules": rules}
