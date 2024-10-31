@@ -81,14 +81,14 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     if settings.ENABLE_IPV6 or settings.ENABLE_GSE_V2:
         # IPV6环境下或者开启了GSE 2.0 版本
         default_host_fields.append("bk_agent_id")
-    fields = set(default_host_fields + params_data.get("fields", "[]"))
+    fields = set(default_host_fields + params_data.get("fields", []))
     client = get_client_by_user(request.user.username)
 
     topo_modules_id = set()
 
     start = params_data.get("start", None)
     limit = params_data.get("limit", None)
-    ip_str = params_data.get("ip_str", "")
+    ip_str = params_data.get("ip_str", None)
     host_id_str = params_data.get("host_id_str", None)
 
     # get filter module id
@@ -115,7 +115,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
 
-    if start and limit:
+    if start is not None and limit is not None:
         raw_host_info_list, count = cmdb.get_filter_business_host_topo(
             request.user.username, bk_biz_id, bk_supplier_account, fields, start, limit, ip_str, host_id_str
         )
