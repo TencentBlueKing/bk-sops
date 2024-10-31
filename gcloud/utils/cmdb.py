@@ -94,7 +94,7 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
 
 
 def get_filter_business_host_topo(
-    username, bk_biz_id, supplier_account, host_fields, start=None, limit=None, ip_str=None, host_id=None
+    username, bk_biz_id, supplier_account, host_fields, start=None, limit=None, ip_str=None, host_id_str=None
 ):
     """获取业务下所有符合条件的主机信息
     :param username: 请求用户名
@@ -106,13 +106,13 @@ def get_filter_business_host_topo(
     :param host_fields: 主机过滤字段
     :type host_fields: list
     :param start: 起始页数
-    :type start: str
+    :type start: int
     :param limit: 每页数量，最大数量限制为 500
-    :type limit: str
+    :type limit: int
     :param ip_str: 主机内网 IP
     :type ip_str: str
-    :param host_id: 主机 id
-    :type host_id: str
+    :param host_id_str: 主机 id
+    :type host_id_str: str
     :return: [
         {
             "host": {
@@ -143,9 +143,9 @@ def get_filter_business_host_topo(
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     rules = []
-    # 根据host_id进行精准匹配
-    if host_id:
-        host_id_list = [int(id) for id in host_id.split(",")]
+    # 根据host_id_str进行精准匹配
+    if host_id_str:
+        host_id_list = [int(host_id) for host_id in host_id_str.split(",")]
         rules.extend([{"field": "bk_host_id", "operator": "in", "value": host_id_list}])
     # 根据ip_str进行模糊匹配
     elif ip_str:
@@ -155,8 +155,8 @@ def get_filter_business_host_topo(
         params["host_property_filter"] = {"condition": "OR", "rules": rules}
 
     count = None
-    if start and limit:
-        params["page"] = {"start": int(start), "limit": int(limit)}
+    if start is not None and limit is not None:
+        params["page"] = {"start": start, "limit": limit}
         data = client.cc.list_biz_hosts_topo(params)
         if not data["result"]:
             raise Exception(_("查询主机列表失败, 请确认业务[{}]是否存在！".format(bk_biz_id)))

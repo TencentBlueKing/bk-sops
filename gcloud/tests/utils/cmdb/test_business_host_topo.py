@@ -33,8 +33,8 @@ class GetBusinessHostTopoTestCase(TestCase):
         self.ip_list = "ip_list_token"
         self.ip_str = "ip_str_token"
         self.ip_strs = "ip1_str_token, ip2_str_token"
-        self.host_id = "225"
-        self.host_ids = "225,286"
+        self.host_id_str = "225"
+        self.host_id_strs = "225,286"
         self.list_biz_hosts_topo_return = [
             {
                 "host": {
@@ -230,8 +230,8 @@ class GetBusinessHostTopoTestCase(TestCase):
             self.bk_biz_id,
             self.supplier_account,
             self.host_fields,
-            start="0",
-            limit="10",
+            start=0,
+            limit=10,
             ip_str=self.ip_str,
         )
 
@@ -257,8 +257,8 @@ class GetBusinessHostTopoTestCase(TestCase):
             self.bk_biz_id,
             self.supplier_account,
             self.host_fields,
-            start="0",
-            limit="10",
+            start=0,
+            limit=10,
             ip_str=self.ip_strs,
         )
 
@@ -271,12 +271,12 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "host_property_filter": {
                     "condition": "OR",
                     "rules": [
-                        {"field": "bk_host_innerip_v6", "operator": "contains", "value": self.ip_str}
-                        for self.ip_str in self.ip_strs.split(",")
+                        {"field": "bk_host_innerip_v6", "operator": "contains", "value": ip_str}
+                        for ip_str in self.ip_strs.split(",")
                     ]
                     + [
-                        {"field": "bk_host_innerip", "operator": "contains", "value": self.ip_str}
-                        for self.ip_str in self.ip_strs.split(",")
+                        {"field": "bk_host_innerip", "operator": "contains", "value": ip_str}
+                        for ip_str in self.ip_strs.split(",")
                     ],
                 },
                 "page": {"start": 0, "limit": 10},
@@ -286,7 +286,7 @@ class GetBusinessHostTopoTestCase(TestCase):
     def test__get_with_page_list(self):
         self.mock_client.cc.list_biz_hosts_topo = MagicMock(return_value=self.list_biz_hosts_page_topo_return)
         hosts_topo = get_filter_business_host_topo(
-            self.username, self.bk_biz_id, self.supplier_account, self.host_fields, start="0", limit="10"
+            self.username, self.bk_biz_id, self.supplier_account, self.host_fields, start=0, limit=10
         )
 
         self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
@@ -306,9 +306,9 @@ class GetBusinessHostTopoTestCase(TestCase):
             self.bk_biz_id,
             self.supplier_account,
             self.host_fields,
-            start="0",
-            limit="10",
-            host_id=self.host_id,
+            start=0,
+            limit=10,
+            host_id_str=self.host_id_str,
         )
 
         self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
@@ -319,7 +319,7 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "fields": self.host_fields,
                 "host_property_filter": {
                     "condition": "OR",
-                    "rules": [{"field": "bk_host_id", "operator": "in", "value": [int(self.host_id)]}],
+                    "rules": [{"field": "bk_host_id", "operator": "in", "value": [int(self.host_id_str)]}],
                 },
                 "page": {"start": 0, "limit": 10},
             }
@@ -332,9 +332,9 @@ class GetBusinessHostTopoTestCase(TestCase):
             self.bk_biz_id,
             self.supplier_account,
             self.host_fields,
-            start="0",
-            limit="10",
-            host_id=self.host_ids,
+            start=0,
+            limit=10,
+            host_id_str=self.host_id_strs,
         )
 
         self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
@@ -349,7 +349,7 @@ class GetBusinessHostTopoTestCase(TestCase):
                         {
                             "field": "bk_host_id",
                             "operator": "in",
-                            "value": [int(host_id) for host_id in self.host_ids.split(",")],
+                            "value": [int(host_id) for host_id in self.host_id_strs.split(",")],
                         }
                     ],
                 },

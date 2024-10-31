@@ -88,7 +88,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     start = request.POST.get("start", None)
     limit = request.POST.get("limit", None)
     ip_str = request.POST.get("ip_str", "")
-    host_id = request.POST.get("host_id", None)
+    host_id_str = request.POST.get("host_id_str", None)
 
     # get filter module id
     if request.POST.get("topo", None):
@@ -114,9 +114,14 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
 
-    raw_host_info_list, count = cmdb.get_filter_business_host_topo(
-        request.user.username, bk_biz_id, bk_supplier_account, fields, start, limit, ip_str, host_id
-    )
+    if start and limit:
+        raw_host_info_list, count = cmdb.get_filter_business_host_topo(
+            request.user.username, bk_biz_id, bk_supplier_account, fields, int(start), int(limit), ip_str, host_id_str
+        )
+    else:
+        raw_host_info_list, count = cmdb.get_filter_business_host_topo(
+            request.user.username, bk_biz_id, bk_supplier_account, fields, ip_str=ip_str, host_id_str=host_id_str
+        )
 
     # map cloud_area_id to cloud_area
     cloud_area_dict = {}
