@@ -243,7 +243,8 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "fields": self.host_fields,
                 "host_property_filter": {
                     "condition": "OR",
-                    "rules": [{"field": "bk_host_innerip", "operator": "contains", "value": self.ip_str}],
+                    "rules": [{"field": "bk_host_innerip_v6", "operator": "contains", "value": self.ip_str}]
+                    + [{"field": "bk_host_innerip", "operator": "contains", "value": self.ip_str}],
                 },
                 "page": {"start": 0, "limit": 10},
             },
@@ -270,6 +271,10 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "host_property_filter": {
                     "condition": "OR",
                     "rules": [
+                        {"field": "bk_host_innerip_v6", "operator": "contains", "value": self.ip_str}
+                        for self.ip_str in self.ip_strs.split(",")
+                    ]
+                    + [
                         {"field": "bk_host_innerip", "operator": "contains", "value": self.ip_str}
                         for self.ip_str in self.ip_strs.split(",")
                     ],

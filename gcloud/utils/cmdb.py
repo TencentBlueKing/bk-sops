@@ -19,7 +19,6 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
-from gcloud.utils.ip import ipv6_pattern
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -150,22 +149,13 @@ def get_filter_business_host_topo(
         rules.extend([{"field": "bk_host_id", "operator": "in", "value": host_id_list}])
     # 根据ip_str进行模糊匹配
     elif ip_str:
-        # 如果搜索IP是ipv4地址，就匹配bk_host_innerip字段，如果是ipv6地址就匹配bk_host_innerip_v6字段
-        rules.extend(
-            [
-                {
-                    "field": "bk_host_innerip_v6" if ipv6_pattern.match(ip) else "bk_host_innerip",
-                    "operator": "contains",
-                    "value": ip,
-                }
-                for ip in ip_str.split(",")
-            ]
-        )
+        rules.extend([{"field": "bk_host_innerip_v6", "operator": "contains", "value": ip} for ip in ip_str.split(",")])
+        rules.extend([{"field": "bk_host_innerip", "operator": "contains", "value": ip} for ip in ip_str.split(",")])
     if rules:
         params["host_property_filter"] = {"condition": "OR", "rules": rules}
 
     count = None
-    if start and limit is not None:
+    if start and limit:
         params["page"] = {"start": int(start), "limit": int(limit)}
         data = client.cc.list_biz_hosts_topo(params)
         if not data["result"]:
