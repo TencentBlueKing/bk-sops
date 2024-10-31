@@ -93,8 +93,10 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     return host_info_list
 
 
-def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fields, start, limit, ip_str=None):
-    """获取业务下所有主机信息
+def get_filter_business_host_topo(
+    username, bk_biz_id, supplier_account, host_fields, start=None, limit=None, ip_str=None, host_id_str=None
+):
+    """获取业务下所有符合条件的主机信息
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
@@ -109,6 +111,8 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
     :type limit: int
     :param ip_str: 主机内网 IP
     :type ip_str: str
+    :param host_id_str: 主机 id
+    :type host_id_str: str
     :return: [
         {
             "host": {
@@ -137,16 +141,29 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
     """
     client = get_client_by_user(username)
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
-    if ip_str:
-        rules = [{"field": "bk_host_innerip", "operator": "contains", "value": ip} for ip in ip_str.split(",")]
+
+    rules = []
+    # 根据host_id_str进行精准匹配
+    if host_id_str:
+        host_id_list = [int(host_id) for host_id in host_id_str.split(",")]
+        rules.extend([{"field": "bk_host_id", "operator": "in", "value": host_id_list}])
+    # 根据ip_str进行模糊匹配
+    elif ip_str:
+        rules.extend([{"field": "bk_host_innerip_v6", "operator": "contains", "value": ip} for ip in ip_str.split(",")])
+        rules.extend([{"field": "bk_host_innerip", "operator": "contains", "value": ip} for ip in ip_str.split(",")])
+    if rules:
         params["host_property_filter"] = {"condition": "OR", "rules": rules}
 
-    params["page"] = {"start": start, "limit": limit}
-    data = client.cc.list_biz_hosts_topo(params)
-    if not data["result"]:
-        raise Exception(_("查询主机列表失败, 请确认业务[{}]是否存在！".format(bk_biz_id)))
-
-    result = data["data"]["info"]
+    count = None
+    if start is not None and limit is not None:
+        params["page"] = {"start": start, "limit": limit}
+        data = client.cc.list_biz_hosts_topo(params)
+        if not data["result"]:
+            raise Exception(_("查询主机列表失败, 请确认业务[{}]是否存在！".format(bk_biz_id)))
+        count = data["data"]["count"]
+        result = data["data"]["info"]
+    else:
+        result = batch_request(client.cc.list_biz_hosts_topo, params)
 
     host_info_list = []
     for host_topo in result:
@@ -160,7 +177,7 @@ def get_filter_business_host_topo(username, bk_biz_id, supplier_account, host_fi
 
         host_info_list.append(host_info)
 
-    return host_info_list
+    return host_info_list, count
 
 
 def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
