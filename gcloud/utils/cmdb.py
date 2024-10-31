@@ -105,7 +105,7 @@ def get_filter_business_host_topo(
     :type supplier_account: int
     :param host_fields: 主机过滤字段
     :type host_fields: list
-    :param start: 起始页数
+    :param start: 数据偏移量
     :type start: int
     :param limit: 每页数量，最大数量限制为 500
     :type limit: int
