@@ -27,7 +27,6 @@
                 ref="ip"
                 :allow-unfold-input="allowUnfoldInput"
                 :editable="editable"
-                :static-ip-list="staticIpList"
                 :static-ips="staticIps"
                 :static-ip-table-config="staticIpTableConfig"
                 @onTableConfigChange="onStaticIpTableSettingChange"
@@ -79,7 +78,6 @@
             editable: Boolean,
             selectorTabs: Array,
             selectors: Array,
-            staticIpList: Array,
             dynamicIpList: Array,
             dynamicGroupList: Array,
             staticIpTableConfig: Array,

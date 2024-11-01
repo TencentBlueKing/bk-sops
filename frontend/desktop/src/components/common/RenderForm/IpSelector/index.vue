@@ -17,7 +17,6 @@
                 ref="multipleIpSelector"
                 :editable="editable"
                 :selector-tabs="selectorTabs"
-                :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :dynamic-group-list="dynamicGroupList"
                 :selectors="selectors"
@@ -33,7 +32,6 @@
                 :editable="editable"
                 :allow-unfold-input="allowUnfoldInput"
                 :selector-tabs="selectorTabs"
-                :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :dynamic-group-list="dynamicGroupList"
                 :selectors="selectors"
@@ -123,13 +121,6 @@
             allowEmpty: {
                 type: Boolean,
                 default: true
-            },
-            // 静态IP可选列表
-            staticIpList: {
-                type: Array,
-                default () {
-                    return []
-                }
             },
             // 动态IP可选列表
             dynamicIpList: {
