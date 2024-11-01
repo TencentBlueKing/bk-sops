@@ -18,7 +18,6 @@
                 :editable="editable && !disabled"
                 :is-multiple="isMultiple"
                 :selector-tabs="selectorTabs"
-                :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :topo-model-list="topoModelList"
                 :dynamic-group-list="dynamicGroupList"
@@ -103,12 +102,16 @@
             IpSelector
         },
         mixins: [getFormMixins(attrs)],
+        provide () {
+            return {
+                remoteUrl: this.remote_url
+            }
+        },
         data () {
             return {
                 loading: false,
                 isvalidate: false,
                 selectorTabs: tools.deepClone(selectorTabs),
-                staticIpList: [],
                 dynamicIpList: [],
                 topoModelList: [],
                 dynamicGroupList: [] // 动态分组的首页数据，如果大于 200 条，在组件内部单独请求
@@ -176,7 +179,15 @@
                 const requestList = []
                 switch (selectorInfo.id) {
                     case 'ip':
-                        requestList.push(this.getHostInCC({ url: urls['cc_search_host'], fields: staticIpExtraFields }))
+                        // 该接口默认不调，如果有ip已经选中了则过滤出对应的host_id列表
+                        if (this.value.ip.length) {
+                            const hostIds = this.value.ip.map(item => item.bk_host_id).join(',')
+                            requestList.push(this.getHostInCC({
+                                url: urls['cc_search_host'],
+                                fields: staticIpExtraFields,
+                                host_id_str: hostIds || undefined
+                            }))
+                        }
                         break
                     case 'topo':
                         requestList.push(this.getTopoTreeInCC({ url: urls['cc_search_topo_tree'] }))
@@ -198,11 +209,10 @@
                         if (index === 0) {
                             switch (selectorInfo.id) {
                                 case 'ip':
-                                    this.staticIpList = v.data
                                     if (!this.hook) { // 表单没有被勾选
                                         ip.forEach(value => {
                                             // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则提示用户手动更新
-                                            hasDiff = this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
+                                            hasDiff = v.data.every(item => item.bk_host_id !== value.bk_host_id)
                                             this.$set(value, 'diff', hasDiff)
                                         })
                                     }

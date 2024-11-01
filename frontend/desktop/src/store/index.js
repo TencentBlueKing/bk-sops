@@ -170,13 +170,17 @@ const store = new Vuex.Store({
         // ip 选择器接口 start --->
         // 查询业务在 CMDB 的主机
         getHostInCC ({ commmit }, data) {
-            const { url, fields, topo, search_host_lock } = data
-            return axios.get(url, {
-                params: {
-                    fields: JSON.stringify(fields),
-                    topo: JSON.stringify(topo),
-                    search_host_lock
-                },
+            const { url, fields, topo, search_host_lock, host_id_str, start, limit, ip_str } = data
+            const params = {
+                fields,
+                topo,
+                search_host_lock,
+                host_id_str,
+                start,
+                limit,
+                ip_str
+            }
+            return axios.post(url, params, {
                 baseURL: '/'
             }).then(response => response.data)
         },
