@@ -247,11 +247,19 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     for form_key, param in data.items():
                         if "key" in param:
                             source_info = (node["id"], form_key)
+
+                            if node.get("component", {}).get("code") == "remote_plugin":
+                                source_tag = "{}.{}".format(
+                                    activity["component"]["data"]["plugin_code"]["value"], form_key
+                                )
+                            else:
+                                source_tag = "{}.{}".format(activity["component"]["code"], form_key)
+
                             constant, is_create = self._reconvert_constant(
                                 constant=param,
                                 cur_constants=reconverted_tree["constants"],
                                 source_info=source_info,
-                                source_tag="{}.{}".format(activity["component"]["code"], form_key),
+                                source_tag=source_tag,
                                 source_type=source_type,
                             )
                             if is_create:
@@ -387,7 +395,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
         if "constants" in template:
             for constant_key, constant_attrs in template["constants"].items():
                 reconverted_constant, is_create = self._reconvert_constant(
-                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
+                    constant={**constant_attrs, "key": constant_key},
+                    cur_constants=reconverted_tree["constants"],
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
