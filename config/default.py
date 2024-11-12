@@ -883,3 +883,8 @@ BK_AUDIT_SETTINGS = {
 if "BKAPP_SOPS_BROKER_URL" in os.environ:
     BROKER_URL = os.getenv("BKAPP_SOPS_BROKER_URL")
     print(f"BROKER_URL: {BROKER_URL}")
+
+# bk_chat通知渠道
+BK_CHAT_CHANNEL = env.BK_CHAT_CHANNEL
+# bk_chat通知路由
+BK_CHAT_ROUTE = env.BK_CHAT_ROUTE
