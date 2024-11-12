@@ -12,13 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-
+import requests
 import ujson as json
 
 from gcloud.conf import settings
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 logger = logging.getLogger("root")
+
+BK_CHAT_API_ENTRY = settings.BK_CHAT_ROUTE
 
 
 def send_message(executor, notify_type, receivers, title, content, email_content=None):
@@ -44,3 +46,46 @@ def send_message(executor, notify_type, receivers, title, content, email_content
                 "taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), json.dumps(send_result))
             )
     return True
+
+
+class MessageHandler:
+    def _get_bkchat_api(self):
+        return "{}/{}".format(BK_CHAT_API_ENTRY, "prod/im/api/v1/send_msg")
+
+    def send(self, executor, notify_type, receivers, title, content, email_content=None):
+        # 兼容旧数据
+        if not email_content:
+            email_content = content
+
+        notify_cmsi = []
+        notify_bkchat = {}
+        for notify in notify_type:
+            if isinstance(notify, dict) and notify.get("bk_chat", None):
+                notify_bkchat.update(notify)
+            else:
+                notify_cmsi.append(notify)
+        if settings.ENABLE_BK_CHAT_CHANNEL and notify_bkchat:
+            self.send_bkchat(notify_bkchat, email_content)
+        send_message(executor, notify_cmsi, receivers, title, content, email_content)
+
+        return True
+
+    def send_bkchat(self, notify, email_content=None):
+        params = {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY}
+
+        data = {
+            "im": "WEWORK",
+            "msg_type": "text",
+            "msg_param": {"content": email_content},
+            "receiver": {"receiver_type": "group", "receiver_ids": [notify.get("bk_chat")]},
+        }
+
+        result = requests.post(url=self._get_bkchat_api(), params=params, json=data)
+        send_result = result.json()
+        if send_result.get("code") == 0:
+            return True
+        else:
+            logger.error(
+                "taskflow send message failed, kwargs={}, result={}".format(json.dumps(data), json.dumps(send_result))
+            )
+            return False

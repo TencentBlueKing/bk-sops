@@ -160,6 +160,14 @@ def get_footer_info(request):
 def get_msg_types(request):
     client = get_client_by_user(request.user.username)
     result = client.cmsi.get_msg_type()
+    if settings.Enable_BK_CHAT_CHANNEL:
+        bk_chat = {
+            "type": "bk_chat",
+            "icon": None,
+            "label": "bk_chat",
+            "is_active": True,
+        }
+        result["data"].append(bk_chat)
     return JsonResponse(result)
 
 

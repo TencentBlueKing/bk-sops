@@ -19,7 +19,7 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_periodic_task_start_fail,
     title_and_content_for_clocked_task_create_fail,
 )
-from gcloud.shortcuts.message.send_msg import send_message
+from gcloud.shortcuts.message.send_msg import send_message, MessageHandler
 from gcloud.periodictask.models import PeriodicTask
 
 logger = logging.getLogger("root")
@@ -47,13 +47,15 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
         notify_type = notify_types.get("success", [])
     else:
         return False
-
+    # 如果有额外通知渠道，则将其与默认通知渠道进行拼接统一处理，如{'success': ['rtx'], 'data': [{'bk_chat':'xxx'}]}
+    if notify_types.get("data", []):
+        notify_type += notify_types.get("data")
     logger.info(
         "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers}".format(
             flow_id=taskflow.id, msg_type=msg_type, notify_type=notify_type, receivers=receivers
         )
     )
-    send_message(executor, notify_type, receivers, title, content, email_content=email_content)
+    MessageHandler().send(executor, notify_type, receivers, title, content, email_content=email_content)
 
     return True
 
