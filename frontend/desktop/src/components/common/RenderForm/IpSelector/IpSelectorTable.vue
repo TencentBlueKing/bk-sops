@@ -3,8 +3,7 @@
         ref="ipSeletorTable"
         :row-auto-height="true"
         :class="['ip-seletor-table', { 'disabled': !editable }]"
-        :data="listInPage"
-        @sort-change="handleSortChange">
+        :data="staticIpList">
         <bk-table-column v-if="selection" width="60" fixed="left" :render-header="renderHeaderCheckbox">
             <template slot-scope="props">
                 <bk-checkbox :value="selectedIp.findIndex(el => el.bk_host_id === props.row.bk_host_id) > -1" @change="onHostItemClick(props.row)"></bk-checkbox>
@@ -18,7 +17,6 @@
                 :width="columnInfo.width"
                 :min-width="columnInfo.minWidth"
                 :fixed="columnInfo.fixed"
-                :sortable="columnInfo.sortable"
                 :prop="columnInfo.id">
                 <template slot-scope="{ row }">
                     <div v-if="columnInfo.id === 'bk_host_innerip'" class="host-inner-ip">
@@ -107,9 +105,9 @@
                 type: Array,
                 default: () => ([])
             },
-            listInPage: {
-                type: Array,
-                default: () => ([])
+            listCount: {
+                type: Number,
+                default: 0
             }
         },
         data () {
@@ -120,7 +118,6 @@
                         id: 'bk_host_innerip',
                         width: 180,
                         fixed: true,
-                        sortable: true,
                         checked: true
                     },
                     {
@@ -146,7 +143,6 @@
                         name: this.$t('主机名称'),
                         id: 'bk_host_name',
                         minWidth: 120,
-                        sortable: true,
                         checked: true
                     },
                     {
@@ -158,8 +154,7 @@
                 ],
                 ipSortActive: '', // ip 排序方式
                 hostNameSortActive: '', // hostname 排序方式
-                selectedIp: this.defaultSelected.slice(0),
-                listAllSelected: false
+                selectedIp: this.defaultSelected.slice(0)
             }
         },
         computed: {
@@ -172,12 +167,25 @@
                     }
                 }
                 return key
+            },
+            isIndeterminate () {
+                let selectedIp = tools.deepClone(this.selectedIp)
+                if (selectedIp.length === 0) {
+                    return false
+                }
+                // 有的主机可能在列表中不存在
+                selectedIp = selectedIp.filter(item => !item.diff)
+                return !!selectedIp.length && selectedIp.length < this.listCount
+            },
+            isAllSelected () {
+                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.listCount
+                return this.selectedIp.length !== 0 && !half
             }
         },
         watch: {
-            selectedIp: {
-                handler (val) {
-                    this.$emit('handleSelectionChange', val)
+            defaultSelected: {
+                handler () {
+                    this.selectedIp = this.defaultSelected.slice(0)
                 },
                 deep: true
             }
@@ -190,24 +198,13 @@
             }
         },
         methods: {
-            handleSelectionChange (data) {
-                this.$emit('handleSelectionChange', data)
-            },
-            handleSortChange ({ column, prop, order }) {
-                const way = order === 'descending' ? 'down' : 'up'
-                if (prop === 'bk_host_innerip') {
-                    this.$emit('onIpSort', way)
-                } else {
-                    this.$emit('onHostNameSort', way)
-                }
-            },
             renderHeaderCheckbox (h) {
                 const self = this
                 return h('div', [
                     h('bk-checkbox', {
                         props: {
-                            indeterminate: this.judegeIndeterminate(),
-                            value: this.listAllSelected
+                            indeterminate: this.isIndeterminate,
+                            value: this.isAllSelected
                         },
                         on: {
                             change: function (val) {
@@ -217,39 +214,11 @@
                     })
                 ])
             },
-            judegeIndeterminate () {
-                let selectedIp = tools.deepClone(this.selectedIp)
-                if (selectedIp.length === 0) {
-                    return false
-                }
-                // 有的主机可能在列表中不存在
-                selectedIp = selectedIp.filter(item => {
-                    return this.staticIpList.find(el => el.bk_host_id === item.bk_host_id)
-                })
-                return !!selectedIp.length && selectedIp.length < this.staticIpList.length
-            },
-            onSelectAllClick () {
-                if (this.listAllSelected) {
-                    this.selectedIp = []
-                    this.listAllSelected = false
-                } else {
-                    this.selectedIp = [...this.staticIpList]
-                    this.listAllSelected = true
-                }
+            onSelectAllClick (val) {
+                this.$emit('onSelectAllClick', val)
             },
             onHostItemClick (host) {
-                const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
-                if (index > -1) {
-                    this.selectedIp.splice(index, 1)
-                } else {
-                    this.selectedIp.push(host)
-                }
-                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.staticIpList.length
-                if (half || this.selectedIp.length === 0) {
-                    this.listAllSelected = false
-                } else {
-                    this.listAllSelected = true
-                }
+                this.$emit('onHostItemClick', host)
             },
             handleSettingChange (selectedList) {
                 this.tableColumnList.forEach(item => {

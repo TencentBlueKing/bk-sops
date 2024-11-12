@@ -76,22 +76,24 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 set、module、cloud、agent等信息
     @return:
     """
+    params_data = json.loads(request.body)
     default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip"]
     if settings.ENABLE_IPV6 or settings.ENABLE_GSE_V2:
         # IPV6环境下或者开启了GSE 2.0 版本
         default_host_fields.append("bk_agent_id")
-    fields = set(default_host_fields + json.loads(request.GET.get("fields", "[]")))
+    fields = set(default_host_fields + params_data.get("fields", []))
     client = get_client_by_user(request.user.username)
 
     topo_modules_id = set()
 
-    ip_str = request.GET.get("ip_str", "")
-    start = request.GET.get("start", None)
-    limit = request.GET.get("limit", None)
+    start = params_data.get("start", None)
+    limit = params_data.get("limit", None)
+    ip_str = params_data.get("ip_str", None)
+    host_id_str = params_data.get("host_id_str", None)
 
     # get filter module id
-    if request.GET.get("topo", None):
-        topo = json.loads(request.GET.get("topo"))
+    if params_data.get("topo", None):
+        topo = params_data.get("topo")
         topo_result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account)
         if not topo_result["result"]:
             return JsonResponse(topo_result)
@@ -112,13 +114,15 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         message = handle_api_error(_("配置平台(CMDB)"), "cc.search_cloud_area", {}, cloud_area_result)
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
-    count = None
-    if start and limit:
+
+    if start is not None and limit is not None:
         raw_host_info_list, count = cmdb.get_filter_business_host_topo(
-            request.user.username, bk_biz_id, bk_supplier_account, fields, int(start), int(limit), ip_str
+            request.user.username, bk_biz_id, bk_supplier_account, fields, start, limit, ip_str, host_id_str
         )
     else:
-        raw_host_info_list = cmdb.get_business_host_topo(request.user.username, bk_biz_id, bk_supplier_account, fields)
+        raw_host_info_list, count = cmdb.get_filter_business_host_topo(
+            request.user.username, bk_biz_id, bk_supplier_account, fields, ip_str=ip_str, host_id_str=host_id_str
+        )
 
     # map cloud_area_id to cloud_area
     cloud_area_dict = {}
@@ -207,7 +211,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                     host["agent"] = agent_info.get("bk_agent_alive", -1)
 
         # search host lock status
-        if request.GET.get("search_host_lock", None):
+        if params_data.get("search_host_lock", None):
             bk_host_id_list = [host_detail["bk_host_id"] for host_detail in data]
             host_lock_status_result = client.cc.search_host_lock({"id_list": bk_host_id_list})
             if not host_lock_status_result["result"]:
@@ -219,6 +223,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 host_lock_status = host_lock_status_data.get(host_detail["bk_host_id"])
                 if host_lock_status is not None:
                     host_detail["bk_host_lock_status"] = host_lock_status
+
     if count:
         result = {"result": True, "code": NO_ERROR, "data": {"data": data, "count": count}}
     else:

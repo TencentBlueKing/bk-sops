@@ -16,7 +16,7 @@
             :class="['ip-search-wrap', { 'static-ip-unfold': allowUnfoldInput }]"
             @search="onIpSearch">
         </ip-search-input>
-        <div class="ip-list-wrap">
+        <div class="ip-list-wrap" v-bkloading="{ isLoading: isLoading }">
             <template v-if="type === 'select'">
                 <IpSelectorTable
                     :selection="true"
@@ -25,23 +25,19 @@
                     :is-search-mode="isSearchMode"
                     :default-selected="selectedIp"
                     :static-ip-list="staticIpList"
-                    :list-in-page="listInPage"
+                    :list-count="pagination.count"
                     :static-ip-table-config="staticIpTableConfig"
-                    @onIpSort="onIpSort"
-                    @onHostNameSort="onHostNameSort"
-                    @onTableConfigChange="onTableConfigChange"
-                    @handleSelectionChange="handleSelectionChange">
+                    @onSelectAllClick="onSelectAllClick"
+                    @onHostItemClick="onHostItemClick"
+                    @onTableConfigChange="onTableConfigChange">
                 </IpSelectorTable>
-                
                 <bk-pagination
                     v-if="isPaginationShow"
                     class="table-pagination"
                     size="small"
                     align="right"
-                    :current="currentPage"
-                    :count="totalCount"
-                    :limit="listCountPerPage"
-                    :limit-list="[listCountPerPage]"
+                    v-bind="pagination"
+                    :limit-list="[pagination.limit]"
                     :show-limit="false"
                     @change="onPageChange">
                 </bk-pagination>
@@ -52,7 +48,8 @@
                         type="textarea"
                         :rows="10"
                         :placeholder="$t('请输入IP，多个以逗号或者换行符隔开')"
-                        v-model="ipString">
+                        :value="ipString"
+                        @change="onManualInputChange">
                     </bk-input>
                 </div>
             </template>
@@ -81,6 +78,7 @@
     import IpSearchInput from './IpSearchInput.vue'
     import IpSelectorTable from './IpSelectorTable.vue'
     import tools from '@/utils/tools.js'
+    import { mapActions } from 'vuex'
 
     export default {
         name: 'StaticIpAddingPanel',
@@ -90,29 +88,18 @@
         },
         props: {
             allowUnfoldInput: Boolean,
-            staticIpList: Array,
             staticIpTableConfig: Array,
             staticIps: Array,
             type: String
         },
+        inject: ['remoteUrl'],
         data () {
-            const listCountPerPage = 5
-            const listInPage = this.staticIpList.slice(0, listCountPerPage)
-            const totalPage = Math.ceil(this.staticIpList.length / listCountPerPage)
-
             return {
-                isPaginationShow: totalPage > 1,
                 selectedIp: this.staticIps.slice(0),
                 isSearchMode: false,
-                searchResult: [],
-                currentPage: 1,
-                totalCount: this.staticIpList.length,
-                listCountPerPage,
-                listInPage,
-                ipSortActive: '',
+                staticIpList: [],
                 hostNameSortActive: '',
                 ipString: '',
-                list: this.staticIpList, // 筛选/排序后存放列表
                 errorStr: '',
                 errorIpList: [],
                 tooltipConfig: {
@@ -122,157 +109,138 @@
                     content: '#error-ips-content',
                     placement: 'top'
                 },
-                isSearchInputFocus: false
+                isSearchInputFocus: false,
+                isLoading: false,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 5
+                }
             }
         },
-        watch: {
-            staticIpList (val) {
-                this.setDisplayList()
+        computed: {
+            isPaginationShow () {
+                const { count, limit } = this.pagination
+                const totalPage = Math.ceil(count / limit)
+                return totalPage > 1
             },
-            isSearchMode () {
-                this.setDisplayList()
-            },
-            ipSortActive () {
-                this.setDisplayList()
-            },
-            hostNameSortActive () {
-                this.setDisplayList()
+            urls () {
+                return typeof this.remoteUrl === 'function' ? this.remoteUrl() : Object.assign({}, this.remoteUrl)
             }
+        },
+        created () {
+            this.getStaticIpList()
         },
         methods: {
-            setDisplayList () {
-                let list = this.isSearchMode ? this.searchResult : this.staticIpList
-                if (this.ipSortActive) {
-                    list = this.getSortIpList(list, this.ipSortActive)
+            ...mapActions([
+                'getHostInCC'
+            ]),
+            async getStaticIpList () {
+                try {
+                    if (!this.urls['cc_search_host']) return
+
+                    this.isLoading = true
+                    const { limit, current } = this.pagination
+                    const resp = await this.getHostInCC({
+                        url: this.urls['cc_search_host'],
+                        fields: ['agent', 'bk_host_innerip_v6'],
+                        start: (current - 1) * limit,
+                        limit,
+                        ip_str: this.ipString || undefined
+                    })
+                    const { result, data } = resp
+                    if (!result) return
+                    // 如果传了分页返回的数据结构会多包一层
+                    this.staticIpList = data.data
+                    this.pagination.count = data.count
+                } catch (error) {
+                    console.error(error)
+                } finally {
+                    this.isLoading = false
                 }
-                if (this.hostNameSortActive) {
-                    list = this.getSortHostNameList(list, this.hostNameSortActive)
-                }
-                this.list = list
-                this.setPanigation(list)
-            },
-            setPanigation (list = []) {
-                this.listInPage = list.slice(0, this.listCountPerPage)
-                const totalPage = Math.ceil(list.length / this.listCountPerPage)
-                this.isPaginationShow = totalPage > 1
-                this.totalCount = list.length
-                this.currentPage = 1
             },
             onIpSearch (keyword) {
-                if (keyword) {
-                    const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
-                        return item.trim() !== ''
-                    })
-                    const ipv6Regexp = tools.getIpv6Regexp()
-                    const list = this.staticIpList.filter(item => {
-                        const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
-                        return keyArr.some(str => {
-                            let text = str
-                            if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
-                                text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
-                            }
-                            return ipv4.indexOf(text) > -1
-                                || (ipv6 && ipv6.indexOf(text) > -1)
-                        })
-                    })
-                    this.searchResult = list
-                    this.setPanigation(list)
-                    this.isSearchMode = true
-                } else {
-                    this.setPanigation(this.staticIpList)
-                    this.isSearchMode = false
-                }
-            },
-            handleSelectionChange (ips) {
-                this.selectedIp = ips
+                this.ipString = keyword
+                this.pagination.current = 1
+                this.getStaticIpList()
             },
             onTableConfigChange (data) {
                 this.$emit('onTableConfigChange', data)
             },
-            getSortIpList (list, way = 'up') {
-                const srotList = list.slice(0)
-                const sortVal = way === 'up' ? 1 : -1
-                srotList.sort((a, b) => {
-                    const srotA = a.bk_host_innerip.split('.')
-                    const srotB = b.bk_host_innerip.split('.')
-                    for (let i = 0; i < 4; i++) {
-                        if (srotA[i] * 1 > srotB[i] * 1) {
-                            return sortVal
-                        } else if (srotA[i] * 1 < srotB[i] * 1) {
-                            return -sortVal
-                        }
-                    }
-                })
-                return srotList
-            },
-            getSortHostNameList (list, way = 'up') {
-                const sortList = list.slice(0)
-                const sortVal = way === 'up' ? 1 : -1
-                sortList.sort((a, b) => {
-                    if (a.bk_host_name > b.bk_host_name) {
-                        return sortVal
-                    } else {
-                        return -sortVal
-                    }
-                })
-                return sortList
-            },
-            onIpSort (way) {
-                this.hostNameSortActive = ''
-                this.ipSortActive = way
-            },
-            onHostNameSort (way) {
-                this.ipSortActive = ''
-                this.hostNameSortActive = way
-            },
             onPageChange (page) {
-                const list = this.isSearchMode ? this.searchResult : this.list
-                this.currentPage = page
-                this.listInPage = list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+                this.pagination.current = page
+                this.getStaticIpList()
             },
-            onAddIpConfirm () {
+            // 全选
+            async onSelectAllClick (val) {
+                if (!val) {
+                    this.selectedIp = []
+                } else {
+                    const resp = await this.getHostInCC({
+                        url: this.urls['cc_search_host'],
+                        fields: ['agent', 'bk_host_innerip_v6'],
+                        ip_str: this.ipString || undefined
+                    })
+                    this.selectedIp = [...resp.data]
+                }
+            },
+            // 单选
+            onHostItemClick (host) {
+                const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
+                if (index > -1) {
+                    this.selectedIp.splice(index, 1)
+                } else {
+                    this.selectedIp.push(host)
+                }
+            },
+            onManualInputChange (val) {
+                const ipString = val.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
+                this.ipString = ipString.join(',')
+            },
+            async onAddIpConfirm () {
                 const selectedIp = this.selectedIp.slice(0)
 
                 if (this.type === 'manual') {
-                    const ipInvalidList = []
-                    const ipNotExistList = []
                     const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
                     const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
-                    const arr = this.ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
-                    arr.forEach(item => {
-                        const str = item.trim()
-                        if (str) {
-                            if (!ipPattern.test(str) && !ipv6Regexp.test(str)) { // 字符串不是合法 ip 地址
-                                ipInvalidList.push(str)
-                            } else {
-                                let text = str
-                                if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
-                                    text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
-                                }
-                                const ipInList = this.list.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
-                                if (!ipInList) { // ip 地址/ipv6地址不在可选列表里
-                                    ipNotExistList.push(str)
-                                } else {
-                                    const ipInSelected = this.selectedIp.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
-                                    if (!ipInSelected) { // ip 地址/ipv6地址在可选列表并且不在已选列表
-                                        selectedIp.push(ipInList)
-                                    }
-                                }
-                            }
-                        }
-                    })
+                    const strArr = this.ipString.split(',')
+
+                    // 校验是否为合法 ip 地址
+                    const ipInvalidList = strArr.filter(str => !ipPattern.test(str) && !ipv6Regexp.test(str))
                     if (ipInvalidList.length > 0) {
                         this.errorStr = ` ${this.$t('个')} ${this.$t('IP地址不合法，')}`
                         this.errorIpList = ipInvalidList
                         return
                     }
-                    if (ipNotExistList.length > 0) {
-                        this.errorStr = ` ${this.$t('个')} ${this.$t('IP地址不存在，')}`
-                        this.errorIpList = ipNotExistList
+
+                    // 检查ip是否存在
+                    if (!this.urls['cc_search_host']) return
+                    try {
+                        const resp = await this.getHostInCC({
+                            url: this.urls['cc_search_host'],
+                            fields: ['agent', 'bk_host_innerip_v6'],
+                            ip_str: this.ipString || undefined
+                        })
+                        const ipNotExistList = strArr.filter(str => !resp.data.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(str)))
+                        if (ipNotExistList.length > 0) {
+                            this.errorStr = ` ${this.$t('个')} ${this.$t('IP地址不存在，')}`
+                            this.errorIpList = ipNotExistList
+                            return
+                        }
+
+                        // 判断输入的ip是否已经选中
+                        strArr.forEach(str => {
+                            const ipInSelected = this.selectedIp.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(str))
+                            if (!ipInSelected) { // ip 地址/ipv6地址在可选列表并且不在已选列表
+                                const ipInfo = resp.data.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(str))
+                                selectedIp.push(ipInfo)
+                            }
+                        })
+                    } catch (error) {
+                        console.error(error)
                         return
                     }
                 }
-
                 this.$emit('onAddIpConfirm', selectedIp)
             },
             onAddIpCancel () {

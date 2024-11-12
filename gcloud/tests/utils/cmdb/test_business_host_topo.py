@@ -33,6 +33,8 @@ class GetBusinessHostTopoTestCase(TestCase):
         self.ip_list = "ip_list_token"
         self.ip_str = "ip_str_token"
         self.ip_strs = "ip1_str_token, ip2_str_token"
+        self.host_id_str = "225"
+        self.host_id_strs = "225,286"
         self.list_biz_hosts_topo_return = [
             {
                 "host": {
@@ -179,7 +181,6 @@ class GetBusinessHostTopoTestCase(TestCase):
         self.get_client_by_user_patcher.stop()
 
     def test__list_biz_hosts_topo_return_empty(self):
-
         mock_batch_request = MagicMock(return_value=[])
         with patch("gcloud.utils.cmdb.batch_request", mock_batch_request):
             hosts_topo = get_business_host_topo(self.username, self.bk_biz_id, self.supplier_account, self.host_fields)
@@ -242,7 +243,8 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "fields": self.host_fields,
                 "host_property_filter": {
                     "condition": "OR",
-                    "rules": [{"field": "bk_host_innerip", "operator": "contains", "value": self.ip_str}],
+                    "rules": [{"field": "bk_host_innerip_v6", "operator": "contains", "value": self.ip_str}]
+                    + [{"field": "bk_host_innerip", "operator": "contains", "value": self.ip_str}],
                 },
                 "page": {"start": 0, "limit": 10},
             },
@@ -269,8 +271,12 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "host_property_filter": {
                     "condition": "OR",
                     "rules": [
-                        {"field": "bk_host_innerip", "operator": "contains", "value": self.ip_str}
-                        for self.ip_str in self.ip_strs.split(",")
+                        {"field": "bk_host_innerip_v6", "operator": "contains", "value": ip_str}
+                        for ip_str in self.ip_strs.split(",")
+                    ]
+                    + [
+                        {"field": "bk_host_innerip", "operator": "contains", "value": ip_str}
+                        for ip_str in self.ip_strs.split(",")
                     ],
                 },
                 "page": {"start": 0, "limit": 10},
@@ -290,5 +296,63 @@ class GetBusinessHostTopoTestCase(TestCase):
                 "bk_supplier_account": self.supplier_account,
                 "fields": self.host_fields,
                 "page": {"start": 0, "limit": 10},
-            },
+            }
+        )
+
+    def test_get_equal_host_list(self):
+        self.mock_client.cc.list_biz_hosts_topo = MagicMock(return_value=self.list_biz_hosts_page_topo_return)
+        hosts_topo = get_filter_business_host_topo(
+            self.username,
+            self.bk_biz_id,
+            self.supplier_account,
+            self.host_fields,
+            start=0,
+            limit=10,
+            host_id_str=self.host_id_str,
+        )
+
+        self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
+        self.mock_client.cc.list_biz_hosts_topo.assert_called_once_with(
+            {
+                "bk_biz_id": self.bk_biz_id,
+                "bk_supplier_account": self.supplier_account,
+                "fields": self.host_fields,
+                "host_property_filter": {
+                    "condition": "OR",
+                    "rules": [{"field": "bk_host_id", "operator": "in", "value": [int(self.host_id_str)]}],
+                },
+                "page": {"start": 0, "limit": 10},
+            }
+        )
+
+    def test_get_many_equal_host_list(self):
+        self.mock_client.cc.list_biz_hosts_topo = MagicMock(return_value=self.list_biz_hosts_page_topo_return)
+        hosts_topo = get_filter_business_host_topo(
+            self.username,
+            self.bk_biz_id,
+            self.supplier_account,
+            self.host_fields,
+            start=0,
+            limit=10,
+            host_id_str=self.host_id_strs,
+        )
+
+        self.assertEqual(hosts_topo, self.get_filter_business_host_topo_expect_return)
+        self.mock_client.cc.list_biz_hosts_topo.assert_called_once_with(
+            {
+                "bk_biz_id": self.bk_biz_id,
+                "bk_supplier_account": self.supplier_account,
+                "fields": self.host_fields,
+                "host_property_filter": {
+                    "condition": "OR",
+                    "rules": [
+                        {
+                            "field": "bk_host_id",
+                            "operator": "in",
+                            "value": [int(host_id) for host_id in self.host_id_strs.split(",")],
+                        }
+                    ],
+                },
+                "page": {"start": 0, "limit": 10},
+            }
         )

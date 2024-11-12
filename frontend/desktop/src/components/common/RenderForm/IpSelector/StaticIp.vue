@@ -49,30 +49,26 @@
                 <IpSelectorTable
                     :editable="editable"
                     :is-search-mode="isSearchMode"
-                    :list-in-page="listInPage"
+                    :static-ip-list="staticIpList"
                     :static-ip-table-config="staticIpTableConfig"
-                    @onIpSort="onIpSort"
-                    @onHostNameSort="onHostNameSort"
                     @onAddPanelShow="onAddPanelShow"
                     @onTableConfigChange="onTableConfigChange"
                     @onRemoveIpClick="onRemoveIpClick">
                 </IpSelectorTable>
-                <div class="table-footer" v-if="isShowQuantity || isPaginationShow">
-                    <div v-if="isShowQuantity" class="selected-num">{{$t('共')}}
+                <div class="table-footer">
+                    <div v-if="staticIps.length" class="selected-num">{{$t('共')}}
                         <span class="total-ip">{{staticIps.length}}</span>
                         {{$t('个静态IP，')}}
                         {{$t('其中')}}
                         <span class="total-not-installed">{{abnormalLength}}</span>
                         {{$t('个')}}{{$t('异常')}}
                     </div>
-                    <div class="table-pagination" v-if="isPaginationShow">
+                    <div class="table-pagination">
                         <bk-pagination
                             size="small"
                             align="right"
-                            :current="currentPage"
-                            :count="totalCount"
-                            :limit="listCountPerPage"
-                            :limit-list="[listCountPerPage]"
+                            v-bind="pagination"
+                            :limit-list="[pagination.limit]"
                             :show-limit="false"
                             @change="onPageChange">
                         </bk-pagination>
@@ -84,7 +80,6 @@
         <static-ip-adding-panel
             v-if="isIpAddingPanelShow"
             :allow-unfold-input="allowUnfoldInput"
-            :static-ip-list="staticIpList"
             :static-ips="staticIps"
             :type="addingType"
             :static-ip-table-config="staticIpTableConfig"
@@ -112,28 +107,25 @@
         props: {
             allowUnfoldInput: Boolean,
             editable: Boolean,
-            staticIpList: Array,
             staticIpTableConfig: Array,
             staticIps: Array
         },
         data () {
-            const listCountPerPage = 5
-            const totalPage = Math.ceil(this.staticIps.length / listCountPerPage)
             return {
                 isDropdownShow: false,
                 isIpAddingPanelShow: false,
                 addingType: '',
                 isSearchMode: false,
                 copyText: '',
-                ipSortActive: '', // ip 排序方式
-                hostNameSortActive: '', // hostname 排序方式
+                pagination: {
+                    limit: 5,
+                    count: 0,
+                    current: 1
+                },
+                keyword: '',
+                isRemoved: false,
+                staticIpList: [],
                 searchResult: [],
-                list: this.staticIps,
-                isPaginationShow: totalPage > 1,
-                currentPage: 1,
-                totalCount: this.staticIps.length,
-                listCountPerPage: listCountPerPage,
-                listInPage: this.staticIps.slice(0, listCountPerPage),
                 dataError: false,
                 operations: [
                     {
@@ -159,46 +151,30 @@
         computed: {
             abnormalLength () {
                 return this.staticIps.filter(item => item.agent !== 1 || item.diff).length
-            },
-            isShowQuantity () {
-                return this.staticIps.length
             }
         },
         watch: {
-            staticIps (val) {
-                this.setDisplayList()
-                if (this.staticIps.length !== 0) {
-                    this.dataError = false
-                }
-            },
-            isSearchMode () {
-                this.setDisplayList()
-            },
-            ipSortActive () {
-                this.setDisplayList()
-            },
-            hostNameSortActive () {
-                this.setDisplayList()
+            staticIps: {
+                handler () {
+                    if (this.isRemoved) {
+                        this.isRemoved = false
+                        this.searchResult = this.getSearchResult()
+                        this.updateStaticIpList({ list: this.searchResult, current: this.pagination.current })
+                    } else {
+                        this.updateStaticIpList()
+                    }
+                    this.dataError = this.staticIps.length === 0
+                },
+                deep: true,
+                immediate: true
             }
         },
         methods: {
-            setDisplayList () {
-                let list = this.isSearchMode ? this.searchResult : this.staticIps
-                if (this.ipSortActive) {
-                    list = this.getSortIpList(list, this.ipSortActive)
-                }
-                if (this.hostNameSortActive) {
-                    list = this.getSortHostNameList(list, this.hostNameSortActive)
-                }
-                this.list = list
-                this.setPanigation(list)
-            },
-            setPanigation (list = []) {
-                this.listInPage = list.slice(0, this.listCountPerPage)
-                const totalPage = Math.ceil(list.length / this.listCountPerPage)
-                this.isPaginationShow = totalPage > 1
-                this.totalCount = list.length
-                this.currentPage = 1
+            updateStaticIpList ({ list = this.staticIps, current = 1 } = {}) {
+                this.pagination.current = current
+                this.pagination.count = list.length
+                const offset = current === 1 ? 0 : ((current - 1) * this.pagination.limit)
+                this.staticIpList = list.slice(offset, current * this.pagination.limit)
             },
             onAddPanelShow (type) {
                 if (!this.editable) {
@@ -243,30 +219,27 @@
             onStaticIpFocus () {
                 this.isUnfold = this.allowUnfoldInput
             },
+            getSearchResult (keyword = this.keyword) {
+                const ipv6Regexp = tools.getIpv6Regexp()
+                const keyArr = keyword.split(',').map(item => item.trim()).filter(Boolean)
+
+                if (!keyword) return this.staticIps
+
+                return this.staticIps.filter(item => {
+                    const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
+                    return keyArr.some(str => {
+                        const text = ipv6Regexp.test(str) ? tools.tranSimIpv6ToFullIpv6(str) : str
+                        return ipv4.includes(text) || (ipv6 && ipv6.includes(text))
+                    })
+                })
+            },
             onStaticIpSearch (keyword) {
-                if (keyword) {
-                    const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
-                        return item !== ''
-                    })
-                    const ipv6Regexp = tools.getIpv6Regexp()
-                    const list = this.staticIps.filter(item => {
-                        const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
-                        return keyArr.some(str => {
-                            let text = str
-                            if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
-                                text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
-                            }
-                            return ipv4.indexOf(text) > -1
-                                || (ipv6 && ipv6.indexOf(text) > -1)
-                        })
-                    })
-                    this.searchResult = list
-                    this.setPanigation(list)
-                    this.isSearchMode = true
-                } else {
-                    this.setPanigation(this.staticIps)
-                    this.isSearchMode = false
-                }
+                this.keyword = keyword
+                const list = this.getSearchResult()
+
+                this.searchResult = list
+                this.updateStaticIpList({ list })
+                this.isSearchMode = Boolean(keyword)
             },
             onOperationClick (operation) {
                 const { type, name } = operation
@@ -280,31 +253,29 @@
                 this.$emit('onTableConfigChange', data)
             },
             onRemoveIpClick (id) {
-                if (!this.editable) {
-                    return
-                }
+                if (!this.editable) return
                 const index = this.staticIps.findIndex(item => item.bk_host_id === id)
-                const staticIps = this.staticIps.slice(0)
-                staticIps.splice(index, 1)
-                if (this.isSearchMode) { // 搜索模式下移除 ip
-                    this.searchResult = []
-                    this.setDisplayList()
+                if (index === -1) return
+
+                const updatedIps = [...this.staticIps]
+                updatedIps.splice(index, 1)
+                // 如果当前删除的ip是本页最后一条数据，则页数-1
+                if (this.staticIpList.length === 1 && this.pagination.current > 1) {
+                    this.pagination.current -= 1
                 }
-                this.$emit('change', staticIps)
+                this.isRemoved = true
+                this.$emit('change', updatedIps)
             },
             onAddIpConfirm (data) {
                 this.$emit('change', data)
                 this.isIpAddingPanelShow = false
-                this.$nextTick(() => {
-                    this.$refs.ipSearchInput.handleSearch()
-                })
             },
             onAddIpCancel () {
                 this.isIpAddingPanelShow = false
             },
             onPageChange (page) {
-                this.currentPage = page
-                this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+                const list = this.searchResult.length ? this.searchResult : this.staticIps
+                this.updateStaticIpList({ list, current: page })
             },
             validate () {
                 if (this.staticIps.length) {
@@ -315,42 +286,6 @@
                     this.onAddIpCancel()
                     return false
                 }
-            },
-            getSortIpList (list, way = 'up') {
-                const srotList = list.slice(0)
-                const sortVal = way === 'up' ? 1 : -1
-                srotList.sort((a, b) => {
-                    const srotA = a.bk_host_innerip.split('.')
-                    const srotB = b.bk_host_innerip.split('.')
-                    for (let i = 0; i < 4; i++) {
-                        if (srotA[i] * 1 > srotB[i] * 1) {
-                            return sortVal
-                        } else if (srotA[i] * 1 < srotB[i] * 1) {
-                            return -sortVal
-                        }
-                    }
-                })
-                return srotList
-            },
-            getSortHostNameList (list, way = 'up') {
-                const sortList = list.slice(0)
-                const sortVal = way === 'up' ? 1 : -1
-                sortList.sort((a, b) => {
-                    if (a.bk_host_name > b.bk_host_name) {
-                        return sortVal
-                    } else {
-                        return -sortVal
-                    }
-                })
-                return sortList
-            },
-            onIpSort (way) {
-                this.hostNameSortActive = ''
-                this.ipSortActive = way
-            },
-            onHostNameSort (way) {
-                this.ipSortActive = ''
-                this.hostNameSortActive = way
             }
         }
     }
@@ -407,7 +342,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
+    transform: translateY(10px);
     .selected-num {
         font-size: 12px;
         .total-ip {
