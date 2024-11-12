@@ -19,7 +19,7 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_periodic_task_start_fail,
     title_and_content_for_clocked_task_create_fail,
 )
-from gcloud.shortcuts.message.send_msg import send_message, SendMessage
+from gcloud.shortcuts.message.send_msg import send_message, MessageHandler
 from gcloud.periodictask.models import PeriodicTask
 
 logger = logging.getLogger("root")
@@ -39,21 +39,23 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
         title, content, email_content = title_and_content_for_atom_failed(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
-        notify_type = notify_types.get("fail", []) + notify_types.get("data", [])
+        notify_type = notify_types.get("fail", [])
     elif msg_type == "task_finished":
         title, content, email_content = title_and_content_for_flow_finished(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
-        notify_type = notify_types.get("success", []) + notify_types.get("data", [])
+        notify_type = notify_types.get("success", [])
     else:
         return False
-
+    # 如果有额外通知渠道，则将其与默认通知渠道进行拼接统一处理,如{'success': ['rtx'], 'data': [{'bk_chat':'xxx'}]}
+    if notify_types.get("data", []):
+        notify_type += notify_types.get("data")
     logger.info(
         "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers}".format(
             flow_id=taskflow.id, msg_type=msg_type, notify_type=notify_type, receivers=receivers
         )
     )
-    SendMessage().send_system(executor, notify_type, receivers, title, content, email_content=email_content)
+    MessageHandler().send(executor, notify_type, receivers, title, content, email_content=email_content)
 
     return True
 

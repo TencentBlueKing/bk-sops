@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import env
+
 import logging
 import requests
 import ujson as json
@@ -20,7 +20,7 @@ from gcloud.conf import settings
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 logger = logging.getLogger("root")
 
-BK_CHAT_API_ENTRY = settings.BK_CHAT_ROUTE or env.BK_CHAT_ROUTE
+BK_CHAT_API_ENTRY = settings.BK_CHAT_ROUTE
 
 
 def send_message(executor, notify_type, receivers, title, content, email_content=None):
@@ -48,11 +48,15 @@ def send_message(executor, notify_type, receivers, title, content, email_content
     return True
 
 
-class SendMessage:
+class MessageHandler:
     def _get_bkchat_api(self):
         return "{}/{}".format(BK_CHAT_API_ENTRY, "prod/im/api/v1/send_msg")
 
-    def send_system(self, executor, notify_type, receivers, title, content, email_content=None):
+    def send(self, executor, notify_type, receivers, title, content, email_content=None):
+        # 兼容旧数据
+        if not email_content:
+            email_content = content
+
         notify_cmsi = []
         notify_bkchat = {}
         for notify in notify_type:
@@ -60,17 +64,13 @@ class SendMessage:
                 notify_bkchat.update(notify)
             else:
                 notify_cmsi.append(notify)
-        if settings.BK_CHAT_CHANNEL:
-            self.send_bkchat(notify_bkchat, content, email_content)
+        if settings.ENABLE_BK_CHAT_CHANNEL and notify_bkchat:
+            self.send_bkchat(notify_bkchat, email_content)
         send_message(executor, notify_cmsi, receivers, title, content, email_content)
 
         return True
 
-    def send_bkchat(self, notify, content, email_content=None):
-        # 兼容旧数据
-        if not email_content:
-            email_content = content
-
+    def send_bkchat(self, notify, email_content=None):
         params = {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY}
 
         data = {

@@ -155,6 +155,6 @@ BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
 
 # bk_chat通知渠道
-BK_CHAT_CHANNEL = os.getenv("BK_CHAT_CHANNEL", None)
+ENABLE_BK_CHAT_CHANNEL = False if os.getenv("BKAPP_ENABLE_BK_CHAT_CHANNEL") is None else True
 # bk_chat通知路由
 BK_CHAT_ROUTE = os.getenv("BK_CHAT_ROUTE", None)
