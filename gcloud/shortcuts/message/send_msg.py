@@ -20,7 +20,7 @@ from gcloud.conf import settings
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 logger = logging.getLogger("root")
 
-BK_CHAT_API_ENTRY = settings.BK_CHAT_ROUTE
+BK_CHAT_API_ENTRY = settings.BK_CHAT_API_ENTRY
 
 
 def send_message(executor, notify_type, receivers, title, content, email_content=None):
@@ -52,16 +52,16 @@ class MessageHandler:
     def _get_bkchat_api(self):
         return "{}/{}".format(BK_CHAT_API_ENTRY, "prod/im/api/v1/send_msg")
 
-    def send(self, executor, notify_type, receivers, title, content, email_content=None):
+    def send(self, executor, notify_type, notify_info, receivers, title, content, email_content=None):
         # 兼容旧数据
         if not email_content:
             email_content = content
 
         notify_cmsi = []
-        notify_bkchat = {}
+        notify_bkchat = []
         for notify in notify_type:
-            if isinstance(notify, dict) and notify.get("bk_chat", None):
-                notify_bkchat.update(notify)
+            if notify == "bk_chat":
+                notify_bkchat.append(notify_info.get("bkchat_groupid"))
             else:
                 notify_cmsi.append(notify)
         if settings.ENABLE_BK_CHAT_CHANNEL and notify_bkchat:
@@ -77,7 +77,7 @@ class MessageHandler:
             "im": "WEWORK",
             "msg_type": "text",
             "msg_param": {"content": content},
-            "receiver": {"receiver_type": "group", "receiver_ids": [notify.get("bk_chat")]},
+            "receiver": {"receiver_type": "group", "receiver_ids": notify},
         }
 
         result = requests.post(url=self._get_bkchat_api(), params=params, json=data)
@@ -86,6 +86,6 @@ class MessageHandler:
             return True
         else:
             logger.error(
-                "taskflow send message failed, kwargs={}, result={}".format(json.dumps(data), json.dumps(send_result))
+                "bkchat send message failed, kwargs={}, result={}".format(json.dumps(data), json.dumps(send_result))
             )
             return False
