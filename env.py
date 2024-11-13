@@ -153,3 +153,8 @@ PERIODIC_TASK_REMINDER_NOTIFY_TYPE = json.loads(os.getenv("PERIODIC_TASK_REMINDE
 # bk_audit
 BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
+
+# bk_chat通知渠道
+ENABLE_BK_CHAT_CHANNEL = False if os.getenv("BKAPP_ENABLE_BK_CHAT_CHANNEL") is None else True
+# bk_chat通知路由
+BK_CHAT_API_ENTRY = os.getenv("BK_CHAT_API_ENTRY", "")
