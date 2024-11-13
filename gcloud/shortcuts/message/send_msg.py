@@ -70,13 +70,13 @@ class MessageHandler:
 
         return True
 
-    def send_bkchat(self, notify, email_content=None):
+    def send_bkchat(self, notify, content=None):
         params = {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY}
 
         data = {
             "im": "WEWORK",
             "msg_type": "text",
-            "msg_param": {"content": email_content},
+            "msg_param": {"content": content},
             "receiver": {"receiver_type": "group", "receiver_ids": [notify.get("bk_chat")]},
         }
 

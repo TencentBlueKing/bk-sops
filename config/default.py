@@ -885,6 +885,6 @@ if "BKAPP_SOPS_BROKER_URL" in os.environ:
     print(f"BROKER_URL: {BROKER_URL}")
 
 # bk_chat通知渠道
-ENABLE_BK_CHAT_CHANNEL = True if env.ENABLE_BK_CHAT_CHANNEL else False
+ENABLE_BK_CHAT_CHANNEL = env.ENABLE_BK_CHAT_CHANNEL
 # bk_chat路由
 BK_CHAT_ROUTE = env.BK_CHAT_ROUTE
