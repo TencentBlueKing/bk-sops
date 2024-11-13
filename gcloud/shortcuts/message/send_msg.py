@@ -53,10 +53,6 @@ class MessageHandler:
         return "{}/{}".format(BK_CHAT_API_ENTRY, "prod/im/api/v1/send_msg")
 
     def send(self, executor, notify_type, notify_info, receivers, title, content, email_content=None):
-        # 兼容旧数据
-        if not email_content:
-            email_content = content
-
         notify_cmsi = []
         notify_bkchat = []
         for notify in notify_type:
@@ -65,12 +61,12 @@ class MessageHandler:
             else:
                 notify_cmsi.append(notify)
         if settings.ENABLE_BK_CHAT_CHANNEL and notify_bkchat:
-            self.send_bkchat(notify_bkchat, email_content)
+            self.send_bkchat(notify_bkchat, content)
         send_message(executor, notify_cmsi, receivers, title, content, email_content)
 
         return True
 
-    def send_bkchat(self, notify, content=None):
+    def send_bkchat(self, notify, content):
         params = {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY}
 
         data = {
