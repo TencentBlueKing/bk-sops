@@ -39,13 +39,13 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
         title, content, email_content = title_and_content_for_atom_failed(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
-        # 如果有额外通知渠道，则将其与默认通知渠道进行拼接统一处理，如{'success': ['rtx'], 'data': [{'bk_chat':'xxx'}]}
+        # 如果有额外通知渠道，则将其与默认通知渠道进行拼接统一处理，如{'fail': ['rtx'], 'data': [{'bk_chat':'xxx'}]}
         notify_type = notify_types.get("fail", []) + notify_types.get("data")
     elif msg_type == "task_finished":
         title, content, email_content = title_and_content_for_flow_finished(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
-        # 如果有额外通知渠道，则将其与默认通知渠道进行拼接统一处理，如{'fail': ['rtx'], 'data': [{'bk_chat':'xxx'}]}
+        # 如果有额外通知渠道，则将其与默认通知渠道进行拼接统一处理，如{'success': ['rtx'], 'data': [{'bk_chat':'xxx'}]}
         notify_type = notify_types.get("success", []) + notify_types.get("data")
     else:
         return False
