@@ -160,7 +160,7 @@
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
                 const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
-                divInputDom.innerText = this.formMode ? value : this.viewValue
+                divInputDom.innerText = value
                 if (this.formMode && this.render && value) {
                     this.updateInputHtml()
                 }
