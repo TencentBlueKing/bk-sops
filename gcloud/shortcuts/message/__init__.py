@@ -40,14 +40,15 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("fail", [])
+        notify_info = notify_types.get("extra_info", {}).get("bkchat_groupids", {}).get("fail", "")
     elif msg_type == "task_finished":
         title, content, email_content = title_and_content_for_flow_finished(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("success", [])
+        notify_info = notify_types.get("extra_info", {}).get("bkchat_groupids", {}).get("success", "")
     else:
         return False
-    notify_info = notify_types.get("extra_info", {})
     logger.info(
         "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers}".format(
             flow_id=taskflow.id, msg_type=msg_type, notify_type=notify_type, receivers=receivers
