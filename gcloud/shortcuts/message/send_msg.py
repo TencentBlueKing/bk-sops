@@ -57,7 +57,7 @@ class MessageHandler:
         notify_bkchat = []
         for notify in notify_type:
             if notify == "bk_chat":
-                notify_bkchat.append(notify_info.get("bkchat_groupid"))
+                notify_bkchat.extend(notify_info.split(","))
             else:
                 notify_cmsi.append(notify)
         if settings.ENABLE_BK_CHAT_CHANNEL and notify_bkchat:
