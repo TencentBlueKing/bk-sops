@@ -26,6 +26,7 @@ from gcloud.iam_auth.conf import FLOW_ACTIONS
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.label.models import TemplateLabelRelation
 
 
 @login_exempt
@@ -40,6 +41,7 @@ def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
+    label_ids = request.GET.get("label_ids", None)
 
     if id_in:
         try:
@@ -47,6 +49,18 @@ def get_template_list(request, project_id):
         except Exception:
             id_in = None
             logger.exception("[API] id_in[{}] resolve fail, ignore.".format(id_in))
+
+    if label_ids:
+        try:
+            label_ids = label_ids.split(",")
+            label_template_ids = TemplateLabelRelation.objects.fetch_template_ids_using_labels(label_ids)
+            label_ids = list(map(str, label_template_ids))
+            if id_in is None:
+                id_in = label_ids
+            else:
+                id_in = list(set(id_in + label_ids))
+        except Exception:
+            logger.exception("[API] label_ids[{}] resolve fail, ignore.".format(label_ids))
 
     filter_kwargs = dict(is_deleted=False)
     if id_in:
@@ -71,5 +85,9 @@ def get_template_list(request, project_id):
         for action, allowed in flow_allowed_actions.get(str(template_id), {}).items():
             if allowed:
                 template_info["auth_actions"].append(action)
+
+    templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
+    for obj in template_list:
+        obj["template_labels"] = templates_labels.get(obj["id"], [])
 
     return {"result": True, "data": template_list, "code": err_code.SUCCESS.code}
