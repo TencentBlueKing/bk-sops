@@ -188,7 +188,7 @@ const template = {
             receiver_group: [],
             more_receiver: ''
         },
-        notify_type: { success: [], fail: [] },
+        notify_type: { success: [], fail: [], extra_info: {} },
         time_out: '',
         category: '',
         description: '',
@@ -314,7 +314,7 @@ const template = {
             state.name = name
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
-            state.notify_type = typeof notify_type === 'string' ? { success: JSON.parse(notify_type), fail: [] } : notify_type
+            state.notify_type = typeof notify_type === 'string' ? { success: JSON.parse(notify_type), fail: [], extra_info: {} } : notify_type
             state.description = description
             state.executor_proxy = executor_proxy
             state.init_executor_proxy = executor_proxy
@@ -348,7 +348,7 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = 'Default'
-            state.notify_type = { success: [], fail: [] }
+            state.notify_type = { success: [], fail: [], extra_info: {} }
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
@@ -373,7 +373,7 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = 'Default'
-            state.notify_type = { success: [], fail: [] }
+            state.notify_type = { success: [], fail: [], extra_info: {} }
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
