@@ -1834,7 +1834,8 @@ const en = {
     '产品官网': 'Product Website',
     '联系bk助手': 'Contact BK Assistant',
     '蓝鲸桌面': 'BlueWhale Desktop',
-    '蓝鲸': 'BlueKing'
+    '蓝鲸': 'BlueKing',
+    '请输入群 ID，多个 ID 以分号隔开': 'Please enter group IDs, separated by semicolons if there are multiple IDs'
 }
 
 export default en
