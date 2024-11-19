@@ -53,13 +53,13 @@ def get_template_list(request, project_id):
     if label_names:
         try:
             label_names = label_names.split(",")
-            label_ids = Label.objects.filter(name__in=label_names).values_list("id", flat=True)
-            label_template_ids = TemplateLabelRelation.objects.fetch_template_ids_using_labels(label_ids)
-            label_ids = list(map(str, label_template_ids))
+            label_ids = Label.objects.filter(name__in=label_names, project_id=project_id).values_list("id", flat=True)
+            template_ids = TemplateLabelRelation.objects.fetch_template_ids_using_labels(label_ids)
+            template_ids = list(map(str, template_ids))
             if id_in is None:
-                id_in = label_ids
+                id_in = template_ids
             else:
-                id_in = list(set(id_in + label_ids))
+                id_in = list(set(id_in + template_ids))
         except Exception:
             logger.exception("[API] label_names[{}] resolve fail, ignore.".format(label_names))
 
