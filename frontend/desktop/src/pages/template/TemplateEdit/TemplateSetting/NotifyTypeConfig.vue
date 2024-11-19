@@ -193,7 +193,15 @@
                             }]
                         }, [
                             col.label
-                        ])
+                        ]),
+                        col.tips ? h('i', {
+                            class: 'bk-icon icon-exclamation-circle ml5',
+                            style: { 'font-size': '14px' },
+                            directives: [{
+                                name: 'bk-tooltips',
+                                value: { content: col.tips, allowHTML: true }
+                            }]
+                        }) : ''
                     ])
                 } else {
                     return h('p', {
@@ -208,15 +216,14 @@
             },
             getChatNotifyTypeValue (index) {
                 const { notifyTypeExtraInfo } = this.formData
-                if (!notifyTypeExtraInfo.bkchat_groupids) {
-                    notifyTypeExtraInfo.bkchat_groupids = { success: '', fail: '' }
+                if (!notifyTypeExtraInfo.bkchat) {
+                    notifyTypeExtraInfo.bkchat = { success: '', fail: '' }
                 }
-                const { bkchat_groupids: chatGroupIds } = notifyTypeExtraInfo
-                return chatGroupIds[index === 0 ? 'success' : 'fail']
+                return notifyTypeExtraInfo.bkchat[index === 0 ? 'success' : 'fail']
             },
             onChatNotifyTypeChange (index, val) {
-                const { bkchat_groupids: chatGroupIds } = this.formData.notifyTypeExtraInfo
-                chatGroupIds[index === 0 ? 'success' : 'fail'] = val
+                const { bkchat } = this.formData.notifyTypeExtraInfo
+                bkchat[index === 0 ? 'success' : 'fail'] = val
                 this.$emit('change', this.formData)
             },
             onSelectNotifyType (row, type, val) {
@@ -231,8 +238,8 @@
                 }
                 // bk_chat同时方式取消勾选时需要情况群id
                 if (!val && type === 'bk_chat') {
-                    const { bkchat_groupids: chatGroupIds } = this.formData.notifyTypeExtraInfo
-                    chatGroupIds[row === 0 ? 'success' : 'fail'] = ''
+                    const { bkchat } = this.formData.notifyTypeExtraInfo
+                    bkchat[row === 0 ? 'success' : 'fail'] = ''
                 }
                 this.$emit('change', this.formData)
             },
