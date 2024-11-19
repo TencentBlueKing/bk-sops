@@ -87,8 +87,9 @@ def get_template_list(request, project_id):
             if allowed:
                 template_info["auth_actions"].append(action)
 
-    templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
-    for obj in template_list:
-        obj["template_labels"] = templates_labels.get(obj["id"], [])
+    if label_names:
+        templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
+        for obj in template_list:
+            obj["template_labels"] = templates_labels.get(obj["id"], [])
 
     return {"result": True, "data": template_list, "code": err_code.SUCCESS.code}
