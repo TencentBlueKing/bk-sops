@@ -26,7 +26,7 @@ from gcloud.iam_auth.conf import FLOW_ACTIONS
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
-from gcloud.label.models import TemplateLabelRelation
+from gcloud.label.models import TemplateLabelRelation, Label
 
 
 @login_exempt
@@ -41,7 +41,7 @@ def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
-    label_ids = request.GET.get("label_ids", None)
+    label_names = request.GET.get("label_names", None)
 
     if id_in:
         try:
@@ -50,9 +50,10 @@ def get_template_list(request, project_id):
             id_in = None
             logger.exception("[API] id_in[{}] resolve fail, ignore.".format(id_in))
 
-    if label_ids:
+    if label_names:
         try:
-            label_ids = label_ids.split(",")
+            label_names = label_names.split(",")
+            label_ids = Label.objects.filter(name__in=label_names).values_list("id", flat=True)
             label_template_ids = TemplateLabelRelation.objects.fetch_template_ids_using_labels(label_ids)
             label_ids = list(map(str, label_template_ids))
             if id_in is None:
@@ -60,7 +61,7 @@ def get_template_list(request, project_id):
             else:
                 id_in = list(set(id_in + label_ids))
         except Exception:
-            logger.exception("[API] label_ids[{}] resolve fail, ignore.".format(label_ids))
+            logger.exception("[API] label_names[{}] resolve fail, ignore.".format(label_names))
 
     filter_kwargs = dict(is_deleted=False)
     if id_in:
