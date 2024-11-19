@@ -251,7 +251,7 @@
                 name, category, notify_type, notify_receivers, description,
                 executor_proxy, template_labels, default_flow_type
             } = this.$store.state.template
-            const { extra_info: extraInfo = {} } = notify_type
+            const { extra_info: extraInfo = {} } = notify_receivers
 
             return {
                 formData: {
@@ -410,7 +410,8 @@
                     template_labels: labels,
                     executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                     receiver_group: receiverGroup,
-                    notify_type: { success: notifyType[0], fail: notifyType[1], extra_info: notifyTypeExtraInfo },
+                    notify_type: { success: notifyType[0], fail: notifyType[1] },
+                    notify_type_extra_info: notifyTypeExtraInfo,
                     default_flow_type: defaultFlowType
                 }
             },
