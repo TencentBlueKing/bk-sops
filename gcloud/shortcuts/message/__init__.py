@@ -51,8 +51,12 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
     else:
         return False
     logger.info(
-        "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers}".format(
-            flow_id=taskflow.id, msg_type=msg_type, notify_type=notify_type, receivers=receivers
+        "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers} {notify_info}".format(
+            flow_id=taskflow.id,
+            msg_type=msg_type,
+            notify_type=notify_type,
+            receivers=receivers,
+            notify_info=notify_info,
         )
     )
     MessageHandler().send(executor, notify_type, notify_info, receivers, title, content, email_content=email_content)

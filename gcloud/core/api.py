@@ -165,9 +165,7 @@ def get_msg_types(request):
             "type": "bk_chat",
             "icon": None,
             "label": "bk_chat",
-            "tips": (
-                "获取群ID方法：\n" "1. 群聊右上角添加联系人： bkchat(蓝鲸信息流)\n" '2. 输入 "小鲸 群ID" 获取群ID\n' "3. 将获取到的群ID粘贴到输入框，多个使用英文逗号分隔"
-            ),
+            "tips": ("获取群ID方法：\n" "1. 群聊右上角添加联系人： bkchat(蓝鲸信息流)\n" '2. 输入 "小鲸 群ID" 获取群ID\n' "3. 将获取到的群ID粘贴到输入框"),
             "is_active": True,
         }
         result["data"].append(bk_chat)
