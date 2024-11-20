@@ -31,6 +31,7 @@ import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
 import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
+import tools from './utils/tools'
 const config = {
     errorBagName: 'veeErrors',
     fieldsBagName: 'veeFields'
@@ -212,11 +213,13 @@ Validator.localize({
     }
 })
 
-Vue.prototype.filterXSS = input => filterXSS(input, {
-    whiteList: {
-        a: ['href']
-    }
-})
+Vue.prototype.filterXSS = (input, config = {}) => {
+    return filterXSS(input, tools.deepMerge({}, {
+        whiteList: {
+            a: ['href', 'target']
+        }
+    }, config))
+}
 
 new Vue({
     i18n,
