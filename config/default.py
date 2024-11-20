@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 import importlib
-import os
+
 import sys
 from urllib.parse import urlparse
 
