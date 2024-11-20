@@ -159,5 +159,5 @@ ENABLE_BK_CHAT_CHANNEL = False if os.getenv("BKAPP_ENABLE_BK_CHAT_CHANNEL") is N
 # bk_chat通知路由
 BK_CHAT_API_ENTRY = os.getenv("BK_CHAT_API_ENTRY", "")
 # bk_chat通知渠道过滤app
-BK_CHAT_APP_CODE = os.getenv("BK_CHAT_APP_CODE", APP_CODE)
-BK_CHAT_APP_SECRET_KEY = os.getenv("BK_CHAT_APP_SECRET_KEY", os.getenv("APP_TOKEN"))
+BK_CHAT_APP_CODE = os.getenv("BK_CHAT_APP_CODE", os.getenv("BKPAAS_APP_ID"))
+BK_CHAT_APP_SECRET_KEY = os.getenv("BK_CHAT_APP_SECRET_KEY", os.getenv("BKPAAS_APP_SECRET"))
