@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 import importlib
+import os
 import sys
 from urllib.parse import urlparse
 
@@ -748,6 +749,7 @@ BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
 
 # 蓝鲸插件授权过滤 APP
 PLUGIN_DISTRIBUTOR_NAME = env.PLUGIN_DISTRIBUTOR_NAME or APP_CODE
+PLUGIN_DISTRIBUTOR_SELECT = env.PLUGIN_DISTRIBUTOR_SELECT or os.getenv("APP_TOKEN")
 
 # IAM APIGW 地址
 BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST

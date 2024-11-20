@@ -67,7 +67,7 @@ class MessageHandler:
         return True
 
     def send_bkchat(self, notify, content):
-        params = {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY}
+        params = {"bk_app_code": settings.PLUGIN_DISTRIBUTOR_NAME, "bk_app_secret": settings.PLUGIN_DISTRIBUTOR_SELECT}
 
         data = {
             "im": "WEWORK",
