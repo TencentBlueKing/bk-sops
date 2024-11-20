@@ -122,13 +122,12 @@
             project_id: [String, Number]
         },
         data () {
-            const formData = {
-                notifyType: tools.deepClone(this.notifyType),
-                notifyTypeExtraInfo: tools.deepClone(this.notifyTypeExtraInfo),
-                receiverGroup: tools.deepClone(this.receiverGroup)
-            }
             return {
-                formData,
+                formData: {
+                    notifyType: [[]],
+                    receiverGroup: [],
+                    notifyTypeExtraInfo: {}
+                },
                 notifyTypeLoading: false,
                 allNotifyTypeList: [],
                 notifyGroupLoading: false,
@@ -151,6 +150,26 @@
                     list = defaultList.concat(this.projectNotifyGroup)
                 }
                 return list
+            }
+        },
+        watch: {
+            notifyType: {
+                handler (val) {
+                    this.formData.notifyType = tools.deepClone(val)
+                },
+                immediate: true
+            },
+            receiverGroup: {
+                handler (val) {
+                    this.formData.receiverGroup = tools.deepClone(val)
+                },
+                immediate: true
+            },
+            notifyTypeExtraInfo: {
+                handler (val) {
+                    this.formData.notifyTypeExtraInfo = tools.deepClone(val)
+                },
+                immediate: true
             }
         },
         created () {
