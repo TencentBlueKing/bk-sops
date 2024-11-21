@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
-import pytz
+from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from croniter import croniter
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -257,23 +257,28 @@ class PeriodicTask(models.Model):
         super(PeriodicTask, self).delete(using)
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
-    def inspect_time(self, request, cron, timezone=None):
-        try:
-            tz = pytz.timezone(timezone or "UTC")
-        except pytz.UnknownTimeZoneError:
-            return {"result": False, "data": None, "message": f"未知时区: {timezone}"}
+    def inspect_time(self, is_superuser, cron, timezone=None):
+        schedule, _ = DjangoCeleryBeatCrontabSchedule.objects.get_or_create(
+            minute=cron.get("minute", "*"),
+            hour=cron.get("hour", "*"),
+            day_of_week=cron.get("day_of_week", "*"),
+            day_of_month=cron.get("day_of_month", "*"),
+            month_of_year=cron.get("month_of_year", "*"),
+            timezone=timezone or "UTC",
+        )
         result = True
-        if not request.user.is_superuser:
-            now_time = datetime.now(tz)
-            cron_expression = " ".join(list(cron.values()))
-            schedule_iter = croniter(cron_expression, now_time)
+        if not is_superuser:
+            cron_expression = (
+                f"{schedule.minute} {schedule.hour} {schedule.day_of_month} {schedule.month_of_year} "
+                f"{schedule.day_of_week}"
+            )
+            schedule_iter = croniter(cron_expression)
 
-            next_time_1 = schedule_iter.get_next(datetime)
-            next_time_2 = schedule_iter.get_next(datetime)
+            next_times = [schedule_iter.get_next(datetime) for _ in range(10)]
+            min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
 
-            interval_difference = next_time_2 - next_time_1
             shortest_time = int(settings.PERIODIC_TASK_SHORTEST_TIME)
-            if interval_difference < timedelta(minutes=shortest_time):
+            if min_interval < timedelta(minutes=shortest_time):
                 result = False
 
         return result

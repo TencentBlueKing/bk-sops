@@ -78,7 +78,10 @@ class PeriodicTaskTestCase(TestCase):
             template_id=uniqid(), name=self.task_template_name, creator=self.creator, snapshot=self.snapshot
         )
         self.template_version = "template_version"
-        task_template = TaskTemplate(project=self.project, pipeline_template=self.pipeline_template,)
+        task_template = TaskTemplate(
+            project=self.project,
+            pipeline_template=self.pipeline_template,
+        )
         task_template.save()
         self.template = task_template
         self.task = self.create_a_task()
@@ -233,6 +236,12 @@ class PeriodicTaskTestCase(TestCase):
         self.assertRaises(
             PipelinePeriodicTask.DoesNotExist, PipelinePeriodicTask.objects.get, id=pipeline_periodic_task_id
         )
+
+    def test_inspect_time(self):
+        self.cron = {"day_of_month": "*", "day_of_week": "*", "hour": "*", "minute": "*/30", "month_of_year": "*"}
+        self.timezone = "Asia/Shanghai"
+        self.periodic_task = self.task.inspect_time(is_superuser=0, cron=self.cron, timezone=self.timezone)
+        self.assertTrue(self.periodic_task)
 
     def test_modify_constants(self):
         expect_constants = copy.deepcopy(self.task.task.execution_data["constants"])

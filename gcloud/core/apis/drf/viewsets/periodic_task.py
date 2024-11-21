@@ -256,7 +256,9 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         serializer.is_valid(raise_exception=True)
         project = Project.objects.filter(id=serializer.validated_data["project"].id).first()
         if settings.PERIODIC_TASK_SHORTEST_TIME:
-            result = PeriodicTask().inspect_time(request, serializer.validated_data["cron"], project.time_zone)
+            result = PeriodicTask().inspect_time(
+                request.user.is_superuser, serializer.validated_data["cron"], project.time_zone
+            )
             if not result:
                 raise ValidationException("The interval between tasks should be at least 30 minutes")
         try:
@@ -280,7 +282,9 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         serializer.is_valid(raise_exception=True)
         project = Project.objects.filter(id=serializer.validated_data["project"].id).first()
         if settings.PERIODIC_TASK_SHORTEST_TIME:
-            result = PeriodicTask().inspect_time(request, serializer.validated_data["cron"], project.time_zone)
+            result = PeriodicTask().inspect_time(
+                request.user.is_superuser, serializer.validated_data["cron"], project.time_zone
+            )
             if not result:
                 raise ValidationException("The interval between tasks should be at least 30 minutes")
         try:
@@ -305,7 +309,9 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             if "cron" in serializer.validated_data:
                 project = Project.objects.filter(id=serializer.validated_data["project"]).first()
                 if settings.PERIODIC_TASK_SHORTEST_TIME:
-                    result = instance.inspect_time(request, serializer.validated_data["cron"], project.time_zone)
+                    result = instance.inspect_time(
+                        request.user.is_superuser, serializer.validated_data["cron"], project.time_zone
+                    )
                     if not result:
                         raise ValidationException("The interval between tasks should be at least 30 minutes")
                 instance.modify_cron(serializer.validated_data["cron"], project.time_zone)
