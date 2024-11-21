@@ -14,6 +14,9 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
+import pytz
+from croniter import croniter
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
@@ -253,6 +256,27 @@ class PeriodicTask(models.Model):
         self.task.delete()
         super(PeriodicTask, self).delete(using)
         PeriodicTaskHistory.objects.filter(task=self).delete()
+
+    def inspect_time(self, request, cron, timezone=None):
+        try:
+            tz = pytz.timezone(timezone or "UTC")
+        except pytz.UnknownTimeZoneError:
+            return {"result": False, "data": None, "message": f"未知时区: {timezone}"}
+        result = True
+        if not request.user.is_superuser:
+            now_time = datetime.now(tz)
+            cron_expression = " ".join(list(cron.values()))
+            schedule_iter = croniter(cron_expression, now_time)
+
+            next_time_1 = schedule_iter.get_next(datetime)
+            next_time_2 = schedule_iter.get_next(datetime)
+
+            interval_difference = next_time_2 - next_time_1
+            shortest_time = int(settings.PERIODIC_TASK_SHORTEST_TIME)
+            if interval_difference < timedelta(minutes=shortest_time):
+                result = False
+
+        return result
 
     def modify_cron(self, cron, timezone):
         if self.task.enabled is False:
