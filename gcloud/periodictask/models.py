@@ -257,7 +257,7 @@ class PeriodicTask(models.Model):
         super(PeriodicTask, self).delete(using)
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
-    def inspect_time(self, is_superuser, cron, timezone=None):
+    def inspect_time(self, is_superuser, cron, shortest_time, timezone=None):
         schedule, _ = DjangoCeleryBeatCrontabSchedule.objects.get_or_create(
             minute=cron.get("minute", "*"),
             hour=cron.get("hour", "*"),
@@ -277,7 +277,6 @@ class PeriodicTask(models.Model):
             next_times = [schedule_iter.get_next(datetime) for _ in range(10)]
             min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
 
-            shortest_time = int(settings.PERIODIC_TASK_SHORTEST_TIME)
             if min_interval < timedelta(minutes=shortest_time):
                 result = False
 

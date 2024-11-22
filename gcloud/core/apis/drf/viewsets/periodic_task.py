@@ -257,10 +257,17 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         project = Project.objects.filter(id=serializer.validated_data["project"].id).first()
         if settings.PERIODIC_TASK_SHORTEST_TIME:
             result = PeriodicTask().inspect_time(
-                request.user.is_superuser, serializer.validated_data["cron"], project.time_zone
+                request.user.is_superuser,
+                serializer.validated_data["cron"],
+                int(settings.PERIODIC_TASK_SHORTEST_TIME),
+                project.time_zone,
             )
             if not result:
-                raise ValidationException("The interval between tasks should be at least 30 minutes")
+                raise ValidationException(
+                    "The interval between tasks should be at least {} minutes".format(
+                        settings.PERIODIC_TASK_SHORTEST_TIME
+                    )
+                )
         try:
             self._handle_serializer(request, serializer)
             instance = serializer.save()
@@ -282,11 +289,18 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         serializer.is_valid(raise_exception=True)
         project = Project.objects.filter(id=serializer.validated_data["project"].id).first()
         if settings.PERIODIC_TASK_SHORTEST_TIME:
-            result = PeriodicTask().inspect_time(
-                request.user.is_superuser, serializer.validated_data["cron"], project.time_zone
+            result = instance.inspect_time(
+                request.user.is_superuser,
+                serializer.validated_data["cron"],
+                int(settings.PERIODIC_TASK_SHORTEST_TIME),
+                project.time_zone,
             )
             if not result:
-                raise ValidationException("The interval between tasks should be at least 30 minutes")
+                raise ValidationException(
+                    "The interval between tasks should be at least {} minutes".format(
+                        settings.PERIODIC_TASK_SHORTEST_TIME
+                    )
+                )
         try:
             self._handle_serializer(request, serializer)
             instance = PeriodicTask.objects.update(instance, **serializer.validated_data)
@@ -310,10 +324,17 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
                 project = Project.objects.filter(id=serializer.validated_data["project"]).first()
                 if settings.PERIODIC_TASK_SHORTEST_TIME:
                     result = instance.inspect_time(
-                        request.user.is_superuser, serializer.validated_data["cron"], project.time_zone
+                        request.user.is_superuser,
+                        serializer.validated_data["cron"],
+                        int(settings.PERIODIC_TASK_SHORTEST_TIME),
+                        project.time_zone,
                     )
                     if not result:
-                        raise ValidationException("The interval between tasks should be at least 30 minutes")
+                        raise ValidationException(
+                            "The interval between tasks should be at least {} minutes".format(
+                                settings.PERIODIC_TASK_SHORTEST_TIME
+                            )
+                        )
                 instance.modify_cron(serializer.validated_data["cron"], project.time_zone)
             if "constants" in serializer.validated_data:
                 instance.modify_constants(serializer.validated_data["constants"])

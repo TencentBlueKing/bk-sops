@@ -238,10 +238,17 @@ class PeriodicTaskTestCase(TestCase):
         )
 
     def test_inspect_time(self):
-        self.cron = {"day_of_month": "*", "day_of_week": "*", "hour": "*", "minute": "*/30", "month_of_year": "*"}
+        self.cron = {"day_of_month": "*", "day_of_week": "*", "hour": "*", "minute": "*/35", "month_of_year": "*"}
         self.timezone = "Asia/Shanghai"
-        self.periodic_task = self.task.inspect_time(is_superuser=True, cron=self.cron, timezone=self.timezone)
-        self.assertTrue(self.periodic_task)
+        self.shortest_time = 30
+        self.periodic_task_true = self.task.inspect_time(
+            is_superuser=True, cron=self.cron, shortest_time=self.shortest_time, timezone=self.timezone
+        )
+        self.assertTrue(self.periodic_task_true)
+        self.periodic_task_false = self.task.inspect_time(
+            is_superuser=False, cron=self.cron, shortest_time=self.shortest_time, timezone=self.timezone
+        )
+        self.assertFalse(self.periodic_task_false)
 
     def test_modify_constants(self):
         expect_constants = copy.deepcopy(self.task.task.execution_data["constants"])
