@@ -268,19 +268,57 @@ class PeriodicTask(models.Model):
         )
         result = True
         if not is_superuser:
-            cron_expression = (
-                f"{schedule.minute} {schedule.hour} {schedule.day_of_month} {schedule.month_of_year} "
-                f"{schedule.day_of_week}"
-            )
-            schedule_iter = croniter(cron_expression)
+            min_interval = None
+            if not schedule.minute.isdigit():
+                min_diff = self._analyze_cron(schedule.minute, 60)
+                min_interval = timedelta(minutes=min_diff)
+            elif not schedule.hour.isdigit():
+                min_diff = self._analyze_cron(schedule.hour, 24)
+                min_interval = timedelta(minutes=min_diff * 60)
 
-            next_times = [schedule_iter.get_next(datetime) for _ in range(10)]
-            min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
+            if not min_interval:
+                cron_expression = (
+                    f"{schedule.minute} {schedule.hour} {schedule.day_of_month} {schedule.month_of_year} "
+                    f"{schedule.day_of_week}"
+                )
+                schedule_iter = croniter(cron_expression)
 
-            if min_interval < timedelta(minutes=shortest_time):
+                next_times = [schedule_iter.get_next(datetime) for _ in range(10)]
+                min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
+
+            if not min_interval < timedelta(minutes=shortest_time):
                 result = False
 
         return result
+
+    def _analyze_cron(self, field, max_value):
+        parts = field.split(",")
+        time_units = set()
+
+        for part in parts:
+            if "/" in part:
+                range_part, step = part.split("/")
+                step = int(step)
+                if range_part == "*":
+                    time_units.update(range(0, max_value + 1, step))
+                elif "-" in range_part:
+                    start, end = map(int, range_part.split("-"))
+                    time_units.update(range(start, end + 1, step))
+                else:
+                    start = int(range_part)
+                    time_units.update(range(start, max_value + 1, step))
+            elif "-" in part:
+                start, end = map(int, part.split("-"))
+                time_units.update(range(start, end + 1))
+            elif part == "*":
+                time_units.update(range(0, max_value + 1))
+            else:
+                time_units.add(int(part))
+
+        time_units = sorted(time_units)
+        min_diff = min(time_units[i] - time_units[i - 1] for i in range(1, len(time_units)))
+
+        return min_diff
 
     def modify_cron(self, cron, timezone):
         if self.task.enabled is False:
