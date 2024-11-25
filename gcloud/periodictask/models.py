@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
-from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from croniter import croniter
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -257,68 +256,37 @@ class PeriodicTask(models.Model):
         super(PeriodicTask, self).delete(using)
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
-    def inspect_time(self, is_superuser, cron, shortest_time, timezone=None):
-        schedule, _ = DjangoCeleryBeatCrontabSchedule.objects.get_or_create(
-            minute=cron.get("minute", "*"),
-            hour=cron.get("hour", "*"),
-            day_of_week=cron.get("day_of_week", "*"),
-            day_of_month=cron.get("day_of_month", "*"),
-            month_of_year=cron.get("month_of_year", "*"),
-            timezone=timezone or "UTC",
-        )
-        result = True
-        if not is_superuser:
-            min_interval = None
-            if not schedule.minute.isdigit():
-                min_diff = self._analyze_cron(schedule.minute, 60)
-                min_interval = timedelta(minutes=min_diff)
-            elif not schedule.hour.isdigit():
-                min_diff = self._analyze_cron(schedule.hour, 24)
-                min_interval = timedelta(minutes=min_diff * 60)
+    def inspect_time(self, is_superuser, cron, shortest_time, item_num):
+        """检查cron时间间隔是否符合要求
+        :param is_superuser: 是否是管理员
+        :type is_superuser bool
+        :param cron: 定时任务配置
+        :type cron dict
+        :param shortest_time: 最短时间间隔
+        :type shortest_time int
+        :param item_num: 迭代次数
+        :type item_num int
+        """
+        if is_superuser:
+            return True
 
-            if not min_interval:
-                cron_expression = (
-                    f"{schedule.minute} {schedule.hour} {schedule.day_of_month} {schedule.month_of_year} "
-                    f"{schedule.day_of_week}"
-                )
-                schedule_iter = croniter(cron_expression)
+        minute = cron.get("minute")
+        hour = cron.get("hour")
+        day_of_month = cron.get("day_of_month")
+        month_of_year = cron.get("month_of_year")
+        day_of_week = cron.get("day_of_week")
+        # 拼接cron表达式
+        cron_expression = f"{minute} {hour} {day_of_month} {month_of_year} {day_of_week}"
 
-                next_times = [schedule_iter.get_next(datetime) for _ in range(10)]
-                min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
+        schedule_iter = croniter(cron_expression)
+        # 计算指定次数内的最短时间间隔
+        next_times = [schedule_iter.get_next(datetime) for _ in range(item_num)]
+        min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
 
-            if not min_interval < timedelta(minutes=shortest_time):
-                result = False
+        if min_interval < timedelta(minutes=shortest_time):
+            return False
 
-        return result
-
-    def _analyze_cron(self, field, max_value):
-        parts = field.split(",")
-        time_units = set()
-
-        for part in parts:
-            if "/" in part:
-                range_part, step = part.split("/")
-                step = int(step)
-                if range_part == "*":
-                    time_units.update(range(0, max_value + 1, step))
-                elif "-" in range_part:
-                    start, end = map(int, range_part.split("-"))
-                    time_units.update(range(start, end + 1, step))
-                else:
-                    start = int(range_part)
-                    time_units.update(range(start, max_value + 1, step))
-            elif "-" in part:
-                start, end = map(int, part.split("-"))
-                time_units.update(range(start, end + 1))
-            elif part == "*":
-                time_units.update(range(0, max_value + 1))
-            else:
-                time_units.add(int(part))
-
-        time_units = sorted(time_units)
-        min_diff = min(time_units[i] - time_units[i - 1] for i in range(1, len(time_units)))
-
-        return min_diff
+        return True
 
     def modify_cron(self, cron, timezone):
         if self.task.enabled is False:

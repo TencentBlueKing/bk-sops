@@ -22,6 +22,8 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import ValidationError
 
 import env
+from gcloud.conf import settings
+from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.constants import PROJECT
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.models import Project, ProjectConfig
@@ -193,7 +195,23 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
+        self.inspect_time(self.context["request"], attrs.get("cron"))
         return attrs
+
+    def inspect_time(self, request, cron):
+        if settings.PERIODIC_TASK_SHORTEST_TIME:
+            result = PeriodicTask().inspect_time(
+                is_superuser=request.user.is_superuser,
+                cron=cron,
+                shortest_time=int(settings.PERIODIC_TASK_SHORTEST_TIME),
+                item_num=int(settings.PERIODIC_TASK_ITERATION),
+            )
+            if not result:
+                raise ValidationException(
+                    "The interval between tasks should be at least {} minutes".format(
+                        settings.PERIODIC_TASK_SHORTEST_TIME
+                    )
+                )
 
     class Meta:
         model = PeriodicTask
@@ -208,4 +226,20 @@ class PatchUpdatePeriodicTaskSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
+        self.inspect_time(self.context["request"], attrs.get("cron"))
         return attrs
+
+    def inspect_time(self, request, cron):
+        if settings.PERIODIC_TASK_SHORTEST_TIME:
+            result = PeriodicTask().inspect_time(
+                is_superuser=request.user.is_superuser,
+                cron=cron,
+                shortest_time=int(settings.PERIODIC_TASK_SHORTEST_TIME),
+                item_num=int(settings.PERIODIC_TASK_ITERATION),
+            )
+            if not result:
+                raise ValidationException(
+                    "The interval between tasks should be at least {} minutes".format(
+                        settings.PERIODIC_TASK_SHORTEST_TIME
+                    )
+                )

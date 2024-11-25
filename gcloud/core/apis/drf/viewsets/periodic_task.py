@@ -22,7 +22,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
-from gcloud.conf import settings
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import COMMON, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
@@ -252,22 +251,8 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         return super(PeriodicTaskViewSet, self).destroy(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        serializer = CreatePeriodicTaskSerializer(data=request.data)
+        serializer = CreatePeriodicTaskSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        project = Project.objects.filter(id=serializer.validated_data["project"].id).first()
-        if settings.PERIODIC_TASK_SHORTEST_TIME:
-            result = PeriodicTask().inspect_time(
-                request.user.is_superuser,
-                serializer.validated_data["cron"],
-                int(settings.PERIODIC_TASK_SHORTEST_TIME),
-                project.time_zone,
-            )
-            if not result:
-                raise ValidationException(
-                    "The interval between tasks should be at least {} minutes".format(
-                        settings.PERIODIC_TASK_SHORTEST_TIME
-                    )
-                )
         try:
             self._handle_serializer(request, serializer)
             instance = serializer.save()
@@ -285,22 +270,8 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = CreatePeriodicTaskSerializer(instance, data=request.data)
+        serializer = CreatePeriodicTaskSerializer(instance, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        project = Project.objects.filter(id=serializer.validated_data["project"].id).first()
-        if settings.PERIODIC_TASK_SHORTEST_TIME:
-            result = instance.inspect_time(
-                request.user.is_superuser,
-                serializer.validated_data["cron"],
-                int(settings.PERIODIC_TASK_SHORTEST_TIME),
-                project.time_zone,
-            )
-            if not result:
-                raise ValidationException(
-                    "The interval between tasks should be at least {} minutes".format(
-                        settings.PERIODIC_TASK_SHORTEST_TIME
-                    )
-                )
         try:
             self._handle_serializer(request, serializer)
             instance = PeriodicTask.objects.update(instance, **serializer.validated_data)
@@ -316,25 +287,12 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = PatchUpdatePeriodicTaskSerializer(data=request.data)
+        serializer = PatchUpdatePeriodicTaskSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
             if "cron" in serializer.validated_data:
                 project = Project.objects.filter(id=serializer.validated_data["project"]).first()
-                if settings.PERIODIC_TASK_SHORTEST_TIME:
-                    result = instance.inspect_time(
-                        request.user.is_superuser,
-                        serializer.validated_data["cron"],
-                        int(settings.PERIODIC_TASK_SHORTEST_TIME),
-                        project.time_zone,
-                    )
-                    if not result:
-                        raise ValidationException(
-                            "The interval between tasks should be at least {} minutes".format(
-                                settings.PERIODIC_TASK_SHORTEST_TIME
-                            )
-                        )
                 instance.modify_cron(serializer.validated_data["cron"], project.time_zone)
             if "constants" in serializer.validated_data:
                 instance.modify_constants(serializer.validated_data["constants"])
