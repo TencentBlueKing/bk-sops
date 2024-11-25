@@ -32,7 +32,8 @@ class TaskCallBacker:
     def __init__(self, task_id, *args, **kwargs):
         self.task_id = task_id
         self.record = TaskCallBackRecord.objects.filter(task_id=self.task_id).first()
-        self.extra_info = {"task_id": self.task_id, **json.loads(self.record.extra_info), **kwargs}
+        self.record_extra_info = json.loads(self.record.extra_info)
+        self.extra_info = {"task_id": self.task_id, **self.record_extra_info, **kwargs}
 
     def check_record_existence(self):
         return True if self.record else False
@@ -96,9 +97,13 @@ class TaskCallBacker:
                 logger.error(f"[TaskCallBacker _url_callback] get lock error: {err}")
                 return None
             url = self.record.url
+            callback_version = self.record_extra_info.get("callback_version")
             response = None
             try:
-                response = requests.post(url, data=self.extra_info)
+                if callback_version == TaskCallBackRecord.CALLBACK_VERSION_V2:
+                    response = requests.post(url, json=self.extra_info)
+                else:
+                    response = requests.post(url, data=self.extra_info)
                 response.raise_for_status()
             except HTTPError as e:
                 message = (

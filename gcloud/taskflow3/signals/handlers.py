@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import json
 import logging
 
 from bamboo_engine import states as bamboo_engine_states
@@ -91,7 +90,7 @@ def _check_and_callback(taskflow_id, *args, **kwargs):
     try:
         if kwargs.get("task"):
             task = kwargs.pop("task")
-            kwargs["task_outputs"] = json.dumps(task.get_task_detail()["outputs"])
+            kwargs["task_outputs"] = task.get_task_detail()["outputs"]
         task_callback.apply_async(
             kwargs=dict(task_id=taskflow_id, **kwargs),
             queue="task_callback",
