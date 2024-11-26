@@ -237,25 +237,6 @@ class PeriodicTaskTestCase(TestCase):
             PipelinePeriodicTask.DoesNotExist, PipelinePeriodicTask.objects.get, id=pipeline_periodic_task_id
         )
 
-    def test_inspect_time(self):
-        shortest_time = 30
-        item_num = 10
-        cron_1 = {"day_of_month": "*", "day_of_week": "*", "hour": "*", "minute": "*", "month_of_year": "*"}
-        self.periodic_task_1 = self.task.inspect_time(
-            is_superuser=False, cron=cron_1, shortest_time=shortest_time, item_num=item_num
-        )
-        self.assertFalse(self.periodic_task_1)
-        cron_2 = {"day_of_month": "*", "day_of_week": "*", "hour": "*", "minute": "*/20", "month_of_year": "*"}
-        self.periodic_task_2 = self.task.inspect_time(
-            is_superuser=False, cron=cron_2, shortest_time=shortest_time, item_num=item_num
-        )
-        self.assertFalse(self.periodic_task_2)
-        cron_3 = {"day_of_month": "*", "day_of_week": "*", "hour": "*/2", "minute": "*/40", "month_of_year": "*"}
-        self.periodic_task_3 = self.task.inspect_time(
-            is_superuser=False, cron=cron_3, shortest_time=shortest_time, item_num=item_num
-        )
-        self.assertTrue(self.periodic_task_3)
-
     def test_modify_constants(self):
         expect_constants = copy.deepcopy(self.task.task.execution_data["constants"])
         expect_constants["key_1"]["value"] = "val_3"

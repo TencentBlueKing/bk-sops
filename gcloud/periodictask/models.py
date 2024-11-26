@@ -14,8 +14,6 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
-from croniter import croniter
-from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
@@ -255,38 +253,6 @@ class PeriodicTask(models.Model):
         self.task.delete()
         super(PeriodicTask, self).delete(using)
         PeriodicTaskHistory.objects.filter(task=self).delete()
-
-    def inspect_time(self, is_superuser, cron, shortest_time, item_num):
-        """检查cron时间间隔是否符合要求
-        :param is_superuser: 是否是管理员
-        :type is_superuser bool
-        :param cron: 定时任务配置
-        :type cron dict
-        :param shortest_time: 最短时间间隔
-        :type shortest_time int
-        :param item_num: 迭代次数
-        :type item_num int
-        """
-        if is_superuser:
-            return True
-
-        minute = cron.get("minute")
-        hour = cron.get("hour")
-        day_of_month = cron.get("day_of_month")
-        month_of_year = cron.get("month_of_year")
-        day_of_week = cron.get("day_of_week")
-        # 拼接cron表达式
-        cron_expression = f"{minute} {hour} {day_of_month} {month_of_year} {day_of_week}"
-
-        schedule_iter = croniter(cron_expression)
-        # 计算指定次数内的最短时间间隔
-        next_times = [schedule_iter.get_next(datetime) for _ in range(item_num)]
-        min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
-
-        if min_interval < timedelta(minutes=shortest_time):
-            return False
-
-        return True
 
     def modify_cron(self, cron, timezone):
         if self.task.enabled is False:
