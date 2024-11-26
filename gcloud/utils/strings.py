@@ -13,7 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import re
 import logging
-
+from croniter import croniter
+from datetime import datetime, timedelta
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH, AE
 
 logger = logging.getLogger("root")
@@ -116,3 +117,24 @@ def django_celery_beat_cron_time_format_fit(cron_str):
     cron_config = {time_format: cron_time for time_format, cron_time in zip(time_formats, cron_times)}
     result_cron_list = [cron_config[unit] for unit in unit_order] + ["({})".format("/".join(unit_order))] + time_zone
     return " ".join(result_cron_list).strip()
+
+
+def inspect_time(cron, shortest_time, iter_count):
+    """检查定时任务时间间隔是否符合要求
+    :param cron: 定时任务配置
+    :type cron str
+    :param shortest_time: 最短时间间隔，以分钟为单位，例如 30
+    :type shortest_time int
+    :param iter_count: 迭代次数
+    :type iter_count int
+    """
+
+    schedule_iter = croniter(cron)
+    # 计算指定次数内的最短时间间隔
+    next_times = [schedule_iter.get_next(datetime) for _ in range(iter_count)]
+    min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
+
+    if min_interval < timedelta(minutes=shortest_time):
+        return False
+
+    return True

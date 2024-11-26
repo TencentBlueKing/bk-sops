@@ -251,7 +251,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         return super(PeriodicTaskViewSet, self).destroy(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        serializer = CreatePeriodicTaskSerializer(data=request.data)
+        serializer = CreatePeriodicTaskSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         try:
             self._handle_serializer(request, serializer)
@@ -270,7 +270,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = CreatePeriodicTaskSerializer(instance, data=request.data)
+        serializer = CreatePeriodicTaskSerializer(instance, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         try:
             self._handle_serializer(request, serializer)
@@ -287,7 +287,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = PatchUpdatePeriodicTaskSerializer(data=request.data)
+        serializer = PatchUpdatePeriodicTaskSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
