@@ -155,7 +155,7 @@ def check_cron_params(cron, project):
 
 
 class CronFieldSerializer(serializers.Serializer):
-    cron = serializers.DictField(write_only=True, help_text="周期", required=False)
+    cron = serializers.DictField(write_only=True)
 
     def inspect_cron(self, cron):
         minute = cron.get("minute", "*")
@@ -214,7 +214,7 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
-            super().inspect_cron(attrs.get("cron"))
+            self.inspect_cron(attrs.get("cron"))
         return attrs
 
     class Meta:
@@ -223,6 +223,7 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
 
 
 class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Serializer):
+    cron = serializers.DictField(help_text="周期", required=False)
     project = serializers.IntegerField(help_text="项目ID", required=False)
     constants = serializers.DictField(help_text="执行参数", required=False)
     name = serializers.CharField(help_text="任务名", required=False)
@@ -230,5 +231,5 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
-            super().inspect_cron(attrs.get("cron"))
+            self.inspect_cron(attrs.get("cron"))
         return attrs
