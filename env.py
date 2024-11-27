@@ -150,7 +150,7 @@ PERIODIC_TASK_REMINDER_SCAN_CRON = tuple(os.getenv("BKAPP_PERIODIC_TASK_REMINDER
 # 周期任务消息通知类型
 PERIODIC_TASK_REMINDER_NOTIFY_TYPE = json.loads(os.getenv("PERIODIC_TASK_REMINDER_NOTIFY_TYPE", '["email"]'))
 
-# 周期任务最短时间间隔，以分钟为单位，例如：30
+# 周期任务最短时间间隔，以分钟为单位，例如：30，0 表示无限制
 PERIODIC_TASK_SHORTEST_TIME = int(os.getenv("PERIODIC_TASK_SHORTEST_TIME", 0))
 # 周期任务迭代次数
 PERIODIC_TASK_ITERATION = int(os.getenv("PERIODIC_TASK_ITERATION", 10))

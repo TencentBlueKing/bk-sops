@@ -157,16 +157,20 @@ def check_cron_params(cron, project):
 class CronFieldSerializer(serializers.Serializer):
     cron = serializers.DictField(write_only=True, help_text="周期", required=False)
 
-    def validate_inspect_cron(self, value):
-        minute = value.get("minute", "*")
-        hour = value.get("hour", "*")
-        day_of_month = value.get("day_of_month", "*")
-        month = value.get("month", "*")
-        day_of_week = value.get("day_of_week", "*")
+    def inspect_cron(self, cron):
+        minute = cron.get("minute", "*")
+        hour = cron.get("hour", "*")
+        day_of_month = cron.get("day_of_month", "*")
+        month = cron.get("month", "*")
+        day_of_week = cron.get("day_of_week", "*")
 
         cron_expression = f"{minute} {hour} {day_of_month} {month} {day_of_week}"
 
-        return cron_expression
+        result = inspect_time(cron_expression, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
+        if not result:
+            raise serializers.ValidationError(
+                "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
+            )
 
 
 class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
@@ -210,14 +214,7 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
-            cron_str = super().validate_inspect_cron(attrs.get("cron"))
-            result = inspect_time(cron_str, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
-            if not result:
-                raise serializers.ValidationError(
-                    "The interval between tasks should be at least {} minutes".format(
-                        settings.PERIODIC_TASK_SHORTEST_TIME
-                    )
-                )
+            super().inspect_cron(attrs.get("cron"))
         return attrs
 
     class Meta:
@@ -233,12 +230,5 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
-            cron_str = super().validate_inspect_cron(attrs.get("cron"))
-            result = inspect_time(cron_str, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
-            if not result:
-                raise serializers.ValidationError(
-                    "The interval between tasks should be at least {} minutes".format(
-                        settings.PERIODIC_TASK_SHORTEST_TIME
-                    )
-                )
+            super().inspect_cron(attrs.get("cron"))
         return attrs
