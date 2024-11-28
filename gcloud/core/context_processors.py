@@ -91,6 +91,7 @@ def mysetting(request):
         "_": _,  # 国际化
         "LANGUAGES": settings.LANGUAGES,  # 国际化
         # 自定义变量
+        "PERIODIC_TASK_SHORTEST_TIME": settings.PERIODIC_TASK_SHORTEST_TIME,
         "OPEN_VER": settings.OPEN_VER,
         "RUN_VER": settings.RUN_VER,
         "RUN_VER_NAME": EnvironmentVariables.objects.get_var(run_ver_key, settings.RUN_VER_NAME),
