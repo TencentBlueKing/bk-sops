@@ -160,20 +160,30 @@
             setVariableTag (value, valueUpdate) {
                 const { attrs } = this.scheme
                 if (attrs.variable_render !== false) return
-                const regex = /\${[a-zA-Z_]\w*}/
                 const rows = value.split('\n')
                 // 获取光标所在行
                 const { monacoInstance } = this.$refs.tagCodeEditor?.$refs.codeEditor || {}
                 const { lineNumber } = monacoInstance?.getPosition() || {}
-                if (regex.test(value)) {
-                    const matchMap = rows.reduce((acc, cur, idx) => {
-                        const variables = cur.match(/\${[a-zA-Z_]\w*}/g) || []
-                        const matchList = variables.filter(item => this.constantArr.includes(item))
-                        if (matchList.length) {
-                            acc[idx + 1] = matchList
-                        }
-                        return acc
-                    }, {})
+                // 判读变量是否存在
+                let isExist = false
+                const matchMap = rows.reduce((acc, cur, idx) => {
+                    const matchList = []
+                    cur.replace(/\${([^${}]+)}/g, (match, $0) => {
+                        isExist = this.constantArr.some(item => {
+                            const varText = item.slice(2, -1)
+                            if ($0.indexOf(varText) > -1 && new RegExp(`^(.*\\W|\\W)?${varText}(\\W|\\W.*)?$`).test($0)) {
+                                matchList.push(match)
+                                return true
+                            }
+                            return false
+                        })
+                    })
+                    if (matchList.length) {
+                        acc[idx + 1] = matchList
+                    }
+                    return acc
+                }, {})
+                if (isExist) {
                     // 脚本内容存在全局变量
                     this.globalVarLength = Object.values(matchMap).flat().length
                     // 数据更新处理逻辑
