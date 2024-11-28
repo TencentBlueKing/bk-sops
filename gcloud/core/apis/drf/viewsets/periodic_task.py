@@ -23,6 +23,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud import err_code
+from gcloud.conf import settings
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import COMMON, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
 from gcloud.contrib.audit.utils import bk_audit_add_event
@@ -228,7 +229,9 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
                 inst["auth_actions"].append(view_action)
             inst["is_collected"] = 1 if inst["id"] in collection_task_ids else 0
             inst["collection_id"] = collection_task_map.get(inst["id"], -1)
-        return self.get_paginated_response(instances) if page is not None else Response(instances)
+        result = self.get_paginated_response(instances) if page is not None else Response(instances)
+        result.data["interval_time"] = settings.PERIODIC_TASK_SHORTEST_TIME
+        return result
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
