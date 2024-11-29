@@ -1860,7 +1860,9 @@ const en = {
     '将清空输入信息': 'This will clear the input information',
     '【n】标签已存在': 'The tag [{n}] already exists',
     '场景名称重复：': 'Duplicate scene name:',
-    '场景名称长度最小3个字符': 'The scene name must be at least 3 characters long'
+    '场景名称长度最小3个字符': 'The scene name must be at least 3 characters long',
+    '请输入群 ID，多个 ID 以分号隔开': 'Please enter group IDs, separated by semicolons if there are multiple IDs',
+    '当前环境配置周期任务间隔不低于 n 分钟，如有特殊需求请联系管理员配置': 'In the current environment, the interval for scheduled tasks is no less than {n} minutes. If you have special requirements, please contact the administrator for configuration'
 }
 
 export default en
