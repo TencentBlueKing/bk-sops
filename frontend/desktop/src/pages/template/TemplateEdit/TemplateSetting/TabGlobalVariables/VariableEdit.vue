@@ -160,7 +160,7 @@
                 </div>
                 <!-- 模板预渲染 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label class="form-label">
+                    <label class="form-label required">
                         <span v-bk-tooltips.top="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')" class="condition-tip">{{ $t('常量')}}</span>
                     </label>
                     <div class="form-content">
@@ -168,6 +168,8 @@
                             :value="String(theEditingData.pre_render_mako)"
                             :clearable="false"
                             :disabled="isViewMode"
+                            name="preRenderMakoRule"
+                            v-validate="{ required: true }"
                             @selected="onSelectPreRenderMako">
                             <bk-option
                                 v-for="(option, index) in preRenderList"
@@ -176,6 +178,7 @@
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
+                        <span v-show="veeErrors.has('preRenderMakoRule')" class="common-error-tip error-msg">{{ veeErrors.first('preRenderMakoRule') }}</span>
                     </div>
                 </div>
                 <!-- 描述 -->
