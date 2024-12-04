@@ -1356,6 +1356,8 @@ class TimeoutNodesRecord(models.Model):
 
 
 class TaskCallBackRecord(models.Model):
+    CALLBACK_VERSION_V2 = "v2"
+
     id = models.BigAutoField(verbose_name="ID", primary_key=True)
     task_id = models.BigIntegerField(verbose_name=_("任务ID"), db_index=True)
     url = models.TextField(verbose_name=_("回调地址"))
