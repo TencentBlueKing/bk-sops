@@ -29,7 +29,7 @@
                 <NodePreview
                     ref="nodePreview"
                     :preview-data-loading="previewDataLoading"
-                    :canvas-data="formatCanvasData('perview', previewData)"
+                    :canvas-data="canvasData"
                     :preview-bread="previewBread"
                     :preview-data="previewData"
                     :common="isCommon"
@@ -238,6 +238,7 @@
     import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
     import permission from '@/mixins/permission.js'
     import NodePreview from '@/pages/task/NodePreview.vue'
+    import { formatCanvasData } from '@/utils/checkDataType'
 
     export default {
         name: 'ModifyPeriodicDialog',
@@ -403,6 +404,9 @@
             isSelectSchemeDisable () {
                 const { is_latest, template_id } = this.formData
                 return is_latest !== true || !template_id || this.previewDataLoading || !this.schemeList.length
+            },
+            canvasData () {
+                return formatCanvasData('preview', this.previewData)
             }
         },
         created () {
@@ -524,6 +528,8 @@
                         this.formData.schemeId = this.schemeList.length ? [0] : []
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
+                    } else {
+                        this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                     }
                 } catch (e) {
                     // 判断模板是否为删除
@@ -692,33 +698,6 @@
                     }
                 })
                 return nodes
-            },
-            /**
-             * 格式化pipelineTree的数据，只输出一部分数据
-             * @params {Object} data  需要格式化的pipelineTree
-             * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
-             */
-            formatCanvasData (mode, data) {
-                const { line, location, gateways, activities } = data
-                const branchConditions = {}
-                for (const gKey in gateways) {
-                    const item = gateways[gKey]
-                    if (item.conditions) {
-                        branchConditions[item.id] = Object.assign({}, item.conditions)
-                    }
-                    if (item.default_condition) {
-                        const nodeId = item.default_condition.flow_id
-                        branchConditions[item.id][nodeId] = item.default_condition
-                    }
-                }
-                return {
-                    lines: line,
-                    locations: location.map(item => {
-                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode, code, status: '' }
-                    }),
-                    branchConditions
-                }
             },
             /**
              * 点击预览模式下的面包屑
