@@ -24,6 +24,7 @@ const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
 const CommonTemplate = () => import('@/pages/commonManage/index.vue')
 const CommonTemplateList = () => import('@/pages/commonManage/CommonTplList.vue')
 const TemplatePanel = () => import('@/pages/template/TemplateEdit/index.vue')
+const TemplatePreview = () => import('@/pages/template/TemplatePreview/index.vue')
 
 const Task = () => import('@/pages/task/index.vue')
 const TaskManage = () => import('@/pages/task/TaskManage.vue')
@@ -163,6 +164,18 @@ const routers = new VueRouter({
                         template_id: route.query.template_id,
                         type: route.params.type,
                         common: '1'
+                    }),
+                    meta: { project: true }
+                },
+                {
+                    path: 'preview/:project_id/',
+                    name: 'templatePreview',
+                    pathToRegexpOptions: { strict: true },
+                    component: TemplatePreview,
+                    props: route => ({
+                        project_id: route.params.project_id,
+                        template_id: route.query.template_id,
+                        common: route.query.common
                     }),
                     meta: { project: true }
                 }

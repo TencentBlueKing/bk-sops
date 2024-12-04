@@ -60,10 +60,13 @@
         },
         computed: {
             ...mapState({
+                hideHeader: state => state.hideHeader,
                 view_mode: state => state.view_mode
             }),
             isShowBackBtn () {
-                return !(this.view_mode === 'appmaker' && this.$route.path.indexOf('newtask') !== -1)
+                // 没有导航栏时，在第一步时不展示返回按钮
+                return !(this.hideHeader && this.currentStep === 1)
+                    && !(this.view_mode === 'appmaker' && this.$route.path.indexOf('newtask') !== -1)
             },
             isAppMaker () {
                 return this.$store.state.view_mode === 'appmaker'
