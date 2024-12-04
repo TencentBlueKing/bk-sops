@@ -153,3 +153,8 @@ PERIODIC_TASK_REMINDER_NOTIFY_TYPE = json.loads(os.getenv("PERIODIC_TASK_REMINDE
 # bk_audit
 BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
+
+# 共享模板开关
+ENABLE_FLOW_MARKET = False if os.getenv("BKAPP_ENABLE_FLOW_MARKET") is None else True
+# SRE 商店路由
+FLOW_MARKET_API_URL = os.getenv("FLOW_MARKET_API_URL", "")
