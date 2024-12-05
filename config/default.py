@@ -67,7 +67,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
-    "gcloud.contrib.templatemaker",
+    "gcloud.contrib.template_maker",
     "gcloud.apigw",
     "gcloud.common_template",
     "gcloud.label",
@@ -887,6 +887,6 @@ if "BKAPP_SOPS_BROKER_URL" in os.environ:
 
 
 # 共享模板开关
-ENABLE_FLOW_MARKET = env.ENABLE_FLOW_MARKET
+ENABLE_TEMPLATE_MARKET = env.ENABLE_TEMPLATE_MARKET
 # SRE 商店路由
 FLOW_MARKET_API_URL = env.FLOW_MARKET_API_URL

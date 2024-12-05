@@ -11,4 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.contrib.templatemaker.apis.drf.viewsets.template_marker import TemplateMakerViewSet  # noqa
+from django.conf.urls import include, url
+from rest_framework.routers import DefaultRouter
+from gcloud.contrib.template_maker.viewsets import TemplateMarketViewSet, SharedTemplateViewSet
+
+
+drf_api = DefaultRouter()
+drf_api.register(r"template", TemplateMarketViewSet)
+drf_api.register(r"shared", SharedTemplateViewSet)
+
+urlpatterns = [
+    url(r"^api/", include(drf_api.urls)),
+]

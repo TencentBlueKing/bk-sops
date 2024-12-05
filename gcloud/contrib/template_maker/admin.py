@@ -11,23 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-import ujson as json
+from django.contrib import admin
 
-from django.utils.translation import ugettext_lazy as _
-
-from gcloud.utils.validate import RequestValidator
-
-logger = logging.getLogger("root")
+from gcloud.contrib.template_maker import models
 
 
-class JsonValidator(RequestValidator):
-    def validate(self, request, *args, **kwargs):
-        try:
-            json.loads(request.body)
-        except Exception:
-            message = _("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
-            logger.error(message)
-            return False, message
-
-        return True, ""
+@admin.register(models.TemplateSharedRecord)
+class AppMakerAdmin(admin.ModelAdmin):
+    list_display = ["project_id", "template_id", "creator", "create_at", "extra_info"]
+    list_filter = ["project_id", "template_id", "creator", "create_at"]
+    search_fields = ["project_id", "creator"]
