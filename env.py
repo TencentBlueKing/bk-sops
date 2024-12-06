@@ -154,7 +154,9 @@ PERIODIC_TASK_REMINDER_NOTIFY_TYPE = json.loads(os.getenv("PERIODIC_TASK_REMINDE
 BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
 
-# 共享模板开关
+# 流程商店
 ENABLE_TEMPLATE_MARKET = False if os.getenv("ENABLE_TEMPLATE_MARKET") is None else True
-# SRE 商店路由
-FLOW_MARKET_API_URL = os.getenv("FLOW_MARKET_API_URL", "")
+# 流程商店 API 地址
+TEMPLATE_MARKET_API_URL = os.getenv("TEMPLATE_MARKET_API_URL", "")
+# 流程跨业务复制
+ENABLE_APIGW_COPY_TEMPLATE = False if os.getenv("ENABLE_APIGW_COPY_TEMPLATE") is None else True

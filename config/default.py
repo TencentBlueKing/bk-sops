@@ -67,7 +67,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
-    "gcloud.contrib.template_maker",
+    "gcloud.contrib.template_market",
     "gcloud.apigw",
     "gcloud.common_template",
     "gcloud.label",
@@ -886,7 +886,9 @@ if "BKAPP_SOPS_BROKER_URL" in os.environ:
     print(f"BROKER_URL: {BROKER_URL}")
 
 
-# 共享模板开关
+# 流程商店
 ENABLE_TEMPLATE_MARKET = env.ENABLE_TEMPLATE_MARKET
-# SRE 商店路由
-FLOW_MARKET_API_URL = env.FLOW_MARKET_API_URL
+# 流程商店 API 地址
+TEMPLATE_MARKET_API_URL = env.TEMPLATE_MARKET_API_URL
+# 流程跨业务复制
+ENABLE_APIGW_COPY_TEMPLATE = env.ENABLE_APIGW_COPY_TEMPLATE

@@ -40,7 +40,7 @@ urlpatterns_custom = [
     url(r"^plugin_service/", include("plugin_service.urls")),
     url(r"^mako_operations/", include("gcloud.mako_template_helper.urls")),
     url(r"^engine_admin/", include("pipeline.contrib.engine_admin.urls")),
-    url(r"^template_maker/", include("gcloud.contrib.template_maker.urls")),
+    url(r"^template_market/", include("gcloud.contrib.template_market.urls")),
 ]
 
 schema_view = get_schema_view(

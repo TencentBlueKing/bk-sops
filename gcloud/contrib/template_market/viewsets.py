@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import requests
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -20,20 +19,19 @@ from rest_framework import permissions
 
 from gcloud.conf import settings
 from gcloud import err_code
-from gcloud.contrib.template_maker.serializers import TemplateSharedRecordSerializer
-from gcloud.contrib.template_maker.models import TemplateSharedRecord
-from gcloud.core.apis.drf.serilaziers.task_template import TaskTemplateSerializer, TaskTemplateListSerializer
+from gcloud.contrib.template_market.serializers import TemplateSharedRecordSerializer
+from gcloud.contrib.template_market.models import TemplateSharedRecord
+from gcloud.core.apis.drf.serilaziers.task_template import TaskTemplateSerializer
 from gcloud.taskflow3.models import TaskTemplate
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 
 
-class TemplateMarkerPermission(permissions.BasePermission):
+class StoreTemplatePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         template_id = view.kwargs.get("pk")
         project_id = request.GET.get("project_id")
 
         if not template_id or not project_id:
-            logging.warning("template_id is required.")
+            logging.warning("Missing required parameters.")
             return False
         try:
             TemplateSharedRecord.objects.get(template_id=template_id, project_id=project_id)
@@ -43,58 +41,45 @@ class TemplateMarkerPermission(permissions.BasePermission):
         return True
 
 
-class SharedTemplatePermission(permissions.BasePermission):
+class SharedProcessTemplatePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if not settings.ENABLE_TEMPLATE_MARKET:
             return False
         return True
 
 
-class TemplateMarketViewSet(GcloudModelViewSet):
+class StoreTemplateViewSet(viewsets.ViewSet):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
-    permission_classes = [permissions.IsAuthenticated, TemplateMarkerPermission]
-
-    def get_serializer_class(self):
-        if self.action == "list":
-            return TaskTemplateListSerializer
-        return TaskTemplateSerializer
+    serializer_class = TaskTemplateSerializer
+    permission_classes = [permissions.IsAuthenticated, StoreTemplatePermission]
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
+        instance = self.queryset.get(id=kwargs["pk"], project_id=request.GET.get("project_id"))
+        serializer = self.serializer_class(instance)
 
         return Response(serializer.data)
 
 
-class SharedTemplateViewSet(viewsets.ModelViewSet):
+class SharedProcessTemplateViewSet(viewsets.ModelViewSet):
     queryset = TemplateSharedRecord.objects.all()
     serializer_class = TemplateSharedRecordSerializer
-    permission_classes = [permissions.IsAuthenticated, SharedTemplatePermission]
+    permission_classes = [permissions.IsAuthenticated, SharedProcessTemplatePermission]
 
     def _get_market_routing(self, market_url):
-        return f"{settings.FLOW_MARKET_API_URL}/{market_url}"
+        return f"{settings.TEMPLATE_MARKET_API_URL}/{market_url}"
 
     def retrieve(self, request, *args, **kwargs):
-        project_id = kwargs.get("pk")
-        template_id = request.GET.get("template_id")
+        serializer = self.get_serializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
 
-        url = self._get_market_routing("market/details/")
+        project_id = serializer.validated_data.get("project_id")
+        template_id = serializer.validated_data.get("template_id")
+
         data = {"project_id": project_id, "template_id": template_id}
 
-        # 根据业务id和模板id从第三方接口获取模板详情
-        result = requests.post(url, data=data)
+        # todo: 调用第三方接口查询信息
 
-        if not result or result.status_code != 200:
-            logging.exception("Get market template details from third party fails")
-            return Response(
-                {
-                    "result": False,
-                    "message": "Get market template details from third party fails",
-                    "code": err_code.OPERATION_FAIL.code,
-                }
-            )
-
-        return Response(result.json())
+        return Response({"result": True, "data": data, "code": err_code.SUCCESS.code})
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -109,20 +94,7 @@ class SharedTemplateViewSet(viewsets.ModelViewSet):
             logging.warning(f"Template with project_id {project_id} and template_id {template_id} not found.")
             return Response({"result": False, "message": "Template not found", "code": err_code.OPERATION_FAIL.code})
 
-        # 执行第三方接口调用
-        url = self._get_market_routing("prod/api/")
-        data = {}
-        headers = None
-        result = requests.post(url, headers=headers, data=data)
-        if not result:
-            logging.exception("Sharing template to SRE store fails")
-            return Response(
-                {
-                    "result": False,
-                    "message": "Sharing template to SRE store fails",
-                    "code": err_code.OPERATION_FAIL.code,
-                },
-            )
+        # todo: 调用第三方接口实现共享
 
         self.perform_create(serializer)
 

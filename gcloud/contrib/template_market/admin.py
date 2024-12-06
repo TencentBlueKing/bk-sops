@@ -11,23 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework import serializers
-from gcloud.contrib.template_maker.models import TemplateSharedRecord
+from django.contrib import admin
+
+from gcloud.contrib.template_market import models
 
 
-class TemplateSharedRecordSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TemplateSharedRecord
-        fields = "__all__"
-
-    def validate(self, attrs):
-        project_id = attrs.get("project_id")
-        template_id = attrs.get("template_id")
-
-        if not project_id or not template_id:
-            raise serializers.ValidationError("Project ID and Template ID cannot be empty.")
-
-        if TemplateSharedRecord.objects.filter(project_id=project_id, template_id=template_id).exists():
-            raise serializers.ValidationError("The template has been shared")
-
-        return attrs
+@admin.register(models.TemplateSharedRecord)
+class AppMakerAdmin(admin.ModelAdmin):
+    list_display = ["project_id", "template_id", "creator", "create_at", "extra_info"]
+    list_filter = ["project_id", "template_id", "creator", "create_at"]
+    search_fields = ["project_id", "creator"]

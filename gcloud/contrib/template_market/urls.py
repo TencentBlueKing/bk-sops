@@ -11,18 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf.urls import include, url
+from rest_framework.routers import DefaultRouter
+from gcloud.contrib.template_market.viewsets import StoreTemplateViewSet, SharedProcessTemplateViewSet
 
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
 
+drf_api = DefaultRouter()
+drf_api.register(r"store_templates", StoreTemplateViewSet)
+drf_api.register(r"shared_process_templates", SharedProcessTemplateViewSet)
 
-class TemplateSharedRecord(models.Model):
-    project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="项目 ID")
-    template_id = models.IntegerField(_("模版 ID"), db_index=True, help_text="模版 ID")
-    creator = models.CharField(_("执行者"), max_length=128, help_text="执行者")
-    create_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
-    extra_info = models.TextField(_("额外信息"), blank=True, null=True)
-
-    class Meta:
-        verbose_name = _("模板共享记录 TemplateSharedRecord")
-        verbose_name_plural = _("模板共享记录 TemplateSharedRecord")
+urlpatterns = [
+    url(r"^api/", include(drf_api.urls)),
+]
