@@ -18,7 +18,7 @@ import logging
 import os
 
 from bkcrypto.asymmetric.configs import KeyConfig as AsymmetricKeyConfig
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 import env
 from gcloud.conf import settings

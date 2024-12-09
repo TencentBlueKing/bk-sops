@@ -20,7 +20,7 @@ from bamboo_engine.context import Context
 from bamboo_engine.template import Template
 from django.conf import settings
 from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema

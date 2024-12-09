@@ -16,7 +16,7 @@ from abc import ABCMeta, abstractmethod
 
 import jsonschema
 import yaml
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
 
@@ -122,7 +122,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            message = _(f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data")
+            message = _(
+                f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data"
+            )
             logger.error(message)
             return {"result": False, "data": yaml_data, "message": message}
         # 检查流程间是否有环引用的情况
@@ -387,7 +389,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
         if "constants" in template:
             for constant_key, constant_attrs in template["constants"].items():
                 reconverted_constant, is_create = self._reconvert_constant(
-                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
+                    constant={**constant_attrs, "key": constant_key},
+                    cur_constants=reconverted_tree["constants"],
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
@@ -606,9 +609,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
         sorted_node = dict(
             sorted(
                 converted_node.items(),
-                key=lambda pair: self.NODE_FIELD_ORDER.index(pair[0])
-                if pair[0] in self.NODE_FIELD_ORDER
-                else len(self.NODE_FIELD_ORDER),
+                key=lambda pair: (
+                    self.NODE_FIELD_ORDER.index(pair[0])
+                    if pair[0] in self.NODE_FIELD_ORDER
+                    else len(self.NODE_FIELD_ORDER)
+                ),
             )
         )
         return sorted_node

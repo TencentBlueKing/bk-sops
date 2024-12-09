@@ -15,7 +15,7 @@ import logging
 
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.exceptions import PipelineException
 from rest_framework import permissions, status
 from rest_framework.exceptions import APIException
@@ -141,20 +141,26 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             model_cls = CommonTemplate
             condition = {"id": template_id, "is_deleted": False}
         else:
-            message = _(f"周期任务创建失败: 周期任务关联的流程[ID: {template_source}]不存在, 请检查配置 | _handle_serializer")
+            message = _(
+                f"周期任务创建失败: 周期任务关联的流程[ID: {template_source}]不存在, 请检查配置 | _handle_serializer"
+            )
             logger.error(message)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
         try:
             template = model_cls.objects.filter(**condition).first()
         except model_cls.DoesNotExist:
-            message = _(f"周期任务创建失败: 周期任务关联的公共流程[ID: {template_id}]不存在, 请检查配置 | _handle_serializer")
+            message = _(
+                f"周期任务创建失败: 周期任务关联的公共流程[ID: {template_id}]不存在, 请检查配置 | _handle_serializer"
+            )
             logger.error(message)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
         try:
             replace_template_id(model_cls, pipeline_tree)
         except model_cls.DoesNotExist:
-            message = _(f"周期任务创建失败: 周期任务关联的流程[ID: {template_id}]中, 子流程节点存在异常, 请检查配置 | _handle_serializer")
+            message = _(
+                f"周期任务创建失败: 周期任务关联的流程[ID: {template_id}]中, 子流程节点存在异常, 请检查配置 | _handle_serializer"
+            )
             logger.error(message)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 

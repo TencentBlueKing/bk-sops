@@ -17,11 +17,10 @@ from copy import deepcopy
 import requests
 from django.conf import settings
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ObjectItemSchema
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import IntItemSchema, ObjectItemSchema, StringItemSchema
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -63,7 +62,10 @@ class HttpRequestService(Service):
                 schema=ObjectItemSchema(description=_("HTTP 请求响应内容，内部结构不固定"), property_schemas={}),
             ),
             self.OutputItem(
-                name=_("状态码"), key="status_code", type="int", schema=IntItemSchema(description=_("HTTP 请求响应状态码"))
+                name=_("状态码"),
+                key="status_code",
+                type="int",
+                schema=IntItemSchema(description=_("HTTP 请求响应状态码")),
             ),
         ]
 
@@ -124,7 +126,10 @@ class HttpRequestService(Service):
 
 class HttpComponent(Component):
     name = _("HTTP 请求")
-    desc = _("提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 " "2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功")
+    desc = _(
+        "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 "
+        "2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功"
+    )
     code = "bk_http_request"
     bound_service = HttpRequestService
     form = settings.STATIC_URL + "components/atoms/bk/http/legacy.js"

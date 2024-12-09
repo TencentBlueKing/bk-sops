@@ -15,13 +15,13 @@ import logging
 from functools import reduce
 from typing import List
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
+from pipeline.core.data.var import LazyVariable
 
 from gcloud.conf import settings
 from gcloud.constants import Type
 from gcloud.exceptions import ApiRequestError
-from pipeline.core.data.var import LazyVariable
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER

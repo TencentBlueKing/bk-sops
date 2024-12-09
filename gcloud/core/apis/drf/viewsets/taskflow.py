@@ -19,7 +19,7 @@ from bamboo_engine import states
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, QuerySet, Value
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.eri.models import State

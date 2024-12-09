@@ -13,14 +13,14 @@ specific language governing permissions and limitations under the License.
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db.models import Q, Value
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
+from iam import PathEqDjangoQuerySetConverter
+from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.core.models import Project
 from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from gcloud.taskflow3.models import TaskFlowInstance
-from iam import PathEqDjangoQuerySetConverter
-from iam.contrib.django.dispatcher import InvalidPageException
 
 attr_names = {
     "en": {"type": "Task type", "iam_resource_owner": "Resource owner"},

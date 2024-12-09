@@ -17,7 +17,7 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.admin.utils import flatten
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable
 
 from gcloud.conf import settings as gcloud_settings
@@ -222,8 +222,16 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
         fields = [
             FieldExplain(key="${KEY}", type=Type.OBJECT, description="集群资源筛选结果对象"),
             FieldExplain(key="${KEY.set_count}", type=Type.INT, description="新增集群数量"),
-            FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
-            FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
+            FieldExplain(
+                key="${KEY._module}",
+                type=Type.LIST,
+                description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列",
+            ),
+            FieldExplain(
+                key="${KEY.flat__ip_list}",
+                type=Type.STRING,
+                description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接",
+            ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_list}",
                 type=Type.STRING,

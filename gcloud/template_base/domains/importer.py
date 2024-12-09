@@ -10,14 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+import logging
+
 from django.apps import apps
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 
-from .template_manager import TemplateManager
-from ..utils import replace_biz_id_value
 from ...common_template.models import CommonTemplate
-from django.utils.translation import ugettext_lazy as _
-import logging
+from ..utils import replace_biz_id_value
+from .template_manager import TemplateManager
 
 logger = logging.getLogger("root")
 

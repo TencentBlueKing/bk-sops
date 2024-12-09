@@ -15,7 +15,7 @@ import os
 
 from django.http import JsonResponse
 from django.urls import re_path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception

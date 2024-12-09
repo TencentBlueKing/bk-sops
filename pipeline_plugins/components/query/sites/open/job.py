@@ -16,7 +16,7 @@ import time
 
 from django.http import JsonResponse
 from django.urls import re_path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
 from gcloud.conf import settings

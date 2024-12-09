@@ -13,15 +13,14 @@ specific language governing permissions and limitations under the License.
 
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service import (
-    BaseJobPushLocalFilesService,
-)
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service import (
+    BaseJobPushLocalFilesService,
+)
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -40,4 +39,6 @@ class JobPushLocalFilesComponent(Component):
     bound_service = JobPushLocalFilesService
     form = "%scomponents/atoms/job/job_push_local_files/v2_0.js" % settings.STATIC_URL
     version = "2.0"
-    desc = _("本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。")
+    desc = _(
+        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
+    )

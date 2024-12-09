@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import BooleanItemSchema
 
@@ -36,7 +36,9 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase):
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
                 type="boolean",
-                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
+                schema=BooleanItemSchema(
+                    description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")
+                ),
             ),
         ]
 

@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 from typing import List
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable
 
 from gcloud.conf import settings
@@ -45,7 +45,9 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "set_module_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
-    desc = _("集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串")
+    desc = _(
+        "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

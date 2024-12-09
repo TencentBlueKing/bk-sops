@@ -15,7 +15,7 @@ import traceback
 
 from django.http import JsonResponse
 from django.urls import re_path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 

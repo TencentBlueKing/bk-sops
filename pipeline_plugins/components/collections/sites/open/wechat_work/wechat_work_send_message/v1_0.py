@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import traceback
 
 import requests
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
@@ -38,13 +38,18 @@ class WechatWorkSendMessageService(Service):
                 schema=StringItemSchema(description=_("通过在群里@企业微信机器人获取，多个用换行分隔")),
             ),
             self.InputItem(
-                name=_("消息内容"), key="message_content", type="string", schema=StringItemSchema(description=_("消息内容")),
+                name=_("消息内容"),
+                key="message_content",
+                type="string",
+                schema=StringItemSchema(description=_("消息内容")),
             ),
             self.InputItem(
                 name=_("提醒人"),
                 key="wechat_work_mentioned_members",
                 type="string",
-                schema=StringItemSchema(description=_("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人")),
+                schema=StringItemSchema(
+                    description=_("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人")
+                ),
             ),
             self.InputItem(
                 name=_("消息格式"),
@@ -137,4 +142,7 @@ class WechatWorkSendMessageComponent(Component):
     form = "%scomponents/atoms/wechat_work/wechat_work_send_message/v1_0.js" % settings.STATIC_URL
     version = "1.0"
     is_default_version = True
-    desc = _("1.部署环境与企业微信服务器网络必须联通 " "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770")
+    desc = _(
+        "1.部署环境与企业微信服务器网络必须联通 "
+        "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770"
+    )

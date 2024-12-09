@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager

@@ -3,7 +3,7 @@ import ipaddress
 from functools import partial
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
@@ -114,9 +114,15 @@ class MonitorBaseService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("屏蔽Id"), key="shield_id", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽 ID"))
+                name=_("屏蔽Id"),
+                key="shield_id",
+                type="string",
+                schema=StringItemSchema(description=_("创建的告警屏蔽 ID")),
             ),
             self.OutputItem(
-                name=_("详情"), key="message", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽详情"))
+                name=_("详情"),
+                key="message",
+                type="string",
+                schema=StringItemSchema(description=_("创建的告警屏蔽详情")),
             ),
         ]

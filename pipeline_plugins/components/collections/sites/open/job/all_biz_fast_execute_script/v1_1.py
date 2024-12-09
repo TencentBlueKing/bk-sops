@@ -30,21 +30,19 @@ TASK_RESULT = [
 
 import base64
 
-from django.utils.translation import ugettext_lazy as _
-
-from gcloud.constants import JobBizScopeType
-from pipeline.core.flow.io import StringItemSchema, BooleanItemSchema
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 
+from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service import (
     BaseAllBizJobFastExecuteScriptService,
 )
 from pipeline_plugins.components.collections.sites.open.job.base import get_job_tagged_ip_dict_complex
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_node_callback_url
-
-from gcloud.conf import settings
 
 __group_name__ = _("作业平台(JOB)")
 

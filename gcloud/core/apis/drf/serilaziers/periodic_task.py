@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django_celery_beat.models import PeriodicTask as CeleryTask
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask

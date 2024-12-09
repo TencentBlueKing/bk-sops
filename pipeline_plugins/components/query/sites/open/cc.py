@@ -16,7 +16,7 @@ import traceback
 
 from django.http import JsonResponse
 from django.urls import path, re_path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
