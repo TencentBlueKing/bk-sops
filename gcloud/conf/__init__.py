@@ -16,11 +16,11 @@ import decimal
 import uuid
 
 import ujson as json
-from django.utils.functional import Promise
-from django.utils.encoding import force_text
-from django.core.serializers.json import DjangoJSONEncoder
-from django.utils.timezone import is_aware
 from django.conf import settings as django_settings
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.encoding import force_str
+from django.utils.functional import Promise
+from django.utils.timezone import is_aware
 
 from gcloud.conf import default_settings
 
@@ -34,7 +34,7 @@ class GcloudSettings(object):
         if hasattr(default_settings, key):
             return getattr(default_settings, key)
 
-        raise AttributeError('Settings object has no attribute %s' % key)
+        raise AttributeError("Settings object has no attribute %s" % key)
 
 
 settings = GcloudSettings()
@@ -43,13 +43,13 @@ settings = GcloudSettings()
 def default(self, o):
     # See "Date Time String Format" in the ECMA-262 specification.
     if isinstance(o, Promise):
-        return force_text(o)
+        return force_str(o)
     elif isinstance(o, datetime.datetime):
         r = o.isoformat()
         if o.microsecond:
             r = r[:23] + r[26:]
-        if r.endswith('+00:00'):
-            r = r[:-6] + 'Z'
+        if r.endswith("+00:00"):
+            r = r[:-6] + "Z"
         return r
     elif isinstance(o, datetime.date):
         return o.isoformat()
@@ -63,7 +63,7 @@ def default(self, o):
     elif isinstance(o, (decimal.Decimal, uuid.UUID)):
         return str(o)
     elif isinstance(o, bytes):
-        return o.decode('utf-8')
+        return o.decode("utf-8")
     else:
         try:
             return super(DjangoJSONEncoder, self).default(o)

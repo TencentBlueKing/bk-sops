@@ -13,4 +13,4 @@ specific language governing permissions and limitations under the License.
 from django.dispatch import Signal
 
 # defining custom signal
-batch_create = Signal(providing_args=["instance_list", "creator"])
+batch_create = Signal()  # providing_args=["instance_list", "creator"]

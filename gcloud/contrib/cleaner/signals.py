@@ -12,5 +12,4 @@ specific language governing permissions and limitations under the License.
 """
 from django.dispatch import Signal
 
-
-pre_delete_pipeline_instance_data = Signal(providing_args=["data"])
+pre_delete_pipeline_instance_data = Signal()  # providing_args=["data"]
