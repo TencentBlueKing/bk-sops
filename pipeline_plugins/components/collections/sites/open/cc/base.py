@@ -203,7 +203,10 @@ def cc_get_host_id_by_innerip_and_cloudid(executor, bk_biz_id, ip_str, supplier_
                 else:
                     return_innerip_set.add(host["bk_host_innerip"])
             absent_innerip = set(ipv4s).difference(return_innerip_set)
-            message = f"IP[{', '.join(absent_innerip)}]在本业务下不存在: 请检查配置, 修复后重新执行|cc_get_host_id_by_innerip_and_cloudid"
+            message = (
+                f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: "
+                "请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+            )
             logger.error(message)
             return {"result": False, "message": message}
         hosts.extend(host_list)
