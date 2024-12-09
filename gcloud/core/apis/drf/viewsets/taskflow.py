@@ -539,7 +539,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         extra_info = extract_extra_info(constants)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.task.name,
+            sender=RecordType.task,
             operator=pipeline_instance_kwargs["creator"],
             operate_type=OperateType.create.name,
             operate_source=OperateSource.app.name,
@@ -577,7 +577,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         self.perform_destroy(instance)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.task.name,
+            sender=RecordType.task,
             operator=self.request.user.username,
             operate_type=OperateType.delete.name,
             operate_source=OperateSource.app.name,
