@@ -12,17 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from django.conf.urls import url
 from django.http import JsonResponse
+from django.urls import re_path
 from django.utils.translation import ugettext_lazy as _
 
+from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
-from api.utils.request import batch_request
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_inject
 from pipeline_plugins.variables.query.sites.open import select
-from pipeline_plugins.variables.utils import get_service_template_list, get_set_list, get_biz_internal_module
+from pipeline_plugins.variables.utils import get_biz_internal_module, get_service_template_list, get_set_list
 
 logger = logging.getLogger("root")
 
@@ -196,12 +196,15 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
 
 
 urlpatterns += [
-    url(r"^cc_get_set_env/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_get_set_env,),
-    url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
-    url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
-    url(r"^cc_get_set_list/(?P<biz_cc_id>\d+)/$", cc_get_set_list),
-    url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
-    url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
-    url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
-    url(r"^cc_get_set_attributes/(?P<biz_cc_id>\d+)/$", cc_get_set_attribute),
+    re_path(
+        r"^cc_get_set_env/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
+        cc_get_set_env,
+    ),
+    re_path(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
+    re_path(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
+    re_path(r"^cc_get_set_list/(?P<biz_cc_id>\d+)/$", cc_get_set_list),
+    re_path(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
+    re_path(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
+    re_path(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
+    re_path(r"^cc_get_set_attributes/(?P<biz_cc_id>\d+)/$", cc_get_set_attribute),
 ]
