@@ -17,6 +17,7 @@ import ujson as json
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
 from drf_yasg.utils import swagger_auto_schema
+from iam import Action, Request, Resource, Subject
 from pipeline.models import TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -45,7 +46,6 @@ from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
-from iam import Action, Request, Resource, Subject
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -210,7 +210,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.common_template.name,
+            sender=RecordType.common_template,
             operator=creator,
             operate_type=OperateType.create.name,
             operate_source=OperateSource.common.name,
@@ -259,7 +259,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, template)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.common_template.name,
+            sender=RecordType.common_template,
             operator=editor,
             operate_type=OperateType.update.name,
             operate_source=OperateSource.common.name,
@@ -284,7 +284,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         self.perform_destroy(template)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.common_template.name,
+            sender=RecordType.common_template,
             operator=request.user.username,
             operate_type=OperateType.delete.name,
             operate_source=OperateSource.common.name,
