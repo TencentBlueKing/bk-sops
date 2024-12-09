@@ -30,11 +30,16 @@ from gcloud.core.signals import user_enter
 logger = logging.getLogger("root")
 
 
+def get_response(request):
+    # 这是一个假函数，用于模拟正常的 get_response 逻辑
+    return None
+
+
 def page_not_found(request, exception):
     if request.path.startswith(settings.STATIC_URL):
         return HttpResponseNotFound()
 
-    user = LoginRequiredMiddleware().authenticate(request)
+    user = LoginRequiredMiddleware(get_response).authenticate(request)
 
     if user:
         request.user = user
@@ -45,7 +50,7 @@ def page_not_found(request, exception):
 
     # 未登录重定向到首页，跳到登录页面
     if hasattr(LoginRequiredMiddleware(), "is_user_forbidden"):
-        user_forbidden, msg = LoginRequiredMiddleware().is_user_forbidden(request)
+        user_forbidden, msg = LoginRequiredMiddleware(get_response).is_user_forbidden(request)
         if user_forbidden:
             handler = ResponseHandler(ConfFixture, settings)
             return handler.build_403_response(msg)

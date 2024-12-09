@@ -13,8 +13,9 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
+import pytz
 from django.conf import settings
-from django.utils import timezone, translation
+from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from engine_pickle_obj.context import SystemObject
@@ -52,7 +53,7 @@ class TaskContext(object):
         self.biz_cc_name = self.bk_biz_name
         # 任务开始时间
         project = Project.objects.get(id=self.project_id)
-        project_tz = timezone.pytz.timezone(project.time_zone)
+        project_tz = pytz.timezone(project.time_zone)
         self.task_start_time = datetime.datetime.now(tz=project_tz).strftime("%Y-%m-%d %H:%M:%S")
         # 任务URL
         self.task_url = (
@@ -128,7 +129,12 @@ class TaskContext(object):
                 "index": -3,
                 "desc": "",
             },
-            cls.to_flat_key("task_id"): {"key": cls.to_flat_key("task_id"), "index": -2, "name": _("任务ID"), "desc": ""},
+            cls.to_flat_key("task_id"): {
+                "key": cls.to_flat_key("task_id"),
+                "index": -2,
+                "name": _("任务ID"),
+                "desc": "",
+            },
             cls.to_flat_key("task_name"): {
                 "key": cls.to_flat_key("task_name"),
                 "name": _("任务名称"),

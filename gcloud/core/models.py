@@ -14,6 +14,7 @@ import datetime
 import typing
 from os import environ
 
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import models, transaction
@@ -208,7 +209,7 @@ class ProjectManager(models.Manager):
 
     def get_timezone_based_timestamp(self, project_id, timestamp_fmt="%Y%m%d%H%M%S"):
         project_tz = getattr(self.filter(id=project_id).first(), "time_zone") or settings.TIME_ZONE
-        timestamp = datetime.datetime.now(tz=timezone.pytz.timezone(project_tz)).strftime(timestamp_fmt)
+        timestamp = datetime.datetime.now(tz=pytz.timezone(project_tz)).strftime(timestamp_fmt)
         return timestamp
 
 
