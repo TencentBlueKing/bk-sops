@@ -11,14 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from .node_action import node_action
 from .node_callback import node_callback
 from .state import root_state
 
 v4_urlpatterns = [
-    url(r"^node_action/(?P<project_id>\d+)/(?P<task_id>\d+)/(?P<node_id>\w+)/$", node_action),
-    url(r"^nodes/callback/(?P<token>.+)/$", node_callback),
-    url(r"^root_state/(?P<project_id>\d+)/$", root_state),
+    re_path(r"^node_action/(?P<project_id>\d+)/(?P<task_id>\d+)/(?P<node_id>\w+)/$", node_action),
+    re_path(r"^nodes/callback/(?P<token>.+)/$", node_callback),
+    re_path(r"^root_state/(?P<project_id>\d+)/$", root_state),
 ]

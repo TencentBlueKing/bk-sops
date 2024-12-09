@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 import logging
 import os
 
-from django.conf.urls import url
 from django.http import JsonResponse
+from django.urls import re_path
 from django.utils.translation import ugettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
@@ -137,10 +137,10 @@ def nodeman_get_install_channel(request, cloud_id: int):
 
 
 nodeman_urlpatterns = [
-    url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
-    url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
-    url(r"^nodeman_is_support_tjj/$", nodeman_is_support_tjj),
-    url(r"^nodeman_get_plugin_list/(?P<category>\w+)/$", nodeman_get_plugin_list),
-    url(r"^nodeman_get_plugin_version/(?P<plugin>[\w-]+)/(?P<os_type>\w+)/$", nodeman_get_plugin_version),
-    url(r"^nodeman_get_install_channel/(?P<cloud_id>\w+)/$", nodeman_get_install_channel),
+    re_path(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
+    re_path(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
+    re_path(r"^nodeman_is_support_tjj/$", nodeman_is_support_tjj),
+    re_path(r"^nodeman_get_plugin_list/(?P<category>\w+)/$", nodeman_get_plugin_list),
+    re_path(r"^nodeman_get_plugin_version/(?P<plugin>[\w-]+)/(?P<os_type>\w+)/$", nodeman_get_plugin_version),
+    re_path(r"^nodeman_get_install_channel/(?P<cloud_id>\w+)/$", nodeman_get_install_channel),
 ]

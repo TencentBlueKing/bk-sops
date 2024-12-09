@@ -11,23 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
 
 from gcloud.clocked_task.viewset import ClockedTaskViewSet
-from gcloud.contrib.operate_record.apis.drf.viewsets import (
-    TaskOperateRecordSetViewSet,
-    TemplateOperateRecordSetViewSet,
-)
+from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.apis.drf.viewsets import (
     AppmakerListViewSet,
     BusinessSetViewSet,
     CollectionViewSet,
     CommonProjectViewSet,
 )
-from gcloud.core.apis.drf.viewsets import (
-    CommonTemplateViewSet as V3CommonTemplateViewSet,
-)
+from gcloud.core.apis.drf.viewsets import CommonTemplateViewSet as V3CommonTemplateViewSet
 from gcloud.core.apis.drf.viewsets import (
     ComponentModelSetViewSet,
     FunctionTaskViewSet,
@@ -47,14 +42,9 @@ from gcloud.core.apis.drf.viewsets import (
 from gcloud.label.viewsets import NewLabelViewSet
 from gcloud.project_constants.apis.drf.viewsets import ProjectConstantsViewSet
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
-from gcloud.template_base.apis.drf.viewsets.template import (
-    CommonTemplateViewSet,
-    ProjectTemplateViewSet,
-)
+from gcloud.template_base.apis.drf.viewsets.template import CommonTemplateViewSet, ProjectTemplateViewSet
 from gcloud.user_custom_config.viewsets.user_custom_config import UserCustomConfViewset
-from gcloud.user_custom_config.viewsets.user_custom_config_options import (
-    UserCustomConfigOptions,
-)
+from gcloud.user_custom_config.viewsets.user_custom_config_options import UserCustomConfigOptions
 
 drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
@@ -68,9 +58,9 @@ drf_router.register(r"project_constants", ProjectConstantsViewSet)
 drf_router.register(r"business", BusinessSetViewSet)
 drf_router.register(r"component", ComponentModelSetViewSet, basename="component")
 drf_router.register(r"project", ProjectSetViewSet)
-drf_router.register(r"user_project", UserProjectSetViewSet)
+drf_router.register(r"user_project", UserProjectSetViewSet, basename="user_project")
 drf_router.register(r"common_project", CommonProjectViewSet)
-drf_router.register(r"label", LabelViewSet)
+drf_router.register(r"label", LabelViewSet, basename="unique_label")
 drf_router.register(r"package_source", PackageSourceViewSet, basename="package_source")
 drf_router.register(r"sync_task", SyncTaskViewSet)
 drf_router.register(r"collection", CollectionViewSet)
@@ -96,7 +86,7 @@ v4_drf_router.register(
 
 # Standard bits...
 urlpatterns = [
-    url(r"^api/v3/", include(drf_router.urls)),
-    url(r"^api/v4/", include(v4_drf_router.urls)),
-    url(r"^api/auto_test/", include("gcloud.auto_test.urls")),
+    re_path(r"^api/v3/", include(drf_router.urls)),
+    re_path(r"^api/v4/", include(v4_drf_router.urls)),
+    re_path(r"^api/auto_test/", include("gcloud.auto_test.urls")),
 ]

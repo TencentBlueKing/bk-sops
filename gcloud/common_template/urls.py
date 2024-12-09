@@ -11,16 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from gcloud.common_template.apis.django import api
 
-
 urlpatterns = [
-    url(r"^api/form/$", api.form),
-    url(r"^api/batch_form/$", api.batch_form),
-    url(r"^api/export/$", api.export_templates),
-    url(r"^api/import/$", api.import_templates),
-    url(r"^api/import_check/$", api.check_before_import),
-    url(r"^api/parents/$", api.parents),
+    re_path(r"^api/form/$", api.form),
+    re_path(r"^api/batch_form/$", api.batch_form),
+    re_path(r"^api/export/$", api.export_templates),
+    re_path(r"^api/import/$", api.import_templates),
+    re_path(r"^api/import_check/$", api.check_before_import),
+    re_path(r"^api/parents/$", api.parents),
 ]

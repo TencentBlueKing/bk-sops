@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from django.conf.urls import url
+from django.urls import re_path
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import permissions, serializers
 
 from api.collections.itsm import BKItsmClient
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
@@ -158,4 +158,4 @@ class ITSMNodeTransitionView(APIView):
         return Response({"result": True, "data": None})
 
 
-itsm_urlpatterns = [url(r"^itsm/node_transition/$", ITSMNodeTransitionView.as_view())]
+itsm_urlpatterns = [re_path(r"^itsm/node_transition/$", ITSMNodeTransitionView.as_view())]

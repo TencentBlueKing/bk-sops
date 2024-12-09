@@ -11,20 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import include, url
+from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
 
-from . import views
 from weixin.viewsets import (
-    WxTaskTemplateViewSet,
-    WxTaskFlowInstanceViewSet,
+    WxCollectionViewSet,
     WxComponentModelSetViewSet,
-    WxWxVariableViewSet,
+    WxProjectViewSet,
+    WxTaskFlowInstanceViewSet,
+    WxTaskTemplateViewSet,
     WxTemplateSchemeViewSet,
     WxUserProjectViewSet,
-    WxProjectViewSet,
-    WxCollectionViewSet,
+    WxWxVariableViewSet,
 )
+
+from . import views
 
 weixin_v3_drf_api = DefaultRouter()
 weixin_v3_drf_api.register("weixin_template", WxTaskTemplateViewSet)
@@ -33,13 +34,13 @@ weixin_v3_drf_api.register("weixin_component", WxComponentModelSetViewSet)
 weixin_v3_drf_api.register("weixin_variable", WxWxVariableViewSet)
 weixin_v3_drf_api.register("weixin_scheme", WxTemplateSchemeViewSet)
 weixin_v3_drf_api.register("weixin_user_project", WxUserProjectViewSet)
-weixin_v3_drf_api.register("weixin_project", WxProjectViewSet)
+weixin_v3_drf_api.register("weixin_project", WxProjectViewSet, basename="weixin_project")
 weixin_v3_drf_api.register("weixin_collection", WxCollectionViewSet)
 
 
 urlpatterns = [
-    url(r"^$", views.home),
-    url(r"^taskflow/", include("gcloud.taskflow3.urls")),
-    url(r"^template/", include("gcloud.tasktmpl3.urls")),
-    url(r"api/v3/", include(weixin_v3_drf_api.urls)),
+    re_path(r"^$", views.home),
+    re_path(r"^taskflow/", include("gcloud.taskflow3.urls")),
+    re_path(r"^template/", include("gcloud.tasktmpl3.urls")),
+    path(r"api/v3/", include(weixin_v3_drf_api.urls)),
 ]

@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import path
 
 from gcloud.mako_template_helper.apis.viewsets.mako_operations import MakoOperationsView
 
-urlpatterns = [url(r"", MakoOperationsView.as_view())]
+urlpatterns = [path(r"", MakoOperationsView.as_view())]

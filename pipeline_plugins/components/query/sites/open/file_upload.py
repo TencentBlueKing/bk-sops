@@ -14,17 +14,16 @@ import logging
 import traceback
 
 from django.http import JsonResponse
+from django.urls import re_path
 from django.utils.translation import ugettext_lazy as _
-from django.conf.urls import url
-from iam import Subject, Action
+from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
+from files.factory import BartenderFactory, ManagerFactory
 from files.models import UploadTicket
-from files.factory import ManagerFactory, BartenderFactory
-
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
-from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -100,7 +99,9 @@ def get_repo_temporary_upload_url(request):
     shims = request.GET.get("shims", "frontend_upload")
 
     if not str(bk_biz_id) or not str(name):
-        message = _("文件上传失败: 业务ID和业务名称都应该提供.请重试, 如持续失败可联系管理员处理.  | get_repo_temporary_upload_url")
+        message = _(
+            "文件上传失败: 业务ID和业务名称都应该提供.请重试, 如持续失败可联系管理员处理.  | get_repo_temporary_upload_url"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -112,7 +113,7 @@ def get_repo_temporary_upload_url(request):
 
 
 file_upload_urlpatterns = [
-    url(r"^file_upload/$", file_upload),
-    url(r"^apply_upload_ticket/$", apply_upload_ticket),
-    url(r"^get_repo_temporary_upload_url/$", get_repo_temporary_upload_url),
+    re_path(r"^file_upload/$", file_upload),
+    re_path(r"^apply_upload_ticket/$", apply_upload_ticket),
+    re_path(r"^get_repo_temporary_upload_url/$", get_repo_temporary_upload_url),
 ]
