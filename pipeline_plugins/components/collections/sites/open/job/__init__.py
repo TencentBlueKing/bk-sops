@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -15,13 +16,13 @@ from django.utils.translation import gettext_lazy as _
 
 __group_name__ = _("作业平台(JOB)")
 
-from .all_biz_execute_job_plan import *  # noqa
-from .all_biz_fast_execute_script import *  # noqa
-from .all_biz_fast_push_file import *  # noqa
 from .base import JobService, Jobv3Service  # noqa
 from .cron_task import *  # noqa
 from .execute_task import *  # noqa
 from .fast_execute_script import *  # noqa
 from .fast_push_file import *  # noqa
-from .local_content_upload import *  # noqa
 from .push_local_files import *  # noqa
+from .local_content_upload import *  # noqa
+from .all_biz_fast_push_file import *  # noqa
+from .all_biz_fast_execute_script import *  # noqa
+from .all_biz_execute_job_plan import *  # noqa
