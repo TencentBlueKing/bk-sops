@@ -16,30 +16,20 @@ import logging
 
 from django.db import models
 from django.db.models import Count
-from django.utils.translation import ugettext_lazy as _
-
-from gcloud.utils import managermixins
-
-from iam import Subject, Action
+from django.utils.translation import gettext_lazy as _
+from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.conf import settings
-from gcloud.core.api_adapter import (
-    create_maker_app,
-    edit_maker_app,
-    del_maker_app,
-    modify_app_logo,
-    get_app_logo_url,
-)
 from gcloud.constants import AE, TASK_CATEGORY
+from gcloud.core.api_adapter import create_maker_app, del_maker_app, edit_maker_app, get_app_logo_url, modify_app_logo
 from gcloud.core.models import Project
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.utils.dates import time_now_str
 from gcloud.core.utils import convert_readable_username
+from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils import managermixins
+from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import standardize_name
-
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -122,7 +112,9 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 app_params["desc"],
             )
             if not app_create_result["result"]:
-                message = _(f"轻应用保存失败: 请重试, 如多次失败可联系管理员处理. {app_create_result['result']} | save_app_maker")
+                message = _(
+                    f"轻应用保存失败: 请重试, 如多次失败可联系管理员处理. {app_create_result['result']} | save_app_maker"
+                )
                 logger.error(message)
                 return False, message
 

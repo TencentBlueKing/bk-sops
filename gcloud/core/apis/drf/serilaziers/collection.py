@@ -12,8 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from gcloud.contrib.collection.models import Collection

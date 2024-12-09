@@ -19,7 +19,7 @@ from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.eri import ContextValueType
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from opentelemetry import trace
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import api as pipeline_api

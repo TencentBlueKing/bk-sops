@@ -15,7 +15,7 @@ import logging
 
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -31,10 +31,7 @@ from gcloud.iam_auth.view_interceptors.template import (
     ParentsInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.tasktmpl3.domains.constants import (
-    analysis_pipeline_constants_ref,
-    get_constant_values,
-)
+from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref, get_constant_values
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.apis.django.api import (
     base_batch_form,

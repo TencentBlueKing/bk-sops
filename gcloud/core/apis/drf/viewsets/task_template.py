@@ -16,7 +16,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters import CharFilter
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateRelationship, TemplateScheme

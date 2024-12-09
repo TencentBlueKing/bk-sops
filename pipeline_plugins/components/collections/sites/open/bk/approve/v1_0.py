@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
@@ -42,18 +42,29 @@ class ApproveService(Service):
                 schema=StringItemSchema(description=_("审核人,多个用英文逗号`,`分隔")),
             ),
             self.InputItem(
-                name=_("审核标题"), key="bk_approve_title", type="string", schema=StringItemSchema(description=_("审核标题"))
+                name=_("审核标题"),
+                key="bk_approve_title",
+                type="string",
+                schema=StringItemSchema(description=_("审核标题")),
             ),
             self.InputItem(
-                name=_("审核内容"), key="bk_approve_message", type="string", schema=StringItemSchema(description=_("通知的标题"))
+                name=_("审核内容"),
+                key="bk_approve_message",
+                type="string",
+                schema=StringItemSchema(description=_("通知的标题")),
             ),
         ]
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_("单据sn"), key="sn", type="string", schema=StringItemSchema(description=_("单据sn"))),
             self.OutputItem(
-                name=_("审核结果"), key="approve_result", type="string", schema=StringItemSchema(description=_("审核结果"))
+                name=_("单据sn"), key="sn", type="string", schema=StringItemSchema(description=_("单据sn"))
+            ),
+            self.OutputItem(
+                name=_("审核结果"),
+                key="approve_result",
+                type="string",
+                schema=StringItemSchema(description=_("审核结果")),
             ),
         ]
 

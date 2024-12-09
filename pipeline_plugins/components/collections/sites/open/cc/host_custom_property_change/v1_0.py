@@ -13,11 +13,10 @@ specific language governing permissions and limitations under the License.
 import logging
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -113,10 +112,18 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
         supplier_account = supplier_account_for_business(biz_cc_id)
         ip_list = self.get_ip_info_list(operator, biz_cc_id, sa_ip_list, supplier_account)
         if not ip_list["result"] or not ip_list["ip_count"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
+            data.outputs.ex_data = _(
+                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(
+                    ip_list["invalid_ip"]
+                )
+            )
             return False
         if ip_list["invalid_ip"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
+            data.outputs.ex_data = _(
+                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(
+                    ip_list["invalid_ip"]
+                )
+            )
             data.outputs.invalid_ip = ",".join(ip_list["invalid_ip"])
             return False
 
@@ -168,7 +175,9 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             module_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": list(set(module_id_list)), "fields": module_rule_list}
             module_result = client.cc.find_module_batch(module_kwargs)
             if not module_result.get("result"):
-                error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result)
+                error_message = handle_api_error(
+                    "蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result
+                )
                 data.set_outputs("ex_data", error_message)
                 self.logger.error(error_message)
                 return False
@@ -239,7 +248,10 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("不合法的IP"), key="invalid_ip", type="string", schema=StringItemSchema(description=_("不合法的IP"))
+                name=_("不合法的IP"),
+                key="invalid_ip",
+                type="string",
+                schema=StringItemSchema(description=_("不合法的IP")),
             ),
         ]
 

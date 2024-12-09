@@ -23,7 +23,7 @@ from blueapps.conf.log import get_logging_config_dict
 from blueapps.opentelemetry.utils import inject_logging_trace_info
 from django.db.backends.mysql.features import DatabaseFeatures
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.celery.queues import ScalableQueues
 
 import env

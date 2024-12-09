@@ -16,7 +16,7 @@ import traceback
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSchema
@@ -47,7 +47,9 @@ class CCUpdateSetService(Service):
                 name=_("集群列表"),
                 key="cc_set_select",
                 type="array",
-                schema=ArrayItemSchema(description=_("集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))),
+                schema=ArrayItemSchema(
+                    description=_("集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
+                ),
             ),
             self.InputItem(
                 name=_("集群属性"),

@@ -11,17 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 __group_name__ = _("作业平台(JOB)")
 
+from .all_biz_execute_job_plan import *  # noqa
+from .all_biz_fast_execute_script import *  # noqa
+from .all_biz_fast_push_file import *  # noqa
 from .base import JobService, Jobv3Service  # noqa
 from .cron_task import *  # noqa
 from .execute_task import *  # noqa
 from .fast_execute_script import *  # noqa
 from .fast_push_file import *  # noqa
-from .push_local_files import *  # noqa
 from .local_content_upload import *  # noqa
-from .all_biz_fast_push_file import *  # noqa
-from .all_biz_fast_execute_script import *  # noqa
-from .all_biz_execute_job_plan import *  # noqa
+from .push_local_files import *  # noqa

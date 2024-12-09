@@ -15,7 +15,7 @@ import logging
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
@@ -49,7 +49,10 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
                 schema=StringItemSchema(description=_("待转移的主机内网 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("主机属性"), key="cc_host_property", type="string", schema=StringItemSchema(description=_("待修改主机属性"))
+                name=_("主机属性"),
+                key="cc_host_property",
+                type="string",
+                schema=StringItemSchema(description=_("待修改主机属性")),
             ),
             self.InputItem(
                 name=_("主机属性值"),

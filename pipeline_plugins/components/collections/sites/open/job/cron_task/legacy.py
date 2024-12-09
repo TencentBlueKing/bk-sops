@@ -14,14 +14,11 @@ specific language governing permissions and limitations under the License.
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    IntItemSchema,
-)
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import IntItemSchema, StringItemSchema
+
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
