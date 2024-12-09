@@ -21,6 +21,8 @@ from bkcrypto.asymmetric.options import RSAAsymmetricOptions
 from blueapps.conf.default_settings import *  # noqa
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.opentelemetry.utils import inject_logging_trace_info
+from django.db.backends.mysql.features import DatabaseFeatures
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from pipeline.celery.queues import ScalableQueues
 
@@ -893,3 +895,19 @@ BK_AUDIT_SETTINGS = {
 if "BKAPP_SOPS_BROKER_URL" in os.environ:
     BROKER_URL = os.getenv("BKAPP_SOPS_BROKER_URL")
     print(f"BROKER_URL: {BROKER_URL}")
+
+
+# 定义一个补丁来兼容 MySQL 5.7
+
+
+class PatchFeatures:
+    @cached_property
+    def minimum_database_version(self):
+        if self.connection.mysql_is_mariadb:
+            return (10, 4)
+        else:
+            return (5, 7)
+
+
+# 将补丁应用到 DatabaseFeatures 中
+DatabaseFeatures.minimum_database_version = PatchFeatures.minimum_database_version
