@@ -49,7 +49,7 @@ def page_not_found(request, exception):
         return render(request, "core/base_vue.html", {})
 
     # 未登录重定向到首页，跳到登录页面
-    if hasattr(LoginRequiredMiddleware(), "is_user_forbidden"):
+    if hasattr(LoginRequiredMiddleware(get_response), "is_user_forbidden"):
         user_forbidden, msg = LoginRequiredMiddleware(get_response).is_user_forbidden(request)
         if user_forbidden:
             handler = ResponseHandler(ConfFixture, settings)
