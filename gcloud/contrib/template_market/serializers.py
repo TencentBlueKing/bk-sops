@@ -14,20 +14,14 @@ import json
 from rest_framework import serializers
 
 from gcloud.constants import DATETIME_FORMAT
-from gcloud.contrib.template_market.models import TemplateSharedRecord
-from gcloud.tasktmpl3.models import TaskTemplate
 
 
-class TemplatePreviewSerializer(serializers.ModelSerializer):
+class TemplatePreviewSerializer(serializers.Serializer):
     name = serializers.CharField(read_only=True, help_text="模板名称")
     pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
-
-    class Meta:
-        model = TaskTemplate
-        fields = ["name", "pipeline_tree"]
 
 
 class TemplateSharedRecordSerializer(serializers.Serializer):
@@ -42,28 +36,3 @@ class TemplateSharedRecordSerializer(serializers.Serializer):
     creator = serializers.CharField(required=False, max_length=32, help_text="创建者")
     create_at = serializers.DateTimeField(required=False, help_text="创建时间", format=DATETIME_FORMAT)
     extra_info = serializers.JSONField(required=False, allow_null=True, help_text="额外信息")
-
-    def create(self, validated_data):
-        instance = TemplateSharedRecord.objects.create(
-            project_id=validated_data["project_id"],
-            template_id=validated_data["template_id"],
-            creator=validated_data.get("creator", ""),
-            extra_info=validated_data.get("extra_info"),
-        )
-        return instance
-
-    class Meta:
-        model = TemplateSharedRecord
-        fields = [
-            "project_id",
-            "template_id",
-            "creator",
-            "create_at",
-            "extra_info",
-            "name",
-            "code",
-            "category",
-            "risk_level",
-            "labels",
-            "usage_content",
-        ]

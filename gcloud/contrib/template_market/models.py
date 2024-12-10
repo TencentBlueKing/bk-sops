@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 class TemplateSharedRecord(models.Model):
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="项目 ID")
     template_id = models.IntegerField(_("模版 ID"), help_text="模版 ID")
-    scene_instance_id = models.CharField(_("场景实例 ID"), max_length=32, db_index=True, help_text="场景实例 ID")
+    scene_instance_id = models.IntegerField(_("场景实例 ID"), db_index=True, help_text="场景实例 ID")
     creator = models.CharField(_("创建者"), max_length=32, default="")
     create_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
     extra_info = models.JSONField(_("额外信息"), blank=True, null=True)
