@@ -66,13 +66,14 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
             )
         url = self._get_market_routing(f"sre_scene/flow_template_scene/{template_shared_obj.scene_instance_id}/")
         result = requests.get(url=url)
-        if not result.status_code == 200:
+        response_data = result.json()
+        if not response_data["result"]:
             logging.exception(f"Get template information from market failed, error code: {result.status_code}")
             return Response(
                 {"result": False, "message": "Get template information failed", "code": err_code.OPERATION_FAIL.code}
             )
 
-        return Response({"result": True, "data": result.json(), "code": err_code.SUCCESS.code})
+        return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
     def create(self, request, *args, **kwargs):
@@ -102,7 +103,8 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
         }
         try:
             result = requests.post(url, data=data)
-            if result.status_code != 200:
+            response_data = result.json()
+            if not response_data["result"]:
                 return Response(
                     {
                         "result": False,
@@ -110,7 +112,6 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
                         "code": err_code.OPERATION_FAIL.code,
                     }
                 )
-            response_data = result.json()
             TemplateSharedRecord.create(
                 project_id=project_id,
                 template_id=template_id,
