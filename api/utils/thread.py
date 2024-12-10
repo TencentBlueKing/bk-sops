@@ -64,7 +64,7 @@ class ThreadPool(_ThreadPool):
 
     @staticmethod
     def get_func_with_local(func):
-        tz = timezone.get_current_timezone().zone
+        tz = timezone.get_current_timezone()
         lang = translation.get_language()
         items = [item for item in local]
         return partial(run_func_with_local, items, tz, lang, func)
