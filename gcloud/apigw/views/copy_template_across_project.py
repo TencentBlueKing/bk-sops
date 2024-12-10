@@ -24,10 +24,11 @@ from gcloud.apigw.decorators import (
     return_json_response,
 )
 
-from gcloud.conf import settings
 from gcloud.apigw.views.utils import logger
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import format_import_result_to_response_data
+from gcloud.utils.decorators import request_validate
+from gcloud.apigw.validators.copy_template_across_project import CopyTemplateAcrossProjectValidator
 
 
 @login_exempt
@@ -36,9 +37,10 @@ from gcloud.template_base.utils import format_import_result_to_response_data
 @apigw_require
 @return_json_response
 @project_inject
+@request_validate(CopyTemplateAcrossProjectValidator)
 @mark_request_whether_is_trust
-def copy_template_across_biz(request, project_id):
-    if not request.is_trust or not settings.ENABLE_APIGW_COPY_TEMPLATE:
+def copy_template_across_project(request, project_id):
+    if not request.is_trust:
         return {
             "result": False,
             "message": "you have no permission to call this api.",
@@ -46,21 +48,11 @@ def copy_template_across_biz(request, project_id):
         }
 
     params_data = json.loads(request.body)
-    new_project_id = params_data.get("new_project_id")
-    template_id = params_data.get("template_id")
-    template_id_list = [template_id] if template_id is not None else []
-
-    if not new_project_id or not template_id_list:
-        return {
-            "result": False,
-            "message": "missing or invalid parameter",
-            "code": err_code.REQUEST_PARAM_INVALID.code,
-        }
+    new_project_id = params_data["new_project_id"]
+    template_id = params_data["template_id"]
 
     try:
-        export_data = TaskTemplate.objects.export_templates(
-            template_id_list, is_full=False, project_id=request.project.id
-        )
+        export_data = TaskTemplate.objects.export_templates([template_id], is_full=False, project_id=request.project.id)
         import_result = TaskTemplate.objects.import_templates(
             template_data=export_data,
             override=False,
@@ -68,7 +60,7 @@ def copy_template_across_biz(request, project_id):
             operator=request.user.username,
         )
     except Exception as e:
-        logger.exception("[API] copy common tempalte error: {}".format(e))
+        logger.exception("The process fails to be replicated across services: {}".format(e))
         return {
             "result": False,
             "message": "invalid flow data or error occur, please contact administrator",

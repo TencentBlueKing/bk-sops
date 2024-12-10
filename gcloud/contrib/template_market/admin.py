@@ -17,7 +17,7 @@ from gcloud.contrib.template_market import models
 
 
 @admin.register(models.TemplateSharedRecord)
-class AppMakerAdmin(admin.ModelAdmin):
+class TemplateMarketAdmin(admin.ModelAdmin):
     list_display = ["project_id", "template_id", "creator", "create_at", "extra_info"]
     list_filter = ["project_id", "template_id", "creator", "create_at"]
     search_fields = ["project_id", "creator"]

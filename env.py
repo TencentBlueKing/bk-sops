@@ -158,5 +158,3 @@ BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
 ENABLE_TEMPLATE_MARKET = False if os.getenv("ENABLE_TEMPLATE_MARKET") is None else True
 # 流程商店 API 地址
 TEMPLATE_MARKET_API_URL = os.getenv("TEMPLATE_MARKET_API_URL", "")
-# 流程跨业务复制
-ENABLE_APIGW_COPY_TEMPLATE = False if os.getenv("ENABLE_APIGW_COPY_TEMPLATE") is None else True

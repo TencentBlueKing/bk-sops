@@ -10,16 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 
-from django.conf.urls import include, url
-from rest_framework.routers import DefaultRouter
-from gcloud.contrib.template_market.viewsets import TemplatePreviewViewSet, SharedProcessTemplateViewSet
+from gcloud.utils.validate import ObjectJsonBodyValidator
 
 
-template_market_router = DefaultRouter()
-template_market_router.register(r"template_preview", TemplatePreviewViewSet)
-template_market_router.register(r"shared_process_templates", SharedProcessTemplateViewSet)
+class CopyTemplateAcrossProjectValidator(ObjectJsonBodyValidator):
+    def validate(self, request, *args, **kwargs):
+        valid, err = super().validate(request, *args, **kwargs)
 
-urlpatterns = [
-    url(r"^api/", include(template_market_router.urls)),
-]
+        if not valid:
+            return valid, err
+
+        if not json.loads(request.body).get("new_project_id") or not json.loads(request.body).get("template_id"):
+            return False, "new_project_id and template_id is required"
+
+        return True, ""
