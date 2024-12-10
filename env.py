@@ -153,3 +153,8 @@ PERIODIC_TASK_REMINDER_NOTIFY_TYPE = json.loads(os.getenv("PERIODIC_TASK_REMINDE
 # bk_audit
 BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
+
+# 流程商店
+ENABLE_TEMPLATE_MARKET = False if os.getenv("ENABLE_TEMPLATE_MARKET") is None else True
+# 流程商店 API 地址
+TEMPLATE_MARKET_API_URL = os.getenv("TEMPLATE_MARKET_API_URL", "")

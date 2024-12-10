@@ -757,3 +757,27 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
+  /copy_template_across_project/{project_id}/:
+    post:
+      operationId: copy_template_across_project
+      description: 跨业务复制模板
+      tags:
+      - 通用接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/copy_template_across_project/{project_id>}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
