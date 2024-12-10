@@ -87,12 +87,6 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
             logging.exception(f"Template with project_id {project_id} and template_id {template_id} not found.")
             return Response({"result": False, "message": "Template not found", "code": err_code.CONTENT_NOT_EXIST.code})
 
-        if TemplateSharedRecord.objects.filter(project_id=project_id, template_id=template_id).exists():
-            logging.warning(f"Template with project_id {project_id} and template_id {template_id} has been shared.")
-            return Response(
-                {"result": False, "message": "Template has been shared", "code": err_code.OPERATION_FAIL.code}
-            )
-
         url = self._get_market_routing("sre_scene/flow_template_scene/")
 
         data = {
