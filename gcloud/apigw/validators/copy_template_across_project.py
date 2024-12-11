@@ -22,7 +22,8 @@ class CopyTemplateAcrossProjectValidator(ObjectJsonBodyValidator):
         if not valid:
             return valid, err
 
-        if not json.loads(request.body).get("new_project_id") or not json.loads(request.body).get("template_id"):
-            return False, "new_project_id and template_id is required"
+        data = json.loads(request.body)
+        if not data.get("new_project_id") or not data.get("template_id"):
+            return False, "new_project_id and template_id are required"
 
         return True, ""

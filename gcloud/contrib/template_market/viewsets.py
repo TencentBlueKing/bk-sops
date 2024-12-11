@@ -11,19 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
-import requests
 import logging
 
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import permissions
 
-from drf_yasg.utils import swagger_auto_schema
-from gcloud.conf import settings
 from gcloud import err_code
-from gcloud.contrib.template_market.serializers import TemplateSharedRecordSerializer, TemplatePreviewSerializer
+from gcloud.conf import settings
+from drf_yasg.utils import swagger_auto_schema
+from gcloud.contrib.template_market.serializers import (
+    TemplateSharedRecordSerializer,
+    TemplatePreviewSerializer,
+    TemplateProjectBaseSerializer,
+)
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.taskflow3.models import TaskTemplate
+from gcloud.contrib.template_market.utils import MarketAPIClient
 from gcloud.contrib.template_market.permission import TemplatePreviewPermission, SharedProcessTemplatePermission
 
 
@@ -33,7 +37,13 @@ class TemplatePreviewViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated, TemplatePreviewPermission]
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.queryset.get(id=request.GET.get("template_id"), project_id=request.GET.get("project_id"))
+        request_serializer = TemplateProjectBaseSerializer(data=request.GET)
+        request_serializer.is_valid(raise_exception=True)
+
+        template_id = request_serializer.validated_data["template_id"]
+        project_id = request_serializer.validated_data["project_id"]
+
+        instance = self.queryset.get(id=template_id, project_id=project_id)
         serializer = self.serializer_class(instance)
 
         return Response({"result": True, "data": serializer.data, "code": err_code.SUCCESS.code})
@@ -44,31 +54,46 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
     serializer_class = TemplateSharedRecordSerializer
     permission_classes = [permissions.IsAuthenticated, SharedProcessTemplatePermission]
 
-    def _get_market_routing(self, market_url):
-        return f"{settings.TEMPLATE_MARKET_API_URL}/{market_url}"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.market_client = MarketAPIClient()
 
-    def retrieve(self, request, *args, **kwargs):
-        project_id = request.GET.get("project_id")
-        template_id = request.GET.get("template_id")
+    def _build_template_data(self, serializer):
 
-        template_shared_obj = TemplateSharedRecord.objects.filter(
-            project_id=project_id, template_id=template_id
-        ).first()
+        data = {
+            "name": serializer.validated_data["name"],
+            "code": serializer.validated_data["code"],
+            "category": serializer.validated_data["category"],
+            "risk_level": serializer.validated_data["risk_level"],
+            "usage_id": serializer.validated_data["usage_id"],
+            "labels": serializer.validated_data["labels"],
+            "source_system": "bk_sops",
+            "project_code": serializer.validated_data["project_id"],
+            "templates": json.dumps(serializer.validated_data["templates"]),
+            "usage_content": serializer.validated_data["usage_content"],
+        }
+        scene_shared_id = serializer.validated_data.get("id")
+        if scene_shared_id:
+            data["id"] = scene_shared_id
+        return data
 
-        if not template_shared_obj:
-            logging.exception(f"Template shared record not found, project_id: {project_id}, template_id: {template_id}")
-            return Response(
-                {
-                    "result": False,
-                    "message": "Template shared record not found",
-                    "code": err_code.CONTENT_NOT_EXIST.code,
-                }
-            )
-        url = self._get_market_routing(f"sre_scene/flow_template_scene/{template_shared_obj.scene_instance_id}/")
-        result = requests.get(url=url)
-        response_data = result.json()
+    def _get_processes_count(self, templates):
+        template_id_list = [template.get("id") for template in templates]
+
+        template_objs = TaskTemplate.objects.filter(id__in=template_id_list)
+
+        total_count = 0
+        for template in template_objs:
+            activities = template.pipeline_tree.get("activities", [])
+            total_count += len(activities)
+
+        return total_count
+
+    def list(self, request, *args, **kwargs):
+        response_data = self.market_client.get_template_list()
+
         if not response_data["result"]:
-            logging.exception(f"Get template information from market failed, error code: {result.status_code}")
+            logging.exception(f"Get template information from market failed, error code: {response_data.get('code')}")
             return Response(
                 {"result": False, "message": "Get template information failed", "code": err_code.OPERATION_FAIL.code}
             )
@@ -80,31 +105,20 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        project_id = serializer.validated_data["project_id"]
-        template_id = serializer.validated_data["template_id"]
+        template_count = self._get_processes_count(serializer.validated_data["templates"])
+        if template_count > settings.MAX_NUMBER_SHARED_PROCESSES:
+            return Response(
+                {
+                    "result": False,
+                    "message": "The number of selected templates exceeds the limit",
+                    "code": err_code.OPERATION_FAIL.code,
+                }
+            )
 
-        task_template_obj = TaskTemplate.objects.filter(project_id=project_id, id=template_id).first()
-        if not task_template_obj:
-            logging.exception(f"Template with project_id {project_id} and template_id {template_id} not found.")
-            return Response({"result": False, "message": "Template not found", "code": err_code.CONTENT_NOT_EXIST.code})
-
-        url = self._get_market_routing("sre_scene/flow_template_scene/")
-
-        data = {
-            "name": serializer.validated_data["name"],
-            "code": serializer.validated_data["code"],
-            "category": serializer.validated_data["category"],
-            "risk_level": serializer.validated_data["risk_level"],
-            "labels": serializer.validated_data["labels"],
-            "source_system": "bk_sops",
-            "project_code": project_id,
-            "templates": json.dumps([{"id": template_id, "name": task_template_obj.name}]),
-            "usage_content": {"content": serializer.validated_data["usage_content"]},
-        }
+        data = self._build_template_data(serializer)
         try:
-            result = requests.post(url, data=data)
-            response_data = result.json()
-            if not response_data["result"]:
+            response_data = self.market_client.create_template(data)
+            if not response_data.get("result"):
                 return Response(
                     {
                         "result": False,
@@ -112,13 +126,40 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
                         "code": err_code.OPERATION_FAIL.code,
                     }
                 )
-            TemplateSharedRecord.create(
-                project_id=project_id,
-                template_id=template_id,
-                scene_instance_id=response_data["data"]["id"],
-                creator=serializer.validated_data.get("creator"),
-                extra_info=serializer.validated_data.get("extra_info"),
+            serializer.validated_data["id"] = response_data["data"]["id"]
+            serializer.create(serializer.validated_data)
+            return Response(
+                {
+                    "result": True,
+                    "data": "response_data",
+                    "message": "Share template successfully",
+                    "code": err_code.SUCCESS.code,
+                }
             )
+        except Exception as e:
+            logging.exception("Share template failed: %s", e)
+            return Response({"result": False, "message": "Share template failed", "code": err_code.OPERATION_FAIL.code})
+
+    @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
+    def partial_update(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        scene_shared_id = serializer.validated_data.get("id")
+
+        data = self._build_template_data(serializer)
+        try:
+            response_data = self.market_client.patch_template(data, scene_shared_id)
+            if not response_data.get("result"):
+                return Response(
+                    {
+                        "result": False,
+                        "message": "Update template to sre store failed",
+                        "code": err_code.OPERATION_FAIL.code,
+                    }
+                )
+            instance = self.queryset.get(scene_shared_id=scene_shared_id)
+            serializer.update(instance, serializer.validated_data)
             return Response(
                 {
                     "result": True,
@@ -128,5 +169,7 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
                 }
             )
         except Exception as e:
-            logging.exception("Share template failed: %s", e)
-            return Response({"result": False, "message": "Share template failed", "code": err_code.OPERATION_FAIL.code})
+            logging.exception("Failed to update scene template: %s", e)
+            return Response(
+                {"result": False, "message": "Failed to update scene template", "code": err_code.OPERATION_FAIL.code}
+            )
