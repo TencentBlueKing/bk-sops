@@ -58,8 +58,9 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
         super().__init__(**kwargs)
         self.market_client = MarketAPIClient()
 
-    def _build_template_data(self, serializer):
-
+    def _build_template_data(self, serializer, **kwargs):
+        templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["templates"], is_deleted=False)
+        template_id_list = [{"id": template.id, "name": template.name} for template in templates]
         data = {
             "name": serializer.validated_data["name"],
             "code": serializer.validated_data["code"],
@@ -69,17 +70,15 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
             "labels": serializer.validated_data["labels"],
             "source_system": "bk_sops",
             "project_code": serializer.validated_data["project_id"],
-            "templates": json.dumps(serializer.validated_data["templates"]),
+            "templates": json.dumps(template_id_list),
             "usage_content": serializer.validated_data["usage_content"],
         }
-        scene_shared_id = serializer.validated_data.get("id")
+        scene_shared_id = kwargs.get("scene_shared_id")
         if scene_shared_id:
             data["id"] = scene_shared_id
         return data
 
-    def _get_processes_count(self, templates):
-        template_id_list = [template.get("id") for template in templates]
-
+    def _get_processes_count(self, template_id_list):
         template_objs = TaskTemplate.objects.filter(id__in=template_id_list)
 
         total_count = 0
@@ -126,8 +125,8 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
                         "code": err_code.OPERATION_FAIL.code,
                     }
                 )
-            serializer.validated_data["id"] = response_data["data"]["id"]
-            serializer.create(serializer.validated_data)
+            serializer.validated_data["scene_shared_id"] = response_data["data"]["id"]
+            serializer.save()
             return Response(
                 {
                     "result": True,
@@ -142,12 +141,12 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
     def partial_update(self, request, *args, **kwargs):
+        scene_shared_id = kwargs["pk"]
+        instance = self.queryset.get(scene_shared_id=scene_shared_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        scene_shared_id = serializer.validated_data.get("id")
-
-        data = self._build_template_data(serializer)
+        data = self._build_template_data(serializer, scene_shared_id=scene_shared_id)
         try:
             response_data = self.market_client.patch_template(data, scene_shared_id)
             if not response_data.get("result"):
@@ -158,8 +157,7 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
                         "code": err_code.OPERATION_FAIL.code,
                     }
                 )
-            instance = self.queryset.get(scene_shared_id=scene_shared_id)
-            serializer.update(instance, serializer.validated_data)
+            serializer.update(instance, validated_data=serializer.validated_data)
             return Response(
                 {
                     "result": True,

@@ -42,12 +42,13 @@ class TemplatePreviewPermission(permissions.BasePermission):
 
 class SharedProcessTemplatePermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        username = request.user.username
-        serializer = view.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        template_id_list = [template.get("id") for template in serializer.validated_data["templates"]]
         if view.action in ["create", "partial_update"]:
+            username = request.user.username
+            serializer = view.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            template_id_list = serializer.validated_data["templates"]
+
             iam_multi_resource_auth_or_raise(
                 username, IAMMeta.FLOW_EDIT_ACTION, template_id_list, "resources_list_for_flows"
             )
