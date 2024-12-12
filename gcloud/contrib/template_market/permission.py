@@ -12,27 +12,24 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from django.db.models import Q
+from iam.exceptions import MultiAuthFailedException
 from rest_framework import permissions
 
 from gcloud.conf import settings
 from gcloud.contrib.template_market.models import TemplateSharedRecord
+from gcloud.contrib.template_market.serializers import TemplateProjectBaseSerializer
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.utils import iam_multi_resource_auth_or_raise
 
 
 class TemplatePreviewPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        try:
-            template_id = int(request.GET.get("template_id"))
-            project_id = int(request.GET.get("project_id"))
-        except (TypeError, ValueError):
-            logging.warning("Missing or invalid required parameters.")
-            return False
+        serializer = TemplateProjectBaseSerializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
 
-        record = TemplateSharedRecord.objects.filter(
-            Q(project_id=project_id) & Q(templates__contains=[template_id])
-        ).first()
+        template_id = int(serializer.validated_data["template_id"])
+        project_id = int(serializer.validated_data["project_id"])
+        record = TemplateSharedRecord.objects.filter(project_id=project_id, templates__contains=[template_id]).first()
         if record is None:
             logging.warning("The specified template could not be found")
             return False
@@ -42,15 +39,21 @@ class TemplatePreviewPermission(permissions.BasePermission):
 
 class SharedProcessTemplatePermission(permissions.BasePermission):
     def has_permission(self, request, view):
+        if not settings.ENABLE_TEMPLATE_MARKET:
+            return False
+
         if view.action in ["create", "partial_update"]:
             username = request.user.username
             serializer = view.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
 
             template_id_list = serializer.validated_data["templates"]
+            try:
+                iam_multi_resource_auth_or_raise(
+                    username, IAMMeta.FLOW_EDIT_ACTION, template_id_list, "resources_list_for_flows"
+                )
+            except MultiAuthFailedException:
+                logging.exception("You do not have permission to perform this operation")
+                return False
 
-            iam_multi_resource_auth_or_raise(
-                username, IAMMeta.FLOW_EDIT_ACTION, template_id_list, "resources_list_for_flows"
-            )
-
-        return settings.ENABLE_TEMPLATE_MARKET
+        return True

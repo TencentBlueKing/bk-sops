@@ -18,6 +18,6 @@ from gcloud.contrib.template_market import models
 
 @admin.register(models.TemplateSharedRecord)
 class TemplateSharedRecordAdmin(admin.ModelAdmin):
-    list_display = ["scene_shared_id", "project_id", "templates", "creator", "create_at", "update_at", "extra_info"]
+    list_display = ["market_record_id", "project_id", "templates", "creator", "create_at", "update_at", "extra_info"]
     list_filter = ["project_id", "creator", "create_at", "update_at"]
-    search_fields = ["scene_shared_id", "project_id", "creator"]
+    search_fields = ["market_record_id", "project_id", "creator"]

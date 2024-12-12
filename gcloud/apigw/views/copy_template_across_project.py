@@ -60,7 +60,7 @@ def copy_template_across_project(request, project_id):
             operator=request.user.username,
         )
     except Exception as e:
-        logger.exception("The process fails to be replicated across services: {}".format(e))
+        logger.exception("The template fails to be copied across project: {}".format(e))
         return {
             "result": False,
             "message": "invalid flow data or error occur, please contact administrator",

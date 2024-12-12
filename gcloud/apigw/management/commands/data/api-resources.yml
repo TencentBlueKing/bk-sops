@@ -762,13 +762,13 @@ paths:
       operationId: copy_template_across_project
       description: 跨业务复制模板
       tags:
-      - 通用接口
+      - 限制接口
       responses:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: true
+        isPublic: true
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP

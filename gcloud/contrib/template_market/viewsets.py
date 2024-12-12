@@ -18,7 +18,6 @@ from rest_framework.response import Response
 from rest_framework import permissions
 
 from gcloud import err_code
-from gcloud.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from gcloud.contrib.template_market.serializers import (
     TemplateSharedRecordSerializer,
@@ -27,7 +26,7 @@ from gcloud.contrib.template_market.serializers import (
 )
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.taskflow3.models import TaskTemplate
-from gcloud.contrib.template_market.utils import MarketAPIClient
+from gcloud.contrib.template_market.clients import MarketAPIClient
 from gcloud.contrib.template_market.permission import TemplatePreviewPermission, SharedProcessTemplatePermission
 
 
@@ -78,25 +77,18 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
             data["id"] = scene_shared_id
         return data
 
-    def _get_processes_count(self, template_id_list):
-        template_objs = TaskTemplate.objects.filter(id__in=template_id_list)
-
-        total_count = 0
-        for template in template_objs:
-            activities = template.pipeline_tree.get("activities", [])
-            total_count += len(activities)
-
-        return total_count
-
     def list(self, request, *args, **kwargs):
-        response_data = self.market_client.get_template_list()
+        response_data = self.market_client.get_market_template_list()
 
         if not response_data["result"]:
-            logging.exception(f"Get template information from market failed, error code: {response_data.get('code')}")
+            logging.exception("Failed to obtain the market template list")
             return Response(
-                {"result": False, "message": "Get template information failed", "code": err_code.OPERATION_FAIL.code}
+                {
+                    "result": False,
+                    "message": "Failed to obtain the market template list",
+                    "code": err_code.OPERATION_FAIL.code,
+                }
             )
-
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
@@ -104,70 +96,36 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        template_count = self._get_processes_count(serializer.validated_data["templates"])
-        if template_count > settings.MAX_NUMBER_SHARED_PROCESSES:
+        data = self._build_template_data(serializer)
+        response_data = self.market_client.create_market_template_record(data)
+        if not response_data.get("result"):
             return Response(
                 {
                     "result": False,
-                    "message": "The number of selected templates exceeds the limit",
+                    "message": "Failed to create market template record",
                     "code": err_code.OPERATION_FAIL.code,
                 }
             )
-
-        data = self._build_template_data(serializer)
-        try:
-            response_data = self.market_client.create_template(data)
-            if not response_data.get("result"):
-                return Response(
-                    {
-                        "result": False,
-                        "message": "Failed to share template to sre store",
-                        "code": err_code.OPERATION_FAIL.code,
-                    }
-                )
-            serializer.validated_data["scene_shared_id"] = response_data["data"]["id"]
-            serializer.save()
-            return Response(
-                {
-                    "result": True,
-                    "data": "response_data",
-                    "message": "Share template successfully",
-                    "code": err_code.SUCCESS.code,
-                }
-            )
-        except Exception as e:
-            logging.exception("Share template failed: %s", e)
-            return Response({"result": False, "message": "Share template failed", "code": err_code.OPERATION_FAIL.code})
+        serializer.validated_data["market_record_id"] = response_data["data"]["id"]
+        serializer.create(serializer.validated_data)
+        return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
     def partial_update(self, request, *args, **kwargs):
-        scene_shared_id = kwargs["pk"]
-        instance = self.queryset.get(scene_shared_id=scene_shared_id)
+        market_record_id = kwargs["pk"]
+        instance = self.queryset.get(market_record_id=market_record_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        data = self._build_template_data(serializer, scene_shared_id=scene_shared_id)
-        try:
-            response_data = self.market_client.patch_template(data, scene_shared_id)
-            if not response_data.get("result"):
-                return Response(
-                    {
-                        "result": False,
-                        "message": "Update template to sre store failed",
-                        "code": err_code.OPERATION_FAIL.code,
-                    }
-                )
-            serializer.update(instance, validated_data=serializer.validated_data)
+        data = self._build_template_data(serializer, market_record_id=market_record_id)
+        response_data = self.market_client.patch_market_template_record(data, market_record_id)
+        if not response_data.get("result"):
             return Response(
                 {
-                    "result": True,
-                    "data": response_data,
-                    "message": "Share template successfully",
-                    "code": err_code.SUCCESS.code,
+                    "result": False,
+                    "message": "Failed to update market template record",
+                    "code": err_code.OPERATION_FAIL.code,
                 }
             )
-        except Exception as e:
-            logging.exception("Failed to update scene template: %s", e)
-            return Response(
-                {"result": False, "message": "Failed to update scene template", "code": err_code.OPERATION_FAIL.code}
-            )
+        serializer.update(instance=instance, validated_data=serializer.validated_data)
+        return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})

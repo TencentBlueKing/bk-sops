@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 import json
 from rest_framework import serializers
 
-from gcloud.constants import DATETIME_FORMAT
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 
 
@@ -34,8 +33,6 @@ class TemplateSharedRecordSerializer(serializers.ModelSerializer):
     project_id = serializers.CharField(required=True, max_length=32, help_text="项目id")
     templates = serializers.ListField(required=True, help_text="关联的模板列表")
     creator = serializers.CharField(required=True, max_length=32, help_text="创建者")
-    create_at = serializers.DateTimeField(required=False, help_text="创建时间", format=DATETIME_FORMAT)
-    update_at = serializers.DateTimeField(required=False, help_text="更新时间", format=DATETIME_FORMAT)
     extra_info = serializers.JSONField(required=False, allow_null=True, help_text="额外信息")
     name = serializers.CharField(required=True, help_text="共享名称")
     code = serializers.CharField(required=True, help_text="共享标识")
@@ -51,8 +48,6 @@ class TemplateSharedRecordSerializer(serializers.ModelSerializer):
             "project_id",
             "templates",
             "creator",
-            "create_at",
-            "update_at",
             "extra_info",
             "name",
             "code",
