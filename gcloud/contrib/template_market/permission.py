@@ -24,7 +24,7 @@ from gcloud.iam_auth.utils import iam_multi_resource_auth_or_raise
 
 class TemplatePreviewPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        serializer = TemplateProjectBaseSerializer(data=request.GET)
+        serializer = TemplateProjectBaseSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         template_id = int(serializer.validated_data["template_id"])

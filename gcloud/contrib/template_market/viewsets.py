@@ -14,6 +14,7 @@ import json
 import logging
 
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
 
@@ -31,13 +32,13 @@ from gcloud.contrib.template_market.clients import MarketAPIClient
 from gcloud.contrib.template_market.permission import TemplatePreviewPermission, SharedTemplateRecordPermission
 
 
-class TemplatePreviewViewSet(viewsets.ViewSet):
+class TemplatePreviewAPIView(APIView):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     serializer_class = TemplatePreviewSerializer
     permission_classes = [permissions.IsAuthenticated, TemplatePreviewPermission]
 
-    def retrieve(self, request, *args, **kwargs):
-        request_serializer = TemplateProjectBaseSerializer(data=request.GET)
+    def get(self, request, *args, **kwargs):
+        request_serializer = TemplateProjectBaseSerializer(data=request.query_params)
         request_serializer.is_valid(raise_exception=True)
 
         template_id = request_serializer.validated_data["template_id"]
@@ -105,9 +106,9 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
                     "code": err_code.OPERATION_FAIL.code,
                 }
             )
-        serializer.create_shared_record(
+        TemplateSharedRecord.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_id"]),
-            template_ids=serializer.validated_data["template_ids"],
+            new_template_ids=serializer.validated_data["template_ids"],
             market_record_id=response_data["data"]["id"],
             creator=serializer.validated_data["creator"],
         )
@@ -118,7 +119,8 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         market_record_id = kwargs["pk"]
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-
+        existing_records = self.market_client.get_template_detail(market_record_id)
+        existing_template_ids = set([template["id"] for template in json.loads(existing_records["data"]["templates"])])
         data = self._build_template_data(serializer, market_record_id=market_record_id)
         response_data = self.market_client.patch_market_template_record(data, market_record_id)
         if not response_data.get("result"):
@@ -129,10 +131,11 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
                     "code": err_code.OPERATION_FAIL.code,
                 }
             )
-        serializer.update_shared_record(
+        TemplateSharedRecord.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_id"]),
             new_template_ids=serializer.validated_data["template_ids"],
             market_record_id=market_record_id,
             creator=serializer.validated_data["creator"],
+            existing_template_ids=existing_template_ids,
         )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})

@@ -23,6 +23,12 @@ class MarketAPIClient:
     def _get_url(self, endpoint):
         return f"{self.base_url}{endpoint}"
 
+    def get_template_detail(self, market_record_id):
+        url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
+        cookies = {"bk_ticket": "5IT20mfD9mI_uTitTrUuDKTp9GIif7ZaBivi9E6k5qw"}
+        response = requests.get(url, cookies=cookies)
+        return response.json()
+
     def get_market_template_list(self):
         url = self._get_url("/sre_scene/flow_template_scene/?is_all=true")
         response = requests.get(url)
