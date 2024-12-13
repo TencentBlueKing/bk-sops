@@ -23,22 +23,32 @@ class MarketAPIClient:
     def _get_url(self, endpoint):
         return f"{self.base_url}{endpoint}"
 
-    def get_shared_detail(self, market_record_id):
+    def get_service_category(self):
+        url = self._get_url("/category/get_service_category/")
+        response = requests.get(url)
+        return response.json()
+
+    def get_scene_label(self):
+        url = self._get_url("/sre_property/scene_label/")
+        response = requests.get(url)
+        return response.json()
+
+    def get_template_scene_detail(self, market_record_id):
         url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
         response = requests.get(url)
         return response.json()
 
-    def get_shared_list(self):
+    def get_template_scene_list(self):
         url = self._get_url("/sre_scene/flow_template_scene/?is_all=true")
         response = requests.get(url)
         return response.json()
 
-    def create_shared_record(self, data):
+    def create_template_scene(self, data):
         url = self._get_url("/sre_scene/flow_template_scene/")
         response = requests.post(url, json=data)
         return response.json()
 
-    def patch_shared_record(self, data, market_record_id):
+    def patch_template_scene(self, data, market_record_id):
         url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
         response = requests.patch(url, json=data)
         return response.json()

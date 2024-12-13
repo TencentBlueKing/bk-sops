@@ -16,6 +16,7 @@ import logging
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import permissions
 
 from gcloud import err_code
@@ -77,8 +78,37 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
             data["id"] = market_record_id
         return data
 
+    @action(detail=False, methods=["get"])
+    def get_service_category(self, request, *args, **kwargs):
+        response_data = self.market_client.get_service_category()
+        if not response_data["result"]:
+            logging.warning("Failed to obtain the market service category")
+            return Response(
+                {
+                    "result": False,
+                    "message": "Failed to obtain the market service category",
+                    "code": err_code.OPERATION_FAIL.code,
+                }
+            )
+        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+
+    @action(detail=False, methods=["get"])
+    def get_scene_label(self, request, *args, **kwargs):
+        response_data = self.market_client.get_scene_label()
+
+        if not response_data["result"]:
+            logging.exception("Failed to obtain scene tag list")
+            return Response(
+                {
+                    "result": False,
+                    "message": "Failed to obtain scene tag list",
+                    "code": err_code.OPERATION_FAIL.code,
+                }
+            )
+        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+
     def list(self, request, *args, **kwargs):
-        response_data = self.market_client.get_shared_list()
+        response_data = self.market_client.get_template_scene_list()
 
         if not response_data["result"]:
             logging.exception("Failed to obtain the market template list")
@@ -97,7 +127,7 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         data = self._build_template_data(serializer)
-        response_data = self.market_client.create_shared_record(data)
+        response_data = self.market_client.create_template_scene(data)
         if not response_data.get("result"):
             return Response(
                 {
@@ -119,10 +149,12 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         market_record_id = kwargs["pk"]
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        existing_records = self.market_client.get_shared_detail(market_record_id)
-        existing_template_ids = set([template["id"] for template in json.loads(existing_records["data"]["templates"])])
+        existing_records = self.market_client.get_template_scene_detail(market_record_id)
+        existing_market_template_ids = set(
+            [template["id"] for template in json.loads(existing_records["data"]["templates"])]
+        )
         data = self._build_template_data(serializer, market_record_id=market_record_id)
-        response_data = self.market_client.patch_shared_record(data, market_record_id)
+        response_data = self.market_client.patch_template_scene(data, market_record_id)
         if not response_data.get("result"):
             return Response(
                 {
@@ -136,6 +168,6 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
             new_template_ids=serializer.validated_data["template_ids"],
             market_record_id=market_record_id,
             creator=serializer.validated_data["creator"],
-            existing_template_ids=existing_template_ids,
+            existing_market_template_ids=existing_market_template_ids,
         )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
