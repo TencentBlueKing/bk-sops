@@ -68,7 +68,9 @@ class TemplateSharedManager(models.Manager):
                 new_records.append(new_record)
 
         if new_records:
-            TemplateSharedRecord.objects.bulk_create(batch_size=TEMPLATE_SHARED_RECORD_BATCH_OPERATION_COUNT)
+            TemplateSharedRecord.objects.bulk_create(
+                new_records, batch_size=TEMPLATE_SHARED_RECORD_BATCH_OPERATION_COUNT
+            )
 
         if records_to_update:
             TemplateSharedRecord.objects.bulk_update(
