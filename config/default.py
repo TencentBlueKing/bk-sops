@@ -67,6 +67,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
+    "gcloud.contrib.template_market",
     "gcloud.apigw",
     "gcloud.common_template",
     "gcloud.label",
@@ -883,3 +884,9 @@ BK_AUDIT_SETTINGS = {
 if "BKAPP_SOPS_BROKER_URL" in os.environ:
     BROKER_URL = os.getenv("BKAPP_SOPS_BROKER_URL")
     print(f"BROKER_URL: {BROKER_URL}")
+
+
+# 流程商店
+ENABLE_TEMPLATE_MARKET = env.ENABLE_TEMPLATE_MARKET
+# 流程商店 API 地址
+TEMPLATE_MARKET_API_URL = env.TEMPLATE_MARKET_API_URL
