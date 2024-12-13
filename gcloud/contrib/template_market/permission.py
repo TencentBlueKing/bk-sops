@@ -29,7 +29,7 @@ class TemplatePreviewPermission(permissions.BasePermission):
 
         template_id = int(serializer.validated_data["template_id"])
         project_id = int(serializer.validated_data["project_id"])
-        record = TemplateSharedRecord.objects.filter(project_id=project_id, templates__contains=[template_id]).first()
+        record = TemplateSharedRecord.objects.filter(project_id=project_id, template_id=template_id).first()
         if record is None:
             logging.warning("The specified template could not be found")
             return False
@@ -37,7 +37,7 @@ class TemplatePreviewPermission(permissions.BasePermission):
         return True
 
 
-class SharedProcessTemplatePermission(permissions.BasePermission):
+class SharedTemplateRecordPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if not settings.ENABLE_TEMPLATE_MARKET:
             return False
@@ -47,13 +47,13 @@ class SharedProcessTemplatePermission(permissions.BasePermission):
             serializer = view.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            template_id_list = serializer.validated_data["templates"]
+            template_id_list = serializer.validated_data["template_ids"]
             try:
                 iam_multi_resource_auth_or_raise(
                     username, IAMMeta.FLOW_EDIT_ACTION, template_id_list, "resources_list_for_flows"
                 )
             except MultiAuthFailedException:
-                logging.exception("You do not have permission to perform this operation")
+                logging.exception("Template permission verification failed")
                 return False
 
         return True

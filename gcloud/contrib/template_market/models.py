@@ -16,9 +16,8 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class TemplateSharedRecord(models.Model):
-    market_record_id = models.CharField(_("共享实例 ID"), max_length=32, help_text="共享实例 ID", db_index=True)
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="项目 ID")
-    templates = models.JSONField(_("模板 ID 列表"), help_text="模板 ID 列表")
+    template_id = models.JSONField(_("模板 ID 列表"), help_text="模板 ID 列表", db_index=True)
     creator = models.CharField(_("创建者"), max_length=32, default="")
     create_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
     update_at = models.DateTimeField(verbose_name=_("更新时间"), auto_now=True)

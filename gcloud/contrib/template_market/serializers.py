@@ -21,6 +21,7 @@ class TemplatePreviewSerializer(serializers.Serializer):
     pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
 
     def get_pipeline_tree(self, obj):
+        # todo 节点信息防护
         return json.dumps(obj.pipeline_tree)
 
 
@@ -29,9 +30,9 @@ class TemplateProjectBaseSerializer(serializers.Serializer):
     project_id = serializers.CharField(required=True, help_text="项目id")
 
 
-class TemplateSharedRecordSerializer(serializers.ModelSerializer):
+class TemplateSharedRecordSerializer(serializers.Serializer):
     project_id = serializers.CharField(required=True, max_length=32, help_text="项目id")
-    templates = serializers.ListField(required=True, help_text="关联的模板列表")
+    template_ids = serializers.ListField(required=True, help_text="关联的模板列表")
     creator = serializers.CharField(required=True, max_length=32, help_text="创建者")
     extra_info = serializers.JSONField(required=False, allow_null=True, help_text="额外信息")
     name = serializers.CharField(required=True, help_text="共享名称")
@@ -42,30 +43,36 @@ class TemplateSharedRecordSerializer(serializers.ModelSerializer):
     labels = serializers.ListField(child=serializers.IntegerField(), required=True, help_text="共享标签列表")
     usage_content = serializers.JSONField(required=True, help_text="使用说明")
 
-    class Meta:
-        model = TemplateSharedRecord
-        fields = [
-            "project_id",
-            "templates",
-            "creator",
-            "extra_info",
-            "name",
-            "code",
-            "category",
-            "risk_level",
-            "usage_id",
-            "labels",
-            "usage_content",
-        ]
+    def create_shared_record(self, project_id, market_record_id, template_ids, creator):
+        for template_id in template_ids:
+            existing_record, created = TemplateSharedRecord.objects.get_or_create(
+                project_id=project_id,
+                template_id=template_id,
+                defaults={"creator": creator, "extra_info": {"market_record_ids": [market_record_id]}},
+            )
+            if not created:
+                market_ids = existing_record.extra_info.setdefault("market_record_ids", [])
+                if market_record_id not in market_ids:
+                    market_ids.append(market_record_id)
+                    existing_record.save()
 
-    def create(self, validated_data):
-        fields_to_remove = ["name", "code", "category", "risk_level", "usage_id", "labels", "usage_content"]
-        for field in fields_to_remove:
-            validated_data.pop(field, None)
-        return super().create(validated_data)
+    def update_shared_record(self, new_template_ids, market_record_id, project_id, creator):
+        market_record_id = int(market_record_id)
 
-    def update(self, instance, validated_data):
-        fields_to_remove = ["name", "code", "category", "risk_level", "usage_id", "labels", "usage_content"]
-        for field in fields_to_remove:
-            validated_data.pop(field, None)
-        return super().update(instance, validated_data)
+        existing_records = TemplateSharedRecord.objects.filter(
+            project_id=project_id, extra_info__market_record_ids__contains=[market_record_id]
+        )
+        existing_template_ids = set(existing_records.values_list("template_id", flat=True))
+        templates_to_remove = existing_template_ids - set(new_template_ids)
+
+        for template_id in templates_to_remove:
+            current_template_record = existing_records.get(template_id=template_id)
+            current_market_ids = current_template_record.extra_info.get("market_record_ids", [])
+            if market_record_id in current_market_ids:
+                current_market_ids.remove(market_record_id)
+                current_template_record.extra_info["market_record_ids"] = current_market_ids
+                current_template_record.save()
+
+        templates_to_add = set(new_template_ids) - existing_template_ids
+        if templates_to_add:
+            self.create_shared_record(project_id, market_record_id, list(templates_to_add), creator)

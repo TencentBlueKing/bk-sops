@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
-from gcloud.contrib.template_market.viewsets import TemplatePreviewViewSet, SharedProcessTemplateViewSet
+from gcloud.contrib.template_market.viewsets import TemplatePreviewViewSet, SharedTemplateRecordsViewSet
 
 
 template_market_router = DefaultRouter()
 template_market_router.register(r"template_preview", TemplatePreviewViewSet)
-template_market_router.register(r"shared_process_templates", SharedProcessTemplateViewSet)
+template_market_router.register(r"shared_templates_records", SharedTemplateRecordsViewSet)
 
 urlpatterns = [
     url(r"^api/", include(template_market_router.urls)),

@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from rest_framework import permissions
 
 from gcloud import err_code
+from gcloud.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from gcloud.contrib.template_market.serializers import (
     TemplateSharedRecordSerializer,
@@ -27,7 +28,7 @@ from gcloud.contrib.template_market.serializers import (
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.taskflow3.models import TaskTemplate
 from gcloud.contrib.template_market.clients import MarketAPIClient
-from gcloud.contrib.template_market.permission import TemplatePreviewPermission, SharedProcessTemplatePermission
+from gcloud.contrib.template_market.permission import TemplatePreviewPermission, SharedTemplateRecordPermission
 
 
 class TemplatePreviewViewSet(viewsets.ViewSet):
@@ -48,18 +49,16 @@ class TemplatePreviewViewSet(viewsets.ViewSet):
         return Response({"result": True, "data": serializer.data, "code": err_code.SUCCESS.code})
 
 
-class SharedProcessTemplateViewSet(viewsets.ViewSet):
+class SharedTemplateRecordsViewSet(viewsets.ViewSet):
     queryset = TemplateSharedRecord.objects.all()
     serializer_class = TemplateSharedRecordSerializer
-    permission_classes = [permissions.IsAuthenticated, SharedProcessTemplatePermission]
+    permission_classes = [permissions.IsAuthenticated, SharedTemplateRecordPermission]
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.market_client = MarketAPIClient()
+    market_client = MarketAPIClient()
 
     def _build_template_data(self, serializer, **kwargs):
-        templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["templates"], is_deleted=False)
-        template_id_list = [{"id": template.id, "name": template.name} for template in templates]
+        templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["template_ids"], is_deleted=False)
+        template_info = [{"id": template.id, "name": template.name} for template in templates]
         data = {
             "name": serializer.validated_data["name"],
             "code": serializer.validated_data["code"],
@@ -67,14 +66,14 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
             "risk_level": serializer.validated_data["risk_level"],
             "usage_id": serializer.validated_data["usage_id"],
             "labels": serializer.validated_data["labels"],
-            "source_system": "bk_sops",
+            "source_system": settings.APP_CODE,
             "project_code": serializer.validated_data["project_id"],
-            "templates": json.dumps(template_id_list),
+            "templates": json.dumps(template_info),
             "usage_content": serializer.validated_data["usage_content"],
         }
-        scene_shared_id = kwargs.get("scene_shared_id")
-        if scene_shared_id:
-            data["id"] = scene_shared_id
+        market_record_id = kwargs.get("market_record_id")
+        if market_record_id:
+            data["id"] = market_record_id
         return data
 
     def list(self, request, *args, **kwargs):
@@ -106,14 +105,17 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
                     "code": err_code.OPERATION_FAIL.code,
                 }
             )
-        serializer.validated_data["market_record_id"] = response_data["data"]["id"]
-        serializer.create(serializer.validated_data)
+        serializer.create_shared_record(
+            project_id=int(serializer.validated_data["project_id"]),
+            template_ids=serializer.validated_data["template_ids"],
+            market_record_id=response_data["data"]["id"],
+            creator=serializer.validated_data["creator"],
+        )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
     def partial_update(self, request, *args, **kwargs):
         market_record_id = kwargs["pk"]
-        instance = self.queryset.get(market_record_id=market_record_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
@@ -127,5 +129,10 @@ class SharedProcessTemplateViewSet(viewsets.ViewSet):
                     "code": err_code.OPERATION_FAIL.code,
                 }
             )
-        serializer.update(instance=instance, validated_data=serializer.validated_data)
+        serializer.update_shared_record(
+            project_id=int(serializer.validated_data["project_id"]),
+            new_template_ids=serializer.validated_data["template_ids"],
+            market_record_id=market_record_id,
+            creator=serializer.validated_data["creator"],
+        )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
