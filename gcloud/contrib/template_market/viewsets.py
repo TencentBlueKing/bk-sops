@@ -78,7 +78,7 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         return data
 
     def list(self, request, *args, **kwargs):
-        response_data = self.market_client.get_market_template_list()
+        response_data = self.market_client.get_shared_list()
 
         if not response_data["result"]:
             logging.exception("Failed to obtain the market template list")
@@ -97,7 +97,7 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         data = self._build_template_data(serializer)
-        response_data = self.market_client.create_market_template_record(data)
+        response_data = self.market_client.create_shared_record(data)
         if not response_data.get("result"):
             return Response(
                 {
@@ -119,10 +119,10 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         market_record_id = kwargs["pk"]
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        existing_records = self.market_client.get_template_detail(market_record_id)
+        existing_records = self.market_client.get_shared_detail(market_record_id)
         existing_template_ids = set([template["id"] for template in json.loads(existing_records["data"]["templates"])])
         data = self._build_template_data(serializer, market_record_id=market_record_id)
-        response_data = self.market_client.patch_market_template_record(data, market_record_id)
+        response_data = self.market_client.patch_shared_record(data, market_record_id)
         if not response_data.get("result"):
             return Response(
                 {
