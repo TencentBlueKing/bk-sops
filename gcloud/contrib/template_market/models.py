@@ -16,6 +16,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
 
+TEMPLATE_SHARED_RECORD_BATCH_OPERATION_COUNT = 50
+
 
 class TemplateSharedManager(models.Manager):
     def update_shared_record(
@@ -66,9 +68,12 @@ class TemplateSharedManager(models.Manager):
                 new_records.append(new_record)
 
         if new_records:
-            TemplateSharedRecord.objects.bulk_create(new_records)
+            TemplateSharedRecord.objects.bulk_create(batch_size=TEMPLATE_SHARED_RECORD_BATCH_OPERATION_COUNT)
+
         if records_to_update:
-            TemplateSharedRecord.objects.bulk_update(records_to_update, ["extra_info"])
+            TemplateSharedRecord.objects.bulk_update(
+                records_to_update, ["extra_info"], batch_size=TEMPLATE_SHARED_RECORD_BATCH_OPERATION_COUNT
+            )
 
         return {"result": True, "message": "update shared record successfully", "code": err_code.SUCCESS.code}
 
