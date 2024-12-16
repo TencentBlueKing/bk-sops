@@ -158,3 +158,7 @@ BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
 ENABLE_TEMPLATE_MARKET = False if os.getenv("ENABLE_TEMPLATE_MARKET") is None else True
 # 流程商店 API 地址
 TEMPLATE_MARKET_API_URL = os.getenv("TEMPLATE_MARKET_API_URL", "")
+# SRE商店路由
+SRE_STORE_API_URL = os.getenv("SRE_STORE_API_URL", "")
+# SRE商店帮助文档路由
+SRE_HELP_DOCUMENT_URL = os.getenv("SRE_HELP_DOCUMENT_URL", "")

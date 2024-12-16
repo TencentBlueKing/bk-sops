@@ -33,6 +33,11 @@ class MarketAPIClient:
         response = requests.get(url)
         return response.json()
 
+    def get_risk_level(self, request):
+        url = self._get_url("/sre_scene/risk_level/")
+        response = requests.get(url)
+        return response.json()
+
     def get_template_scene_detail(self, market_record_id):
         url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
         response = requests.get(url)

@@ -51,7 +51,7 @@ class TemplatePreviewAPIView(APIView):
         return Response({"result": True, "data": serializer.data, "code": err_code.SUCCESS.code})
 
 
-class SharedTemplateRecordsViewSet(viewsets.ViewSet):
+class TemplateSceneViewSet(viewsets.ViewSet):
     queryset = TemplateSharedRecord.objects.all()
     serializer_class = TemplateSharedRecordSerializer
     permission_classes = [permissions.IsAuthenticated, SharedTemplateRecordPermission]
@@ -61,18 +61,7 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
     def _build_template_data(self, serializer, **kwargs):
         templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["template_ids"], is_deleted=False)
         template_info = [{"id": template.id, "name": template.name} for template in templates]
-        data = {
-            "name": serializer.validated_data["name"],
-            "code": serializer.validated_data["code"],
-            "category": serializer.validated_data["category"],
-            "risk_level": serializer.validated_data["risk_level"],
-            "usage_id": serializer.validated_data["usage_id"],
-            "labels": serializer.validated_data["labels"],
-            "source_system": settings.APP_CODE,
-            "project_code": serializer.validated_data["project_id"],
-            "templates": json.dumps(template_info),
-            "usage_content": serializer.validated_data["usage_content"],
-        }
+        data = {"source_system": settings.APP_CODE, "templates": json.dumps(template_info), **serializer.validated_data}
         market_record_id = kwargs.get("market_record_id")
         if market_record_id:
             data["id"] = market_record_id
@@ -95,7 +84,6 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"])
     def get_scene_label(self, request, *args, **kwargs):
         response_data = self.market_client.get_scene_label()
-
         if not response_data["result"]:
             logging.exception("Failed to obtain scene tag list")
             return Response(
@@ -107,9 +95,22 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
             )
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
+    @action(detail=False, methods=["get"])
+    def get_risk_level(self, request, *args, **kwargs):
+        response_data = self.market_client.get_risk_level(request)
+        if not response_data["result"]:
+            logging.exception("Failed to obtain the market risk level list")
+            return Response(
+                {
+                    "result": False,
+                    "message": "Failed to obtain the market risk level list",
+                    "code": err_code.OPERATION_FAIL.code,
+                }
+            )
+        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+
     def list(self, request, *args, **kwargs):
         response_data = self.market_client.get_template_scene_list()
-
         if not response_data["result"]:
             logging.exception("Failed to obtain the market template list")
             return Response(
@@ -137,10 +138,10 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
                 }
             )
         TemplateSharedRecord.objects.update_shared_record(
-            project_id=int(serializer.validated_data["project_id"]),
+            project_id=int(serializer.validated_data["project_code"]),
             new_template_ids=serializer.validated_data["template_ids"],
             market_record_id=response_data["data"]["id"],
-            creator=serializer.validated_data["creator"],
+            creator=request.user.username,
         )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
 
@@ -149,6 +150,7 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         market_record_id = kwargs["pk"]
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+
         existing_records = self.market_client.get_template_scene_detail(market_record_id)
         existing_market_template_ids = set(
             [template["id"] for template in json.loads(existing_records["data"]["templates"])]
@@ -164,10 +166,10 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
                 }
             )
         TemplateSharedRecord.objects.update_shared_record(
-            project_id=int(serializer.validated_data["project_id"]),
+            project_id=int(serializer.validated_data["project_code"]),
             new_template_ids=serializer.validated_data["template_ids"],
             market_record_id=market_record_id,
-            creator=serializer.validated_data["creator"],
+            creator=request.user.username,
             existing_market_template_ids=existing_market_template_ids,
         )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
