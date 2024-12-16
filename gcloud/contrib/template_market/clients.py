@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import json
 import requests
 
 from gcloud.conf import settings
@@ -19,41 +19,47 @@ from gcloud.conf import settings
 class MarketAPIClient:
     def __init__(self):
         self.base_url = settings.TEMPLATE_MARKET_API_URL
+        self.headers = {
+            "X-Bkapi-Authorization": json.dumps(
+                {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY}
+            ),
+            "Content-Type": "application/json",
+        }
 
     def _get_url(self, endpoint):
         return f"{self.base_url}{endpoint}"
 
     def get_service_category(self):
         url = self._get_url("/category/get_service_category/")
-        response = requests.get(url)
+        response = requests.get(url, headers=self.headers)
         return response.json()
 
     def get_scene_label(self):
         url = self._get_url("/sre_property/scene_label/")
-        response = requests.get(url)
+        response = requests.get(url, headers=self.headers)
         return response.json()
 
-    def get_risk_level(self, request):
+    def get_risk_level(self):
         url = self._get_url("/sre_scene/risk_level/")
-        response = requests.get(url)
+        response = requests.get(url, headers=self.headers)
         return response.json()
 
     def get_template_scene_detail(self, market_record_id):
         url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
-        response = requests.get(url)
+        response = requests.get(url, headers=self.headers)
         return response.json()
 
     def get_template_scene_list(self):
         url = self._get_url("/sre_scene/flow_template_scene/?is_all=true")
-        response = requests.get(url)
+        response = requests.get(url, headers=self.headers)
         return response.json()
 
     def create_template_scene(self, data):
         url = self._get_url("/sre_scene/flow_template_scene/")
-        response = requests.post(url, json=data)
+        response = requests.post(url, json=data, headers=self.headers)
         return response.json()
 
     def patch_template_scene(self, data, market_record_id):
         url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
-        response = requests.patch(url, json=data)
+        response = requests.patch(url, json=data, headers=self.headers)
         return response.json()
