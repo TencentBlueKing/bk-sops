@@ -29,37 +29,36 @@ class MarketAPIClient:
     def _get_url(self, endpoint):
         return f"{self.base_url}{endpoint}"
 
-    def get_service_category(self):
-        url = self._get_url("/category/get_service_category/")
-        response = requests.get(url, headers=self.headers)
+    def _make_request(self, method, endpoint, **kwargs):
+        url = self._get_url(endpoint)
+
+        headers = {**self.headers}
+        bk_username = kwargs.get("username")
+        if bk_username:
+            headers["bk_username"] = bk_username
+
+        response = requests.request(method, url, headers=headers, json=kwargs.get("data"))
         return response.json()
 
-    def get_scene_label(self):
-        url = self._get_url("/sre_property/scene_label/")
-        response = requests.get(url, headers=self.headers)
-        return response.json()
+    def get_service_category(self, username):
+        return self._make_request("GET", "/category/get_service_category/", username=username)
 
-    def get_risk_level(self):
-        url = self._get_url("/sre_scene/risk_level/")
-        response = requests.get(url, headers=self.headers)
-        return response.json()
+    def get_scene_label(self, username):
+        return self._make_request("GET", "/sre_property/scene_label/", username=username)
 
-    def get_template_scene_detail(self, market_record_id):
-        url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
-        response = requests.get(url, headers=self.headers)
-        return response.json()
+    def get_risk_level(self, username):
+        return self._make_request("GET", "/sre_scene/risk_level/", username=username)
 
-    def get_template_scene_list(self):
-        url = self._get_url("/sre_scene/flow_template_scene/?is_all=true")
-        response = requests.get(url, headers=self.headers)
-        return response.json()
+    def get_template_scene_detail(self, market_record_id, username):
+        return self._make_request("GET", f"/sre_scene/flow_template_scene/{market_record_id}/", username=username)
 
-    def create_template_scene(self, data):
-        url = self._get_url("/sre_scene/flow_template_scene/")
-        response = requests.post(url, json=data, headers=self.headers)
-        return response.json()
+    def get_template_scene_list(self, username):
+        return self._make_request("GET", "/sre_scene/flow_template_scene/?is_all=true", username=username)
 
-    def patch_template_scene(self, data, market_record_id):
-        url = self._get_url(f"/sre_scene/flow_template_scene/{market_record_id}/")
-        response = requests.patch(url, json=data, headers=self.headers)
-        return response.json()
+    def create_template_scene(self, data, username):
+        return self._make_request("POST", "/sre_scene/flow_template_scene/", username=username, data=data)
+
+    def patch_template_scene(self, data, market_record_id, username):
+        return self._make_request(
+            "PATCH", f"/sre_scene/flow_template_scene/{market_record_id}/", username=username, data=data
+        )
