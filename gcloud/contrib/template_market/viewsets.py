@@ -56,7 +56,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
     serializer_class = TemplateSharedRecordSerializer
     permission_classes = [permissions.IsAuthenticated, SharedTemplateRecordPermission]
 
-    market_client = MarketAPIClient()
+    market_client = MarketAPIClient
 
     def _build_template_data(self, serializer, **kwargs):
         templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["template_ids"], is_deleted=False)
@@ -81,7 +81,8 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def get_service_category(self, request, *args, **kwargs):
-        response_data = self.market_client.get_service_category(username=request.user.username)
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_service_category()
         error_response = self._handle_response(response_data, "Failed to obtain scene category")
         if error_response:
             return error_response
@@ -89,7 +90,8 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def get_scene_label(self, request, *args, **kwargs):
-        response_data = self.market_client.get_scene_label(username=request.user.username)
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_scene_label()
         error_response = self._handle_response(response_data, "Failed to obtain scene tag list")
         if error_response:
             return error_response
@@ -97,14 +99,16 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def get_risk_level(self, request, *args, **kwargs):
-        response_data = self.market_client.get_risk_level(username=request.user.username)
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_risk_level()
         error_response = self._handle_response(response_data, "Failed to obtain the market risk level list")
         if error_response:
             return error_response
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     def list(self, request, *args, **kwargs):
-        response_data = self.market_client.get_template_scene_list(username=request.user.username)
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_template_scene_list()
         error_response = self._handle_response(response_data, "Failed to obtain the market template list")
         if error_response:
             return error_response
@@ -116,7 +120,8 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         data = self._build_template_data(serializer)
-        response_data = self.market_client.create_template_scene(data, username=request.user.username)
+        client = self.market_client(username=request.user.username)
+        response_data = client.create_template_scene(data)
         error_response = self._handle_response(response_data, "Failed to create market template record")
         if error_response:
             return error_response
@@ -135,15 +140,14 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        existing_records = self.market_client.get_template_scene_detail(
-            market_record_id, username=request.user.username
-        )
+        client = self.market_client(username=request.user.username)
+        existing_records = client.get_template_scene_detail(market_record_id)
         existing_market_template_ids = set(
             [template["id"] for template in json.loads(existing_records["data"]["templates"])]
         )
 
         data = self._build_template_data(serializer, market_record_id=market_record_id)
-        response_data = self.market_client.patch_template_scene(data, market_record_id, username=request.user.username)
+        response_data = client.patch_template_scene(data, market_record_id)
         error_response = self._handle_response(response_data, "Failed to update market template record")
         if error_response:
             return error_response
