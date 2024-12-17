@@ -96,6 +96,9 @@ def mysetting(request):
         "RUN_VER_NAME": EnvironmentVariables.objects.get_var(run_ver_key, settings.RUN_VER_NAME),
         "REMOTE_ANALYSIS_URL": settings.REMOTE_ANALYSIS_URL,
         "REMOTE_API_URL": settings.REMOTE_API_URL,
+        "ENABLE_TEMPLATE_MARKET": settings.ENABLE_TEMPLATE_MARKET,
+        "TEMPLATE_MARKET_HOST": settings.TEMPLATE_MARKET_HOST,
+        "TEMPLATE_MARKET_DOC_URL": settings.TEMPLATE_MARKET_DOC_URL,
         "USERNAME": request.user.username,
         # 'NICK': request.session.get('nick', ''),          # 用户昵称
         "NICK": request.user.username,  # 用户昵称

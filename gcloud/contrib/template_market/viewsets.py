@@ -51,74 +51,67 @@ class TemplatePreviewAPIView(APIView):
         return Response({"result": True, "data": serializer.data, "code": err_code.SUCCESS.code})
 
 
-class SharedTemplateRecordsViewSet(viewsets.ViewSet):
+class TemplateSceneViewSet(viewsets.ViewSet):
     queryset = TemplateSharedRecord.objects.all()
     serializer_class = TemplateSharedRecordSerializer
     permission_classes = [permissions.IsAuthenticated, SharedTemplateRecordPermission]
 
-    market_client = MarketAPIClient()
+    market_client = MarketAPIClient
 
     def _build_template_data(self, serializer, **kwargs):
         templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["template_ids"], is_deleted=False)
         template_info = [{"id": template.id, "name": template.name} for template in templates]
-        data = {
-            "name": serializer.validated_data["name"],
-            "code": serializer.validated_data["code"],
-            "category": serializer.validated_data["category"],
-            "risk_level": serializer.validated_data["risk_level"],
-            "usage_id": serializer.validated_data["usage_id"],
-            "labels": serializer.validated_data["labels"],
-            "source_system": settings.APP_CODE,
-            "project_code": serializer.validated_data["project_id"],
-            "templates": json.dumps(template_info),
-            "usage_content": serializer.validated_data["usage_content"],
-        }
+        data = {"source_system": settings.APP_CODE, "templates": json.dumps(template_info), **serializer.validated_data}
         market_record_id = kwargs.get("market_record_id")
         if market_record_id:
             data["id"] = market_record_id
         return data
 
-    @action(detail=False, methods=["get"])
-    def get_service_category(self, request, *args, **kwargs):
-        response_data = self.market_client.get_service_category()
-        if not response_data["result"]:
-            logging.warning("Failed to obtain the market service category")
+    def _handle_response(self, response_data, error_message):
+        if not response_data.get("result"):
+            logging.exception(error_message)
             return Response(
                 {
                     "result": False,
-                    "message": "Failed to obtain the market service category",
+                    "message": error_message,
                     "code": err_code.OPERATION_FAIL.code,
                 }
             )
+        return None
+
+    @action(detail=False, methods=["get"])
+    def get_service_category(self, request, *args, **kwargs):
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_service_category()
+        error_response = self._handle_response(response_data, "Failed to obtain scene category")
+        if error_response:
+            return error_response
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @action(detail=False, methods=["get"])
     def get_scene_label(self, request, *args, **kwargs):
-        response_data = self.market_client.get_scene_label()
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_scene_label()
+        error_response = self._handle_response(response_data, "Failed to obtain scene tag list")
+        if error_response:
+            return error_response
+        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
-        if not response_data["result"]:
-            logging.exception("Failed to obtain scene tag list")
-            return Response(
-                {
-                    "result": False,
-                    "message": "Failed to obtain scene tag list",
-                    "code": err_code.OPERATION_FAIL.code,
-                }
-            )
+    @action(detail=False, methods=["get"])
+    def get_risk_level(self, request, *args, **kwargs):
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_risk_level()
+        error_response = self._handle_response(response_data, "Failed to obtain the market risk level list")
+        if error_response:
+            return error_response
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     def list(self, request, *args, **kwargs):
-        response_data = self.market_client.get_template_scene_list()
-
-        if not response_data["result"]:
-            logging.exception("Failed to obtain the market template list")
-            return Response(
-                {
-                    "result": False,
-                    "message": "Failed to obtain the market template list",
-                    "code": err_code.OPERATION_FAIL.code,
-                }
-            )
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_template_scene_list()
+        error_response = self._handle_response(response_data, "Failed to obtain the market template list")
+        if error_response:
+            return error_response
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
@@ -127,20 +120,17 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         data = self._build_template_data(serializer)
-        response_data = self.market_client.create_template_scene(data)
-        if not response_data.get("result"):
-            return Response(
-                {
-                    "result": False,
-                    "message": "Failed to create market template record",
-                    "code": err_code.OPERATION_FAIL.code,
-                }
-            )
+        client = self.market_client(username=request.user.username)
+        response_data = client.create_template_scene(data)
+        error_response = self._handle_response(response_data, "Failed to create market template record")
+        if error_response:
+            return error_response
+
         TemplateSharedRecord.objects.update_shared_record(
-            project_id=int(serializer.validated_data["project_id"]),
+            project_id=int(serializer.validated_data["project_code"]),
             new_template_ids=serializer.validated_data["template_ids"],
             market_record_id=response_data["data"]["id"],
-            creator=serializer.validated_data["creator"],
+            creator=request.user.username,
         )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
 
@@ -149,25 +139,24 @@ class SharedTemplateRecordsViewSet(viewsets.ViewSet):
         market_record_id = kwargs["pk"]
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        existing_records = self.market_client.get_template_scene_detail(market_record_id)
+
+        client = self.market_client(username=request.user.username)
+        existing_records = client.get_template_scene_detail(market_record_id)
         existing_market_template_ids = set(
             [template["id"] for template in json.loads(existing_records["data"]["templates"])]
         )
+
         data = self._build_template_data(serializer, market_record_id=market_record_id)
-        response_data = self.market_client.patch_template_scene(data, market_record_id)
-        if not response_data.get("result"):
-            return Response(
-                {
-                    "result": False,
-                    "message": "Failed to update market template record",
-                    "code": err_code.OPERATION_FAIL.code,
-                }
-            )
+        response_data = client.patch_template_scene(data, market_record_id)
+        error_response = self._handle_response(response_data, "Failed to update market template record")
+        if error_response:
+            return error_response
+
         TemplateSharedRecord.objects.update_shared_record(
-            project_id=int(serializer.validated_data["project_id"]),
+            project_id=int(serializer.validated_data["project_code"]),
             new_template_ids=serializer.validated_data["template_ids"],
             market_record_id=market_record_id,
-            creator=serializer.validated_data["creator"],
+            creator=request.user.username,
             existing_market_template_ids=existing_market_template_ids,
         )
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})

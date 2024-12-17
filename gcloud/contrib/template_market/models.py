@@ -84,6 +84,8 @@ class TemplateSharedRecord(models.Model):
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="项目 ID")
     template_id = models.IntegerField(_("模板 ID"), help_text="模板 ID", db_index=True)
     creator = models.CharField(_("创建者"), max_length=32, default="")
+    create_at = models.DateTimeField(verbose_name=_("创建时间"), auto_now_add=True)
+    update_at = models.DateTimeField(verbose_name=_("更新时间"), auto_now=True)
     extra_info = models.JSONField(_("额外信息"), blank=True, null=True)
 
     objects = TemplateSharedManager()

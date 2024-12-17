@@ -14,6 +14,11 @@ import json
 
 from rest_framework import serializers
 
+from gcloud.taskflow3.models import TaskTemplate
+from pipeline_web.constants import PWE
+
+TEMPLATE_OPERATE_MAX_NUMBER = 10
+
 
 class TemplatePreviewSerializer(serializers.Serializer):
     name = serializers.CharField(read_only=True, help_text="模板名称")
@@ -30,14 +35,30 @@ class TemplateProjectBaseSerializer(serializers.Serializer):
 
 
 class TemplateSharedRecordSerializer(serializers.Serializer):
-    project_id = serializers.CharField(required=True, max_length=32, help_text="项目id")
+    project_code = serializers.CharField(required=True, max_length=32, help_text="项目id")
     template_ids = serializers.ListField(required=True, help_text="关联的模板列表")
-    creator = serializers.CharField(required=True, max_length=32, help_text="创建者")
-    extra_info = serializers.JSONField(required=False, allow_null=True, help_text="额外信息")
     name = serializers.CharField(required=True, help_text="共享名称")
     code = serializers.CharField(required=True, help_text="共享标识")
     category = serializers.CharField(required=True, help_text="共享分类")
     risk_level = serializers.IntegerField(required=True, help_text="风险级别")
-    usage_id = serializers.IntegerField(required=True, help_text="使用说明id")
+    usage_id = serializers.IntegerField(required=False, help_text="使用说明id")
     labels = serializers.ListField(child=serializers.IntegerField(), required=True, help_text="共享标签列表")
     usage_content = serializers.JSONField(required=True, help_text="使用说明")
+
+    def validate_template_ids(self, value):
+        if not self.check_template_count_threshold(value):
+            raise serializers.ValidationError("The number of processes in the selected template exceeds the limit.")
+
+        return value
+
+    def check_template_count_threshold(self, template_id_list):
+        if len(template_id_list) > TEMPLATE_OPERATE_MAX_NUMBER:
+            return False
+
+        templates = TaskTemplate.objects.filter(id__in=template_id_list).select_related("pipeline_template")
+
+        acts = [act for tmpl in templates for act in tmpl.pipeline_template.data.get(PWE.activities, {}).values()]
+        # TODO: 目前只做了一层的数量统计
+        count = sum(act["type"] == PWE.SubProcess for act in acts)
+
+        return len(template_id_list) + count < TEMPLATE_OPERATE_MAX_NUMBER
