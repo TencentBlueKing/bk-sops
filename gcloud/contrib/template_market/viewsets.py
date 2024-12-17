@@ -32,6 +32,8 @@ from gcloud.taskflow3.models import TaskTemplate
 from gcloud.contrib.template_market.clients import MarketAPIClient
 from gcloud.contrib.template_market.permission import TemplatePreviewPermission, SharedTemplateRecordPermission
 
+logger = logging.getLogger("root")
+
 
 class TemplatePreviewAPIView(APIView):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
@@ -69,11 +71,12 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
     def _handle_response(self, response_data, error_message):
         if not response_data.get("result"):
-            logging.exception(error_message)
+            message = "market template {}, error message: {}".format(error_message, response_data["message"])
+            logger.error(message)
             return Response(
                 {
                     "result": False,
-                    "message": error_message,
+                    "message": message,
                     "code": err_code.OPERATION_FAIL.code,
                 }
             )
