@@ -25,10 +25,12 @@ from gcloud.apigw.decorators import (
 )
 
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import format_import_result_to_response_data
 from gcloud.utils.decorators import request_validate
+from gcloud.iam_auth.view_interceptors.apigw import CopyTemplateInterceptor
 from gcloud.apigw.validators.copy_template_across_project import CopyTemplateAcrossProjectValidator
 
 
@@ -40,6 +42,7 @@ from gcloud.apigw.validators.copy_template_across_project import CopyTemplateAcr
 @project_inject
 @request_validate(CopyTemplateAcrossProjectValidator)
 @mark_request_whether_is_trust
+@iam_intercept(CopyTemplateInterceptor())
 def copy_template_across_project(request, project_id):
     if not request.is_trust:
         return {
