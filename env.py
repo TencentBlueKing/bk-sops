@@ -155,7 +155,7 @@ BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
 
 # 流程商店
-ENABLE_TEMPLATE_MARKET = False if os.getenv("ENABLE_TEMPLATE_MARKET") is None else True
+ENABLE_TEMPLATE_MARKET = int(os.getenv("ENABLE_TEMPLATE_MARKET"), 0)
 # 流程商店 API 地址
 TEMPLATE_MARKET_API_URL = os.getenv("TEMPLATE_MARKET_API_URL", "")
 # 模板市场路由
