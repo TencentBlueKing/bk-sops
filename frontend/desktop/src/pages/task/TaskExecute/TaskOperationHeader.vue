@@ -164,6 +164,7 @@
         },
         computed: {
             ...mapState({
+                hideHeader: state => state.hideHeader,
                 view_mode: state => state.view_mode
             })
         },
