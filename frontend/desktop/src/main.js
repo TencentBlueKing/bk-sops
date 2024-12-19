@@ -29,6 +29,7 @@ import { Input, InputNumber, Select, Radio, RadioGroup, RadioButton, Checkbox,
 import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
+import '@toast-ui/editor/dist/toastui-editor.css'
 import { STRING_LENGTH } from '@/constants/index.js'
 import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
 import tools from './utils/tools'

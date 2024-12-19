@@ -29,7 +29,7 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
-                        <bk-dropdown-menu style="margin: 0 14px;">
+                        <bk-dropdown-menu>
                             <div class="import-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('导入') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
@@ -40,7 +40,6 @@
                             </ul>
                         </bk-dropdown-menu>
                         <bk-dropdown-menu
-                            style="margin-right: 14px;"
                             :trigger="selectedTpls.length ? 'mouseover' : 'click'"
                             :disabled="!selectedTpls.length">
                             <div class="export-tpl-btn" slot="dropdown-trigger">
@@ -52,6 +51,11 @@
                                 <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出为') }} DAT {{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
+                        <SharedTemplateBtn
+                            v-if="isEnableTemplateMarket"
+                            :project_id="project_id"
+                            :selected="selectedTpls">
+                        </SharedTemplateBtn>
                         <bk-button
                             class="batch-delete"
                             data-test-id="process_form_deleteProcess"
@@ -416,6 +420,7 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
+    import SharedTemplateBtn from './SharedTemplate/index.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -526,6 +531,7 @@
             ImportDatTplDialog,
             ImportYamlTplDialog,
             ExportTemplateDialog,
+            SharedTemplateBtn,
             ListPageTipsTitle,
             SearchSelect,
             TableSettingContent,
@@ -693,7 +699,8 @@
                 curSelectedRow: {},
                 searchList: tools.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                templateLabelLoading: false
+                templateLabelLoading: false,
+                isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET
             }
         },
         computed: {
@@ -1693,6 +1700,9 @@
     .operation-wrap {
         display: flex;
         align-items: center;
+        > * {
+            margin-right: 14px;
+        }
     }
     .my-create-btn {
         position: absolute;

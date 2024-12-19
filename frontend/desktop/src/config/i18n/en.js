@@ -1834,7 +1834,31 @@ const en = {
     '产品官网': 'Product Website',
     '联系bk助手': 'Contact BK Assistant',
     '蓝鲸桌面': 'BlueWhale Desktop',
-    '蓝鲸': 'BlueKing'
+    '蓝鲸': 'BlueKing',
+    '共享到商店': 'Shared to the store',
+    '共享到SRE商店': 'Shared to the SRE Store',
+    '帮助文档': 'Help Doc',
+    'SRE商店': 'SRE Store',
+    'templateSharedTips': 'Note: The shared process does not contain sensitive information and can be previewed at {0}',
+    'templateSharedSuccessTips': 'Shared successfully, please go to {0} to view',
+    '更新': 'Updated',
+    '共享类型': 'Sharing Type',
+    '场景名称': 'Scene Name',
+    '场景标识': 'Scene Identifier',
+    '场景分类': 'Scene Category',
+    '风险级别': 'Risk Level',
+    '使用说明': 'Instructions',
+    '高': 'High',
+    '低': 'Low',
+    '请输入场景名称': 'Please enter the scene name',
+    '请选择场景名称': 'Please select the scene name',
+    '请输入场景标识': 'Please enter the scene identifier',
+    '请选择场景分类': 'Please select the scene category',
+    '场景使用者通过标签可以快速找到同一类场景': 'Scene users can quickly find scenes of the same category through tags',
+    '申明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式': 'Declare the operational risk level of the scene to aid users in deciding how to use the scene',
+    '请输入标签，enter保存': 'Please enter a tag and press Enter to save',
+    '将清空输入信息': 'This will clear the input information',
+    '【n】标签已存在': 'The tag [{n}] already exists'
 }
 
 export default en

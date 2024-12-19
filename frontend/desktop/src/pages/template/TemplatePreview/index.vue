@@ -15,8 +15,7 @@
         },
         props: {
             project_id: [Number, String],
-            template_id: [Number, String],
-            common: [Number, String]
+            template_id: [Number, String]
         },
         data () {
             return {
@@ -33,17 +32,17 @@
             this.getTemplateData()
         },
         methods: {
-            ...mapActions('template/', [
-                'loadTemplateData'
+            ...mapActions('templateMarket/', [
+                'loadTemplatePreviewData'
             ]),
             async getTemplateData () {
                 try {
                     this.templateLoading = true
-                    const resp = await this.loadTemplateData({
-                        templateId: this.template_id,
-                        common: this.common
+                    const resp = await this.loadTemplatePreviewData({
+                        template_id: this.template_id,
+                        project_id: this.project_id
                     })
-                    const pipelineTree = JSON.parse(resp.pipeline_tree)
+                    const pipelineTree = JSON.parse(resp.data.pipeline_tree)
                     this.templateData = formatCanvasData('perview', pipelineTree)
                 } catch (e) {
                     console.log(e)
