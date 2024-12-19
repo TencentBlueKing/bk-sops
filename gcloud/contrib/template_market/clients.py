@@ -31,7 +31,9 @@ class MarketAPIClient:
 
     def _make_request(self, method, endpoint, **kwargs):
         url = self._get_url(endpoint)
-        response = requests.request(method, url, headers=self.headers, json=kwargs.get("data"))
+        response = requests.request(
+            method, url, headers=self.headers, json=kwargs.get("data"), params=kwargs.get("params")
+        )
         return response.json()
 
     def get_service_category(self):
@@ -39,6 +41,12 @@ class MarketAPIClient:
 
     def get_scene_label(self):
         return self._make_request("GET", "/sre_property/scene_label/")
+
+    def get_file_upload_addr(self, params):
+        return self._make_request("GET", "/sre_scene/get_file_upload_addr/", params=params)
+
+    def create_scene_label(self, data):
+        return self._make_request("POST", "/sre_property/scene_label/", data=data)
 
     def get_risk_level(self):
         return self._make_request("GET", "/sre_scene/risk_level/")
