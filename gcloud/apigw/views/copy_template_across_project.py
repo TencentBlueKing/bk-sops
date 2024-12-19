@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import logging
 import json
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
@@ -26,7 +25,6 @@ from gcloud.apigw.decorators import (
 
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import format_import_result_to_response_data
 from gcloud.utils.decorators import request_validate
@@ -54,15 +52,6 @@ def copy_template_across_project(request, project_id):
     params_data = json.loads(request.body)
     new_project_id = params_data["new_project_id"]
     template_id = params_data["template_id"]
-
-    record = TemplateSharedRecord.objects.filter(project_id=request.project.id, template_id=template_id).first()
-    if record is None:
-        logging.warning("The specified template could not be found")
-        return {
-            "result": False,
-            "message": "The specified template could not be found",
-            "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
-        }
 
     try:
         export_data = TaskTemplate.objects.export_templates([template_id], is_full=False, project_id=request.project.id)

@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+import logging
 
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
@@ -19,6 +20,7 @@ from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.contrib.template_market.models import TemplateSharedRecord
 
 iam = get_iam_client()
 
@@ -27,8 +29,15 @@ class CopyTemplateInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         data = json.loads(request.body)
         new_project_id = data.get("new_project_id")
+        template_id = data.get("template_id")
         subject = Subject("user", request.user.username)
 
-        action = Action(IAMMeta.PROJECT_EDIT_ACTION)
+        record = TemplateSharedRecord.objects.filter(project_id=request.project.id, template_id=template_id).first()
+        if record is None:
+            error_message = f"Unable to find template {template_id} in project {request.project.id}."
+            logging.error(error_message)
+            raise ValueError(error_message)
+
+        action = Action(IAMMeta.FLOW_CREATE_ACTION)
         resources = res_factory.resources_for_project(new_project_id)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
