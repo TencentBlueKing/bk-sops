@@ -34,6 +34,17 @@ class TemplateProjectBaseSerializer(serializers.Serializer):
     project_id = serializers.CharField(required=True, help_text="项目id")
 
 
+class SceneLabelSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True, help_text="标签名称")
+    code = serializers.CharField(required=True, help_text="场景标签英文标识")
+
+
+class FileUploadAddrSerializer(serializers.Serializer):
+    scene_type = serializers.CharField(required=True, help_text="场景类型")
+    scene_code = serializers.CharField(required=True, help_text="场景标识")
+    file_name = serializers.CharField(required=True, help_text="文件名称")
+
+
 class TemplateSharedRecordSerializer(serializers.Serializer):
     project_code = serializers.CharField(required=True, max_length=32, help_text="项目id")
     template_ids = serializers.ListField(required=True, help_text="关联的模板列表")

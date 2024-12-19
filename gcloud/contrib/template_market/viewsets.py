@@ -26,6 +26,8 @@ from gcloud.contrib.template_market.serializers import (
     TemplateSharedRecordSerializer,
     TemplatePreviewSerializer,
     TemplateProjectBaseSerializer,
+    SceneLabelSerializer,
+    FileUploadAddrSerializer,
 )
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.taskflow3.models import TaskTemplate
@@ -92,6 +94,22 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @action(detail=False, methods=["get"])
+    def get_file_upload_addr(self, request, *args, **kwargs):
+        serializer = FileUploadAddrSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        params = {
+            "scene_type": serializer.validated_data["scene_type"],
+            "scene_code": serializer.validated_data["scene_code"],
+            "file_name": serializer.validated_data["file_name"],
+        }
+        client = self.market_client(username=request.user.username)
+        response_data = client.get_file_upload_addr(params)
+        error_response = self._handle_response(response_data, "Failed to obtain file upload address")
+        if error_response:
+            return error_response
+        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+
+    @action(detail=False, methods=["get"])
     def get_scene_label(self, request, *args, **kwargs):
         client = self.market_client(username=request.user.username)
         response_data = client.get_scene_label()
@@ -100,11 +118,31 @@ class TemplateSceneViewSet(viewsets.ViewSet):
             return error_response
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
+    @action(detail=False, methods=["post"])
+    @swagger_auto_schema(request_body=SceneLabelSerializer)
+    def create_scene_label(self, request, *args, **kwargs):
+        serializer = SceneLabelSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        data = {
+            "name": serializer.validated_data["name"],
+            "code": serializer.validated_data["code"],
+        }
+
+        client = self.market_client(username=request.user.username)
+        response_data = client.create_scene_label(data)
+
+        create_response = self._handle_response(response_data, "Failed to create label")
+        if create_response:
+            return create_response
+
+        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+
     @action(detail=False, methods=["get"])
     def get_risk_level(self, request, *args, **kwargs):
         client = self.market_client(username=request.user.username)
         response_data = client.get_risk_level()
-        error_response = self._handle_response(response_data, "Failed to obtain the market risk level list")
+        error_response = self._handle_response(response_data, "Failed to obtain the risk level list")
         if error_response:
             return error_response
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
@@ -112,7 +150,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         client = self.market_client(username=request.user.username)
         response_data = client.get_template_scene_list()
-        error_response = self._handle_response(response_data, "Failed to obtain the market template list")
+        error_response = self._handle_response(response_data, "Failed to obtain the list")
         if error_response:
             return error_response
         return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
@@ -125,9 +163,9 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         data = self._build_template_data(serializer)
         client = self.market_client(username=request.user.username)
         response_data = client.create_template_scene(data)
-        error_response = self._handle_response(response_data, "Failed to create market template record")
-        if error_response:
-            return error_response
+        create_response = self._handle_response(response_data, "Failed to create market template record")
+        if create_response:
+            return create_response
 
         TemplateSharedRecord.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_code"]),
@@ -145,15 +183,18 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
         client = self.market_client(username=request.user.username)
         existing_records = client.get_template_scene_detail(market_record_id)
+        detail_response = self._handle_response(existing_records, "Failed to get details")
+        if detail_response:
+            return detail_response
         existing_market_template_ids = set(
             [template["id"] for template in json.loads(existing_records["data"]["templates"])]
         )
 
         data = self._build_template_data(serializer, market_record_id=market_record_id)
         response_data = client.patch_template_scene(data, market_record_id)
-        error_response = self._handle_response(response_data, "Failed to update market template record")
-        if error_response:
-            return error_response
+        update_response = self._handle_response(response_data, "Failed to update market template record")
+        if update_response:
+            return update_response
 
         TemplateSharedRecord.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_code"]),
