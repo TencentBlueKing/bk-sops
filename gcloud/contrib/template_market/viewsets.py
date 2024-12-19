@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import json
 import logging
 
 from rest_framework import viewsets
@@ -65,7 +64,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
     def _build_template_data(self, serializer, **kwargs):
         templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["template_ids"], is_deleted=False)
         template_info = [{"id": template.id, "name": template.name} for template in templates]
-        data = {"source_system": settings.APP_CODE, "templates": json.dumps(template_info), **serializer.validated_data}
+        data = {"source_system": settings.APP_CODE, "templates": template_info, **serializer.validated_data}
         market_record_id = kwargs.get("market_record_id")
         if market_record_id:
             data["id"] = market_record_id
@@ -186,9 +185,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         detail_response = self._handle_response(existing_records, "Failed to get details")
         if detail_response:
             return detail_response
-        existing_market_template_ids = set(
-            [template["id"] for template in json.loads(existing_records["data"]["templates"])]
-        )
+        existing_market_template_ids = set([template["id"] for template in existing_records["data"]["templates"]])
 
         data = self._build_template_data(serializer, market_record_id=market_record_id)
         response_data = client.patch_template_scene(data, market_record_id)
