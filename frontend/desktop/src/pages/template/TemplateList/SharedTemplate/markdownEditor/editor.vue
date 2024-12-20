@@ -81,7 +81,7 @@
                     await axios({
                         url: resp.upload_url,
                         method: 'put',
-                        body: blob, // 直接将 File 对象作为请求体
+                        data: blob, // 直接将 File 对象作为请求体
                         withCredentials: false,
                         headers: {
                             'content-Type': blob.type // 使用文件本身的类型
