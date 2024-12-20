@@ -9,6 +9,10 @@
     import axios from 'axios'
 
     export default {
+        model: {
+            prop: 'value',
+            event: 'change'
+        },
         props: {
             code: {
                 type: String,
@@ -57,7 +61,7 @@
                 })
                 this.editor.addHook('addImageBlobHook', this.handleFileUpload)
                 this.editor.on('change', () => {
-                    this.$emit('update:value', this.editor.getMarkdown())
+                    this.$emit('change', this.editor.getMarkdown())
                 })
                 this.editor.removeToolbarItem('codeblock')
             }, 500)

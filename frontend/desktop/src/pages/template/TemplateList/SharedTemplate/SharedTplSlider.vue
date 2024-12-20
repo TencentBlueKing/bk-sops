@@ -45,7 +45,7 @@
                     </bk-input>
                     <bk-select
                         v-else
-                        v-model="formData.name"
+                        v-model="formData.id"
                         :placeholder="$t('请选择场景名称')"
                         :loading="recordLoading"
                         searchable
@@ -98,7 +98,12 @@
                         :tag-list.sync="tagList">
                     </SharedTagSelect>
                 </bk-form-item>
-                <bk-form-item :label="$t('风险级别')" :desc="$t('申明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式')">
+                <bk-form-item
+                    :label="$t('风险级别')"
+                    property="risk_level"
+                    :required="true"
+                    :rules="rules.required"
+                    :desc="$t('申明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式')">
                     <bk-radio-group v-model="formData.risk_level">
                         <bk-radio
                             v-for="item in riskLevelList"
@@ -146,6 +151,7 @@
         },
         data () {
             const formData = {
+                id: undefined,
                 type: 'create',
                 name: '',
                 code: '',
@@ -265,9 +271,10 @@
             },
             onSceneNameSelect (val) {
                 const selectInfo = this.recordList.find(item => item.id === val) || {}
+                const { risk_level: riskLevel, usage_content: content } = selectInfo
                 Object.assign(this.formData, selectInfo, {
-                    name: val,
-                    usage_content: { content: selectInfo.usage_content }
+                    risk_level: String(riskLevel),
+                    usage_content: { content }
                 })
             },
             onCategorySelect (node) {
@@ -304,12 +311,21 @@
                     try {
                         if (!result) return
                         this.saveLoading = true
-                        await this.sharedTemplateRecord({
+                        const params = {
                             ...this.formData,
                             project_code: this.project_id,
-                            template_ids: this.selected.map(item => item.id),
                             creator: this.username
-                        })
+                        }
+
+                        const selectedTplIds = this.selected.map(item => item.id)
+                        // 更新
+                        if (params.id) {
+                            const existTplIds = params.templates.map(item => item.id)
+                            selectedTplIds.push(...existTplIds)
+                        }
+                        params.template_ids = [...new Set(selectedTplIds)]
+
+                        await this.sharedTemplateRecord(params)
                         this.showSuccessMessage()
                         this.$emit('close')
                     } catch (error) {
