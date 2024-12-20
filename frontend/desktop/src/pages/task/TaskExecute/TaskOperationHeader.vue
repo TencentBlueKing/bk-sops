@@ -199,6 +199,11 @@
                 this.$emit('onTaskParamsClick', type, name)
             },
             onBack () {
+                // 如果被嵌入了，则像父页面发送事件
+                if (this.hideHeader) {
+                    window.parent.postMessage({ eventName: 'goBackEvent' }, '*')
+                    return
+                }
                 if (this.view_mode === 'appmaker') {
                     return this.$router.push({
                         name: 'appmakerTaskHome',
@@ -220,11 +225,6 @@
                 const isFromCreate = this.$route.query.from === 'create'
                 if (!isFromCreate && this.$route.name === 'taskExecute' && window.history.length > 2) {
                     return this.$router.back()
-                }
-                // 如果被嵌入了，则像父页面发送事件
-                if (this.hideHeader) {
-                    window.parent.postMessage({ eventName: 'goBackEvent' }, '*')
-                    return
                 }
                 this.$router.push({
                     name: 'taskList',
