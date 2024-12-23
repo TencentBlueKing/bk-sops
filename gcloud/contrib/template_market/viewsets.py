@@ -174,7 +174,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         if create_response:
             return create_response
 
-        self.queryset.model.objects.update_shared_record(
+        TemplateSharedRecord.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_code"]),
             new_template_ids=request.data["templates"],
             market_record_id=response_data["data"]["id"],
@@ -201,7 +201,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         if update_response:
             return update_response
 
-        self.queryset.model.objects.update_shared_record(
+        TemplateSharedRecord.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_code"]),
             new_template_ids=request.data["templates"],
             market_record_id=market_record_id,
