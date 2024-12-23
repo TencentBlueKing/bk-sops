@@ -47,7 +47,7 @@ class SharedTemplateRecordPermission(permissions.BasePermission):
             serializer = view.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            template_id_list = serializer.validated_data["template_ids"]
+            template_id_list = serializer.validated_data["templates"]
             try:
                 iam_multi_resource_auth_or_raise(
                     username, IAMMeta.FLOW_EDIT_ACTION, template_id_list, "resources_list_for_flows"

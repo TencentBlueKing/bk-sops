@@ -62,9 +62,14 @@ class TemplateSceneViewSet(viewsets.ViewSet):
     market_client = MarketAPIClient
 
     def _build_template_data(self, serializer, **kwargs):
-        templates = TaskTemplate.objects.filter(id__in=serializer.validated_data["template_ids"], is_deleted=False)
+        templates = TaskTemplate.objects.filter(
+            id__in=serializer.validated_data["templates"],
+            project_id=serializer.validated_data["project_code"],
+            is_deleted=False,
+        )
         template_info = [{"id": template.id, "name": template.name} for template in templates]
-        data = {"source_system": settings.APP_CODE, "templates": template_info, **serializer.validated_data}
+        serializer.validated_data["templates"] = template_info
+        data = {"source_system": settings.APP_CODE, **serializer.validated_data}
         market_record_id = kwargs.get("market_record_id")
         if market_record_id:
             data["id"] = market_record_id
@@ -119,7 +124,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     @swagger_auto_schema(request_body=SceneLabelSerializer)
-    def create_scene_label(self, request, *args, **kwargs):
+    def add_scene_label(self, request, *args, **kwargs):
         serializer = SceneLabelSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -146,7 +151,8 @@ class TemplateSceneViewSet(viewsets.ViewSet):
             return error_response
         return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
 
-    def list(self, request, *args, **kwargs):
+    @action(detail=False, methods=["get"])
+    def get_scene_template_list(self, request, *args, **kwargs):
         client = self.market_client(username=request.user.username)
         response_data = client.get_template_scene_list()
         error_response = self._handle_response(response_data, "Failed to obtain the list")
@@ -162,13 +168,13 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         data = self._build_template_data(serializer)
         client = self.market_client(username=request.user.username)
         response_data = client.create_template_scene(data)
-        create_response = self._handle_response(response_data, "Failed to create market template record")
+        create_response = self._handle_response(response_data, "Failed to create record")
         if create_response:
             return create_response
 
-        TemplateSharedRecord.objects.update_shared_record(
+        self.queryset.model.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_code"]),
-            new_template_ids=serializer.validated_data["template_ids"],
+            new_template_ids=request.data["templates"],
             market_record_id=response_data["data"]["id"],
             creator=request.user.username,
         )
@@ -189,13 +195,13 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
         data = self._build_template_data(serializer, market_record_id=market_record_id)
         response_data = client.patch_template_scene(data, market_record_id)
-        update_response = self._handle_response(response_data, "Failed to update market template record")
+        update_response = self._handle_response(response_data, "Failed to update record")
         if update_response:
             return update_response
 
-        TemplateSharedRecord.objects.update_shared_record(
+        self.queryset.model.objects.update_shared_record(
             project_id=int(serializer.validated_data["project_code"]),
-            new_template_ids=serializer.validated_data["template_ids"],
+            new_template_ids=request.data["templates"],
             market_record_id=market_record_id,
             creator=request.user.username,
             existing_market_template_ids=existing_market_template_ids,
