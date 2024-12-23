@@ -77,15 +77,17 @@ class TemplateSceneViewSet(viewsets.ViewSet):
 
     def _handle_response(self, response_data, error_message):
         if not response_data.get("result"):
-            message = "market template {}, error message: {}".format(error_message, response_data["message"])
-            logger.error(message)
-            return Response(
-                {
-                    "result": False,
-                    "message": message,
-                    "code": err_code.OPERATION_FAIL.code,
-                }
-            )
+            response_structure = {
+                "result": False,
+                "message": "market template {}, error message: {}".format(error_message, response_data.get("message")),
+                "code": err_code.OPERATION_FAIL.code,
+            }
+            logger.error(response_structure["message"])
+
+            if response_data.get("code") == 9007:
+                response_structure["data"] = response_data.get("data")
+
+            return Response(response_structure)
         return None
 
     @action(detail=False, methods=["get"])
