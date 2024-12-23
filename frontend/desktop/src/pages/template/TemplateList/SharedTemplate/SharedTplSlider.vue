@@ -57,13 +57,6 @@
                         </bk-option>
                     </bk-select>
                 </bk-form-item>
-                <bk-form-item :label="$t('场景标识')" property="code" :required="true" :rules="rules.required">
-                    <bk-input
-                        v-model="formData.code"
-                        :placeholder="$t('请输入场景标识')"
-                        :disabled="formData.type === 'update'">
-                    </bk-input>
-                </bk-form-item>
                 <bk-form-item :label="$t('场景分类')" property="category" :required="true" :rules="rules.required">
                     <bk-select
                         :disabled="formData.type === 'update'"
@@ -114,10 +107,7 @@
                     </bk-radio-group>
                 </bk-form-item>
                 <bk-form-item :label="$t('使用说明')">
-                    <MarkdownEditor
-                        :code="formData.code"
-                        v-model="formData.usage_content.content">
-                    </MarkdownEditor>
+                    <MarkdownEditor v-model="formData.usage_content.content"></MarkdownEditor>
                 </bk-form-item>
             </bk-form>
         </template>
@@ -154,7 +144,6 @@
                 id: undefined,
                 type: 'create',
                 name: '',
-                code: '',
                 category: '',
                 labels: [],
                 risk_level: '',
