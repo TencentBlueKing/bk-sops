@@ -1858,7 +1858,9 @@ const en = {
     '申明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式': 'Declare the operational risk level of the scene to aid users in deciding how to use the scene',
     '请输入标签，enter保存': 'Please enter a tag and press Enter to save',
     '将清空输入信息': 'This will clear the input information',
-    '【n】标签已存在': 'The tag [{n}] already exists'
+    '【n】标签已存在': 'The tag [{n}] already exists',
+    '场景名称重复：': 'Duplicate scene name:',
+    '场景名称长度最小3个字符': 'The scene name must be at least 3 characters long'
 }
 
 export default en

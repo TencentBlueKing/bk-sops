@@ -17,10 +17,10 @@ const templateMarket = {
             return axios.get('/template_market/api/templates_scene/get_file_upload_addr/', { params }).then(response => response.data.data)
         },
         createLabel ({ commit }, params) {
-            return axios.post('/template_market/api/templates_scene/create_scene_label/', params).then(response => response.data)
+            return axios.post('/template_market/api/templates_scene/add_scene_label/', params).then(response => response.data)
         },
         loadSharedTemplateRecord ({ commit }) {
-            return axios.get('/template_market/api/templates_scene/').then(response => response.data)
+            return axios.get('/template_market/api/templates_scene/get_scene_template_list/').then(response => response.data)
         },
         sharedTemplateRecord ({ commit }, params) {
             const { id } = params
