@@ -49,7 +49,16 @@
                         ref="basicConfigForm"
                         :rules="rules"
                         :model="formData">
-                        <bk-form-item :label="$t('项目流程')" :required="true" property="flow" data-test-id="periodicEdit_form_selectTemplate">
+                        <bk-form-item :label="$t('流程')" :required="true" property="flow" class="flow-form-item" data-test-id="periodicEdit_form_selectTemplate">
+                            <bk-select
+                                v-model="formData.template_source"
+                                :disabled="isEdit"
+                                :clearable="false"
+                                class="flow-type-select"
+                                @selected="onFlowTypeChange">
+                                <bk-option id="project" :name="$t('项目流程')"></bk-option>
+                                <bk-option id="common" :name="$t('公共流程')"></bk-option>
+                            </bk-select>
                             <div v-if="isEdit" class="select-box">
                                 <div class="select-wrapper">
                                     <p>
@@ -87,13 +96,13 @@
                                 <bk-option
                                     v-for="option in templateList"
                                     :key="option.id"
-                                    :disabled="!hasPermission(['flow_view'], option.auth_actions)"
+                                    :disabled="!hasPermission([flowPermission.view], option.auth_actions)"
                                     :id="option.id"
                                     :name="option.name">
                                     <p
                                         :title="option.name"
-                                        v-cursor="{ active: !hasPermission(['flow_view'], option.auth_actions) }"
-                                        @click="onTempSelect(['flow_view'], option)">
+                                        v-cursor="{ active: !hasPermission([flowPermission.view], option.auth_actions) }"
+                                        @click="onTempSelect([flowPermission.view], option)">
                                         {{ option.name }}
                                     </p>
                                 </bk-option>
@@ -265,6 +274,7 @@
                 name = '',
                 is_latest = '',
                 task_template_name = '',
+                template_source = 'project',
                 template_id = '',
                 template_scheme_ids = []
             } = this.curRow
@@ -273,6 +283,7 @@
                 formData: {
                     name,
                     is_latest: this.isEdit ? is_latest : true,
+                    template_source,
                     task_template_name,
                     template_id,
                     schemeId: this.isEdit && schemeId.length ? schemeId : []
@@ -366,7 +377,13 @@
                 return Object.keys(this.periodicConstants).length === 0
             },
             isCommon () {
-                return this.curRow.template_source === 'common'
+                return this.formData.template_source === 'common'
+            },
+            flowPermission () {
+                return {
+                    view: this.isCommon ? 'common_flow_view' : 'flow_view',
+                    create: this.isCommon ? 'common_flow_create_periodic_task' : 'flow_create_periodic_task'
+                }
             },
             sideSliderTitle () {
                 return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('新建周期任务')
@@ -396,7 +413,10 @@
             },
             hasNoCreatePerm () {
                 const { id, auth_actions } = this.templateData
-                return this.isEdit || !id ? false : !this.hasPermission(['flow_create_periodic_task'], auth_actions)
+                if (this.isEdit || !id) {
+                    return false
+                }
+                return !auth_actions.includes(this.flowPermission.create)
             },
             schemeSelectPlaceholder () {
                 return this.formData.template_id && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
@@ -448,7 +468,8 @@
                         project__id: this.project_id,
                         limit: 15,
                         offset,
-                        pipeline_template__name__icontains: this.flowName || undefined
+                        pipeline_template__name__icontains: this.flowName || undefined,
+                        common: this.isCommon
                     }
                     const templateListData = await this.loadTemplateList(params)
                     if (add) {
@@ -499,7 +520,14 @@
             onClearTemplate () {
                 this.formData.schemeId = []
                 this.schemeList = []
-                this.constants = {}
+                this.periodicConstants = {}
+            },
+            onFlowTypeChange () {
+                this.templateLoading = true
+                this.formData.template_id = ''
+                this.formData.name = ''
+                this.onClearTemplate()
+                this.handleTplSearch()
             },
             async getTemplateDate (id) {
                 // 获取模板详情
@@ -560,10 +588,9 @@
                 this.schemeLoading = true
                 try {
                     const defaultScheme = await this.loadDefaultSchemeList()
-                    const common = this.curRow.template_source === 'common'
                     const data = {
-                        isCommon: common || undefined,
-                        project_id: common ? undefined : this.project_id,
+                        isCommon: this.isCommon || undefined,
+                        project_id: this.isCommon ? undefined : this.project_id,
                         template_id: this.formData.template_id
                     }
                     const resp = await this.loadTaskScheme(data)
@@ -594,11 +621,10 @@
             // 获取默认方案列表
             async loadDefaultSchemeList () {
                 try {
-                    const common = this.curRow.template_source === 'common'
                     const resp = await this.getDefaultTaskScheme({
-                        project_id: this.project_id,
+                        project_id: this.isCommon ? undefined : this.project_id,
                         template_id: this.formData.template_id,
-                        template_type: common ? 'common' : undefined
+                        template_type: this.isCommon ? 'common' : undefined
                     })
                     if (resp.data.length) {
                         const { scheme_ids: schemeIds } = resp.data[0]
@@ -762,13 +788,13 @@
                 if (this.hasNoCreatePerm) {
                     const { id, name, auth_actions } = this.templateData
                     const resourceData = {
-                        flow: [{ id, name }],
+                        [this.isCommon ? 'common_flow' : 'flow']: [{ id, name }],
                         project: [{
                             id: this.project_id,
                             name: this.projectName
                         }]
                     }
-                    this.applyForPermission(['flow_create_periodic_task'], auth_actions, resourceData)
+                    this.applyForPermission([this.flowPermission.create], auth_actions, resourceData)
                     return
                 }
                 const isCronError = this.$refs.cronRuleSelect.isError
@@ -865,7 +891,8 @@
                     cron: cron,
                     templateId: this.formData.template_id,
                     schemeIds,
-                    execData: JSON.stringify(pipelineData)
+                    execData: JSON.stringify(pipelineData),
+                    templateSource: this.isCommon ? 'common' : undefined
                 }
                 try {
                     const response = await this.createPeriodic(data)
@@ -957,6 +984,17 @@
         }
         .bk-form-content {
             width: 598px;
+        }
+        .flow-form-item .bk-form-content {
+            display: flex;
+            .bk-select,
+            .select-box {
+                flex: 1;
+            }
+            .flow-type-select {
+                flex: 0 0 150px;
+                margin-right: 15px;
+            }
         }
         .scheme-form-item {
             .tooltips-icon {
