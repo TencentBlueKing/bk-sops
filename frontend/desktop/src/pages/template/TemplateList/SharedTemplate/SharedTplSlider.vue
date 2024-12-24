@@ -336,7 +336,7 @@
                         params.templates = [...new Set(selectedTplIds)]
 
                         const resp = await this.sharedTemplateRecord(params)
-                        if (!resp.results) {
+                        if (!resp.result) {
                             this.repeatSceneInfo = resp.data
                             return
                         }
