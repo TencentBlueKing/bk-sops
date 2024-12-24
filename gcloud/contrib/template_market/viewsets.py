@@ -81,11 +81,12 @@ class TemplateSceneViewSet(viewsets.ViewSet):
                 "result": False,
                 "message": "market template {}, error message: {}".format(error_message, response_data.get("message")),
                 "code": err_code.OPERATION_FAIL.code,
+                "data": response_data.get("data"),
             }
             logger.error(response_structure["message"])
 
             if response_data.get("code") == 9007:
-                response_structure["data"] = response_data.get("data")
+                response_structure["code"] = 200
 
             return Response(response_structure)
         return None
