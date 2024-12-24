@@ -14,10 +14,6 @@
             event: 'change'
         },
         props: {
-            code: {
-                type: String,
-                default: ''
-            },
             value: {
                 type: String,
                 default: ''
@@ -75,7 +71,6 @@
                     // 这里补充上传图片逻辑并将url通过cb传回
                     const resp = await this.getFileUploadAddr({
                         file_name: blob.name,
-                        scene_code: this.code || 'flow_template',
                         scene_type: this.sceneType
                     })
                     await axios({

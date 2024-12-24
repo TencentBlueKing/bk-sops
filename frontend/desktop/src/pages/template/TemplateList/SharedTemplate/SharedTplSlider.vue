@@ -37,11 +37,15 @@
                         </bk-button>
                     </div>
                 </bk-form-item>
-                <bk-form-item :label="$t('场景名称')" property="name" :required="true" :rules="rules.required">
+                <bk-form-item :label="$t('场景名称')" property="name" :required="true" :rules="rules.name">
                     <bk-input
                         v-if="formData.type === 'create'"
                         :placeholder="$t('请输入场景名称')"
-                        v-model="formData.name">
+                        minlength="2"
+                        maxlength="50"
+                        show-word-limit
+                        v-model="formData.name"
+                        @focus="repeatSceneInfo = {}">
                     </bk-input>
                     <bk-select
                         v-else
@@ -56,13 +60,13 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                </bk-form-item>
-                <bk-form-item :label="$t('场景标识')" property="code" :required="true" :rules="rules.required">
-                    <bk-input
-                        v-model="formData.code"
-                        :placeholder="$t('请输入场景标识')"
-                        :disabled="formData.type === 'update'">
-                    </bk-input>
+                    <p v-if="repeatSceneInfo.scene_id" class="scene-repeat-tips">
+                        <span>{{ $t('场景名称重复：') }}</span>
+                        <a target="_blank" :href="repeatSceneInfo.url">
+                            {{ repeatSceneInfo.scene_name }}
+                            <i class="common-icon-jump-link"></i>
+                        </a>
+                    </p>
                 </bk-form-item>
                 <bk-form-item :label="$t('场景分类')" property="category" :required="true" :rules="rules.required">
                     <bk-select
@@ -114,10 +118,7 @@
                     </bk-radio-group>
                 </bk-form-item>
                 <bk-form-item :label="$t('使用说明')">
-                    <MarkdownEditor
-                        :code="formData.code"
-                        v-model="formData.usage_content.content">
-                    </MarkdownEditor>
+                    <MarkdownEditor v-model="formData.usage_content.content"></MarkdownEditor>
                 </bk-form-item>
             </bk-form>
         </template>
@@ -154,7 +155,6 @@
                 id: undefined,
                 type: 'create',
                 name: '',
-                code: '',
                 category: '',
                 labels: [],
                 risk_level: '',
@@ -164,6 +164,15 @@
                 formData: tools.deepClone(formData),
                 defaultFormData: tools.deepClone(formData),
                 rules: {
+                    name: [{
+                        required: true,
+                        message: i18n.t('必填项'),
+                        trigger: 'blur'
+                    }, {
+                        min: 3,
+                        message: i18n.t('场景名称长度最小3个字符'),
+                        trigger: 'blur'
+                    }],
                     required: [{
                         required: true,
                         message: i18n.t('必填项'),
@@ -176,7 +185,8 @@
                 categoryList: [],
                 tagList: [],
                 riskLevelList: [],
-                saveLoading: false
+                saveLoading: false,
+                repeatSceneInfo: {}
             }
         },
         computed: {
@@ -323,9 +333,13 @@
                             const existTplIds = params.templates.map(item => item.id)
                             selectedTplIds.push(...existTplIds)
                         }
-                        params.template_ids = [...new Set(selectedTplIds)]
+                        params.templates = [...new Set(selectedTplIds)]
 
-                        await this.sharedTemplateRecord(params)
+                        const resp = await this.sharedTemplateRecord(params)
+                        if (!resp.result) {
+                            this.repeatSceneInfo = resp.data
+                            return
+                        }
                         this.showSuccessMessage()
                         this.$emit('close')
                     } catch (error) {
@@ -420,6 +434,22 @@
                 border-color: #dcdee5;
                 .v-note-op {
                     border-color: #dcdee5;
+                }
+            }
+            .scene-repeat-tips {
+                display: flex;
+                align-items: center;
+                line-height: 16px;
+                margin-top: 3px;
+                font-size: 12px;
+                span {
+                    color: #ff5656;
+                }
+                a {
+                    color: #3a84ff;
+                    .common-icon-jump-link {
+                        font-size: 14px;
+                    }
                 }
             }
             .category-select::before {
