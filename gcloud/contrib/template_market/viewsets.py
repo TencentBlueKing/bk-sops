@@ -19,6 +19,7 @@ from rest_framework.decorators import action
 from rest_framework import permissions
 
 from gcloud import err_code
+from gcloud.constants import PROJECT
 from gcloud.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from gcloud.contrib.template_market.serializers import (
@@ -28,6 +29,7 @@ from gcloud.contrib.template_market.serializers import (
     SceneLabelSerializer,
     FileUploadAddrSerializer,
 )
+from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.taskflow3.models import TaskTemplate
 from gcloud.contrib.template_market.clients import MarketAPIClient
@@ -47,10 +49,14 @@ class TemplatePreviewAPIView(APIView):
 
         template_id = request_serializer.validated_data["template_id"]
         project_id = request_serializer.validated_data["project_id"]
+        template_source = request_serializer.validated_data["template_source"]
 
-        instance = self.queryset.get(id=template_id, project_id=project_id)
+        if template_source == PROJECT:
+            instance = self.queryset.get(id=template_id, project_id=project_id)
+        else:
+            instance = CommonTemplate.objects.filter(pk=template_id, is_deleted=False).first()
+
         serializer = self.serializer_class(instance)
-
         return Response({"result": True, "data": serializer.data, "code": err_code.SUCCESS.code})
 
 
@@ -98,7 +104,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         error_response = self._handle_response(response_data, "Failed to obtain scene category")
         if error_response:
             return error_response
-        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @action(detail=False, methods=["get"])
     def get_file_upload_addr(self, request, *args, **kwargs):
@@ -114,7 +120,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         error_response = self._handle_response(response_data, "Failed to obtain file upload address")
         if error_response:
             return error_response
-        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @action(detail=False, methods=["get"])
     def get_scene_label(self, request, *args, **kwargs):
@@ -123,7 +129,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         error_response = self._handle_response(response_data, "Failed to obtain scene tag list")
         if error_response:
             return error_response
-        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @action(detail=False, methods=["post"])
     @swagger_auto_schema(request_body=SceneLabelSerializer)
@@ -143,7 +149,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         if create_response:
             return create_response
 
-        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @action(detail=False, methods=["get"])
     def get_risk_level(self, request, *args, **kwargs):
@@ -152,7 +158,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         error_response = self._handle_response(response_data, "Failed to obtain the risk level list")
         if error_response:
             return error_response
-        return Response({"result": True, "data": response_data["data"], "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @action(detail=False, methods=["get"])
     def get_scene_template_list(self, request, *args, **kwargs):
@@ -161,7 +167,7 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         error_response = self._handle_response(response_data, "Failed to obtain the list")
         if error_response:
             return error_response
-        return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
     def create(self, request, *args, **kwargs):
@@ -181,11 +187,11 @@ class TemplateSceneViewSet(viewsets.ViewSet):
             market_record_id=response_data["data"]["id"],
             creator=request.user.username,
         )
-        return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})
 
     @swagger_auto_schema(request_body=TemplateSharedRecordSerializer)
     def partial_update(self, request, *args, **kwargs):
-        market_record_id = kwargs["pk"]
+        market_record_id = int(kwargs["pk"])
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
@@ -209,4 +215,4 @@ class TemplateSceneViewSet(viewsets.ViewSet):
             creator=request.user.username,
             existing_market_template_ids=existing_market_template_ids,
         )
-        return Response({"result": True, "data": response_data, "code": err_code.SUCCESS.code})
+        return Response({"result": True, "message": "OK", "data": response_data["data"], "code": err_code.SUCCESS.code})

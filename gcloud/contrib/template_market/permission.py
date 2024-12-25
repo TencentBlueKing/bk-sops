@@ -16,7 +16,9 @@ from iam.exceptions import MultiAuthFailedException
 from rest_framework import permissions
 
 from gcloud.conf import settings
+from gcloud.constants import PROJECT
 from gcloud.contrib.template_market.models import TemplateSharedRecord
+from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.template_market.serializers import TemplateProjectBaseSerializer
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.utils import iam_multi_resource_auth_or_raise
@@ -29,7 +31,13 @@ class TemplatePreviewPermission(permissions.BasePermission):
 
         template_id = int(serializer.validated_data["template_id"])
         project_id = int(serializer.validated_data["project_id"])
-        record = TemplateSharedRecord.objects.filter(project_id=project_id, template_id=template_id).first()
+        template_source = serializer.validated_data["template_source"]
+
+        if template_source == PROJECT:
+            record = TemplateSharedRecord.objects.filter(project_id=project_id, template_id=template_id).first()
+        else:
+            record = CommonTemplate.objects.filter(id=template_id, is_deleted=False).first()
+
         if record is None:
             logging.warning("The specified template could not be found")
             return False
