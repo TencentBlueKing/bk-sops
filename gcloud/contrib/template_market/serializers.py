@@ -14,6 +14,7 @@ import json
 
 from rest_framework import serializers
 
+from gcloud.constants import PROJECT
 from gcloud.taskflow3.models import TaskTemplate
 from pipeline_web.constants import PWE
 
@@ -32,6 +33,7 @@ class TemplatePreviewSerializer(serializers.Serializer):
 class TemplateProjectBaseSerializer(serializers.Serializer):
     template_id = serializers.CharField(required=True, help_text="模板id")
     project_id = serializers.CharField(required=True, help_text="项目id")
+    template_source = serializers.CharField(help_text="流程模版类型", default=PROJECT)
 
 
 class SceneLabelSerializer(serializers.Serializer):
