@@ -112,7 +112,6 @@ class TemplateSceneViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         params = {
             "scene_type": serializer.validated_data["scene_type"],
-            "scene_code": serializer.validated_data["scene_code"],
             "file_name": serializer.validated_data["file_name"],
         }
         client = self.market_client(username=request.user.username)

@@ -43,7 +43,6 @@ class SceneLabelSerializer(serializers.Serializer):
 
 class FileUploadAddrSerializer(serializers.Serializer):
     scene_type = serializers.CharField(required=True, help_text="场景类型")
-    scene_code = serializers.CharField(required=True, help_text="场景标识")
     file_name = serializers.CharField(required=True, help_text="文件名称")
 
 
