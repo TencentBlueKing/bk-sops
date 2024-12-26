@@ -1855,7 +1855,7 @@ const en = {
     '请输入场景标识': 'Please enter the scene identifier',
     '请选择场景分类': 'Please select the scene category',
     '场景使用者通过标签可以快速找到同一类场景': 'Scene users can quickly find scenes of the same category through tags',
-    '申明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式': 'Declare the operational risk level of the scene to aid users in deciding how to use the scene',
+    '声明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式': 'Declare the operational risk level of the scene to aid users in deciding how to use the scene',
     '请输入标签，enter保存': 'Please enter a tag and press Enter to save',
     '将清空输入信息': 'This will clear the input information',
     '【n】标签已存在': 'The tag [{n}] already exists',
@@ -1864,7 +1864,8 @@ const en = {
     '请输入群 ID，多个 ID 以分号隔开': 'Please enter group IDs, separated by semicolons if there are multiple IDs',
     '当前环境配置周期任务间隔不低于 n 分钟，如有特殊需求请联系管理员配置': 'In the current environment, the interval for scheduled tasks is no less than {n} minutes. If you have special requirements, please contact the administrator for configuration',
     '仅支持上传.mp4,.mov文件': 'Only .mp4 and .mov files are supported for upload',
-    '选择视频文件': 'Select video file'
+    '选择视频文件': 'Select video file',
+    '上传视频': 'Upload Video'
 }
 
 export default en

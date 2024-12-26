@@ -76,14 +76,15 @@
         mounted () {
             setTimeout(() => {
                 const videoTool = {
-                    name: '上传视频',
+                    name: this.$t('上传视频'),
                     el: this.$refs.uploadVideoBtn,
                     tooltip: 'Insert Video'
                 }
                 const editorRef = this.$refs.editorRef
+                const height = Math.max(editorRef.clientHeight || 0, 450) + 'px'
                 this.editor = new Editor({
                     el: editorRef,
-                    height: Math.max(editorRef.clientHeight, 450).toString() + 'px',
+                    height,
                     initialEditType: 'markdown',
                     previewStyle: 'tab',
                     initialValue: this.value,

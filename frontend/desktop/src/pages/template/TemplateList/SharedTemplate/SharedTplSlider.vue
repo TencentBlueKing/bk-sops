@@ -107,7 +107,7 @@
                     property="risk_level"
                     :required="true"
                     :rules="rules.required"
-                    :desc="$t('申明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式')">
+                    :desc="$t('声明该场景的运维操作风险级别，以便场景使用者决策场景的使用方式')">
                     <bk-radio-group v-model="formData.risk_level">
                         <bk-radio
                             v-for="item in riskLevelList"
@@ -117,7 +117,7 @@
                         </bk-radio>
                     </bk-radio-group>
                 </bk-form-item>
-                <bk-form-item :label="$t('使用说明')">
+                <bk-form-item :label="$t('使用说明')" class="editor-container">
                     <MarkdownEditor v-model="formData.usage_content.content"></MarkdownEditor>
                 </bk-form-item>
             </bk-form>
@@ -436,6 +436,11 @@
                     font-size: 14px;
                 }
             }
+            .bk-form {
+                display: flex;
+                flex-direction: column;
+                height: calc(100% - 60px);
+            }
             .bk-button-group {
                 button {
                     width: 216px;
@@ -471,6 +476,12 @@
                 position: absolute;
                 content: attr(data-placeholder);
                 color: #c4c6cc;
+            }
+            .editor-container {
+                flex: 1;
+                .bk-form-content {
+                    height: calc(100% - 32px);
+                }
             }
         }
         .bk-sideslider-footer {
