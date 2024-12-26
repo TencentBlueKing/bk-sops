@@ -54,6 +54,7 @@ manager = TemplateManager(template_model_cls=CommonTemplate)
 class CommonTemplatePermission(IamPermission):
     actions = {
         "list": IamPermissionInfo(pass_all=True),
+        "list_with_periodic_task_collection": IamPermissionInfo(pass_all=True),
         "list_with_top_collection": IamPermissionInfo(pass_all=True),
         "retrieve": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
@@ -106,7 +107,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             return CommonTemplateListSerializer
         return CommonTemplateSerializer
 
-    def list(self, request, *args, **kwargs):
+    @swagger_auto_schema(method="GET", operation_summary="带有创建周期任务权限指定的流程列表")
+    @action(methods=["GET"], detail=False)
+    def list_with_periodic_task_collection(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page if page is not None else queryset, many=True)
