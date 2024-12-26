@@ -1,14 +1,41 @@
 <template>
     <div class="editorContainer">
-        <div :id="randomId" ref="editorRef"></div>
+        <div :id="randomId" ref="editorRef" style="height: 100%"></div>
+        <div ref="uploadVideoBtn" v-show="editor">
+            <bk-popover
+                ref="uploadPop"
+                width="450"
+                :is-show="isShow"
+                theme="light"
+                trigger="click"
+                @after-hidden="isShow = $event"
+            >
+                <span class="uploadVideoBtn common-icon-play"></span>
+                <template #content>
+                    <div style="padding-bottom: 40px">
+                        <div style="font-weight: 600; color: #555; display: block; margin: 20px 0 5px">
+                            {{ $t('选择视频文件') }}
+                        </div>
+                        <videoUpload ref="videoInputRef" :scene-type="sceneType"></videoUpload>
+                        <div style="position: absolute; right: 40px; bottom: 20px">
+                            <bk-button theme="primary" size="small" @click="uploadFile">{{ $t('确认') }}</bk-button>
+                            <bk-button size="small" @click="toggleIsShow(false)">{{ $t('取消') }}</bk-button>
+                        </div>
+                    </div>
+                </template>
+            </bk-popover>
+        </div>
     </div>
 </template>
 <script>
     import Editor from '@toast-ui/editor'
     import { mapActions } from 'vuex'
-    import axios from 'axios'
+    import VideoUpload from './videoUpload.vue'
 
     export default {
+        components: {
+            VideoUpload
+        },
         model: {
             prop: 'value',
             event: 'change'
@@ -27,7 +54,8 @@
             return {
                 randomId: `editor${(Math.random() * 100000).toFixed(0)}`,
                 editor: null,
-                timer: null
+                timer: null,
+                isShow: false
             }
         },
         computed: {
@@ -47,13 +75,24 @@
         },
         mounted () {
             setTimeout(() => {
+                const videoTool = {
+                    name: '上传视频',
+                    el: this.$refs.uploadVideoBtn,
+                    tooltip: 'Insert Video'
+                }
+                const editorRef = this.$refs.editorRef
                 this.editor = new Editor({
-                    el: this.$refs.editorRef,
-                    height: '336px',
+                    el: editorRef,
+                    height: Math.max(editorRef.clientHeight, 450).toString() + 'px',
                     initialEditType: 'markdown',
                     previewStyle: 'tab',
                     initialValue: this.value,
-                    hideModeSwitch: true
+                    plugins: [this.getVideoPlugins],
+                    toolbarItems: [
+                        ['heading', 'bold', 'italic'],
+                        ['quote', 'ul', 'ol'],
+                        ['image', videoTool, 'table', 'link', 'codeblock']
+                    ]
                 })
                 this.editor.addHook('addImageBlobHook', this.handleFileUpload)
                 this.editor.on('change', () => {
@@ -64,32 +103,86 @@
         },
         methods: {
             ...mapActions('templateMarket/', [
-                'getFileUploadAddr'
+                'getFileUploadAddr',
+                'uploadFileToUrl'
             ]),
+            getVideoPlugins () {
+                const toHTMLRenderers = {
+                    video (node) {
+                        const src = node.literal.replaceAll('\\', '')
+                        return [
+                            {
+                                type: 'openTag',
+                                tagName: 'video',
+                                attributes: {
+                                    controls: true,
+                                    src,
+                                    class: 'markdownVideo'
+                                },
+                                outerNewLine: true
+                            },
+                            { type: 'closeTag', tagName: 'video', outerNewLine: true }
+                        ]
+                    }
+                }
+                return { toHTMLRenderers }
+            },
             async handleFileUpload (blob, cb) {
                 try {
                     // 这里补充上传图片逻辑并将url通过cb传回
                     const resp = await this.getFileUploadAddr({
-                        file_name: blob.name,
+                        file_name: blob.name.replaceAll(' ', ''),
                         scene_type: this.sceneType
                     })
-                    await axios({
-                        url: resp.upload_url,
-                        method: 'put',
-                        data: blob, // 直接将 File 对象作为请求体
-                        withCredentials: false,
-                        headers: {
-                            'content-Type': blob.type // 使用文件本身的类型
-                            // 如果需要添加额外的请求头，可以在这里添加
-                            // 'Authorization': 'Bearer your-token',
-                        }
+                    await this.uploadFileToUrl({
+                        upload_url: resp.upload_url,
+                        blob
                     })
                     cb(resp.download_url)
                 } catch (error) {
                     console.warn(error)
                 }
+            },
+            async uploadFile () {
+                const url = await this.$refs.videoInputRef.uploadFiles()
+                if (url) {
+                    const content = ['\n', '$$video', `${url}`, '$$', ''].join('\n')
+                    this.editor.replaceSelection(content)
+                }
+                this.isShow = false
+                this.$refs.uploadPop.hideHandler()
+                return true
+            },
+            toggleIsShow (val) {
+                this.isShow = val
+                if (val) {
+                    this.$refs.uploadPop.showHandler()
+                } else {
+                    this.$refs.uploadPop.hideHandler()
+                }
             }
         }
     }
-
 </script>
+<style lang="scss" scoped>
+    /deep/.markdownVideo {
+        width: 100%;
+    }
+    .editorContainer {
+        height: 100%;
+    }
+    .uploadVideoBtn {
+        display: flex;
+        height: 32px;
+        width: 32px;
+        cursor: pointer;
+        justify-content: center;
+        font-size: 20px;
+        align-items: center;
+        border-radius: 3px;
+        &:hover {
+            background-color: #fff;
+            border: 1px solid #e4e7ee;
+        }
+    }
+</style>

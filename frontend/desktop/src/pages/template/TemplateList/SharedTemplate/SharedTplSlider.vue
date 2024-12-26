@@ -60,7 +60,7 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <p v-if="repeatSceneInfo.scene_id" class="scene-repeat-tips">
+                    <p v-if="repeatSceneInfo.url" class="scene-repeat-tips">
                         <span>{{ $t('场景名称重复：') }}</span>
                         <a target="_blank" :href="repeatSceneInfo.url">
                             {{ repeatSceneInfo.scene_name }}
@@ -151,6 +151,17 @@
             project_id: [String, Number]
         },
         data () {
+            const defaultEditorContent = [
+                '## 1. 背景',
+                '*为什么要开发这个场景*',
+                '## 2. 适用场景',
+                '*这个场景解决什么问题*',
+                '## 3.使用流程',
+                '### 3.1 前置条件',
+                '*如有*',
+                '### 3.2 xxx',
+                '## 4. FAQ'
+            ]
             const formData = {
                 id: undefined,
                 type: 'create',
@@ -158,7 +169,7 @@
                 category: '',
                 labels: [],
                 risk_level: '',
-                usage_content: { content: '' }
+                usage_content: { content: defaultEditorContent.join('\n\n') }
             }
             return {
                 formData: tools.deepClone(formData),
@@ -224,8 +235,8 @@
                         this.loadMarkedRiskLevel()
                     ])
                     this.categoryList = resp1.data
-                    this.tagList = resp2.data.results
-                    this.riskLevelList = resp3.data.results
+                    this.tagList = resp2.data
+                    this.riskLevelList = resp3.data
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -272,7 +283,7 @@
                 try {
                     this.recordLoading = true
                     const resp = await this.loadSharedTemplateRecord()
-                    this.recordList = resp.data.data
+                    this.recordList = resp.data
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -336,10 +347,12 @@
                         params.templates = [...new Set(selectedTplIds)]
 
                         const resp = await this.sharedTemplateRecord(params)
-                        if (!resp.result) {
-                            this.repeatSceneInfo = resp.data
-                            return
+                        this.repeatSceneInfo = {
+                            ...resp.data,
+                            result: resp.result
                         }
+                        if (!resp.result) return
+
                         this.showSuccessMessage()
                         this.$emit('close')
                     } catch (error) {
@@ -357,7 +370,9 @@
                         tag: 'div'
                     },
                     on: {
-                        click: this.jumpSreStore
+                        click: () => {
+                            window.open(this.repeatSceneInfo.scene_url, '_target')
+                        }
                     }
                 }, [
                     h('span', {
