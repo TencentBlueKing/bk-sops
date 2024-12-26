@@ -15,7 +15,8 @@
         },
         props: {
             project_id: [Number, String],
-            template_id: [Number, String]
+            template_id: [Number, String],
+            common: String
         },
         data () {
             return {
@@ -40,7 +41,8 @@
                     this.templateLoading = true
                     const resp = await this.loadTemplatePreviewData({
                         template_id: this.template_id,
-                        project_id: this.project_id
+                        project_id: this.project_id,
+                        template_source: this.common === '1' ? 'common' : undefined
                     })
                     const pipelineTree = JSON.parse(resp.data.pipeline_tree)
                     this.templateData = formatCanvasData('perview', pipelineTree)

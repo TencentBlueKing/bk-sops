@@ -16,6 +16,20 @@ const templateMarket = {
         getFileUploadAddr ({ commit }, params) {
             return axios.get('/template_market/api/templates_scene/get_file_upload_addr/', { params }).then(response => response.data.data)
         },
+        uploadFileToUrl ({ commit }, params) {
+            const { upload_url, blob } = params
+            return axios({
+                url: upload_url,
+                method: 'put',
+                data: blob, // 直接将 File 对象作为请求体
+                withCredentials: false,
+                headers: {
+                    'content-Type': blob.type // 使用文件本身的类型
+                    // 如果需要添加额外的请求头，可以在这里添加
+                    // 'Authorization': 'Bearer your-token',
+                }
+            })
+        },
         createLabel ({ commit }, params) {
             return axios.post('/template_market/api/templates_scene/add_scene_label/', params).then(response => response.data)
         },
