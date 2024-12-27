@@ -1839,7 +1839,7 @@ const en = {
     '共享到SRE商店': 'Shared to the SRE Store',
     '帮助文档': 'Help Doc',
     'SRE商店': 'SRE Store',
-    'templateSharedTips': 'Note: The shared process does not contain sensitive information and can be previewed at {0}',
+    'templateSharedTips': 'The shared process can be previewed in {0} and imported into other businesses. Please do not include sensitive information',
     'templateSharedSuccessTips': 'Shared successfully, please go to {0} to view',
     '更新': 'Updated',
     '共享类型': 'Sharing Type',
