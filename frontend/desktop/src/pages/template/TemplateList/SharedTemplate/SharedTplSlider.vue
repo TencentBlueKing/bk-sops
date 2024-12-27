@@ -112,7 +112,7 @@
                         <bk-radio
                             v-for="item in riskLevelList"
                             :key="item.risk_level"
-                            :value="item.risk_level">
+                            :value="item.unique_id">
                             {{ item.risk_name }}
                         </bk-radio>
                     </bk-radio-group>

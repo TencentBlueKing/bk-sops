@@ -1805,7 +1805,7 @@ const cn = {
     '共享到SRE商店': '共享到SRE商店',
     '帮助文档': '帮助文档',
     'SRE商店': 'SRE商店',
-    'templateSharedTips': '注意事项：共享的流程不包含敏感信息，支持在 {0} 预览',
+    'templateSharedTips': '共享的流程支持在 {0} 预览并导入其他业务，请勿包含敏感信息',
     'templateSharedSuccessTips': '共享成功，请前往 {0} 查看',
     '更新': '更新',
     '共享类型': '共享类型',
