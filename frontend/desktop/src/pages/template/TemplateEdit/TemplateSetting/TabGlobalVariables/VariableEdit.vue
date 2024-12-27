@@ -658,9 +658,10 @@
             },
             // 变量类型切换
             onValTypeChange (val, oldValue) {
-                // 将上一个类型的填写的数据存起来("集群模块IP选择器"的code与"ip选择器"code相同,需要单独处理)
-                const valData = oldValue === 'set_module_ip_selector'
-                    ? { set_module_ip_selector: tools.deepClone(this.renderData['ip_selector']) }
+                // 将上一个类型的填写的数据存起来("集群模块IP选择器"和"GSEKit IP选择器"的code与"ip选择器"code相同,需要单独处理)
+                const sameIpSelectorCode = ['set_module_ip_selector', 'gse_kit_ip_selector']
+                const valData = sameIpSelectorCode.includes(oldValue)
+                    ? { [oldValue]: tools.deepClone(this.renderData['ip_selector']) }
                     : tools.deepClone(this.renderData)
                 Object.assign(this.varTypeData, valData)
                 // 将input textarea类型正则存起来
@@ -677,7 +678,7 @@
                 })
                 if (val in this.varTypeData) {
                     const value = this.varTypeData[val]
-                    this.renderData = { [val === 'set_module_ip_selector' ? 'ip_selector' : val]: value }
+                    this.renderData = { [sameIpSelectorCode.includes(val) ? 'ip_selector' : val]: value }
                 } else {
                     this.renderData = {}
                 }
