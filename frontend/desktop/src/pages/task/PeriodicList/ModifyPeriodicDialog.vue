@@ -461,7 +461,8 @@
                 'modifyPeriodicConstants',
                 'updatePeriodicTask',
                 'updatePeriodicPartial',
-                'createPeriodic'
+                'createPeriodic',
+                'loadCommonTemplateList'
             ]),
             ...mapActions('template/', [
                 'loadTemplateData'
@@ -539,7 +540,9 @@
                 try {
                     this.templateDataLoading = true
                     const params = { templateId: id, common: this.isCommon }
-                    const templateData = await this.loadTemplateData(params)
+                    const templateData = this.isCommon
+                        ? await this.loadCommonTemplateList(params)
+                        : await this.loadTemplateData(params)
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
                     this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
