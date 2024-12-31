@@ -403,6 +403,7 @@
         },
         computed: {
             ...mapState({
+                hideHeader: state => state.hideHeader,
                 platformInfo: state => state.platformInfo,
                 view_mode: state => state.view_mode,
                 hasAdminPerm: state => state.hasAdminPerm,
@@ -589,6 +590,12 @@
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
                         this.pollErrorTimes = 0
+                        
+                        // 页面被嵌入时如果任务执行成功则向父页面发送事件
+                        if (this.state === 'FINISHED' && this.hideHeader) {
+                            window.parent.postMessage({ eventName: 'executeEvent' }, '*')
+                        }
+
                         if (this.isTopTask) {
                             this.rootState = this.state
                         }
