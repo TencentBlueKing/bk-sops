@@ -33,21 +33,16 @@ import base64
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    ObjectItemSchema,
-    BooleanItemSchema,
-)
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
+from pipeline.core.flow.io import BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -81,7 +76,9 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
                 key="job_script_type",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"),
+                    description=_(
+                        "待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"
+                    ),
                     enum=["1", "2", "3", "4", "5"],
                 ),
             ),
@@ -125,7 +122,9 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
                 type="boolean",
-                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
+                schema=BooleanItemSchema(
+                    description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")
+                ),
             ),
         ]
 

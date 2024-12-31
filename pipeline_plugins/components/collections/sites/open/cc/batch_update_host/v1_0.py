@@ -14,7 +14,7 @@ import logging
 from copy import deepcopy
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
@@ -82,7 +82,8 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
                 key="cc_host_property_custom",
                 type="array",
                 schema=ArrayItemSchema(
-                    item_schema=ObjectItemSchema(description=_("主机属性修改"), property_schemas={}), description="主机属性列表"
+                    item_schema=ObjectItemSchema(description=_("主机属性修改"), property_schemas={}),
+                    description="主机属性列表",
                 ),
             ),
             self.InputItem(
@@ -110,7 +111,9 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
             for column in host_property_custom:
                 column_result = chunk_table_data(column, separator)
                 if not column_result["result"]:
-                    message = _(f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}")
+                    message = _(
+                        f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}"
+                    )
                     data.outputs.ex_data = message
                     self.logger.error(message)
                     return False
@@ -157,7 +160,10 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("不合法的IP"), key="invalid_ip", type="string", schema=StringItemSchema(description=_("不合法的IP"))
+                name=_("不合法的IP"),
+                key="invalid_ip",
+                type="string",
+                schema=StringItemSchema(description=_("不合法的IP")),
             ),
         ]
 

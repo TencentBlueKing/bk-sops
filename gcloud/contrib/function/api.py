@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
+import logging
+
+from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gcloud.contrib.function.models import FunctionTask
-from gcloud.contrib.function.serializers import FunctionTaskClaimantTransferRequestSerializer, \
-    FunctionTaskClaimantTransferResponse
+from gcloud.contrib.function.serializers import (
+    FunctionTaskClaimantTransferRequestSerializer,
+    FunctionTaskClaimantTransferResponse,
+)
 from gcloud.core.api_adapter.user_role import is_user_role
 from gcloud.iam_auth import IAMMeta
-from django.utils.translation import ugettext_lazy as _
-import logging
 
 logger = logging.getLogger("root")
 
 
 class FunctionTaskClaimantTransferView(APIView):
     @swagger_auto_schema(
-        method="POST", operation_summary="职能转交", request_body=FunctionTaskClaimantTransferRequestSerializer,
+        method="POST",
+        operation_summary="职能转交",
+        request_body=FunctionTaskClaimantTransferRequestSerializer,
         responses={200: FunctionTaskClaimantTransferResponse},
     )
     @action(methods=["POST"], detail=False)

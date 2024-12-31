@@ -14,13 +14,12 @@ specific language governing permissions and limitations under the License.
 import logging
 from typing import List
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.conf import settings
 from pipeline.core.data.var import LazyVariable
 
 from gcloud.constants import Type
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
-
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 

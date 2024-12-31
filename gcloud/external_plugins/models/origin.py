@@ -16,16 +16,11 @@ import shutil
 from abc import abstractmethod
 
 from django.db import models, transaction
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext_lazy as _
+from pipeline.contrib.external_plugins.models import FILE_SYSTEM, GIT, S3
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
-from pipeline.contrib.external_plugins.models import (
-    GIT,
-    S3,
-    FILE_SYSTEM,
-)
 
-from gcloud.external_plugins import exceptions, CACHE_TEMP_PATH
+from gcloud.external_plugins import CACHE_TEMP_PATH, exceptions
 from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
 from gcloud.external_plugins.models.cache import CachePackageSource
 from gcloud.external_plugins.protocol.readers import reader_cls_factory

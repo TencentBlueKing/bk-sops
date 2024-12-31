@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
@@ -53,7 +53,10 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"),
+                key="upload_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -72,8 +75,12 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
                         property_schemas={
                             "bk_cloud_id": StringItemSchema(description=_("管控区域ID, 默认为0")),
                             "job_ip_list": StringItemSchema(description=_("待分发机器 IP，多IP请使用;分隔")),
-                            "job_target_path": StringItemSchema(description=_("分发目标绝对路径，(可用[FILESRCIP]代替源IP)")),
-                            "job_target_account": StringItemSchema(description=_("执行账户，输入在蓝鲸作业平台上注册的账户名")),
+                            "job_target_path": StringItemSchema(
+                                description=_("分发目标绝对路径，(可用[FILESRCIP]代替源IP)")
+                            ),
+                            "job_target_account": StringItemSchema(
+                                description=_("执行账户，输入在蓝鲸作业平台上注册的账户名")
+                            ),
                         },
                     ),
                 ),
@@ -174,7 +181,10 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
                 schema=StringItemSchema(description=_("分发请求成功数")),
             ),
             self.OutputItem(
-                name=_("分发成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
+                name=_("分发成功数"),
+                key="success_count",
+                type="string",
+                schema=StringItemSchema(description=_("上传成功数")),
             ),
             self.OutputItem(
                 name=_("任务id"),

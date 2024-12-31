@@ -12,15 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 
 import functools
-
+import logging
 from abc import ABCMeta
+
+from bamboo_engine.api import EngineAPIResult
+from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
 from gcloud.core.models import EngineConfig
-
-from bamboo_engine.api import EngineAPIResult
-from django.utils.translation import ugettext_lazy as _
-import logging
 
 logger = logging.getLogger("root")
 

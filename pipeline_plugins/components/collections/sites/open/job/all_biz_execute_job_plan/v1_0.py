@@ -10,12 +10,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.io import (
-    BooleanItemSchema,
-    StringItemSchema,
-)
+from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service import (
@@ -33,7 +30,9 @@ class AllBizJobExecuteJobPlanService(BaseAllBizJobExecuteJobPlanService):
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
                 type="boolean",
-                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
+                schema=BooleanItemSchema(
+                    description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")
+                ),
             ),
             self.InputItem(
                 name=_("IP Tag 分组"),

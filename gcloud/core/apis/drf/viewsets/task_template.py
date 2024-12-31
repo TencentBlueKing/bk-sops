@@ -16,7 +16,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters import CharFilter
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateRelationship, TemplateScheme
@@ -246,7 +246,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.template.name,
+            sender=RecordType.template,
             operator=creator,
             operate_type=OperateType.create.name,
             operate_source=OperateSource.project.name,
@@ -302,7 +302,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, template)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.template.name,
+            sender=RecordType.template,
             operator=editor,
             operate_type=OperateType.update.name,
             operate_source=OperateSource.project.name,
@@ -337,7 +337,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         )
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.template.name,
+            sender=RecordType.template,
             operator=request.user.username,
             operate_type=OperateType.delete.name,
             operate_source=OperateSource.project.name,
@@ -352,7 +352,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @swagger_auto_schema(method="GET", operation_summary="查询流程是否开启独立子流程", query_serializer=ProjectInfoQuerySerializer)
+    @swagger_auto_schema(
+        method="GET", operation_summary="查询流程是否开启独立子流程", query_serializer=ProjectInfoQuerySerializer
+    )
     @action(methods=["GET"], detail=True)
     def enable_independent_subprocess(self, request, *args, **kwargs):
         template_id = kwargs.get("pk")
@@ -360,7 +362,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
 
-    @swagger_auto_schema(method="GET", operation_summary="获取流程详情公开信息", query_serializer=ProjectFilterQuerySerializer)
+    @swagger_auto_schema(
+        method="GET", operation_summary="获取流程详情公开信息", query_serializer=ProjectFilterQuerySerializer
+    )
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()

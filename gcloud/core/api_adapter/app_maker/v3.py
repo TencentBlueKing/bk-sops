@@ -12,14 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import requests
 
+import requests
 import ujson as json
+from django.utils.translation import gettext_lazy as _
 
 import env
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("component")
 ENV = "stag" if settings.IS_LOCAL else "prod"
@@ -58,7 +58,9 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response.raise_for_status()
     except requests.HTTPError as e:
-        message = _(f"轻应用请求Paas接口报错: 请求url: {response.request.url}, 报错内容: {e}, 响应内容: {response.text}")
+        message = _(
+            f"轻应用请求Paas接口报错: 请求url: {response.request.url}, 报错内容: {e}, 响应内容: {response.text}"
+        )
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -83,14 +85,23 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
             resp_data["message"] = resp_data.get("bk_error_msg")
         return resp_data
     except Exception as e:
-        message = _(f"轻应用请求PaaS接口报错: 请求url {response.request.url}, 接口响应json格式转换失败 {e}，响应内容 {response.content}")
+        message = _(
+            f"轻应用请求PaaS接口报错: 请求url {response.request.url}, 接口响应json格式转换失败 {e}，响应内容 {response.content}"
+        )
         logger.error(message)
 
         return {"result": False, "message": message}
 
 
 def create_maker_app(
-    creator, app_name, app_url, developer="", app_tag="", introduction="", add_user="", company_code="",
+    creator,
+    app_name,
+    app_url,
+    developer="",
+    app_tag="",
+    introduction="",
+    add_user="",
+    company_code="",
 ):
     """
     @summary: 创建 maker app

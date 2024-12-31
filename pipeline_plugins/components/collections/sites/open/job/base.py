@@ -33,7 +33,7 @@ import re
 import traceback
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow import StaticIntervalGenerator
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
@@ -232,7 +232,12 @@ def get_job_tagged_ip_dict(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
         service_logger.warning(message)
         return False, message
 
@@ -332,7 +337,12 @@ def get_job_tagged_ip_dict_complex(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
         service_logger.warning(message)
         return False, message
 
@@ -508,7 +518,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -557,9 +569,9 @@ class JobService(Service):
             data.set_outputs(
                 "ex_data",
                 {
-                    "exception_msg": _("任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
-                        job_inst_url=data.outputs.job_inst_url
-                    ),
+                    "exception_msg": _(
+                        "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
+                    ).format(job_inst_url=data.outputs.job_inst_url),
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
                 },
@@ -634,15 +646,17 @@ class JobScheduleService(JobService):
                 elif job_status > 3:
                     # 出于性能考虑，不拉取对应主机IP的日志，引导用户跳转JOB平台查看
                     failure_inst_url.append(job_detail_url)
-                    data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
-                        job_detail_url
+                    data.outputs.ex_data += (
+                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                            job_detail_url
+                        )
                     )
                 else:
                     running_task_list.append(job_id_str)
             else:
                 failure_inst_url.append(job_detail_url)
-                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
-                    job_detail_url
+                data.outputs.ex_data += (
+                    "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(job_detail_url)
                 )
                 self.logger.error("请求job_id({}),结果为:{}".format(job_id_str, result.get("message")))
         # 需要继续轮询的任务
@@ -748,7 +762,9 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -798,9 +814,9 @@ class Jobv3Service(Service):
             data.set_outputs(
                 "ex_data",
                 {
-                    "exception_msg": _("任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
-                        job_inst_url=data.outputs.job_inst_url
-                    ),
+                    "exception_msg": _(
+                        "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
+                    ).format(job_inst_url=data.outputs.job_inst_url),
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
                 },
@@ -874,8 +890,8 @@ class Jobv3ScheduleService(Jobv3Service):
                 else:
                     running_task_list.append(job_id_str)
             else:
-                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
-                    job_detail_url
+                data.outputs.ex_data += (
+                    "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(job_detail_url)
                 )
 
         # 需要继续轮询的任务
@@ -905,7 +921,12 @@ class GetJobHistoryResultMixin(object):
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
+            message = handle_api_error(
+                __group_name__,
+                "jobv3.get_job_instance_status",
+                job_kwargs,
+                job_result,
+            )
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -913,7 +934,9 @@ class GetJobHistoryResultMixin(object):
 
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
-            message = _(f"执行历史请求失败: 任务实例[ID: {job_success_id}], 异常信息: {job_result['result']} | get_job_history_result")
+            message = _(
+                f"执行历史请求失败: 任务实例[ID: {job_success_id}], 异常信息: {job_result['result']} | get_job_history_result"
+            )
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -925,7 +948,10 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client,
+            self.logger,
+            job_success_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(

@@ -11,18 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import api
 
-
 urlpatterns = [
-    url(r"^list/$", api.get_plugin_list),
-    url(r"^detail_list/$", api.get_plugin_detail_list),
-    url(r"^tags/$", api.get_plugin_tags),
-    url(r"^meta/$", api.get_meta),
-    url(r"^detail/$", api.get_plugin_detail),
-    url(r"^logs/$", api.get_logs),
-    url(r"^app_detail/$", api.get_plugin_app_detail),
-    url(r"^data_api/(?P<plugin_code>.+?)/(?P<data_api_path>.+)$", api.get_plugin_api_data),
+    re_path(r"^list/$", api.get_plugin_list),
+    re_path(r"^detail_list/$", api.get_plugin_detail_list),
+    re_path(r"^tags/$", api.get_plugin_tags),
+    re_path(r"^meta/$", api.get_meta),
+    re_path(r"^detail/$", api.get_plugin_detail),
+    re_path(r"^logs/$", api.get_logs),
+    re_path(r"^app_detail/$", api.get_plugin_app_detail),
+    re_path(r"^data_api/(?P<plugin_code>.+?)/(?P<data_api_path>.+)$", api.get_plugin_api_data),
 ]

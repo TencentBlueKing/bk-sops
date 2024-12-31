@@ -18,7 +18,7 @@ from datetime import datetime
 from blueapps.account.decorators import login_exempt
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from mako.template import Template

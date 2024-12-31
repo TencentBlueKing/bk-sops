@@ -14,12 +14,12 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from django import forms
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class JsonField(forms.CharField):
     default_error_messages = {
-        'invalid': _('invalid json string'),
+        "invalid": _("invalid json string"),
     }
 
     def validate(self, value):
@@ -28,16 +28,14 @@ class JsonField(forms.CharField):
         try:
             json.loads(value)
         except Exception:
-            raise ValidationError(
-                self.error_messages['invalid'],
-                code='invalid')
+            raise ValidationError(self.error_messages["invalid"], code="invalid")
         else:
             return value
 
 
 class JsonListField(JsonField):
     default_error_messages = {
-        'invalid': _('json.loads result is not instance of list or tuple '),
+        "invalid": _("json.loads result is not instance of list or tuple "),
     }
 
     def validate(self, value):
@@ -46,16 +44,14 @@ class JsonListField(JsonField):
         data = json.loads(value)
 
         if not isinstance(data, (list, tuple)):
-            raise ValidationError(
-                self.error_messages['invalid'],
-                code='invalid')
+            raise ValidationError(self.error_messages["invalid"], code="invalid")
 
         return value
 
 
 class JsonDictField(JsonField):
     default_error_messages = {
-        'invalid': _('json.loads result is not list'),
+        "invalid": _("json.loads result is not list"),
     }
 
     def validate(self, value):
@@ -64,8 +60,6 @@ class JsonDictField(JsonField):
         data = json.loads(value)
 
         if not isinstance(data, dict):
-            raise ValidationError(
-                self.error_messages['invalid'],
-                code='invalid')
+            raise ValidationError(self.error_messages["invalid"], code="invalid")
 
         return value

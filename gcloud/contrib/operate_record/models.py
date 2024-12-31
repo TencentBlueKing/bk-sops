@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from .constants import OPERATE_TYPE, OPERATE_SOURCE
+from .constants import OPERATE_SOURCE, OPERATE_TYPE
 
 
 class BaseOperateRecord(models.Model):

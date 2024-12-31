@@ -22,7 +22,7 @@ INSTALLED_APPS += (
 ``` python
 urlpatterns = [
     ...,
-    url(r"^plugin_service/", include("plugin_service.urls")),
+    re_path(r"^plugin_service/", include("plugin_service.urls")),
     ...,
 ]
 ```

@@ -17,7 +17,7 @@ from bkcrypto.asymmetric.ciphers import BaseAsymmetricCipher
 from bkcrypto.asymmetric.interceptors import BaseAsymmetricInterceptor
 from bkcrypto.constants import AsymmetricCipherType
 from bkcrypto.contrib.django.ciphers import get_asymmetric_cipher
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
@@ -346,7 +346,8 @@ class NodeManNewBaseService(NodeManBaseService):
                         "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
                         "nodeman_op_type": StringItemSchema(
                             description=_(
-                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
+                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、"
+                                " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
                             )
                         ),
                         "nodeman_hosts": ArrayItemSchema(
@@ -357,14 +358,22 @@ class NodeManNewBaseService(NodeManBaseService):
                                     "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
                                     "nodeman_ap_id": StringItemSchema(description=_("接入点")),
                                     "inner_ip": StringItemSchema(description=_("内网 IP")),
-                                    "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
-                                    "data_ip": StringItemSchema(description=_("主机数据 IP，可以为空，适配复杂网络时填写")),
+                                    "login_ip": StringItemSchema(
+                                        description=_("主机登录 IP，可以为空，适配复杂网络时填写")
+                                    ),
+                                    "data_ip": StringItemSchema(
+                                        description=_("主机数据 IP，可以为空，适配复杂网络时填写")
+                                    ),
                                     "outer_ip": StringItemSchema(description=_("外网 IP, 可以为空")),
-                                    "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
+                                    "os_type": StringItemSchema(
+                                        description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")
+                                    ),
                                     "port": StringItemSchema(description=_("端口号")),
                                     "account": StringItemSchema(description=_("登录帐号")),
                                     "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
-                                    "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
+                                    "auth_key": StringItemSchema(
+                                        description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
+                                    ),
                                 },
                             ),
                         ),

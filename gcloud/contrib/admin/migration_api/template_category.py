@@ -12,20 +12,20 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import logging
 import traceback
 
+from blueapps.account.decorators import login_exempt
 from django.http.response import JsonResponse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
-from gcloud.contrib.admin.migration_api.decorators import require_migrate_token
-from gcloud.constants import TASK_CATEGORY
 from gcloud import err_code
+from gcloud.constants import TASK_CATEGORY
+from gcloud.contrib.admin.migration_api.decorators import require_migrate_token
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate
-from django.utils.translation import ugettext_lazy as _
-import logging
 
 logger = logging.getLogger("root")
 

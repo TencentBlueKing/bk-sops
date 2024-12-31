@@ -10,20 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+import logging
 import traceback
 
+from django.utils.translation import gettext_lazy as _
 from pipeline.exceptions import PipelineException
+from pipeline.models import PipelineTemplate, TemplateRelationship
 
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
-
-from pipeline.models import PipelineTemplate, TemplateRelationship
 from pipeline_web.core.models import NodeInTemplate
-from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
-from django.utils.translation import ugettext_lazy as _
-import logging
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 logger = logging.getLogger("root")
 
@@ -32,7 +31,13 @@ class TemplateManager:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def create_pipeline(self, name: str, creator: str, pipeline_tree: dict, description: str = "",) -> dict:
+    def create_pipeline(
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        description: str = "",
+    ) -> dict:
         """
         创建 pipeline 层模板
 
@@ -59,7 +64,9 @@ class TemplateManager:
                 "result": False,
                 "data": None,
                 "message": message,
-                "verbose_message": _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | create_pipeline"),
+                "verbose_message": _(
+                    f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | create_pipeline"
+                ),
             }
 
         create_template_kwargs = {
@@ -71,7 +78,9 @@ class TemplateManager:
         try:
             pipeline_template = self.template_model_cls.objects.create_pipeline_template(**create_template_kwargs)
         except Exception as e:
-            message = _(f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], 失败原因: [{e}] | create_pipeline")
+            message = _(
+                f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], 失败原因: [{e}] | create_pipeline"
+            )
             logger.error(message)
             return {
                 "result": False,
@@ -86,7 +95,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def create(
-        self, name: str, creator: str, pipeline_tree: dict, template_kwargs: dict, description: str = "",
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        template_kwargs: dict,
+        description: str = "",
     ) -> dict:
         """
         创建 template 层模板
@@ -114,7 +128,9 @@ class TemplateManager:
         try:
             template = self.template_model_cls.objects.create(**template_kwargs)
         except Exception as e:
-            message = _(f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{e}] | create")
+            message = _(
+                f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{e}] | create"
+            )
             logger.error(message)
             return {
                 "result": False,
@@ -183,7 +199,9 @@ class TemplateManager:
             try:
                 pipeline_template.update_template(**update_kwargs)
             except Exception as e:
-                message = _(f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}] | update_pipeline")
+                message = _(
+                    f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}] | update_pipeline"
+                )
                 logger.error(message)
                 return {
                     "result": False,
@@ -204,7 +222,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def update(
-        self, template: object, editor: str, name: str = "", pipeline_tree: str = None, description: str = "",
+        self,
+        template: object,
+        editor: str,
+        name: str = "",
+        pipeline_tree: str = None,
+        description: str = "",
     ) -> dict:
         """
         更新 template 层模板

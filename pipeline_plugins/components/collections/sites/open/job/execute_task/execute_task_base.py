@@ -15,7 +15,7 @@ from copy import deepcopy
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
@@ -179,7 +179,9 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                     server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
                     self.logger.info("[job_execute_task_base] find a ip var, ip_list is {}".format(server))
                     if not server:
-                        data.outputs.ex_data = _(f"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {val}")
+                        data.outputs.ex_data = _(
+                            f"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {val}"
+                        )
                         return False
                     global_vars.append({"name": _value["name"], "server": server})
             # 密文变量在没有修改的情况下不加入全局变量，避免脱敏字符串作为正式值进行作业执行逻辑

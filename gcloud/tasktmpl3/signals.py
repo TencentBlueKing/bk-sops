@@ -17,4 +17,4 @@ from django.dispatch import Signal
 # project_id: 模板对应的项目 ID
 # template_id: 模板 ID
 # is_deleted: 模板是否被删除
-post_template_save_commit = Signal(providing_args=["project_id", "template_id", "is_deleted"])
+post_template_save_commit = Signal()  # providing_args=["project_id", "template_id", "is_deleted"]

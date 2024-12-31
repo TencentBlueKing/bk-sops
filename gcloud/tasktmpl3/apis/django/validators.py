@@ -11,14 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 import ujson as json
+from django.utils.translation import gettext_lazy as _
 
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
-from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
-from gcloud.utils.strings import check_and_rename_params
 from gcloud.template_base.utils import read_template_data_file
-from django.utils.translation import ugettext_lazy as _
-import logging
+from gcloud.utils.strings import check_and_rename_params
+from gcloud.utils.validate import ObjectJsonBodyValidator, RequestValidator
 
 logger = logging.getLogger("root")
 

@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
 from api.collections.monitor import BKMonitorClient
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.monitor.base import (
-    MonitorBaseService,
-)
+from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
 from pipeline_plugins.components.utils.sites.open.choose_time_tools import choose_time
-from pipeline_plugins.components.utils.sites.open.utils import (
-    get_module_id_list_by_name,
-)
+from pipeline_plugins.components.utils.sites.open.utils import get_module_id_list_by_name
 from pipeline_plugins.variables.utils import (
     get_list_by_selected_names,
     get_service_template_list,

@@ -17,7 +17,7 @@ from collections import defaultdict
 from typing import Any, Dict, List, Optional
 
 from django.apps import apps
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core import constants as pipeline_constants
 from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
@@ -85,9 +85,9 @@ def find_nodes_from_pipeline_tree(
     for act_id, act in pipeline_tree[pipeline_constants.PE.activities].items():
         if act["type"] == pipeline_constants.PE.SubProcess:
             # 非独立子流程继续递归查找
-            child_node_infos_gby_code: typing.Dict[
-                str, typing.List[typing.Dict[str, typing.Any]]
-            ] = find_nodes_from_pipeline_tree(act[pipeline_constants.PE.pipeline], codes)
+            child_node_infos_gby_code: typing.Dict[str, typing.List[typing.Dict[str, typing.Any]]] = (
+                find_nodes_from_pipeline_tree(act[pipeline_constants.PE.pipeline], codes)
+            )
             # 子树查找结果同父流程合并
             for code in codes:
                 node_infos_gby_code[code].extend(child_node_infos_gby_code.get(code) or [])

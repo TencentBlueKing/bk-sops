@@ -10,11 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import re
 import logging
+import re
 import traceback
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from .base import UploadRequestBartender
 
@@ -52,7 +52,9 @@ class UploadModuleBartender(UploadRequestBartender):
         try:
             file_tag = self.manager.save(name=file_name, content=None, source_ip=source_ip, file_path=file_path)
         except Exception as e:
-            message = _(f"文件上传失败: 文件归档失败请重试, 如持续失败可联系管理员处理, {traceback.format_exc()} | process_request")
+            message = _(
+                f"文件上传失败: 文件归档失败请重试, 如持续失败可联系管理员处理, {traceback.format_exc()} | process_request"
+            )
             logger.error(message)
             return {"result": False, "message": message + f":{e}", "code": 500}
 

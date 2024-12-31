@@ -15,16 +15,14 @@ import logging
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
@@ -113,11 +111,15 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
             # 如果不存在，或者查询到的值大于1
             if not fault_host_list or len(fault_host_list) != 1:
                 # 查询旧的主机出错
-                data.outputs.ex_data = data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
+                data.outputs.ex_data = data.outputs.ex_data = (
+                    _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
+                )
                 return False
 
             if not new_host_list or len(new_host_list) != 1:
-                data.outputs.ex_data = data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
+                data.outputs.ex_data = data.outputs.ex_data = (
+                    _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
+                )
                 return False
 
             fault_host = fault_host_list[0]

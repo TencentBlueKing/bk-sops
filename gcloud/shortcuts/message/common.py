@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from gcloud.core.models import Project
 
@@ -19,7 +19,8 @@ from gcloud.core.models import Project
 def title_and_content_for_atom_failed(taskflow, pipeline_inst, node_name, executor):
     title = _("【标准运维APP通知】执行失败")
     base_content = _(
-        "您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，" "操作员是【{executor}】，请前往标准运维APP{url}查看详情！"
+        "您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，"
+        "操作员是【{executor}】，请前往标准运维APP{url}查看详情！"
     ).format(
         cc_name=taskflow.project.name, task_name=pipeline_inst.name, node_name=node_name, executor=executor, url="{url}"
     )
@@ -30,7 +31,10 @@ def title_and_content_for_atom_failed(taskflow, pipeline_inst, node_name, execut
 
 def title_and_content_for_flow_finished(taskflow, pipeline_inst, node_name, executor):
     title = _("【标准运维APP通知】执行完成")
-    base_content = _("您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，" "请前往标准运维APP{url}查看详情！").format(
+    base_content = _(
+        "您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，"
+        "请前往标准运维APP{url}查看详情！"
+    ).format(
         cc_name=taskflow.project.name,
         task_name=pipeline_inst.name,
         executor=executor,
@@ -44,7 +48,10 @@ def title_and_content_for_flow_finished(taskflow, pipeline_inst, node_name, exec
 
 def title_and_content_for_pending_processing(taskflow, pipeline_inst, node_name, executor):
     title = _("【标准运维APP通知】等待处理")
-    base_content = _("您在【{cc_name}】业务中的任务【{task_name}】等待处理中，操作员是【{executor}】，" "请前往标准运维APP{url}查看详情！").format(
+    base_content = _(
+        "您在【{cc_name}】业务中的任务【{task_name}】等待处理中，操作员是【{executor}】，"
+        "请前往标准运维APP{url}查看详情！"
+    ).format(
         cc_name=taskflow.project.name,
         task_name=pipeline_inst.name,
         executor=executor,
@@ -58,7 +65,9 @@ def title_and_content_for_pending_processing(taskflow, pipeline_inst, node_name,
 
 def title_and_content_for_periodic_task_start_fail(periodic_task, history):
     title = _("【标准运维APP通知】周期任务启动失败")
-    content = _("您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，" "错误信息：【{ex_data}】").format(
+    content = _(
+        "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，" "错误信息：【{ex_data}】"
+    ).format(
         cc_name=periodic_task.project.name,
         start_time=history.start_at,
         task_name=periodic_task.name,
@@ -74,7 +83,9 @@ def title_and_content_for_clocked_task_create_fail(clocked_task, ex_data):
     except Exception:
         cc_name = clocked_task.project_id
     title = _("【标准运维APP通知】计划任务创建失败")
-    content = _("您在【{cc_name}】业务中的计划任务【{task_name}】于{plan_start_time}创建失败，" "错误信息：【{ex_data}】").format(
+    content = _(
+        "您在【{cc_name}】业务中的计划任务【{task_name}】于{plan_start_time}创建失败，" "错误信息：【{ex_data}】"
+    ).format(
         cc_name=cc_name, task_name=clocked_task.task_name, plan_start_time=clocked_task.plan_start_time, ex_data=ex_data
     )
     return title, content

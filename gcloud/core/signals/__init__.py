@@ -13,4 +13,4 @@ specific language governing permissions and limitations under the License.
 
 from django.dispatch import Signal
 
-user_enter = Signal(providing_args=["username"])
+user_enter = Signal()  # providing_args=["username"]

@@ -19,7 +19,7 @@ from bamboo_engine import states
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, QuerySet, Value
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.eri.models import State
@@ -539,7 +539,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         extra_info = extract_extra_info(constants)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.task.name,
+            sender=RecordType.task,
             operator=pipeline_instance_kwargs["creator"],
             operate_type=OperateType.create.name,
             operate_source=OperateSource.app.name,
@@ -577,7 +577,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         self.perform_destroy(instance)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.task.name,
+            sender=RecordType.task,
             operator=self.request.user.username,
             operate_type=OperateType.delete.name,
             operate_source=OperateSource.app.name,

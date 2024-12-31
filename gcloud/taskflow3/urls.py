@@ -11,8 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import include, url
-from django.urls import path
+from django.urls import include, path, re_path
 
 from gcloud.taskflow3.apis.django import api
 from gcloud.taskflow3.apis.django.v4.urls import v4_urlpatterns
@@ -22,23 +21,23 @@ from gcloud.taskflow3.apis.drf.viewsets.render_current_constants import RenderCu
 from gcloud.taskflow3.apis.drf.viewsets.update_task_constants import UpdateTaskConstantsView
 
 urlpatterns = [
-    url(r"^api/context/$", api.context),
-    url(r"^api/status/(?P<project_id>\d+)/$", api.status),
-    url(r"^api/batch_status/(?P<project_id>\d+)/$", api.batch_status),
-    url(r"^api/clone/(?P<project_id>\d+)/$", api.task_clone),
-    url(r"^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.task_action),
-    url(r"^api/flow/claim/(?P<project_id>\d+)/$", api.task_func_claim),
-    url(r"^api/nodes/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.nodes_action),
-    url(r"^api/nodes/data/(?P<project_id>\d+)/$", api.data),
-    url(r"^api/nodes/detail/(?P<project_id>\d+)/$", api.detail),
-    url(r"^api/nodes/get_job_instance_log/(?P<biz_cc_id>\d+)/$", api.get_job_instance_log),
-    url(r"^api/nodes/spec/timer/reset/(?P<project_id>\d+)/$", api.spec_nodes_timer_reset),
-    url(r"^api/preview_task_tree/(?P<project_id>\d+)/$", api.preview_task_tree),
-    url(r"^api/query_task_count/(?P<project_id>\d+)/$", api.query_task_count),
-    url(r"^api/nodes/log/(?P<project_id>\d+)/(?P<node_id>\w+)/$", api.get_node_log),
-    url(r"^api/get_task_create_method/$", api.get_task_create_method),
-    url(r"^api/nodes/callback/(?P<token>.+)/$", api.node_callback),
-    url(r"^api/v4/", include(v4_urlpatterns)),
+    re_path(r"^api/context/$", api.context),
+    re_path(r"^api/status/(?P<project_id>\d+)/$", api.status),
+    re_path(r"^api/batch_status/(?P<project_id>\d+)/$", api.batch_status),
+    re_path(r"^api/clone/(?P<project_id>\d+)/$", api.task_clone),
+    re_path(r"^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.task_action),
+    re_path(r"^api/flow/claim/(?P<project_id>\d+)/$", api.task_func_claim),
+    re_path(r"^api/nodes/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.nodes_action),
+    re_path(r"^api/nodes/data/(?P<project_id>\d+)/$", api.data),
+    re_path(r"^api/nodes/detail/(?P<project_id>\d+)/$", api.detail),
+    re_path(r"^api/nodes/get_job_instance_log/(?P<biz_cc_id>\d+)/$", api.get_job_instance_log),
+    re_path(r"^api/nodes/spec/timer/reset/(?P<project_id>\d+)/$", api.spec_nodes_timer_reset),
+    re_path(r"^api/preview_task_tree/(?P<project_id>\d+)/$", api.preview_task_tree),
+    re_path(r"^api/query_task_count/(?P<project_id>\d+)/$", api.query_task_count),
+    re_path(r"^api/nodes/log/(?P<project_id>\d+)/(?P<node_id>\w+)/$", api.get_node_log),
+    re_path(r"^api/get_task_create_method/$", api.get_task_create_method),
+    re_path(r"^api/nodes/callback/(?P<token>.+)/$", api.node_callback),
+    re_path(r"^api/v4/", include(v4_urlpatterns)),
     path(r"api/render_current_constants/<int:task_id>/", RenderCurrentConstantsView.as_view()),
     path(
         r"api/engine_v2/node_log/<int:project_id>/<int:task_id>/<str:node_id>/<str:version>/",

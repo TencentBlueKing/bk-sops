@@ -10,30 +10,28 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import logging
 import copy
+import logging
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-
-from pipeline_plugins.components.collections.sites.open.cc.base import (
-    BkObjType,
-    SelectMethod,
-    ModuleCreateMethod,
-    cc_format_tree_mode_id,
-    cc_list_select_node_inst_id,
-    cc_format_prop_data,
-    cc_get_name_id_from_combine_value,
-)
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.base import (
+    BkObjType,
+    ModuleCreateMethod,
+    SelectMethod,
+    cc_format_prop_data,
+    cc_format_tree_mode_id,
+    cc_get_name_id_from_combine_value,
+    cc_list_select_node_inst_id,
+)
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -56,26 +54,35 @@ class CCCreateModuleService(Service):
                 name=_("填参方式"),
                 key="cc_set_select_method",
                 type="string",
-                schema=StringItemSchema(description=_("集群填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
+                schema=StringItemSchema(
+                    description=_("集群填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]
+                ),
             ),
             self.InputItem(
                 name=_("拓扑-集群列表"),
                 key="cc_set_select_topo",
                 type="array",
-                schema=ArrayItemSchema(description=_("所属集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))),
+                schema=ArrayItemSchema(
+                    description=_("所属集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
+                ),
             ),
             self.InputItem(
                 name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔")),
+                schema=StringItemSchema(
+                    description=_(
+                        "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
+                    )
+                ),
             ),
             self.InputItem(
                 name=_("创建方式"),
                 key="cc_create_method",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("按模板创建(template)，直接创建-按服务分类创建(category)"), enum=["template", "category"]
+                    description=_("按模板创建(template)，直接创建-按服务分类创建(category)"),
+                    enum=["template", "category"],
                 ),
             ),
             self.InputItem(

@@ -11,29 +11,31 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from gcloud.tasktmpl3.apis.django import api
-from gcloud.tasktmpl3.apis.drf.viewsets.variable_field_explain import VariableFieldExplainView
-from gcloud.tasktmpl3.apis.drf.viewsets.form_with_schemes import TemplateFormWithSchemesView
 from gcloud.tasktmpl3.apis.drf.viewsets.batch_form_with_schemes import BatchTemplateFormWithSchemesView
+from gcloud.tasktmpl3.apis.drf.viewsets.form_with_schemes import TemplateFormWithSchemesView
+from gcloud.tasktmpl3.apis.drf.viewsets.variable_field_explain import VariableFieldExplainView
 
 urlpatterns = [
     # [deprecated] this api will be instead of form_with_schemes
-    url(r"^api/form/(?P<project_id>\d+)/$", api.form),
+    re_path(r"^api/form/(?P<project_id>\d+)/$", api.form),
     # [deprecated] this api will be instead of batch_form_with_schemes
-    url(r"^api/batch_form/(?P<project_id>\d+)/$", api.batch_form),
-    url(r"^api/export/(?P<project_id>\d+)/$", api.export_templates),
-    url(r"^api/import/(?P<project_id>\d+)/$", api.import_templates),
-    url(r"^api/import_check/(?P<project_id>\d+)/$", api.check_before_import),
-    url(r"^api/replace_node_id/$", api.replace_all_templates_tree_node_id),
-    url(r"^api/draw_pipeline/$", api.draw_pipeline),
-    url(r"^api/get_template_count/(?P<project_id>\d+)/$", api.get_template_count),
-    url(r"^api/get_templates_with_expired_subprocess/(?P<project_id>\d+)/$", api.get_templates_with_expired_subprocess),
-    url(r"^api/get_constant_preview_result/$", api.get_constant_preview_result),
-    url(r"^api/analysis_constants_ref/$", api.analysis_constants_ref),
-    url(r"^api/parents/(?P<project_id>\d+)/$", api.parents),
-    url(r"^api/variable_field_explain/$", VariableFieldExplainView.as_view()),
-    url(r"^api/form_with_schemes/", TemplateFormWithSchemesView.as_view()),
-    url(r"^api/batch_form_with_schemes/", BatchTemplateFormWithSchemesView.as_view()),
+    re_path(r"^api/batch_form/(?P<project_id>\d+)/$", api.batch_form),
+    re_path(r"^api/export/(?P<project_id>\d+)/$", api.export_templates),
+    re_path(r"^api/import/(?P<project_id>\d+)/$", api.import_templates),
+    re_path(r"^api/import_check/(?P<project_id>\d+)/$", api.check_before_import),
+    re_path(r"^api/replace_node_id/$", api.replace_all_templates_tree_node_id),
+    re_path(r"^api/draw_pipeline/$", api.draw_pipeline),
+    re_path(r"^api/get_template_count/(?P<project_id>\d+)/$", api.get_template_count),
+    re_path(
+        r"^api/get_templates_with_expired_subprocess/(?P<project_id>\d+)/$", api.get_templates_with_expired_subprocess
+    ),
+    re_path(r"^api/get_constant_preview_result/$", api.get_constant_preview_result),
+    re_path(r"^api/analysis_constants_ref/$", api.analysis_constants_ref),
+    re_path(r"^api/parents/(?P<project_id>\d+)/$", api.parents),
+    re_path(r"^api/variable_field_explain/$", VariableFieldExplainView.as_view()),
+    re_path(r"^api/form_with_schemes/", TemplateFormWithSchemesView.as_view()),
+    re_path(r"^api/batch_form_with_schemes/", BatchTemplateFormWithSchemesView.as_view()),
 ]

@@ -12,19 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class Node(models.Model):
-    node_id = models.CharField(_('节点ID'), max_length=32)
-    node_type = models.CharField(_('节点类型'), max_length=100)
-    create_time = models.DateTimeField(_('创建时间'), auto_now_add=True)
-    edit_time = models.DateTimeField(_('修改时间'), auto_now=True)
+    node_id = models.CharField(_("节点ID"), max_length=32)
+    node_type = models.CharField(_("节点类型"), max_length=100)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    edit_time = models.DateTimeField(_("修改时间"), auto_now=True)
 
     class Meta:
         # abstract would not be inherited automatically
         abstract = True
-        ordering = ['-id']
+        ordering = ["-id"]
 
 
 class NodeAttr(object):
@@ -44,10 +44,10 @@ class NodeAttr(object):
 
     @classmethod
     def get_nodes_attr(cls, nodes, model_type):
-        node_attr_lib = cls.node_in_template_attr if model_type == 'template' else cls.node_in_instance_attr
+        node_attr_lib = cls.node_in_template_attr if model_type == "template" else cls.node_in_instance_attr
         for node in nodes:
-            if not hasattr(node, 'attrs'):
-                setattr(node, 'attrs', {})
+            if not hasattr(node, "attrs"):
+                setattr(node, "attrs", {})
 
         for attr, attr_model in node_attr_lib.items():
             attr_model.objects.batch_update_nodes_attr(nodes, attr)

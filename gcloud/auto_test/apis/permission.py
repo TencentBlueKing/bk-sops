@@ -10,12 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import base64
+import hmac
 import os
 import time
-import hmac
-import base64
-from rest_framework.permissions import BasePermission
+
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from rest_framework.permissions import BasePermission
 
 
 class EnablePermission(BasePermission):
@@ -50,8 +51,8 @@ class TestTokenPermission(BasePermission):
         if float(ts_str) < time.time():
             raise AuthenticationFailed("token已过期")
 
-        sha1 = hmac.new(key.encode("utf-8"), ts_str.encode("utf-8"), "sha1")
-        if sha1.hexdigest() != token_list[1]:
+        sha256 = hmac.new(key.encode("utf-8"), ts_str.encode("utf-8"), "sha256")
+        if sha256.hexdigest() != token_list[1]:
             raise AuthenticationFailed("无效的token")
         return (None, None)
 
@@ -65,8 +66,8 @@ def generate_token(key: str, expire=60) -> str:
     """
     ts_str = str(time.time() + expire)
     ts_byte = ts_str.encode("utf-8")
-    sha1_tshex_str = hmac.new(key.encode("utf-8"), ts_byte, "sha1").hexdigest()
-    token = ts_str + ":" + sha1_tshex_str
+    sha256_tshex_str = hmac.new(key.encode("utf-8"), ts_byte, "sha256").hexdigest()
+    token = ts_str + ":" + sha256_tshex_str
     b64_token = base64.urlsafe_b64encode(token.encode("utf-8"))
 
     return b64_token.decode("utf-8")

@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from blueapps.account.decorators import login_exempt
 from django.apps import apps
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from django.views.i18n import JavaScriptCatalog
 from version_log import config as version_log_config
 
@@ -25,25 +25,25 @@ javascript_catalog = JavaScriptCatalog.as_view(
 
 
 urlpatterns = [
-    url(r"^$", views.home),
-    url(r"^logout$", views.user_exit),
-    url(r"^core/api/change_default_project/(?P<project_id>\d+)/$", api.change_default_project),
-    url(r"^core/api/get_roles_and_personnel/(?P<biz_cc_id>\d+)/$", api.get_roles_and_personnel),
-    url(r"^core/api/get_basic_info/$", api.get_basic_info),
-    url(r"^core/footer/$", api.get_footer),
-    url(r"^core/footer_info/$", api.get_footer_info),
-    url(r"^core/api/get_user_list/$", api.get_user_list),
-    url(r"^core/api/get_msg_types/$", api.get_msg_types),
-    url(r"^core/healthz", api.healthz),
-    url(r"^core/api/check_variable_key", api.check_variable_key),
+    re_path(r"^$", views.home),
+    re_path(r"^logout$", views.user_exit),
+    re_path(r"^core/api/change_default_project/(?P<project_id>\d+)/$", api.change_default_project),
+    re_path(r"^core/api/get_roles_and_personnel/(?P<biz_cc_id>\d+)/$", api.get_roles_and_personnel),
+    re_path(r"^core/api/get_basic_info/$", api.get_basic_info),
+    re_path(r"^core/footer/$", api.get_footer),
+    re_path(r"^core/footer_info/$", api.get_footer_info),
+    re_path(r"^core/api/get_user_list/$", api.get_user_list),
+    re_path(r"^core/api/get_msg_types/$", api.get_msg_types),
+    re_path(r"^core/healthz", api.healthz),
+    re_path(r"^core/api/check_variable_key", api.check_variable_key),
     # i18n
-    url(r"^jsi18n/gcloud/$", javascript_catalog),
+    re_path(r"^jsi18n/gcloud/$", javascript_catalog),
     # version log
-    url(r"^{}".format(version_log_config.ENTRANCE_URL), include("version_log.urls")),
+    re_path(r"^{}".format(version_log_config.ENTRANCE_URL), include("version_log.urls")),
     # iam resource api
-    url(r"^iam/resource/api/v1/$", dispatcher.as_view([login_exempt])),
+    re_path(r"^iam/resource/api/v1/$", dispatcher.as_view([login_exempt])),
     # iam api
-    url(r"^iam/api/", include("gcloud.iam_auth.urls")),
+    re_path(r"^iam/api/", include("gcloud.iam_auth.urls")),
     # django prom
-    url(r"^metrics/$", views.metrics),
+    re_path(r"^metrics/$", views.metrics),
 ]

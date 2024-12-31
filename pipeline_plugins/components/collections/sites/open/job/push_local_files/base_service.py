@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import traceback
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
@@ -41,10 +41,16 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("目标IP"), key="job_target_ip_list", type="string", schema=StringItemSchema(description=_("目标IP"))
+                name=_("目标IP"),
+                key="job_target_ip_list",
+                type="string",
+                schema=StringItemSchema(description=_("目标IP")),
             ),
             self.InputItem(
-                name=_("执行账号"), key="job_target_account", type="string", schema=StringItemSchema(description=_("执行账号"))
+                name=_("执行账号"),
+                key="job_target_account",
+                type="string",
+                schema=StringItemSchema(description=_("执行账号")),
             ),
             self.InputItem(
                 name=_("本地文件信息"),
@@ -67,7 +73,8 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
                                                     description=_("tag"),
                                                     property_schemas={
                                                         "type": StringItemSchema(
-                                                            description=_("文件类型"), enum=["upload_module", "host_nfs"]
+                                                            description=_("文件类型"),
+                                                            enum=["upload_module", "host_nfs"],
                                                         ),
                                                         "tags": ObjectItemSchema(
                                                             description=_(
@@ -110,7 +117,10 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("上传请求成功数")),
             ),
             self.OutputItem(
-                name=_("上传成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
+                name=_("上传成功数"),
+                key="success_count",
+                type="string",
+                schema=StringItemSchema(description=_("上传成功数")),
             ),
             self.OutputItem(
                 name=_("任务id"),

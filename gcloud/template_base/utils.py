@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import ujson as json
 from django.apps import apps
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.constants import PE
 
 from gcloud import err_code

@@ -11,16 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
-from collections import Iterable
-
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.pagination import LimitOffsetPagination
+from collections.abc import Iterable
 
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
+
+from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
 from gcloud.iam_auth import get_iam_client
-from gcloud.core.apis.drf.viewsets import IAMMixin, ApiMixin
 
 iam = get_iam_client()
 iam_logger = logging.getLogger("iam")

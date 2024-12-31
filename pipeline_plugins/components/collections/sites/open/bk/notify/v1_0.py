@@ -15,18 +15,16 @@ import logging
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, BooleanItemSchema, IntItemSchema
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, IntItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
-from gcloud.utils.handlers import handle_api_error
-from gcloud.utils.cmdb import get_notify_receivers
 from gcloud.core.roles import CC_V2_ROLE_MAP
-
+from gcloud.utils.cmdb import get_notify_receivers
+from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -49,7 +47,8 @@ class NotifyService(Service):
                 key="bk_notify_type",
                 type="array",
                 schema=ArrayItemSchema(
-                    description=_("需要使用的通知方式，从 API 网关自动获取已实现的通知渠道"), item_schema=StringItemSchema(description=_("通知方式"))
+                    description=_("需要使用的通知方式，从 API 网关自动获取已实现的通知渠道"),
+                    item_schema=StringItemSchema(description=_("通知方式")),
                 ),
             ),
             self.InputItem(
@@ -69,7 +68,8 @@ class NotifyService(Service):
                 type="array",
                 required=False,
                 schema=ArrayItemSchema(
-                    description=_("需要进行通知的项目人员分组ID列表"), item_schema=IntItemSchema(description=_("项目人员分组ID"))
+                    description=_("需要进行通知的项目人员分组ID列表"),
+                    item_schema=IntItemSchema(description=_("项目人员分组ID")),
                 ),
             ),
             self.InputItem(
@@ -79,13 +79,22 @@ class NotifyService(Service):
                 schema=StringItemSchema(description=_("除了通知分组外需要额外通知的人员，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("通知标题"), key="bk_notify_title", type="string", schema=StringItemSchema(description=_("通知的标题"))
+                name=_("通知标题"),
+                key="bk_notify_title",
+                type="string",
+                schema=StringItemSchema(description=_("通知的标题")),
             ),
             self.InputItem(
-                name=_("通知内容"), key="bk_notify_content", type="string", schema=StringItemSchema(description=_("通知的内容"))
+                name=_("通知内容"),
+                key="bk_notify_content",
+                type="string",
+                schema=StringItemSchema(description=_("通知的内容")),
             ),
             self.InputItem(
-                name=_("通知执行人"), key="notify", type="boolean", schema=BooleanItemSchema(description=_("通知执行人名字"))
+                name=_("通知执行人"),
+                key="notify",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("通知执行人名字")),
             ),
         ]
 

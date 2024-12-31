@@ -107,7 +107,7 @@ Write plugin background logic in `plugin.py`. It mainly includes standard plugin
 
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component

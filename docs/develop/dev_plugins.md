@@ -107,7 +107,7 @@ python manage.py create_new_plugin cc create_set v1.0 open pipeline_plugins site
 
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component

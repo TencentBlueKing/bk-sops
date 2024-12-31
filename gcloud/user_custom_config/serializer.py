@@ -15,8 +15,8 @@ specific language governing permissions and limitations under the License.
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from gcloud.user_custom_config.models import UserCustomProjectConfig
 from gcloud.user_custom_config.constants import UserConfOption
+from gcloud.user_custom_config.models import UserCustomProjectConfig
 
 
 class UserCustomProjectConfigSerializer(serializers.ModelSerializer):
@@ -36,7 +36,7 @@ class UserCustomProjectConfigOptionsSerializer(serializers.Serializer):
     project_id = serializers.CharField(help_text="项目ID", required=True)
 
     def is_valid(self, raise_exception=False):
-        super().is_valid(raise_exception)
+        super().is_valid(raise_exception=raise_exception)
         configs = self.data["configs"].split(",")
         for key in configs:
             if key not in UserConfOption.keys():

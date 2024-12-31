@@ -15,10 +15,9 @@ import logging
 
 import ujson as json
 from django.http import JsonResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from gcloud.conf import settings
-
 from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
 from pipeline_plugins.base.utils.inject import supplier_account_inject
 

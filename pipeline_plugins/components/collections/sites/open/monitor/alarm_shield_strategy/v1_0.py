@@ -12,14 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import StringItemSchema
 
 from api import BKMonitorClient
 from gcloud.conf import settings
-
-from pipeline.core.flow.io import StringItemSchema
-from pipeline.component_framework.component import Component
-
 from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
 
 __group_name__ = _("监控平台(Monitor)")

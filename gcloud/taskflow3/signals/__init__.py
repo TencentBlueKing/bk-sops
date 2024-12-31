@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.dispatch import Signal
 
-pre_taskflow_start = Signal(providing_args=["task_id", "executor"])
-taskflow_started = Signal(providing_args=["task_id"])
-taskflow_finished = Signal(providing_args=["task_id"])
-taskflow_revoked = Signal(providing_args=["task_id"])
+pre_taskflow_start = Signal()  # providing_args=["task_id", "executor"]
+taskflow_started = Signal()  # providing_args=["task_id"]
+taskflow_finished = Signal()  # providing_args=["task_id"]
+taskflow_revoked = Signal()  # providing_args=["task_id"]

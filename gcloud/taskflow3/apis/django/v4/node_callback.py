@@ -15,18 +15,17 @@ import logging
 import time
 import traceback
 
+from blueapps.account.decorators import login_exempt
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.http import JsonResponse
-from cryptography.fernet import Fernet
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
-
 import env
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
-from django.utils.translation import ugettext_lazy as _
+from gcloud.taskflow3.models import TaskFlowInstance
 
 logger = logging.getLogger("root")
 
@@ -62,7 +61,9 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        message = _(f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | node_callback")
+        message = _(
+            f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | node_callback"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "message": message}, status=400)
 

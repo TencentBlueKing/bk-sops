@@ -12,32 +12,28 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+from django.utils.translation import gettext_lazy as _
 
-from django.utils.translation import ugettext_lazy as _
-
+from gcloud.external_plugins.models import FAILED, SyncTask
 from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
-from gcloud.external_plugins.models import SyncTask, FAILED
 
 
 class TestSyncTaskModel(TestCase):
     def setUp(self):
         with patch(GCLOUD_EXTERNAL_PLUGINS_SYNC_TASK_DELAY, MagicMock()):
-            self.sync_task = SyncTask.objects.create(
-                creator='user1',
-                create_method='manual'
-            )
+            self.sync_task = SyncTask.objects.create(creator="user1", create_method="manual")
 
     def tearDown(self):
         SyncTask.objects.all().delete()
 
     def test_creator_name(self):
-        self.assertEqual(self.sync_task.creator_name, 'user1')
+        self.assertEqual(self.sync_task.creator_name, "user1")
 
     def test_status_display(self):
         self.assertEqual(self.sync_task.status_display, _("执行中"))
 
     def test_finish_task(self):
-        self.sync_task.finish_task(status=FAILED, details='error')
+        self.sync_task.finish_task(status=FAILED, details="error")
         self.assertEqual(self.sync_task.status, FAILED)
-        self.assertEqual(self.sync_task.details, 'error')
+        self.assertEqual(self.sync_task.details, "error")

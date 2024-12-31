@@ -15,7 +15,7 @@ import logging
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSchema
@@ -111,4 +111,7 @@ class CCTransferHostModuleComponent(Component):
     code = "cc_transfer_host_module"
     bound_service = CCTransferHostModuleService
     form = "%scomponents/atoms/cc/cc_transfer_host_module.js" % settings.STATIC_URL
-    desc = _("注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n" "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块")
+    desc = _(
+        "注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
+        "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
+    )

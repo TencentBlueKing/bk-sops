@@ -10,22 +10,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import os
-import uuid
 import logging
+import os
 import traceback
+import uuid
 
 import pytz
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+from django.db.models import ObjectDoesNotExist
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
-from django.db.models import ObjectDoesNotExist
+from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
-from gcloud.core.models import Project
 from gcloud.core.logging import local
-from django.utils.translation import ugettext_lazy as _
+from gcloud.core.models import Project
 
 logger = logging.getLogger("root")
 

@@ -11,16 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from cachetools import cached, TTLCache
+from cachetools import TTLCache, cached
 from cachetools.keys import hashkey
-
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.models import ComponentModel
 
-from plugin_service.plugin_client import PluginServiceApiClient
-from plugin_service import env
 from gcloud.analysis_statistics.models import TemplateNodeStatistics
+from plugin_service import env
+from plugin_service.plugin_client import PluginServiceApiClient
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=hashkey)

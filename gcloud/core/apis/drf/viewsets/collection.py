@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework import mixins, permissions, status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.response import Response

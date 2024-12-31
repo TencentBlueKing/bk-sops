@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import traceback
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
 from files.factory import ManagerFactory
@@ -107,4 +107,6 @@ class JobPushLocalFilesComponent(Component):
     bound_service = JobPushLocalFilesService
     form = "%scomponents/atoms/job/job_push_local_files/v1_0_0.js" % settings.STATIC_URL
     version = "1.0.0"
-    desc = _("本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。")
+    desc = _(
+        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
+    )

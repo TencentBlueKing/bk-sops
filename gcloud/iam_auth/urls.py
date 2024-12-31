@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from gcloud.iam_auth import api
 
 urlpatterns = [
-    url(r"^meta/$", api.meta_info),
-    url(r"^apply_perms_url/$", api.apply_perms_url),
-    url(r"^is_allow/$", api.is_allow),
-    url(r"^is_allow/common_flow_management/$", api.is_allow_common_flow_management),
+    re_path(r"^meta/$", api.meta_info),
+    re_path(r"^apply_perms_url/$", api.apply_perms_url),
+    re_path(r"^is_allow/$", api.is_allow),
+    re_path(r"^is_allow/common_flow_management/$", api.is_allow_common_flow_management),
 ]

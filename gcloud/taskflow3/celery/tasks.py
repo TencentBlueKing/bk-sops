@@ -9,6 +9,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import json
 import logging
 import socket
@@ -17,7 +18,7 @@ import time
 from celery import current_app
 from django.conf import settings
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.engine.models import PipelineProcess
 from pipeline.eri.models import Process, State
 from pipeline.eri.runtime import BambooDjangoRuntime

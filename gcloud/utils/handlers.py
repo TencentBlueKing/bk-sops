@@ -16,8 +16,7 @@ import traceback
 
 import ujson as json
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 
 from gcloud.iam_auth import get_iam_client

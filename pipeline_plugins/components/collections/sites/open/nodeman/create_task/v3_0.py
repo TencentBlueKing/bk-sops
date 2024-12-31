@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import itertools
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
 from api.collections.nodeman import BKNodeManClient
@@ -155,7 +155,9 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
+                            data.set_outputs(
+                                "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip))
+                            )
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -168,7 +170,10 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                             if len(others_ip_list) == len(inner_ip_list):
                                 one[ip_type] = others_ip_list[index]
                             else:
-                                data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
+                                data.set_outputs(
+                                    "ex_data",
+                                    _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)),
+                                )
                                 return False
                     one.update(base_params)
                     row_host_params_list.append(one)

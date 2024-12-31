@@ -32,7 +32,7 @@ import base64
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
@@ -79,7 +79,9 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                 key="job_script_type",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"),
+                    description=_(
+                        "待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"
+                    ),
                     enum=["1", "2", "3", "4", "5"],
                 ),
             ),

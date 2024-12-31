@@ -16,7 +16,7 @@ from typing import Union
 
 from dateutil import tz
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import AbstractIntervalGenerator, Service
 from pipeline.core.flow.io import StringItemSchema
@@ -105,7 +105,9 @@ class RemotePluginService(Service):
 
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
         if not ok:
-            message = _(f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}")
+            message = _(
+                f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}"
+            )
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False

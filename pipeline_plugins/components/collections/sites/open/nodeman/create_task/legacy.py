@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import base64
 
 import rsa
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
@@ -189,20 +189,32 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"),
+                key="job_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"),
+                key="success_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"),
+                key="fail_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="biz_cc_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("管控区域 ID"),
@@ -215,7 +227,10 @@ class NodemanCreateTaskService(Service):
                 key="nodeman_node_type",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("节点类型，可以是 AGENT（表示直连区域安装 Agent）、 " "PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）")
+                    description=_(
+                        "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 "
+                        "PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
+                    )
                 ),
             ),
             self.InputItem(
@@ -224,7 +239,8 @@ class NodemanCreateTaskService(Service):
                 type="string",
                 schema=StringItemSchema(
                     description=_(
-                        "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
+                        "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、"
+                        " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
                     )
                 ),
             ),
@@ -243,12 +259,16 @@ class NodemanCreateTaskService(Service):
                             "cascade_ip": StringItemSchema(description=_("级联 IP, 可以为空，安装 PROXY 时必填")),
                             "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
                             "has_cygwin": StringItemSchema(
-                                description=_("是否安装了 cygwin，True：表示已安装，" "False：表示未安装, windows 操作系统时选填")
+                                description=_(
+                                    "是否安装了 cygwin，True：表示已安装，" "False：表示未安装, windows 操作系统时选填"
+                                )
                             ),
                             "port": StringItemSchema(description=_("端口号")),
                             "account": StringItemSchema(description=_("登录帐号")),
                             "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
-                            "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
+                            "auth_key": StringItemSchema(
+                                description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
+                            ),
                         },
                     ),
                 ),

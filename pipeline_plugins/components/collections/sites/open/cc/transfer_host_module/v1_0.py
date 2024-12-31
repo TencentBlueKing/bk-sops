@@ -14,7 +14,7 @@ import logging
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSchema
@@ -52,7 +52,9 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
                 name=_("填参方式"),
                 key="cc_module_select_method",
                 type="string",
-                schema=StringItemSchema(description=_("模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
+                schema=StringItemSchema(
+                    description=_("模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]
+                ),
             ),
             self.InputItem(
                 name=_("主机内网 IP"),
@@ -72,7 +74,9 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
                 name=_("文本路径-模块"),
                 key="cc_module_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔")),
+                schema=StringItemSchema(
+                    description=_("请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔")
+                ),
             ),
             self.InputItem(
                 name=_("转移方式"),

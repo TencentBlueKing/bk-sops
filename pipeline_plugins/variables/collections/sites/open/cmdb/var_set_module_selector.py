@@ -14,15 +14,15 @@ specific language governing permissions and limitations under the License.
 import logging
 from typing import List
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
-from gcloud.exceptions import ApiRequestError
 from gcloud.constants import Type
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
