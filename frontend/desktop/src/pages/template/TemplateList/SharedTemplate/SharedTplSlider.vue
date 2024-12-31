@@ -69,31 +69,11 @@
                     </p>
                 </bk-form-item>
                 <bk-form-item :label="$t('场景分类')" property="category" :required="true" :rules="rules.required">
-                    <bk-select
-                        :disabled="formData.type === 'update'"
-                        v-model="formData.category"
+                    <SharedCategorySelect
                         :loading="marketLoading"
-                        :show-empty="!categoryList.length">
-                        <div
-                            slot="trigger"
-                            class="bk-select-name category-select"
-                            :data-placeholder="categorySelectPath ? '' : $t('请选择场景分类')">
-                            {{ categorySelectPath }}
-                            <i class="bk-select-angle bk-icon icon-angle-down"></i>
-                        </div>
-                        <bk-big-tree
-                            ref="categoryTree"
-                            :data="categoryList"
-                            :selectable="true"
-                            :show-link-line="false"
-                            :show-icon="false"
-                            :options="{
-                                idKey: 'code_path'
-                            }"
-                            :before-select="(node) => !node.children.length"
-                            @select-change="onCategorySelect">
-                        </bk-big-tree>
-                    </bk-select>
+                        :category-list="categoryList"
+                        :form-data="formData">
+                    </SharedCategorySelect>
                 </bk-form-item>
                 <bk-form-item :label="$t('标签')" :desc="$t('场景使用者通过标签可以快速找到同一类场景')">
                     <SharedTagSelect
@@ -133,10 +113,12 @@
     import tools from '@/utils/tools.js'
     import { mapActions, mapState } from 'vuex'
     import SharedTagSelect from './SharedTagSelect.vue'
+    import SharedCategorySelect from './SharedCategorySelect.vue'
     import MarkdownEditor from './markdownEditor/editor.vue'
     export default {
         components: {
             SharedTagSelect,
+            SharedCategorySelect,
             MarkdownEditor
         },
         props: {
@@ -204,10 +186,7 @@
             ...mapState({
                 'infoBasicConfig': state => state.infoBasicConfig,
                 'username': state => state.username
-            }),
-            categorySelectPath () {
-                return this.findPathByCodePath(this.categoryList, this.formData.category)
-            }
+            })
         },
         watch: {
             isShow (val) {
@@ -297,35 +276,6 @@
                     risk_level: String(riskLevel),
                     usage_content: { content }
                 })
-            },
-            onCategorySelect (node) {
-                this.formData.category = node.id
-            },
-            findPathByCodePath (categoryList, targetCodePath) {
-                const traverse = (node, path) => {
-                    const currentPath = [...path, node.name]
-                    if (node.code_path === targetCodePath) {
-                        return currentPath
-                    }
-
-                    for (const child of node.children || []) {
-                        const result = traverse(child, currentPath)
-                        if (result) {
-                            return result
-                        }
-                    }
-
-                    return null
-                }
-
-                for (const rootNode of categoryList) {
-                    const result = traverse(rootNode, [])
-                    if (result) {
-                        return result.join('/')
-                    }
-                }
-
-                return null
             },
             onSave () {
                 this.$refs.formRef.validate().then(async result => {
@@ -471,11 +421,6 @@
                         font-size: 14px;
                     }
                 }
-            }
-            .category-select::before {
-                position: absolute;
-                content: attr(data-placeholder);
-                color: #c4c6cc;
             }
             .editor-container {
                 flex: 1;
