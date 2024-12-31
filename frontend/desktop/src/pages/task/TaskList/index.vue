@@ -165,18 +165,21 @@
                                 </NoData>
                             </div>
                         </bk-table>
-                        <bk-pagination
+                        <div
+                            v-if="countLoading || listLoading || pagination.count"
                             class="bk-table-pagination-wrapper"
-                            v-bkloading="{ isLoading: countLoading || listLoading, zIndex: 100 }"
-                            size="small"
-                            v-bind="pagination"
-                            :location="'left'"
-                            :align="'right'"
-                            :show-limit="true"
-                            :show-total-count="true"
-                            @change="onPageChange"
-                            @limit-change="onPageLimitChange">
-                        </bk-pagination>
+                            v-bkloading="{ isLoading: countLoading || listLoading, zIndex: 100 }">
+                            <bk-pagination
+                                size="small"
+                                v-bind="pagination"
+                                :location="'left'"
+                                :align="'right'"
+                                :show-limit="true"
+                                :show-total-count="true"
+                                @change="onPageChange"
+                                @limit-change="onPageLimitChange">
+                            </bk-pagination>
+                        </div>
                     </div>
                 </div>
             </skeleton>
@@ -1223,6 +1226,10 @@
     /deep/ .cell .task-id {
         margin-left: 16px;
     }
+}
+.bk-table-pagination-wrapper {
+    height: 64px;
+    border: 1px solid #dfe0e5;
 }
 </style>
 <style lang="scss">
