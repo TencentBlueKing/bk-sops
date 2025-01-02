@@ -23,7 +23,10 @@ class CopyTemplateAcrossProjectValidator(ObjectJsonBodyValidator):
             return valid, err
 
         data = json.loads(request.body)
-        if not data.get("new_project_id") or not data.get("template_id"):
-            return False, "new_project_id and template_id are required"
+        if not data.get("new_project_id") or not data.get("template_ids"):
+            return False, "new_project_id and template_ids are required"
+
+        if data.get("new_project_id") == request.project.id:
+            return False, "无法导入流程到到同一个项目"
 
         return True, ""

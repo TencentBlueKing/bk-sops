@@ -29,12 +29,16 @@ class CopyTemplateInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         data = json.loads(request.body)
         new_project_id = data.get("new_project_id")
-        template_id = data.get("template_id")
+        template_ids = data.get("template_ids")
         subject = Subject("user", request.user.username)
 
-        record = TemplateSharedRecord.objects.filter(project_id=request.project.id, template_id=template_id).first()
-        if record is None:
-            error_message = f"Unable to find template {template_id} in project {request.project.id}."
+        existing_records = TemplateSharedRecord.objects.filter(
+            project_id=request.project.id, template_id__in=template_ids
+        ).values_list("template_id", flat=True)
+
+        missing_template_ids = set(template_ids) - set(existing_records)
+        if missing_template_ids:
+            error_message = f"The following templates are not shared {missing_template_ids}"
             logging.error(error_message)
             raise ValueError(error_message)
 

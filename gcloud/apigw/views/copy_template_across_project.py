@@ -51,10 +51,10 @@ def copy_template_across_project(request, project_id):
 
     params_data = json.loads(request.body)
     new_project_id = params_data["new_project_id"]
-    template_id = params_data["template_id"]
+    template_ids = params_data["template_ids"]
 
     try:
-        export_data = TaskTemplate.objects.export_templates([template_id], is_full=False, project_id=request.project.id)
+        export_data = TaskTemplate.objects.export_templates(template_ids, is_full=False, project_id=request.project.id)
         import_result = TaskTemplate.objects.import_templates(
             template_data=export_data,
             override=False,
