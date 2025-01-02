@@ -31,6 +31,8 @@ from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.view_interceptors.apigw import CopyTemplateInterceptor
 from gcloud.apigw.validators.copy_template_across_project import CopyTemplateAcrossProjectValidator
 
+TEMPLATE_COPY_MAX_NUMBER = 10
+
 
 @login_exempt
 @csrf_exempt
@@ -51,10 +53,16 @@ def copy_template_across_project(request, project_id):
 
     params_data = json.loads(request.body)
     new_project_id = params_data["new_project_id"]
-    template_id = params_data["template_id"]
+    template_ids = params_data["template_ids"]
 
     try:
-        export_data = TaskTemplate.objects.export_templates([template_id], is_full=False, project_id=request.project.id)
+        export_data = TaskTemplate.objects.export_templates(template_ids, is_full=False, project_id=request.project.id)
+        if len(export_data["template"]) > TEMPLATE_COPY_MAX_NUMBER:
+            return {
+                "result": False,
+                "message": "only {} templates can be copied once.".format(TEMPLATE_COPY_MAX_NUMBER),
+                "code": err_code.INVALID_OPERATION.code,
+            }
         import_result = TaskTemplate.objects.import_templates(
             template_data=export_data,
             override=False,
