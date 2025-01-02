@@ -46,8 +46,6 @@ def clean_expired_v2_task_data():
         qs = TaskFlowInstance.objects.filter(
             pipeline_instance__create_time__lt=expire_time,
             engine_ver=2,
-            pipeline_instance__is_finished=True,
-            pipeline_instance__is_revoked=False,
             pipeline_instance__is_expired=False,
             create_method__in=settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS,
         )
