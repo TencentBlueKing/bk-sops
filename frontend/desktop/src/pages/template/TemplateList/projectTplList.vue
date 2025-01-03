@@ -1723,6 +1723,7 @@
     min-width: 88px;
     text-align: center;
     font-size: 14px;
+    color: #63656e;
     background: #ffffff;
     border: 1px solid #c4c6cc;
     border-radius: 3px;

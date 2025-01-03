@@ -1846,6 +1846,7 @@ const en = {
     '场景名称': 'Scene Name',
     '场景标识': 'Scene Identifier',
     '场景分类': 'Scene Category',
+    '场景标签': 'Scene Labels',
     '风险级别': 'Risk Level',
     '使用说明': 'Instructions',
     '高': 'High',
