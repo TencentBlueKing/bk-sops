@@ -100,6 +100,7 @@
                         :placeholder="$t('请选择')"
                         :clearable="true"
                         :is-loading="schemeLoading"
+                        :key="schemeLoading"
                         @selected="onSelectScheme">
                         <bk-option
                             v-for="(option, index) in schemeList"
