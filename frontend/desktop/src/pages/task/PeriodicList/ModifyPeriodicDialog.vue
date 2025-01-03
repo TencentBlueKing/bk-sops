@@ -308,6 +308,7 @@
                 selectedNodes: [],
                 notifyType: [[]],
                 receiverGroup: [],
+                hasNoCreatePerm: true,
                 saveLoading: false,
                 periodicRule: {
                     required: true,
@@ -367,6 +368,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'permissionMeta': state => state.permissionMeta
+            }),
             ...mapState('project', {
                 'projectName': state => state.projectName
             }),
@@ -411,14 +415,6 @@
                 const nodes = Object.values(activities).map(item => item.name)
                 return nodes.join(',')
             },
-            hasNoCreatePerm () {
-                const { id, auth_actions } = this.templateData
-
-                if (this.isEdit || !id) {
-                    return false
-                }
-                return !auth_actions.includes(this.flowPermission.create)
-            },
             schemeSelectPlaceholder () {
                 return this.formData.template_id && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
             },
@@ -434,6 +430,7 @@
             this.initFormData = tools.deepClone(this.formData)
 
             if (this.isEdit) {
+                this.hasNoCreatePerm = false
                 this.periodicConstants = tools.deepClone(this.constants)
                 const id = this.curRow.template_id
                 this.getTemplateDate(id)
@@ -444,6 +441,9 @@
             this.onTplSearch = tools.debounce(this.handleTplSearch, 500)
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('templateList', [
                 'loadTemplateList'
             ]),
@@ -589,6 +589,7 @@
                 this.formData.name = templateInfo ? templateInfo.name + '_' + i18n.t('周期执行') : ''
                 this.formData.schemeId = []
                 this.getTemplateDate(id)
+                this.queryCreatePeriodicTaskPerm(id)
             },
             async getTemplateScheme () {
                 this.schemeLoading = true
@@ -784,6 +785,37 @@
                     console.warn(error)
                 } finally {
                     this.updateLoading = false
+                }
+            },
+            async queryCreatePeriodicTaskPerm (templateId) {
+                try {
+                    if (!this.isCommon) {
+                        const { auth_actions } = this.templateData
+                        this.hasNoCreatePerm = !auth_actions.includes(this.flowPermission.create)
+                        return
+                    }
+                    const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                    const data = {
+                        action: this.flowPermission.create,
+                        resources: [
+                            {
+                                system: bkSops.id,
+                                type: 'project',
+                                id: this.project_id,
+                                attributes: {}
+                            },
+                            {
+                                system: bkSops.id,
+                                type: 'common_flow',
+                                id: templateId,
+                                attributes: {}
+                            }
+                        ]
+                    }
+                    const res = await this.queryUserPermission(data)
+                    this.hasNoCreatePerm = !res.data.is_allow
+                } catch (e) {
+                    console.log(e)
                 }
             },
             onCancelSave () {
