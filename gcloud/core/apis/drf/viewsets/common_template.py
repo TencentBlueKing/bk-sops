@@ -56,7 +56,6 @@ class CommonTemplatePermission(IamPermission):
         "list": IamPermissionInfo(pass_all=True),
         "list_for_periodic_task": IamPermissionInfo(pass_all=True),
         "list_with_top_collection": IamPermissionInfo(pass_all=True),
-        "retrieve_for_periodic_task": IamPermissionInfo(pass_all=True),
         "retrieve": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
@@ -104,23 +103,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     ordering = ["-id"]
 
     def get_serializer_class(self):
-        if self.action in ["list", "list_with_top_collection", "list_for_periodic_task", "retrieve_for_periodic_task"]:
+        if self.action in ["list", "list_with_top_collection", "list_for_periodic_task"]:
             return CommonTemplateListSerializer
         return CommonTemplateSerializer
-
-    @action(methods=["GET"], detail=False)
-    def retrieve_for_periodic_task(self, request, *args, **kwargs):
-        template_id = int(request.query_params.get("template_id"))
-        queryset = self.get_queryset().get(id=template_id)
-        serializer = self.get_serializer(queryset)
-        # 注入权限
-        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
-        # 注入公共流程新建周期任务权限
-        create_periodic_task_action = Action(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION)
-        templates = self._inject_project_based_task_create_action(request, [data["id"]], create_periodic_task_action)
-        if data["id"] in templates:
-            data["auth_actions"].append(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION)
-        return Response(data)
 
     @swagger_auto_schema(method="GET", operation_summary="带有创建周期任务权限指定的流程列表")
     @action(methods=["GET"], detail=False)
@@ -219,7 +204,16 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
             instance=instance,
         )
-        return super().retrieve(request, *args, **kwargs)
+        result_data = super().retrieve(request, *args, **kwargs)
+        # 注入公共流程新建周期任务权限
+        create_periodic_task_action = Action(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION)
+        templates = self._inject_project_based_task_create_action(
+            request, [result_data.data["id"]], create_periodic_task_action
+        )
+        if result_data.data["id"] in templates:
+            result_data.data["auth_actions"].append(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION)
+
+        return Response(result_data.data)
 
     def create(self, request, *args, **kwargs):
         serializer = CreateCommonTemplateSerializer(data=request.data, context={"request": request})
