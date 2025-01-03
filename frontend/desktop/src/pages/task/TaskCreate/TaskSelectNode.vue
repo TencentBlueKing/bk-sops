@@ -40,7 +40,6 @@
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <component
-                v-if="!templateLoading"
                 :is="schemeTemplate"
                 ref="taskScheme"
                 :project_id="project_id"

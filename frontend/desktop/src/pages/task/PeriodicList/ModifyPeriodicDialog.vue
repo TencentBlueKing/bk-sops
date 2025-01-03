@@ -96,12 +96,12 @@
                                 <bk-option
                                     v-for="option in templateList"
                                     :key="option.id"
-                                    :disabled="hasNoPermission.view"
+                                    :disabled="!hasPermission([flowPermission.view], option.auth_actions)"
                                     :id="option.id"
                                     :name="option.name">
                                     <p
                                         :title="option.name"
-                                        v-cursor="{ active: hasNoPermission.view }"
+                                        v-cursor="{ active: !hasPermission([flowPermission.view], option.auth_actions) }"
                                         @click="onTempSelect([flowPermission.view], option)">
                                         {{ option.name }}
                                     </p>
@@ -219,8 +219,8 @@
                         :loading="saveLoading"
                         :disabled="isLoading || previewDataLoading"
                         data-test-id="periodicEdit_form_saveBtn"
-                        :class="{ 'btn-permission-disable': hasNoPermission.create }"
-                        v-cursor="{ active: hasNoPermission.create }"
+                        :class="{ 'btn-permission-disable': hasNoCreatePerm }"
+                        v-cursor="{ active: hasNoCreatePerm }"
                         @click="onPeriodicConfirm">
                         {{ isEdit ? $t('保存') : $t('提交') }}
                     </bk-button>
@@ -411,17 +411,13 @@
                 const nodes = Object.values(activities).map(item => item.name)
                 return nodes.join(',')
             },
-            hasNoPermission () {
+            hasNoCreatePerm () {
                 const { id, auth_actions } = this.templateData
 
                 if (this.isEdit || !id) {
-                    return { view: false, create: false }
+                    return false
                 }
-
-                return {
-                    view: !auth_actions.includes(this.flowPermission.view),
-                    create: !auth_actions.includes(this.flowPermission.create)
-                }
+                return !auth_actions.includes(this.flowPermission.create)
             },
             schemeSelectPlaceholder () {
                 return this.formData.template_id && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
@@ -500,7 +496,7 @@
                 }
             },
             onTempSelect (applyPerm = [], selectInfo) {
-                if (this.hasNoPermission.view) {
+                if (!this.hasPermission(applyPerm, selectInfo.auth_actions)) {
                     const permissionData = {
                         project: [{
                             id: this.project_id,
@@ -528,12 +524,14 @@
             onClearTemplate () {
                 this.formData.schemeId = []
                 this.schemeList = []
+                this.templateData = {}
                 this.periodicConstants = {}
             },
             onFlowTypeChange () {
                 this.templateLoading = true
                 this.formData.template_id = ''
                 this.formData.name = ''
+                this.formData.task_template_name = ''
                 this.onClearTemplate()
                 this.handleTplSearch()
             },
@@ -793,7 +791,7 @@
             },
             // 周期任务保存
             onPeriodicConfirm () {
-                if (this.hasNoPermission.create) {
+                if (this.hasNoCreatePerm) {
                     const { id, name, auth_actions } = this.templateData
                     const resourceData = {
                         [this.isCommon ? 'common_flow' : 'flow']: [{ id, name }],

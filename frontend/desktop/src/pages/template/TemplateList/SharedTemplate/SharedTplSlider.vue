@@ -75,7 +75,7 @@
                         :form-data="formData">
                     </SharedCategorySelect>
                 </bk-form-item>
-                <bk-form-item :label="$t('标签')" :desc="$t('场景使用者通过标签可以快速找到同一类场景')">
+                <bk-form-item :label="$t('场景标签')" :desc="$t('场景使用者通过标签可以快速找到同一类场景')">
                     <SharedTagSelect
                         v-model="formData.labels"
                         :loading="marketLoading"
@@ -271,9 +271,8 @@
             },
             onSceneNameSelect (val) {
                 const selectInfo = this.recordList.find(item => item.id === val) || {}
-                const { risk_level: riskLevel, usage_content: content } = selectInfo
+                const { usage_content: content } = selectInfo
                 Object.assign(this.formData, selectInfo, {
-                    risk_level: String(riskLevel),
                     usage_content: { content }
                 })
             },
