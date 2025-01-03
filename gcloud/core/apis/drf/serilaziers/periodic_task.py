@@ -174,6 +174,7 @@ class CronFieldSerializer(serializers.Serializer):
 
 
 class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
     project = serializers.IntegerField(write_only=True)
     template_source = serializers.CharField(required=False, default=PROJECT)
     pipeline_tree = ReadWriteSerializerMethodField()
@@ -219,7 +220,16 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
 
     class Meta:
         model = PeriodicTask
-        fields = ["project", "cron", "name", "template_id", "pipeline_tree", "template_source", "template_scheme_ids"]
+        fields = [
+            "id",
+            "project",
+            "cron",
+            "name",
+            "template_id",
+            "pipeline_tree",
+            "template_source",
+            "template_scheme_ids",
+        ]
 
 
 class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Serializer):
