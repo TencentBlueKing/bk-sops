@@ -219,7 +219,15 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
 
     class Meta:
         model = PeriodicTask
-        fields = ["project", "cron", "name", "template_id", "pipeline_tree", "template_source", "template_scheme_ids"]
+        fields = [
+            "project",
+            "cron",
+            "name",
+            "template_id",
+            "pipeline_tree",
+            "template_source",
+            "template_scheme_ids",
+        ]
 
 
 class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Serializer):

@@ -21,6 +21,7 @@ from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
 from gcloud.contrib.template_market.models import TemplateSharedRecord
+from gcloud.tasktmpl3.models import TaskTemplate
 
 iam = get_iam_client()
 
@@ -36,9 +37,18 @@ class CopyTemplateInterceptor(ViewInterceptor):
             project_id=request.project.id, template_id__in=template_ids
         ).values_list("template_id", flat=True)
 
-        missing_template_ids = set(template_ids) - set(existing_records)
+        missing_template_records_ids = set(template_ids) - set(existing_records)
+        if missing_template_records_ids:
+            error_message = f"The following templates are not shared {missing_template_records_ids}"
+            logging.error(error_message)
+            raise ValueError(error_message)
+
+        existing_templates = TaskTemplate.objects.filter(
+            project_id=request.project.id, id__in=template_ids, is_deleted=False
+        ).values_list("id", flat=True)
+        missing_template_ids = set(template_ids) - set(existing_templates)
         if missing_template_ids:
-            error_message = f"The following templates are not shared {missing_template_ids}"
+            error_message = f"The following templates already not exist {missing_template_ids}"
             logging.error(error_message)
             raise ValueError(error_message)
 

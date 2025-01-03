@@ -68,11 +68,17 @@ class TemplateSceneViewSet(viewsets.ViewSet):
     market_client = MarketAPIClient
 
     def _build_template_data(self, serializer, **kwargs):
+        template_ids = serializer.validated_data["templates"]
+
         templates = TaskTemplate.objects.filter(
-            id__in=serializer.validated_data["templates"],
+            id__in=template_ids,
             project_id=serializer.validated_data["project_code"],
             is_deleted=False,
         )
+        if templates.count() != len(template_ids):
+            missing_ids = set(template_ids) - {template.id for template in templates}
+            raise ValueError(f"Templates with IDs {missing_ids} are missing or deleted.")
+
         template_info = [{"id": template.id, "name": template.name} for template in templates]
         serializer.validated_data["templates"] = template_info
         data = {"source_system": settings.APP_CODE, **serializer.validated_data}
