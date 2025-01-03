@@ -33,15 +33,6 @@ class CopyTemplateInterceptor(ViewInterceptor):
         template_ids = data.get("template_ids")
         subject = Subject("user", request.user.username)
 
-        existing_templates = TaskTemplate.objects.filter(
-            project_id=request.project.id, id__in=template_ids
-        ).values_list("id", flat=True)
-        missing_template_ids = set(template_ids) - set(existing_templates)
-        if missing_template_ids:
-            error_message = f"The following templates already not exist {missing_template_ids}"
-            logging.error(error_message)
-            raise ValueError(error_message)
-
         existing_records = TemplateSharedRecord.objects.filter(
             project_id=request.project.id, template_id__in=template_ids
         ).values_list("template_id", flat=True)
@@ -49,6 +40,15 @@ class CopyTemplateInterceptor(ViewInterceptor):
         missing_template_records_ids = set(template_ids) - set(existing_records)
         if missing_template_records_ids:
             error_message = f"The following templates are not shared {missing_template_records_ids}"
+            logging.error(error_message)
+            raise ValueError(error_message)
+
+        existing_templates = TaskTemplate.objects.filter(
+            project_id=request.project.id, id__in=template_ids, is_deleted=False
+        ).values_list("id", flat=True)
+        missing_template_ids = set(template_ids) - set(existing_templates)
+        if missing_template_ids:
+            error_message = f"The following templates already not exist {missing_template_ids}"
             logging.error(error_message)
             raise ValueError(error_message)
 
