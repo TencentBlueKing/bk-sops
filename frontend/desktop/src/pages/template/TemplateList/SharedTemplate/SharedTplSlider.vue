@@ -185,7 +185,8 @@
         computed: {
             ...mapState({
                 'infoBasicConfig': state => state.infoBasicConfig,
-                'username': state => state.username
+                'username': state => state.username,
+                'projectName': state => state.project.projectName
             })
         },
         watch: {
@@ -284,6 +285,7 @@
                         const params = {
                             ...this.formData,
                             project_code: this.project_id,
+                            project_name: this.projectName,
                             creator: this.username
                         }
 

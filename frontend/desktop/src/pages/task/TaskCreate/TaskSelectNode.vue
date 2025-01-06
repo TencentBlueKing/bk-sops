@@ -45,7 +45,7 @@
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
-                :is-scheme-show="true"
+                :is-scheme-show="isSchemeShow"
                 :view-mode="viewMode"
                 :is-scheme-editable="viewMode !== 'appmaker'"
                 :is-preview-mode="isPreviewMode"
