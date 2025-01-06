@@ -18,6 +18,8 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.utils.strings import inspect_time
+from gcloud.conf import settings
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.periodictask.models import PeriodicTask
@@ -44,6 +46,12 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
     cron = params.get("cron", {})
     tz = project.time_zone
 
+    if not inspect_time(cron, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION):
+        return {
+            "result": False,
+            "message": "The interval must be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME),
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
     try:
         task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
