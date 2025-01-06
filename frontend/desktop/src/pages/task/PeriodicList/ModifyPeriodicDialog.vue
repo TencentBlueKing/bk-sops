@@ -308,7 +308,7 @@
                 selectedNodes: [],
                 notifyType: [[]],
                 receiverGroup: [],
-                hasNoCreatePerm: true,
+                hasNoCreatePerm: false,
                 saveLoading: false,
                 periodicRule: {
                     required: true,
@@ -581,14 +581,14 @@
                     this.initFormData = tools.deepClone(this.formData)
                 }
             },
-            onSelectTemplate (id) {
+            async onSelectTemplate (id) {
                 // 清除表单错误提示
                 this.$refs.basicConfigForm.clearError()
                 // 自动填充任务名称
                 const templateInfo = this.templateList.find(item => item.id === id)
                 this.formData.name = templateInfo ? templateInfo.name + '_' + i18n.t('周期执行') : ''
                 this.formData.schemeId = []
-                this.getTemplateDate(id)
+                await this.getTemplateDate(id)
                 this.queryCreatePeriodicTaskPerm(id)
             },
             async getTemplateScheme () {
