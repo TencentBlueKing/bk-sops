@@ -765,7 +765,8 @@
                         type: 'view'
                     },
                     query: {
-                        template_id: this.formData.template_id
+                        template_id: this.formData.template_id,
+                        common: this.isCommon ? 1 : undefined
                     }
                 })
                 window.open(href, '_blank')
