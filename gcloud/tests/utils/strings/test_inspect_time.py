@@ -17,25 +17,25 @@ from gcloud.utils.strings import inspect_time
 
 class InspectTimeTestCase(TestCase):
     def test_inspect_time(self):
-        cron = "* * * * *"
+        cron = {"minute": "*", "hour": "*", "day_of_month": "*", "month": "*", "day_of_week": "*"}
         shortest_time = 30
         iter_count = 10
         self.assertFalse(inspect_time(cron=cron, shortest_time=shortest_time, iter_count=iter_count))
 
     def test_fail_inspect_time(self):
-        cron = "*/15 * * * *"
+        cron = {"minute": "*/15", "hour": "*", "day_of_month": "*", "month": "*", "day_of_week": "*"}
         shortest_time = 30
         iter_count = 10
         self.assertFalse(inspect_time(cron=cron, shortest_time=shortest_time, iter_count=iter_count))
 
     def test_success_inspect_time(self):
-        cron = "15 2 * * *"
+        cron = {"minute": "15", "hour": "2", "day_of_month": "*", "month": "*", "day_of_week": "*"}
         shortest_time = 30
         iter_count = 10
         self.assertTrue(inspect_time(cron=cron, shortest_time=shortest_time, iter_count=iter_count))
 
     def test_iter_count_inspect_time(self):
-        cron = "*/15 * * * *"
+        cron = {"minute": "*/15", "hour": "*", "day_of_month": "*", "month": "*", "day_of_week": "*"}
         shortest_time = 30
         iter_count = 100
         self.assertFalse(inspect_time(cron=cron, shortest_time=shortest_time, iter_count=iter_count))
