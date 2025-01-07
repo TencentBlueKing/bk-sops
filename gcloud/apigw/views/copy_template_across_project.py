@@ -15,6 +15,7 @@ from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from pipeline.exceptions import SubprocessExpiredError
 
 from gcloud import err_code
 from gcloud.apigw.decorators import (
@@ -69,6 +70,13 @@ def copy_template_across_project(request, project_id):
             project_id=new_project_id,
             operator=request.user.username,
         )
+    except SubprocessExpiredError as e:
+        logger.exception("Process template export failed: {}".format(e))
+        return {
+            "result": False,
+            "message": "Process template export failed: {}".format(e),
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
     except Exception as e:
         logger.exception("The template fails to be copied across project: {}".format(e))
         return {
