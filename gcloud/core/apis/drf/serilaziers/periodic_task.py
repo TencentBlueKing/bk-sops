@@ -158,15 +158,7 @@ class CronFieldSerializer(serializers.Serializer):
     cron = serializers.DictField(write_only=True)
 
     def inspect_cron(self, cron):
-        minute = cron.get("minute", "*")
-        hour = cron.get("hour", "*")
-        day_of_month = cron.get("day_of_month", "*")
-        month = cron.get("month", "*")
-        day_of_week = cron.get("day_of_week", "*")
-
-        cron_expression = f"{minute} {hour} {day_of_month} {month} {day_of_week}"
-
-        result = inspect_time(cron_expression, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
+        result = inspect_time(cron, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
         if not result:
             raise serializers.ValidationError(
                 "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
@@ -174,6 +166,7 @@ class CronFieldSerializer(serializers.Serializer):
 
 
 class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
     project = serializers.IntegerField(write_only=True)
     template_source = serializers.CharField(required=False, default=PROJECT)
     pipeline_tree = ReadWriteSerializerMethodField()
@@ -220,6 +213,7 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
     class Meta:
         model = PeriodicTask
         fields = [
+            "id",
             "project",
             "cron",
             "name",

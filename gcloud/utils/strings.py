@@ -122,14 +122,21 @@ def django_celery_beat_cron_time_format_fit(cron_str):
 def inspect_time(cron, shortest_time, iter_count):
     """检查定时任务时间间隔是否符合要求
     :param cron: 定时任务配置
-    :type cron str
+    :type cron dict
     :param shortest_time: 最短时间间隔，以分钟为单位，例如 30
     :type shortest_time int
     :param iter_count: 迭代次数
     :type iter_count int
     """
+    minute = cron.get("minute", "*")
+    hour = cron.get("hour", "*")
+    day_of_month = cron.get("day_of_month", "*")
+    month = cron.get("month", "*")
+    day_of_week = cron.get("day_of_week", "*")
 
-    schedule_iter = croniter(cron)
+    cron_expression = f"{minute} {hour} {day_of_month} {month} {day_of_week}"
+
+    schedule_iter = croniter(cron_expression)
     # 计算指定次数内的最短时间间隔
     next_times = [schedule_iter.get_next(datetime) for _ in range(iter_count)]
     min_interval = min((next_times[i] - next_times[i - 1] for i in range(1, len(next_times))))
