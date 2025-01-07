@@ -70,6 +70,7 @@
                 </bk-form-item>
                 <bk-form-item :label="$t('场景分类')" property="category" :required="true" :rules="rules.required">
                     <SharedCategorySelect
+                        :key="formData.type"
                         :loading="marketLoading"
                         :category-list="categoryList"
                         :form-data="formData">
