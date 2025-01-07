@@ -48,6 +48,7 @@ class FileUploadAddrSerializer(serializers.Serializer):
 
 class TemplateSharedRecordSerializer(serializers.Serializer):
     project_code = serializers.CharField(required=True, max_length=32, help_text="项目id")
+    project_name = serializers.CharField(required=True, help_text="项目名称")
     templates = serializers.ListField(required=True, help_text="关联的模板列表")
     name = serializers.CharField(required=True, help_text="共享名称")
     category = serializers.CharField(required=True, help_text="共享分类")
