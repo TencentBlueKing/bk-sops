@@ -15,7 +15,6 @@ from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from pipeline.exceptions import SubprocessExpiredError
 
 from gcloud import err_code
 from gcloud.apigw.decorators import (
@@ -23,7 +22,7 @@ from gcloud.apigw.decorators import (
     project_inject,
     return_json_response,
 )
-
+from gcloud.exceptions import FlowExportError
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -70,7 +69,7 @@ def copy_template_across_project(request, project_id):
             project_id=new_project_id,
             operator=request.user.username,
         )
-    except SubprocessExpiredError as e:
+    except FlowExportError as e:
         logger.exception("Process template export failed: {}".format(e))
         return {
             "result": False,
