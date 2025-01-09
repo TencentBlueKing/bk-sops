@@ -17,9 +17,8 @@ from gcloud.contrib.operate_record.constants import RecordType
 from gcloud.contrib.operate_record.helpers import record_task_operation_helper, record_template_operation_helper
 
 # signal_sender: RecordType
-operate_record_signal = Signal(
-    ["operator", "operate_type", "operate_source", "instance_id", "project_id", "node_id", "extra_info"]
-)
+# ["operator", "operate_type", "operate_source", "instance_id", "project_id", "node_id", "extra_info"]
+operate_record_signal = Signal()
 
 
 @receiver(operate_record_signal, sender=RecordType.template)
