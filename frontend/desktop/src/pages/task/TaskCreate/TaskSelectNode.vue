@@ -32,7 +32,7 @@
                 v-else-if="isPreviewMode"
                 ref="nodePreview"
                 :preview-data-loading="previewDataLoading"
-                :canvas-data="formatCanvasData('perview', previewData)"
+                :canvas-data="previewCanvasData"
                 :preview-bread="previewBread"
                 :preview-data="previewData"
                 :common="common"
@@ -40,13 +40,12 @@
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <component
-                v-if="!templateLoading"
                 :is="schemeTemplate"
                 ref="taskScheme"
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
-                :is-scheme-show="true"
+                :is-scheme-show="isSchemeShow"
                 :view-mode="viewMode"
                 :is-scheme-editable="viewMode !== 'appmaker'"
                 :is-preview-mode="isPreviewMode"
@@ -108,6 +107,7 @@
     import NodePreview from '@/pages/task/NodePreview.vue'
     import EditScheme from './EditScheme.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
+    import { formatCanvasData } from '@/utils/checkDataType'
 
     export default {
         components: {
@@ -173,8 +173,10 @@
                 'infoBasicConfig': state => state.infoBasicConfig
             }),
             canvasData () {
-                const mode = 'select'
-                return this.formatCanvasData(mode, this)
+                return formatCanvasData('select', this)
+            },
+            previewCanvasData () {
+                return formatCanvasData('preview', this.previewData)
             },
             isSelectAllShow () {
                 return this.viewMode === 'app' && this.location.some(item => item.optional)
@@ -316,33 +318,6 @@
                     url.query.type = type
                 }
                 this.$router.push(url)
-            },
-            /**
-             * 格式化pipelineTree的数据，只输出一部分数据
-             * @params {Object} data  需要格式化的pipelineTree
-             * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
-             */
-            formatCanvasData (mode, data) {
-                const { line, location, gateways, activities } = data
-                const branchConditions = {}
-                for (const gKey in gateways) {
-                    const item = gateways[gKey]
-                    if (item.conditions) {
-                        branchConditions[item.id] = Object.assign({}, item.conditions)
-                    }
-                    if (item.default_condition) {
-                        const nodeId = item.default_condition.flow_id
-                        branchConditions[item.id][nodeId] = item.default_condition
-                    }
-                }
-                return {
-                    lines: line,
-                    locations: location.map(item => {
-                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode, code, status: '' }
-                    }),
-                    branchConditions
-                }
             },
             getOrderedNodeData (data) {
                 const pipelineTree = JSON.parse(data.pipeline_tree)

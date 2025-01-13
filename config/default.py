@@ -67,6 +67,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
+    "gcloud.contrib.template_market",
     "gcloud.apigw",
     "gcloud.common_template",
     "gcloud.label",
@@ -214,7 +215,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.32.1-p3"
+STATIC_VERSION = "3.32.1-p4"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -868,6 +869,11 @@ PERIODIC_TASK_REMINDER_SCAN_CRON = env.PERIODIC_TASK_REMINDER_SCAN_CRON
 # 周期任务消息通知类型
 PERIODIC_TASK_REMINDER_NOTIFY_TYPE = env.PERIODIC_TASK_REMINDER_NOTIFY_TYPE
 
+# 周期任务最短时间间隔
+PERIODIC_TASK_SHORTEST_TIME = env.PERIODIC_TASK_SHORTEST_TIME
+# 周期任务迭代次数
+PERIODIC_TASK_ITERATION = env.PERIODIC_TASK_ITERATION
+
 # bk_audit
 ENABLE_BK_AUDIT = True if env.BK_AUDIT_DATA_TOKEN else False
 BK_AUDIT_SETTINGS = {
@@ -883,3 +889,13 @@ BK_AUDIT_SETTINGS = {
 if "BKAPP_SOPS_BROKER_URL" in os.environ:
     BROKER_URL = os.getenv("BKAPP_SOPS_BROKER_URL")
     print(f"BROKER_URL: {BROKER_URL}")
+
+
+# 流程商店
+ENABLE_TEMPLATE_MARKET = env.ENABLE_TEMPLATE_MARKET
+# 流程商店 API 地址
+TEMPLATE_MARKET_API_URL = env.TEMPLATE_MARKET_API_URL
+# 模板市场路由
+TEMPLATE_MARKET_HOST = env.TEMPLATE_MARKET_HOST
+# 模板市场文档路由
+TEMPLATE_MARKET_DOC_URL = env.TEMPLATE_MARKET_DOC_URL

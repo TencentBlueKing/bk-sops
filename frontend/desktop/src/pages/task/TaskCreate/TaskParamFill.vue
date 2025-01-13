@@ -178,12 +178,14 @@
         },
         computed: {
             ...mapState({
+                'hideHeader': state => state.hideHeader,
                 'locations': state => state.template.location,
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
                 'functionClaimMsg': state => state.functionClaimMsg,
-                'permissionMeta': state => state.permissionMeta
+                'permissionMeta': state => state.permissionMeta,
+                'bizId': state => state.project.bizId
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -572,6 +574,18 @@
                             }
                         }
                         this.$router.push(url)
+                        // 如果被嵌入了，则像父页面发送事件
+                        if (this.hideHeader) {
+                            window.parent.postMessage({
+                                eventName: 'createTaskEvent',
+                                data: {
+                                    cc_id: this.bizId,
+                                    project_id: this.project_id,
+                                    task_id: taskData.id,
+                                    task_name: taskData.name
+                                }
+                            }, '*')
+                        }
                     } catch (e) {
                         console.log(e)
                     } finally {
