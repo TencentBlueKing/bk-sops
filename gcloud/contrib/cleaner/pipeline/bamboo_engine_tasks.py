@@ -14,6 +14,7 @@ from typing import List, Dict
 
 from django.db.models import QuerySet
 
+from gcloud.taskflow3.models import AutoRetryNodeStrategy, TimeoutNodeConfig
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
 from pipeline.eri.models import (
     ContextValue,
@@ -54,6 +55,8 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     periodic_task_history = PeriodicTaskHistory.objects.filter(pipeline_instance_id__in=pipeline_ids)
 
     node_ids = list(nodes_in_pipeline.values_list("node_id", flat=True)) + instance_ids
+    retry_node = AutoRetryNodeStrategy.objects.filter(node_id__in=node_ids)
+    timeout_node = TimeoutNodeConfig.objects.filter(node_id__in=node_ids)
     nodes = Node.objects.filter(node_id__in=node_ids)
     data = Data.objects.filter(node_id__in=node_ids)
     states = State.objects.filter(node_id__in=node_ids)
@@ -63,6 +66,8 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     schedules = Schedule.objects.filter(node_id__in=node_ids)
 
     return {
+        "retry_node": retry_node,
+        "timeout_node": timeout_node,
         "tree_info": tree_info,
         "nodes_in_pipeline": nodes_in_pipeline,
         "execution_snapshot": execution_snapshot,
