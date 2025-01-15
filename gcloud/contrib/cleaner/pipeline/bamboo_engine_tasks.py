@@ -15,7 +15,6 @@ from typing import List, Dict
 from django.db.models import QuerySet
 
 from gcloud.taskflow3.models import AutoRetryNodeStrategy, TimeoutNodeConfig
-from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
 from pipeline.eri.models import (
     ContextValue,
@@ -85,17 +84,3 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
         "periodic_task_history": periodic_task_history,
         "pipeline_instances": pipeline_instances,
     }
-
-
-def get_clean_statistics_data(expire_time):
-    """
-    根据过期时间获取过期的统计记录
-    :param expire_time 过期时间
-    """
-    taskflow_ids = TaskflowStatistics.objects.filter(create_time__lt=expire_time).values_list("id", flat=True)
-    taskflow_node_ids = TaskflowExecutedNodeStatistics.objects.filter(instance_create_time__lt=expire_time).values_list(
-        "id", flat=True
-    )
-    statistics_data = {TaskflowStatistics: taskflow_ids, TaskflowExecutedNodeStatistics: taskflow_node_ids}
-
-    return statistics_data

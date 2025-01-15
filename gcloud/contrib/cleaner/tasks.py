@@ -18,10 +18,8 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import (
-    get_clean_pipeline_instance_data,
-    get_clean_statistics_data,
-)
+from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data
+from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
 from gcloud.contrib.cleaner.signals import pre_delete_pipeline_instance_data
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.decorators import time_record
@@ -92,13 +90,15 @@ def clear_statistics_info():
         expire_time = timezone.now() - timezone.timedelta(days=validity_day)
         batch_num = settings.CLEAN_EXPIRED_STATISTICS_BATCH_NUM
 
-        data_to_clean = get_clean_statistics_data(expire_time)
-
-        for model, ids in data_to_clean.items():
-            ids_to_delete = ids[:batch_num]
+        models_to_clean = [TaskflowStatistics, TaskflowExecutedNodeStatistics]
+        time_field_map = {TaskflowStatistics: "create_time", TaskflowExecutedNodeStatistics: "instance_create_time"}
+        for model in models_to_clean:
+            time_field = time_field_map[model]
+            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by("id")[:batch_num]
+            ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
-                logger.info(f"[clear_statistics_info] clean model: {model}, deleted ids: {list(ids_to_delete)}")
+                logger.info(f"[clear_statistics_info] clean model: {model}, deleted ids: {ids_to_delete}")
         logger.info("[clear_statistics_info] success clean statistics")
     except Exception as e:
         logger.error(f"Failed to clear expired statistics data: {e}")
