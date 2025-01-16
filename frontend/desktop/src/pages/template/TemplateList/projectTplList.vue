@@ -51,11 +51,11 @@
                                 <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出为') }} DAT {{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
-                        <SharedTemplateBtn
+                        <TemplateSharedBtn
                             v-if="isEnableTemplateMarket"
                             :project_id="project_id"
                             :selected="selectedTpls">
-                        </SharedTemplateBtn>
+                        </TemplateSharedBtn>
                         <bk-button
                             class="batch-delete"
                             data-test-id="process_form_deleteProcess"
@@ -420,11 +420,12 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
-    import SharedTemplateBtn from './SharedTemplate/index.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
     import CancelRequest from '@/api/cancelRequest.js'
+    // sre定制页面
+    import TemplateSharedBtn from '@/pages/market/TemplateShared/index.vue'
 
     const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
 
@@ -531,11 +532,11 @@
             ImportDatTplDialog,
             ImportYamlTplDialog,
             ExportTemplateDialog,
-            SharedTemplateBtn,
             ListPageTipsTitle,
             SearchSelect,
             TableSettingContent,
-            NoData
+            NoData,
+            TemplateSharedBtn
         },
         mixins: [permission],
         props: {

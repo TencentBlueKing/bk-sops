@@ -24,7 +24,6 @@ const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
 const CommonTemplate = () => import('@/pages/commonManage/index.vue')
 const CommonTemplateList = () => import('@/pages/commonManage/CommonTplList.vue')
 const TemplatePanel = () => import('@/pages/template/TemplateEdit/index.vue')
-const TemplatePreview = () => import('@/pages/template/TemplatePreview/index.vue')
 
 const Task = () => import('@/pages/task/index.vue')
 const TaskManage = () => import('@/pages/task/TaskManage.vue')
@@ -67,6 +66,10 @@ const periodicTemplateList = () => import('@/pages/task/PeriodicList/index.vue')
 
 const AtomDev = () => import('@/pages/atomdev/index.vue')
 
+// market路由
+const TemplatePreview = () => import('@/pages/market/TemplatePreview/index.vue')
+const PeriodicTaskCreate = () => import('@/pages/market/PeriodicTaskCreate/index.vue')
+
 Vue.use(VueRouter)
 
 const APPMAKER = {
@@ -75,6 +78,38 @@ const APPMAKER = {
     },
     routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
 }
+
+// market路由
+const marketRouter = [
+    {
+        path: '/market/template/preview/:project_id/',
+        name: 'templatePreview',
+        pathToRegexpOptions: { strict: true },
+        component: TemplatePreview,
+        props: route => ({
+            project_id: route.params.project_id,
+            template_id: route.query.template_id,
+            common: route.query.common
+        }),
+        meta: { project: true }
+    },
+    {
+        path: '/market/periodic/create/:project_id/:template_id/',
+        name: 'periodicTaskCreate',
+        pathToRegexpOptions: { strict: true },
+        component: PeriodicTaskCreate,
+        props: route => {
+            return {
+                projectId: route.params.project_id,
+                templateId: route.params.template_id,
+                taskId: route.query.task_id,
+                isCommon: route.query.common
+            }
+        },
+        meta: { project: true }
+    }
+    
+]
 
 const routers = new VueRouter({
     base: SITE_URL,
@@ -164,18 +199,6 @@ const routers = new VueRouter({
                         template_id: route.query.template_id,
                         type: route.params.type,
                         common: '1'
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'preview/:project_id/',
-                    name: 'templatePreview',
-                    pathToRegexpOptions: { strict: true },
-                    component: TemplatePreview,
-                    props: route => ({
-                        project_id: route.params.project_id,
-                        template_id: route.query.template_id,
-                        common: route.query.common
                     }),
                     meta: { project: true }
                 }
@@ -538,7 +561,9 @@ const routers = new VueRouter({
             path: '*',
             name: 'notFoundPage',
             component: NotFoundComponent
-        }
+        },
+        // market路由
+        ...marketRouter
     ]
 })
 

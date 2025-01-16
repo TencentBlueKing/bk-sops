@@ -7,7 +7,7 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import nodePreview from '../../task/NodePreview.vue'
+    import nodePreview from '@/pages/task/NodePreview.vue'
     import { formatCanvasData } from '@/utils/checkDataType'
     export default {
         components: {

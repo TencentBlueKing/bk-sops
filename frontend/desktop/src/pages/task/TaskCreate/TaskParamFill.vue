@@ -76,6 +76,7 @@
                 <div>
                     <ParameterInfo
                         ref="ParameterInfo"
+                        :reuse-task-id="reuseTaskId"
                         :referenced-variable="pipelineData.constants"
                         :un-referenced-variable="unreferenced"
                         :task-message-loading="taskMessageLoading"

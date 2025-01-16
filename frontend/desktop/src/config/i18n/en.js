@@ -1834,7 +1834,11 @@ const en = {
     '产品官网': 'Product Website',
     '联系bk助手': 'Contact BK Assistant',
     '蓝鲸桌面': 'BlueWhale Desktop',
-    '蓝鲸': 'BlueKing',
+    '蓝鲸': 'BlueKing'
+}
+
+// sre定制国际化
+const sreEn = {
     '共享到商店': 'Shared to the store',
     '共享到SRE商店': 'Shared to the SRE Store',
     '帮助文档': 'Help Doc',
@@ -1869,4 +1873,7 @@ const en = {
     '上传视频': 'Upload Video'
 }
 
-export default en
+export default {
+    ...en,
+    ...sreEn
+}
