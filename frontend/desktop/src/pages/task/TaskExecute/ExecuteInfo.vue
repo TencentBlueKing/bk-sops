@@ -78,6 +78,7 @@
                             <bk-tab-panel name="config" v-if="isCondition || (!loading && ['tasknode', 'subflow'].includes(location.type))" :label="$t('配置快照')"></bk-tab-panel>
                             <bk-tab-panel name="history" v-if="!isCondition" :label="$t('操作历史')"></bk-tab-panel>
                             <bk-tab-panel name="log" v-if="!isCondition" :label="$t('调用日志')"></bk-tab-panel>
+                            <bk-tab-panel name="visualization" v-if="thirdPartyNodeCode === 'visualization'" :label="$t('结果可视化')"></bk-tab-panel>
                         </bk-tab>
                         <div class="scroll-area">
                             <task-condition
@@ -165,6 +166,14 @@
                                     :third-party-node-code="thirdPartyNodeCode"
                                     :engine-ver="engineVer">
                                 </NodeLog>
+                                <template v-if="curActiveTab === 'visualization'">
+                                    <iframe
+                                        v-if="visualizationUrl"
+                                        class="visualization-iframe"
+                                        :src="visualizationUrl">
+                                    </iframe>
+                                    <NoData v-else></NoData>
+                                </template>
                             </template>
                         </div>
                     </div>
@@ -240,6 +249,7 @@
     import NodeLog from './ExecuteInfo/NodeLog.vue'
     import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
     import taskCondition from './taskCondition.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -253,7 +263,8 @@
             NodeLog,
             ExecuteInfoForm,
             taskCondition,
-            TemplateCanvas
+            TemplateCanvas,
+            NoData
         },
         props: {
             adminView: {
@@ -535,6 +546,11 @@
                     }),
                     branchConditions
                 }
+            },
+            visualizationUrl () {
+                const { outputs = [] } = this.executeRecord
+                
+                return outputs.find(item => item.key === 'visualization_url')?.value
             }
         },
         watch: {
@@ -1906,6 +1922,11 @@
         top: 0;
         bottom: 0;
         z-index: 9999;
+    }
+    .visualization-iframe {
+        height: 700px;
+        width: calc(100% - 1px);
+        border: none;
     }
 }
 </style>
