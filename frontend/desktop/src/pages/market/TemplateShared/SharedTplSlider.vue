@@ -16,7 +16,7 @@
         <template slot="content">
             <bk-alert type="warning">
                 <i18n slot="title" tag="div" path="templateSharedTips">
-                    <span class="sre-store-link" @click="jumpSreStore">
+                    <span class="market-store-link" @click="jumpSreStore">
                         {{ $t('SRE商店') }}
                         <span class="common-icon-jump-link"></span>
                     </span>
@@ -381,7 +381,7 @@
         .bk-sideslider-content {
             height: calc(100vh - 114px);
             padding: 12px 35px;
-            .sre-store-link {
+            .market-store-link {
                 color: #3a84ff;
                 cursor: pointer;
                 .common-icon-jump-link {

@@ -62,6 +62,10 @@
             unUsedConstants: {
                 type: Array,
                 default: () => ([])
+            },
+            reuseTaskId: {
+                type: String,
+                default: undefined
             }
         },
         data () {
@@ -90,10 +94,7 @@
             }),
             ...mapState('project', {
                 project_id: state => state.project_id
-            }),
-            reuseTaskId () {
-                return this.$route.query.task_id
-            }
+            })
         },
         watch: {
             constants (val) {

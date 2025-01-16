@@ -37,6 +37,7 @@
                 :show-required="false"
                 :constants="unReferencedVariable"
                 :editable="false"
+                :reuse-task-id="reuseTaskId"
                 @onChangeConfigLoading="onUnrefVarLoadingChange">
             </TaskParamEdit>
         </div>
@@ -52,7 +53,7 @@
             TaskParamEdit,
             NoData
         },
-        props: ['referencedVariable', 'unReferencedVariable', 'taskMessageLoading'],
+        props: ['reuseTaskId', 'referencedVariable', 'unReferencedVariable', 'taskMessageLoading'],
         data () {
             return {
                 isUnrefVarShow: false,

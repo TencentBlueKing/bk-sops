@@ -1834,7 +1834,11 @@ const en = {
     '产品官网': 'Product Website',
     '联系bk助手': 'Contact BK Assistant',
     '蓝鲸桌面': 'BlueWhale Desktop',
-    '蓝鲸': 'BlueKing',
+    '蓝鲸': 'BlueKing'
+}
+
+// sre定制国际化
+const sreEn = {
     '共享到商店': 'Shared to the store',
     '共享到SRE商店': 'Shared to the SRE Store',
     '帮助文档': 'Help Doc',
@@ -1866,7 +1870,11 @@ const en = {
     '当前环境配置周期任务间隔不低于 n 分钟，如有特殊需求请联系管理员配置': 'In the current environment, the interval for scheduled tasks is no less than {n} minutes. If you have special requirements, please contact the administrator for configuration',
     '仅支持上传.mp4,.mov文件': 'Only .mp4 and .mov files are supported for upload',
     '选择视频文件': 'Select video file',
-    '上传视频': 'Upload Video'
+    '上传视频': 'Upload Video',
+    '结果可视化': 'Results Visualization'
 }
 
-export default en
+export default {
+    ...en,
+    ...sreEn
+}
