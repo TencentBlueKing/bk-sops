@@ -94,16 +94,14 @@ const marketRouter = [
         meta: { project: true }
     },
     {
-        path: '/market/periodic/create/:project_id/:template_id/',
+        path: '/market/periodic/create/:project_id/:task_id?/',
         name: 'periodicTaskCreate',
         pathToRegexpOptions: { strict: true },
         component: PeriodicTaskCreate,
         props: route => {
             return {
                 projectId: route.params.project_id,
-                templateId: route.params.template_id,
-                taskId: route.query.task_id,
-                isCommon: route.query.common
+                taskId: route.params.task_id
             }
         },
         meta: { project: true }

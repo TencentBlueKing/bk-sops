@@ -81,7 +81,7 @@
                             </bk-select>
                             <bk-button
                                 theme="default"
-                                :disabled="isLoading || !templateId"
+                                :disabled="isLoading || !formData.template_id"
                                 @click="togglePreviewMode">
                                 {{ $t('预览') }}
                             </bk-button>
@@ -129,7 +129,7 @@
             <section class="config-section mb20">
                 <p class="title">
                     <span>{{ $t('通知') }}</span>
-                    <span v-if="!isLoading && templateId && !isTplDeleted" class="tip-desc">
+                    <span v-if="!isLoading && formData.template_id && !isTplDeleted" class="tip-desc">
                         {{ $t('通知方式统一在流程基础信息管理。如需修改，请') }}
                         <a
                             class="link"
@@ -141,7 +141,7 @@
                 </p>
                 <div v-bkloading="{ isLoading: isLoading || schemeLoading, opacity: 1, zIndex: 100 }">
                     <NotifyTypeConfig
-                        v-if="templateId"
+                        v-if="formData.template_id"
                         :notify-type-label="$t('启动失败') + ' ' + $t('通知方式')"
                         :label-width="87"
                         :table-width="570"
@@ -208,12 +208,12 @@
         mixins: [permission],
         props: [
             'taskId',
-            'templateId',
-            'projectId',
-            'isCommon'
+            'projectId'
         ],
         data () {
+            const { common, template_id } = this.$route.query
             return {
+                isCommon: common === '1',
                 taskData: {
                     pipeline_tree: {},
                     constants: {}
@@ -221,9 +221,10 @@
                 taskLoading: false,
                 formData: {
                     name: '',
-                    is_latest: '',
+                    is_latest: true,
                     task_template_name: '',
                     template_source: 'project',
+                    template_id,
                     schemeId: []
                 },
                 initFormData: {},
@@ -280,7 +281,7 @@
                         {
                             required: true,
                             validator: (val) => {
-                                return this.templateId
+                                return this.formData.template_id
                             },
                             message: i18n.t('请选择流程模板'),
                             trigger: 'blur'
@@ -319,23 +320,23 @@
                 return nodes.join(',')
             },
             schemeSelectPlaceholder () {
-                return this.templateId && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
+                return this.formData.template_id && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
             },
             isSelectSchemeDisable () {
-                return this.formData.is_latest !== true || !this.templateId || this.previewDataLoading || !this.schemeList.length
+                const { is_latest, template_id } = this.formData
+                return is_latest !== true || !template_id || this.previewDataLoading || !this.schemeList.length
             },
             canvasData () {
                 return formatCanvasData('preview', this.previewData)
             }
         },
         async created () {
-            this.initFormData = tools.deepClone(this.formData)
-
             if (this.taskId) {
                 await this.getPeriodicTaskData()
             }
 
-            this.getTemplateData(this.templateId)
+            this.getTemplateData(this.formData.template_id)
+            this.initFormData = tools.deepClone(this.formData)
         },
         methods: {
             ...mapActions([
@@ -364,8 +365,22 @@
                     const cron = this.splitPeriodicCron(resp.cron)
                     this.taskData = { ...resp, cron }
                     this.cronExpression = cron
+
+                    const {
+                        name, template_id, task_template_name, is_latest, template_source,
+                        template_scheme_ids: schemeId = []
+                    } = resp
+                    this.formData = {
+                        name,
+                        template_id,
+                        task_template_name,
+                        is_latest,
+                        template_source,
+                        schemeId: schemeId.length ? schemeId : []
+                    }
                     this.periodicConstants = tools.deepClone(resp.form)
-                    console.log(this.cronExpression)
+
+                    this.isCommon = template_source === 'common'
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -377,6 +392,7 @@
                 try {
                     this.templateDataLoading = true
                     const params = { templateId: id, common: this.isCommon }
+                    this.formData.template_source = this.isCommon ? 'common' : 'project'
                     const templateData = await this.loadTemplateData(params)
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
@@ -416,12 +432,12 @@
                 try {
                     if (!this.isCommon) {
                         const { auth_actions } = this.templateData
-                        this.hasNoCreatePerm = !auth_actions.includes(this.flowPermission.create)
+                        this.hasNoCreatePerm = !auth_actions.includes(this.flowPermission)
                         return
                     }
                     const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                     const data = {
-                        action: this.flowPermission.create,
+                        action: this.flowPermission,
                         resources: [
                             {
                                 system: bkSops.id,
@@ -450,7 +466,7 @@
                     const data = {
                         isCommon: this.isCommon || undefined,
                         project_id: this.isCommon ? undefined : this.projectId,
-                        template_id: this.templateId
+                        template_id: this.formData.template_id
                     }
                     const resp = await this.loadTaskScheme(data)
                     this.schemeList = resp.map(item => {
@@ -482,7 +498,7 @@
                 try {
                     const resp = await this.getDefaultTaskScheme({
                         project_id: this.isCommon ? undefined : this.projectId,
-                        template_id: this.templateId,
+                        template_id: this.formData.template_id,
                         template_type: this.isCommon ? 'common' : undefined
                     })
                     if (resp.data.length) {
@@ -617,7 +633,7 @@
                         type: 'view'
                     },
                     query: {
-                        template_id: this.templateId,
+                        template_id: this.formData.template_id,
                         common: this.isCommon ? 1 : undefined
                     }
                 })
@@ -719,7 +735,7 @@
                             project: this.projectId,
                             cron: jsonCron,
                             name: this.formData.name,
-                            template_id: this.templateId,
+                            template_id: this.formData.template_id,
                             template_scheme_ids: schemeIds,
                             pipeline_tree: JSON.stringify(pipelineData),
                             template_source: this.isCommon ? 'common' : undefined
@@ -757,7 +773,7 @@
                 const data = {
                     name: this.formData.name,
                     cron: cron,
-                    templateId: this.templateId,
+                    templateId: this.formData.template_id,
                     schemeIds,
                     execData: JSON.stringify(pipelineData),
                     templateSource: this.isCommon ? 'common' : undefined
