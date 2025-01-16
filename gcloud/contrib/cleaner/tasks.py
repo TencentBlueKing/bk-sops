@@ -90,15 +90,18 @@ def clear_statistics_info():
         expire_time = timezone.now() - timezone.timedelta(days=validity_day)
         batch_num = settings.CLEAN_EXPIRED_STATISTICS_BATCH_NUM
 
-        models_to_clean = [TaskflowStatistics, TaskflowExecutedNodeStatistics]
-        time_field_map = {TaskflowStatistics: "create_time", TaskflowExecutedNodeStatistics: "instance_create_time"}
-        for model in models_to_clean:
-            time_field = time_field_map[model]
+        data_to_clean = [
+            {"model": TaskflowStatistics, "time_field": "create_time"},
+            {"model": TaskflowExecutedNodeStatistics, "time_field": "instance_create_time"},
+        ]
+        for data in data_to_clean:
+            model = data["model"]
+            time_field = data["time_field"]
             qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by("id")[:batch_num]
             ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
-                logger.info(f"[clear_statistics_info] clean model: {model}, deleted ids: {ids_to_delete}")
+                logger.info(f"[clear_statistics_info] clean model: {model.__name__}, deleted ids: {ids_to_delete}")
         logger.info("[clear_statistics_info] success clean statistics")
     except Exception as e:
         logger.error(f"Failed to clear expired statistics data: {e}")
