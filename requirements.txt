@@ -25,8 +25,8 @@ django-cors-headers==4.2.0
 pyinstrument==5.0.0
 djangorestframework==3.15.1
 django-filter==2.4.0
-prometheus-client==0.21.1
-bamboo-pipeline==3.29.5
+prometheus-client==0.20.0
+bamboo-pipeline==4.0.0rc0
 drf-yasg==1.21.8
 typing-extensions==4.12.2
 pyyaml==6.0.2
@@ -38,7 +38,7 @@ pydantic==2.6.4
 # monitor
 django-prometheus==2.3.1
 celery-prometheus-exporter==1.7.0
-bk-monitor-report==1.2.1
+bk-monitor-report==1.2.2
 
 # version log
 django-versionlog==1.8.1
@@ -51,7 +51,7 @@ celery==5.2.7
 django-celery-beat==2.7.0
 django-celery-results==2.5.1
 redis==5.0.3
-django-timezone-field==7.0.0
+django-timezone-field==5.1
 importlib-metadata==6.11.0
 
 # otel
