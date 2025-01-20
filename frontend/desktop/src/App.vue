@@ -210,7 +210,8 @@
                 'setStatisticsPerm'
             ]),
             async initData () {
-                if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
+                const isProject = this.judgeIsProject()
+                if (isProject) {
                     await this.getProjectDetail()
                 }
                 await this.getPermissionMeta()
@@ -220,6 +221,13 @@
                     this.queryAdminPerm()
                     this.queryStatisticsPerm()
                 }
+            },
+            judgeIsProject () {
+                const { meta, name } = this.$route
+                return meta.project
+                    && this.project_id !== ''
+                    && !isNaN(this.project_id)
+                    && !(this.hideHeader && name === 'templatePreview') // 被嵌入时如果访问模板预览页则不调项目详情接口
             },
             async getProjectDetail () {
                 try {
