@@ -39,7 +39,9 @@
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
+            <!--模板详情加载完成后再打开执行方案面板-->
             <component
+                v-if="!templateLoading"
                 :is="schemeTemplate"
                 ref="taskScheme"
                 :project_id="project_id"
@@ -255,7 +257,9 @@
                             this.isAppmakerHasScheme = false
                             this.updateDataAndCanvas()
                         } else {
-                            this.selectScheme({ id: schemeId })
+                            this.$nextTick(() => {
+                                this.selectScheme({ id: schemeId })
+                            })
                         }
                         return
                     }
