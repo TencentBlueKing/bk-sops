@@ -10,9 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 from typing import List, Dict
 
 from django.db.models import QuerySet
+from gcloud.analysis_statistics.models import TaskArchivedStatistics
+from gcloud.taskflow3.models import TaskFlowInstance
 
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
 from pipeline.eri.models import (
@@ -79,3 +82,51 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
         "periodic_task_history": periodic_task_history,
         "pipeline_instances": pipeline_instances,
     }
+
+
+def archived_expired_task(expire_pipeline_instance_ids):
+    """
+    根据 instance_id 将过期任务的数据进行归档
+    """
+    try:
+        tasks = (
+            TaskFlowInstance.objects.select_related("pipeline_instance")
+            .filter(pipeline_instance__instance_id__in=expire_pipeline_instance_ids)
+            .order_by("id")
+        )
+        expired_task = []
+        for task in tasks:
+            archived_task = {
+                "task_id": task.id,
+                "project_id": task.project_id,
+                "name": task.pipeline_instance.name,
+                "template_id": task.pipeline_instance.template_id,
+                "task_template_id": task.template_id,
+                "template_source": task.template_source,
+                "create_method": task.create_method,
+                "create_info": task.create_info,
+                "creator": task.pipeline_instance.creator,
+                "create_time": task.pipeline_instance.create_time,
+                "executor": task.pipeline_instance.executor,
+                "recorded_executor_proxy": task.recorded_executor_proxy,
+                "start_time": task.pipeline_instance.start_time,
+                "finish_time": task.pipeline_instance.finish_time,
+                "is_started": task.pipeline_instance.is_started,
+                "is_finished": task.pipeline_instance.is_finished,
+                "is_revoked": task.pipeline_instance.is_revoked,
+                "engine_ver": task.engine_ver,
+                "is_child_taskflow": task.is_child_taskflow,
+                "snapshot_id": task.pipeline_instance.snapshot_id,
+                "extra_info": json.dumps(
+                    {
+                        "flow_type": task.flow_type,
+                        "current_flow": task.current_flow,
+                        "extra_info": task.extra_info,
+                    }
+                ),
+            }
+            archived_task = TaskArchivedStatistics(**archived_task)
+            expired_task.append(archived_task)
+        TaskArchivedStatistics.objects.bulk_create(expired_task)
+    except Exception as e:
+        raise Exception(f"Archived expired task error: {e}")

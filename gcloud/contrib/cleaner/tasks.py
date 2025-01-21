@@ -18,7 +18,8 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data
+from pipeline.models import PipelineInstance
+from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data, archived_expired_task
 from gcloud.contrib.cleaner.signals import pre_delete_pipeline_instance_data
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.decorators import time_record
@@ -74,3 +75,53 @@ def clean_expired_v2_task_data():
         logger.info(f"[clean_expired_v2_task_data] success clean tasks: {task_ids}")
     except Exception as e:
         logger.exception(f"[clean_expired_v2_task_data] error: {e}")
+
+
+@periodic_task(run_every=(crontab(*settings.CLEAN_EXPIRED_V2_TASK_CRON)), ignore_result=True, queue="task_data_clean")
+@time_record(logger)
+def archived_expired_v2_task_data():
+    """
+    归档过期任务数据
+    """
+    if not settings.ENBLE_ARCHIVE_EXPIRED_V2_TASK:
+        logger.info("Skip archived expired v2 task data")
+        return
+
+    logger.info("Start archived expired task data...")
+    try:
+        validity_day = settings.V2_TASK_VALIDITY_DAY
+        expire_time = timezone.now() - timezone.timedelta(days=validity_day)
+
+        batch_num = settings.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
+
+        all_expired_task_ids = []
+        all_expired_pipeline_instance_ids = []
+        archived_task_ids = []
+        archived_pipeline_instance_ids = []
+
+        tasks_to_process = (
+            TaskFlowInstance.objects.filter(
+                pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=True
+            )
+            .order_by("id")
+            .values("id", "pipeline_instance__instance_id", "is_deleted")[:batch_num]
+        )
+        for task in tasks_to_process:
+            all_expired_task_ids.append(task["id"])
+            all_expired_pipeline_instance_ids.append(task["pipeline_instance__instance_id"])
+            if not task["is_deleted"]:
+                archived_task_ids.append(task["id"])
+                archived_pipeline_instance_ids.append(task["pipeline_instance__instance_id"])
+
+        with transaction.atomic():
+            # 归档未删除的过期任务
+            if archived_pipeline_instance_ids:
+                archived_expired_task(archived_pipeline_instance_ids)
+                logger.info(f"Archived expired tasks, task_ids: {archived_task_ids}")
+
+            # 删除所有过期的任务
+            TaskFlowInstance.objects.filter(id__in=all_expired_task_ids).delete()
+            PipelineInstance.objects.filter(instance_id__in=all_expired_pipeline_instance_ids).delete()
+            logger.info(f"Deleted expired task data, task_ids: {all_expired_task_ids}")
+    except Exception as e:
+        logger.exception(f"[archived_expired_v2_task_data] error: {e}")
