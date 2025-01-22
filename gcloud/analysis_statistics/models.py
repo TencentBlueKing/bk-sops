@@ -14,10 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.constants import TASK_CATEGORY, TASK_CREATE_METHOD, TaskCreateMethod, TEMPLATE_SOURCE, PROJECT
-from gcloud.core.models import EngineConfig
-
-MAX_LEN_OF_NAME = 128
+from gcloud.constants import TASK_CATEGORY, TASK_CREATE_METHOD, TaskCreateMethod
 
 
 class TemplateNodeStatistics(models.Model):
@@ -167,34 +164,3 @@ class TemplateCustomVariableSummary(models.Model):
     class Meta:
         verbose_name = _("流程模板变量统计数据总览")
         verbose_name_plural = _("流程模板变量统计数据总览")
-
-
-class TaskArchivedStatistics(models.Model):
-    id = models.BigAutoField(_("id"), primary_key=True)
-    task_id = models.CharField(_("任务 ID"), max_length=255, db_index=True)
-    project_id = models.CharField(_("项目 ID"), default=-1, help_text="模板所属项目ID", max_length=32)
-    name = models.CharField(_("实例名称"), max_length=MAX_LEN_OF_NAME, default="default_instance")
-    template_id = models.CharField(_("Pipeline模板ID"), max_length=32)
-    task_template_id = models.CharField(_("Task模板ID"), max_length=32)
-    template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
-    create_method = models.CharField(_("创建方式"), max_length=30, choices=TASK_CREATE_METHOD, default="app")
-    create_info = models.CharField(_("创建任务额外信息（App maker ID或APP CODE或周期任务ID）"), max_length=255, blank=True)
-    creator = models.CharField(_("创建者"), max_length=32, blank=True)
-    create_time = models.DateTimeField(_("任务创建时间"), db_index=True)
-    archived_time = models.DateTimeField(_("任务归档时间"), db_index=True, auto_now_add=True)
-    executor = models.CharField(_("执行者"), max_length=32, blank=True)
-    recorded_executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default=None, blank=True, null=True)
-    start_time = models.DateTimeField(_("启动时间"), null=True, blank=True)
-    finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
-    is_started = models.BooleanField(_("是否已经启动"), default=False)
-    is_finished = models.BooleanField(_("是否已经完成"), default=False)
-    is_revoked = models.BooleanField(_("是否已经撤销"), default=False)
-    engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=2)
-    is_child_taskflow = models.BooleanField(_("是否为子任务"), default=False)
-    snapshot_id = models.CharField(_("实例结构数据，指向实例对应的模板的结构数据"), blank=True, null=True, max_length=32)
-    extra_info = models.TextField(_("额外信息"), blank=True, null=True)
-
-    class Meta:
-        verbose_name = _("归档任务实例")
-        verbose_name_plural = _("归档任务实例")
-        index_together = ("project_id", "task_template_id")

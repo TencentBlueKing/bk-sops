@@ -14,7 +14,7 @@ import json
 from typing import List, Dict
 
 from django.db.models import QuerySet
-from gcloud.analysis_statistics.models import TaskArchivedStatistics
+from gcloud.contrib.cleaner.models import ExpiredTaskArchive
 from gcloud.taskflow3.models import TaskFlowInstance
 
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
@@ -94,39 +94,43 @@ def archived_expired_task(expire_pipeline_instance_ids):
             .filter(pipeline_instance__instance_id__in=expire_pipeline_instance_ids)
             .order_by("id")
         )
-        expired_task = []
+        archived_task_list = []
+        archived_task_ids = []
         for task in tasks:
-            archived_task = {
-                "task_id": task.id,
-                "project_id": task.project_id,
-                "name": task.pipeline_instance.name,
-                "template_id": task.pipeline_instance.template_id,
-                "task_template_id": task.template_id,
-                "template_source": task.template_source,
-                "create_method": task.create_method,
-                "create_info": task.create_info,
-                "creator": task.pipeline_instance.creator,
-                "create_time": task.pipeline_instance.create_time,
-                "executor": task.pipeline_instance.executor,
-                "recorded_executor_proxy": task.recorded_executor_proxy,
-                "start_time": task.pipeline_instance.start_time,
-                "finish_time": task.pipeline_instance.finish_time,
-                "is_started": task.pipeline_instance.is_started,
-                "is_finished": task.pipeline_instance.is_finished,
-                "is_revoked": task.pipeline_instance.is_revoked,
-                "engine_ver": task.engine_ver,
-                "is_child_taskflow": task.is_child_taskflow,
-                "snapshot_id": task.pipeline_instance.snapshot_id,
-                "extra_info": json.dumps(
+            if task.is_deleted:
+                continue
+            archived_data = ExpiredTaskArchive(
+                task_id=task.id,
+                project_id=task.project_id,
+                name=task.pipeline_instance.name,
+                template_id=task.pipeline_instance.template_id,
+                task_template_id=task.template_id,
+                template_source=task.template_source,
+                create_method=task.create_method,
+                create_info=task.create_info,
+                creator=task.pipeline_instance.creator,
+                create_time=task.pipeline_instance.create_time,
+                executor=task.pipeline_instance.executor,
+                recorded_executor_proxy=task.recorded_executor_proxy,
+                start_time=task.pipeline_instance.start_time,
+                finish_time=task.pipeline_instance.finish_time,
+                is_started=task.pipeline_instance.is_started,
+                is_finished=task.pipeline_instance.is_finished,
+                is_revoked=task.pipeline_instance.is_revoked,
+                engine_ver=task.engine_ver,
+                is_child_taskflow=task.is_child_taskflow,
+                snapshot_id=task.pipeline_instance.snapshot_id,
+                extra_info=json.dumps(
                     {
                         "flow_type": task.flow_type,
                         "current_flow": task.current_flow,
                         "extra_info": task.extra_info,
                     }
                 ),
-            }
-            archived_task = TaskArchivedStatistics(**archived_task)
-            expired_task.append(archived_task)
-        TaskArchivedStatistics.objects.bulk_create(expired_task)
+            )
+            archived_task_ids.append(task.id)
+            archived_task_list.append(archived_data)
     except Exception as e:
         raise Exception(f"Archived expired task error: {e}")
+
+    return archived_task_list, archived_task_ids
