@@ -65,9 +65,13 @@ def clean_expired_v2_task_data():
         instance_fields = ["tasks", "pipeline_instances"]
         with transaction.atomic():
             for field, qs in data_to_clean.items():
-                if field not in instance_fields or settings.CLEAN_EXPIRED_V2_TASK_INSTANCE:
+                if field.endswith("_list") and isinstance(qs, list):
+                    logger.info(f"[clean_expired_v2_task_data] clean field: {field}, {len(qs)} batch data")
+                    [q.delete() for q in qs]
+                elif field not in instance_fields or settings.CLEAN_EXPIRED_V2_TASK_INSTANCE:
                     logger.info(
-                        f"[clean_expired_v2_task_data] clean field: {field}, qs ids: {qs.values_list('id', flat=True)}"
+                        f"[clean_expired_v2_task_data] clean field: {field}, "
+                        f"qs ids: {qs.values_list('id', flat=True)[:10]}..."
                     )
                     qs.delete()
                 elif field == "pipeline_instances":
