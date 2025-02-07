@@ -220,6 +220,7 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
     class Meta:
         model = PeriodicTask
         fields = [
+            "id",
             "project",
             "cron",
             "name",
