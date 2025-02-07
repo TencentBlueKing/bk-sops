@@ -757,10 +757,6 @@
                         await this.updatePeriodicPartial(params)
                         this.postMessage(this.taskId)
                     }
-                    this.$bkMessage({
-                        'message': i18n.t('编辑周期任务成功'),
-                        'theme': 'success'
-                    })
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -781,11 +777,7 @@
                 try {
                     const response = await this.createPeriodic(data)
                     if (!response.result) return
-                    this.$bkMessage({
-                        'message': i18n.t('创建周期任务成功'),
-                        'theme': 'success'
-                    })
-                    this.postMessage()
+                    this.postMessage(response.data.id)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -970,7 +962,7 @@
         bottom: 0;
         width: 100%;
         background: #fafbfd;
-        padding: 8px 0 8px 24px;
+        padding: 8px 0 8px 28px;
         margin-left: -28px;
         box-shadow: 0 -1px 0 0 #dcdee5;
         .bk-button {
