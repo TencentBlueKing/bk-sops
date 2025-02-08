@@ -33,7 +33,6 @@ from pipeline.models import PipelineInstance, Snapshot, TreeInfo
 
 from gcloud.utils.data_handler import chunk_data
 from gcloud.contrib.cleaner.models import ArchivedTaskInstance
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.models import AutoRetryNodeStrategy, TimeoutNodeConfig
 from pipeline_web.core.models import NodeInInstance
 
@@ -115,18 +114,15 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     }
 
 
-def generate_archived_task_instances(expire_pipeline_instance_ids):
+def generate_archived_task_instances(tasks):
     """
-    根据 instance_id 将过期任务的数据进行归档
+    生成归档任务实例
+    :param tasks: 待归档的过期任务
+    :return: List[ArchivedTaskInstance], List[int]
     """
+    archived_task_instances = []
+    archived_task_ids = []
     try:
-        tasks = (
-            TaskFlowInstance.objects.select_related("pipeline_instance")
-            .filter(pipeline_instance__instance_id__in=expire_pipeline_instance_ids)
-            .order_by("id")
-        )
-        archived_task_instances = []
-        archived_task_ids = []
         for task in tasks:
             if task.is_deleted:
                 continue

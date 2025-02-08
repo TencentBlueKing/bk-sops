@@ -104,17 +104,15 @@ def archive_expired_v2_task_data():
         batch_num = settings.ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM
 
         tasks = (
-            TaskFlowInstance.objects.filter(
-                pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=1
-            )
-            .order_by("id")
-            .values("id", "pipeline_instance__instance_id")[:batch_num]
+            TaskFlowInstance.objects.select_related("pipeline_instance")
+            .filter(pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=1)
+            .order_by("id")[:batch_num]
         )
-        task_ids = [item["id"] for item in tasks]
-        pipeline_instance_ids = [item["pipeline_instance__instance_id"] for item in tasks]
+        task_ids = [item.id for item in tasks]
+        pipeline_instance_ids = [item.pipeline_instance.instance_id for item in tasks]
 
         with transaction.atomic():
-            archived_task_instances, archived_task_ids = generate_archived_task_instances(pipeline_instance_ids)
+            archived_task_instances, archived_task_ids = generate_archived_task_instances(tasks)
             if archived_task_instances and archived_task_ids:
                 ArchivedTaskInstance.objects.bulk_create(archived_task_instances)
                 logger.info(f"[generate_archived_task_instances] generate archived tasks, ids: {archived_task_ids}")
