@@ -106,11 +106,11 @@ def clear_statistics_info():
         for data in data_to_clean:
             model = data["model"]
             time_field = data["time_field"]
-            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by("id")[:batch_num]
+            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by("time_field")[:batch_num]
             ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
-                logger.info(f"[clear_statistics_info] clean model: {model.__name__}, deleted ids: {ids_to_delete}")
+                logger.info(f"[clear_statistics_info] deleted nums: {len(ids_to_delete)}, e.x.: {ids_to_delete[:3]}...")
         logger.info("[clear_statistics_info] success clean statistics")
     except Exception as e:
-        logger.error(f"Failed to clear expired statistics data: {e}")
+        logger.exception(f"Failed to clear expired statistics data: {e}")
