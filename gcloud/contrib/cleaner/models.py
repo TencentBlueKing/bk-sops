@@ -19,10 +19,10 @@ from gcloud.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT
 from gcloud.core.models import EngineConfig
 
 
-class ExpiredTaskArchive(models.Model):
+class ArchivedTaskInstance(models.Model):
     id = models.BigAutoField(_("id"), primary_key=True)
-    task_id = models.CharField(_("任务 ID"), max_length=255, db_index=True)
-    project_id = models.CharField(_("项目 ID"), default=-1, help_text="模板所属项目ID", max_length=32)
+    task_id = models.BigIntegerField(_("任务 ID"), db_index=True)
+    project_id = models.BigIntegerField(_("项目 ID"), default=-1, help_text="模板所属项目ID")
     name = models.CharField(_("实例名称"), max_length=128, default="default_instance")
     template_id = models.CharField(_("Pipeline模板ID"), max_length=32)
     task_template_id = models.CharField(_("Task模板ID"), max_length=32)

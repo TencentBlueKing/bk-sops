@@ -19,8 +19,12 @@ from django.db import transaction
 from django.utils import timezone
 
 from pipeline.models import PipelineInstance
-from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data, archived_expired_task
-from gcloud.contrib.cleaner.models import ExpiredTaskArchive
+from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import (
+    get_clean_pipeline_instance_data,
+    generate_archived_task_instances,
+)
+from gcloud.contrib.cleaner.models import ArchivedTaskInstance
+from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
 from gcloud.contrib.cleaner.signals import pre_delete_pipeline_instance_data
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.decorators import time_record
@@ -82,24 +86,22 @@ def clean_expired_v2_task_data():
         logger.exception(f"[clean_expired_v2_task_data] error: {e}")
 
 
-@periodic_task(
-    run_every=(crontab(*settings.ARCHIVED_EXPIRED_V2_TASK_CRON)), ignore_result=True, queue="task_data_clean"
-)
+@periodic_task(run_every=(crontab(*settings.ARCHIVE_EXPIRED_V2_TASK_CRON)), ignore_result=True, queue="task_data_clean")
 @time_record(logger)
-def archived_expired_v2_task_data():
+def archive_expired_v2_task_data():
     """
     归档过期任务数据
     """
     if not settings.ENBLE_ARCHIVE_EXPIRED_V2_TASK:
-        logger.info("Skip archived expired v2 task data")
+        logger.info("Skip archive expired v2 task data")
         return
 
-    logger.info("Start archived expired task data...")
+    logger.info("Start archive expired task data...")
     try:
         validity_day = settings.V2_TASK_VALIDITY_DAY
         expire_time = timezone.now() - timezone.timedelta(days=validity_day)
 
-        batch_num = settings.ARCHIVED_EXPIRED_V2_TASK_BATCH_NUM
+        batch_num = settings.ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM
 
         tasks = (
             TaskFlowInstance.objects.filter(
@@ -112,13 +114,48 @@ def archived_expired_v2_task_data():
         pipeline_instance_ids = [item["pipeline_instance__instance_id"] for item in tasks]
 
         with transaction.atomic():
-            archived_task_list, archived_task_ids = archived_expired_task(pipeline_instance_ids)
-            if archived_task_list and archived_task_ids:
-                ExpiredTaskArchive.objects.bulk_create(archived_task_list)
-                logger.info(f"Archived expired tasks, task_ids: {archived_task_ids}")
+            archived_task_instances, archived_task_ids = generate_archived_task_instances(pipeline_instance_ids)
+            if archived_task_instances and archived_task_ids:
+                ArchivedTaskInstance.objects.bulk_create(archived_task_instances)
+                logger.info(f"[generate_archived_task_instances] generate archived tasks, ids: {archived_task_ids}")
 
             TaskFlowInstance.objects.filter(id__in=task_ids).delete()
             PipelineInstance.objects.filter(instance_id__in=pipeline_instance_ids).delete()
-            logger.info(f"Deleted expired task data, task_ids: {task_ids}")
+            logger.info(f"[archive_expired_v2_task_data] delete nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
     except Exception as e:
-        logger.exception(f"[archived_expired_v2_task_data] error: {e}")
+        logger.exception(f"[archive_expired_v2_task_data] error: {e}")
+
+
+@periodic_task(
+    run_every=(crontab(*settings.CLEAN_EXPIRED_STATISTICS_CRON)), ignore_result=True, queue="task_data_clean"
+)
+@time_record(logger)
+def clear_statistics_info():
+    """
+    清除过期的统计信息
+    """
+    if not settings.ENABLE_CLEAN_EXPIRED_STATISTICS:
+        logger.info("Skip clean expired statistics data")
+        return
+
+    logger.info("Start clean expired statistics data...")
+    try:
+        validity_day = settings.STATISTICS_VALIDITY_DAY
+        expire_time = timezone.now() - timezone.timedelta(days=validity_day)
+        batch_num = settings.CLEAN_EXPIRED_STATISTICS_BATCH_NUM
+
+        data_to_clean = [
+            {"model": TaskflowStatistics, "time_field": "create_time"},
+            {"model": TaskflowExecutedNodeStatistics, "time_field": "instance_create_time"},
+        ]
+        for data in data_to_clean:
+            model = data["model"]
+            time_field = data["time_field"]
+            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by(time_field)[:batch_num]
+            ids_to_delete = list(qs.values_list("id", flat=True))
+            if ids_to_delete:
+                model.objects.filter(id__in=ids_to_delete).delete()
+                logger.info(f"[clear_statistics_info] deleted nums: {len(ids_to_delete)}, e.x.: {ids_to_delete[:3]}...")
+        logger.info("[clear_statistics_info] success clean statistics")
+    except Exception as e:
+        logger.exception(f"Failed to clear expired statistics data: {e}")
