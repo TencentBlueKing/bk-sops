@@ -18,7 +18,9 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
+from pipeline.models import PipelineInstance
 from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data
+from gcloud.contrib.cleaner.models import ArchivedTaskInstance
 from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
 from gcloud.contrib.cleaner.signals import pre_delete_pipeline_instance_data
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -79,6 +81,76 @@ def clean_expired_v2_task_data():
         logger.info(f"[clean_expired_v2_task_data] success clean tasks: {task_ids}")
     except Exception as e:
         logger.exception(f"[clean_expired_v2_task_data] error: {e}")
+
+
+@periodic_task(run_every=(crontab(*settings.ARCHIVE_EXPIRED_V2_TASK_CRON)), ignore_result=True, queue="task_data_clean")
+@time_record(logger)
+def archive_expired_v2_task_data():
+    """
+    归档过期任务数据
+    """
+    if not settings.ENBLE_ARCHIVE_EXPIRED_V2_TASK:
+        logger.info("Skip archive expired v2 task data")
+        return
+
+    logger.info("Start archive expired task data...")
+    try:
+        validity_day = settings.V2_TASK_VALIDITY_DAY
+        expire_time = timezone.now() - timezone.timedelta(days=validity_day)
+
+        batch_num = settings.ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM
+
+        tasks = (
+            TaskFlowInstance.objects.select_related("pipeline_instance")
+            .filter(pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=1)
+            .order_by("id")[:batch_num]
+        )
+        if not tasks:
+            logger.info("No expired task data to archive")
+            return
+        task_ids = [item.id for item in tasks]
+        pipeline_instance_ids = [item.pipeline_instance_id for item in tasks]
+        archived_task_objs = [
+            ArchivedTaskInstance(
+                task_id=task.id,
+                project_id=task.project_id,
+                name=task.pipeline_instance.name,
+                template_id=task.pipeline_instance.template_id,
+                task_template_id=task.template_id,
+                template_source=task.template_source,
+                create_method=task.create_method,
+                create_info=task.create_info,
+                creator=task.pipeline_instance.creator,
+                create_time=task.pipeline_instance.create_time,
+                executor=task.pipeline_instance.executor,
+                recorded_executor_proxy=task.recorded_executor_proxy,
+                start_time=task.pipeline_instance.start_time,
+                finish_time=task.pipeline_instance.finish_time,
+                is_started=task.pipeline_instance.is_started,
+                is_finished=task.pipeline_instance.is_finished,
+                is_revoked=task.pipeline_instance.is_revoked,
+                engine_ver=task.engine_ver,
+                is_child_taskflow=task.is_child_taskflow,
+                snapshot_id=task.pipeline_instance.snapshot_id,
+                current_flow=task.current_flow,
+                is_deleted=task.is_deleted,
+                extra_info=task.extra_info,
+            )
+            for task in tasks
+        ]
+        with transaction.atomic():
+            archived_task_instances = ArchivedTaskInstance.objects.bulk_create(archived_task_objs)
+            logger.info(f"[archive_expired_v2_task_data] archived nums: {len(archived_task_instances)}")
+            TaskFlowInstance.objects.filter(id__in=task_ids).delete()
+            logger.info(f"[archive_expired_v2_task_data] delete task nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
+            PipelineInstance.objects.filter(id__in=pipeline_instance_ids).delete()
+            logger.info(
+                f"[archive_expired_v2_task_data] delete pipeline nums: {len(pipeline_instance_ids)}, "
+                f"e.x.: {pipeline_instance_ids[:3]}..."
+            )
+        logger.info(f"[archive_expired_v2_task_data] success archive tasks: {task_ids[:3]}...")
+    except Exception as e:
+        logger.exception(f"[archive_expired_v2_task_data] error: {e}")
 
 
 @periodic_task(
