@@ -108,18 +108,24 @@ def archive_expired_v2_task_data():
             .filter(pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=1)
             .order_by("id")[:batch_num]
         )
+        if not tasks:
+            logger.info("No expired task data to archive")
+            return
         task_ids = [item.id for item in tasks]
-        pipeline_instance_ids = [item.pipeline_instance.instance_id for item in tasks]
+        pipeline_instance_ids = [item.pipeline_instance_id for item in tasks]
+        archived_task_instances = generate_archived_task_instances(tasks)
 
         with transaction.atomic():
-            archived_task_instances, archived_task_ids = generate_archived_task_instances(tasks)
-            if archived_task_instances and archived_task_ids:
-                ArchivedTaskInstance.objects.bulk_create(archived_task_instances)
-                logger.info(f"[generate_archived_task_instances] generate archived tasks, ids: {archived_task_ids}")
-
+            ArchivedTaskInstance.objects.bulk_create(archived_task_instances)
+            logger.info(f"[generate_archived_task_instances] archived nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
             TaskFlowInstance.objects.filter(id__in=task_ids).delete()
-            PipelineInstance.objects.filter(instance_id__in=pipeline_instance_ids).delete()
-            logger.info(f"[archive_expired_v2_task_data] delete nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
+            logger.info(f"[archive_expired_v2_task_data] delete task nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
+            PipelineInstance.objects.filter(id__in=pipeline_instance_ids).delete()
+            logger.info(
+                f"[archive_expired_v2_task_data] delete pipeline nums: {len(pipeline_instance_ids)}, "
+                f"e.x.: {pipeline_instance_ids[:3]}..."
+            )
+        logger.info(f"[archive_expired_v2_task_data] success archive tasks: {task_ids[:3]}...")
     except Exception as e:
         logger.exception(f"[archive_expired_v2_task_data] error: {e}")
 

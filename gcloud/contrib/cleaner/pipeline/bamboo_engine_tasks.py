@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
-import json
 from typing import Dict, List
 
 from django.conf import settings
@@ -118,14 +117,11 @@ def generate_archived_task_instances(tasks):
     """
     生成归档任务实例
     :param tasks: 待归档的过期任务
-    :return: List[ArchivedTaskInstance], List[int]
+    :return: List[ArchivedTaskInstance]
     """
     archived_task_instances = []
-    archived_task_ids = []
     try:
         for task in tasks:
-            if task.is_deleted:
-                continue
             archived_data = ArchivedTaskInstance(
                 task_id=task.id,
                 project_id=task.project_id,
@@ -147,18 +143,13 @@ def generate_archived_task_instances(tasks):
                 engine_ver=task.engine_ver,
                 is_child_taskflow=task.is_child_taskflow,
                 snapshot_id=task.pipeline_instance.snapshot_id,
-                extra_info=json.dumps(
-                    {
-                        "flow_type": task.flow_type,
-                        "current_flow": task.current_flow,
-                        "extra_info": task.extra_info,
-                    }
-                ),
+                current_flow=task.current_flow,
+                is_deleted=task.is_deleted,
+                extra_info=task.extra_info,
             )
-            archived_task_ids.append(task.id)
             archived_task_instances.append(archived_data)
     except Exception as e:
         logger.exception(f"Generate archived task error: {e}")
         raise Exception(f"Generate archived task error: {e}")
 
-    return archived_task_instances, archived_task_ids
+    return archived_task_instances
