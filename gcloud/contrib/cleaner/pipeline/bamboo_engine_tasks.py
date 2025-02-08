@@ -31,7 +31,6 @@ from pipeline.eri.models import (
 from pipeline.models import PipelineInstance, Snapshot, TreeInfo
 
 from gcloud.utils.data_handler import chunk_data
-from gcloud.contrib.cleaner.models import ArchivedTaskInstance
 from gcloud.taskflow3.models import AutoRetryNodeStrategy, TimeoutNodeConfig
 from pipeline_web.core.models import NodeInInstance
 
@@ -111,45 +110,3 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
         "execution_data_list": execution_data_list,
         "schedules_list": schedules_list,
     }
-
-
-def generate_archived_task_instances(tasks):
-    """
-    生成归档任务实例
-    :param tasks: 待归档的过期任务
-    :return: List[ArchivedTaskInstance]
-    """
-    archived_task_instances = []
-    try:
-        for task in tasks:
-            archived_data = ArchivedTaskInstance(
-                task_id=task.id,
-                project_id=task.project_id,
-                name=task.pipeline_instance.name,
-                template_id=task.pipeline_instance.template_id,
-                task_template_id=task.template_id,
-                template_source=task.template_source,
-                create_method=task.create_method,
-                create_info=task.create_info,
-                creator=task.pipeline_instance.creator,
-                create_time=task.pipeline_instance.create_time,
-                executor=task.pipeline_instance.executor,
-                recorded_executor_proxy=task.recorded_executor_proxy,
-                start_time=task.pipeline_instance.start_time,
-                finish_time=task.pipeline_instance.finish_time,
-                is_started=task.pipeline_instance.is_started,
-                is_finished=task.pipeline_instance.is_finished,
-                is_revoked=task.pipeline_instance.is_revoked,
-                engine_ver=task.engine_ver,
-                is_child_taskflow=task.is_child_taskflow,
-                snapshot_id=task.pipeline_instance.snapshot_id,
-                current_flow=task.current_flow,
-                is_deleted=task.is_deleted,
-                extra_info=task.extra_info,
-            )
-            archived_task_instances.append(archived_data)
-    except Exception as e:
-        logger.exception(f"Generate archived task error: {e}")
-        raise Exception(f"Generate archived task error: {e}")
-
-    return archived_task_instances
