@@ -106,7 +106,7 @@ def clear_statistics_info():
         for data in data_to_clean:
             model = data["model"]
             time_field = data["time_field"]
-            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by("time_field")[:batch_num]
+            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by(time_field)[:batch_num]
             ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
