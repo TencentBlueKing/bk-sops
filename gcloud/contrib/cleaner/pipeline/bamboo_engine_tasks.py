@@ -31,6 +31,7 @@ from pipeline.eri.models import (
 from pipeline.models import PipelineInstance, Snapshot, TreeInfo
 
 from gcloud.utils.data_handler import chunk_data
+from gcloud.taskflow3.models import AutoRetryNodeStrategy, TimeoutNodeConfig
 from pipeline_web.core.models import NodeInInstance
 
 logger = logging.getLogger("root")
@@ -81,6 +82,8 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     logger.info(f"[get_clean_pipeline_instance_data] fetching node_ids number: {len(node_ids)}, e.x.:{node_ids[:3]}...")
     callback_data = CallbackData.objects.filter(node_id__in=node_ids)  # CallbackData 的 node_id 字段没有索引，需要遍历不分块
     chunk_size = settings.CLEAN_EXPIRED_V2_TASK_NODE_BATCH_NUM
+    retry_node = chunk_data(node_ids, chunk_size, lambda x: AutoRetryNodeStrategy.objects.filter(node_id__in=x))
+    timeout_node = chunk_data(node_ids, chunk_size, lambda x: TimeoutNodeConfig.objects.filter(node_id__in=x))
     nodes_list = chunk_data(node_ids, chunk_size, lambda x: Node.objects.filter(node_id__in=x))
     data_list = chunk_data(node_ids, chunk_size, lambda x: Data.objects.filter(node_id__in=x))
     states_list = chunk_data(node_ids, chunk_size, lambda x: State.objects.filter(node_id__in=x))
@@ -97,6 +100,8 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
         "process": process,
         "periodic_task_history": periodic_task_history,
         "pipeline_instances": pipeline_instances,
+        "retry_node": retry_node,
+        "timeout_node": timeout_node,
         "callback_data": callback_data,
         "node_list": nodes_list,
         "data_list": data_list,

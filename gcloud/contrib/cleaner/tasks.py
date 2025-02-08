@@ -19,6 +19,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data
+from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
 from gcloud.contrib.cleaner.signals import pre_delete_pipeline_instance_data
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.decorators import time_record
@@ -78,3 +79,38 @@ def clean_expired_v2_task_data():
         logger.info(f"[clean_expired_v2_task_data] success clean tasks: {task_ids}")
     except Exception as e:
         logger.exception(f"[clean_expired_v2_task_data] error: {e}")
+
+
+@periodic_task(
+    run_every=(crontab(*settings.CLEAN_EXPIRED_STATISTICS_CRON)), ignore_result=True, queue="task_data_clean"
+)
+@time_record(logger)
+def clear_statistics_info():
+    """
+    清除过期的统计信息
+    """
+    if not settings.ENABLE_CLEAN_EXPIRED_STATISTICS:
+        logger.info("Skip clean expired statistics data")
+        return
+
+    logger.info("Start clean expired statistics data...")
+    try:
+        validity_day = settings.STATISTICS_VALIDITY_DAY
+        expire_time = timezone.now() - timezone.timedelta(days=validity_day)
+        batch_num = settings.CLEAN_EXPIRED_STATISTICS_BATCH_NUM
+
+        data_to_clean = [
+            {"model": TaskflowStatistics, "time_field": "create_time"},
+            {"model": TaskflowExecutedNodeStatistics, "time_field": "instance_create_time"},
+        ]
+        for data in data_to_clean:
+            model = data["model"]
+            time_field = data["time_field"]
+            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by(time_field)[:batch_num]
+            ids_to_delete = list(qs.values_list("id", flat=True))
+            if ids_to_delete:
+                model.objects.filter(id__in=ids_to_delete).delete()
+                logger.info(f"[clear_statistics_info] deleted nums: {len(ids_to_delete)}, e.x.: {ids_to_delete[:3]}...")
+        logger.info("[clear_statistics_info] success clean statistics")
+    except Exception as e:
+        logger.exception(f"Failed to clear expired statistics data: {e}")
