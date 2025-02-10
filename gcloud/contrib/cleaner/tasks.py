@@ -102,7 +102,7 @@ def archive_expired_v2_task_data():
 
         tasks = (
             TaskFlowInstance.objects.select_related("pipeline_instance")
-            .filter(pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=1)
+            .filter(pipeline_instance__create_time__lt=expire_time, pipeline_instance__is_expired=1)
             .order_by("id")[:batch_num]
         )
         if not tasks:

@@ -21,7 +21,7 @@ from gcloud.core.models import EngineConfig
 
 class ArchivedTaskInstance(models.Model):
     id = models.BigAutoField(_("id"), primary_key=True)
-    task_id = models.BigIntegerField(_("任务 ID"), db_index=True)
+    task_id = models.BigIntegerField(_("任务 ID"), help_text="过期任务 ID")
     project_id = models.BigIntegerField(_("项目 ID"), default=-1, help_text="模板所属项目ID")
     name = models.CharField(_("实例名称"), max_length=128, default="default_instance")
     template_id = models.CharField(_("Pipeline模板ID"), max_length=32, null=True, blank=True)
