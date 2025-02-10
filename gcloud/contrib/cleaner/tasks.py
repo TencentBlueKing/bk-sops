@@ -89,7 +89,7 @@ def archive_expired_v2_task_data():
     """
     归档过期任务数据
     """
-    if not settings.ENBLE_ARCHIVE_EXPIRED_V2_TASK:
+    if not settings.ENABLE_ARCHIVE_EXPIRED_V2_TASK:
         logger.info("Skip archive expired v2 task data")
         return
 
