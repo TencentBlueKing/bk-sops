@@ -182,7 +182,10 @@ def clear_statistics_info():
             ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
-                logger.info(f"[clear_statistics_info] deleted nums: {len(ids_to_delete)}, e.x.: {ids_to_delete[:3]}...")
+                logger.info(
+                    f"[clear_statistics_info] clean model {model} deleted nums: {len(ids_to_delete)}, "
+                    f"e.x.: {ids_to_delete[:3]}..."
+                )
         logger.info("[clear_statistics_info] success clean statistics")
     except Exception as e:
         logger.exception(f"Failed to clear expired statistics data: {e}")
