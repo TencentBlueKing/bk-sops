@@ -183,7 +183,7 @@ def clear_statistics_info():
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
                 logger.info(
-                    f"[clear_statistics_info] clean model {model} deleted nums: {len(ids_to_delete)}, "
+                    f"[clear_statistics_info] clean model {model.__name__} deleted nums: {len(ids_to_delete)}, "
                     f"e.x.: {ids_to_delete[:3]}..."
                 )
         logger.info("[clear_statistics_info] success clean statistics")
