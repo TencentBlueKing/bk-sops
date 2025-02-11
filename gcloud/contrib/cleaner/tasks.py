@@ -18,6 +18,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from pipeline.models import PipelineInstance
+from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
 
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics, TaskflowStatistics
 from gcloud.contrib.cleaner.models import ArchivedTaskInstance
@@ -112,7 +113,7 @@ def archive_expired_v2_task_data():
             logger.info("No expired task data to archive")
             return
         task_ids = [item.id for item in tasks]
-        pipeline_instance_ids = [item.pipeline_instance_id for item in tasks]
+        pipeline_ids = [item.pipeline_instance_id for item in tasks]
         archived_task_objs = [
             ArchivedTaskInstance(
                 task_id=task.id,
@@ -146,10 +147,18 @@ def archive_expired_v2_task_data():
             logger.info(f"[archive_expired_v2_task_data] archived nums: {len(archived_task_instances)}")
             TaskFlowInstance.objects.filter(id__in=task_ids).delete()
             logger.info(f"[archive_expired_v2_task_data] delete task nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
-            PipelineInstance.objects.filter(id__in=pipeline_instance_ids).delete()
+            pipeline_instance_ids = [item.pipeline_instance.instance_id for item in tasks]
+            periodic_task_obj = PeriodicTaskHistory.objects.filter(pipeline_instance_id__in=pipeline_instance_ids)
+            if periodic_task_obj:
+                logger.info(
+                    f"[archive_expired_v2_task_data] delete periodic task nums: {len(periodic_task_obj)}, "
+                    f"e.x.: {periodic_task_obj.values_list('pk', flat=True)[:3]}..."
+                )
+                periodic_task_obj.delete()
+            PipelineInstance.objects.filter(id__in=pipeline_ids).delete()
             logger.info(
-                f"[archive_expired_v2_task_data] delete pipeline nums: {len(pipeline_instance_ids)}, "
-                f"e.x.: {pipeline_instance_ids[:3]}..."
+                f"[archive_expired_v2_task_data] delete pipeline nums: {len(pipeline_ids)}, "
+                f"e.x.: {pipeline_ids[:3]}..."
             )
         logger.info(f"[archive_expired_v2_task_data] success archive tasks: {task_ids[:3]}...")
     except Exception as e:
