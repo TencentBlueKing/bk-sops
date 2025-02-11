@@ -288,11 +288,11 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         # fetch all template relationship in template_ids
         pipeline_tmpl_ids = [item["pipeline_template_id"] for item in tmpl_and_pipeline_id]
         subproc_infos = TemplateRelationship.objects.filter(ancestor_template_id__in=pipeline_tmpl_ids)
-        if not check_latest:
-            subproc_infos = subproc_infos.filter(always_use_latest=0)
 
         # get all subprocess reference template's version
-        subproc_templ = [info.descendant_template_id for info in subproc_infos]
+        subproc_templ = [
+            info.descendant_template_id for info in subproc_infos if check_latest or not info.always_use_latest
+        ]
         tmpl_versions = TemplateCurrentVersion.objects.filter(template_id__in=subproc_templ)
 
         # comparison data prepare

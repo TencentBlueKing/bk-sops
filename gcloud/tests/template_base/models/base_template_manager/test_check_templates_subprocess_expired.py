@@ -81,7 +81,7 @@ class CheckTemplatesSubprocessExpiredTestCase(TestCase):
         TemplateRelationship.objects.filter = MagicMock(return_value=[r1, r2, r3, r4, r5])
 
         TemplateCurrentVersion = MagicMock()
-        TemplateCurrentVersion.objects.filter = MagicMock(return_value=[v1, v2, v3, v4, v5])
+        TemplateCurrentVersion.objects.filter = MagicMock(return_value=[v2, v3, v5])
 
         with patch(TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP, TemplateRelationship):
             with patch(TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION, TemplateCurrentVersion):
