@@ -68,7 +68,10 @@ def clean_expired_v2_task_data():
         with transaction.atomic():
             for field, qs in data_to_clean.items():
                 if field.endswith("_list") and isinstance(qs, list):
-                    logger.info(f"[clean_expired_v2_task_data] clean field: {field}, {len(qs)} batch data")
+                    logger.info(
+                        f"[clean_expired_v2_task_data] clean field: {field}, {len(qs)} batch data, "
+                        f"e.x.: {qs[0].values_list('id', flat=True)[:10] if len(qs) > 0 else None}..."
+                    )
                     [q.delete() for q in qs]
                 elif field not in instance_fields or settings.CLEAN_EXPIRED_V2_TASK_INSTANCE:
                     logger.info(
@@ -89,7 +92,7 @@ def archive_expired_v2_task_data():
     """
     归档过期任务数据
     """
-    if not settings.ENBLE_ARCHIVE_EXPIRED_V2_TASK:
+    if not settings.ENABLE_ARCHIVE_EXPIRED_V2_TASK:
         logger.info("Skip archive expired v2 task data")
         return
 
@@ -182,7 +185,10 @@ def clear_statistics_info():
             ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
-                logger.info(f"[clear_statistics_info] deleted nums: {len(ids_to_delete)}, e.x.: {ids_to_delete[:3]}...")
+                logger.info(
+                    f"[clear_statistics_info] clean model {model.__name__} deleted nums: {len(ids_to_delete)}, "
+                    f"e.x.: {ids_to_delete[:3]}..."
+                )
         logger.info("[clear_statistics_info] success clean statistics")
     except Exception as e:
         logger.exception(f"Failed to clear expired statistics data: {e}")
