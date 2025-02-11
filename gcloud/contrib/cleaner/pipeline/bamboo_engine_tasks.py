@@ -10,26 +10,31 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from typing import List, Dict
+import logging
+from typing import Dict, List
 
+from django.conf import settings
 from django.db.models import QuerySet
-
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
 from pipeline.eri.models import (
-    ContextValue,
-    ContextOutputs,
-    Process,
-    Node,
-    Data,
-    State,
-    ExecutionHistory,
-    ExecutionData,
     CallbackData,
+    ContextOutputs,
+    ContextValue,
+    Data,
+    ExecutionData,
+    ExecutionHistory,
+    Node,
+    Process,
     Schedule,
+    State,
 )
+from pipeline.models import PipelineInstance, Snapshot, TreeInfo
 
-from pipeline.models import PipelineInstance, TreeInfo, Snapshot
+from gcloud.utils.data_handler import chunk_data
+from gcloud.taskflow3.models import AutoRetryNodeStrategy, TimeoutNodeConfig
 from pipeline_web.core.models import NodeInInstance
+
+logger = logging.getLogger("root")
 
 
 def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, QuerySet]:
@@ -38,44 +43,70 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     :param instance_ids: 需要清理的 pipeline_instance_id 列表
     :return: Dict[str, QuerySet]
     """
+    if not instance_ids:
+        return {}
+
     pipeline_instances = PipelineInstance.objects.filter(instance_id__in=instance_ids)
+    # 业务层表，无法覆盖周期任务数据
     nodes_in_pipeline = NodeInInstance.objects.filter(instance_id__in=instance_ids)
 
     tree_info_ids = pipeline_instances.values_list("tree_info_id", flat=True)
-    tree_info = TreeInfo.objects.filter(id__in=list(tree_info_ids))
+    tree_infos = TreeInfo.objects.filter(id__in=list(tree_info_ids))
+
+    # 通过 tree_info 获得节点集合
+    node_id_set = set(instance_ids)
+    cover_tree_info_ids = set()
+    # tree_info中带有计算好node_ids的情况
+    for tree_info in tree_infos:
+        if "node_id_set" in tree_info.data:
+            node_id_set |= set(tree_info.data["node_id_set"])
+            cover_tree_info_ids.add(tree_info.id)
+    for pipeline_instance in pipeline_instances:
+        if pipeline_instance.tree_info_id not in cover_tree_info_ids:
+            pipeline_instance._get_node_id_set(node_id_set, pipeline_instance.execution_data)  # noqa
 
     execution_snapshot_ids = pipeline_instances.values_list("execution_snapshot_id", flat=True)
     execution_snapshot = Snapshot.objects.filter(id__in=list(execution_snapshot_ids))
 
     pipeline_ids = instance_ids
+    logger.info(
+        f"[get_clean_pipeline_instance_data] fetching pipeline_ids number: {len(pipeline_ids)}, "
+        f"e.x.:{pipeline_ids[:3]}..."
+    )
     context_value = ContextValue.objects.filter(pipeline_id__in=pipeline_ids)
     context_outputs = ContextOutputs.objects.filter(pipeline_id__in=pipeline_ids)
     process = Process.objects.filter(root_pipeline_id__in=pipeline_ids)
     periodic_task_history = PeriodicTaskHistory.objects.filter(pipeline_instance_id__in=pipeline_ids)
 
-    node_ids = list(nodes_in_pipeline.values_list("node_id", flat=True)) + instance_ids
-    nodes = Node.objects.filter(node_id__in=node_ids)
-    data = Data.objects.filter(node_id__in=node_ids)
-    states = State.objects.filter(node_id__in=node_ids)
-    execution_history = ExecutionHistory.objects.filter(node_id__in=node_ids)
-    execution_data = ExecutionData.objects.filter(node_id__in=node_ids)
-    callback_data = CallbackData.objects.filter(node_id__in=node_ids)
-    schedules = Schedule.objects.filter(node_id__in=node_ids)
+    node_ids = list(node_id_set)
+    logger.info(f"[get_clean_pipeline_instance_data] fetching node_ids number: {len(node_ids)}, e.x.:{node_ids[:3]}...")
+    callback_data = CallbackData.objects.filter(node_id__in=node_ids)  # CallbackData 的 node_id 字段没有索引，需要遍历不分块
+    chunk_size = settings.CLEAN_EXPIRED_V2_TASK_NODE_BATCH_NUM
+    retry_node_list = chunk_data(node_ids, chunk_size, lambda x: AutoRetryNodeStrategy.objects.filter(node_id__in=x))
+    timeout_node_list = chunk_data(node_ids, chunk_size, lambda x: TimeoutNodeConfig.objects.filter(node_id__in=x))
+    nodes_list = chunk_data(node_ids, chunk_size, lambda x: Node.objects.filter(node_id__in=x))
+    data_list = chunk_data(node_ids, chunk_size, lambda x: Data.objects.filter(node_id__in=x))
+    states_list = chunk_data(node_ids, chunk_size, lambda x: State.objects.filter(node_id__in=x))
+    execution_history_list = chunk_data(node_ids, chunk_size, lambda x: ExecutionHistory.objects.filter(node_id__in=x))
+    execution_data_list = chunk_data(node_ids, chunk_size, lambda x: ExecutionData.objects.filter(node_id__in=x))
+    schedules_list = chunk_data(node_ids, chunk_size, lambda x: Schedule.objects.filter(node_id__in=x))
 
     return {
-        "tree_info": tree_info,
+        "tree_info": tree_infos,
         "nodes_in_pipeline": nodes_in_pipeline,
         "execution_snapshot": execution_snapshot,
         "context_value": context_value,
         "context_outputs": context_outputs,
         "process": process,
-        "node": nodes,
-        "data": data,
-        "state": states,
-        "execution_history": execution_history,
-        "execution_data": execution_data,
-        "callback_data": callback_data,
-        "schedules": schedules,
         "periodic_task_history": periodic_task_history,
         "pipeline_instances": pipeline_instances,
+        "retry_node_list": retry_node_list,
+        "timeout_node_list": timeout_node_list,
+        "callback_data": callback_data,
+        "node_list": nodes_list,
+        "data_list": data_list,
+        "state_list": states_list,
+        "execution_history_list": execution_history_list,
+        "execution_data_list": execution_data_list,
+        "schedules_list": schedules_list,
     }
