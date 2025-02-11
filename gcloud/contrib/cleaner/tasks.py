@@ -17,11 +17,11 @@ from celery.task import periodic_task
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-
 from pipeline.models import PipelineInstance
-from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data
+
+from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics, TaskflowStatistics
 from gcloud.contrib.cleaner.models import ArchivedTaskInstance
-from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
+from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data
 from gcloud.contrib.cleaner.signals import pre_delete_pipeline_instance_data
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.decorators import time_record
@@ -70,13 +70,13 @@ def clean_expired_v2_task_data():
                 if field.endswith("_list") and isinstance(qs, list):
                     logger.info(
                         f"[clean_expired_v2_task_data] clean field: {field}, {len(qs)} batch data, "
-                        f"e.x.: {qs[0].values_list('id', flat=True)[:10] if len(qs) > 0 else None}..."
+                        f"e.x.: {qs[0].values_list('pk', flat=True)[:10] if len(qs) > 0 else None}..."
                     )
                     [q.delete() for q in qs]
                 elif field not in instance_fields or settings.CLEAN_EXPIRED_V2_TASK_INSTANCE:
                     logger.info(
                         f"[clean_expired_v2_task_data] clean field: {field}, "
-                        f"qs ids: {qs.values_list('id', flat=True)[:10]}..."
+                        f"qs ids: {qs.values_list('pk', flat=True)[:10]}..."
                     )
                     qs.delete()
                 elif field == "pipeline_instances":
