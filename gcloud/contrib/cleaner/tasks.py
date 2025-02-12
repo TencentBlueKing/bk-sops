@@ -19,6 +19,7 @@ from django.db import transaction
 from django.utils import timezone
 from pipeline.models import PipelineInstance
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
+from pipeline.contrib.statistics.models import ComponentExecuteData
 
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics, TaskflowStatistics
 from gcloud.contrib.cleaner.models import ArchivedTaskInstance
@@ -114,6 +115,7 @@ def archive_expired_v2_task_data():
             return
         task_ids = [item.id for item in tasks]
         pipeline_ids = [item.pipeline_instance_id for item in tasks]
+        pipeline_instance_ids = [item.pipeline_instance.instance_id for item in tasks]
         archived_task_objs = [
             ArchivedTaskInstance(
                 task_id=task.id,
@@ -147,14 +149,16 @@ def archive_expired_v2_task_data():
             logger.info(f"[archive_expired_v2_task_data] archived nums: {len(archived_task_instances)}")
             TaskFlowInstance.objects.filter(id__in=task_ids).delete()
             logger.info(f"[archive_expired_v2_task_data] delete task nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
-            pipeline_instance_ids = [item.pipeline_instance.instance_id for item in tasks]
-            periodic_task_obj = PeriodicTaskHistory.objects.filter(pipeline_instance_id__in=pipeline_instance_ids)
-            if periodic_task_obj:
+            # 删除 PeriodicTaskHistory 模型中遗留的脏数据，避免因为外键约束导致 PipelineInstance 删除失败
+            periodic_task_history_qs = PeriodicTaskHistory.objects.filter(
+                pipeline_instance_id__in=pipeline_instance_ids
+            )
+            if periodic_task_history_qs:
                 logger.info(
-                    f"[archive_expired_v2_task_data] delete periodic task nums: {len(periodic_task_obj)}, "
-                    f"e.x.: {periodic_task_obj.values_list('pk', flat=True)[:3]}..."
+                    f"[archive_expired_v2_task_data] delete periodic task nums: {len(periodic_task_history_qs)}, "
+                    f"e.x.: {periodic_task_history_qs.values_list('pk', flat=True)[:3]}..."
                 )
-                periodic_task_obj.delete()
+                periodic_task_history_qs.delete()
             PipelineInstance.objects.filter(id__in=pipeline_ids).delete()
             logger.info(
                 f"[archive_expired_v2_task_data] delete pipeline nums: {len(pipeline_ids)}, "
@@ -191,6 +195,15 @@ def clear_statistics_info():
             model = data["model"]
             time_field = data["time_field"]
             qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by(time_field)[:batch_num]
+            if model == TaskflowExecutedNodeStatistics:
+                executes_nodes = list(qs.values_list("node_id", flat=True))
+                component_execute_qs = ComponentExecuteData.objects.filter(node_id__in=executes_nodes)
+                logger.info(
+                    f"[clear_statistics_info] clean model ComponentExecuteData deleted nums: "
+                    f"{len(component_execute_qs)},e.x.: {component_execute_qs.values_list('pk', flat=True)[:3]}..."
+                )
+                component_execute_qs.delete()
+
             ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()

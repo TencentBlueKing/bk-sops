@@ -16,7 +16,6 @@ from typing import Dict, List
 from django.conf import settings
 from django.db.models import QuerySet
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
-from pipeline.contrib.statistics.models import ComponentExecuteData
 from pipeline.eri.models import (
     CallbackData,
     ContextOutputs,
@@ -78,7 +77,6 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     context_outputs = ContextOutputs.objects.filter(pipeline_id__in=pipeline_ids)
     process = Process.objects.filter(root_pipeline_id__in=pipeline_ids)
     periodic_task_history = PeriodicTaskHistory.objects.filter(pipeline_instance_id__in=pipeline_ids)
-    component_execute_data = ComponentExecuteData.objects.filter(instance_id__in=pipeline_ids)
 
     node_ids = list(node_id_set)
     logger.info(f"[get_clean_pipeline_instance_data] fetching node_ids number: {len(node_ids)}, e.x.:{node_ids[:3]}...")
@@ -101,7 +99,6 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
         "context_outputs": context_outputs,
         "process": process,
         "periodic_task_history": periodic_task_history,
-        "component_execute_data": component_execute_data,
         "pipeline_instances": pipeline_instances,
         "retry_node_list": retry_node_list,
         "timeout_node_list": timeout_node_list,
