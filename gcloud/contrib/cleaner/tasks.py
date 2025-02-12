@@ -113,9 +113,6 @@ def archive_expired_v2_task_data():
         if not tasks:
             logger.info("No expired task data to archive")
             return
-        task_ids = [item.id for item in tasks]
-        pipeline_ids = [item.pipeline_instance_id for item in tasks]
-        pipeline_instance_ids = [item.pipeline_instance.instance_id for item in tasks]
         archived_task_objs = [
             ArchivedTaskInstance(
                 task_id=task.id,
@@ -144,12 +141,12 @@ def archive_expired_v2_task_data():
             )
             for task in tasks
         ]
+        task_ids = [item.id for item in tasks]
+        pipeline_ids = [item.pipeline_instance_id for item in tasks]
+        pipeline_instance_ids = [item.pipeline_instance.instance_id for item in tasks]
         with transaction.atomic():
-            archived_task_instances = ArchivedTaskInstance.objects.bulk_create(archived_task_objs)
-            logger.info(f"[archive_expired_v2_task_data] archived nums: {len(archived_task_instances)}")
-            TaskFlowInstance.objects.filter(id__in=task_ids).delete()
-            logger.info(f"[archive_expired_v2_task_data] delete task nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
-            # 删除 PeriodicTaskHistory 模型中遗留的脏数据，避免因为外键约束导致 PipelineInstance 删除失败
+            # PeriodicTaskHistory 对 PipelineInstance 有 do nothing 外键，需要保证引用关系被清除，避免外键约束导致清理失败
+            # 过期任务的 periodic_task_history 必定可清理
             periodic_task_history_qs = PeriodicTaskHistory.objects.filter(
                 pipeline_instance_id__in=pipeline_instance_ids
             )
@@ -159,6 +156,10 @@ def archive_expired_v2_task_data():
                     f"e.x.: {periodic_task_history_qs.values_list('pk', flat=True)[:3]}..."
                 )
                 periodic_task_history_qs.delete()
+            archived_task_instances = ArchivedTaskInstance.objects.bulk_create(archived_task_objs)
+            logger.info(f"[archive_expired_v2_task_data] archived nums: {len(archived_task_instances)}")
+            TaskFlowInstance.objects.filter(id__in=task_ids).delete()
+            logger.info(f"[archive_expired_v2_task_data] delete task nums: {len(task_ids)}, e.x.: {task_ids[:3]}...")
             PipelineInstance.objects.filter(id__in=pipeline_ids).delete()
             logger.info(
                 f"[archive_expired_v2_task_data] delete pipeline nums: {len(pipeline_ids)}, "
@@ -188,22 +189,19 @@ def clear_statistics_info():
         batch_num = settings.CLEAN_EXPIRED_STATISTICS_BATCH_NUM
 
         data_to_clean = [
-            {"model": TaskflowStatistics, "time_field": "create_time"},
-            {"model": TaskflowExecutedNodeStatistics, "time_field": "instance_create_time"},
+            {"model": TaskflowStatistics, "time_field": "create_time", "order_field": "create_time"},
+            {
+                "model": TaskflowExecutedNodeStatistics,
+                "time_field": "instance_create_time",
+                "order_field": "instance_create_time",
+            },
+            {"model": ComponentExecuteData, "time_field": "archived_time", "order_field": "id"},
         ]
         for data in data_to_clean:
             model = data["model"]
             time_field = data["time_field"]
-            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by(time_field)[:batch_num]
-            if model == TaskflowExecutedNodeStatistics:
-                executes_nodes = list(qs.values_list("node_id", flat=True))
-                component_execute_qs = ComponentExecuteData.objects.filter(node_id__in=executes_nodes)
-                logger.info(
-                    f"[clear_statistics_info] clean model ComponentExecuteData deleted nums: "
-                    f"{len(component_execute_qs)},e.x.: {component_execute_qs.values_list('pk', flat=True)[:3]}..."
-                )
-                component_execute_qs.delete()
-
+            order_field = data["order_field"]
+            qs = model.objects.filter(**{f"{time_field}__lt": expire_time}).order_by(order_field)[:batch_num]
             ids_to_delete = list(qs.values_list("id", flat=True))
             if ids_to_delete:
                 model.objects.filter(id__in=ids_to_delete).delete()
