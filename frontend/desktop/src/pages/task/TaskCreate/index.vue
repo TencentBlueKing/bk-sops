@@ -27,6 +27,8 @@
             :template_id="template_id"
             :exclude-node="excludeNode"
             :is-step-change="isStepChange"
+            :selected-scheme="selectedScheme"
+            @setSelectedScheme="setSelectedScheme"
             @setExcludeNode="setExcludeNode">
         </task-select-node>
         <task-param-fill
@@ -82,7 +84,8 @@
                 stepList: this.addStepIcon(STEP_DICT),
                 currentStep: this.$route.params.step,
                 isStepChange: false,
-                excludeNode: []
+                excludeNode: [],
+                selectedScheme: []
             }
         },
         computed: {
@@ -141,6 +144,9 @@
                     }
                 }
                 this.stepList = this.addStepIcon(steps)
+            },
+            setSelectedScheme (schemes) {
+                this.selectedScheme = schemes
             },
             setExcludeNode (excludeNode) {
                 this.excludeNode = excludeNode

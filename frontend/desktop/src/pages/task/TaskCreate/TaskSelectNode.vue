@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
+    <div class="select-node-wrapper" :class="{ 'edit-scheme-mode': isEditSchemeMode }" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -55,16 +55,16 @@
                 :selected-nodes="selectedNodes"
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
-                :is-edit-process-page="isEditProcessPage"
+                :appmaker-scheme-id="appmakerSchemeId"
+                :selected-scheme="selectedScheme"
+                :is-step-change="isStepChange"
+                @updateSelectedNodes="updateSelectedNodes"
                 @onImportTemporaryPlan="onImportTemporaryPlan"
                 @onExportScheme="onExportScheme"
-                @selectScheme="selectScheme"
-                @setCanvasSelected="setCanvasSelected"
-                @selectAllScheme="selectAllScheme"
                 @importTextScheme="importTextScheme"
                 @togglePreviewMode="togglePreviewMode" />
         </div>
-        <div class="action-wrapper" slot="action-wrapper" v-if="isEditProcessPage">
+        <div class="action-wrapper" slot="action-wrapper" v-if="!isEditSchemeMode">
             <bk-button
                 theme="primary"
                 class="next-button"
@@ -88,7 +88,7 @@
             <div slot="header">
                 <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
                 >
-                <span>{{ isEditProcessPage ? $t('临时方案') : $t('导入选择节点') }}</span>
+                <span>{{ isEditSchemeMode ? $t('导入选择节点') : $t('临时方案') }}</span>
             </div>
             <edit-scheme
                 ref="editScheme"
@@ -128,10 +128,14 @@
                 type: Array,
                 default: () => ([])
             },
+            selectedScheme: {
+                type: Array,
+                default: () => ([])
+            },
             entrance: String,
-            isEditProcessPage: {
+            isEditSchemeMode: {
                 type: Boolean,
-                default: true
+                default: false
             },
             isStepChange: {
                 type: Boolean,
@@ -145,6 +149,7 @@
                 isAllSelected: true,
                 isPreviewMode: false,
                 isAppmakerHasScheme: true,
+                appmakerSchemeId: '',
                 version: '',
                 previewBread: [],
                 previewData: {
@@ -190,7 +195,7 @@
                 return false
             },
             schemeTemplate () {
-                return this.isEditProcessPage ? 'TaskScheme' : 'EditTaskScheme'
+                return this.isEditSchemeMode ? 'EditTaskScheme' : 'TaskScheme'
             },
             isCommonProcess () {
                 return Number(this.$route.query.common) === 1
@@ -211,8 +216,7 @@
             ]),
             ...mapActions('task/', [
                 'getSchemeDetail',
-                'loadPreviewNodeData',
-                'getTaskInstanceData'
+                'loadPreviewNodeData'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -230,7 +234,6 @@
                         templateId: this.template_id,
                         common: this.common
                     }
-                    const selectedNodes = []
                     const templateData = await this.loadTemplateData(data)
                     this.tplActions = templateData.auth_actions
                     this.version = templateData.version
@@ -238,12 +241,6 @@
                     this.orderedNodeData = this.getOrderedNodeData(templateData)
                     this.setTemplateData(templateData)
                     this.allSelectableNodes = this.location.filter(item => item.optional)
-                    this.allSelectableNodes.forEach(item => {
-                        if (this.excludeNode.indexOf(item.id) === -1) {
-                            selectedNodes.push(item.id)
-                        }
-                    })
-                    this.selectedNodes = selectedNodes
 
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
@@ -255,19 +252,10 @@
                         }]
                         if (schemeId === '') {
                             this.isAppmakerHasScheme = false
-                            this.updateDataAndCanvas()
                         } else {
-                            this.$nextTick(() => {
-                                this.selectScheme({ id: schemeId })
-                            })
+                            this.appmakerSchemeId = schemeId
                         }
-                        return
                     }
-                    this.canvasData.locations.forEach(item => {
-                        if (this.selectedNodes.indexOf(item.id) > -1) {
-                            this.$set(item, 'checked', true)
-                        }
-                    })
                 } catch (e) {
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
@@ -306,6 +294,18 @@
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
+                // 记录已选中的执行方案
+                const taskSchemeDom = this.$refs.taskScheme
+                if (taskSchemeDom) {
+                    const schemes = taskSchemeDom.schemeList.reduce((acc, cur) => {
+                        if (cur.isChecked) {
+                            acc.push(cur.id)
+                        }
+                        return acc
+                    }, [])
+                    this.$emit('setSelectedScheme', schemes)
+                }
+
                 const { type, task_id = undefined } = this.$route.query
                 const url = {
                     name: 'taskCreate',
@@ -383,6 +383,11 @@
                     this.selectedNodes = []
                 }
                 this.updateExcludeNodes()
+                // 清空已选择的方案
+                const taskSchemeDom = this.$refs.taskScheme
+                taskSchemeDom && taskSchemeDom.schemeList.forEach(item => {
+                    item.isChecked = false
+                })
             },
             /**
              * 点击子流程节点，并进入新的canvas画面
@@ -443,85 +448,15 @@
             isSelectableNode (id) {
                 return this.allSelectableNodes.findIndex(item => item.id === id) > -1
             },
-            /**
-             * 选择执行方案
-             */
-            async selectScheme (scheme) {
-                try {
-                    const taskSchemeDom = this.$refs.taskScheme
-                    const selectNodes = taskSchemeDom.schemeList.reduce((acc, cur) => {
-                        if (cur.isChecked) {
-                            acc.push(...JSON.parse(cur.data))
-                        }
-                        return acc
-                    }, [])
-                    let result = {}
-                    if (this.isEditProcessPage && scheme) {
-                        const schemeInfo = taskSchemeDom.schemeList.find(item => item.id === Number(scheme.id))
-                        schemeInfo.isChecked = true
-                        result = await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess })
-                        selectNodes.push(...JSON.parse(result.data))
-                    }
-                    this.selectedNodes = Array.from(new Set(selectNodes)) || []
-                } catch (e) {
-                    console.log(e)
-                }
-                this.updateDataAndCanvas()
-            },
-            /**
-             * 设置默认勾选值
-             */
-            async setCanvasSelected (selectNodes = []) {
-                // 该方法在创建任务路由中只执行一次
-                if (this.isStepChange || this.viewMode === 'appmaker') return
-                if (selectNodes.length) {
-                    // 使用传进来的选中节点，取消画布默认全选
+            // 设置默认勾选值
+            async updateSelectedNodes (selectNodes = [], isAll = false) {
+                this.isAllSelected = isAll
+                if (isAll) {
+                    this.selectedNodes = this.allSelectableNodes
+                        .filter(item => !this.excludeNode.includes(item.id))
+                        .map(item => item.id)
+                } else {
                     this.selectedNodes = selectNodes
-                    this.isAllSelected = !this.isEditProcessPage
-                } else {
-                    const defaultSelected = await this.getDefaultSelected()
-                    this.selectedNodes = defaultSelected
-                }
-                if (!this.isPreviewMode) {
-                    this.updateDataAndCanvas()
-                }
-            },
-            async getDefaultSelected () {
-                try {
-                    let selectedNodes = []
-                    const { task_id: reuseTaskId } = this.$route.query
-                    if (reuseTaskId) { // 优先复用变量的勾选
-                        const instanceData = await this.getTaskInstanceData(reuseTaskId)
-                        const pipelineTree = JSON.parse(instanceData.pipeline_tree)
-                        selectedNodes = Object.values(pipelineTree.activities).map(item => item.template_node_id)
-                    } else if (this.excludeNode.length) { // 其次使用勾选记录
-                        Object.keys(this.activities).forEach(key => {
-                            if (!this.excludeNode.includes(key)) {
-                                selectedNodes.push(key)
-                            }
-                        })
-                    } else {
-                        selectedNodes = Object.keys(this.activities) // 默认全选
-                    }
-                    return selectedNodes
-                } catch (error) {
-                    console.warn(error)
-                }
-            },
-            /**
-             * 批量选择执行方案
-             */
-            selectAllScheme (isChecked) {
-                if (isChecked) {
-                    const taskSchemeDom = this.$refs.taskScheme
-                    const selectNodeArr = []
-                    taskSchemeDom.schemeList.forEach(item => {
-                        const allNodeId = JSON.parse(item.data)
-                        selectNodeArr.push(...allNodeId)
-                    })
-                    this.selectedNodes = Array.from(new Set(selectNodeArr)) || []
-                } else {
-                    this.selectedNodes = []
                 }
                 this.updateDataAndCanvas()
             },
@@ -617,7 +552,7 @@
 .select-node-wrapper {
     flex: 1;
 }
-.task-create-page {
+.edit-scheme-mode {
     .canvas-content {
         height: 100%;
     }
