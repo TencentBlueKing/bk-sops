@@ -18,7 +18,7 @@
         />
         <navigation v-if="!hideHeader" :class="['sops-layout-navigation', { 'with-system-notice': hasAlertNotice }]">
             <template slot="page-content">
-                <div :class="['main-container', { 'with-system-notice': hasAlertNotice }]">
+                <div :class="['main-container with-navigation', { 'with-system-notice': hasAlertNotice }]">
                     <router-view v-if="isRouterViewShow"></router-view>
                 </div>
                 <bk-exception v-if="isProjectDisabled" class="project-exception-wrap" type="404">
@@ -390,7 +390,10 @@
         }
         .main-container {
             width: 100%;
-            height: calc(100vh - 52px);
+            height: 100vh;
+            &.with-navigation {
+                height: calc(100vh - 52px);
+            }
             &.with-system-notice {
                 height: calc(100vh - 92px);
             }

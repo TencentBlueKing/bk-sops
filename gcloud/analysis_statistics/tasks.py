@@ -21,6 +21,7 @@ from bamboo_engine import api as bamboo_engine_api
 from blueapps.contrib.celery_tools.periodic import periodic_task
 from celery import current_app
 from celery.schedules import crontab
+from django.core.paginator import Paginator
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.contrib.statistics.utils import count_pipeline_tree_nodes
 from pipeline.core.constants import PE
@@ -377,26 +378,39 @@ def backfill_template_variable_statistics_task():
                     custom_variables_records.setdefault(t, {"common": 0, "project": 0})["common"] += 1
 
     # process task template
-    task_templates = TaskTemplate.objects.all()
+    # 分页拉取，防止内存溢出
+    paginator = Paginator(TaskTemplate.objects.all(), 500)
+    processed_count = 0
     task_templates_counts = TaskTemplate.objects.all().count()
-    for i, template in enumerate(task_templates, 1):
-        logger.info(
-            "[backfill_template_variable_statistics_task] process {}/{} task template".format(i, task_templates_counts)
-        )
-        if template.is_deleted:
-            TemplateVariableStatistics.objects.filter(project_id=template.project_id, template_id=template.id).delete()
-        else:
-            try:
-                custom_constants_types = variable.update_statistics(
-                    project_id=template.project_id, template_id=template.id, pipeline_tree=template.pipeline_tree
+    for page_number in paginator.page_range:
+        page = paginator.page(page_number)
+        task_templates = page.object_list
+
+        for template in task_templates:
+            processed_count += 1
+            logger.info(
+                "[backfill_template_variable_statistics_task] process {}/{} task template".format(
+                    processed_count, task_templates_counts
                 )
-            except Exception:
-                logger.exception(
-                    "[backfill_template_variable_statistics_task]backfill task template {} failed".format(template.id)
-                )
+            )
+            if template.is_deleted:
+                TemplateVariableStatistics.objects.filter(
+                    project_id=template.project_id, template_id=template.id
+                ).delete()
             else:
-                for t in custom_constants_types:
-                    custom_variables_records.setdefault(t, {"common": 0, "project": 0})["project"] += 1
+                try:
+                    custom_constants_types = variable.update_statistics(
+                        project_id=template.project_id, template_id=template.id, pipeline_tree=template.pipeline_tree
+                    )
+                except Exception:
+                    logger.info(
+                        "[backfill_template_variable_statistics_task]backfill task template {} failed".format(
+                            template.id
+                        )
+                    )
+                else:
+                    for t in custom_constants_types:
+                        custom_variables_records.setdefault(t, {"common": 0, "project": 0})["project"] += 1
 
     # save summary
     TemplateCustomVariableSummary.objects.all().delete()

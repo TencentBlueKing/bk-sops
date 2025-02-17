@@ -402,12 +402,11 @@
                 // 获取行内纯文本
                 const divInputDom = this.$el.querySelector('.div-input')
                 let inputValue = divInputDom.textContent
-                inputValue.replace(' ', ' ')
                 if (divInputDom.childNodes.length) {
                     inputValue = Array.from(divInputDom.childNodes).map(item => {
                         return item.type === 'button'
                             ? item.value
-                            : item.textContent.trim() === ''
+                            : item.textContent && item.textContent.trim() === ''
                                 ? ' '
                                 : item.textContent
                     }).join('')

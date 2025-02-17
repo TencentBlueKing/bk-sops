@@ -211,7 +211,28 @@ const tools = {
             }
         }
         return arr.join(':')
+    },
+    // 深合并
+    deepMerge (target, ...sources) {
+        if (!isObject(target)) return target
+
+        sources.forEach(source => {
+            if (isObject(source)) {
+                Object.keys(source).forEach(key => {
+                    if (isObject(source[key])) {
+                        if (!target[key]) Object.assign(target, { [key]: {} })
+                        tools.deepMerge(target[key], source[key])
+                    } else {
+                        Object.assign(target, { [key]: source[key] })
+                    }
+                })
+            }
+        })
+
+        return target
     }
 }
+
+const isObject = item => item && typeof item === 'object' && !Array.isArray(item)
 
 export default tools

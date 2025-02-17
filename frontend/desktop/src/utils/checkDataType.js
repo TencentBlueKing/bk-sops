@@ -135,3 +135,31 @@ export const getDefaultValueFormat = (scheme) => {
     }
     return valueFormat
 }
+
+/**
+ * 格式化pipelineTree的数据，只输出一部分数据
+ * @params {Object} data  需要格式化的pipelineTree
+ * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
+ */
+export const formatCanvasData = (mode, data) => {
+    const { line, location, gateways, activities } = data
+    const branchConditions = {}
+    for (const gKey in gateways) {
+        const item = gateways[gKey]
+        if (item.conditions) {
+            branchConditions[item.id] = Object.assign({}, item.conditions)
+        }
+        if (item.default_condition) {
+            const nodeId = item.default_condition.flow_id
+            branchConditions[item.id][nodeId] = item.default_condition
+        }
+    }
+    return {
+        lines: line,
+        locations: location.map(item => {
+            const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+            return { ...item, mode, code, status: '' }
+        }),
+        branchConditions
+    }
+}
