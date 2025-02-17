@@ -78,7 +78,7 @@
                 :common="common"
                 :entrance="entrance"
                 :template_id="template_id"
-                :is-edit-process-page="isEditProcessPage"
+                :is-edit-scheme-mode="true"
                 @togglePreviewMode="togglePreviewMode">
             </TaskSelectNode>
             <div class="side-content">
