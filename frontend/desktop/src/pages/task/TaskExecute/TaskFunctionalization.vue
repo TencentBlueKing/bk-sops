@@ -89,7 +89,7 @@
                 v-if="canvasShow"
                 ref="nodePreviewRef"
                 :preview-data-loading="previewDataLoading"
-                :canvas-data="formatCanvasData(previewData)"
+                :canvas-data="canvasData"
                 :preview-bread="previewBread"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
@@ -110,6 +110,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
     import NodePreview from '../NodePreview.vue'
+    import { formatCanvasData } from '@/utils/checkDataType'
 
     const STEP_DICT = [
         {
@@ -181,6 +182,9 @@
             }),
             isVariableEmpty () {
                 return Object.keys(this.pipelineData.constants).length === 0
+            },
+            canvasData () {
+                return formatCanvasData('preview', this.previewData)
             }
         },
         watch: {
@@ -203,27 +207,6 @@
             ...mapActions('task/', [
                 'claimFuncTask'
             ]),
-            formatCanvasData (pipelineData) {
-                const { line, location, gateways } = pipelineData
-                const branchConditions = {}
-                for (const gKey in gateways) {
-                    const item = gateways[gKey]
-                    if (item.conditions) {
-                        branchConditions[item.id] = Object.assign({}, item.conditions)
-                    }
-                    if (item.default_condition) {
-                        const nodeId = item.default_condition.flow_id
-                        branchConditions[item.id][nodeId] = item.default_condition
-                    }
-                }
-                return {
-                    lines: line,
-                    locations: location.map(item => {
-                        return { ...item, mode: 'preview', checked: true, status: '' }
-                    }),
-                    branchConditions
-                }
-            },
             updateCanvas () {
                 this.previewDataLoading = true
                 this.$nextTick(() => {

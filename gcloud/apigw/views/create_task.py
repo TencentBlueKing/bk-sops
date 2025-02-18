@@ -100,6 +100,7 @@ def create_task(request, template_id, project_id):
             "code": err_code.REQUEST_PARAM_INVALID.code,
             "message": f"callback_url format error, must match {CALLBACK_URL_PATTERN}",
         }
+    callback_version = params.get("callback_version", None)
 
     # 兼容老版本的接口调用
     if template_source in NON_COMMON_TEMPLATE_TYPES:
@@ -214,7 +215,13 @@ def create_task(request, template_id, project_id):
 
     # create callback url record
     if callback_url:
-        TaskCallBackRecord.objects.create(task_id=task.id, url=callback_url)
+        record_kwargs = {
+            "task_id": task.id,
+            "url": callback_url,
+        }
+        if callback_version:
+            record_kwargs["extra_info"] = json.dumps({"callback_version": callback_version})
+        TaskCallBackRecord.objects.create(**record_kwargs)
 
     # crete auto retry strategy
     arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id)

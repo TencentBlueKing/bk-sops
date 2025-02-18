@@ -130,6 +130,7 @@
         },
         computed: {
             ...mapState({
+                hideHeader: state => state.hideHeader,
                 view_mode: state => state.view_mode
             }),
             isStateDetailShow () {
@@ -184,6 +185,11 @@
                 this.$emit('onTaskParamsClick', type, name)
             },
             onBack () {
+                // 如果被嵌入了，则像父页面发送事件
+                if (this.hideHeader) {
+                    window.parent.postMessage({ eventName: 'goBackEvent' }, '*')
+                    return
+                }
                 if (this.view_mode === 'appmaker') {
                     return this.$router.push({
                         name: 'appmakerTaskHome',

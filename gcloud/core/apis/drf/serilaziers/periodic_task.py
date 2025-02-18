@@ -22,6 +22,8 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import ValidationError
 
 import env
+from gcloud.utils.strings import inspect_time
+from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.models import Project, ProjectConfig
@@ -152,9 +154,27 @@ def check_cron_params(cron, project):
         raise ValidationError("周期任务时间格式过长")
 
 
-class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
-    project = serializers.IntegerField(write_only=True)
+class CronFieldSerializer(serializers.Serializer):
     cron = serializers.DictField(write_only=True)
+
+    def inspect_cron(self, cron):
+        minute = cron.get("minute", "*")
+        hour = cron.get("hour", "*")
+        day_of_month = cron.get("day_of_month", "*")
+        month = cron.get("month", "*")
+        day_of_week = cron.get("day_of_week", "*")
+
+        cron_expression = f"{minute} {hour} {day_of_month} {month} {day_of_week}"
+
+        result = inspect_time(cron_expression, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
+        if not result:
+            raise serializers.ValidationError(
+                "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
+            )
+
+
+class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
+    project = serializers.IntegerField(write_only=True)
     template_source = serializers.CharField(required=False, default=PROJECT)
     pipeline_tree = ReadWriteSerializerMethodField()
     template_scheme_ids = ReadWriteSerializerMethodField()
@@ -193,14 +213,24 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
+        if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
+            self.inspect_cron(attrs.get("cron"))
         return attrs
 
     class Meta:
         model = PeriodicTask
-        fields = ["project", "cron", "name", "template_id", "pipeline_tree", "template_source", "template_scheme_ids"]
+        fields = [
+            "project",
+            "cron",
+            "name",
+            "template_id",
+            "pipeline_tree",
+            "template_source",
+            "template_scheme_ids",
+        ]
 
 
-class PatchUpdatePeriodicTaskSerializer(serializers.Serializer):
+class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Serializer):
     cron = serializers.DictField(help_text="周期", required=False)
     project = serializers.IntegerField(help_text="项目ID", required=False)
     constants = serializers.DictField(help_text="执行参数", required=False)
@@ -208,4 +238,6 @@ class PatchUpdatePeriodicTaskSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
+        if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
+            self.inspect_cron(attrs.get("cron"))
         return attrs
