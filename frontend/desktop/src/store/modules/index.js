@@ -23,6 +23,7 @@ import periodic from './periodic.js'
 import clocked from './clocked.js'
 import manage from './manage.js'
 import admin from './admin.js'
+import templateMarket from './templateMarket.js'
 
 const modules = {
     template,
@@ -38,7 +39,8 @@ const modules = {
     clocked,
     manage,
     project,
-    admin
+    admin,
+    templateMarket
 }
 
 export default modules

@@ -92,11 +92,15 @@ def mysetting(request):
         "_": _,  # 国际化
         "LANGUAGES": settings.LANGUAGES,  # 国际化
         # 自定义变量
+        "PERIODIC_TASK_SHORTEST_TIME": settings.PERIODIC_TASK_SHORTEST_TIME,
         "OPEN_VER": settings.OPEN_VER,
         "RUN_VER": settings.RUN_VER,
         "RUN_VER_NAME": EnvironmentVariables.objects.get_var(run_ver_key, settings.RUN_VER_NAME),
         "REMOTE_ANALYSIS_URL": settings.REMOTE_ANALYSIS_URL,
         "REMOTE_API_URL": settings.REMOTE_API_URL,
+        "ENABLE_TEMPLATE_MARKET": settings.ENABLE_TEMPLATE_MARKET,
+        "TEMPLATE_MARKET_HOST": settings.TEMPLATE_MARKET_HOST,
+        "TEMPLATE_MARKET_DOC_URL": settings.TEMPLATE_MARKET_DOC_URL,
         "USERNAME": request.user.username,
         # 'NICK': request.session.get('nick', ''),          # 用户昵称
         "NICK": request.user.username,  # 用户昵称

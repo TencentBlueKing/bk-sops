@@ -508,7 +508,7 @@
                     source_type: 'custom',
                     validation: '^.+$',
                     is_condition_hide: 'false',
-                    pre_render_mako: false,
+                    pre_render_mako: '',
                     value: '',
                     version: 'legacy'
                 }

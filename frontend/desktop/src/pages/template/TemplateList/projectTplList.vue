@@ -29,7 +29,7 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
-                        <bk-dropdown-menu style="margin: 0 14px;">
+                        <bk-dropdown-menu>
                             <div class="import-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('导入') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
@@ -40,7 +40,6 @@
                             </ul>
                         </bk-dropdown-menu>
                         <bk-dropdown-menu
-                            style="margin-right: 14px;"
                             :trigger="selectedTpls.length ? 'mouseover' : 'click'"
                             :disabled="!selectedTpls.length">
                             <div class="export-tpl-btn" slot="dropdown-trigger">
@@ -52,6 +51,11 @@
                                 <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出为') }} DAT {{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
+                        <SharedTemplateBtn
+                            v-if="isEnableTemplateMarket"
+                            :project_id="project_id"
+                            :selected="selectedTpls">
+                        </SharedTemplateBtn>
                         <bk-button
                             class="batch-delete"
                             data-test-id="process_form_deleteProcess"
@@ -417,6 +421,7 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
+    import SharedTemplateBtn from './SharedTemplate/index.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -527,6 +532,7 @@
             ImportDatTplDialog,
             ImportYamlTplDialog,
             ExportTemplateDialog,
+            SharedTemplateBtn,
             ListPageTipsTitle,
             SearchSelect,
             TableSettingContent,
@@ -695,7 +701,8 @@
                 searchList: tools.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 templateLabelLoading: false,
-                tableMaxHeight: window.innerHeight - 246
+                tableMaxHeight: window.innerHeight - 246,
+                isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET
             }
         },
         computed: {
@@ -907,7 +914,7 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     this.templateLabels = res.data
-                    
+
                     form.children = res.data.map(item => Object.assign({}, item, { value: item.id }))
                     // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
                     const ids = this.$route.query['label_ids']
@@ -1695,6 +1702,9 @@
     .operation-wrap {
         display: flex;
         align-items: center;
+        > * {
+            margin-right: 14px;
+        }
     }
     .my-create-btn {
         position: absolute;
@@ -1715,6 +1725,7 @@
     min-width: 88px;
     text-align: center;
     font-size: 14px;
+    color: #63656e;
     background: #ffffff;
     border: 1px solid #c4c6cc;
     border-radius: 3px;

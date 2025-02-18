@@ -13,7 +13,7 @@ const COMMON_ROUTE_LIST = [
             name: i18n.t('流程'),
             icon: 'icon-sitemap-shape',
             hasProjectId: true,
-            subRoutes: ['processHome', 'processCommon', 'processCollect', 'templatePanel', 'projectCommonTemplatePanel'],
+            subRoutes: ['processHome', 'processCommon', 'processCollect', 'templatePanel', 'templatePreview', 'projectCommonTemplatePanel'],
             url: '/template/home/'
         },
         {

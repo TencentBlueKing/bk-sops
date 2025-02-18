@@ -154,7 +154,6 @@
                     let info = data.replace(/\n/g, '<br>')
                     info = this.filterXSS(info, {
                         whiteList: {
-                            a: ['href'],
                             br: []
                         }
                     })

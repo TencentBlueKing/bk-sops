@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.urls import re_path
 
 from gcloud.apigw.views.claim_functionalization_task import claim_functionalization_task
+from gcloud.apigw.views.copy_template_across_project import copy_template_across_project
 from gcloud.apigw.views.create_and_start_task import create_and_start_task
 from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
@@ -129,4 +130,5 @@ urlpatterns = [
     re_path(r"^create_clocked_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_clocked_task),
     re_path(r"^get_mini_app_list/(?P<project_id>\d+)/$", get_mini_app_list),
     re_path(r"^get_task_count/(?P<project_id>\d+)/$", get_task_count),
+    re_path(r"^copy_template_across_project/(?P<project_id>\d+)/$", copy_template_across_project),
 ]
