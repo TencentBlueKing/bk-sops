@@ -12,10 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from gcloud.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT
-
+from gcloud.constants import PROJECT, TASK_CREATE_METHOD, TEMPLATE_SOURCE
 from gcloud.core.models import EngineConfig
 
 
