@@ -123,7 +123,7 @@
                             </div>
                         </bk-table-column>
                         <bk-table-column :label="$t('是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）')" :width="400" :render-header="renderTableHeader">
-                            <template slot-scope="{ row }">
+                            <template slot-scope="{ row, $index }">
                                 <div class="tpl-overrider-select">
                                     <bk-select
                                         style="width: 180px;"
@@ -147,6 +147,7 @@
                                         enable-scroll-load
                                         :scroll-loading="{ isLoading: scrollLoading }"
                                         :remote-method="onCommonTplSearch"
+                                        @toggle="subFlowIndex = $index"
                                         @clear="onClearRefer(row)"
                                         @selected="onSelectRefer(row, $event)"
                                         @scroll-end="onSelectScrollLoad(row)">
@@ -251,6 +252,8 @@
                 importPending: false,
                 tplLoading: false,
                 scrollLoading: false,
+                flowName: '',
+                subFlowIndex: 0,
                 topFlowPagination: {
                     current: 1,
                     count: 0
@@ -407,8 +410,10 @@
             // 公共模板下拉框搜索
             handleCommonTplSearch (val) {
                 this.commonPagination.current = 1
-                this.commonFlowName = val
-                const params = this.getQueryData(true)
+                this.flowName = val
+                const row = this.subFlowList[this.subFlowIndex]
+                const isCommon = this.common || row?.refer === 'useCommonExisting'
+                const params = this.getQueryData(isCommon)
                 this.getTemplateData(params)
             },
             // 下拉框滚动加载
@@ -429,13 +434,11 @@
                     }
                 }
             },
-            getQueryData (common = undefined) {
-                let tplName, offset, projectId
+            getQueryData (common = this.common) {
+                let offset, projectId
                 if (common) {
-                    tplName = this.commonFlowName
                     offset = (this.commonPagination.current - 1) * this.commonPagination.limit
                 } else {
-                    tplName = this.flowName
                     offset = (this.pagination.current - 1) * this.pagination.limit
                     projectId = this.project_id
                 }
@@ -444,7 +447,7 @@
                     common,
                     offset,
                     limit: 15,
-                    pipeline_template__name__icontains: tplName || undefined
+                    pipeline_template__name__icontains: this.flowName || undefined
                 }
                 return data
             },

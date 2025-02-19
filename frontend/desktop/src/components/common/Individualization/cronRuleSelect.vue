@@ -16,6 +16,9 @@
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
             <img style="width:542px;height: 258px;" class="ui-img" :src="periodicCronImg">
+            <p v-if="shortestTime" class="shortest-time-tips">
+                {{ $t('当前环境配置周期任务间隔不低于 n 分钟，如有特殊需求请联系管理员配置', { n: shortestTime }) }}
+            </p>
         </div>
         <div class="time-input">
             <input
@@ -102,7 +105,8 @@
                     theme: 'light',
                     content: '#periodic-cron-tips-html',
                     placement: 'top-start'
-                }
+                },
+                shortestTime: window.PERIODIC_TASK_SHORTEST_TIME
             }
         },
         watch: {
@@ -349,6 +353,10 @@
     .periodic-cron-tips {
         .tippy-tooltip {
             padding: initial;
+        }
+        .shortest-time-tips {
+            padding: 10px 5px;
+            color: #ff9c01;
         }
     }
 </style>

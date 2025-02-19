@@ -40,7 +40,8 @@ const proxyPath = [
     'iam',
     'plugin_service',
     'mako_operations',
-    'collection'
+    'collection',
+    'template_market'
 ]
 
 const context = proxyPath.map(item => SITE_URL + item)

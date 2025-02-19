@@ -141,26 +141,20 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             model_cls = CommonTemplate
             condition = {"id": template_id, "is_deleted": False}
         else:
-            message = _(
-                f"周期任务创建失败: 周期任务关联的流程[ID: {template_source}]不存在, 请检查配置 | _handle_serializer"
-            )
+            message = _(f"周期任务创建失败: 周期任务关联的流程[ID: {template_source}]不存在, 请检查配置 | _handle_serializer")
             logger.error(message)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
         try:
             template = model_cls.objects.filter(**condition).first()
         except model_cls.DoesNotExist:
-            message = _(
-                f"周期任务创建失败: 周期任务关联的公共流程[ID: {template_id}]不存在, 请检查配置 | _handle_serializer"
-            )
+            message = _(f"周期任务创建失败: 周期任务关联的公共流程[ID: {template_id}]不存在, 请检查配置 | _handle_serializer")
             logger.error(message)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
         try:
             replace_template_id(model_cls, pipeline_tree)
         except model_cls.DoesNotExist:
-            message = _(
-                f"周期任务创建失败: 周期任务关联的流程[ID: {template_id}]中, 子流程节点存在异常, 请检查配置 | _handle_serializer"
-            )
+            message = _(f"周期任务创建失败: 周期任务关联的流程[ID: {template_id}]中, 子流程节点存在异常, 请检查配置 | _handle_serializer")
             logger.error(message)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
@@ -257,7 +251,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         return super(PeriodicTaskViewSet, self).destroy(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        serializer = CreatePeriodicTaskSerializer(data=request.data)
+        serializer = CreatePeriodicTaskSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         try:
             self._handle_serializer(request, serializer)
@@ -276,7 +270,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = CreatePeriodicTaskSerializer(instance, data=request.data)
+        serializer = CreatePeriodicTaskSerializer(instance, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         try:
             self._handle_serializer(request, serializer)
@@ -293,7 +287,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = PatchUpdatePeriodicTaskSerializer(data=request.data)
+        serializer = PatchUpdatePeriodicTaskSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():

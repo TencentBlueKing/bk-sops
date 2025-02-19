@@ -29,7 +29,7 @@
                 <NodePreview
                     ref="nodePreview"
                     :preview-data-loading="previewDataLoading"
-                    :canvas-data="formatCanvasData('perview', previewData)"
+                    :canvas-data="canvasData"
                     :preview-bread="previewBread"
                     :preview-data="previewData"
                     :common="isCommon"
@@ -49,7 +49,16 @@
                         ref="basicConfigForm"
                         :rules="rules"
                         :model="formData">
-                        <bk-form-item :label="$t('项目流程')" :required="true" property="flow" data-test-id="periodicEdit_form_selectTemplate">
+                        <bk-form-item :label="$t('流程')" :required="true" property="flow" class="flow-form-item" data-test-id="periodicEdit_form_selectTemplate">
+                            <bk-select
+                                v-model="formData.template_source"
+                                :disabled="isEdit"
+                                :clearable="false"
+                                class="flow-type-select"
+                                @selected="onFlowTypeChange">
+                                <bk-option id="project" :name="$t('项目流程')"></bk-option>
+                                <bk-option id="common" :name="$t('公共流程')"></bk-option>
+                            </bk-select>
                             <div v-if="isEdit" class="select-box">
                                 <div class="select-wrapper">
                                     <p>
@@ -87,13 +96,13 @@
                                 <bk-option
                                     v-for="option in templateList"
                                     :key="option.id"
-                                    :disabled="!hasPermission(['flow_view'], option.auth_actions)"
+                                    :disabled="!hasPermission([flowPermission.view], option.auth_actions)"
                                     :id="option.id"
                                     :name="option.name">
                                     <p
                                         :title="option.name"
-                                        v-cursor="{ active: !hasPermission(['flow_view'], option.auth_actions) }"
-                                        @click="onTempSelect(['flow_view'], option)">
+                                        v-cursor="{ active: !hasPermission([flowPermission.view], option.auth_actions) }"
+                                        @click="onTempSelect([flowPermission.view], option)">
                                         {{ option.name }}
                                     </p>
                                 </bk-option>
@@ -238,6 +247,7 @@
     import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
     import permission from '@/mixins/permission.js'
     import NodePreview from '@/pages/task/NodePreview.vue'
+    import { formatCanvasData } from '@/utils/checkDataType'
 
     export default {
         name: 'ModifyPeriodicDialog',
@@ -264,6 +274,7 @@
                 name = '',
                 is_latest = '',
                 task_template_name = '',
+                template_source = 'project',
                 template_id = '',
                 template_scheme_ids = []
             } = this.curRow
@@ -272,6 +283,7 @@
                 formData: {
                     name,
                     is_latest: this.isEdit ? is_latest : true,
+                    template_source,
                     task_template_name,
                     template_id,
                     schemeId: this.isEdit && schemeId.length ? schemeId : []
@@ -296,6 +308,7 @@
                 selectedNodes: [],
                 notifyType: [[]],
                 receiverGroup: [],
+                hasNoCreatePerm: false,
                 saveLoading: false,
                 periodicRule: {
                     required: true,
@@ -355,6 +368,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'permissionMeta': state => state.permissionMeta
+            }),
             ...mapState('project', {
                 'projectName': state => state.projectName
             }),
@@ -365,7 +381,13 @@
                 return Object.keys(this.periodicConstants).length === 0
             },
             isCommon () {
-                return this.curRow.template_source === 'common'
+                return this.formData.template_source === 'common'
+            },
+            flowPermission () {
+                return {
+                    view: this.isCommon ? 'common_flow_view' : 'flow_view',
+                    create: this.isCommon ? 'common_flow_create_periodic_task' : 'flow_create_periodic_task'
+                }
             },
             sideSliderTitle () {
                 return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('新建周期任务')
@@ -393,22 +415,22 @@
                 const nodes = Object.values(activities).map(item => item.name)
                 return nodes.join(',')
             },
-            hasNoCreatePerm () {
-                const { id, auth_actions } = this.templateData
-                return this.isEdit || !id ? false : !this.hasPermission(['flow_create_periodic_task'], auth_actions)
-            },
             schemeSelectPlaceholder () {
                 return this.formData.template_id && !this.schemeList.length ? i18n.t('此流程无执行方案，无需选择') : i18n.t('请选择')
             },
             isSelectSchemeDisable () {
                 const { is_latest, template_id } = this.formData
                 return is_latest !== true || !template_id || this.previewDataLoading || !this.schemeList.length
+            },
+            canvasData () {
+                return formatCanvasData('preview', this.previewData)
             }
         },
         created () {
             this.initFormData = tools.deepClone(this.formData)
 
             if (this.isEdit) {
+                this.hasNoCreatePerm = false
                 this.periodicConstants = tools.deepClone(this.constants)
                 const id = this.curRow.template_id
                 this.getTemplateDate(id)
@@ -419,6 +441,9 @@
             this.onTplSearch = tools.debounce(this.handleTplSearch, 500)
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('templateList', [
                 'loadTemplateList'
             ]),
@@ -432,7 +457,8 @@
                 'modifyPeriodicConstants',
                 'updatePeriodicTask',
                 'updatePeriodicPartial',
-                'createPeriodic'
+                'createPeriodic',
+                'loadCommonTemplateList'
             ]),
             ...mapActions('template/', [
                 'loadTemplateData'
@@ -444,9 +470,12 @@
                         project__id: this.project_id,
                         limit: 15,
                         offset,
-                        pipeline_template__name__icontains: this.flowName || undefined
+                        pipeline_template__name__icontains: this.flowName || undefined,
+                        common: this.isCommon
                     }
-                    const templateListData = await this.loadTemplateList(params)
+                    const templateListData = this.isCommon
+                        ? await this.loadCommonTemplateList(params)
+                        : await this.loadTemplateList(params)
                     if (add) {
                         this.templateList.push(...templateListData.results)
                     } else { // 搜索
@@ -495,7 +524,16 @@
             onClearTemplate () {
                 this.formData.schemeId = []
                 this.schemeList = []
-                this.constants = {}
+                this.templateData = {}
+                this.periodicConstants = {}
+            },
+            onFlowTypeChange () {
+                this.templateLoading = true
+                this.formData.template_id = ''
+                this.formData.name = ''
+                this.formData.task_template_name = ''
+                this.onClearTemplate()
+                this.handleTplSearch()
             },
             async getTemplateDate (id) {
                 // 获取模板详情
@@ -524,6 +562,8 @@
                         this.formData.schemeId = this.schemeList.length ? [0] : []
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
+                    } else {
+                        this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                     }
                 } catch (e) {
                     // 判断模板是否为删除
@@ -541,23 +581,23 @@
                     this.initFormData = tools.deepClone(this.formData)
                 }
             },
-            onSelectTemplate (id) {
+            async onSelectTemplate (id) {
                 // 清除表单错误提示
                 this.$refs.basicConfigForm.clearError()
                 // 自动填充任务名称
                 const templateInfo = this.templateList.find(item => item.id === id)
                 this.formData.name = templateInfo ? templateInfo.name + '_' + i18n.t('周期执行') : ''
                 this.formData.schemeId = []
-                this.getTemplateDate(id)
+                await this.getTemplateDate(id)
+                this.queryCreatePeriodicTaskPerm(id)
             },
             async getTemplateScheme () {
                 this.schemeLoading = true
                 try {
                     const defaultScheme = await this.loadDefaultSchemeList()
-                    const common = this.curRow.template_source === 'common'
                     const data = {
-                        isCommon: common || undefined,
-                        project_id: common ? undefined : this.project_id,
+                        isCommon: this.isCommon || undefined,
+                        project_id: this.isCommon ? undefined : this.project_id,
                         template_id: this.formData.template_id
                     }
                     const resp = await this.loadTaskScheme(data)
@@ -588,11 +628,10 @@
             // 获取默认方案列表
             async loadDefaultSchemeList () {
                 try {
-                    const common = this.curRow.template_source === 'common'
                     const resp = await this.getDefaultTaskScheme({
-                        project_id: this.project_id,
+                        project_id: this.isCommon ? undefined : this.project_id,
                         template_id: this.formData.template_id,
-                        template_type: common ? 'common' : undefined
+                        template_type: this.isCommon ? 'common' : undefined
                     })
                     if (resp.data.length) {
                         const { scheme_ids: schemeIds } = resp.data[0]
@@ -694,33 +733,6 @@
                 return nodes
             },
             /**
-             * 格式化pipelineTree的数据，只输出一部分数据
-             * @params {Object} data  需要格式化的pipelineTree
-             * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
-             */
-            formatCanvasData (mode, data) {
-                const { line, location, gateways, activities } = data
-                const branchConditions = {}
-                for (const gKey in gateways) {
-                    const item = gateways[gKey]
-                    if (item.conditions) {
-                        branchConditions[item.id] = Object.assign({}, item.conditions)
-                    }
-                    if (item.default_condition) {
-                        const nodeId = item.default_condition.flow_id
-                        branchConditions[item.id][nodeId] = item.default_condition
-                    }
-                }
-                return {
-                    lines: line,
-                    locations: location.map(item => {
-                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode, code, status: '' }
-                    }),
-                    branchConditions
-                }
-            },
-            /**
              * 点击预览模式下的面包屑
              * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
              * @params {Number} index  点击的面包屑的下标
@@ -753,7 +765,8 @@
                         type: 'view'
                     },
                     query: {
-                        template_id: this.formData.template_id
+                        template_id: this.formData.template_id,
+                        common: this.isCommon ? 1 : undefined
                     }
                 })
                 window.open(href, '_blank')
@@ -775,6 +788,37 @@
                     this.updateLoading = false
                 }
             },
+            async queryCreatePeriodicTaskPerm (templateId) {
+                try {
+                    if (!this.isCommon) {
+                        const { auth_actions } = this.templateData
+                        this.hasNoCreatePerm = !auth_actions.includes(this.flowPermission.create)
+                        return
+                    }
+                    const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                    const data = {
+                        action: this.flowPermission.create,
+                        resources: [
+                            {
+                                system: bkSops.id,
+                                type: 'project',
+                                id: this.project_id,
+                                attributes: {}
+                            },
+                            {
+                                system: bkSops.id,
+                                type: 'common_flow',
+                                id: templateId,
+                                attributes: {}
+                            }
+                        ]
+                    }
+                    const res = await this.queryUserPermission(data)
+                    this.hasNoCreatePerm = !res.data.is_allow
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             onCancelSave () {
                 this.$emit('onCancelSave')
             },
@@ -783,13 +827,13 @@
                 if (this.hasNoCreatePerm) {
                     const { id, name, auth_actions } = this.templateData
                     const resourceData = {
-                        flow: [{ id, name }],
+                        [this.isCommon ? 'common_flow' : 'flow']: [{ id, name }],
                         project: [{
                             id: this.project_id,
                             name: this.projectName
                         }]
                     }
-                    this.applyForPermission(['flow_create_periodic_task'], auth_actions, resourceData)
+                    this.applyForPermission([this.flowPermission.create], auth_actions, resourceData)
                     return
                 }
                 const isCronError = this.$refs.cronRuleSelect.isError
@@ -886,7 +930,8 @@
                     cron: cron,
                     templateId: this.formData.template_id,
                     schemeIds,
-                    execData: JSON.stringify(pipelineData)
+                    execData: JSON.stringify(pipelineData),
+                    templateSource: this.isCommon ? 'common' : undefined
                 }
                 try {
                     const response = await this.createPeriodic(data)
@@ -978,6 +1023,17 @@
         }
         .bk-form-content {
             width: 598px;
+        }
+        .flow-form-item .bk-form-content {
+            display: flex;
+            .bk-select,
+            .select-box {
+                flex: 1;
+            }
+            .flow-type-select {
+                flex: 0 0 150px;
+                margin-right: 15px;
+            }
         }
         .scheme-form-item {
             .tooltips-icon {

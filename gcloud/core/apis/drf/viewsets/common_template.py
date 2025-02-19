@@ -17,7 +17,6 @@ import ujson as json
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Request, Resource, Subject
 from pipeline.models import TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -46,6 +45,7 @@ from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
+from iam import Action, Request, Resource, Subject
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -54,6 +54,7 @@ manager = TemplateManager(template_model_cls=CommonTemplate)
 class CommonTemplatePermission(IamPermission):
     actions = {
         "list": IamPermissionInfo(pass_all=True),
+        "list_for_periodic_task": IamPermissionInfo(pass_all=True),
         "list_with_top_collection": IamPermissionInfo(pass_all=True),
         "retrieve": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
@@ -91,16 +92,38 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     pagination_class = LimitOffsetPagination
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_common_flow_obj,
-        actions=[IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_EDIT_ACTION, IAMMeta.COMMON_FLOW_DELETE_ACTION],
+        actions=[
+            IAMMeta.COMMON_FLOW_VIEW_ACTION,
+            IAMMeta.COMMON_FLOW_EDIT_ACTION,
+            IAMMeta.COMMON_FLOW_DELETE_ACTION,
+        ],
     )
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
     ordering = ["-id"]
 
     def get_serializer_class(self):
-        if self.action in ["list", "list_with_top_collection"]:
+        if self.action in ["list", "list_with_top_collection", "list_for_periodic_task"]:
             return CommonTemplateListSerializer
         return CommonTemplateSerializer
+
+    @swagger_auto_schema(method="GET", operation_summary="带有创建周期任务权限指定的流程列表")
+    @action(methods=["GET"], detail=False)
+    def list_for_periodic_task(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
+        # 注入公共流程新建周期任务权限
+        create_periodic_task_action = Action(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION)
+        templates = self._inject_project_based_task_create_action(
+            request, [template["id"] for template in data], create_periodic_task_action
+        )
+        for obj in data:
+            if obj["id"] in templates:
+                obj["auth_actions"].append(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION)
+        return self.get_paginated_response(data) if page is not None else Response(data)
 
     @swagger_auto_schema(
         method="GET", operation_summary="带收藏指定的流程列表", responses={200: TopCollectionCommonTemplateSerializer}
@@ -129,7 +152,10 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
 
         # 注入公共流程新建任务权限
-        templates = self._inject_project_based_task_create_action(request, [template["id"] for template in data])
+        create_task_action = Action(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION)
+        templates = self._inject_project_based_task_create_action(
+            request, [template["id"] for template in data], create_task_action
+        )
 
         for obj in data:
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
@@ -139,7 +165,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     @staticmethod
-    def _inject_project_based_task_create_action(request, common_template_ids):
+    def _inject_project_based_task_create_action(request, common_template_ids, common_flow_action):
         project_id = request.query_params.get("project__id")
         if not project_id:
             return []
@@ -157,7 +183,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
                     Request(
                         system=system,
                         subject=Subject("user", request.user.username),
-                        action=Action(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION),
+                        action=common_flow_action,
                         resources=resource,
                         environment=None,
                     )

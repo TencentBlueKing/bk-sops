@@ -93,6 +93,10 @@ const periodic = {
         // 修改周期任务部分配置
         updatePeriodicPartial ({ commit }, data) {
             return axios.patch(`api/v3/periodic_task/${data.taskId}/`, data).then(response => response.data)
+        },
+        // 公共流程列表
+        loadCommonTemplateList ({ commit }, params) {
+            return axios.get('api/v3/common_template/list_for_periodic_task/', { params }).then(response => response.data.data)
         }
     }
 }

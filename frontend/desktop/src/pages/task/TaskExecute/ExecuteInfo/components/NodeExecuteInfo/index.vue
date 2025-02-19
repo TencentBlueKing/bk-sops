@@ -260,7 +260,7 @@
             },
             // 获取执行记录数据
             async getExecuteRecord (record) {
-                const { version, component_code: componentCode } = this.nodeDetailConfig
+                const { version, component_code: componentCode, componentData = {} } = this.nodeDetailConfig
                 const { inputs, state } = record
                 let outputs = record.outputs
                 // 执行记录的outputs可能为Object格式，需要转为Array格式
@@ -297,7 +297,8 @@
                     const keys = Object.keys(inputs)
                     this.renderConfig = renderConfig.filter(item => keys.includes(item.tag_code))
                 } else if (componentCode) { // 任务节点需要加载标准插件
-                    await this.getNodeConfig(componentCode, version, inputs.plugin_version)
+                    const pluginVersion = componentData.plugin_version?.value
+                    await this.getNodeConfig(componentCode, version, pluginVersion)
                 }
                 inputsInfo = Object.keys(inputs).reduce((acc, cur) => {
                     const scheme = Array.isArray(this.renderConfig) ? this.renderConfig.find(item => item.tag_code === cur) : null
@@ -565,7 +566,6 @@
                     let info = data.replace(/\n/g, '<br>')
                     info = this.filterXSS(info, {
                         whiteList: {
-                            a: ['href'],
                             br: []
                         }
                     })

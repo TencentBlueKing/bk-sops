@@ -160,7 +160,7 @@
                 </div>
                 <!-- 模板预渲染 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label class="form-label">
+                    <label class="form-label required">
                         <span v-bk-tooltips.top="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')" class="condition-tip">{{ $t('常量')}}</span>
                     </label>
                     <div class="form-content">
@@ -168,6 +168,8 @@
                             :value="String(theEditingData.pre_render_mako)"
                             :clearable="false"
                             :disabled="isViewMode"
+                            name="preRenderMakoRule"
+                            v-validate="{ required: true }"
                             @selected="onSelectPreRenderMako">
                             <bk-option
                                 v-for="(option, index) in preRenderList"
@@ -176,6 +178,7 @@
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
+                        <span v-show="veeErrors.has('preRenderMakoRule')" class="common-error-tip error-msg">{{ veeErrors.first('preRenderMakoRule') }}</span>
                     </div>
                 </div>
                 <!-- 描述 -->
@@ -655,9 +658,10 @@
             },
             // 变量类型切换
             onValTypeChange (val, oldValue) {
-                // 将上一个类型的填写的数据存起来("集群模块IP选择器"的code与"ip选择器"code相同,需要单独处理)
-                const valData = oldValue === 'set_module_ip_selector'
-                    ? { set_module_ip_selector: tools.deepClone(this.renderData['ip_selector']) }
+                // 将上一个类型的填写的数据存起来("集群模块IP选择器"和"GSEKit IP选择器"的code与"ip选择器"code相同,需要单独处理)
+                const sameIpSelectorCode = ['set_module_ip_selector', 'gse_kit_ip_selector']
+                const valData = sameIpSelectorCode.includes(oldValue)
+                    ? { [oldValue]: tools.deepClone(this.renderData['ip_selector']) }
                     : tools.deepClone(this.renderData)
                 Object.assign(this.varTypeData, valData)
                 // 将input textarea类型正则存起来
@@ -674,7 +678,7 @@
                 })
                 if (val in this.varTypeData) {
                     const value = this.varTypeData[val]
-                    this.renderData = { [val === 'set_module_ip_selector' ? 'ip_selector' : val]: value }
+                    this.renderData = { [sameIpSelectorCode.includes(val) ? 'ip_selector' : val]: value }
                 } else {
                     this.renderData = {}
                 }
