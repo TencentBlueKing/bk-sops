@@ -23,50 +23,50 @@ logger = logging.getLogger("root")
 BK_CHAT_API_ENTRY = settings.BK_CHAT_API_ENTRY
 
 
-def send_message(executor, notify_type, receivers, title, content, email_content=None):
-    # 兼容旧数据
-    if not email_content:
-        email_content = content
+class MessageSender:
+    def send(self, executor, notify_type, notify_receivers, receivers, title, content, email_content=None):
+        bkchat_receivers = notify_receivers.split(",")
+        cmsi_receivers = [notify for notify in notify_type if notify != "bk_chat"]
 
-    if "email" in notify_type:
-        notify_type[notify_type.index("email")] = "mail"
-    client = get_client_by_user(executor)
-    kwargs = {
-        "receiver__username": receivers,
-        "title": title,
-        "content": content,
-    }
-    for msg_type in notify_type:
-        kwargs.update({"msg_type": msg_type})
-        if "mail" == msg_type:
-            kwargs.update({"content": email_content})
-        send_result = client.cmsi.send_msg(kwargs)
-        if not send_result["result"]:
-            logger.error(
-                "taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), json.dumps(send_result))
-            )
-    return True
+        if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
+            BkchatSender().send(bkchat_receivers, content)
+        CmsiSender().send(executor, cmsi_receivers, receivers, title, content, email_content)
+        return True
 
 
-class MessageHandler:
+class CmsiSender:
+    def send(self, executor, notify_type, receivers, title, content, email_content=None):
+        # 兼容旧数据
+        if not email_content:
+            email_content = content
+
+        if "email" in notify_type:
+            notify_type[notify_type.index("email")] = "mail"
+        client = get_client_by_user(executor)
+        kwargs = {
+            "receiver__username": receivers,
+            "title": title,
+            "content": content,
+        }
+        for msg_type in notify_type:
+            kwargs.update({"msg_type": msg_type})
+            if "mail" == msg_type:
+                kwargs.update({"content": email_content})
+            send_result = client.cmsi.send_msg(kwargs)
+            if not send_result["result"]:
+                logger.error(
+                    "taskflow send message failed, kwargs={}, result={}".format(
+                        json.dumps(kwargs), json.dumps(send_result)
+                    )
+                )
+        return True
+
+
+class BkchatSender:
     def _get_bkchat_api(self):
         return "{}/{}".format(BK_CHAT_API_ENTRY, "prod/im/api/v1/send_msg")
 
-    def send(self, executor, notify_type, notify_info, receivers, title, content, email_content=None):
-        notify_cmsi = []
-        notify_bkchat = []
-        for notify in notify_type:
-            if notify == "bk_chat":
-                notify_bkchat.extend(notify_info.split(","))
-            else:
-                notify_cmsi.append(notify)
-        if settings.ENABLE_BK_CHAT_CHANNEL and notify_bkchat:
-            self.send_bkchat(notify_bkchat, content)
-        send_message(executor, notify_cmsi, receivers, title, content, email_content)
-
-        return True
-
-    def send_bkchat(self, notify, content):
+    def send(self, notify, content):
         params = {"bk_app_code": settings.BK_CHAT_APP_CODE, "bk_app_secret": settings.BK_CHAT_APP_SECRET_KEY}
 
         data = {
@@ -78,10 +78,9 @@ class MessageHandler:
 
         result = requests.post(url=self._get_bkchat_api(), params=params, json=data)
         send_result = result.json()
-        if send_result.get("code") == 0:
-            return True
-        else:
+        if send_result.get("code") != 0:
             logger.error(
                 "bkchat send message failed, kwargs={}, result={}".format(json.dumps(data), json.dumps(send_result))
             )
             return False
+        return True
