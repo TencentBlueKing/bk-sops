@@ -42,26 +42,26 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("fail", [])
-        notify_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("fail", "")
+        bkchat_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("fail", "")
     elif msg_type == "task_finished":
         title, content, email_content = title_and_content_for_flow_finished(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("success", [])
-        notify_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("success", "")
+        bkchat_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("success", "")
     else:
         return False
     logger.info(
-        "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers} {notify_receivers}".format(
+        "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers} {bkchat_receivers}".format(
             flow_id=taskflow.id,
             msg_type=msg_type,
             notify_type=notify_type,
             receivers=receivers,
-            notify_receivers=notify_receivers,
+            bkchat_receivers=bkchat_receivers,
         )
     )
     MessageSender().send(
-        executor, notify_type, notify_receivers, receivers, title, content, email_content=email_content
+        executor, notify_type, bkchat_receivers, receivers, title, content, email_content=email_content
     )
 
     return True

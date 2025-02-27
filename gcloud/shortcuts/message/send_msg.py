@@ -29,9 +29,10 @@ class MessageSender:
         cmsi_receivers = [notify for notify in notify_type if notify != "bk_chat"]
 
         if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
+            logger.info("bkchat send message, receivers: {}".format(bkchat_receivers))
             BkchatSender().send(bkchat_receivers, content)
+        logger.info("cmsi send message, receivers: {}".format(cmsi_receivers))
         CmsiSender().send(executor, cmsi_receivers, receivers, title, content, email_content)
-        return True
 
 
 class CmsiSender:
@@ -59,7 +60,6 @@ class CmsiSender:
                         json.dumps(kwargs), json.dumps(send_result)
                     )
                 )
-        return True
 
 
 class BkchatSender:
@@ -82,5 +82,3 @@ class BkchatSender:
             logger.error(
                 "bkchat send message failed, kwargs={}, result={}".format(json.dumps(data), json.dumps(send_result))
             )
-            return False
-        return True
