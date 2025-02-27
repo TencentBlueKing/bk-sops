@@ -79,8 +79,6 @@ def send_periodic_task_message(periodic_task, history):
     )
     send_message(gcloud_periodic_task.creator, notify_type, receivers, title, content)
 
-    return True
-
 
 def send_clocked_task_message(clocked_task, ex_data):
 
