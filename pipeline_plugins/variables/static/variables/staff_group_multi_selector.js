@@ -32,7 +32,13 @@
                         {text: gettext("测试人员"), value: "bk_biz_tester"},
                     ].concat(resp.data)
                 },
-                disabled: $.context.canSelectBiz(),
+                items: [
+                    {text: gettext("运维人员"), value: "bk_biz_maintainer"},
+                    {text: gettext("产品人员"), value: "bk_biz_productor"},
+                    {text: gettext("开发人员"), value: "bk_biz_developer"},
+                    {text: gettext("测试人员"), value: "bk_biz_tester"},
+                ],
+                disabled: false,
                 validation: [
                     {
                         type: "required"
