@@ -689,6 +689,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
@@ -937,3 +938,8 @@ class PatchFeatures:
 
 # 将补丁应用到 DatabaseFeatures 中
 DatabaseFeatures.minimum_database_version = PatchFeatures.minimum_database_version
+
+SCHEME_HTTPS = "https"
+SCHEME_HTTP = "http"
+BKPAAS_BK_DOMAIN = env.BKPAAS_BK_DOMAIN
+CSRF_TRUSTED_ORIGINS = [f"{SCHEME_HTTPS}://*.{BKPAAS_BK_DOMAIN}", f"{SCHEME_HTTP}://*.{BKPAAS_BK_DOMAIN}"]
