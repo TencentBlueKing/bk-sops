@@ -467,3 +467,34 @@ class EngineConfig(models.Model):
         verbose_name = _("引擎版本配置 EngineConfig")
         verbose_name_plural = _("引擎版本配置 EngineConfig")
         index_together = ["scope", "scope_id"]
+
+
+class AppExemptionManager(models.Manager):
+    def check_white_project(self, app_code, project_id):
+        """
+        检查指定应用是否豁免特定项目。
+
+        :param app_code: 应用的唯一标识
+        :param project_id: 要检查的项目 ID
+        :return: 如果项目豁免返回 True，否则返回 False
+        """
+        try:
+            exemption_project = self.get(app_code=app_code)
+            exempted_ids = exemption_project.exemption_projects.split(",")
+
+            # 检查是否有全局豁免或特定项目豁免
+            return "*" in exempted_ids or project_id in exempted_ids
+        except AppExemption.DoesNotExist:
+            return False
+
+
+class AppExemption(models.Model):
+    app_code = models.CharField(_("应用code"), max_length=32, unique=True)
+    exemption_projects = models.CharField(_("豁免项目 ID 列表"), max_length=255)
+    extra_info = models.JSONField(_("额外信息"), blank=True, null=True)
+
+    objects = AppExemptionManager()
+
+    class Meta:
+        verbose_name = _("应用豁免 AppExemption")
+        verbose_name_plural = _("应用豁免 AppExemption")
