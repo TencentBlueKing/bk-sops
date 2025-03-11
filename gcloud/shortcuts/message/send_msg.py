@@ -29,18 +29,27 @@ def send_message(executor, notify_type, receivers, title, content, email_content
     if "email" in notify_type:
         notify_type[notify_type.index("email")] = "mail"
     client = get_client_by_user(executor)
-    kwargs = {
+    base_kwargs = {
         "receiver__username": receivers,
         "title": title,
         "content": content,
     }
     for msg_type in notify_type:
-        kwargs.update({"msg_type": msg_type})
-        if "mail" == msg_type:
-            kwargs.update({"content": email_content})
-        send_result = client.cmsi.send_msg(kwargs)
+        if msg_type == "voice":
+            kwargs = {"receiver__username": receivers, "auto_read_message": content}
+            send_result = client.cmsi.send_voice_msg(kwargs)
+        else:
+            kwargs = {"msg_type": msg_type, **base_kwargs}
+            if msg_type == "mail":
+                kwargs["content"] = email_content
+            send_result = client.cmsi.send_msg(kwargs)
+
         if not send_result["result"]:
             logger.error(
-                "taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), json.dumps(send_result))
+                "taskflow send {}message failed, kwargs={}, result={}".format(
+                    "voice " if msg_type == "voice" else "",
+                    json.dumps(kwargs),
+                    json.dumps(send_result),
+                )
             )
     return True
