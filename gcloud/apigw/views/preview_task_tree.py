@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.constants import PROJECT
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
@@ -35,6 +35,7 @@ from pipeline_web.preview import preview_template_tree
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(FlowViewInterceptor())
 def preview_task_tree(request, project_id, template_id):
     try:

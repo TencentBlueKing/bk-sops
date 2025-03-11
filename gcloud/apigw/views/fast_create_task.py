@@ -23,6 +23,7 @@ from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     project_inject,
     return_json_response,
+    validate_project_access,
 )
 from gcloud.apigw.validators import FastCreateTaskValidator
 from gcloud.apigw.views.utils import logger
@@ -54,6 +55,7 @@ from gcloud.utils.strings import standardize_name
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @request_validate(FastCreateTaskValidator)
 @iam_intercept(FastCreateTaskInterceptor())
 @record_operation(RecordType.task.name, OperateType.create.name, OperateSource.api.name)

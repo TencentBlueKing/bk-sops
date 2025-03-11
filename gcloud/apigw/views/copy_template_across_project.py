@@ -22,6 +22,7 @@ from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     project_inject,
     return_json_response,
+    validate_project_access,
 )
 
 from gcloud.apigw.views.utils import logger
@@ -40,9 +41,10 @@ TEMPLATE_COPY_MAX_NUMBER = 10
 @require_POST
 @apigw_require
 @return_json_response
-@project_inject
 @request_validate(CopyTemplateAcrossProjectValidator)
 @mark_request_whether_is_trust
+@project_inject
+@validate_project_access
 @iam_intercept(CopyTemplateInterceptor())
 def copy_template_across_project(request, project_id):
     if not request.is_trust:

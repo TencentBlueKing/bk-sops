@@ -16,7 +16,7 @@ from django.views.decorators.http import require_GET
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.apigw.utils import bucket_cached, BucketTTLCache, api_bucket_and_key
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger
@@ -31,6 +31,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(TaskViewInterceptor())
 @bucket_cached(BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 60}), bucket_and_key_func=api_bucket_and_key)
 def get_task_detail(request, task_id, project_id):

@@ -25,7 +25,8 @@ from gcloud.apigw.exceptions import InvalidUserError
 from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.whitelist import EnvWhitelist
 from gcloud.conf import settings
-from gcloud.core.models import Project, AppExemption
+from gcloud.core.models import Project
+from gcloud.contrib.appexemption.models import AppExemption
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
@@ -130,18 +131,6 @@ def project_inject(view_func):
                 }
             )
 
-        if settings.ENABLE_APP_EXEMPTION and check_white_apps(request):
-            is_exempt = AppExemption.objects.check_white_project(request.app, str(project.id))
-            if not is_exempt:
-                error_message = f"Application {request.app} does not have permission to access project {project.id}"
-                return JsonResponse(
-                    {
-                        "result": False,
-                        "message": error_message,
-                        "code": err_code.VALIDATION_ERROR.code,
-                    }
-                )
-
         setattr(request, "project", project)
         return view_func(request, *args, **kwargs)
 
@@ -164,6 +153,33 @@ def timezone_inject(view_func):
                 }
             )
         setattr(request, "tz", tz)
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def validate_project_access(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if settings.ENABLE_APP_EXEMPTION and check_white_apps(request):
+            project_id = str(request.project.id)
+            try:
+                is_exempt = AppExemption.objects.check_project_exemption(request.app, project_id)
+            except TypeError as e:
+                return JsonResponse({"result": False, "message": str(e), "code": err_code.VALIDATION_ERROR.code})
+
+            if not is_exempt:
+                error_message = (
+                    f"Application {request.app} does not have permission to access project {request.project.name}"
+                )
+                return JsonResponse(
+                    {
+                        "result": False,
+                        "message": error_message,
+                        "code": err_code.VALIDATION_ERROR.code,
+                    }
+                )
+
         return view_func(request, *args, **kwargs)
 
     return wrapper

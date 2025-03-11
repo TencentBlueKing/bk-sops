@@ -21,7 +21,7 @@ import env
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
@@ -40,6 +40,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(TaskOperateInterceptor())
 @record_operation(RecordType.task.name, OperateType.task_action.name, OperateSource.api.name)
 def operate_task(request, task_id, project_id):
