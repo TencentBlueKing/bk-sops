@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class AppExemptionManager(models.Manager):
-    def check_project_exemption(self, app_code: str, project_id: str):
+    def check_project_exemption(self, app_code, project_id):
         """
         检查指定应用是否豁免特定项目。
 
@@ -24,20 +24,17 @@ class AppExemptionManager(models.Manager):
         :param project_id: 要检查的项目 ID
         :return: 如果项目豁免返回 True，否则返回 False
         """
-        if not isinstance(project_id, str):
-            raise TypeError("project_id must be str type")
         try:
-            exemption_project = self.get(app_code=app_code)
-            exempted_ids = exemption_project.exemption_projects.split(",")
-
-            return project_id in exempted_ids
+            exemption_obj = self.get(app_code=app_code)
+            return project_id in exemption_obj.exemption_projects
         except AppExemption.DoesNotExist:
             return True
 
 
 class AppExemption(models.Model):
     app_code = models.CharField(_("应用code"), max_length=32, unique=True)
-    exemption_projects = models.CharField(_("豁免项目 ID 列表"), max_length=255)
+    # 形如: [id_1, id_2, id_3]
+    exemption_projects = models.JSONField(_("豁免项目ID列表"))
     extra_info = models.JSONField(_("额外信息"), blank=True, null=True)
 
     objects = AppExemptionManager()

@@ -25,7 +25,7 @@ from gcloud.apigw.exceptions import InvalidUserError
 from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.whitelist import EnvWhitelist
 from gcloud.conf import settings
-from gcloud.core.models import Project
+from gcloud.core.models import Project, EnvironmentVariables
 from gcloud.contrib.appexemption.models import AppExemption
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
@@ -159,18 +159,28 @@ def timezone_inject(view_func):
 
 
 def validate_project_access(view_func):
+    """
+    检查应用是否有权限访问项目
+    此装饰器需要配合project_inject装饰器一起使用，且必须放在project_inject之后
+    """
+
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if settings.ENABLE_APP_EXEMPTION and check_white_apps(request):
-            project_id = str(request.project.id)
-            try:
-                is_exempt = AppExemption.objects.check_project_exemption(request.app, project_id)
-            except TypeError as e:
-                return JsonResponse({"result": False, "message": str(e), "code": err_code.VALIDATION_ERROR.code})
+        try:
+            exemption_obj = EnvironmentVariables.objects.get(key="APP_EXEMPTIONS")
+            exemption_apps = exemption_obj.value.split(",")
+        except EnvironmentVariables.DoesNotExist:
+            exemption_apps = []
+
+        check_app = request.app
+
+        if check_app in exemption_apps:
+            project_id = request.project.id
+            is_exempt = AppExemption.objects.check_project_exemption(check_app, project_id)
 
             if not is_exempt:
                 error_message = (
-                    f"Application {request.app} does not have permission to access project {request.project.name}"
+                    f"Application {check_app} does not have permission to access project {request.project.name}"
                 )
                 return JsonResponse(
                     {
