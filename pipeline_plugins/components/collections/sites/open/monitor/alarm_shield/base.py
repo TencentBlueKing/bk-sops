@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import traceback
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
@@ -87,9 +88,14 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
 
         supplier_account = supplier_account_for_business(bk_biz_id)
 
-        request_body = self.get_request_body(
-            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
-        )
+        try:
+            request_body = self.get_request_body(
+                bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
+            )
+        except Exception:
+            self.logger.error(traceback.format_exc())
+            return False
+
         if "all" not in target:
             request_body["dimension_config"].update({"metric_id": target})
 
