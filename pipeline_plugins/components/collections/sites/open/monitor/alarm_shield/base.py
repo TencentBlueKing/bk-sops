@@ -93,10 +93,9 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
             request_body = self.get_request_body(
                 bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
             )
-        except ApiRequestError as e:
-            message = e.message.split("error=")[0]  # 截取错误信息简述
-            self.logger.error(e.message)
-            data.outputs.ex_data = message
+        except ApiRequestError as api_error:
+            self.logger.error(api_error.message)
+            data.outputs.ex_data = api_error.message.split("error=")[0]  # 截取错误信息简述
             return False
         except Exception as e:
             self.logger.error(traceback.format_exc())
