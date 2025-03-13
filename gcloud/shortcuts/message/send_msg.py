@@ -51,7 +51,7 @@ class CmsiSender:
         }
         for msg_type in notify_type:
             if msg_type == "voice":
-                kwargs = {"receiver__username": receivers, "auto_read_message": content}
+                kwargs = {"receiver__username": receivers, "auto_read_message": "{},{}".format(title, content)}
                 send_result = client.cmsi.send_voice_msg(kwargs)
             else:
                 kwargs = {"msg_type": msg_type, **base_kwargs}
@@ -60,8 +60,7 @@ class CmsiSender:
                 send_result = client.cmsi.send_msg(kwargs)
             if not send_result["result"]:
                 logger.error(
-                    "taskflow send {}message failed, kwargs={}, result={}".format(
-                        "voice " if msg_type == "voice" else "",
+                    "taskflow send message failed, kwargs={}, result={}".format(
                         json.dumps(kwargs),
                         json.dumps(send_result),
                     )
