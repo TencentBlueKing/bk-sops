@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-import traceback
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
-from gcloud.exceptions import ApiRequestError
 from api.collections.monitor import BKMonitorClient
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
