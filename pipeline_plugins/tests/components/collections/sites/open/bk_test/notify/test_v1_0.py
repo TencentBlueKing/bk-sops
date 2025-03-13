@@ -203,7 +203,7 @@ SEND_VOICE_MSG_SUCCESS_CASE = ComponentTestCase(
                 Call(
                     {
                         "receiver__username": "tester,a,b,m1,m2,p1,p2",
-                        "auto_read_message": "content",
+                        "auto_read_message": "title,content",
                     }
                 )
             ],
