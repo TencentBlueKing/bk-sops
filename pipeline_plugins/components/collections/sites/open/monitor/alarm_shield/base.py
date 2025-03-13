@@ -95,7 +95,7 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
             )
         except ApiRequestError as e:
             message = e.message.split("error=")[0]  # 截取错误信息简述
-            self.logger.error(message)
+            self.logger.error(e.message)
             data.outputs.ex_data = message
             return False
         except Exception as e:
