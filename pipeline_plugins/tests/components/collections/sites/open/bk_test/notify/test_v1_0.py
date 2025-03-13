@@ -34,6 +34,7 @@ class BkNotifyComponentTest(TestCase, ComponentTestMixin):
             GET_NOTIFY_RECEIVERS_FAIL_CASE,
             SEND_MSG_FAIL_CASE,
             SEND_MSG_SUCCESS_CASE,
+            SEND_VOICE_MSG_SUCCESS_CASE,
             SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE,
             SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE,
         ]
@@ -45,6 +46,7 @@ class MockClient(object):
         self.cc.search_business = MagicMock(return_value=cc_search_business_return)
         self.cmsi = MagicMock()
         self.cmsi.send_msg = MagicMock(return_value=cmsi_send_msg_return)
+        self.cmsi.send_voice_msg = MagicMock(return_value=cmsi_send_msg_return)
 
 
 class MockStaffGroupSet:
@@ -91,7 +93,7 @@ GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
     name="get notify receivers fail case",
     inputs={
         "biz_cc_id": 2,
-        "bk_notify_type": ["mail", "weixin"],
+        "bk_notify_type": ["mail", "weixin", "voice"],
         "bk_receiver_info": {"bk_receiver_group": ["Maintainers", "ProductPm"], "bk_more_receiver": "a,b"},
         "notify": True,
         "bk_notify_title": "title",
@@ -114,14 +116,17 @@ SEND_MSG_FAIL_CASE = ComponentTestCase(
     name="send msg fail case",
     inputs={
         "biz_cc_id": 2,
-        "bk_notify_type": ["mail", "weixin"],
+        "bk_notify_type": ["mail", "weixin", "voice"],
         "bk_receiver_info": {"bk_receiver_group": ["Maintainers", "ProductPm"], "bk_more_receiver": "a,b"},
         "notify": False,
         "bk_notify_title": "title",
         "bk_notify_content": "content",
     },
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "send msg fail;send msg fail;"}),
+    execute_assertion=ExecuteAssertion(
+        success=False,
+        outputs={"ex_data": "send msg fail;send msg fail;send msg fail;"},
+    ),
     execute_call_assertion=[],
     schedule_assertion=None,
     patchers=[
@@ -172,6 +177,35 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
                         "msg_type": "weixin",
                     }
                 ),
+            ],
+        )
+    ],
+    schedule_assertion=None,
+    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT)],
+)
+
+SEND_VOICE_MSG_SUCCESS_CASE = ComponentTestCase(
+    name="send voice msg success case",
+    inputs={
+        "biz_cc_id": 2,
+        "bk_notify_type": ["voice"],
+        "bk_receiver_info": {"bk_receiver_group": ["Maintainers", "ProductPm"], "bk_more_receiver": "a,b"},
+        "notify": True,
+        "bk_notify_title": "title",
+        "bk_notify_content": "content",
+    },
+    parent_data=COMMON_PARENT,
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    execute_call_assertion=[
+        CallAssertion(
+            func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_voice_msg,
+            calls=[
+                Call(
+                    {
+                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
+                        "auto_read_message": "title,content",
+                    }
+                )
             ],
         )
     ],

@@ -44,20 +44,25 @@ class CmsiSender:
         if "email" in notify_type:
             notify_type[notify_type.index("email")] = "mail"
         client = get_client_by_user(executor)
-        kwargs = {
+        base_kwargs = {
             "receiver__username": receivers,
             "title": title,
             "content": content,
         }
         for msg_type in notify_type:
-            kwargs.update({"msg_type": msg_type})
-            if "mail" == msg_type:
-                kwargs.update({"content": email_content})
-            send_result = client.cmsi.send_msg(kwargs)
+            if msg_type == "voice":
+                kwargs = {"receiver__username": receivers, "auto_read_message": "{},{}".format(title, content)}
+                send_result = client.cmsi.send_voice_msg(kwargs)
+            else:
+                kwargs = {"msg_type": msg_type, **base_kwargs}
+                if msg_type == "mail":
+                    kwargs["content"] = email_content
+                send_result = client.cmsi.send_msg(kwargs)
             if not send_result["result"]:
                 logger.error(
                     "taskflow send message failed, kwargs={}, result={}".format(
-                        json.dumps(kwargs), json.dumps(send_result)
+                        json.dumps(kwargs),
+                        json.dumps(send_result),
                     )
                 )
 
