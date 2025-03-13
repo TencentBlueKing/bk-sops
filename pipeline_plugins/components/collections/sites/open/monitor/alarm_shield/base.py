@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import traceback
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
+from gcloud.exceptions import ApiRequestError
 from api.collections.monitor import BKMonitorClient
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
@@ -87,9 +89,20 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
 
         supplier_account = supplier_account_for_business(bk_biz_id)
 
-        request_body = self.get_request_body(
-            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
-        )
+        try:
+            request_body = self.get_request_body(
+                bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
+            )
+        except ApiRequestError as e:
+            message = e.message.split("error=")[0]  # 截取错误信息简述
+            self.logger.error(message)
+            data.outputs.ex_data = message
+            return False
+        except Exception as e:
+            self.logger.error(traceback.format_exc())
+            data.set_outputs("ex_data", repr(e))
+            return False
+
         if "all" not in target:
             request_body["dimension_config"].update({"metric_id": target})
 
