@@ -136,7 +136,10 @@ class NotifyService(Service):
         error = ""
         for msg_type in notify_type:
             if msg_type == "voice":
-                kwargs = {"receiver__username": base_kwargs["receiver__username"], "auto_read_message": "{},{}".format(title, content)}
+                kwargs = {
+                    "receiver__username": base_kwargs["receiver__username"],
+                    "auto_read_message": "{},{}".format(title, content),
+                }
                 result = client.cmsi.send_voice_msg(kwargs)
             else:
                 kwargs = {"msg_type": msg_type, **base_kwargs}
