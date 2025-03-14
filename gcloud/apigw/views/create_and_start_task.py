@@ -22,7 +22,12 @@ from django.views.decorators.http import require_POST
 
 import env
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+    validate_project_access,
+)
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
@@ -50,6 +55,7 @@ from gcloud.utils.throttle import check_task_operation_throttle
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @request_validate(CreateTaskValidator)
 @iam_intercept(CreateTaskInterceptor())
 @record_operation(RecordType.task.name, OperateType.create.name, OperateSource.api.name)
