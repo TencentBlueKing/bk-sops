@@ -122,9 +122,13 @@
                     style="margin-right: 8px;"
                     :disabled="subflowFormsLoading || !selectedTplNum"
                     @click="onConfirm">
-                    {{ $t('批量更新') }}
+                    {{ isSourceList ? $t('立即更新并保存') : $t('批量更新') }}
                 </bk-button>
-                <bk-button @click="onCloseDialog(false)">{{ $t('取消') }}</bk-button>
+                <bk-button
+                    :theme="isSourceList ? 'primary' : 'default'"
+                    @click="onCancel">
+                    {{ isSourceList ? $t('跳转到流程') : $t('取消') }}
+                </bk-button>
             </div>
         </div>
         <bk-dialog
@@ -171,7 +175,12 @@
                 default () {
                     return []
                 }
-            }
+            },
+            source: {
+                type: String,
+                default: ''
+            },
+            templateId: [Number, String]
         },
         data () {
             return {
@@ -196,6 +205,9 @@
             },
             selectedTplNum () {
                 return this.subflowForms.filter(item => item.checked).length
+            },
+            isSourceList () {
+                return this.source === 'list'
             }
         },
         created () {
@@ -677,32 +689,70 @@
                 this.setConstants(constants)
             },
             onConfirm () {
-                const selectedInputForms = this.$refs.inputParams ? this.$refs.inputParams.filter((item, index) => {
-                    return this.subflowForms[index].checked
-                }) : []
-                if (selectedInputForms.every(item => item.validate())) {
-                    this.subflowForms.filter(item => item.checked).forEach(item => {
-                        const activity = tools.deepClone(this.activities[item.id])
-                        activity.version = item.latestForm.version
-                        activity.constants = tools.deepClone(item.latestForm.form)
-                        Object.keys(activity.constants).forEach(key => {
-                            const varItem = activity.constants[key]
-                            varItem.value = item.latestForm.inputsValue[key]
-                            varItem.need_render = item.latestForm.inputsRenderConfig[key]
+                const handleConfirmation = () => {
+                    const selectedInputForms = this.$refs.inputParams ? this.$refs.inputParams.filter((item, index) => {
+                        return this.subflowForms[index].checked
+                    }) : []
+                    if (selectedInputForms.every(item => item.validate())) {
+                        this.subflowForms.filter(item => item.checked).forEach(item => {
+                            const activity = tools.deepClone(this.activities[item.id])
+                            activity.version = item.latestForm.version
+                            activity.constants = tools.deepClone(item.latestForm.form)
+                            Object.keys(activity.constants).forEach(key => {
+                                const varItem = activity.constants[key]
+                                varItem.value = item.latestForm.inputsValue[key]
+                                varItem.need_render = item.latestForm.inputsRenderConfig[key]
+                            })
+                            this.setActivities({ type: 'edit', location: activity })
+                            this.setSubprocessUpdated({
+                                subprocess_node_id: item.id
+                            })
                         })
-                        this.setActivities({ type: 'edit', location: activity })
-                        this.setSubprocessUpdated({
-                            subprocess_node_id: item.id
-                        })
-                    })
-                    this.handleVariableChange()
-                    this.onCloseDialog(true)
-                } else {
-                    const errorEl = document.querySelector('.subflow-form-wrap .common-error-tip')
-                    if (errorEl) {
-                        errorEl.scrollIntoView()
+                        this.handleVariableChange()
+                        this.onCloseDialog(true)
+                    } else {
+                        const errorEl = document.querySelector('.subflow-form-wrap .common-error-tip')
+                        if (errorEl) {
+                            errorEl.scrollIntoView()
+                        }
                     }
                 }
+                if (this.isSourceList) {
+                    this.showSaveConfirmation(handleConfirmation)
+                    return
+                }
+                handleConfirmation()
+            },
+            // 显示保存确认弹窗
+            showSaveConfirmation (confirmHandler) {
+                const h = this.$createElement
+                this.$bkInfo({
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [this.$t('保存后子流程更新将立即生效，请谨慎操作')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
+                    maskClose: false,
+                    width: 450,
+                    confirmFn: () => {
+                        confirmHandler()
+                        this.$emit('confirm')
+                    }
+                })
+            },
+            onCancel () {
+                if (this.isSourceList) {
+                    this.$router.push({
+                        name: 'templatePanel',
+                        params: { type: 'edit' },
+                        query: { template_id: this.templateId }
+                    })
+                }
+                this.onCloseDialog(true)
             },
             onCloseDialog (updated = false) {
                 this.$emit('close', updated)
