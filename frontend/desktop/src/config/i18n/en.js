@@ -1866,7 +1866,12 @@ const en = {
     '当前环境配置周期任务间隔不低于 n 分钟，如有特殊需求请联系管理员配置': 'In the current environment, the interval for scheduled tasks is no less than {n} minutes. If you have special requirements, please contact the administrator for configuration',
     '仅支持上传.mp4,.mov文件': 'Only .mp4 and .mov files are supported for upload',
     '选择视频文件': 'Select video file',
-    '上传视频': 'Upload Video'
+    '上传视频': 'Upload Video',
+    '立即更新': 'Update Now',
+    '流程批量更新成功！': 'Batch Process Update Successful!',
+    '保存后子流程更新将立即生效，请谨慎操作': 'After saving, the sub-process updates will take effect immediately. Please proceed with caution.',
+    '立即更新并保存': 'Update and Save Now',
+    '跳转到流程': 'Jump to Process'
 }
 
 export default en

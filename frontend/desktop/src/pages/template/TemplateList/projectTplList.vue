@@ -222,6 +222,12 @@
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
                                     <span v-if="!isFlowVisited(row.id) " class="red-dot"></span>
+                                    <bk-button
+                                        v-if="row.subprocess_has_update && hasPermission(['flow_edit'], row.auth_actions)"
+                                        text
+                                        @click="openBatchUpdateDialog(row)">
+                                        {{ $t('立即更新') }}
+                                    </bk-button>
                                 </div>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -403,6 +409,13 @@
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
+        <TemplateUpdateDialog
+            :is-show="isBatchUpdateDialogShow"
+            :project-id="project_id"
+            :row="curSelectedRow"
+            @confirm="handleTplBatchUpdateConfirm"
+            @close="isBatchUpdateDialogShow = false">
+        </TemplateUpdateDialog>
     </div>
 </template>
 <script>
@@ -421,6 +434,7 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
     import SharedTemplateBtn from './SharedTemplate/index.vue'
+    import TemplateUpdateDialog from './TemplateUpdateDialog.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -499,7 +513,7 @@
         {
             id: 'subprocess_has_update',
             label: i18n.t('子流程更新'),
-            width: 180
+            min_width: 180
         },
         {
             key: 'category',
@@ -532,6 +546,7 @@
             ImportYamlTplDialog,
             ExportTemplateDialog,
             SharedTemplateBtn,
+            TemplateUpdateDialog,
             ListPageTipsTitle,
             SearchSelect,
             TableSettingContent,
@@ -700,7 +715,8 @@
                 searchList: tools.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 templateLabelLoading: false,
-                isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET
+                isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET,
+                isBatchUpdateDialogShow: false
             }
         },
         computed: {
@@ -1670,6 +1686,20 @@
                 }
                 return false
             },
+            openBatchUpdateDialog (row) {
+                this.curSelectedRow = row
+                this.setTemplateData(row)
+                this.isBatchUpdateDialogShow = true
+            },
+            handleTplBatchUpdateConfirm () {
+                this.curSelectedRow = {}
+                this.isBatchUpdateDialogShow = false
+                this.getTemplateList()
+                this.$bkMessage({
+                    message: this.$t('流程批量更新成功！'),
+                    theme: 'success'
+                })
+            },
             onFlowClone (row) {
                 const applyAuth = []
                 if (!this.hasPermission(['flow_view'], row.auth_actions)) {
@@ -1870,10 +1900,14 @@
             border-radius: 50%;
         }
     }
+    .subflow-update {
+        display: flex;
+        align-items: center;
+    }
     .subflow-has-update {
         color: $redDefault;
         .red-dot {
-            margin-left: 3px;
+            margin: 0 10px 0 5px;
             display: inline-block;
             width: 6px;
             height: 6px;
