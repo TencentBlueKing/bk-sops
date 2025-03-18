@@ -21,7 +21,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.core.apis.drf.serilaziers import NodeExecutionRecordResponseSerializer
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
@@ -36,6 +36,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(TaskViewInterceptor())
 def get_task_node_data(request, task_id, project_id):
     project = request.project
