@@ -17,7 +17,7 @@
                         v-for="(col, index) in allNotifyTypeList"
                         :key="index"
                         :fixed="col.type ? false : 'left'"
-                        :min-width="col.type === 'bk_chat' ? 300 : 85"
+                        :min-width="col.type === 'bkchat' ? 300 : 85"
                         :render-header="getNotifyTypeHeader">
                         <template slot-scope="{ row, $index }">
                             <template v-if="col.type">
@@ -27,18 +27,17 @@
                                     @change="onSelectNotifyType($index, col.type, $event)">
                                 </bk-checkbox>
                                 <bk-input
-                                    v-if="col.type === 'bk_chat'"
+                                    v-if="col.type === 'bkchat'"
                                     :name="`chat_group_id_${$index}`"
                                     :class="['ml10', { 'vee-error': veeErrors.has(`chat_group_id_${$index}`) }]"
                                     v-validate="{ required: row.includes(col.type) }"
                                     :disabled="isViewMode || !row.includes(col.type)"
                                     :placeholder="$t('请输入群 ID，多个 ID 以分号隔开')"
-                                    :type="'textarea'"
                                     :value="getChatNotifyTypeValue($index)"
                                     @change="onChatNotifyTypeChange($index, $event)">
                                 </bk-input>
                                 <span
-                                    v-if="col.type === 'bk_chat' && veeErrors.has(`chat_group_id_${$index}`)"
+                                    v-if="col.type === 'bkchat' && veeErrors.has(`chat_group_id_${$index}`)"
                                     v-bk-tooltips="veeErrors.first(`chat_group_id_${$index}`)"
                                     class="bk-icon icon-exclamation-circle-shape error-msg" />
                             </template>
@@ -236,8 +235,8 @@
                         data.splice(index, 1)
                     }
                 }
-                // bk_chat同时方式取消勾选时需要情况群id
-                if (!val && type === 'bk_chat') {
+                // bkchat同时方式取消勾选时需要情况群id
+                if (!val && type === 'bkchat') {
                     const { bkchat } = this.formData.notifyTypeExtraInfo
                     bkchat[row === 0 ? 'success' : 'fail'] = ''
                 }
