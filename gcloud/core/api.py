@@ -160,7 +160,7 @@ def get_footer_info(request):
 def get_msg_types(request):
     client = get_client_by_user(request.user.username)
     result = client.cmsi.get_msg_type()
-    if settings.ENABLE_BK_CHAT_CHANNEL and request.GET.get("is_all", "true") != "false":
+    if settings.ENABLE_BK_CHAT_CHANNEL and not request.GET.get("only_cmsi"):
         bk_chat = {
             "type": "bkchat",
             "icon": "iVBORw0KGgoAAAANSUhEUgAAACQAAAAgCAMAAABNTyq8AAAAAXNSR0IArs4c6QAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAOpQTF"
