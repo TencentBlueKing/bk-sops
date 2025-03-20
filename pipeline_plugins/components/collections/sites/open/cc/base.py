@@ -432,7 +432,11 @@ def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list,
     """
     client = get_client_by_username(executor)
     kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
-    search_biz_inst_topo_return = client.api.api.search_biz_inst_topo(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+    search_biz_inst_topo_return = client.api.search_biz_inst_topo(
+        kwargs,
+        path_params={"bk_biz_id": biz_cc_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     if not search_biz_inst_topo_return["result"]:
         message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, search_biz_inst_topo_return)
         return {"result": False, "message": message}

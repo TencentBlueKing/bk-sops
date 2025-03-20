@@ -16,6 +16,7 @@ import re
 import requests
 from django.utils.translation import gettext_lazy as _
 
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
@@ -29,24 +30,27 @@ from ..components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_i
 from .constants import ERROR_CODES, NO_ERROR
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 DEFAULT_BK_CLOUD_ID = "-1"
 
 
 class IPPickerDataGenerator:
     # IP选择器根据手动输入内容生成对应所需数据，方便后面进行过滤和处理
-    def __init__(self, input_type, raw_data, request_kwargs, gen_kwargs):
+    def __init__(self, input_type, raw_data, request_kwargs, gen_kwargs, bk_biz_id: int, tenant_id: str = None):
         """
         :params input_type: 手动输入类型，值为ip(静态IP)/topo(动态IP)/group(动态分组)
         :params raw_data: 手动输入数据字符串
         :params request_kwargs: 包括请求接口所需要的参数信息, 如username,bk_biz_id,bk_supplier_account
         :params gen_kwargs: 包括信息匹配筛选所需要的信息，如biz_topo_tree
+        :params bk_biz_id: 业务ID
+        :params tenant_id: 租户ID
         """
         self.input_type = input_type
         self.raw_data = raw_data.strip()
         self.username = request_kwargs.pop("username")
         self.request_kwargs = request_kwargs
         self.gen_kwargs = gen_kwargs
+        self.bk_biz_id = bk_biz_id
+        self.tenant_id = tenant_id
 
     def generate(self):
         func = getattr(self, f"generate_{self.input_type}_data", None)
@@ -68,9 +72,15 @@ class IPPickerDataGenerator:
 
     def generate_group_data(self):
         """根据字符串生成动态分组数据"""
-        client = get_client_by_user(self.username)
+        client = get_client_by_username(self.username)
         group_names = set(re.split("[,\n]", self.raw_data))
-        result = batch_request(client.cc.search_dynamic_group, self.request_kwargs, limit=200)
+        result = batch_request(
+            client.api.search_dynamic_group,
+            self.request_kwargs,
+            path_params={"bk_biz_id": self.bk_biz_id},
+            headers={"X-Bk-Tenant-Id": self.tenant_id},
+            limit=200,
+        )
         dynamic_groups = []
         for dynamic_group in result:
             if dynamic_group["bk_obj_id"] == "host" and dynamic_group["name"] in group_names:
@@ -362,7 +372,7 @@ class IPPickerHandler:
         return formatted_host_info
 
 
-def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
+def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs, tenant_id: str = None):
     """
     @summary：根据前端表单数据获取合法的IP，IP选择器调用
     @param username:
@@ -396,7 +406,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
         gen_kwargs = {"biz_topo_tree": ip_picker_handler.biz_topo_tree}
         request_kwargs = {"username": username, "bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
-        gen_result = IPPickerDataGenerator(input_type, input_value, request_kwargs, gen_kwargs).generate()
+        gen_result = IPPickerDataGenerator(input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id, tenant_id=tenant_id).generate()
 
         if not gen_result["result"]:
             logger.error(
@@ -604,7 +614,7 @@ def get_objects_of_topo_tree(bk_obj, obj_dct):
     return bk_objects
 
 
-def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
+def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account, tenant_id: str = None):
     """从 CMDB API 获取业务完整拓扑树，包括空闲机池
 
     :param username: 请求 API 使用的用户名
@@ -613,6 +623,8 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
     :type bk_biz_id: int
     :param bk_supplier_account: 开发商账号
     :type bk_supplier_account: int
+    :param tenant_id: 租户 ID
+    :type tenant_id: string
     :return:
     {
         "result": True or False,
@@ -649,18 +661,27 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
     }
     :rtype: dict
     """
-    client = get_client_by_user(username)
+    client = get_client_by_username(username)
     kwargs = {
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": bk_supplier_account,
     }
-    topo_result = client.cc.search_biz_inst_topo(kwargs)
+    headers = {"X-Bk-Tenant-Id": tenant_id}
+    topo_result = client.api.search_biz_inst_topo(
+        kwargs,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers=headers,
+    )
     if not topo_result["result"]:
         message = handle_api_error(_("配置平台(CMDB)"), "cc.search_biz_inst_topo", kwargs, topo_result)
         result = {"result": False, "code": ERROR_CODES.API_CMDB_ERROR, "message": message, "data": []}
         return result
 
-    inter_result = client.cc.get_biz_internal_module(kwargs)
+    inter_result = client.api.get_biz_internal_module(
+        kwargs,
+        path_params={"bk_supplier_account": bk_supplier_account, "bk_biz_id": bk_biz_id},
+        headers=headers,
+    )
     if not inter_result["result"]:
         message = handle_api_error(_("配置平台(CMDB)"), "cc.get_biz_internal_module", kwargs, inter_result)
         result = {"result": False, "code": ERROR_CODES.API_CMDB_ERROR, "message": message, "data": []}
