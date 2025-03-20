@@ -21,6 +21,7 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 from gcloud.conf import settings
 from gcloud.utils import cmdb
@@ -43,7 +44,6 @@ from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 
@@ -295,14 +295,14 @@ def get_module_set_id(topo_data, module_id):
                 return set_id
 
 
-def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account):
+def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account, tenant_id: str = None):
     ret = {"result": True, "data": {}}
-    client = get_client_by_user(executor)
+    client = get_client_by_username(executor)
     if language:
         setattr(client, "language", language)
     cc_kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
 
-    cc_result = client.cc.search_object_attribute(cc_kwargs)
+    cc_result = client.api.search_object_attribute(cc_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not cc_result["result"]:
         message = cc_handle_api_error("cc.search_object_attribute", cc_kwargs, cc_result)
         ret["result"] = False
@@ -388,13 +388,14 @@ def cc_parse_path_text(path_text):
     return path_list
 
 
-def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list):
+def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list, tenant_id: str = None):
     """
     路径匹配，对path_list中的所有路径与指定biz_cc_id的拓扑树匹配，返回匹配节点bk_inst_id
     :param executor:
     :param biz_cc_id:
     :param supplier_account:
     :param path_list: 路径列表，example: [[a, b], [a, c]]
+    :param tenant_id: 租户ID
     :return:
         True: list -匹配父节点的bk_inst_id
         False: message -错误信息
@@ -429,9 +430,9 @@ def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list)
         }
     ]
     """
-    client = get_client_by_user(executor)
+    client = get_client_by_username(executor)
     kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
-    search_biz_inst_topo_return = client.cc.search_biz_inst_topo(kwargs)
+    search_biz_inst_topo_return = client.api.api.search_biz_inst_topo(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not search_biz_inst_topo_return["result"]:
         message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, search_biz_inst_topo_return)
         return {"result": False, "message": message}
@@ -468,6 +469,7 @@ def cc_list_select_node_inst_id(
     bk_obj_type: BkObjType,
     path_text: str,
     auto_complete_biz_name: str = None,
+    tenant_id: str = None,
 ):
     """
     获取选择节点的bk_inst_id
@@ -476,6 +478,8 @@ def cc_list_select_node_inst_id(
     :param supplier_account:
     :param bk_obj_type: bk_obj_type: 校验层级类型, enum
     :param path_text: 目标主机/模块/自定义层级的文本路径
+    :param auto_complete_biz_name:
+    :param tenant_id: 租户ID
     :return:
         True: list -选择节点的bk_inst_id
         False: message -错误信息
@@ -491,10 +495,10 @@ def cc_list_select_node_inst_id(
         logger.error(message)
         return {"result": False, "message": message}
 
-    client = get_client_by_user(executor)
+    client = get_client_by_username(executor)
     kwargs = {"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}
     # 获取主线模型业务拓扑
-    get_mainline_object_topo_return = client.cc.get_mainline_object_topo(kwargs)
+    get_mainline_object_topo_return = client.api.get_mainline_object_topo(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not get_mainline_object_topo_return["result"]:
         message = cc_handle_api_error("cc.get_mainline_object_topo", kwargs, get_mainline_object_topo_return)
         return {"result": False, "message": message}
@@ -639,9 +643,10 @@ class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMet
     def exec_transfer_host_module(self, data, parent_data, transfer_cmd):
         executor = parent_data.get_one_of_inputs("executor")
         supplier_account = parent_data.get_one_of_inputs("biz_supplier_account")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -659,7 +664,7 @@ class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMet
             "bk_host_id": [int(host_id) for host_id in host_result["data"]],
         }
 
-        transfer_result = getattr(client.cc, transfer_cmd)(transfer_kwargs)
+        transfer_result = getattr(client.api, transfer_cmd)(transfer_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         if transfer_result["result"]:
             return True
