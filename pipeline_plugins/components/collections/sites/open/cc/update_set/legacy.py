@@ -25,9 +25,9 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, cc_format_tree_set_id
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 
@@ -70,8 +70,9 @@ class CCUpdateSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -83,7 +84,8 @@ class CCUpdateSetService(Service):
         cc_set_property = data.get_one_of_inputs("cc_set_property")
         if cc_set_property == "bk_service_status":
             bk_service_status = cc_format_prop_data(
-                executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"), supplier_account
+                tenant_id, executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"),
+                supplier_account,
             )
             if not bk_service_status["result"]:
                 data.set_outputs("ex_data", bk_service_status["message"])
@@ -96,7 +98,8 @@ class CCUpdateSetService(Service):
 
         elif cc_set_property == "bk_set_env":
             bk_set_env = cc_format_prop_data(
-                executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"), supplier_account
+                tenant_id, executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"),
+                supplier_account,
             )
             if not bk_set_env["result"]:
                 data.set_outputs("ex_data", bk_set_env["message"])
@@ -125,7 +128,11 @@ class CCUpdateSetService(Service):
                 "bk_set_id": set_id,
                 "data": {cc_set_property: cc_set_prop_value},
             }
-            cc_result = client.cc.update_set(cc_kwargs)
+            cc_result = client.api.update_set(
+                cc_kwargs,
+                path_params={"bk_biz_id": biz_cc_id, "bk_set_id": set_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not cc_result["result"]:
                 message = cc_handle_api_error("cc.update_set", cc_kwargs, cc_result)
                 self.logger.error(message)

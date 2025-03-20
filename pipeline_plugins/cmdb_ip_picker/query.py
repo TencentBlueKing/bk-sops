@@ -19,7 +19,6 @@ from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
-from api.collections.nodeman import BKNodeManClient
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.utils import cmdb
@@ -37,9 +36,10 @@ from .utils import (
     get_modules_of_bk_obj,
     get_objects_of_topo_tree,
 )
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username as get_nodeman_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def format_agent_ip(data, *args, **kwargs):
@@ -76,19 +76,20 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 set、module、cloud、agent等信息
     @return:
     """
+    tenant_id = request.user.tenant_id
     default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip"]
     if settings.ENABLE_IPV6 or settings.ENABLE_GSE_V2:
         # IPV6环境下或者开启了GSE 2.0 版本
         default_host_fields.append("bk_agent_id")
     fields = set(default_host_fields + json.loads(request.GET.get("fields", "[]")))
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
 
     topo_modules_id = set()
 
     # get filter module id
     if request.GET.get("topo", None):
         topo = json.loads(request.GET.get("topo"))
-        topo_result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account)
+        topo_result = get_cmdb_topo_tree(tenant_id, request.user.username, bk_biz_id, bk_supplier_account)
         if not topo_result["result"]:
             return JsonResponse(topo_result)
 
@@ -103,13 +104,14 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
             topo_modules += get_modules_of_bk_obj(obj)
         topo_modules_id = set(get_modules_id(topo_modules))
 
-    cloud_area_result = client.cc.search_cloud_area({})
+    cloud_area_result = client.api.search_cloud_area({}, headers={"X-Bk-Tenant-Id": tenant_id})
     if not cloud_area_result["result"]:
         message = handle_api_error(_("配置平台(CMDB)"), "cc.search_cloud_area", {}, cloud_area_result)
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
 
-    raw_host_info_list = cmdb.get_business_host_topo(request.user.username, bk_biz_id, bk_supplier_account, fields)
+    raw_host_info_list = cmdb.get_business_host_topo(tenant_id, request.user.username, bk_biz_id, bk_supplier_account,
+                                                     fields)
 
     # map cloud_area_id to cloud_area
     cloud_area_dict = {}
@@ -174,10 +176,16 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                         bk_agent_id = "{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"])
                     host["agent"] = agent_id_status_map.get(bk_agent_id, -1)
             else:
-                client = BKNodeManClient(username=request.user.username)
+                nodeman_client = get_nodeman_client_by_username(request.user.username)
                 host_list = chunk_data(data, 1000, format_agent_ip, bk_biz_id=bk_biz_id)
-                agent_kwargs = [{"all_scope": True, "host_list": host} for host in host_list]
-                results = batch_execute_func(client.get_ipchooser_host_details, agent_kwargs, interval_enabled=True)
+                agent_kwargs = [
+                    {
+                        "data": {"all_scope": True, "host_list": host},
+                        "headers": {"X-Bk-Tenant-Id": request.user.tenant_id},
+                    } for host in host_list
+                ]
+                results = batch_execute_func(nodeman_client.api.ipchooser_host_details, agent_kwargs,
+                                             interval_enabled=True)
 
                 agent_data = []
                 for result in results:
@@ -200,7 +208,10 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         # search host lock status
         if request.GET.get("search_host_lock", None):
             bk_host_id_list = [host_detail["bk_host_id"] for host_detail in data]
-            host_lock_status_result = client.cc.search_host_lock({"id_list": bk_host_id_list})
+            host_lock_status_result = client.api.search_host_lock(
+                {"id_list": bk_host_id_list},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not host_lock_status_result["result"]:
                 message = handle_api_error(_("配置平台(CMDB)"), "cc.search_host_lock", {}, host_lock_status_result)
                 result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
@@ -226,8 +237,8 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=""):
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": bk_supplier_account,
     }
-    client = get_client_by_user(request.user.username)
-    cc_result = client.cc.get_mainline_object_topo(kwargs)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    cc_result = client.api.get_mainline_object_topo(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     if not cc_result["result"]:
         message = handle_api_error(_("配置平台(CMDB)"), "cc.get_mainline_object_topo", kwargs, cc_result)
         if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
@@ -251,9 +262,16 @@ def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
     @param bk_supplier_account:
     @return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
-    result = batch_request(client.cc.search_dynamic_group, kwargs, limit=200, check_iam_auth_fail=True)
+    result = batch_request(
+        client.api.search_dynamic_group,
+        kwargs,
+        limit=200,
+        check_iam_auth_fail=True,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
+    )
 
     dynamic_groups = []
     for dynamic_group in result:

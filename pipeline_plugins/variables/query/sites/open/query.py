@@ -20,13 +20,13 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_inject
+from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_account_for_business
 from pipeline_plugins.variables.query.sites.open import select
 from pipeline_plugins.variables.utils import get_biz_internal_module, get_service_template_list, get_set_list
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 urlpatterns = select.select_urlpatterns
 
@@ -38,9 +38,15 @@ def cc_get_set(request, biz_cc_id):
     @param biz_cc_id: 业务ID
     @return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "fields": ["bk_set_name", "bk_set_id"]}
-    cc_set_result = batch_request(client.cc.search_set, kwargs)
+    supplier_account = supplier_account_for_business(biz_cc_id)
+    cc_set_result = batch_request(
+        client.api.search_set,
+        kwargs,
+        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id},
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+    )
     logger.info("[cc_get_set] cc_set_result: {cc_set_result}".format(cc_set_result=cc_set_result))
     result = [{"value": set_item["bk_set_id"], "text": set_item["bk_set_name"]} for set_item in cc_set_result]
 
@@ -55,9 +61,15 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
     @param biz_set_id: 集群ID
     @return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_set_id": int(biz_set_id), "fields": ["bk_module_name", "bk_module_id"]}
-    cc_module_result = batch_request(client.cc.search_module, kwargs)
+    supplier_account = supplier_account_for_business(biz_cc_id)
+    cc_module_result = batch_request(
+        client.api.search_module,
+        kwargs,
+        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id, "bk_set_id": biz_set_id},
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+    )
     logger.info("[cc_get_module] cc_module_result: {cc_module_result}".format(cc_module_result=cc_module_result))
     result = [
         {"value": module_item["bk_module_id"], "text": module_item["bk_module_name"]}
@@ -87,7 +99,7 @@ def cc_get_set_list(request, biz_cc_id, supplier_account):
     @param supplier_account:
     @return:
     """
-    cc_set_result = get_set_list(request.user.username, biz_cc_id, supplier_account)
+    cc_set_result = get_set_list(request.user.tenant_id, request.user.username, biz_cc_id, supplier_account)
     set_name_list = []
     result = []
     for set_item in cc_set_result:
@@ -113,11 +125,13 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
             - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
         - 请求失败 {"result": False, "data": [], "message": message}
     """
-    internal_module_result = get_biz_internal_module(request.user.username, biz_cc_id, supplier_account)
+    tenant_id = request.user.tenant_id
+    username = request.user.username
+    internal_module_result = get_biz_internal_module(tenant_id, username, biz_cc_id, supplier_account)
     logger.info("[cc_list_service_template] get_biz_internal_module return: {}".format(internal_module_result))
     internal_module_names = [m["name"] for m in internal_module_result["data"]]
 
-    service_templates_untreated = get_service_template_list(request.user.username, biz_cc_id, supplier_account)
+    service_templates_untreated = get_service_template_list(tenant_id, username, biz_cc_id, supplier_account)
     service_templates = []
     for template_untreated in service_templates_untreated:
         if template_untreated["name"] not in internal_module_names:
@@ -143,9 +157,15 @@ def cc_get_set_group(request, biz_cc_id):
     :param operator: 操作者
     :return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "condition": {"bk_obj_id": "set"}}
-    group_info = batch_request(client.cc.search_dynamic_group, kwargs, limit=200)
+    group_info = batch_request(
+        client.api.search_dynamic_group,
+        kwargs,
+        limit=200,
+        path_params={"bk_biz_id": biz_cc_id},
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
+    )
     group_data = []
     for group in group_info:
         group_data.append({"text": group["name"], "value": group["id"]})
@@ -157,8 +177,8 @@ def cc_get_set_attribute(request, biz_cc_id):
         "bk_biz_id": int(biz_cc_id),
         "bk_obj_id": "set",
     }
-    client = get_client_by_user(request.user.username)
-    result = client.cc.search_object_attribute(kwargs)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    result = client.api.search_object_attribute(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     if not result["result"]:
         message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_set_attribute")
         logger.error(message)
@@ -177,9 +197,9 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     @param biz_cc_id:
     @return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
-    cc_result = client.cc.search_object_attribute(kwargs)
+    cc_result = client.api.search_object_attribute(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
 
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)

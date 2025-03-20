@@ -23,19 +23,22 @@ from gcloud.constants import Type
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def get_set_property(operator):
+def get_set_property(tenant_id, operator):
     """
     @summary: 获取集群所有的属性
     @return:
     """
-    client = get_client_by_user(operator)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_obj_id": "set"}
-    cc_result = client.cc.search_object_attribute(**kwargs)
+    cc_result = client.api.search_object_attribute(
+        kwargs,
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     if not cc_result["result"]:
         message = handle_api_error("cc", "search_object_attribute", kwargs, cc_result)
         logger.error(message)
@@ -46,18 +49,25 @@ def get_set_property(operator):
     return obj_property
 
 
-def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field):
+def cc_execute_dynamic_group(tenant_id, operator, bk_biz_id, bk_group_id, set_field):
     """
     通过集群ID和模块ID查询对应的名字
+    :param tenant_id: 租户ID
     :param operator: 操作者
     :param bk_biz_id: 业务ID
     :param bk_group_id: 动态分组id
     :return:
     """
-    client = get_client_by_user(operator)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     set_data_dir = {}
     kwargs = {"bk_biz_id": bk_biz_id, "id": bk_group_id, "fields": set_field}
-    group_info = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
+    group_info = batch_request(
+        client.api.execute_dynamic_group,
+        kwargs,
+        limit=200,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     for _field in set_field:
         set_data_dir[_field] = []
     for set_data in group_info:
@@ -106,9 +116,12 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         fields = [FieldExplain(key="${KEY}", type=Type.STRING, description="选择的IP列表，以,分隔")]
 
-        client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
+        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
         params = {"bk_obj_id": "set"}
-        resp = client.cc.search_object_attribute(params)
+        resp = client.api.search_object_attribute(
+            params,
+            headers={"X-Bk-Tenant-Id": kwargs["tenant_id"]},
+        )
         resp_data = []
         if not resp["result"]:
             logger.error("[_self_explain] %s search_object_attribute err: %s" % (cls.tag, resp["message"]))
@@ -140,9 +153,10 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and biz_cc_id of pipeline is needed")
         operator = self.pipeline_data.get("executor", "")
+        tenant_id = self.pipeline_data.get("tenant_id", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_group_id = self.value
-        set_field = get_set_property(operator)
-        set_module_info = cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field)
+        set_field = get_set_property(tenant_id, operator)
+        set_module_info = cc_execute_dynamic_group(tenant_id, operator, bk_biz_id, bk_group_id, set_field)
 
         return SetGroupInfo(set_module_info, set_field)

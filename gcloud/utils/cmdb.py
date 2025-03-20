@@ -19,14 +19,16 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None):
+def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, host_fields,
+                           ip_list=None, property_filters=None):
     """获取业务下所有主机信息
+    :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
@@ -65,7 +67,7 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     ]
     :rtype: list
     """
-    client = get_client_by_user(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     if property_filters is not None:
@@ -76,7 +78,12 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
             "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
         }
 
-    result = batch_request(client.cc.list_biz_hosts_topo, kwargs)
+    result = batch_request(
+        client.api.list_biz_hosts_topo,
+        kwargs,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
 
     host_info_list = []
     for host_topo in result:
@@ -93,8 +100,9 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     return host_info_list
 
 
-def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
+def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
     """根据主机内网 IP 过滤业务下的主机
+    :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
@@ -137,12 +145,19 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
             "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
         }
 
-    client = get_client_by_user(username)
-    return batch_request(client.cc.list_biz_hosts, kwargs)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
+    return batch_request(
+        client.api.list_biz_hosts,
+        kwargs,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
 
 
-def get_business_set_host(username, supplier_account, host_fields, ip_list=None, filter_field="bk_host_innerip"):
+def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip_list=None,
+                          filter_field="bk_host_innerip"):
     """根据主机内网 IP 过滤业务下的主机
+    :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param supplier_account: 开发商账号, defaults to 0
@@ -174,13 +189,19 @@ def get_business_set_host(username, supplier_account, host_fields, ip_list=None,
         },
     }
 
-    client = get_client_by_user(username)
-    return batch_request(client.cc.list_hosts_without_biz, kwargs)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
+    return batch_request(
+        client.api.list_hosts_without_biz,
+        kwargs,
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
 
 
-def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
+def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None,
+                           bk_cloud_id=None):
     """
     根据主机内网 IP 过滤业务下的主机, 主要查询ip_v6
+    :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
@@ -220,13 +241,19 @@ def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, i
             {"field": "bk_cloud_id", "operator": "equal", "value": bk_cloud_id}
         )
 
-    client = get_client_by_user(username)
-    return batch_request(client.cc.list_biz_hosts, kwargs)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
+    return batch_request(
+        client.api.list_biz_hosts,
+        kwargs,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
 
 
-def get_business_set_host_ipv6(username, supplier_account, host_fields, ip_list=None):
+def get_business_set_host_ipv6(tenant_id, username, supplier_account, host_fields, ip_list=None):
     """
     根据主机内网 IP 过滤业务集下的主机, 主要查询ip_v6
+    :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
@@ -262,14 +289,19 @@ def get_business_set_host_ipv6(username, supplier_account, host_fields, ip_list=
         },
     }
 
-    client = get_client_by_user(username)
-    return batch_request(client.cc.list_hosts_without_biz, kwargs)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
+    return batch_request(
+        client.api.list_hosts_without_biz,
+        kwargs,
+        headers={"X-Bk-Tenant-Id": tenant_id}
+    )
 
 
-def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver, logger=None):
+def get_notify_receivers(tenant_id, username, biz_cc_id, supplier_account, receiver_group, more_receiver, logger=None):
     """
     @summary: 根据通知分组和附加通知人获取最终通知人
-    @param client: API 客户端
+    @param tenant_id: 租户ID
+    @param username: 请求用户名
     @param biz_cc_id: 业务CC ID
     @param supplier_account: 租户 ID
     @param receiver_group: 通知分组
@@ -279,6 +311,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         无先后顺序
     @return:
     """
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     more_receivers = [name.strip() for name in more_receiver.split(",")]
     if not receiver_group:
         result = {"result": True, "message": "success", "data": ",".join(more_receivers)}
@@ -287,7 +320,11 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     if logger is None:
         logger = logger_celery
     kwargs = {"bk_supplier_account": supplier_account, "condition": {"bk_biz_id": int(biz_cc_id)}}
-    cc_result = client.cc.search_business(kwargs)
+    cc_result = client.api.search_business(
+        kwargs,
+        path_params={"bk_supplier_account": supplier_account},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     if not cc_result["result"]:
         message = handle_api_error("CMDB", "cc.search_business", kwargs, cc_result)
         logger.error(message)
@@ -334,19 +371,26 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     return result
 
 
-def get_dynamic_group_list(username, bk_biz_id, bk_supplier_account):
+def get_dynamic_group_list(tenant_id, username, bk_biz_id, bk_supplier_account):
     """获取业务下的所有动态分组列表"""
-    client = get_client_by_user(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
-    result = batch_request(client.cc.search_dynamic_group, kwargs, limit=200, check_iam_auth_fail=True)
+    result = batch_request(
+        client.api.search_dynamic_group,
+        kwargs,
+        limit=200,
+        check_iam_auth_fail=True,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
 
     dynamic_groups = [{"id": dynamic_group["id"]} for dynamic_group in result if dynamic_group["bk_obj_id"] == "host"]
     return dynamic_groups
 
 
-def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
+def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, bk_supplier_account, dynamic_group_id):
     """获取动态分组中对应主机列表"""
-    client = get_client_by_user(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     fields = ["bk_host_innerip", "bk_cloud_id", "bk_host_id"]
     if settings.ENABLE_IPV6:
         fields.append("bk_host_innerip_v6")
@@ -356,11 +400,17 @@ def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynami
         "id": dynamic_group_id,
         "fields": fields,
     }
-    host_list = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
+    host_list = batch_request(
+        client.api.execute_dynamic_group,
+        kwargs,
+        limit=200,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     return True, {"code": 0, "message": "success", "data": host_list}
 
 
-def get_business_host_by_hosts_ids(username, bk_biz_id, supplier_account, host_fields, host_id_list=None):
+def get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, supplier_account, host_fields, host_id_list=None):
     kwargs = {
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": supplier_account,
@@ -371,5 +421,10 @@ def get_business_host_by_hosts_ids(username, bk_biz_id, supplier_account, host_f
         },
     }
 
-    client = get_client_by_user(username)
-    return batch_request(client.cc.list_biz_hosts, kwargs)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
+    return batch_request(
+        client.api.list_biz_hosts,
+        kwargs,
+        path_params={"bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )

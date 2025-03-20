@@ -23,9 +23,9 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 VERSION = "1.1"
@@ -70,7 +70,9 @@ class CCUpdateSetServiceStatusService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         bk_biz_id = parent_data.get_one_of_inputs("bk_biz_id")
         supplier_account = supplier_account_for_business(bk_biz_id)
         set_list = data.get_one_of_inputs("set_list")
@@ -87,7 +89,12 @@ class CCUpdateSetServiceStatusService(Service):
                     "fields": ["bk_set_id", set_attr_id],
                     "condition": {set_attr_id: set_name},
                 }
-                cc_search_set_result = batch_request(client.cc.search_set, cc_search_set_kwargs)
+                cc_search_set_result = batch_request(
+                    client.api.search_set,
+                    cc_search_set_kwargs,
+                    path_params={"bk_supplier_account": supplier_account, "bk_biz_id": bk_biz_id},
+                    headers={"X-Bk-Tenant-Id": tenant_id},
+                )
                 if not cc_search_set_result:
                     self.logger.error("batch_request client.cc.search_set error")
                     data.set_outputs("ex_data", "batch_request client.cc.search_set error")
@@ -105,7 +112,11 @@ class CCUpdateSetServiceStatusService(Service):
                 "bk_set_id": set_id,
                 "data": {"bk_service_status": set_status},
             }
-            cc_result = client.cc.update_set(cc_kwargs)
+            cc_result = client.api.update_set(
+                cc_kwargs,
+                path_params={"bk_biz_id": bk_biz_id, "bk_set_id": set_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not cc_result["result"]:
                 message = cc_handle_api_error("cc.update_set", cc_kwargs, cc_result)
                 self.logger.error(message)

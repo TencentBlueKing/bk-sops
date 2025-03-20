@@ -30,12 +30,11 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     get_module_set_id,
 )
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 class CCBatchModuleUpdateService(Service):
@@ -66,7 +65,8 @@ class CCBatchModuleUpdateService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         bk_biz_name = parent_data.inputs.bk_biz_name
         cc_module_update_data = data.get_one_of_inputs("cc_module_update_data")
@@ -90,7 +90,11 @@ class CCBatchModuleUpdateService(Service):
 
         supplier_account = supplier_account_for_business(biz_cc_id)
         kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
-        tree_data = client.cc.search_biz_inst_topo(kwargs)
+        tree_data = client.api.search_biz_inst_topo(
+            kwargs,
+            path_params={"bk_biz_id": biz_cc_id},
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not tree_data["result"]:
             message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, tree_data)
             self.logger.error(message)
@@ -101,7 +105,10 @@ class CCBatchModuleUpdateService(Service):
         failed_update = []
 
         search_attr_kwargs = {"bk_obj_id": "module", "bk_supplier_account": supplier_account}
-        attr_result = client.cc.search_object_attribute(search_attr_kwargs)
+        attr_result = client.api.search_object_attribute(
+            search_attr_kwargs,
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not attr_result["result"]:
             message = handle_api_error("cc", "cc.search_object_attribute", search_attr_kwargs, attr_result)
             self.logger.error(message)
@@ -151,7 +158,7 @@ class CCBatchModuleUpdateService(Service):
 
             supplier_account = supplier_account_for_business(biz_cc_id)
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
+                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
 
@@ -171,7 +178,11 @@ class CCBatchModuleUpdateService(Service):
                 "data": update_params,
             }
             # 更新module属性
-            update_result = client.cc.update_module(kwargs)
+            update_result = client.api.update_module(
+                kwargs,
+                params={"bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id, "bk_module_id": bk_module_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if update_result["result"]:
                 self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)

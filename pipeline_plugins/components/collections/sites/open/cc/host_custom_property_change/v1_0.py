@@ -22,9 +22,9 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 VERSION = "v1.0"
@@ -91,7 +91,8 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
 
     def execute(self, data, parent_data):
         operator = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(operator)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
 
         sa_ip_list = data.get_one_of_inputs("cc_ip_list")
@@ -110,7 +111,7 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
 
         hostname_rule = sorted(hostname_rule, key=lambda e: str(e.__getitem__("field_order")))
         supplier_account = supplier_account_for_business(biz_cc_id)
-        ip_list = self.get_ip_info_list(operator, biz_cc_id, sa_ip_list, supplier_account)
+        ip_list = self.get_ip_info_list(tenant_id, operator, biz_cc_id, sa_ip_list, supplier_account)
         if not ip_list["result"] or not ip_list["ip_count"]:
             data.outputs.ex_data = _(
                 "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(
@@ -153,7 +154,11 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             set_rule_list.append("bk_set_id")
             # 查询集群的属性值
             set_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": list(set(set_id_list)), "fields": set_rule_list}
-            set_result = client.cc.find_set_batch(set_kwargs)
+            set_result = client.api.find_set_batch(
+                set_kwargs,
+                path_params={"bk_biz_id": biz_cc_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not set_result.get("result"):
                 error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_set_batch", set_kwargs, set_result)
                 data.set_outputs("ex_data", error_message)
@@ -173,7 +178,11 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             module_rule_list.append("bk_module_id")
             # 查询模块的属性值
             module_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": list(set(module_id_list)), "fields": module_rule_list}
-            module_result = client.cc.find_module_batch(module_kwargs)
+            module_result = client.api.find_module_batch(
+                module_kwargs,
+                path_params={"bk_biz_id": biz_cc_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not module_result.get("result"):
                 error_message = handle_api_error(
                     "蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result
@@ -194,7 +203,11 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             inc_num_temp = 0
             # 主机属性
             host_kwargs = {"bk_host_id": host["HostID"]}
-            host_result = client.cc.get_host_base_info(**host_kwargs)
+            host_result = client.api.get_host_base_info(
+                host_kwargs,
+                path_params={"bk_supplier_account": supplier_account, "bk_host_id": host["HostID"]},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not host_result.get("result"):
                 error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.get_host_base_info", host_kwargs, host_result)
                 data.set_outputs("ex_data", error_message)
@@ -236,7 +249,10 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             host_list.append({"bk_host_id": host["HostID"], "properties": {custom_property: custom_property_value}})
 
         kwargs = {"update": host_list}
-        result = client.cc.batch_update_host(kwargs)
+        result = client.api.batch_update_host(
+            kwargs,
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not result["result"]:
             message = cc_handle_api_error("cc.batch_update_host", kwargs, result)
             self.logger.error(message)

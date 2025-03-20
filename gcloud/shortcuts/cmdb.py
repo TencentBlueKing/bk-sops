@@ -18,26 +18,31 @@ import logging
 from gcloud.core import roles
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def get_business_group_members(bk_biz_id, groups):
+def get_business_group_members(tenant_id, bk_biz_id, groups):
     if not groups:
         return []
 
-    client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
+    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
 
     group_fileds = [roles.CC_V2_ROLE_MAP.get(group) for group in groups]
     group_fileds = [group for group in group_fileds if group]
 
+    supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     kwargs = {
-        "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+        "bk_supplier_account": supplier_account,
         "condition": {"bk_biz_id": bk_biz_id},
         "fields": group_fileds,
     }
-    result = client.cc.search_business(kwargs)
+    result = client.api.search_business(
+        kwargs,
+        path_params={"bk_supplier_account": supplier_account},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
 
     if not result["result"]:
         logger.error("get_business_group_members search_business fail: args: {}, result: {}".format(kwargs, result))
@@ -53,19 +58,23 @@ def get_business_group_members(bk_biz_id, groups):
     return list(set(group_members))
 
 
-def get_business_attrinfo(attrs: list) -> list:
+def get_business_attrinfo(tenant_id, attrs: list) -> list:
     if not attrs:
         return []
 
-    client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
-
+    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
+    supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     kwargs = {
-        "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+        "bk_supplier_account": supplier_account,
         "fields": [
             "bk_biz_id",
         ].extend(attrs),
     }
-    result = client.cc.search_business(kwargs)
+    result = client.api.search_business(
+        kwargs,
+        path_params={"bk_supplier_account": supplier_account},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     if not result["result"]:
         logger.error("get_business_attrinfo search_business fail: args: {}, result: {}".format(kwargs, result))
         return []

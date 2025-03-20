@@ -16,8 +16,6 @@ from django.test import TestCase
 
 from pipeline_plugins.variables.collections.common import StaffGroupSelector
 
-GET_CLIENT_BY_USER = "pipeline_plugins.variables.collections.common.get_client_by_user"
-
 
 class MockClient(object):
     def __init__(self, search_business_return=None):
@@ -51,7 +49,7 @@ class StaffGroupSelectorTestCase(TestCase):
         self.internal_staff_group = ["bk_biz_maintainer", "bk_biz_productor", "bk_biz_developer", "bk_biz_tester"]
         self.custom_staff_group = ["1", "2", "3"]
         self.context = {}
-        self.pipeline_data = {"executor": "tester", "biz_cc_id": 2}
+        self.pipeline_data = {"executor": "tester", "biz_cc_id": 2, "tenant_id": "test"}
         self.supplier_account = "supplier_account_token"
 
         self.values_list = MagicMock(
@@ -67,16 +65,24 @@ class StaffGroupSelectorTestCase(TestCase):
             MagicMock(return_value=self.supplier_account),
         )
 
-        self.client_patcher = patch("pipeline_plugins.variables.collections.common.get_client_by_user", MockClient)
+        self.get_notify_receivers_return = {
+            "result": True,
+            "message": "success",
+            "data": "developer,maintainer,productor,tester,tester1,tester2,tester3,tester4",
+        }
+        self.get_notify_receivers_patcher = patch(
+            "pipeline_plugins.variables.collections.common.get_notify_receivers",
+            MagicMock(return_value=self.get_notify_receivers_return),
+        )
 
-        self.client_patcher.start()
         self.staff_group_patcher.start()
         self.supplier_account_for_project_patcher.start()
+        self.get_notify_receivers_patcher.start()
 
     def tearDown(self):
-        self.client_patcher.stop()
         self.staff_group_patcher.stop()
         self.supplier_account_for_project_patcher.stop()
+        self.get_notify_receivers_patcher.stop()
 
     def test_get_value_with_all_staff_names(self):
         self.custom_staff_group.extend(self.internal_staff_group)

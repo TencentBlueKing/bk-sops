@@ -36,7 +36,11 @@ class UtilsTestCase(TestCase):
     def test_list_biz_hosts(self, batch_request_patch):
         batch_request_patch.return_value = LIST_BIZ_HOSTS_SUCCESS_RETURN
         result = list_biz_hosts(
-            username="admin", bk_biz_id="123", bk_supplier_account="supplier_account", kwargs=MULTIPLE_SUCCESS_KWARGS
+            tenant_id="test",
+            username="admin",
+            bk_biz_id="123",
+            bk_supplier_account="supplier_account",
+            kwargs=MULTIPLE_SUCCESS_KWARGS,
         )
         self.assertEqual(SUCCESS_RESULT, result)
         self.assertEqual(batch_request_patch.call_count, 2)
