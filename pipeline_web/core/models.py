@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline_web.constants import PWE
 from pipeline_web.core.abstract import Node
-from pipeline_web.core.signals import node_in_template_post_save, node_in_template_delete, node_in_instance_post_save
+from pipeline_web.core.signals import node_in_template_delete, node_in_template_post_save
 from pipeline_web.parser.format import get_all_nodes
 
 
@@ -108,15 +108,15 @@ class NodeInTemplateAttr(models.Model):
 class NodeInInstanceManager(models.Manager):
     def create_nodes_in_instance(self, pipeline_instance, pipeline_tree):
         new_nodes = get_all_nodes(pipeline_tree, with_subprocess=True)
-        nodes_info = []
-        for node_id, node in new_nodes.items():
-            nodes_info.append(
-                self.model(node_id=node_id, node_type=node[PWE.type], instance_id=pipeline_instance.instance_id)
-            )
+        nodes_info = [
+            self.model(node_id=node_id, node_type=node[PWE.type], instance_id=pipeline_instance.instance_id)
+            for node_id, node in new_nodes.items()
+        ]
         self.model.objects.bulk_create(nodes_info)
-        # send signal
-        nodes_objs = self.filter(instance_id=pipeline_instance.instance_id)
-        node_in_instance_post_save.send(sender=self.model, nodes_objs=nodes_objs, nodes_info=new_nodes)
+
+        # 没有使用场景，暂时注释
+        # nodes_objs = self.filter(instance_id=pipeline_instance.instance_id)
+        # node_in_instance_post_save.send(sender=self.model, nodes_objs=nodes_objs, nodes_info=new_nodes)
 
     def nodes_in_instance(self, instance_id):
         return self.filter(instance_id=instance_id)

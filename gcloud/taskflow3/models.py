@@ -1409,17 +1409,23 @@ class TaskConfigManager(models.Manager):
         # 公共流程, 配置项template_id有-号前缀
         if project_id and int(project_id) == -1:
             template_id = -1 * int(template_id)
-        template_config = self.filter(
-            scope=TaskConfig.SCOPE_TYPE_TEMPLATE, scope_id=template_id, config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS
-        ).only("config_value")
-        if template_config:
-            return template_config.first().config_value == TaskConfig.ENABLE_INDEPENDENT_SUBPROCESS
 
-        project_config = self.filter(
-            scope=TaskConfig.SCOPE_TYPE_PROJECT, scope_id=project_id, config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS
-        ).only("config_value")
-        if project_config:
-            return project_config.first().config_value == TaskConfig.ENABLE_INDEPENDENT_SUBPROCESS
+        # 根据 scope 直接排序，优先检查 TEMPLATE 配置
+        configs = (
+            self.filter(
+                (
+                    Q(scope=TaskConfig.SCOPE_TYPE_TEMPLATE, scope_id=template_id)
+                    | Q(scope=TaskConfig.SCOPE_TYPE_PROJECT, scope_id=project_id)
+                )
+                & Q(config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS)
+            )
+            .order_by("-scope")
+            .only("config_value")
+        )
+
+        for config in configs:
+            if config.config_value == TaskConfig.ENABLE_INDEPENDENT_SUBPROCESS:
+                return True
 
         return False
 

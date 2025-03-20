@@ -434,17 +434,20 @@ class ProjectConfig(models.Model):
 
 class EngineConfigManager(models.Manager):
     def get_engine_ver(self, project_id, template_id, template_source):
-        template_config = self.filter(
-            scope_id=template_id, scope=EngineConfig.SCOPE_TYPE_TEMPLATE, template_source=template_source
-        ).only("engine_ver")
-        if template_config:
-            return template_config.first().engine_ver
 
-        project_config = self.filter(scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT).only("engine_ver")
-        if project_config:
-            return project_config.first().engine_ver
+        configs = (
+            self.filter(
+                (
+                    Q(scope_id=template_id, scope=EngineConfig.SCOPE_TYPE_TEMPLATE, template_source=template_source)
+                    | Q(scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT)
+                )
+            )
+            .order_by("-scope")
+            .only("engine_ver")
+        )
 
-        return EngineConfig.ENGINE_VER_V2
+        config = configs.first()
+        return config.engine_ver if config else EngineConfig.ENGINE_VER_V2
 
 
 class EngineConfig(models.Model):
