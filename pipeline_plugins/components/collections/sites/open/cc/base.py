@@ -88,9 +88,10 @@ class ModuleCreateMethod(Enum):
     CATEGORY = "category"
 
 
-def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
+def cc_get_host_id_by_innerip(tenant_id, executor, bk_biz_id, ip_list, supplier_account):
     """根据主机内网 IP 获取主机 ID
 
+    :param tenant_id: 租户 ID
     :param executor: API 请求用户身份
     :type executor: string
     :param bk_biz_id: 业务 CC ID
@@ -105,6 +106,7 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """
 
     host_list = cmdb.get_business_host(
+        tenant_id,
         executor,
         bk_biz_id,
         supplier_account,
@@ -214,11 +216,12 @@ def cc_get_host_id_by_innerip_and_cloudid(executor, bk_biz_id, ip_str, supplier_
 
 
 def cc_get_host_by_innerip_with_ipv6(
-    executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False, host_id_detail=False
+    tenant_id, executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False, host_id_detail=False
 ):
     """
     根据一个ip字符串查询host列表，ip字符串支持ipv4,ipv6,host_id,0:ipv4混输入模式，当is_biz_set=True时，bk_biz_set可以不填，
     此时 该接口主要用于 业务集相关当插件，比如业务集快速执行脚本，这个时候需要全业务去查询
+    @param tenant_id: 租户id
     @param executor: 执行人
     @param bk_biz_id: 业务id，当is_biz_set=True时可以不填
     @param ip_str: ip字符串
@@ -231,14 +234,16 @@ def cc_get_host_by_innerip_with_ipv6(
         ip_str
     )
     # 先查ipv6
-    ipv6_host_list_result = get_ipv6_host_list(executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=is_biz_set)
+    ipv6_host_list_result = get_ipv6_host_list(
+        tenant_id, executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=is_biz_set
+    )
     # 遇到情况，终止查询
     if not ipv6_host_list_result["result"]:
         return ipv6_host_list_result
 
     # 查IPV6带管控区域
     ipv6_host_with_cloud_list_result = get_ipv6_host_list_with_cloud_list(
-        executor, bk_biz_id, supplier_account, ipv6_list_with_cloud_id, is_biz_set=is_biz_set
+        tenant_id, executor, bk_biz_id, supplier_account, ipv6_list_with_cloud_id, is_biz_set=is_biz_set
     )
     if not ipv6_host_with_cloud_list_result["result"]:
         return ipv6_host_with_cloud_list_result
@@ -258,7 +263,7 @@ def cc_get_host_by_innerip_with_ipv6(
 
     # 用户直接输入的host_id list 则不做处理
     if host_id_detail:
-        host_list_result = get_hosts_by_hosts_ids(executor, bk_biz_id, supplier_account, host_id_list)
+        host_list_result = get_hosts_by_hosts_ids(tenant_id, executor, bk_biz_id, supplier_account, host_id_list)
         if not host_list_result["result"]:
             return host_list_result
         host_list = host_list_result["data"]
@@ -295,7 +300,7 @@ def get_module_set_id(topo_data, module_id):
                 return set_id
 
 
-def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account, tenant_id: str = None):
+def cc_format_prop_data(tenant_id, executor, obj_id, prop_id, language, supplier_account):
     ret = {"result": True, "data": {}}
     client = get_client_by_username(executor)
     if language:
@@ -388,14 +393,14 @@ def cc_parse_path_text(path_text):
     return path_list
 
 
-def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list, tenant_id: str = None):
+def cc_list_match_node_inst_id(tenant_id, executor, biz_cc_id, supplier_account, path_list):
     """
     路径匹配，对path_list中的所有路径与指定biz_cc_id的拓扑树匹配，返回匹配节点bk_inst_id
+    :param tenant_id: 租户ID
     :param executor:
     :param biz_cc_id:
     :param supplier_account:
     :param path_list: 路径列表，example: [[a, b], [a, c]]
-    :param tenant_id: 租户ID
     :return:
         True: list -匹配父节点的bk_inst_id
         False: message -错误信息
@@ -467,23 +472,23 @@ def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list,
 
 
 def cc_list_select_node_inst_id(
+    tenant_id: str,
     executor: str,
     biz_cc_id: int,
     supplier_account: str,
     bk_obj_type: BkObjType,
     path_text: str,
     auto_complete_biz_name: str = None,
-    tenant_id: str = None,
 ):
     """
     获取选择节点的bk_inst_id
+    :param tenant_id: 租户ID
     :param executor:
     :param biz_cc_id:
     :param supplier_account:
     :param bk_obj_type: bk_obj_type: 校验层级类型, enum
     :param path_text: 目标主机/模块/自定义层级的文本路径
     :param auto_complete_biz_name:
-    :param tenant_id: 租户ID
     :return:
         True: list -选择节点的bk_inst_id
         False: message -错误信息
@@ -522,7 +527,7 @@ def cc_list_select_node_inst_id(
 
     # 获取选中节点bk_inst_id列表
     cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
-        executor, biz_cc_id, supplier_account, clean_path_list
+        tenant_id, executor, biz_cc_id, supplier_account, clean_path_list
     )
     if not cc_list_match_node_inst_id_return["result"]:
         return {"result": False, "message": cc_list_match_node_inst_id_return["message"]}
@@ -530,7 +535,7 @@ def cc_list_select_node_inst_id(
 
 
 class CCPluginIPMixin:
-    def get_host_list(self, executor, biz_cc_id, ip_str, supplier_account):
+    def get_host_list(self, tenant_id, executor, biz_cc_id, ip_str, supplier_account):
         """
         获取host_list
         @param executor: executor 执行人
@@ -541,7 +546,7 @@ class CCPluginIPMixin:
         """
         # 如果开启IPV6
         if settings.ENABLE_IPV6:
-            host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
+            host_result = cc_get_host_by_innerip_with_ipv6(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
             if not host_result["result"]:
                 return host_result
             return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}
@@ -606,7 +611,7 @@ class CCPluginIPMixin:
             executor, biz_cc_id, supplier_account, host_attrs, ip_list=None, property_filters=property_filters
         )
 
-    def get_host_list_with_cloud_id(self, executor, biz_cc_id, ip_str, supplier_account):
+    def get_host_list_with_cloud_id(self,tenant_id, executor, biz_cc_id, ip_str, supplier_account):
         """
         获取host_list
         @param executor: executor 执行人
@@ -617,7 +622,7 @@ class CCPluginIPMixin:
         """
         # 如果开启IPV6
         if settings.ENABLE_IPV6:
-            host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
+            host_result = cc_get_host_by_innerip_with_ipv6(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
             if not host_result["result"]:
                 return host_result
             return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}

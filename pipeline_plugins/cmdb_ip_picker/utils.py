@@ -35,22 +35,22 @@ DEFAULT_BK_CLOUD_ID = "-1"
 
 class IPPickerDataGenerator:
     # IP选择器根据手动输入内容生成对应所需数据，方便后面进行过滤和处理
-    def __init__(self, input_type, raw_data, request_kwargs, gen_kwargs, bk_biz_id: int, tenant_id: str = None):
+    def __init__(self, tenant_id, input_type, raw_data, request_kwargs, gen_kwargs, bk_biz_id: int):
         """
+        :params tenant_id: 租户ID
         :params input_type: 手动输入类型，值为ip(静态IP)/topo(动态IP)/group(动态分组)
         :params raw_data: 手动输入数据字符串
         :params request_kwargs: 包括请求接口所需要的参数信息, 如username,bk_biz_id,bk_supplier_account
         :params gen_kwargs: 包括信息匹配筛选所需要的信息，如biz_topo_tree
         :params bk_biz_id: 业务ID
-        :params tenant_id: 租户ID
         """
+        self.tenant_id = tenant_id
         self.input_type = input_type
         self.raw_data = raw_data.strip()
         self.username = request_kwargs.pop("username")
         self.request_kwargs = request_kwargs
         self.gen_kwargs = gen_kwargs
         self.bk_biz_id = bk_biz_id
-        self.tenant_id = tenant_id
 
     def generate(self):
         func = getattr(self, f"generate_{self.input_type}_data", None)
@@ -294,14 +294,14 @@ class IPPickerHandler:
             return host_info_result
         return {"result": True, "data": host_info_result["data"], "message": ""}
 
-    def group_picker_handler(self, inputted_group):
+    def group_picker_handler(self, tenant_id, inputted_group):
         """
         动态分组选择情况
         :params inputted_group: 动态分组信息列表, list
         """
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in inputted_group]
         try:
-            existing_dynamic_groups = get_dynamic_group_list(self.username, self.bk_biz_id, self.bk_supplier_account)
+            existing_dynamic_groups = get_dynamic_group_list(tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account)
             existing_dynamic_group_ids = set([dynamic_group["id"] for dynamic_group in existing_dynamic_groups])
             dynamic_group_ids = set(dynamic_group_ids) & existing_dynamic_group_ids
         except Exception as e:
@@ -310,7 +310,7 @@ class IPPickerHandler:
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
             success, result = cmdb.get_dynamic_group_host_list(
-                self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id
+                tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id
             )
             if not success:
                 return {
@@ -372,9 +372,10 @@ class IPPickerHandler:
         return formatted_host_info
 
 
-def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs, tenant_id: str = None):
+def get_ip_picker_result(tenant_id, username, bk_biz_id, bk_supplier_account, kwargs):
     """
     @summary：根据前端表单数据获取合法的IP，IP选择器调用
+    @param tenant_id: 租户ID
     @param username:
     @param bk_biz_id:
     @param bk_supplier_account:
@@ -406,7 +407,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs, tenan
 
         gen_kwargs = {"biz_topo_tree": ip_picker_handler.biz_topo_tree}
         request_kwargs = {"username": username, "bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
-        gen_result = IPPickerDataGenerator(input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id, tenant_id=tenant_id).generate()
+        gen_result = IPPickerDataGenerator(tenant_id, input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id).generate()
 
         if not gen_result["result"]:
             logger.error(
@@ -614,17 +615,17 @@ def get_objects_of_topo_tree(bk_obj, obj_dct):
     return bk_objects
 
 
-def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account, tenant_id: str = None):
+def get_cmdb_topo_tree(tenant_id, username, bk_biz_id, bk_supplier_account):
     """从 CMDB API 获取业务完整拓扑树，包括空闲机池
 
+    :param tenant_id: 租户 ID
+    :type tenant_id: string
     :param username: 请求 API 使用的用户名
     :type username: string
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
     :param bk_supplier_account: 开发商账号
     :type bk_supplier_account: int
-    :param tenant_id: 租户 ID
-    :type tenant_id: string
     :return:
     {
         "result": True or False,

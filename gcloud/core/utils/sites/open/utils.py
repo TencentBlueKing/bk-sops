@@ -15,27 +15,30 @@ import logging
 
 from django.core.cache import cache
 
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.conf import settings
 from gcloud import exceptions
 from gcloud.core.models import EnvironmentVariables
 from gcloud.core.api_adapter import get_user_info
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 CACHE_PREFIX = __name__.replace(".", "_")
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 
 
-def get_all_business_list(use_cache=True):
+def get_all_business_list(use_cache=True, tenant_id: str = None):
     username = settings.SYSTEM_USE_API_ACCOUNT
     cache_key = "%s_get_all_business_list_%s" % (CACHE_PREFIX, username)
     data = cache.get(cache_key)
 
     if not (use_cache and data):
-        client = get_client_by_user(username)
+        bk_supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
+        client = get_client_by_username(username)
 
-        result = client.cc.search_business(
-            {"bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)}
+        result = client.api.search_business(
+            {"bk_supplier_account": bk_supplier_account},
+            path_params={"bk_supplier_account": bk_supplier_account},
+            headers={"X-Bk-Tenant-Id": tenant_id}
         )
 
         if result["result"]:
@@ -47,23 +50,27 @@ def get_all_business_list(use_cache=True):
     return data
 
 
-def get_user_business_list(username, use_cache=True):
+def get_user_business_list(tenant_id, username, use_cache=True):
     """Get authorized business list for a exact username.
 
+    :param str tenant_id: 租户 ID
     :param object username: User username
     :param bool use_cache: (Optional)
+    :param str tenant_id: (Optional)
     """
-    cache_key = "%s_get_user_business_list_%s" % (CACHE_PREFIX, username)
+    cache_key = "%s_get_user_business_list_%s_%s" % (CACHE_PREFIX, username, tenant_id)
     data = cache.get(cache_key)
 
     if not (use_cache and data):
-        user_info = _get_user_info(username)
-        client = get_client_by_user(username)
-        result = client.cc.search_business(
-            {
-                "bk_supplier_account": user_info["bk_supplier_account"],
+        client = get_client_by_username(username)
+        bk_supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
+        result = client.api.search_business(
+            data = {
+                "bk_supplier_account": bk_supplier_account,
                 "condition": {"bk_data_status": {"$in": ["enable", "disabled", None]}},
-            }
+            },
+            path_params={"bk_supplier_account": bk_supplier_account},
+            headers={"X-Bk-Tenant-Id": tenant_id},
         )
 
         if result["result"]:
@@ -75,20 +82,22 @@ def get_user_business_list(username, use_cache=True):
     return data
 
 
-def get_user_business_detail(username, bk_biz_id):
+def get_user_business_detail(tenant_id, username, bk_biz_id):
     """Get authorized business list for a exact username.
 
+    :param str tenant_id: (Optional)
     :param object username: User username
-    :param bool use_cache: (Optional)
+    :param int bk_biz_id: (Optional)
     """
-
-    user_info = _get_user_info(username)
-    client = get_client_by_user(username)
-    result = client.cc.search_business(
+    client = get_client_by_username(username)
+    bk_supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
+    result = client.api.search_business(
         {
-            "bk_supplier_account": user_info["bk_supplier_account"],
+            "bk_supplier_account": bk_supplier_account,
             "condition": {"bk_data_status": {"$in": ["enable", "disabled", None]}, "bk_biz_id": bk_biz_id},
-        }
+        },
+        path_params={"bk_supplier_account": bk_supplier_account},
+        headers={"X-Bk-Tenant-Id": tenant_id},
     )
 
     if result["result"]:

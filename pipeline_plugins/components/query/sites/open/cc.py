@@ -366,7 +366,7 @@ def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
 
 def cc_get_business(request):
     try:
-        business = get_user_business_list(username=request.user.username)
+        business = get_user_business_list(tenant_id=request.user.tenant_id, username=request.user.username)
     except APIError as e:
         message = "an error occurred when fetch user business: %s" % traceback.format_exc()
 

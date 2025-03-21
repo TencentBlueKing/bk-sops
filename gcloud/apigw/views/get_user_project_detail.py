@@ -39,7 +39,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
     try:
-        biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
+        biz_detail = get_business_detail(request.project.tenant_id, request.user.username, request.project.bk_biz_id)
     except Exception as e:
         logger.exception("[API] get_user_business_detail call fail: {}".format(e))
         return {
