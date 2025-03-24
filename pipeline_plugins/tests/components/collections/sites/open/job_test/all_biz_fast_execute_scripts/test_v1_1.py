@@ -14,15 +14,14 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
 
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1 import (
@@ -44,7 +43,7 @@ class AllBizJobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
         ]
 
 
-class MockClient(object):
+class JobMockClient(object):
     def __init__(
         self,
         fast_execute_script_return=None,
@@ -52,21 +51,25 @@ class MockClient(object):
         get_job_instance_log_return=None,
         get_job_instance_ip_log_return=None,
         get_job_instance_status=None,
-        list_business_set_return=None,
     ):
-        self.jobv3 = MagicMock()
-        self.jobv3.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
-        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
-        self.jobv3.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
-        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
-        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
-        self.cc = MagicMock()
-        self.cc.list_business_set = MagicMock(return_value=list_business_set_return)
+        self.api = MagicMock()
+        self.api.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
+        self.api.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.api.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.api.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
+        self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
+
+
+class CcMockClient(object):
+    def __init__(self, list_business_set_return=None):
+        self.api = MagicMock()
+        self.api.list_business_set = MagicMock(return_value=list_business_set_return)
 
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service."
+    "get_client_by_username"
 )
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1.get_node_callback_url"
@@ -79,7 +82,7 @@ GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script."
     "base_service.get_job_instance_url"
 )
-UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
+UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
 
 # success result
 SUCCESS_RESULT = {
@@ -200,14 +203,13 @@ EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
 }
 
 # mock clients
-FAST_EXECUTE_SCRIPT_FAIL_CLIENT = MockClient(
+FAST_EXECUTE_SCRIPT_FAIL_CLIENT = JobMockClient(
     fast_execute_script_return=FAIL_RESULT,
     get_job_instance_global_var_value_return={},
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
 
 # mock clients
-FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
+FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = JobMockClient(
     fast_execute_script_return=SUCCESS_RESULT,
     get_job_instance_global_var_value_return={
         "data": {
@@ -220,11 +222,10 @@ FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
     get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
 
 # mock clients
-FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT = MockClient(
+FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT = JobMockClient(
     fast_execute_script_return=SUCCESS_RESULT,
     get_job_instance_global_var_value_return={
         "data": {
@@ -237,6 +238,13 @@ FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT = MockClient(
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
     get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
+)
+
+INVALID_IP_CLIENT = CcMockClient(
+    list_business_set_return={"result": True, "data": {"info": []}},
+)
+
+INVALID_IP_CLIENT_BIZ_SET = CcMockClient(
     list_business_set_return={"result": True, "data": {"info": ["biz_set"]}},
 )
 
@@ -244,7 +252,7 @@ FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT = MockClient(
 GET_NODE_CALLBACK_URL_MOCK = MagicMock(return_value="callback_url")
 
 # parent_data
-PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
+PARENT_DATA = {"executor": "executor", "biz_cc_id": 1, "tenant_id": "system"}
 
 # manual inputs
 MANUAL_INPUTS = {
@@ -344,12 +352,15 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         callback_data={},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(
+            func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.api.fast_execute_script,
+            calls=[Call(MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
-        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
+        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
@@ -367,14 +378,14 @@ BIZ_SET_FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = C
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT.jobv3.fast_execute_script,
-            calls=[Call(BIZ_SET_MANUAL_KWARGS)],
+            func=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT.api.fast_execute_script,
+            calls=[Call(BIZ_SET_MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT),
-        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT),
+        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
@@ -387,12 +398,15 @@ FAST_EXECUTE_SCRIPT_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs=MANUAL_FAIL_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(
+            func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.api.fast_execute_script,
+            calls=[Call(MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
-        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
+        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )

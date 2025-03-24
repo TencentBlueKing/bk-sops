@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import traceback
 from functools import partial
 
+from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
@@ -28,8 +29,6 @@ from pipeline_plugins.components.utils import get_job_instance_url
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -133,11 +132,18 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
             ),
         ]
 
-    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id):
+    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id, tenant_id):
         across_biz = data.get_one_of_inputs("job_across_biz", False)
         # 获取 IP
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, target_ip_list, self.logger, False, is_across=across_biz
+            tenant_id,
+            executor,
+            biz_cc_id,
+            data,
+            target_ip_list,
+            self.logger,
+            False,
+            is_across=across_biz,
         )
         return clean_result, target_server
 
@@ -165,6 +171,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.inputs.tenant_id
         biz_cc_id = data.inputs.biz_cc_id
         local_files_and_target_path = data.inputs.job_local_files_info["job_push_multi_local_files_table"]
         target_ip_list = data.inputs.job_target_ip_list
@@ -184,10 +191,10 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
             data.outputs.ex_data = err_msg.format(file_manager_type, e)
             return False
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         # filter 跨业务 IP
-        clean_result, target_server = self.get_ip_list(data, target_ip_list, executor, biz_cc_id)
+        clean_result, target_server = self.get_ip_list(data, target_ip_list, executor, biz_cc_id, tenant_id)
         if not clean_result:
             data.outputs.ex_data = "ip查询失败，请检查ip配置是否正常"
             return False
@@ -200,7 +207,12 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
 
         # 批量上传请求
         if len(params_list) == task_count:
-            push_results = batch_execute_func(file_manager.push_files_to_ips, params_list, interval_enabled=True)
+            push_results = batch_execute_func(
+                file_manager.push_files_to_ips,
+                params_list,
+                interval_enabled=True,
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
         else:
             data.outputs.ex_data = _("执行参数为空，请确认")
             return False

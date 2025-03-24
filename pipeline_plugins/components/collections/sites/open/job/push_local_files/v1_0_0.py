@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import traceback
 from functools import partial
 
+from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
@@ -26,8 +27,6 @@ from pipeline_plugins.components.collections.sites.open.job.ipv6_base import Get
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -45,6 +44,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.inputs.tenant_id
         biz_cc_id = data.inputs.biz_cc_id
         local_files = data.inputs.job_local_files
         target_ip_list = data.inputs.job_target_ip_list
@@ -65,11 +65,18 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
             data.outputs.ex_data = err_msg.format(file_manager_type, e)
             return False
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         # 获取 IP
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, target_ip_list, self.logger, False, is_across=across_biz
+            tenant_id,
+            executor,
+            biz_cc_id,
+            data,
+            target_ip_list,
+            self.logger,
+            False,
+            is_across=across_biz,
         )
 
         if not clean_result:
@@ -87,6 +94,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
             account=target_account.strip(),
             callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
             target_server=target_server,
+            headers={"X-Bk-Tenant-Id": tenant_id},
         )
 
         if not push_result["result"]:

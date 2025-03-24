@@ -11,18 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0 import JobPushLocalFilesComponent
 
 
@@ -43,9 +42,9 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service.get_client_by_username"
 )
-BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 
 ENVIRONMENT_VAR_GET = (
@@ -74,7 +73,7 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
             "job_target_account": "job_target_account",
             "job_local_files_info": {"job_push_multi_local_files_table": [{""}]},
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False, outputs={"ex_data": "File Manager configuration error, contact administrator please."}
         ),
@@ -96,7 +95,7 @@ def FILE_MANAGER_TYPE_ERR_CASE():
             "job_target_account": "job_target_account",
             "job_local_files_info": {"job_push_multi_local_files_table": [{""}]},
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False,
             outputs={
@@ -147,7 +146,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                 ]
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False,
             outputs={
@@ -163,7 +162,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         schedule_assertion=None,
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
@@ -179,6 +178,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         ips=None,
                         account="job_target_account",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
@@ -225,7 +225,7 @@ def SCHEDULE_FAILURE_CASE():
                 ]
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -255,7 +255,7 @@ def SCHEDULE_FAILURE_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
@@ -271,6 +271,7 @@ def SCHEDULE_FAILURE_CASE():
                         ips=None,
                         account="job_target_account",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
@@ -344,7 +345,7 @@ def SUCCESS_MULTI_CASE():
                 ]
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -373,7 +374,7 @@ def SUCCESS_MULTI_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -389,6 +390,7 @@ def SUCCESS_MULTI_CASE():
                         ips=None,
                         target_path="target_path1",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -398,6 +400,7 @@ def SUCCESS_MULTI_CASE():
                         ips=None,
                         target_path="target_path2",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -407,6 +410,7 @@ def SUCCESS_MULTI_CASE():
                         ips=None,
                         target_path="target_path3",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
             ),
@@ -482,7 +486,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             },
             "job_timeout": "1000",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -511,7 +515,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -528,6 +532,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         target_path="target_path1",
                         timeout=1000,
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -538,6 +543,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         target_path="target_path2",
                         timeout=1000,
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -548,6 +554,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         target_path="target_path3",
                         timeout=1000,
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
             ),

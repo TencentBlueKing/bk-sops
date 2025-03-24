@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 from functools import partial
 
+from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
@@ -27,8 +28,6 @@ from pipeline_plugins.components.collections.sites.open.job.ipv6_base import Get
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, loose_strip
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -83,8 +82,8 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
-        client.set_bk_api_ver("v2")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -98,7 +97,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
         for item in original_source_files:
             # filter 跨业务 IP
             clean_source_ip_result, server = self.get_target_server(
-                executor, biz_cc_id, data, item["ip"], self.logger, False, is_across=across_biz
+                tenant_id, executor, biz_cc_id, data, item["ip"], self.logger, False, is_across=across_biz
             )
             if not clean_source_ip_result:
                 return False
@@ -112,6 +111,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
         # 获取目标IP
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         clean_result, target_server = self.get_target_server(
+            tenant_id,
             executor,
             biz_cc_id,
             data,
@@ -138,7 +138,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
         if job_timeout:
             job_kwargs["timeout"] = int(job_timeout)
 
-        job_result = client.jobv3.fast_transfer_file(job_kwargs)
+        job_result = client.api.fast_transfer_file(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]

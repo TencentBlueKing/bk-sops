@@ -937,3 +937,6 @@ class PatchFeatures:
 
 # 将补丁应用到 DatabaseFeatures 中
 DatabaseFeatures.minimum_database_version = PatchFeatures.minimum_database_version
+# 多租户相关配置
+ENABLE_MULTI_TENANT_MODE = env.ENABLE_MULTI_TENANT_MODE
+IS_GLOBAL_TENANT = env.IS_GLOBAL_TENANT

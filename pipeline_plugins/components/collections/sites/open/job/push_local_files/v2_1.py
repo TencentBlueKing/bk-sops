@@ -47,9 +47,9 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
             ),
         ]
 
-    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id):
+    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id, tenant_id):
         clean_result, target_server = self.get_target_server_hybrid(
-            executor, biz_cc_id, data, target_ip_list, self.logger
+            tenant_id, executor, biz_cc_id, data, target_ip_list, self.logger
         )
         return clean_result, target_server
 

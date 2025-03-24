@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from functools import partial
 
+from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
@@ -92,19 +93,21 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
 
     def schedule(self, data, parent_data, callback_data=None):
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
-        if not has_biz_set(int(biz_cc_id)):
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        if not has_biz_set(tenant_id, int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
         return super().schedule(data, parent_data, callback_data)
 
     def get_file_source(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         file_source = []
         for item in data.get_one_of_inputs("job_source_files", []):
             result, server = self.get_target_server_biz_set(
-                executor, [item], supplier_account, logger_handle=self.logger
+                tenant_id, executor, [item], supplier_account, logger_handle=self.logger
             )
             if not result:
                 raise Exception("源文件信息处理失败，请检查ip配置是否正确, ip_list={}".format(item))
@@ -120,9 +123,9 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
         return file_source
 
     def execute(self, data, parent_data):
-
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
@@ -130,13 +133,15 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         data.inputs.biz_cc_id = biz_cc_id
 
-        if not has_biz_set(int(biz_cc_id)):
+        if not has_biz_set(tenant_id, int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         params_list = self.get_params_list(data, parent_data)
         task_count = len(params_list)
         # 并发请求接口
-        job_result_list = batch_execute_func(client.jobv3.fast_transfer_file, params_list, interval_enabled=True)
+        job_result_list = batch_execute_func(
+            client.api.fast_transfer_file, params_list, interval_enabled=True, headers={"X-Bk-Tenant-Id": tenant_id}
+        )
         job_instance_id_list, job_inst_name, job_inst_url = [], [], []
         data.outputs.requests_error = ""
         for index, res in enumerate(job_result_list):

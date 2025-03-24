@@ -89,7 +89,7 @@ def chunk_table_data(column_dict, break_line):
     return {"result": True, "data": chunk_data, "message": ""}
 
 
-def batch_execute_func(func, params_list: list, interval_enabled=False):
+def batch_execute_func(func, params_list: list, interval_enabled=False, headers=None):
     """
     并发处理func
     :param func: 待处理函数
@@ -100,6 +100,7 @@ def batch_execute_func(func, params_list: list, interval_enabled=False):
     pool = ThreadPool()
     execute_future_list = []
     for params in params_list:
+        params.update({"headers": headers})
         execute_future_list.append({"result": pool.apply_async(func, kwds=params), "params": params})
         if interval_enabled:
             time.sleep(random.random())

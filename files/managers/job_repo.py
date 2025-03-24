@@ -11,11 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
-
-import requests
 import time
 
-from files.exceptions import InvalidOperationError, ApiResultError
+import requests
+from bkapi.jobv3_cloud.shortcuts import get_client_by_username
+
+from files.exceptions import ApiResultError, InvalidOperationError
 from files.managers.base import Manager
 from files.models import FileUploadRecord
 from gcloud.conf import settings
@@ -29,16 +30,19 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 class JobRepoStorage:
     @staticmethod
     def generate_temporary_upload_url(
-        username: str, bk_biz_id: int, file_names: list, bk_scope_type: str = "biz",
+        username: str,
+        bk_biz_id: int,
+        file_names: list,
+        bk_scope_type: str = "biz",
     ):
-        esb_client = get_client_by_user(username)
+        esb_client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
         job_kwargs = {
             "bk_scope_type": bk_scope_type,
             "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
             "file_name_list": file_names,
         }
-        job_result = esb_client.jobv3.generate_local_file_upload_url(job_kwargs)
+        job_result = esb_client.api.generate_local_file_upload_url(job_kwargs)
         return job_result
 
     @staticmethod
@@ -100,6 +104,7 @@ class JobRepoManager(Manager):
         bk_scope_type="biz",
         target_server=None,
         rolling_config=None,
+        headers=None,
     ):
 
         if not all([tag["type"] == "job_repo" for tag in file_tags]):
@@ -126,7 +131,7 @@ class JobRepoManager(Manager):
         if callback_url:
             job_kwargs["callback_url"] = callback_url
 
-        job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
+        job_result = esb_client.api.fast_transfer_file(job_kwargs, headers=headers)
 
         if not job_result["result"]:
             return {
