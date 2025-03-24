@@ -91,9 +91,11 @@ class IPPickerDataGenerator:
     def generate_ip_data(self):
         """根据字符串生成ip数据"""
         if settings.ENABLE_IPV6:
-            result = cc_get_ips_info_by_str_ipv6(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
+            result = cc_get_ips_info_by_str_ipv6(
+                self.tenant_id, self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         else:
-            result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
+            result = cc_get_ips_info_by_str(
+                self.tenant_id, self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         if result["invalid_ip"]:
             message = _(
                 f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data"
@@ -169,8 +171,9 @@ class IPPickerHandler:
     PROPERTY_FILTER_TYPES = ("set", "module", "host")
 
     def __init__(
-        self, selector, username, bk_biz_id, bk_supplier_account, is_manual=False, filters=None, excludes=None
+        self, tenant_id, selector, username, bk_biz_id, bk_supplier_account, is_manual=False, filters=None, excludes=None
     ):
+        self.tenant_id = tenant_id
         self.selector = selector
         self.username = username
         self.bk_biz_id = bk_biz_id
@@ -348,6 +351,7 @@ class IPPickerHandler:
             fields.append("bk_host_innerip_v6")
 
         host_info = cmdb.get_business_host_topo(
+            self.tenant_id,
             self.username,
             self.bk_biz_id,
             self.bk_supplier_account,

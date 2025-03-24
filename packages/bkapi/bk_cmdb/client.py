@@ -112,6 +112,68 @@ class Group(OperationGroup):
         path="/api/v3/findmany/biz_set",
     )
 
+    # search_business
+    # 查询业务
+    search_business = bind_property(
+        Operation,
+        name="search_business",
+        method="POST",
+        path="/api/v3/biz/search/{bk_supplier_account}",
+    )
+
+    # list_biz_hosts
+    # 查询业务下的主机
+    list_biz_hosts = bind_property(
+        Operation,
+        name="list_biz_hosts",
+        method="POST",
+        path="/api/v3/hosts/app/{bk_biz_id}/list_hosts",
+    )
+
+    # list_biz_hosts_topo
+    # 查询业务下的主机和拓扑信息
+    list_biz_hosts_topo = bind_property(
+        Operation,
+        name="list_biz_hosts_topo",
+        method="POST",
+        path="/api/v3/hosts/app/{bk_biz_id}/list_hosts_topo",
+    )
+
+    # execute_dynamic_group
+    # 执行动态分组
+    execute_dynamic_group = bind_property(
+        Operation,
+        name="execute_dynamic_group",
+        method="POST",
+        path="/api/v3/dynamicgroup/execute/{bk_biz_id}",
+    )
+
+    # find_module_batch
+    # 批量查询某业务的模块详情
+    find_module_batch = bind_property(
+        Operation,
+        name="find_module_batch",
+        method="POST",
+        path="/api/v3/findmany/module/bk_biz_id/{bk_biz_id}",
+    )
+
+    # search_set
+    # 查询集群
+    search_set = bind_property(
+        Operation,
+        name="search_set",
+        method="POST",
+        path="/api/v3/set/search/{bk_supplier_account}/{bk_biz_id}",
+    )
+
+    # find_module_with_relation
+    # 根据条件查询业务下的模块
+    find_module_with_relation = bind_property(
+        Operation,
+        name="find_module_with_relation",
+        method="POST",
+        path="/api/v3/findmany/module/with_relation/biz/{bk_biz_id}",
+    )
 
 
 class Client(APIGatewayClient):
