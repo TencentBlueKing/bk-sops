@@ -175,6 +175,24 @@ class Group(OperationGroup):
         path="/api/v3/findmany/module/with_relation/biz/{bk_biz_id}",
     )
 
+    # search_module
+    # 查询模块
+    search_module = bind_property(
+        Operation,
+        name="search_module",
+        method="POST",
+        path="/api/v3/module/search/{bk_supplier_account}/{bk_biz_id}/{bk_set_id}",
+    )
+
+    # update_host
+    # 更新主机信息
+    update_host = bind_property(
+        Operation,
+        name="update_host",
+        method="PUT",
+        path="/api/v3/hosts/batch",
+    )
+
 
 class Client(APIGatewayClient):
     """Bkapi bk_cmdb client"""
