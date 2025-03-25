@@ -199,6 +199,7 @@
         },
         created () {
             window.addEventListener('click', this.handleListShow, false)
+            document.addEventListener('selectionchange', this.handleSelectionchange, false)
         },
         mounted () {
             const divInputDom = this.$el.querySelector('.div-input')
@@ -212,6 +213,7 @@
         },
         beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
+            window.removeEventListener('selectionchange', this.handleSelectionchange, false)
             const divInputDom = this.$el.querySelector('.div-input')
             if (divInputDom) {
                 divInputDom.removeEventListener('paste', this.handlePaste)
@@ -532,6 +534,28 @@
                     text = text.replace(/(\n|\r|\r\n)/g, ' ')
                     text && document.execCommand('insertText', false, text)
                 }
+            },
+            handleSelectionchange () {
+                const selection = window.getSelection()
+                if (!selection.rangeCount) return
+
+                const range = selection.getRangeAt(0)
+                const rect = range.getBoundingClientRect()
+                const container = this.$el.querySelector('.rf-form-wrap')
+                const editable = this.$el.querySelector('.div-input')
+                const containerRect = container.getBoundingClientRect()
+
+                // 向右滚动
+                if (rect.right > containerRect.right) {
+                    const delta = rect.right - containerRect.right
+                    editable.style.left = `${editable.offsetLeft - delta}px`
+                }
+
+                // 向左滚动
+                if (rect.left < containerRect.left) {
+                    const delta = containerRect.left - rect.left
+                    editable.style.left = `${editable.offsetLeft + delta}px`
+                }
             }
         }
     }
@@ -617,6 +641,8 @@
         color: #63656e;
         white-space: pre;
         overflow: hidden;
+        overflow-x: scroll;
+        scrollbar-width: none;
         /deep/.var-tag {
             margin-right: 1px;
             padding: 0px 4px;
