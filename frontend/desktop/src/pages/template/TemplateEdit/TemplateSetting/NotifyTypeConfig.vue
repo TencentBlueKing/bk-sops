@@ -32,7 +32,7 @@
                                     :class="['ml10', { 'vee-error': veeErrors.has(`chat_group_id_${$index}`) }]"
                                     v-validate="{ required: row.includes(col.type) }"
                                     :disabled="isViewMode || !row.includes(col.type)"
-                                    :placeholder="$t('请输入群 ID，多个 ID 以分号隔开')"
+                                    :placeholder="$t('请输入群 ID，多个 ID 以逗号隔开')"
                                     :value="getChatNotifyTypeValue($index)"
                                     @change="onChatNotifyTypeChange($index, $event)">
                                 </bk-input>
