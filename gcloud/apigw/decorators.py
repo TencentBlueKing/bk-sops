@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import os
 from functools import wraps
 
 import pytz
@@ -30,10 +30,30 @@ from gcloud.core.models import Project
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 
+APIGW_ALLOW_JOB_FILE_UPLOAD_WHITE_APP_LIST = os.getenv("APIGW_ALLOW_JOB_FILE_UPLOAD_WHITE_APPS", "").split(",")
+
 
 def check_white_apps(request):
     app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
     return app_whitelist.has(app_code)
+
+
+def check_job_file_upload_white_apps(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
+        if app_code not in APIGW_ALLOW_JOB_FILE_UPLOAD_WHITE_APP_LIST:
+            return JsonResponse(
+                {
+                    "result": False,
+                    "message": f"{app_code} have no permission",
+                    "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+                }
+            )
+
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
 
 
 def inject_user(request):
@@ -110,7 +130,6 @@ def return_json_response(view_func):
 def project_inject(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-
         obj_id = kwargs.get("project_id")
         try:
             obj_scope = _get_project_scope_from_request(request)
