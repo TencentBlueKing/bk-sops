@@ -23,32 +23,20 @@ from pipeline.core.constants import PE
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
-from gcloud.apigw.decorators import (
-    mark_request_whether_is_trust,
-    project_inject,
-    return_json_response,
-)
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT, TaskCreateMethod
-from gcloud.contrib.operate_record.constants import (
-    OperateSource,
-    OperateType,
-    RecordType,
-)
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.taskflow3.models import (
-    TaskCallBackRecord,
-    TaskFlowInstance,
-    TimeoutNodeConfig,
-)
+from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import standardize_pipeline_node_name
@@ -120,7 +108,9 @@ def create_task(request, template_id, project_id):
 
     else:
         try:
-            tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
+            tmpl = CommonTemplate.objects.select_related("pipeline_template").get(
+                id=template_id, is_deleted=False, tenant_id=request.app.tenant_id
+            )
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,

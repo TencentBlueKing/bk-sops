@@ -23,10 +23,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import (
-    format_import_result_to_response_data,
-    read_encoded_template_data,
-)
+from gcloud.template_base.utils import format_import_result_to_response_data, read_encoded_template_data
 
 
 @login_exempt
@@ -62,6 +59,7 @@ def import_common_template(request):
     override = BooleanField().to_python(req_data.get("override", False))
 
     try:
+        # TODO 多租户
         import_result = CommonTemplate.objects.import_templates(
             r["data"]["template_data"], override, request.user.username
         )

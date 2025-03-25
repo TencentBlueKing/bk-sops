@@ -13,20 +13,19 @@ specific language governing permissions and limitations under the License.
 import logging
 from copy import deepcopy
 
-from pipeline_web.preview_base import PipelineTemplateWebPreviewer
-
 from gcloud.common_template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.constants import PROJECT
+from gcloud.tasktmpl3.models import TaskTemplate
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 logger = logging.getLogger("root")
 
 
-def preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id):
+def preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id, tenant_id):
     if template_source == PROJECT:
         template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
     else:
-        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False, tenant_id=tenant_id)
     pipeline_tree = template.get_pipeline_tree_by_version(version)
     template_constants = deepcopy(pipeline_tree["constants"])
     PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)

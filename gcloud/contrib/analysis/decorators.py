@@ -37,7 +37,7 @@ def standardize_params(func):
         conditions = result_dict["conditions"]
         group_by = result_dict["group_by"]
         # 过滤参数填写
-        filters = {"is_deleted": False}
+        filters = {"is_deleted": False, "project__tenant_id": request.user.tenant_id}
         filters.update(conditions)
         # 根据不同的view_funciton进行不同的处理
         inner_args = (group_by, filters, page_index, limit)

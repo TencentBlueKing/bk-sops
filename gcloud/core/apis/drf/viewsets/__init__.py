@@ -30,3 +30,4 @@ from .appmaker import *  # noqa
 from .periodic_task import *  # noqa
 from .common_template import *  # noqa
 from .taskflow import *  # noqa
+from .utils import *  # noqa

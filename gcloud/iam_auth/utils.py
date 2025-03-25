@@ -27,7 +27,7 @@ logger = logging.getLogger("root")
 iam = get_iam_client()
 
 
-def get_user_projects(username):
+def get_user_projects(username, tenant_id):
     subject = Subject("user", username)
     action = Action(IAMMeta.PROJECT_VIEW_ACTION)
 
@@ -40,8 +40,8 @@ def get_user_projects(username):
 
     if not filters:
         return Project.objects.none()
-
-    return Project.objects.filter(filters)
+    # TODO 多租户IAM适配
+    return Project.objects.filter(filters).filter(tenant_id=tenant_id)
 
 
 def get_flow_allowed_actions_for_user(username, actions, flow_id_list):

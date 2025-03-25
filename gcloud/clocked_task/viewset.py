@@ -12,22 +12,22 @@ specific language governing permissions and limitations under the License.
 """
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, permissions, status
+from rest_framework import permissions, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.permissions import ClockedTaskPermissions
-from gcloud.clocked_task.serializer import ClockedTaskSerializer, ClockedTaskPatchSerializer
-from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
-from gcloud.iam_auth import get_iam_client, IAMMeta
+from gcloud.clocked_task.serializer import ClockedTaskPatchSerializer, ClockedTaskSerializer
+from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin, MultiTenantMixin
+from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 
 iam = get_iam_client()
 
 
-class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
+class ClockedTaskViewSet(ApiMixin, IAMMixin, MultiTenantMixin, viewsets.ModelViewSet):
     queryset = ClockedTask.objects.all()
     permission_classes = [permissions.IsAuthenticated, ClockedTaskPermissions]
     serializer_class = ClockedTaskSerializer
@@ -53,6 +53,7 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
             IAMMeta.CLOCKED_TASK_DELETE_ACTION,
         ],
     )
+    project_id_multi_tenant_filter = True
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

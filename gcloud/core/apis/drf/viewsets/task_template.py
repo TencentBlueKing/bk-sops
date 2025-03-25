@@ -131,6 +131,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         ],
     )
     ordering_fields = ["pipeline_template"] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
+    project_multi_tenant_filter = True
 
     def get_serializer_class(self):
         if self.action == "list":

@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
@@ -75,6 +76,8 @@ class CommonTemplate(BaseTemplate):
     """
     @summary: common templates maintained by admin, which all businesses could use to creating tasks
     """
+
+    tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
 
     objects = CommonTemplateManager()
 

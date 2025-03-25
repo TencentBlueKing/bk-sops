@@ -71,6 +71,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     pipeline_template = serializers.IntegerField(
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
+    tenant_id = serializers.CharField(help_text="租户ID", required=False)
 
     def _calculate_new_executor_proxies(self, old_pipeline_tree: dict, pipeline_tree: dict):
         new_executor_proxies = set()
@@ -109,6 +110,11 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
 
+    def validate(self, attrs):
+        user = getattr(self.context.get("request"), "user", None)
+        attrs["tenant_id"] = user.tenant_id
+        return attrs
+
     class Meta:
         model = CommonTemplate
         fields = [
@@ -130,4 +136,5 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "template_id",
             "version",
             "pipeline_template",
+            "tenant_id",
         ]

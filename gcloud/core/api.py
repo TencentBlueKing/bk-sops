@@ -49,7 +49,9 @@ def change_default_project(request, project_id):
         username=request.user.username, defaults={"default_project_id": project_id}
     )
 
-    ProjectCounter.objects.increase_or_create(username=request.user.username, project_id=project_id)
+    ProjectCounter.objects.increase_or_create(
+        username=request.user.username, project_id=project_id
+    )
 
     return JsonResponse({"result": True, "data": {}, "message": _("用户默认项目切换成功")})
 

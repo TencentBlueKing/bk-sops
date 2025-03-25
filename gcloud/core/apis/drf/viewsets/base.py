@@ -20,6 +20,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
+from gcloud.core.apis.drf.viewsets.utils import MultiTenantMixin
 from gcloud.iam_auth import get_iam_client
 
 iam = get_iam_client()
@@ -62,7 +63,7 @@ class GcloudCommonMixin(IAMMixin, ApiMixin):
         return serializer_data
 
 
-class GcloudListViewSet(GcloudCommonMixin):
+class GcloudListViewSet(MultiTenantMixin, GcloudCommonMixin):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         # 支持使用方配置不分页

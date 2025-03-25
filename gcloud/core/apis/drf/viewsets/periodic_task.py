@@ -121,6 +121,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         ],
     )
     permission_classes = [permissions.IsAuthenticated, PeriodicTaskPermission]
+    project_multi_tenant_filter = True
 
     def get_serializer_class(self):
         if self.action == "list":

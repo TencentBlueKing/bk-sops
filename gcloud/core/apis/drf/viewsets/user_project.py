@@ -52,6 +52,7 @@ class UserProjectSetViewSet(GcloudListViewSet):
     filterset_class = UserProjectFilter
     pagination_class = LimitOffsetPagination
     search_fields = ["id", "name", "desc", "creator", "bk_biz_id"]
+    model_multi_tenant_filter = True
 
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_project_obj,
@@ -64,7 +65,9 @@ class UserProjectSetViewSet(GcloudListViewSet):
     )
 
     def list(self, request, *args, **kwargs):
-        user_project_ids = list(get_user_projects(request.user.username).values_list("id", flat=True))
+        user_project_ids = list(
+            get_user_projects(request.user.username, request.user.tenant_id).values_list("id", flat=True)
+        )
         user_fav_project_ids = list(Collection.objects.get_user_favorite_projects(request.user.username))
         self.list_queryset = (
             Project.objects.filter(id__in=user_project_ids)

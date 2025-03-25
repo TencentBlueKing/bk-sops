@@ -56,7 +56,7 @@ def mysetting(request):
     is_superuser = int(request.user.is_superuser)
     is_functor = int(is_user_functor(request))
     is_auditor = int(is_user_auditor(request))
-    default_project = get_default_project_for_user(request.user.username)
+    default_project = get_default_project_for_user(request.user.username, request.user.tenant_id)
     project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
     frontend_entry_url = "{}bk_sops".format(settings.STATIC_URL) if settings.RUN_VER == "open" else "/static/bk_sops"

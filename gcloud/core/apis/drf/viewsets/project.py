@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
 from rest_framework import permissions
 
 from gcloud.contrib.audit.utils import bk_audit_add_event
@@ -54,6 +55,7 @@ class ProjectSetViewSet(GcloudUpdateViewSet, GcloudListViewSet):
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated, ProjectPermission]
     filterset_class = ProjectFilter
+    model_multi_tenant_filter = settings.ENABLE_MULTI_TENANT_MODE
 
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_project_obj,

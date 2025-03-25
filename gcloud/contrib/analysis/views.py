@@ -50,11 +50,22 @@ def get_biz_useage(request, query):
     :param query:模板/任务
     :return:
     """
-    total = Project.objects.all().count()
+    total = Project.objects.filter(tenant_id=request.user.tenant_id).count()
+
     if query == "template":
-        count = TaskTemplate.objects.values("project__id").distinct().count()
+        count = (
+            TaskTemplate.objects.filter(project__tenant_id=request.user.tenant_id)
+            .values("project__id")
+            .distinct()
+            .count()
+        )
     elif query == "task":
-        count = TaskFlowInstance.objects.values("project__id").distinct().count()
+        count = (
+            TaskFlowInstance.objects.filter(project__tenant_id=request.user.tenant_id)
+            .values("project__id")
+            .distinct()
+            .count()
+        )
     else:
         return JsonResponse(
             {"result": False, "code": REQUEST_PARAM_INVALID.code, "message": REQUEST_PARAM_INVALID.description}

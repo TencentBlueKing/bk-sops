@@ -16,7 +16,7 @@ import logging
 from django.db import IntegrityError
 
 from gcloud.conf import settings
-from gcloud.core.models import Business, Project, UserDefaultProject
+from gcloud.core.models import Business, EnvironmentVariables, Project, UserDefaultProject
 from gcloud.core.utils import get_user_business_list
 from gcloud.iam_auth.utils import get_user_projects
 
@@ -28,8 +28,8 @@ BUSINESS_LOCATION_V1 = "v1.0"
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def sync_projects_from_cmdb(username, use_cache=True):
-    biz_list = get_user_business_list(username=username, use_cache=use_cache)
+def sync_projects_from_cmdb(username, tenant_id, use_cache=True):
+    biz_list = get_user_business_list(username=username, tenant_id=tenant_id, use_cache=use_cache)
     business_dict = {}
     all_biz_cc_ids = set()
     archived_biz_cc_ids = set()
@@ -57,11 +57,12 @@ def sync_projects_from_cmdb(username, use_cache=True):
 
         defaults = {
             "cc_name": biz["bk_biz_name"],
-            "cc_owner": biz["bk_supplier_account"],
+            "cc_owner": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
             "cc_company": biz.get("bk_supplier_id") or 0,
             "time_zone": biz.get("time_zone", ""),
             "life_cycle": biz.get("life_cycle") or "",
             "status": biz_status,
+            "tenant_id": tenant_id,
         }
 
         # update or create business obj
@@ -71,6 +72,7 @@ def sync_projects_from_cmdb(username, use_cache=True):
             "cc_name": defaults["cc_name"],
             "time_zone": defaults["time_zone"],
             "creator": username,
+            "tenant_id": tenant_id,
         }
 
     # sync projects from business
@@ -89,7 +91,7 @@ def sync_projects_from_cmdb(username, use_cache=True):
     )
 
 
-def get_default_project_for_user(username):
+def get_default_project_for_user(username, tenant_id):
     project = None
 
     if not username:
@@ -98,7 +100,7 @@ def get_default_project_for_user(username):
     try:
         project = UserDefaultProject.objects.get(username=username).default_project
     except UserDefaultProject.DoesNotExist:
-        projects = get_user_projects(username)
+        projects = get_user_projects(username, tenant_id)
         if projects:
             project = projects.first()
 

@@ -88,7 +88,9 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.D
             )(request.user.username, self.append_resource_actions[r_type], id_list)
 
         # 计算有查看权限的项目资源
-        user_projects = set(get_user_projects(request.user.username).values_list("id", flat=True))
+        user_projects = set(
+            get_user_projects(request.user.username, request.user.tenant_id).values_list("id", flat=True)
+        )
 
         for item in serializer_data:
             if item["category"] == "project":
