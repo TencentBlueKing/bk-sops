@@ -922,6 +922,10 @@ STATISTICS_VALIDITY_DAY = env.STATISTICS_VALIDITY_DAY
 CLEAN_EXPIRED_STATISTICS_BATCH_NUM = env.CLEAN_EXPIRED_STATISTICS_BATCH_NUM
 CLEAN_EXPIRED_STATISTICS_CRON = env.CLEAN_EXPIRED_STATISTICS_CRON
 
+# 多租户相当配置
+ENABLE_MULTI_TENANT_MODE = env.ENABLE_MULTI_TENANT_MODE
+
+IS_GLOBAL_TENANT = True
 
 # 定义一个补丁来兼容 MySQL 5.7
 
@@ -937,3 +941,5 @@ class PatchFeatures:
 
 # 将补丁应用到 DatabaseFeatures 中
 DatabaseFeatures.minimum_database_version = PatchFeatures.minimum_database_version
+
+SECURE_SSL_REDIRECT = False

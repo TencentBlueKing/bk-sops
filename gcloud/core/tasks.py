@@ -36,6 +36,7 @@ from gcloud.conf import settings
 from gcloud.core.project import sync_projects_from_cmdb
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.send_msg import send_message
+from packages.bkapi.bk_user.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -67,7 +68,16 @@ def cmdb_business_sync_task():
         if acquired:
             logger.info("Start sync business from cmdb...")
             try:
-                sync_projects_from_cmdb(username=settings.SYSTEM_USE_API_ACCOUNT, use_cache=False)
+                client = get_client_by_username(
+                    username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME
+                )
+                result = client.api.list_tenant(headers={"X-Bk-Tenant-Id": "system"})
+                for tenant in result["data"]:
+                    if tenant["status"] != "enabled":
+                        continue
+                    sync_projects_from_cmdb(
+                        username=settings.SYSTEM_USE_API_ACCOUNT, use_cache=False, tenant_id=tenant["id"]
+                    )
             except exceptions.APIError as e:
                 logger.error(
                     "An error occurred when sync cmdb business, message: {msg}, trace: {trace}".format(

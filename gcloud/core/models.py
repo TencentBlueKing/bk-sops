@@ -46,6 +46,7 @@ class Business(models.Model):
     # null 表未归档，disabled 表示已归档
     status = models.CharField(_("业务状态"), max_length=32, null=True)
     always_use_executor = models.BooleanField(_("是否始终使用任务执行者"), default=False)
+    tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
 
     groups = models.ManyToManyField(Group, through="BusinessGroupMembership")
 
@@ -198,6 +199,7 @@ class ProjectManager(models.Manager):
                         desc="",
                         from_cmdb=True,
                         bk_biz_id=cc_id,
+                        tenant_id=biz["tenant_id"],
                     )
                 )
             # maybe have duplicate entry, caller function should cope with the exception
@@ -223,6 +225,7 @@ class Project(models.Model):
     bk_biz_id = models.IntegerField(_("业务同步项目对应的 CMDB 业务 ID"), default=-1)
     is_disable = models.BooleanField(_("是否已停用"), default=False)
     relate_business = models.ManyToManyField(verbose_name=_("关联项目"), to=Business, blank=True)
+    tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
 
     objects = ProjectManager()
 

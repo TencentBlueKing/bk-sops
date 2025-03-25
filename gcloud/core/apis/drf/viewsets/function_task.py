@@ -50,6 +50,7 @@ class FunctionTaskViewSet(GcloudListViewSet):
         "create_time": ["gte", "lte"],
         "claim_time": ["gte", "lte"],
     }
+    taskflow_multi_tenant_filter = True
 
     def list(self, request, *args, **kwargs):
         bk_audit_add_event(username=request.user.username, action_id=IAMMeta.FUNCTION_VIEW_ACTION)

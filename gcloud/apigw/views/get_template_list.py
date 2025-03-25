@@ -10,22 +10,20 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response, timezone_inject
+from gcloud.apigw.views.utils import format_template_list_data, logger
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import PROJECT
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.apigw.views.utils import logger, format_template_list_data
-from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
 from gcloud.iam_auth.conf import FLOW_ACTIONS
+from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 @login_exempt
@@ -59,6 +57,7 @@ def get_template_list(request, project_id):
         filter_kwargs["project_id"] = project.id
         templates = TaskTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
     else:
+        filter_kwargs["tenant_id"] = request.user.tenant_id
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
     template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True, tz=request.tz)

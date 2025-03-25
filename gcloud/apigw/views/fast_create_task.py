@@ -19,25 +19,12 @@ from django.views.decorators.http import require_POST
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
-from gcloud.apigw.decorators import (
-    mark_request_whether_is_trust,
-    project_inject,
-    return_json_response,
-)
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.validators import FastCreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import (
-    ONETIME,
-    TASK_CATEGORY,
-    TASK_NAME_MAX_LENGTH,
-    TaskCreateMethod,
-)
-from gcloud.contrib.operate_record.constants import (
-    OperateSource,
-    OperateType,
-    RecordType,
-)
+from gcloud.constants import ONETIME, TASK_CATEGORY, TASK_NAME_MAX_LENGTH, TaskCreateMethod
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FastCreateTaskInterceptor
@@ -81,7 +68,9 @@ def fast_create_task(request, project_id):
     has_common_subprocess = params.get("has_common_subprocess", False)
     try:
         template = (
-            CommonTemplate(pipeline_template=None) if has_common_subprocess else TaskTemplate(pipeline_template=None)
+            CommonTemplate(pipeline_template=None, tenant_id=request.app.tenant_id)
+            if has_common_subprocess
+            else TaskTemplate(pipeline_template=None)
         )
         pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(
             template=template, **pipeline_instance_kwargs

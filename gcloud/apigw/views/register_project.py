@@ -12,17 +12,18 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.core.models import EnvironmentVariables, Business, Project
-from apigw_manager.apigw.decorators import apigw_require
 from gcloud.conf import settings
+from gcloud.core.models import Business, EnvironmentVariables, Project
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -89,6 +90,7 @@ def register_project(request):
         "creator": username,
         "desc": "",
         "from_cmdb": True,
+        "tenant_id": request.app.tenant_id,
     }
 
     try:

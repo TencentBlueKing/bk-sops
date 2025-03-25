@@ -12,19 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-
+from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.constants import PROJECT
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
+from gcloud.constants import PROJECT
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
-
 from pipeline_web.preview import preview_template_tree
 
 
@@ -57,7 +55,9 @@ def preview_task_tree(request, project_id, template_id):
         }
 
     try:
-        data = preview_template_tree(request.project.id, PROJECT, template_id, version, exclude_task_nodes_id)
+        data = preview_template_tree(
+            request.project.id, PROJECT, template_id, version, exclude_task_nodes_id, request.app.tenant_id
+        )
     except Exception as e:
         logger.exception("[API] preview_task_tree fail: {}".format(e))
         return {"result": False, "message": "preview_task_tree fail: {}".format(e), "code": err_code.UNKNOWN_ERROR.code}

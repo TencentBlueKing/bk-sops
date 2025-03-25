@@ -340,7 +340,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             else settings.TASK_LIST_STATUS_FILTER_DAYS
         )
         start_time = datetime.now() - timedelta(days=delta_time)
-        queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
+        queryset = queryset.filter(
+            pipeline_instance__create_time__gte=start_time,
+            project__tenant_id=request.user.tenant_id,
+        )
         # 该实现存在性能问题，需要优化
         # task_instance_status = request.query_params.get("task_instance_status")
         # if task_instance_status:
