@@ -166,6 +166,15 @@ class Group(OperationGroup):
         path="/api/v3/set/search/{bk_supplier_account}/{bk_biz_id}",
     )
 
+    # update_set
+    # 更新集群
+    update_set = bind_property(
+        Operation,
+        name="update_set",
+        method="PUT",
+        path="/api/v3/set/{bk_biz_id}/{bk_set_id}",
+    )
+
     # find_module_with_relation
     # 根据条件查询业务下的模块
     find_module_with_relation = bind_property(
@@ -191,6 +200,87 @@ class Group(OperationGroup):
         name="update_host",
         method="PUT",
         path="/api/v3/hosts/batch",
+    )
+
+    # batch_delete_set
+    # 批量删除集群
+    batch_delete_set = bind_property(
+        Operation,
+        name="batch_delete_set",
+        method="DELETE",
+        path="/api/v3/set/{bk_biz_id}/batch",
+    )
+
+    # create_module
+    # 创建模块
+    create_module = bind_property(
+        Operation,
+        name="create_module",
+        method="POST",
+        path="/api/v3/module/{bk_biz_id}/{bk_set_id}",
+    )
+
+    # update_module
+    # 更新模块
+    update_module = bind_property(
+        Operation,
+        name="update_module",
+        method="PUT",
+        path="/api/v3/module/{bk_biz_id}/{bk_set_id}/{bk_module_id}",
+    )
+
+    # transfer_host_module
+    # 业务内主机转移模块
+    transfer_host_module = bind_property(
+        Operation,
+        name="transfer_host_module",
+        method="POST",
+        path="/api/v3/hosts/modules",
+    )
+
+    # transfer_host_to_idlemodule
+    # 上交主机到业务的空闲机模块
+    transfer_host_to_idlemodule = bind_property(
+        Operation,
+        name="transfer_host_to_idlemodule",
+        method="POST",
+        path="/api/v3/hosts/modules/idle",
+    )
+
+    # transfer_host_to_recyclemodule
+    # 上交主机到业务的待回收模块
+    transfer_host_to_recyclemodule = bind_property(
+        Operation,
+        name="transfer_host_to_recyclemodule",
+        method="POST",
+        path="/api/v3/hosts/modules/recycle",
+    )
+
+    # transfer_host_to_faultmodule
+    # 上交主机到业务的故障机模块
+    transfer_host_to_faultmodule = bind_property(
+        Operation,
+        name="transfer_host_to_faultmodule",
+        method="POST",
+        path="/api/v3/hosts/modules/fault",
+    )
+
+    # transfer_host_to_resourcemodule
+    # 上交主机至资源池
+    transfer_host_to_resourcemodule = bind_property(
+        Operation,
+        name="transfer_host_to_resourcemodule",
+        method="POST",
+        path="/api/v3/hosts/modules/resource",
+    )
+
+    # batch_update_host
+    # 批量更新主机信息
+    batch_update_host = bind_property(
+        Operation,
+        name="batch_update_host",
+        method="PUT",
+        path="/api/v3/hosts/property/batch",
     )
 
 

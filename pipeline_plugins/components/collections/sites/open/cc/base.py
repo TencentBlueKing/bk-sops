@@ -144,9 +144,10 @@ def cc_get_host_id_by_innerip(tenant_id, executor, bk_biz_id, ip_list, supplier_
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
 
 
-def cc_get_host_id_by_innerip_and_cloudid(executor, bk_biz_id, ip_str, supplier_account):
+def cc_get_host_id_by_innerip_and_cloudid(tenant_id, executor, bk_biz_id, ip_str, supplier_account):
     """根据主机内网 IP 获取主机 ID
 
+    :param tenant_id: 租户 ID
     :param executor: API 请求用户身份
     :type executor: string
     :param bk_biz_id: 业务 CC ID
@@ -173,6 +174,7 @@ def cc_get_host_id_by_innerip_and_cloudid(executor, bk_biz_id, ip_str, supplier_
         else:
             host_fields = ["bk_host_id", "bk_host_innerip", "bk_cloud_id"]
         host_list = cmdb.get_business_host(
+            tenant_id,
             executor,
             bk_biz_id,
             supplier_account,
@@ -249,13 +251,14 @@ def cc_get_host_by_innerip_with_ipv6(
         return ipv6_host_with_cloud_list_result
 
     # 查询ipv4
-    ipv4_host_list_result = get_ipv4_host_list(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=is_biz_set)
+    ipv4_host_list_result = get_ipv4_host_list(
+        tenant_id, executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=is_biz_set)
     if not ipv4_host_list_result["result"]:
         return ipv4_host_list_result
 
     # 查询ipv4带管控区域
     ipv4_host_with_cloud_list_result = get_ipv4_host_with_cloud_list(
-        executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=is_biz_set
+        tenant_id, executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=is_biz_set
     )
 
     if not ipv4_host_with_cloud_list_result["result"]:
@@ -538,6 +541,7 @@ class CCPluginIPMixin:
     def get_host_list(self, tenant_id, executor, biz_cc_id, ip_str, supplier_account):
         """
         获取host_list
+        @param tenant_id: 租户 ID
         @param executor: executor 执行人
         @param biz_cc_id: biz_cc_id 业务id
         @param ip_str: ip_str ip字符串
@@ -551,10 +555,11 @@ class CCPluginIPMixin:
                 return host_result
             return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}
         ip_list = get_ip_by_regex(ip_str)
-        return cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        return cc_get_host_id_by_innerip(tenant_id, executor, biz_cc_id, ip_list, supplier_account)
 
-    def get_ip_info_list(self, executor, biz_cc_id, ip_str, supplier_account):
+    def get_ip_info_list(self, tenant_id, executor, biz_cc_id, ip_str, supplier_account):
         """
+        @param tenant_id: 租户 ID
         @param executor: 执行人
         @param biz_cc_id: 业务id
         @param ip_str: ip串
@@ -569,14 +574,14 @@ class CCPluginIPMixin:
         """
         # 如果开启IPV6, 则走IPV6的实现
         if settings.ENABLE_IPV6:
-            return cc_get_ips_info_by_str_ipv6(executor, biz_cc_id, ip_str, supplier_account)
-        return cc_get_ips_info_by_str(executor, biz_cc_id, ip_str, supplier_account)
+            return cc_get_ips_info_by_str_ipv6(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
+        return cc_get_ips_info_by_str(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
 
-    def get_host_topo(self, executor, biz_cc_id, supplier_account, host_attrs, ip_str):
+    def get_host_topo(self, tenant_id, executor, biz_cc_id, supplier_account, host_attrs, ip_str):
         """获取主机拓扑"""
         if not settings.ENABLE_IPV6:
             ip_list = get_ip_by_regex(ip_str)
-            return cmdb.get_business_host_topo(executor, biz_cc_id, supplier_account, host_attrs, ip_list)
+            return cmdb.get_business_host_topo(tenant_id, executor, biz_cc_id, supplier_account, host_attrs, ip_list)
 
         property_filters = {}
         # 如果是ipv6的主机
@@ -608,7 +613,8 @@ class CCPluginIPMixin:
             }
 
         return cmdb.get_business_host_topo(
-            executor, biz_cc_id, supplier_account, host_attrs, ip_list=None, property_filters=property_filters
+            tenant_id, executor, biz_cc_id, supplier_account, host_attrs, ip_list=None,
+            property_filters=property_filters
         )
 
     def get_host_list_with_cloud_id(self,tenant_id, executor, biz_cc_id, ip_str, supplier_account):
@@ -626,7 +632,7 @@ class CCPluginIPMixin:
             if not host_result["result"]:
                 return host_result
             return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}
-        return cc_get_host_id_by_innerip_and_cloudid(executor, biz_cc_id, ip_str, supplier_account)
+        return cc_get_host_id_by_innerip_and_cloudid(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
 
 
 class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMeta):
@@ -662,7 +668,7 @@ class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMet
 
         # 查询主机id
         ip_str = data.get_one_of_inputs("cc_host_ip")
-        host_result = self.get_host_list(executor, biz_cc_id, ip_str, supplier_account)
+        host_result = self.get_host_list(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False

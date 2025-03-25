@@ -432,9 +432,10 @@ def get_ipv6_host_list(tenant_id, executor, bk_biz_id, supplier_account, ipv6_li
     return {"result": True, "data": ipv6_host_list}
 
 
-def get_ipv4_host_with_cloud_list(executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=False):
+def get_ipv4_host_with_cloud_list(tenant_id, executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=False):
     """
     # 查询所有ip_v4带管控区域带主机，并选出指定的ip，如果ip+cloud_id重复，则报错
+    @param tenant_id: 租户 ID
     @param executor: 执行人
     @param bk_biz_id: 业务id
     @param supplier_account:
@@ -451,7 +452,7 @@ def get_ipv4_host_with_cloud_list(executor, bk_biz_id, supplier_account, ipv4_li
         }]
     """
     ipv4_host_with_cloud_valid = get_ipv4_hosts_with_cloud(
-        executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set
+        tenant_id, executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set
     )
     # 再比较查询结果和输入结果数量是否一致
     result, message = compare_ip_with_cloud_list(host_list=ipv4_host_with_cloud_valid, ip_list=ipv4_list_with_cloud_id)
@@ -501,6 +502,7 @@ def get_ipv6_host_list_with_cloud_list(tenant_id, executor, bk_biz_id, supplier_
 def get_ipv4_host_list(tenant_id, executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=False):
     """
     # 查询所有ip_v4的主机
+    @param tenant_id: 租户 ID
     @param executor:
     @param bk_biz_id:
     @param supplier_account:
@@ -553,6 +555,7 @@ def compare_ipv6_list_and_return_with_cloud(host_list, ip_list):
 def cc_get_host_by_innerip_with_ipv6_across_business(tenant_id, executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False):
     """
     查询主机，并返回在本业务查询到的主机和在本业务下查不到的主机
+    @param tenant_id: 租户 ID
     @param executor: 执行人
     @param bk_biz_id: 业务id
     @param ip_str: ip文本字符串
