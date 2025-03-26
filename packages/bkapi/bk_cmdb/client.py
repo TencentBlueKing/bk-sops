@@ -49,6 +49,15 @@ class Group(OperationGroup):
         path="/api/v3/set/{bk_biz_id}",
     )
 
+    # find_set_batch
+    # 批量查询某业务的集群详情
+    find_set_batch = bind_property(
+        Operation,
+        name="find_set_batch",
+        method="POST",
+        path="/api/v3/findmany/set/bk_biz_id/{bk_biz_id}",
+    )
+
     # list_service_category
     # 查询服务分类列表
     list_service_category = bind_property(
@@ -92,15 +101,6 @@ class Group(OperationGroup):
         name="list_set_template",
         method="POST",
         path="/v3/findmany/topo/set_template/bk_biz_id/{bk_biz_id}",
-    )
-
-    # find_host_by_topo
-    # 查询拓扑节点下的主机
-    find_host_by_topo = bind_property(
-       Operation,
-        name="find_host_by_topo",
-        method="POST",
-        path="/api/v3/findmany/hosts/by_topo/biz/{bk_biz_id}",
     )
 
     # list_business_set
@@ -229,6 +229,42 @@ class Group(OperationGroup):
         path="/api/v3/module/{bk_biz_id}/{bk_set_id}/{bk_module_id}",
     )
 
+    # find_host_by_topo
+    # 查询拓扑节点下的主机
+    find_host_by_topo = bind_property(
+       Operation,
+        name="find_host_by_topo",
+        method="POST",
+        path="/api/v3/findmany/hosts/by_topo/biz/{bk_biz_id}",
+    )
+
+    # get_host_base_info
+    # 查询主机基础信息
+    get_host_base_info = bind_property(
+        Operation,
+        name="get_host_base_info",
+        method="GET",
+        path="/api/v3/hosts/{bk_supplier_account}/{bk_host_id}",
+    )
+
+    # add_host_lock
+    # 新加主机锁
+    add_host_lock = bind_property(
+        Operation,
+        name="add_host_lock",
+        method="POST",
+        path="/api/v3/host/lock",
+    )
+
+    # delete_host_lock
+    # 删除主机锁
+    delete_host_lock = bind_property(
+        Operation,
+        name="delete_host_lock",
+        method="DELETE",
+        path="/api/v3/host/lock",
+    )
+
     # transfer_host_module
     # 业务内主机转移模块
     transfer_host_module = bind_property(
@@ -272,6 +308,15 @@ class Group(OperationGroup):
         name="transfer_host_to_resourcemodule",
         method="POST",
         path="/api/v3/hosts/modules/resource",
+    )
+
+    # transfer_sethost_to_idle_module
+    # 清空业务下集群/模块中主机
+    transfer_sethost_to_idle_module = bind_property(
+        Operation,
+        name="transfer_sethost_to_idle_module",
+        method="POST",
+        path="/api/v3/hosts/modules/idle/set",
     )
 
     # batch_update_host

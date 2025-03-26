@@ -519,7 +519,6 @@ BROKER_HEARTBEAT = 60
 BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
 
 SYSTEM_USE_API_ACCOUNT = "admin"
-SYSTEM_USE_API_TENANT_ID = os.getenv("SYSTEM_USE_API_TENANT_ID", "system")  # 多租户todo 待确认
 
 # VER settings
 ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER)

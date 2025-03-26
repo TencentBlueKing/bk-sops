@@ -247,7 +247,7 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
         ]
 
         client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT)
-        tenant_id = settings.SYSTEM_USE_API_TENANT_ID
+        tenant_id = kwargs["tenant_id"]
         params = {"bk_obj_id": "set"}
         if "bk_biz_id" in kwargs:
             params["bk_biz_id"] = kwargs["bk_biz_id"]
