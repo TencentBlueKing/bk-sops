@@ -15,7 +15,6 @@ import logging
 from copy import deepcopy
 from functools import partial
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
@@ -24,6 +23,7 @@ from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemS
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, loose_strip

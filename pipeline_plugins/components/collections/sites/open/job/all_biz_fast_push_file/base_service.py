@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 from functools import partial
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
@@ -20,6 +19,7 @@ from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemS
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
@@ -27,7 +27,6 @@ from pipeline_plugins.components.utils import batch_execute_func, get_job_instan
 
 __group_name__ = _("作业平台(JOB)")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
@@ -139,9 +138,7 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
         params_list = self.get_params_list(data, parent_data)
         task_count = len(params_list)
         # 并发请求接口
-        job_result_list = batch_execute_func(
-            client.api.fast_transfer_file, params_list, interval_enabled=True, headers={"X-Bk-Tenant-Id": tenant_id}
-        )
+        job_result_list = batch_execute_func(client.api.fast_transfer_file, params_list, interval_enabled=True)
         job_instance_id_list, job_inst_name, job_inst_url = [], [], []
         data.outputs.requests_error = ""
         for index, res in enumerate(job_result_list):

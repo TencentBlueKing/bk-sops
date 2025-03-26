@@ -33,7 +33,6 @@ import re
 import traceback
 from functools import partial
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow import StaticIntervalGenerator
 from pipeline.core.flow.activity import Service
@@ -43,6 +42,7 @@ from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
@@ -467,7 +467,6 @@ class JobService(Service):
         return result, tagged_ip_dict
 
     def schedule(self, data, parent_data, callback_data=None):
-
         try:
             job_instance_id = callback_data.get("job_instance_id", None)
             status = callback_data.get("status", None)
@@ -487,7 +486,6 @@ class JobService(Service):
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         # 失败情况下也需要要进行ip tag分组
         if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
-
             if not job_success:
                 data.set_outputs(
                     "ex_data",
@@ -501,9 +499,7 @@ class JobService(Service):
                 )
 
             if self.reload_outputs:
-
                 client = data.outputs.client
-
                 # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
@@ -624,24 +620,25 @@ class JobScheduleService(JobService):
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         else:
             data.outputs.ex_data = ""
-
+        tenant_id = parent_data.inputs.tenant_id
         params_list = [
             {
-                "bk_scope_type": self.biz_scope_type,
-                "bk_scope_id": str(data.inputs.biz_cc_id),
-                "bk_biz_id": data.inputs.biz_cc_id,
-                "job_instance_id": job_id,
+                "data": {
+                    "bk_scope_type": self.biz_scope_type,
+                    "bk_scope_id": str(data.inputs.biz_cc_id),
+                    "bk_biz_id": data.inputs.biz_cc_id,
+                    "job_instance_id": job_id,
+                },
+                "headers": {"X-Bk-Tenant-Id": tenant_id},
             }
             for job_id in data.outputs.job_id_of_batch_execute
         ]
-        client = get_client_by_username(parent_data.inputs.executor)
-        tenant_id = parent_data.inputs.tenant_id
+        client = get_client_by_username(parent_data.inputs.executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         batch_result_list = batch_execute_func(
             client.api.get_job_instance_status,
             params_list,
             interval_enabled=True,
-            headers={"X-Bk-Tenant-Id": tenant_id},
         )
 
         self.logger.info("批量请求get_job_instance_log 结果为:{}".format(batch_result_list))
@@ -744,7 +741,6 @@ class Jobv3Service(Service):
         tenant_id = parent_data.inputs.tenant_id
         # 如果打开了ip分组，失败的情况也需要进行ip分组
         if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
-
             if not job_success:
                 data.set_outputs(
                     "ex_data",
@@ -877,24 +873,26 @@ class Jobv3ScheduleService(Jobv3Service):
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         else:
             data.outputs.ex_data = ""
+        tenant_id = parent_data.inputs.tenant_id
 
         params_list = [
             {
-                "bk_scope_type": self.biz_scope_type,
-                "bk_scope_id": str(data.inputs.biz_cc_id),
-                "bk_biz_id": data.inputs.biz_cc_id,
-                "job_instance_id": job_id,
+                "data": {
+                    "bk_scope_type": self.biz_scope_type,
+                    "bk_scope_id": str(data.inputs.biz_cc_id),
+                    "bk_biz_id": data.inputs.biz_cc_id,
+                    "job_instance_id": job_id,
+                },
+                "headers": {"X-Bk-Tenant-Id": tenant_id},
             }
             for job_id in data.outputs.job_id_of_batch_execute
         ]
-        client = get_client_by_username(parent_data.inputs.executor)
-        tenant_id = parent_data.inputs.tenant_id
+        client = get_client_by_username(parent_data.inputs.executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         batch_result_list = batch_execute_func(
             client.api.get_job_instance_status,
             params_list,
             interval_enabled=True,
-            headers={"X-Bk-Tenant-Id": tenant_id},
         )
 
         # 重置查询 job_id

@@ -21,13 +21,13 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
-from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("节点管理(Nodeman)")
 
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
 
@@ -40,7 +40,7 @@ class NodeManAsymmetricInterceptor(BaseAsymmetricInterceptor):
         return f"{cls.PREFIX}{ciphertext}"
 
 
-def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
+def get_host_id_by_inner_ip(tenant_id, executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
     """
     根据inner_ip获取bk_host_id 对应关系dict
     """
@@ -48,13 +48,13 @@ def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, 
     if not ip_list:
         return {}
 
-    client = BKNodeManClient(username=executor)
+    client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {
         "bk_biz_id": [bk_biz_id],
         "pagesize": -1,
         "conditions": [{"key": "inner_ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
-    result = client.search_host_plugin(**kwargs)
+    result = client.api.search_host_plugin(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
     if not result["result"]:
         error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
@@ -64,20 +64,20 @@ def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, 
     return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
-def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
+def get_host_id_by_inner_ipv6(tenant_id, executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
     """
     根据inner_ip获取bk_host_id 对应关系dict, ipv6 版本
     """
     if not ip_list:
         return {}
 
-    client = BKNodeManClient(username=executor)
+    client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {
         "bk_biz_id": [bk_biz_id],
         "pagesize": -1,
         "conditions": [{"key": "ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
-    result = client.search_host_plugin(**kwargs)
+    result = client.api.search_host_plugin(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not result["result"]:
         error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
         logger.error(error)
@@ -86,12 +86,12 @@ def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int
     return {host["inner_ipv6"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
-def get_nodeman_public_key(executor, logger):
+def get_nodeman_public_key(tenant_id, executor, logger):
     """
     拉取节点管理rsa公钥
     """
-    client = BKNodeManClient(username=executor)
-    pub_key_response = client.get_rsa_public_key(executor)
+    client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
+    pub_key_response = client.api.fetch_public_keys(executor, headers={"X-Bk-Tenant-Id": tenant_id})
     if not pub_key_response["result"]:
         error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, pub_key_response)
         logger.error(error)
@@ -114,9 +114,8 @@ class NodeManBaseService(Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
-    def execute_operate(self, data, host, executor, bk_biz_id):
-
-        client = BKNodeManClient(username=executor)
+    def execute_operate(self, tenant_id, data, host, executor, bk_biz_id):
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
         nodeman_op_target = data.inputs.nodeman_plugin_operate
         op_type = nodeman_op_target.get("nodeman_op_type", "")
         plugin = nodeman_op_target.get("nodeman_plugin", "")
@@ -143,7 +142,7 @@ class NodeManBaseService(Service):
             elif "no_restart" in install_config:
                 params["plugin_params"].update({"no_restart": 1})
 
-        result = client.plugin_operate(params)
+        result = client.api.operate_plugin(params, headers={"X-Bk-Tenant-Id": tenant_id})
 
         job_is_plugin = True
         if result["result"]:
@@ -161,20 +160,24 @@ class NodeManBaseService(Service):
             return ipv6_list + ipv4_list
         return get_ip_by_regex(ip_str)
 
-    def get_host_id_list(self, ip_str, executor, bk_cloud_id, bk_biz_id):
+    def get_host_id_list(self, tenant_id, ip_str, executor, bk_cloud_id, bk_biz_id):
         # 如果开启了ipv6的逻辑，则执行
         if settings.ENABLE_IPV6:
             ipv6_list, ipv4_list, *_ = extract_ip_from_ip_str(ip_str)
-            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ipv6_list)
-            bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ipv4_list)
+            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(
+                tenant_id, executor, self.logger, bk_cloud_id, bk_biz_id, ipv6_list
+            )
+            bk_host_id_dict = get_host_id_by_inner_ip(
+                tenant_id, executor, self.logger, bk_cloud_id, bk_biz_id, ipv4_list
+            )
             return list(set(bk_host_id_dict_ipv6.values()) | set(bk_host_id_dict.values()))
 
         ip_list = get_ip_by_regex(ip_str)
-        bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
+        bk_host_id_dict = get_host_id_by_inner_ip(tenant_id, executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
         return [bk_host_id for bk_host_id in bk_host_id_dict.values()]
 
-    def parse2nodeman_ciphertext(self, data, executor, plaintext) -> str:
-        success, public_key_info = get_nodeman_public_key(executor, self.logger)
+    def parse2nodeman_ciphertext(self, tenant_id, data, executor, plaintext) -> str:
+        success, public_key_info = get_nodeman_public_key(tenant_id, executor, self.logger)
         if not success:
             data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
             raise ValueError
@@ -252,7 +255,8 @@ class NodeManBaseService(Service):
 
     def schedule(self, data, parent_data, callback_data=None):
         executor = parent_data.inputs.executor
-        client = BKNodeManClient(username=executor)
+        tenant_id = parent_data.inputs.tenant_id
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         job_id = data.get_one_of_outputs("job_id", "")
 
@@ -261,7 +265,7 @@ class NodeManBaseService(Service):
             return True
 
         job_kwargs = {"job_id": job_id}
-        job_result = client.job_details(**job_kwargs)
+        job_result = client.api.job_retrieve_job(headers={"X-Bk-Tenant-Id": tenant_id}, path_params={"pk": job_id})
 
         # 获取执行结果
         if not self.get_job_result(job_result, data, "nodeman.job_details", job_kwargs, set_output_job_id=False):
@@ -293,10 +297,11 @@ class NodeManBaseService(Service):
             error_log = "<br>{mes}</br>".format(mes=_("操作失败主机日志信息："))
             for fail_info in fail_infos:
                 log_kwargs = {
-                    "job_id": job_id,
                     "instance_id": fail_info["instance_id"],
                 }
-                result = client.get_job_log(**log_kwargs)
+                result = client.api.get_job_log(
+                    log_kwargs, headers={"X-Bk-Tenant-Id": tenant_id}, path_params={"id": job_id}
+                )
 
                 if not result["result"]:
                     result["message"] += json.dumps(result["data"], ensure_ascii=False)

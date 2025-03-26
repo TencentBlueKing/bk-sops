@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import logging
 import time
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.http import JsonResponse
 from django.urls import re_path
 from django.utils.translation import gettext_lazy as _
@@ -25,6 +24,7 @@ from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.cmdb import get_business_set_host
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import format_host_with_ipv6
 
@@ -214,8 +214,8 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         elif var["type"] == JOB_VAR_CATEGORY_IP:
             if settings.ENABLE_IPV6:
                 bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
-                # todo: 需等cc接口适配好后在传入租户信息
                 hosts = get_business_set_host(
+                    tenant_id,
                     request.user.username,
                     supplier_account_for_business(biz_cc_id),
                     host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
@@ -404,8 +404,8 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
         elif var["type"] == JOBV3_VAR_CATEGORY_IP:
             if settings.ENABLE_IPV6:
                 bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
-                # todo: 需等cc接口适配好后在传入租户信息
                 hosts = get_business_set_host(
+                    tenant_id,
                     request.user.username,
                     supplier_account_for_business(biz_cc_id),
                     host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],

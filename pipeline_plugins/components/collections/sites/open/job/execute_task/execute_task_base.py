@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 from functools import partial
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
@@ -22,6 +21,7 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 from gcloud.conf import settings
 from gcloud.utils import crypto
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP, JOBV3_VAR_CATEGORY_PASSWORD
