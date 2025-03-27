@@ -46,11 +46,14 @@ BK_SAAS_HOSTS_DICT = (
 logger.info(f"BK_SAAS_HOSTS_DICT: {BK_SAAS_HOSTS_DICT}")
 print(f"BK_SAAS_HOSTS_DICT: {BK_SAAS_HOSTS_DICT}")
 BK_SAAS_HOSTS = {}
-for item in BK_SAAS_HOSTS_DICT:
-    BK_SAAS_HOSTS.setdefault(item["key"]["bk_app_code"], {})
-    BK_SAAS_HOSTS[item["key"]["bk_app_code"]][item["key"]["module_name"] or BKSAAS_DEFAULT_MODULE_NAME] = item["value"][
-        os.getenv("BKPAAS_ENVIRONMENT", "prod")
-    ]
+try:
+    for item in BK_SAAS_HOSTS_DICT:
+        BK_SAAS_HOSTS.setdefault(item["key"]["bk_app_code"], {})
+        BK_SAAS_HOSTS[item["key"]["bk_app_code"]][item["key"]["module_name"] or BKSAAS_DEFAULT_MODULE_NAME] = item["value"][
+            os.getenv("BKPAAS_ENVIRONMENT", "prod")
+        ]
+except Exception as e:
+    print(e)
 
 
 def get_app_host(app_code):
