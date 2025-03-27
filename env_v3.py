@@ -17,6 +17,8 @@ import json
 
 from blueapps.conf.default_settings import *  # noqa
 
+from blueapps.utils.logger import logger
+
 OPEN_VER = os.getenv("OPEN_VER", "community")
 
 BK_PAAS_HOST = os.getenv("BK_PAAS2_URL", BK_URL)
@@ -30,7 +32,9 @@ BK_PAAS_DESKTOP_HOST = os.getenv(
 
 # V3 Smart
 BKPAAS_SERVICE_ADDRESSES_BKSAAS = os.getenv("BKPAAS_SERVICE_ADDRESSES_BKSAAS")
+
 print(f"BKPAAS_SERVICE_ADDRESSES_BKSAAS: {BKPAAS_SERVICE_ADDRESSES_BKSAAS}")
+logger.info(f"BKPAAS_SERVICE_ADDRESSES_BKSAAS: {BKPAAS_SERVICE_ADDRESSES_BKSAAS}")
 BKSAAS_DEFAULT_MODULE_NAME = "default"
 SOPS_CALLBACK_MODULE_NAME = "callback"
 SOPS_API_SERVER_MODULE_NAME = "api"
@@ -39,6 +43,7 @@ BK_SAAS_HOSTS_DICT = (
     if BKPAAS_SERVICE_ADDRESSES_BKSAAS
     else {}
 )
+logger.info(f"BK_SAAS_HOSTS_DICT: {BK_SAAS_HOSTS_DICT}")
 print(f"BK_SAAS_HOSTS_DICT: {BK_SAAS_HOSTS_DICT}")
 BK_SAAS_HOSTS = {}
 for item in BK_SAAS_HOSTS_DICT:
