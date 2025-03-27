@@ -243,6 +243,16 @@ class Group(OperationGroup):
         path="/api/v3/get_business_list/",
     )
 
+    # 新建凭证
+    create_credential = bind_property(
+        Operation, name="create_credential", method="POST", path="/api/v3/system/create_credential"
+    )
+
+    # 创建文件源
+    create_file_source = bind_property(
+        Operation, name="create_file_source", method="POST", path="/api/v3/system/create_file_source/"
+    )
+
 
 class Client(APIGatewayClient):
     """jobv3-cloud

@@ -22,11 +22,11 @@ from pipeline.core.flow.io import ArrayItemSchema, StringItemSchema
 from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
 from gcloud.utils.cmdb import get_notify_receivers
+from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 class NotifyService(Service):
@@ -95,7 +95,8 @@ class NotifyService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
@@ -118,7 +119,7 @@ class NotifyService(Service):
 
         code = ""
         message = ""
-        res = get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver)
+        res = get_notify_receivers(tenant_id, client, biz_cc_id, supplier_account, receiver_group, more_receiver)
 
         result, msg, receivers = res["result"], res["message"], res["data"]
 
@@ -128,7 +129,7 @@ class NotifyService(Service):
 
         for t in notify_type:
             kwargs = self._args_gen[t](self, receivers, title, content)
-            result = getattr(client.cmsi, self._send_func[t])(kwargs)
+            result = getattr(client.api, self._send_func[t])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
             if not result["result"]:
                 data.set_outputs("ex_data", result["message"])
@@ -156,9 +157,9 @@ class NotifyService(Service):
         return {"receiver__username": receivers, "content": "%s\n%s" % (title, content)}
 
     _send_func = {
-        "weixin": "send_weixin",
-        "email": "send_mail",
-        "sms": "send_sms",
+        "weixin": "v1_send_weixin",
+        "email": "v1_send_mail",
+        "sms": "v1_send_sms",
     }
 
     _args_gen = {"weixin": _weixin_args, "email": _email_args, "sms": _sms_args}

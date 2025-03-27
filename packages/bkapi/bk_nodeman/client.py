@@ -647,7 +647,7 @@ class Group(OperationGroup):
         Operation,
         name="ipchooser_host_details",
         method="POST",
-        path="/core/api/ipchooser_host/details/",
+        path="/core/system/api/ipchooser_host/details/",
     )
 
     # bkapi resource ipchooser_topo_agent_statistics

@@ -93,6 +93,7 @@ class JobRepoManager(Manager):
 
     def push_files_to_ips(
         self,
+        tenant_id,
         esb_client,
         bk_biz_id,
         file_tags,
@@ -104,7 +105,6 @@ class JobRepoManager(Manager):
         bk_scope_type="biz",
         target_server=None,
         rolling_config=None,
-        headers=None,
     ):
 
         if not all([tag["type"] == "job_repo" for tag in file_tags]):
@@ -131,7 +131,7 @@ class JobRepoManager(Manager):
         if callback_url:
             job_kwargs["callback_url"] = callback_url
 
-        job_result = esb_client.api.fast_transfer_file(job_kwargs, headers=headers)
+        job_result = esb_client.api.fast_transfer_file(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         if not job_result["result"]:
             return {

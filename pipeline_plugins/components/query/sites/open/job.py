@@ -267,11 +267,17 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 def job_get_instance_detail(request, biz_cc_id, task_id):
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    step_instance_id = request.GET.get("step_instance_id")
+    bk_cloud_id = (request.GET.get("bk_cloud_id"),)
+    ip = request.GET.get("ip")
     log_kwargs = {
         "bk_scope_type": bk_scope_type,
         "bk_scope_id": str(biz_cc_id),
         "bk_biz_id": biz_cc_id,
         "job_instance_id": task_id,
+        "step_instance_id": step_instance_id,
+        "bk_cloud_id": bk_cloud_id,
+        "ip": ip,
     }
     tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
     job_result = client.api.get_job_instance_ip_log(log_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})

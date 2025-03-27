@@ -25,11 +25,11 @@ from gcloud.core.models import StaffGroupSet
 from gcloud.core.roles import CC_V2_ROLE_MAP
 from gcloud.utils.cmdb import get_notify_receivers
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger_celery = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 bk_handle_api_error = partial(handle_api_error, __group_name__)
 
 
@@ -100,7 +100,8 @@ class NotifyService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
@@ -119,7 +120,9 @@ class NotifyService(Service):
         # 转换为cc3.0字段
         receiver_group = [CC_V2_ROLE_MAP[group] for group in receiver_groups]
 
-        result = get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver, self.logger)
+        result = get_notify_receivers(
+            tenant_id, client, biz_cc_id, supplier_account, receiver_group, more_receiver, self.logger
+        )
 
         if not result["result"]:
             data.set_outputs("ex_data", result["message"])
@@ -151,7 +154,7 @@ class NotifyService(Service):
             # 保留通知内容中的换行和空格
             if msg_type == "mail":
                 kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
-
+            # todo: cmsi租户环境暂未实现
             result = client.cmsi.send_msg(kwargs)
 
             if not result["result"]:

@@ -86,6 +86,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
         file_tags = [_file["response"]["tag"] for _file in local_files if _file["response"]["result"] is True]
 
         push_result = file_manager.push_files_to_ips(
+            tenant_id=tenant_id,
             esb_client=client,
             bk_biz_id=biz_cc_id,
             file_tags=file_tags,
@@ -94,7 +95,6 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
             account=target_account.strip(),
             callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
             target_server=target_server,
-            headers={"X-Bk-Tenant-Id": tenant_id},
         )
 
         if not push_result["result"]:

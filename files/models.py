@@ -59,7 +59,7 @@ class UploadModuleFileTag(models.Model):
 
 
 class BKJobFileCredentialManager(models.Manager):
-    def register_credential(self, bk_biz_id, esb_client):
+    def register_credential(self, bk_biz_id, esb_client, tenant_id):
         job_kwargs = {
             "bk_scope_type": "biz_set",
             "bk_scope_id": str(bk_biz_id),
@@ -69,18 +69,18 @@ class BKJobFileCredentialManager(models.Manager):
             "credential_username": env.BKREPO_USERNAME,
             "credential_password": env.BKREPO_PASSWORD,
         }
-        result = esb_client.jobv3.create_credential(job_kwargs)
+        result = esb_client.api.create_credential(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         if not result["result"]:
             return {"result": False, "data": None, "message": result["message"]}
         credential_id = result["data"]["id"]
         self.update_or_create(bk_biz_id=bk_biz_id, defaults={"credential_id": credential_id})
         return {"result": True, "data": credential_id, "message": None}
 
-    def get_or_create_credential(self, bk_biz_id, esb_client):
+    def get_or_create_credential(self, bk_biz_id, esb_client, tenant_id):
         qs = self.filter(bk_biz_id=bk_biz_id)
         if qs.exists():
             return {"result": True, "data": qs.first().credential_id, "message": None}
-        return self.register_credential(bk_biz_id, esb_client)
+        return self.register_credential(bk_biz_id, esb_client, tenant_id)
 
 
 class BKJobFileCredential(models.Model):
@@ -90,7 +90,7 @@ class BKJobFileCredential(models.Model):
 
 
 class BKJobFileSourceManager(models.Manager):
-    def register_file_source(self, bk_biz_id, credential_id, esb_client):
+    def register_file_source(self, bk_biz_id, credential_id, esb_client, tenant_id):
         job_kwargs = {
             "bk_scope_type": "biz_set",
             "bk_scope_id": str(bk_biz_id),
@@ -101,18 +101,18 @@ class BKJobFileSourceManager(models.Manager):
             "access_params": {"base_url": env.BKREPO_ENDPOINT_URL},
             "credential_id": credential_id,
         }
-        result = esb_client.jobv3.create_file_source(job_kwargs)
+        result = esb_client.api.create_file_source(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         if not result["result"]:
             return {"result": False, "data": None, "message": result["message"]}
         file_source_id = result["data"]["id"]
         self.update_or_create(bk_biz_id=bk_biz_id, defaults={"file_source_id": file_source_id})
         return {"result": True, "data": file_source_id, "message": None}
 
-    def get_or_create_file_source(self, bk_biz_id, credential_id, esb_client):
+    def get_or_create_file_source(self, bk_biz_id, credential_id, esb_client, tenant_id):
         qs = self.filter(bk_biz_id=bk_biz_id)
         if qs.exists():
             return {"result": True, "data": qs.first().file_source_id, "message": None}
-        return self.register_file_source(bk_biz_id, credential_id, esb_client)
+        return self.register_file_source(bk_biz_id, credential_id, esb_client, tenant_id)
 
 
 class BKJobFileSource(models.Model):

@@ -152,20 +152,18 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
         target_account = data.inputs.job_target_account
         params_list = [
             {
-                "data": {
-                    "esb_client": client,
-                    "bk_biz_id": biz_cc_id,
-                    "file_tags": [
-                        _file["response"]["tag"]
-                        for _file in push_files_info["file_info"]
-                        if _file["response"]["result"] is True
-                    ],
-                    "target_path": push_files_info["target_path"].strip(),
-                    "ips": None,
-                    "account": target_account.strip(),
-                    "target_server": target_server,
-                },
-                "headers": {"X-Bk-Tenant-Id": tenant_id},
+                "tenant_id": tenant_id,
+                "esb_client": client,
+                "bk_biz_id": biz_cc_id,
+                "file_tags": [
+                    _file["response"]["tag"]
+                    for _file in push_files_info["file_info"]
+                    if _file["response"]["result"] is True
+                ],
+                "target_path": push_files_info["target_path"].strip(),
+                "ips": None,
+                "account": target_account.strip(),
+                "target_server": target_server,
             }
             for push_files_info in local_files_and_target_path
         ]
