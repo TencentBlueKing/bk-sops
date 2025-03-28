@@ -265,6 +265,15 @@ class Group(OperationGroup):
         path="/api/v3/host/lock",
     )
 
+    # search_host_lock
+    # 查询主机锁
+    search_host_lock = bind_property(
+        Operation,
+        name="search_host_lock",
+        method="POST",
+        path="/api/v3/host/lock/search",
+    )
+
     # transfer_host_module
     # 业务内主机转移模块
     transfer_host_module = bind_property(
@@ -326,6 +335,15 @@ class Group(OperationGroup):
         name="batch_update_host",
         method="PUT",
         path="/api/v3/hosts/property/batch",
+    )
+
+    # search_cloud_area
+    # 查询管控区域
+    search_cloud_area = bind_property(
+        Operation,
+        name="search_cloud_area",
+        method="POST",
+        path="/api/v3/findmany/cloudarea",
     )
 
 

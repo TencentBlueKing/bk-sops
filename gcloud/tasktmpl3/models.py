@@ -379,7 +379,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         # 获取全部业务对应维度信息
         total = len(proj_dimension_id_list)
         groups = []
-        proj_attr_info = get_business_attrinfo(proj_dimension_id_list)
+        proj_attr_info = get_business_attrinfo(tasktmpl.project.tenant_id, proj_dimension_id_list)
         for dimension in proj_dimension_id_list:
             result = {}
             # 对应统计维度cmdb总数

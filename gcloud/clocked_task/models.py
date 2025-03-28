@@ -152,7 +152,7 @@ class ClockedTask(models.Model):
         receivers = [self.creator]
         proj = Project.objects.get(id=self.project_id)
         if proj.from_cmdb:
-            cc_group_members = get_business_group_members(proj.bk_biz_id, receiver_group)
+            cc_group_members = get_business_group_members(proj.tenant_id, proj.bk_biz_id, receiver_group)
             receivers.extend(cc_group_members)
 
         members = list(

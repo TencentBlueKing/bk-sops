@@ -297,14 +297,14 @@ class IPPickerHandler:
             return host_info_result
         return {"result": True, "data": host_info_result["data"], "message": ""}
 
-    def group_picker_handler(self, tenant_id, inputted_group):
+    def group_picker_handler(self, inputted_group):
         """
         动态分组选择情况
         :params inputted_group: 动态分组信息列表, list
         """
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in inputted_group]
         try:
-            existing_dynamic_groups = get_dynamic_group_list(tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account)
+            existing_dynamic_groups = get_dynamic_group_list(self.tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account)
             existing_dynamic_group_ids = set([dynamic_group["id"] for dynamic_group in existing_dynamic_groups])
             dynamic_group_ids = set(dynamic_group_ids) & existing_dynamic_group_ids
         except Exception as e:
@@ -313,7 +313,7 @@ class IPPickerHandler:
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
             success, result = cmdb.get_dynamic_group_host_list(
-                tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id
+                self.tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id
             )
             if not success:
                 return {
