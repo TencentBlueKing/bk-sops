@@ -157,6 +157,6 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_group_id = self.value
         set_field = get_set_property(tenant_id, operator)
-        set_module_info = cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field)
+        set_module_info = cc_execute_dynamic_group(tenant_id, operator, bk_biz_id, bk_group_id, set_field)
 
         return SetGroupInfo(set_module_info, set_field)

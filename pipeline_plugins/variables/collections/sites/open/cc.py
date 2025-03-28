@@ -383,9 +383,9 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
             "bk_cpu_module",
         ]
         username = self.pipeline_data["executor"]
+        tenant_id = self.pipeline_data["tenant_id"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
-        tenant_id = project.tenant_id
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
         bk_supplier_account = supplier_account_for_project(project_id)
 
