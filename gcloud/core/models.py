@@ -367,19 +367,13 @@ class ProjectConfigManager(models.Manager):
         :param executor: 当前任务执行者
         :type executor: str
         """
-        qs = self.filter(project_id=project_id).values("executor_proxy", "executor_proxy_exempts")
-        if not qs.exists():
+        qs = self.filter(project_id=project_id).values("executor_proxy", "executor_proxy_exempts").first()
+        if not qs:
             return executor
-
-        executor_proxy = qs[0]["executor_proxy"].strip()
-        executor_proxy_exempts = set(qs[0]["executor_proxy_exempts"].split(","))
-
-        # 没有设置执行代理人，使用原执行人
-        if not executor_proxy:
-            return executor
-
-        # 当前执行人在代理豁免人名单中，使用原执行人
-        if executor in executor_proxy_exempts:
+        executor_proxy = qs["executor_proxy"].strip()
+        executor_proxy_exempts = set(qs["executor_proxy_exempts"].split(","))
+        # 没有设置执行代理人，使用原执行人、当前执行人在代理豁免人名单中，使用原执行人
+        if not executor_proxy or executor in executor_proxy_exempts:
             return executor
 
         return executor_proxy
