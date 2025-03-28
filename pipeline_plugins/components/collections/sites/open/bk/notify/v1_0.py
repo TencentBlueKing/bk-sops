@@ -121,7 +121,7 @@ class NotifyService(Service):
         receiver_group = [CC_V2_ROLE_MAP[group] for group in receiver_groups]
 
         result = get_notify_receivers(
-            tenant_id, client, biz_cc_id, supplier_account, receiver_group, more_receiver, self.logger
+            tenant_id, executor, biz_cc_id, supplier_account, receiver_group, more_receiver, self.logger
         )
 
         if not result["result"]:
@@ -154,8 +154,7 @@ class NotifyService(Service):
             # 保留通知内容中的换行和空格
             if msg_type == "mail":
                 kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
-            # todo: cmsi租户环境暂未实现
-            result = client.cmsi.send_msg(kwargs)
+            result = client.cmsi.send_msg(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
             if not result["result"]:
                 message = bk_handle_api_error("cmsi.send_msg", kwargs, result)

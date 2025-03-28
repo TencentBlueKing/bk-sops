@@ -43,9 +43,17 @@ class Group(OperationGroup):
         path="/v1/send_weixin/",
     )
 
+    # 通用消息发送接口
+    send_msg = bind_property(
+        Operation,
+        name="send_msg",
+        method="POST",
+        path="/v1/send_msg/",
+    )
+
 
 class Client(APIGatewayClient):
-    """Bkapi bk_nodeman client"""
+    """Bkapi bk_cmsi client"""
 
     _api_name = "bk-cmsi"
 

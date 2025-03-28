@@ -265,7 +265,7 @@ class NodeManBaseService(Service):
             return True
 
         job_kwargs = {"job_id": job_id}
-        job_result = client.api.job_retrieve_job(headers={"X-Bk-Tenant-Id": tenant_id}, path_params={"pk": job_id})
+        job_result = client.api.job_details(headers={"X-Bk-Tenant-Id": tenant_id}, path_params={"id": job_id})
 
         # 获取执行结果
         if not self.get_job_result(job_result, data, "nodeman.job_details", job_kwargs, set_output_job_id=False):
