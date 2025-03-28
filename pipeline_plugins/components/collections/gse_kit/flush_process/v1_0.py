@@ -17,9 +17,9 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 
-from api import BKGseKitClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_gsekit.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -34,10 +34,13 @@ class GsekitFlushProcessService(Service):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
-        client = BKGseKitClient(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         self.logger.info("gsekit bk_biz_id {bk_biz_id} is flushing...".format(bk_biz_id=bk_biz_id))
-        flush_result = client.flush_process(bk_biz_id)
+        flush_result = client.api.flush_process(
+            bk_biz_id, headers={"X-Bk-Tenant-Id": tenant_id}, path_params={"bk_biz_id": bk_biz_id}
+        )
         if not flush_result["result"]:
             err_message = handle_api_error("gsekit", "gsekit.flush_process", bk_biz_id, flush_result)
             data.set_outputs("ex_data", err_message)

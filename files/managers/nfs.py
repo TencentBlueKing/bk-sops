@@ -12,14 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 
 import os
-import uuid
 import socket
+import uuid
 
 from django.core.files.storage import FileSystemStorage
 
-from .base import Manager
-from ..exceptions import InvalidOperationError
 from ..env import BKAPP_FILE_MGR_SOURCE_ACCOUNT
+from ..exceptions import InvalidOperationError
+from .base import Manager
 
 
 class HostNFSManager(Manager):
@@ -54,6 +54,7 @@ class HostNFSManager(Manager):
 
     def push_files_to_ips(
         self,
+        tenant_id,
         esb_client,
         bk_biz_id,
         file_tags,
@@ -108,7 +109,7 @@ class HostNFSManager(Manager):
         if callback_url:
             job_kwargs["callback_url"] = callback_url
 
-        job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
+        job_result = esb_client.api.fast_transfer_file(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         if not job_result["result"]:
             return {

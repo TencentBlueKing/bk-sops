@@ -49,6 +49,7 @@ class AllBizJobExecuteJobPlanService(BaseAllBizJobExecuteJobPlanService):
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
+            parent_data.get_one_of_inputs("tenant_id"),
             data.outputs.client,
             self.logger,
             job_instance_id,

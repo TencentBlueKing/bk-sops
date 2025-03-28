@@ -73,10 +73,10 @@ from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.utils import extract_nodes_by_statuses, fetch_node_id__auto_retry_info_map
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.throttle import check_task_operation_throttle, get_task_operation_frequence
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_web.preview import preview_template_tree
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 @require_GET
@@ -260,15 +260,22 @@ def detail(request, project_id):
 def get_job_instance_log(request, biz_cc_id):
     job_instance_id = request.GET["job_instance_id"]
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else "default"
+    step_instance_id = request.GET.get("step_instance_id")
+    bk_cloud_id = (request.GET.get("bk_cloud_id"),)
+    ip = request.GET.get("ip")
     log_kwargs = {
         "bk_scope_type": bk_scope_type,
         "bk_scope_id": str(biz_cc_id),
         "bk_biz_id": biz_cc_id,
         "job_instance_id": job_instance_id,
+        "step_instance_id": step_instance_id,
+        "bk_cloud_id": bk_cloud_id,
+        "ip": ip,
     }
 
-    client = get_client_by_user(request.user.username)
-    job_result = client.job.get_job_instance_log(log_kwargs)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    job_result = client.api.get_job_instance_ip_log(log_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
     if not job_result["result"]:
         message = _(

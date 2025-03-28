@@ -22,10 +22,9 @@ from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -77,6 +76,7 @@ class JobCronTaskService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
         job_cron_job_id = data.get_one_of_inputs("job_cron_job_id")
         job_cron_name = data.get_one_of_inputs("job_cron_name")
@@ -89,14 +89,14 @@ class JobCronTaskService(Service):
             "name": job_cron_name,
             "expression": job_cron_expression,
         }
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         # 新建作业
-        job_save_result = client.jobv3.save_cron(job_kwargs)
+        job_save_result = client.api.save_cron(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_save_result, kwargs=job_kwargs))
         if not job_save_result["result"]:
             message = job_handle_api_error("jobv3.save_cron", job_kwargs, job_save_result)
@@ -116,7 +116,9 @@ class JobCronTaskService(Service):
                 "status": 1,
                 "id": job_save_result["data"]["id"],
             }
-            job_update_result = client.jobv3.update_cron_status(job_update_cron_kwargs)
+            job_update_result = client.api.update_cron_status(
+                job_update_cron_kwargs, headers={"X-Bk-Tenant-Id": tenant_id}
+            )
             if job_update_result["result"]:
                 data.outputs.status = _("启动")
             else:

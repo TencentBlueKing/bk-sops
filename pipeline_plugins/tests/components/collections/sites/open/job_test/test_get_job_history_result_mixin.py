@@ -12,22 +12,21 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import mock
 
+import mock
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.core.data.base import DataObject
 
 from pipeline_plugins.components.collections.sites.open.job.base import GetJobHistoryResultMixin
 
-TEST_INPUTS = {"job_success_id": 12345, "biz_cc_id": 11111, "executor": "executor"}
+TEST_INPUTS = {"job_success_id": 12345, "biz_cc_id": 11111, "executor": "executor", "tenant_id": "system"}
 TEST_DATA = DataObject(TEST_INPUTS)
 TEST_PARENT_DATA = DataObject(TEST_INPUTS)
 
 logger = logging.getLogger("component")
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.base.get_job_instance_status"
 GET_JOB_STATUS_RETURN = {
     "result": True,
@@ -109,9 +108,9 @@ EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
 class MockClient(object):
     def __init__(self):
         self.set_bk_api_ver = MagicMock()
-        self.jobv3 = MagicMock()
-        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=EXECUTE_SUCCESS_GET_IP_LOG_RETURN)
-        self.jobv3.get_job_instance_status = MagicMock(return_value=GET_JOB_STATUS_RETURN)
+        self.api = MagicMock()
+        self.api.get_job_instance_ip_log = MagicMock(return_value=EXECUTE_SUCCESS_GET_IP_LOG_RETURN)
+        self.api.get_job_instance_status = MagicMock(return_value=GET_JOB_STATUS_RETURN)
 
 
 class TestGetJobHistoryResultMixin(TestCase):

@@ -47,13 +47,13 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
             ),
         ]
 
-    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id):
+    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id, tenant_id):
         clean_result, target_server = self.get_target_server_hybrid(
-            executor, biz_cc_id, data, target_ip_list, self.logger
+            tenant_id, executor, biz_cc_id, data, target_ip_list, self.logger
         )
         return clean_result, target_server
 
-    def get_params_list(self, client, data, target_server, local_files_and_target_path):
+    def get_params_list(self, tenant_id, client, data, target_server, local_files_and_target_path):
         biz_cc_id = data.inputs.biz_cc_id
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
@@ -69,6 +69,7 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
         target_account = data.inputs.job_target_account.strip()
         params_list = [
             {
+                "tenant_id": tenant_id,
                 "esb_client": client,
                 "bk_biz_id": biz_cc_id,
                 "file_tags": [

@@ -44,33 +44,37 @@ class AllBizJobExecuteJobPlanComponentTest(TestCase, ComponentTestMixin):
             # FAIL
             EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE,
             EXECUTE_JOB_PLAN_CALL_FAIL_CASE,
-            # INVALID_IP_FAIL_CASE,
+            INVALID_IP_FAIL_CASE,
             INVALID_CALLBACK_DATA_CASE,
             GET_GLOBAL_VAR_FAIL_CASE,
         ]
 
 
-class MockClient(object):
+class JobMockClient(object):
     def __init__(
         self,
         execute_job_plan_return=None,
         get_job_instance_global_var_value_return=None,
         get_job_instance_ip_log_return=None,
         get_job_instance_status_return=None,
-        list_business_set_return=None,
     ):
-        self.jobv3 = MagicMock()
-        self.jobv3.execute_job_plan = MagicMock(return_value=execute_job_plan_return)
-        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
-        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
-        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status_return)
-        self.cc = MagicMock()
-        self.cc.list_business_set = MagicMock(return_value=list_business_set_return)
+        self.api = MagicMock()
+        self.api.execute_job_plan = MagicMock(return_value=execute_job_plan_return)
+        self.api.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.api.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
+        self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status_return)
+
+
+class CcMockClient(object):
+    def __init__(self, list_business_set_return=None):
+        self.api = MagicMock()
+        self.api.list_business_set = MagicMock(return_value=list_business_set_return)
 
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service."
+    "get_client_by_username"
 )
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service.get_node_callback_url"
@@ -81,7 +85,7 @@ JOB_HANDLE_API_ERROR = (
 GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service.get_job_instance_url"
 )
-UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
+UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
 
 # success result
 EXECUTE_JOB_PLAN_SUCCESS_RESULT = {
@@ -100,32 +104,28 @@ EXECUTE_JOB_PLAN_FAIL_RESULT = {
     "request_id": "1e4825b1f0354e509d2bc25eb172f8dc",
 }
 # mock clients
-INVALID_IP_CLIENT = MockClient(list_business_set_return={"result": True, "data": {"info": []}})
-EXECUTE_JOB_PLAN_SUCCESS_CLIENT = MockClient(
+INVALID_IP_CLIENT = CcMockClient(list_business_set_return={"result": True, "data": {"info": []}})
+INVALID_IP_CLIENT_BIZ_SET = CcMockClient(list_business_set_return={"result": True, "data": {"info": ["biz_set"]}})
+EXECUTE_JOB_PLAN_SUCCESS_CLIENT = JobMockClient(
     execute_job_plan_return=EXECUTE_JOB_PLAN_SUCCESS_RESULT,
     get_job_instance_global_var_value_return={},
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
-EXECUTE_JOB_PLAN_FAIL_CLIENT = MockClient(
+EXECUTE_JOB_PLAN_FAIL_CLIENT = JobMockClient(
     execute_job_plan_return=EXECUTE_JOB_PLAN_FAIL_RESULT,
     get_job_instance_global_var_value_return={},
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
-INVALID_CALLBACK_DATA_CLIENT = MockClient(
+INVALID_CALLBACK_DATA_CLIENT = JobMockClient(
     execute_job_plan_return=EXECUTE_JOB_PLAN_SUCCESS_RESULT,
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
-GET_GLOBAL_VAR_CALL_FAIL_CLIENT = MockClient(
+GET_GLOBAL_VAR_CALL_FAIL_CLIENT = JobMockClient(
     execute_job_plan_return=EXECUTE_JOB_PLAN_SUCCESS_RESULT,
     get_job_instance_global_var_value_return={"result": False, "message": "global var message token"},
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
-EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT = MockClient(
+EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT = JobMockClient(
     execute_job_plan_return=EXECUTE_JOB_PLAN_SUCCESS_RESULT,
     get_job_instance_global_var_value_return={"result": False, "message": "global var message token"},
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
-EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT = MockClient(
+EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT = JobMockClient(
     execute_job_plan_return=EXECUTE_JOB_PLAN_SUCCESS_RESULT,
     get_job_instance_global_var_value_return={
         "message": "",
@@ -220,9 +220,8 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT = MockClient(
         "result": True,
         "request_id": "3e6b4764ff9d40eaa2797428a0de6b8f",
     },
-    list_business_set_return={"result": True, "data": {"info": []}},
 )
-EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT = MockClient(
+EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT = JobMockClient(
     execute_job_plan_return=EXECUTE_JOB_PLAN_SUCCESS_RESULT,
     get_job_instance_global_var_value_return={
         "message": "",
@@ -325,7 +324,6 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT = MockClient(
         "result": True,
         "request_id": "3e6b4764ff9d40eaa2797428a0de6b8f",
     },
-    list_business_set_return={"result": True, "data": {"info": ["biz_set"]}},
 )
 
 # mock CALLBACK_URL
@@ -345,7 +343,7 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
             ],
         }
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 2},
+    parent_data={"executor": "executor_token", "biz_cc_id": 2, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -372,7 +370,7 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT.jobv3.execute_job_plan,
+            func=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -385,15 +383,21 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT.jobv3.get_job_instance_global_var_value,
-            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "2", "bk_biz_id": 2, "job_instance_id": 10000})],
+            func=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT.api.get_job_instance_global_var_value,
+            calls=[
+                Call(
+                    {"bk_scope_type": "biz", "bk_scope_id": "2", "bk_biz_id": 2, "job_instance_id": 10000},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
@@ -419,8 +423,10 @@ INVALID_IP_FAIL_CASE = ComponentTestCase(
             "ip_is_legal": True,
         }
     },
-    parent_data={"executor": "executor", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 0:192.168.20.256 是否合法"}),
+    parent_data={"executor": "executor", "biz_cc_id": 1, "tenant_id": "system"},
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 0:192.168.20.256 是否合法"}
+    ),
     schedule_assertion=None,
     execute_call_assertion=[],
     patchers=[Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT)],
@@ -438,7 +444,7 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
             ],
         }
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 2},
+    parent_data={"executor": "executor_token", "biz_cc_id": 2, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -469,7 +475,7 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT.jobv3.execute_job_plan,
+            func=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -482,7 +488,8 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -507,7 +514,7 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
             ],
         }
     },
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"executor": "executor", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -535,7 +542,7 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=EXECUTE_JOB_PLAN_FAIL_CLIENT.jobv3.execute_job_plan,
+            func=EXECUTE_JOB_PLAN_FAIL_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -548,7 +555,8 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -572,7 +580,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             ],
         }
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -597,7 +605,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INVALID_CALLBACK_DATA_CLIENT.jobv3.execute_job_plan,
+            func=INVALID_CALLBACK_DATA_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -610,7 +618,8 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -636,7 +645,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             ],
         }
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 2},
+    parent_data={"executor": "executor_token", "biz_cc_id": 2, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -669,7 +678,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.jobv3.execute_job_plan,
+            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -682,15 +691,21 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.jobv3.get_job_instance_global_var_value,
-            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "2", "bk_biz_id": 2, "job_instance_id": 10000})],
+            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.api.get_job_instance_global_var_value,
+            calls=[
+                Call(
+                    {"bk_scope_type": "biz", "bk_scope_id": "2", "bk_biz_id": 2, "job_instance_id": 10000},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
@@ -742,7 +757,7 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
             ],
         }
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 2},
+    parent_data={"executor": "executor_token", "biz_cc_id": 2, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -769,7 +784,7 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT.jobv3.execute_job_plan,
+            func=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -786,20 +801,26 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}},
                         ],
                         "callback_url": "callback_url",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT.jobv3.get_job_instance_global_var_value,
-            calls=[Call({"bk_scope_type": "biz_set", "bk_scope_id": "2", "bk_biz_id": 2, "job_instance_id": 10000})],
+            func=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT.api.get_job_instance_global_var_value,
+            calls=[
+                Call(
+                    {"bk_scope_type": "biz_set", "bk_scope_id": "2", "bk_biz_id": 2, "job_instance_id": 10000},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
-        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
+        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],

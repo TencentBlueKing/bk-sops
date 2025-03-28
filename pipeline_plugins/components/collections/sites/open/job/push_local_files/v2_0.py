@@ -24,8 +24,6 @@ from pipeline_plugins.components.collections.sites.open.job.push_local_files.bas
 
 __group_name__ = _("作业平台(JOB)")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 

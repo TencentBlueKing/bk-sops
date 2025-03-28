@@ -21,13 +21,12 @@ from files.factory import ManagerFactory
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -45,6 +44,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.inputs.tenant_id
         biz_cc_id = data.inputs.biz_cc_id
         local_files = data.inputs.job_local_files
         target_ip_list = data.inputs.job_target_ip_list
@@ -65,11 +65,18 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
             data.outputs.ex_data = err_msg.format(file_manager_type, e)
             return False
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         # 获取 IP
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, target_ip_list, self.logger, False, is_across=across_biz
+            tenant_id,
+            executor,
+            biz_cc_id,
+            data,
+            target_ip_list,
+            self.logger,
+            False,
+            is_across=across_biz,
         )
 
         if not clean_result:
@@ -79,6 +86,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
         file_tags = [_file["response"]["tag"] for _file in local_files if _file["response"]["result"] is True]
 
         push_result = file_manager.push_files_to_ips(
+            tenant_id=tenant_id,
             esb_client=client,
             bk_biz_id=biz_cc_id,
             file_tags=file_tags,

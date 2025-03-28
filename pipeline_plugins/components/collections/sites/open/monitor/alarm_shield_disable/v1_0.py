@@ -18,9 +18,9 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
-from api import BKMonitorClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_monitor.shortcuts import get_client_by_username
 
 __group_name__ = _("监控平台(Monitor)")
 
@@ -44,10 +44,10 @@ class MonitorAlarmShieldDisableService(Service):
 
         executor = parent_data.get_one_of_inputs("executor")
         shield_id = data.get_one_of_inputs("bk_alarm_shield_id_input")
-
-        client = BKMonitorClient(username=executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
         request_body = {"id": shield_id}
-        response = client.disable_shield(**request_body)
+        response = client.api.disable_shield(request_body, headers={"X-Bk-Tenant-Id": tenant_id})
         if not response["result"]:
             message = monitor_handle_api_error("monitor.disable_shield", request_body, response)
             self.logger.error(message)

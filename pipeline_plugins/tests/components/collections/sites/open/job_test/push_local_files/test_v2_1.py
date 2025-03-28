@@ -11,18 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_1 import JobPushLocalFilesComponent
 
 
@@ -43,9 +42,9 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service.get_client_by_username"
 )
-BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 
 ENVIRONMENT_VAR_GET = (
@@ -79,7 +78,7 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
                 "job_rolling_mode": "1",
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False, outputs={"ex_data": "File Manager configuration error, contact administrator please."}
         ),
@@ -106,7 +105,7 @@ def FILE_MANAGER_TYPE_ERR_CASE():
                 "job_rolling_mode": "1",
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False,
             outputs={
@@ -162,7 +161,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                 ]
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False,
             outputs={
@@ -195,6 +194,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                         rolling_config={"expression": "10%", "mode": "1"},
                         account="job_target_account",
+                        headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
@@ -246,7 +246,7 @@ def SCHEDULE_FAILURE_CASE():
                 ]
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -276,7 +276,7 @@ def SCHEDULE_FAILURE_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
@@ -293,6 +293,7 @@ def SCHEDULE_FAILURE_CASE():
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                         rolling_config={"expression": "10%", "mode": "1"},
                         account="job_target_account",
+                        headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
@@ -321,7 +322,7 @@ def SUCCESS_MULTI_CASE():
     SUCCESS_ESB_CLIENT = MagicMock()
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
-    SUCCESS_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+    SUCCESS_ESB_CLIENT.api.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
     return ComponentTestCase(
         name="push_local_files multi v2 success case",
         inputs={
@@ -371,7 +372,7 @@ def SUCCESS_MULTI_CASE():
                 ]
             },
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -400,7 +401,7 @@ def SUCCESS_MULTI_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -417,6 +418,7 @@ def SUCCESS_MULTI_CASE():
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                         rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path1",
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -427,6 +429,7 @@ def SUCCESS_MULTI_CASE():
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                         rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path2",
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -437,6 +440,7 @@ def SUCCESS_MULTI_CASE():
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                         rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path3",
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
             ),
@@ -466,7 +470,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
     SUCCESS_ESB_CLIENT = MagicMock()
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
-    SUCCESS_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+    SUCCESS_ESB_CLIENT.api.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
     return ComponentTestCase(
         name="push_local_files multi v2 with timeout parameter success case",
         inputs={
@@ -517,7 +521,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             },
             "job_timeout": "1000",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -546,7 +550,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -564,6 +568,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path1",
                         timeout=1000,
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -575,6 +580,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path2",
                         timeout=1000,
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
                         account="job_target_account",
@@ -586,6 +592,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path3",
                         timeout=1000,
+                        headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
             ),

@@ -11,17 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.job.fetch_task_log.v1_0 import JobFetchTaskLogComponent
 
 
@@ -39,13 +38,13 @@ class JobFetchTaskLogComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, get_job_instance_ip_log_return=None, get_job_instance_status=None):
-        self.jobv3 = MagicMock()
-        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
-        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
+        self.api = MagicMock()
+        self.api.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
+        self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.fetch_task_log.v1_0.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.fetch_task_log.v1_0.get_client_by_username"
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
 EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
     "result": True,
@@ -128,13 +127,16 @@ FETCH_TASK_LOG_CLIENT = MockClient(
 FETCH_TASK_LOG_SUCCESS_CASE = ComponentTestCase(
     name="fetch task log success case",
     inputs={"biz_cc_id": 1, "job_task_id": "12345"},
-    parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
+    parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={"job_task_log": "log text\n"},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FETCH_TASK_LOG_CLIENT.jobv3.get_job_instance_ip_log, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(
+            func=FETCH_TASK_LOG_CLIENT.api.get_job_instance_ip_log,
+            calls=[Call(MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     schedule_assertion=None,
     patchers=[
@@ -146,13 +148,16 @@ FETCH_TASK_LOG_SUCCESS_CASE = ComponentTestCase(
 FETCH_TASK_LOG_WITH_TARGET_IP_SUCCESS_CASE = ComponentTestCase(
     name="fetch task log with target ip success case",
     inputs={"biz_cc_id": 1, "job_task_id": "12345", "job_target_ip": "1.1.1.1"},
-    parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
+    parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={"job_task_log": "log text\n"},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FETCH_TASK_LOG_CLIENT.jobv3.get_job_instance_ip_log, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(
+            func=FETCH_TASK_LOG_CLIENT.api.get_job_instance_ip_log,
+            calls=[Call(MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     schedule_assertion=None,
     patchers=[
@@ -164,7 +169,7 @@ FETCH_TASK_LOG_WITH_TARGET_IP_SUCCESS_CASE = ComponentTestCase(
 FETCH_TASK_LOG_WITH_NOT_EXISTING_TARGET_IP_FAIL_CASE = ComponentTestCase(
     name="fetch task log with not existing target ip fail case",
     inputs={"biz_cc_id": 1, "job_task_id": "12345", "job_target_ip": "1.1.1.3"},
-    parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
+    parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={"ex_data": "执行历史请求失败: IP:[1.1.1.3], 不属于IP列表: [1.1.1.1,1.1.1.2] | get_job_instance_log"},

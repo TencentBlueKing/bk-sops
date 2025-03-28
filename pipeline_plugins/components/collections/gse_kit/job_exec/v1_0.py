@@ -19,13 +19,12 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
 
-from api import BKGseKitClient
 from env import BK_GSE_KIT_PAGE_URL_TEMPLATE
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_gsekit.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("GSEKit(GSEKit)")
 VERSION = "1.0"
@@ -57,11 +56,15 @@ class GsekitJobExecService(Service):
         gsekit-轮询服务重启结果
         """
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        client = BKGseKitClient(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         job_task_id = data.outputs.gsekit_task_id
-
-        job_task_status = client.job_status(bk_biz_id=biz_cc_id, job_task_id=job_task_id)
+        job_task_status = client.api.job_status(
+            {"bk_biz_id": biz_cc_id, "job_task_id": job_task_id},
+            headers={"X-Bk-Tenant-Id": tenant_id},
+            path_params={"bk_biz_id": biz_cc_id},
+        )
         self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
 
         if not job_task_status["result"]:
@@ -153,6 +156,7 @@ class GsekitJobExecService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
 
         gsekit_bk_env = data.get_one_of_inputs("gsekit_bk_env")
@@ -180,13 +184,17 @@ class GsekitJobExecService(Service):
         else:
             gsekit_job_object_choices = "process"
 
-        client = BKGseKitClient(executor)
-        job_result = client.create_job(
-            bk_biz_id=biz_cc_id,
-            job_object=gsekit_job_object_choices,
-            job_action=gsekit_job_action_choices,
-            expression_scope=expression_scope_param,
-            extra_data=extra_data,
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
+        job_result = client.api.create_job(
+            {
+                "bk_biz_id": biz_cc_id,
+                "job_object": gsekit_job_object_choices,
+                "job_action": gsekit_job_action_choices,
+                "expression_scope": expression_scope_param,
+                "extra_data": extra_data,
+            },
+            headers={"X-Bk-Tenant-Id": tenant_id},
+            path_params={"bk_biz_id": biz_cc_id},
         )
         self.logger.info("start gsekit job task with param {0}".format(expression_scope_param))
         if job_result["result"]:

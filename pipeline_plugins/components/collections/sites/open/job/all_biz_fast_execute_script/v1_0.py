@@ -73,7 +73,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         ]
 
     def get_job_params(self, data, parent_data):
-
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         executor = parent_data.get_one_of_inputs("executor")
         script_param = str(data.get_one_of_inputs("job_script_param"))
@@ -82,7 +82,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         result, target_server = self.get_target_server_biz_set(
-            executor, ip_info, supplier_account, logger_handle=self.logger
+            tenant_id, executor, ip_info, supplier_account, logger_handle=self.logger
         )
         if not result:
             raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败")

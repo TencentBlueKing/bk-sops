@@ -15,7 +15,6 @@ import itertools
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
-from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils import crypto
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
@@ -26,6 +25,7 @@ from pipeline_plugins.components.collections.sites.open.nodeman.base import (
 
 __group_name__ = _("节点管理(Nodeman)")
 
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils import parse_passwd_value
 
 VERSION = "v3.0"
@@ -49,7 +49,8 @@ HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 class NodemanCreateTaskService(NodeManNewBaseService):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
-        client = BKNodeManClient(username=executor)
+        tenant_id = parent_data.inputs.tenant_id
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
         bk_biz_id = data.inputs.bk_biz_id
 
         node_type = data.inputs.nodeman_node_type
@@ -70,7 +71,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             for host in nodeman_other_hosts:
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
                 ip_str = host["nodeman_ip_str"]
-                bk_host_ids.extend(self.get_host_id_list(ip_str, executor, bk_cloud_id, bk_biz_id))
+                bk_host_ids.extend(self.get_host_id_list(tenant_id, ip_str, executor, bk_cloud_id, bk_biz_id))
             # 操作类任务（升级、卸载等）
             if job_name in OPERATE_JOB:
                 kwargs = {
@@ -115,7 +116,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                 # 处理表格中每行的key/psw
                 auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
                 try:
-                    auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                    auth_key: str = self.parse2nodeman_ciphertext(tenant_id, data, executor, auth_key)
                 except ValueError:
                     return False
 
@@ -146,11 +147,11 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                     if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT"]:
                         if settings.ENABLE_IPV6 and not use_inner_ip:
                             bk_host_id_dict = get_host_id_by_inner_ipv6(
-                                executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                                tenant_id, executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
                             )
                         else:
                             bk_host_id_dict = get_host_id_by_inner_ip(
-                                executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                                tenant_id, executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
                             )
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
@@ -186,7 +187,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             return False
 
         action = kwargs.pop("action")
-        result = getattr(client, action)(**kwargs)
+        result = client.api.action(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         return self.get_job_result(result, data, action, kwargs)
 

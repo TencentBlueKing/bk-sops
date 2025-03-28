@@ -98,6 +98,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
+            parent_data.inputs.tenant_id,
             data.outputs.client,
             self.logger,
             job_instance_id,
@@ -108,6 +109,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
 
     def get_job_params(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         script_param = str(data.get_one_of_inputs("job_script_param"))
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
@@ -118,7 +120,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
 
         # 拼装ip_list， bk_cloud_id为空则值为0
         result, target_server = self.get_target_server_biz_set(
-            executor, ip_info, supplier_account, logger_handle=self.logger
+            tenant_id, executor, ip_info, supplier_account, logger_handle=self.logger
         )
 
         if not result:

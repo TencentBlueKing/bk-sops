@@ -10,14 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 import os
 import uuid
-import logging
+
+from bkstorages.backends.bkrepo import BKRepoStorage
 
 from files import env
 from files.managers.base import Manager
-from bkstorages.backends.bkrepo import BKRepoStorage
-from files.models import BKJobFileSource, BKJobFileCredential
+from files.models import BKJobFileCredential, BKJobFileSource
 
 logger = logging.getLogger("root")
 
@@ -64,6 +65,7 @@ class BKRepoManager(Manager):
 
     def push_files_to_ips(
         self,
+        tenant_id,
         esb_client,
         bk_biz_id,
         file_tags,
@@ -81,14 +83,14 @@ class BKRepoManager(Manager):
         except BKJobFileSource.DoesNotExist:
             # 如果没有对应的文件源，则到JOB进行注册
             credential_result = BKJobFileCredential.objects.get_or_create_credential(
-                bk_biz_id=env.JOB_FILE_BIZ_ID, esb_client=esb_client
+                bk_biz_id=env.JOB_FILE_BIZ_ID, esb_client=esb_client, tenant_id=tenant_id
             )
             if not credential_result["result"]:
                 logger.error(f"[push_files_to_ips] get_or_create_credential FAILED: {credential_result['message']}")
                 return credential_result
             credential_id = credential_result["data"]
             file_source_result = BKJobFileSource.objects.get_or_create_file_source(
-                env.JOB_FILE_BIZ_ID, credential_id, esb_client
+                env.JOB_FILE_BIZ_ID, credential_id, esb_client, tenant_id
             )
             if not file_source_result["result"]:
                 logger.error(f"[push_files_to_ips] get_or_create_file_source FAILED: {file_source_result['message']}")
@@ -126,7 +128,7 @@ class BKRepoManager(Manager):
             job_kwargs["rolling_config"] = rolling_config
         if callback_url:
             job_kwargs["callback_url"] = callback_url
-        job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
+        job_result = esb_client.api.fast_transfer_file(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         if not job_result["result"]:
             return {
