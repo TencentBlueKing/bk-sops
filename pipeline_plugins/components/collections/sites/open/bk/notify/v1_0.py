@@ -169,11 +169,7 @@ class NotifyService(Service):
 
         return True
 
-    _send_func = {
-        "weixin": "v1_send_weixin",
-        "email": "v1_send_mail",
-        "sms": "v1_send_sms",
-    }
+    _send_func = {"weixin": "v1_send_weixin", "email": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
 
 
 class NotifyComponent(Component):
