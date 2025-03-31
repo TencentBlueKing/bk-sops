@@ -18,8 +18,8 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
-from api.collections.monitor import BKMonitorClient
 from gcloud.conf import settings
+from packages.bkapi.bk_monitor.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.monitor import MonitorBaseService
 
 __group_name__ = _("监控平台(Monitor)")
@@ -88,7 +88,8 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
 
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
-        client = BKMonitorClient(username=executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
         dimension_list = data.get_one_of_inputs("bk_dimension_list", [])
         dimension_select_type = data.get_one_of_inputs("bk_dimension_select_type")
         strategy = data.get_one_of_inputs("bk_alarm_shield_strategy")
@@ -111,17 +112,17 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
         )
 
         if scope_value:
-            target = self.get_ip_dimension(scope_value, bk_biz_id, executor)
+            target = self.get_ip_dimension(tenant_id, scope_value, bk_biz_id, executor)
             request_body["dimension_config"].update(target)
-        result_flag = self.send_request(request_body, data, client)
+        result_flag = self.send_request(tenant_id, request_body, data, client)
         return result_flag
 
     def get_dimension_config(self, shied_value):
         return {"id": shied_value}
 
-    def get_ip_dimension(self, scope_value, bk_biz_id, username):
+    def get_ip_dimension(self, tenant_id, scope_value, bk_biz_id, username):
         ip_dimension = super(MonitorAlarmShieldStrategyService, self).get_ip_dimension_config(
-            scope_value, bk_biz_id, username
+            tenant_id, scope_value, bk_biz_id, username
         )
         return ip_dimension
 

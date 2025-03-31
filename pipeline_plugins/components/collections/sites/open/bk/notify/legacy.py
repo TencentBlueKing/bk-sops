@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 
 
 class NotifyService(Service):
-
     def inputs_format(self):
         return [
             self.InputItem(
@@ -119,7 +118,7 @@ class NotifyService(Service):
 
         code = ""
         message = ""
-        res = get_notify_receivers(tenant_id, client, biz_cc_id, supplier_account, receiver_group, more_receiver)
+        res = get_notify_receivers(tenant_id, executor, biz_cc_id, supplier_account, receiver_group, more_receiver)
 
         result, msg, receivers = res["result"], res["message"], res["data"]
 
