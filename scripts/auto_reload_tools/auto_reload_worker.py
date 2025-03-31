@@ -16,8 +16,8 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import, unicode_literals
 
 import os
-import sys
 import subprocess
+import sys
 import threading
 import time
 
@@ -50,7 +50,6 @@ FILE_SCANNING_INTERVAL = 1
 
 
 def code_changed():
-    global _mtimes, _win
     for filename in get_files_list(STATIC_DIRS, FILE_SUFFIX):
         stat = os.stat(filename)
         mtime = stat.st_mtime
@@ -75,7 +74,9 @@ def restart_with_reloader(argv):
 
 
 def execute_from_commandline(argv):
-    base.execute_from_commandline(["{0[0]} {0[1]}".format(argv)] + argv[2:],)
+    base.execute_from_commandline(
+        ["{0[0]} {0[1]}".format(argv)] + argv[2:],
+    )
 
 
 class Command(CeleryCommand):

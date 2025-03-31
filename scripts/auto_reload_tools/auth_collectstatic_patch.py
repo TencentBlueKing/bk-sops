@@ -18,22 +18,23 @@ specific language governing permissions and limitations under the License.
 
 import os
 import sys
-from itertools import chain
 import time
-from django.utils import autoreload
+from itertools import chain
+
 from django.apps import apps
+from django.contrib.staticfiles.management.commands.collectstatic import Command
+from django.utils import autoreload
 from django.utils.autoreload import (
-    gen_filenames,
-    _error_files,
-    I18N_MODIFIED,
     FILE_MODIFIED,
-    ensure_echo_on,
-    USE_INOTIFY,
-    inotify_code_changed,
+    I18N_MODIFIED,
     RUN_RELOADER,
+    USE_INOTIFY,
+    _error_files,
+    ensure_echo_on,
+    gen_filenames,
+    inotify_code_changed,
     reset_translations,
 )
-from django.contrib.staticfiles.management.commands.collectstatic import Command
 
 from config import BASE_DIR
 from scripts.auto_reload_tools.common import get_files_list
@@ -81,7 +82,7 @@ def auto_collectstatic():
 
 
 def code_changed():
-    global _mtimes, _win
+    global _mtimes
     file_list = get_files_list(STATIC_DIRS, FILE_SUFFIX)
     for filename in chain(gen_filenames(), file_list):
         stat = os.stat(filename)
