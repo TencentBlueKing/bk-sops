@@ -19,11 +19,11 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
-from api.collections.itsm import BKItsmClient
 from gcloud.conf import settings
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils import get_node_callback_url
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -70,7 +70,8 @@ class ApproveService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = BKItsmClient(username=executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         verifier = data.get_one_of_inputs("bk_verifier")
         title = data.get_one_of_inputs("bk_approve_title")
@@ -87,7 +88,7 @@ class ApproveService(Service):
                 "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
             },
         }
-        result = client.create_ticket(**kwargs)
+        result = client.api.create_ticket(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)

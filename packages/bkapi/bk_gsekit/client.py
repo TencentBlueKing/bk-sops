@@ -13,6 +13,11 @@ class Group(OperationGroup):
     # 查询任务状态
     job_status = bind_property(Operation, name="job_status", method="GET", path="/api/{bk_biz_id}/job/status/")
 
+    # 获取配置模板列表
+    config_template_list = bind_property(
+        Operation, name="config_template_list", method="GET", path="/api/{bk_biz_id}/config_template/"
+    )
+
 
 class Client(APIGatewayClient):
     """Bkapi bk_gsekit client"""
