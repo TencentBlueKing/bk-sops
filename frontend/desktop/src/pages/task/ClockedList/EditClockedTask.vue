@@ -173,7 +173,7 @@
                     </p>
                     <div v-bkloading="{ isLoading: isLoading || schemeLoading, opacity: 1, zIndex: 100 }">
                         <NotifyTypeConfig
-                            v-if="formData.template_id"
+                            v-if="formData.template_id && !templateDataLoading"
                             :notify-type-label="$t('通知方式')"
                             :label-width="87"
                             :table-width="570"
@@ -181,6 +181,7 @@
                             :project_id="project_id"
                             :is-view-mode="true"
                             :notify-type-list="[{ text: $t('任务状态') }]"
+                            :notify-type-extra-info="notifyTypeExtraInfo"
                             :receiver-group="receiverGroup">
                         </NotifyTypeConfig>
                         <NoData v-else></NoData>
@@ -348,6 +349,7 @@
                 selectedNodes: [],
                 notifyType: [[], []],
                 receiverGroup: [],
+                notifyTypeExtraInfo: {},
                 totalPage: 1,
                 pagination: {
                     current: 1,
@@ -517,8 +519,9 @@
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
                     this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
-                    const receiverGroup = JSON.parse(notify_receivers).receiver_group
+                    const { receiver_group: receiverGroup, extra_info: extraInfo = {} } = JSON.parse(notify_receivers)
                     this.receiverGroup = receiverGroup && receiverGroup.slice(0)
+                    this.notifyTypeExtraInfo = { ...extraInfo }
                     const pipelineDate = JSON.parse(templateData.pipeline_tree)
                     this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
                     // 获取模板对应的执行方案
