@@ -53,7 +53,7 @@ class Group(OperationGroup):
 
 
 class Client(APIGatewayClient):
-    """Bkapi bk_cmsi client"""
+    """Bkapi bk-cmsi client"""
 
     _api_name = "bk-cmsi"
 
