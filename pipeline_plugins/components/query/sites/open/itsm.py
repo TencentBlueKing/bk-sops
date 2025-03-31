@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
+from django.conf import settings
 from django.urls import re_path
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, serializers
@@ -8,10 +9,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.collections.itsm import BKItsmClient
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -49,6 +50,7 @@ class ITSMNodeTransitionView(APIView):
         if "is_passed" not in request.data:
             return Response({"result": False, "message": "is_passed 该字段是必填项"})
         operator = request.user.username
+        tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else "default"
         serializer = ITSMViewRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -98,10 +100,12 @@ class ITSMNodeTransitionView(APIView):
             return Response({"result": False, "message": "该审批节点输出参数中没有itsm单据(sn)"})
 
         # 创建client
-        client = BKItsmClient(username=operator)
+        client = get_client_by_username(username=operator, stage=settings.BK_APIGW_STAGE_NAME)
 
         # 获取单据信息查询节点id
-        ticket_info_result = client.get_ticket_info(sn)
+        ticket_info_result = client.api.retrieve_ticket_info(
+            path_params={"ticket_id": sn}, headers={"X-Bk-Tenant-Id": tenant_id}
+        )
         if not ticket_info_result["result"]:
             message = handle_api_error("itsm", "get_ticket_info", request.data, ticket_info_result)
             logger.error(message)
@@ -145,7 +149,7 @@ class ITSMNodeTransitionView(APIView):
         # 构建请求参数
         kwargs = {"operator": operator, "sn": sn, "state_id": state_id, "action_type": "TRANSITION", "fields": fields}
 
-        itsm_result = client.operate_node(**kwargs)
+        itsm_result = client.api.operate_node(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         # 判断api请求结果是否成功
         if not itsm_result["result"]:

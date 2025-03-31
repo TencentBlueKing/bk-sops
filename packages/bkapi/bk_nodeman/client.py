@@ -1605,7 +1605,7 @@ class Group(OperationGroup):
 
 
 class Client(APIGatewayClient):
-    """Bkapi bk_nodeman client"""
+    """Bkapi bk-nodeman client"""
 
     _api_name = "bk-nodeman"
 

@@ -154,7 +154,7 @@ class NotifyService(Service):
             # 保留通知内容中的换行和空格
             if msg_type == "mail":
                 kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
-            result = client.cmsi.send_msg(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+            result = getattr(client.cmsi, self._send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
             if not result["result"]:
                 message = bk_handle_api_error("cmsi.send_msg", kwargs, result)
@@ -168,6 +168,12 @@ class NotifyService(Service):
             return False
 
         return True
+
+    _send_func = {
+        "weixin": "v1_send_weixin",
+        "email": "v1_send_mail",
+        "sms": "v1_send_sms",
+    }
 
 
 class NotifyComponent(Component):

@@ -255,9 +255,7 @@ class Group(OperationGroup):
 
 
 class Client(APIGatewayClient):
-    """jobv3-cloud
-    作业平台V3版本-内部上云版
-    """
+    """Bkapi bk-job client"""
 
     _api_name = "bk-job"
 
