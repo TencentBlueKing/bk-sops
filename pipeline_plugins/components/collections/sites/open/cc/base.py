@@ -617,7 +617,7 @@ class CCPluginIPMixin:
             property_filters=property_filters
         )
 
-    def get_host_list_with_cloud_id(self,tenant_id, executor, biz_cc_id, ip_str, supplier_account):
+    def get_host_list_with_cloud_id(self, tenant_id, executor, biz_cc_id, ip_str, supplier_account):
         """
         获取host_list
         @param executor: executor 执行人

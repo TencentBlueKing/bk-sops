@@ -19,7 +19,6 @@ from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
-from api.collections.nodeman import BKNodeManClient
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.utils import cmdb
@@ -111,7 +110,8 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
 
-    raw_host_info_list = cmdb.get_business_host_topo(tenant_id, request.user.username, bk_biz_id, bk_supplier_account, fields)
+    raw_host_info_list = cmdb.get_business_host_topo(tenant_id, request.user.username, bk_biz_id, bk_supplier_account,
+                                                     fields)
 
     # map cloud_area_id to cloud_area
     cloud_area_dict = {}
@@ -184,7 +184,8 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                         "headers": {"X-Bk-Tenant-Id": request.user.tenant_id},
                     } for host in host_list
                 ]
-                results = batch_execute_func(nodeman_client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True)
+                results = batch_execute_func(nodeman_client.api.ipchooser_host_details, agent_kwargs,
+                                             interval_enabled=True)
 
                 agent_data = []
                 for result in results:

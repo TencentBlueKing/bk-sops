@@ -65,7 +65,7 @@ def get_user_business_list(tenant_id, username, use_cache=True):
         client = get_client_by_username(username)
         bk_supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
         result = client.api.search_business(
-            data = {
+            data={
                 "bk_supplier_account": bk_supplier_account,
                 "condition": {"bk_data_status": {"$in": ["enable", "disabled", None]}},
             },

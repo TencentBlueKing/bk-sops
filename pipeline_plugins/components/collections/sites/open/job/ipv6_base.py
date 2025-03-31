@@ -10,10 +10,10 @@ from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_f
 
 
 class GetJobTargetServerMixin(object):
-    def get_target_server_ipv6(self, tenant_id, executor, biz_cc_id, ip_str, logger_handle, data):
+    def get_target_server_ipv6(self, executor, biz_cc_id, ip_str, logger_handle, data):
         supplier_account = supplier_account_for_business(biz_cc_id)
         logger_handle.info("[get_target_server_ipv6] start search this ip:{}".format(ip_str))
-        host_result = cc_get_host_by_innerip_with_ipv6(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
+        host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
         logger_handle.info(
             "[get_target_server_ipv6] start search this ip: {} end, result={}".format(ip_str, host_result)
         )
@@ -82,7 +82,7 @@ class GetJobTargetServerMixin(object):
         if settings.ENABLE_IPV6:
             if is_across:
                 return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle, data)
-            return self.get_target_server_ipv6(tenant_id, executor, biz_cc_id, ip_str, logger_handle, data)
+            return self.get_target_server_ipv6(executor, biz_cc_id, ip_str, logger_handle, data)
         # 获取IP
         clean_result, ip_list = get_biz_ip_from_frontend(
             ip_str,

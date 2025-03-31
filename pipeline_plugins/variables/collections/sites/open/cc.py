@@ -342,7 +342,8 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         host_ids = [host["bk_host_id"] for host in result["data"]]
         if not host_ids:
             return []
-        return get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields, host_ids)
+        return get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields,
+                                              host_ids)
 
     def get_value(self):
         """

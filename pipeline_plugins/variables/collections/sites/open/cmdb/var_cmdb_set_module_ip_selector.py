@@ -74,7 +74,8 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
             service_template_list = get_service_template_list(tenant_id, username, bk_biz_id, bk_supplier_account)
             # 如果勾选的set中有空闲机池，则会将所有空闲机module id添加进去
             service_template_list.extend(
-                get_biz_inner_module_list(tenant_id, var_ip_selector, username, bk_biz_id, bk_supplier_account, produce_method)
+                get_biz_inner_module_list(tenant_id, var_ip_selector, username, bk_biz_id, bk_supplier_account,
+                                          produce_method)
             )
 
             # 通过集群模块筛选的ip

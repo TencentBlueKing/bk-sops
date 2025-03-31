@@ -171,7 +171,8 @@ class IPPickerHandler:
     PROPERTY_FILTER_TYPES = ("set", "module", "host")
 
     def __init__(
-        self, tenant_id, selector, username, bk_biz_id, bk_supplier_account, is_manual=False, filters=None, excludes=None
+        self, tenant_id, selector, username, bk_biz_id, bk_supplier_account, is_manual=False, filters=None,
+            excludes=None
     ):
         self.tenant_id = tenant_id
         self.selector = selector
@@ -304,7 +305,8 @@ class IPPickerHandler:
         """
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in inputted_group]
         try:
-            existing_dynamic_groups = get_dynamic_group_list(self.tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account)
+            existing_dynamic_groups = get_dynamic_group_list(self.tenant_id, self.username, self.bk_biz_id,
+                                                             self.bk_supplier_account)
             existing_dynamic_group_ids = set([dynamic_group["id"] for dynamic_group in existing_dynamic_groups])
             dynamic_group_ids = set(dynamic_group_ids) & existing_dynamic_group_ids
         except Exception as e:
@@ -411,7 +413,8 @@ def get_ip_picker_result(tenant_id, username, bk_biz_id, bk_supplier_account, kw
 
         gen_kwargs = {"biz_topo_tree": ip_picker_handler.biz_topo_tree}
         request_kwargs = {"username": username, "bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
-        gen_result = IPPickerDataGenerator(tenant_id, input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id).generate()
+        gen_result = IPPickerDataGenerator(
+            tenant_id, input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id).generate()
 
         if not gen_result["result"]:
             logger.error(

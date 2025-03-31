@@ -154,7 +154,8 @@ def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fie
     )
 
 
-def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip_list=None, filter_field="bk_host_innerip"):
+def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip_list=None,
+                          filter_field="bk_host_innerip"):
     """根据主机内网 IP 过滤业务下的主机
     :param tenant_id: 租户ID
     :param username: 请求用户名
@@ -196,7 +197,8 @@ def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip
     )
 
 
-def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
+def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None,
+                           bk_cloud_id=None):
     """
     根据主机内网 IP 过滤业务下的主机, 主要查询ip_v6
     :param tenant_id: 租户ID

@@ -232,7 +232,7 @@ class Group(OperationGroup):
     # find_host_by_topo
     # 查询拓扑节点下的主机
     find_host_by_topo = bind_property(
-       Operation,
+        Operation,
         name="find_host_by_topo",
         method="POST",
         path="/api/v3/findmany/hosts/by_topo/biz/{bk_biz_id}",

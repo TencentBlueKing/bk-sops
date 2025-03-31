@@ -120,7 +120,8 @@ def cc_format_module_hosts(tenant_id, username, biz_cc_id, module_id_list, suppl
     :rtype: dict(tree) or list(ip)
     """
 
-    module_host_list = cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, supplier_account, host_fields)
+    module_host_list = cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, supplier_account,
+                                                    host_fields)
     if data_format == "tree":
         module_host_dict = {}
         for item in module_host_list:

@@ -1235,7 +1235,8 @@ class TaskFlowInstance(models.Model):
         receivers = [self.executor]
 
         if self.project.from_cmdb:
-            cc_group_members = get_business_group_members(self.project.tenant_id, self.project.bk_biz_id, receiver_group)
+            cc_group_members = get_business_group_members(
+                self.project.tenant_id, self.project.bk_biz_id, receiver_group)
             receivers.extend(cc_group_members)
 
         members = list(

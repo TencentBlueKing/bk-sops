@@ -22,7 +22,6 @@ from iam.exceptions import RawAuthFailedException
 
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 from api.utils.request import batch_request
-from gcloud.conf import settings
 from gcloud.core.utils import get_user_business_list
 from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
@@ -568,7 +567,13 @@ def list_business_set(request):
         return JsonResponse({"result": False, "data": [], "message": "\n".join(count_resp.get("message"))})
 
     count = count_resp["data"]["count"]
-    resp = batch_request(client.api.list_business_set, {}, check_iam_auth_fail=True, get_count=lambda x: count, headers=headers)
+    resp = batch_request(
+        client.api.list_business_set,
+        {},
+        check_iam_auth_fail=True,
+        get_count=lambda x: count,
+        headers=headers,
+    )
     business_set = [
         {"value": item["bk_biz_set_id"], "text": "{}({})".format(item["bk_biz_set_name"], item["bk_biz_set_id"])}
         for item in resp
