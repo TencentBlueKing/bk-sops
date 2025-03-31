@@ -751,11 +751,11 @@ class Group(OperationGroup):
 
     # bkapi resource job_retrieve_job
     # 查询任务详情
-    job_retrieve_job = bind_property(
+    job_details = bind_property(
         Operation,
         name="job_retrieve_job",
         method="POST",
-        path="/system/api/job/{pk}/details/",
+        path="/system/api/job/{id}/details/",
     )
 
     get_job_log = bind_property(
@@ -1605,7 +1605,7 @@ class Group(OperationGroup):
 
 
 class Client(APIGatewayClient):
-    """Bkapi bk_nodeman client"""
+    """Bkapi bk-nodeman client"""
 
     _api_name = "bk-nodeman"
 

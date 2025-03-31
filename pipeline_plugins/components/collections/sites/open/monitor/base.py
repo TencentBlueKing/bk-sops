@@ -35,7 +35,7 @@ class MonitorBaseService(Service):
         }
         return request_body
 
-    def get_ip_dimension_config(self, scope_value, bk_biz_id, username):
+    def get_ip_dimension_config(self, tenant_id, scope_value, bk_biz_id, username):
         ip_list = scope_value.split(",")
         if settings.ENABLE_IPV6:
             # 开启了IPV6 要同时查ipv6和ipv4
@@ -50,6 +50,7 @@ class MonitorBaseService(Service):
                     ipv4_list.append(ip)
 
             ip_v6_hosts = cmdb.get_business_host_ipv6(
+                tenant_id=tenant_id,
                 username=username,
                 bk_biz_id=bk_biz_id,
                 supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
@@ -66,6 +67,7 @@ class MonitorBaseService(Service):
                 )
 
             ip_v4_hosts = cmdb.get_business_host(
+                tenant_id=tenant_id,
                 username=username,
                 bk_biz_id=bk_biz_id,
                 supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
@@ -80,6 +82,7 @@ class MonitorBaseService(Service):
 
         else:
             hosts = cmdb.get_business_host(
+                tenant_id=tenant_id,
                 username=username,
                 bk_biz_id=bk_biz_id,
                 supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
@@ -95,8 +98,8 @@ class MonitorBaseService(Service):
 
         return {"scope_type": "ip", "target": target}
 
-    def send_request(self, request_body, data, client):
-        response = client.add_shield(**request_body)
+    def send_request(self, tenant_id, request_body, data, client):
+        response = client.api.add_shield(request_body, headers={"X-Bk-Tenant-Id": tenant_id})
         if not response["result"]:
             message = monitor_handle_api_error("monitor.create_shield", request_body, response)
             self.logger.error(message)
