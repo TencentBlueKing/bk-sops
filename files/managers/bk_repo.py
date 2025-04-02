@@ -10,14 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 import os
 import uuid
-import logging
+
+from bkstorages.backends.bkrepo import BKRepoStorage
 
 from files import env
 from files.managers.base import Manager
-from bkstorages.backends.bkrepo import BKRepoStorage
-from files.models import BKJobFileSource, BKJobFileCredential
+from files.models import BKJobFileCredential, BKJobFileSource
 
 logger = logging.getLogger("root")
 
@@ -75,6 +76,7 @@ class BKRepoManager(Manager):
         bk_scope_type="biz",
         target_server=None,
         rolling_config=None,
+        headers=None,
     ):
         try:
             file_source_id = BKJobFileSource.objects.get(bk_biz_id=env.JOB_FILE_BIZ_ID).file_source_id
@@ -126,7 +128,7 @@ class BKRepoManager(Manager):
             job_kwargs["rolling_config"] = rolling_config
         if callback_url:
             job_kwargs["callback_url"] = callback_url
-        job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
+        job_result = esb_client.api.fast_transfer_file(job_kwargs, headers=headers)
 
         if not job_result["result"]:
             return {

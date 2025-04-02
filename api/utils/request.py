@@ -26,7 +26,7 @@ logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def local_wrapper(target_func, request_params, node_id=None, node_info=None):
+def local_wrapper(target_func, request_params, node_id=None, node_info=None, headers=None, path_params=None):
     from bamboo_engine import local as bamboo_local
     from pipeline.engine.core import context as pipeline_context
 
@@ -36,7 +36,7 @@ def local_wrapper(target_func, request_params, node_id=None, node_info=None):
     if node_id:
         pipeline_context.set_node_id(node_id)
 
-    return target_func(**request_params)
+    return target_func(request_params, headers=headers, path_params=path_params)
 
 
 def batch_request(
@@ -48,6 +48,8 @@ def batch_request(
     page_param=None,
     is_page_merge=False,
     check_iam_auth_fail=False,
+    headers=None,
+    path_params=None,
 ):
     """
     并发请求接口
@@ -76,11 +78,12 @@ def batch_request(
         cur_page_param = "start"
         page_size_param = "limit"
 
-    # 请求第一次获取总数
     if is_page_merge:
-        result = func(**{cur_page_param: 0, page_size_param: 1}, **params)
+        _data = {**{cur_page_param: 0, page_size_param: 1}, **params}
+        result = func(_data, path_params=path_params, headers=headers)
     else:
-        result = func(page={cur_page_param: 0, page_size_param: 1}, **params)
+        _data = {"page": {cur_page_param: 0, page_size_param: 1}, **params}
+        result = func(_data, path_params=path_params, headers=headers)
 
     if not result["result"]:
         message = handle_api_error("[batch_request]", func.path, params, result)
@@ -107,7 +110,14 @@ def batch_request(
         else:
             request_params = {"page": {page_size_param: limit, cur_page_param: start}}
         request_params.update(params)
-        kwds = {"target_func": func, "node_id": node_id, "node_info": node_info, "request_params": request_params}
+        kwds = {
+            "target_func": func,
+            "node_id": node_id,
+            "node_info": node_info,
+            "request_params": request_params,
+            "headers": headers,
+            "path_params": path_params,
+        }
         params_and_future_list.append(
             {"params": request_params, "future": pool.apply_async(func=local_wrapper, kwds=kwds)}
         )

@@ -11,18 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_1 import (
     AllBizJobFastPushFileComponent,
 )
@@ -36,20 +35,24 @@ class AllBizJobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
         return AllBizJobFastPushFileComponent
 
 
-class MockClient(object):
-    def __init__(self, fast_push_file_return=None, get_job_instance_status_return=None, list_business_set_return=None):
-        self.jobv3 = MagicMock()
-        self.jobv3.fast_transfer_file = MagicMock(side_effect=fast_push_file_return)
-        self.jobv3.get_job_instance_status = MagicMock(side_effect=get_job_instance_status_return)
-        self.cc = MagicMock()
-        self.cc.list_business_set = MagicMock(return_value=list_business_set_return)
+class JOBMockClient(object):
+    def __init__(self, fast_push_file_return=None, get_job_instance_status_return=None):
+        self.api = MagicMock()
+        self.api.fast_transfer_file = MagicMock(side_effect=fast_push_file_return)
+        self.api.get_job_instance_status = MagicMock(side_effect=get_job_instance_status_return)
+
+
+class CcMockClient(object):
+    def __init__(self, list_business_set_return=None):
+        self.api = MagicMock()
+        self.api.list_business_set = MagicMock(return_value=list_business_set_return)
 
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.get_client_by_username"
 )
-BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 
 GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.get_job_instance_url"
@@ -58,7 +61,7 @@ GET_JOB_INSTANCE_URL = (
 JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.job_handle_api_error"
 )
-UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
+UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
 
 INPUT = {
     "all_biz_cc_id": "321456",
@@ -87,7 +90,7 @@ INPUT = {
     "job_timeout": "100",
 }
 
-FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = MockClient(
+FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = JOBMockClient(
     fast_push_file_return=[
         {
             "result": True,
@@ -107,29 +110,35 @@ FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = MockClient(
         {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
         {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
     ],
+)
+
+FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT = JOBMockClient(
+    fast_push_file_return=[
+        {
+            "result": True,
+            "code": 0,
+            "message": "success",
+            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10000},
+        },
+        {
+            "result": False,
+            "code": 1,
+            "message": "failed",
+            "data": {"job_instance_name": "API Quick Distribution File1521101427176"},
+        },
+    ],
+    get_job_instance_status_return=[
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+    ],
+)
+
+INVALID_IP_CLIENT = CcMockClient(
     list_business_set_return={"result": True, "data": {"info": []}},
 )
 
-FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT = MockClient(
-    fast_push_file_return=[
-        {
-            "result": True,
-            "code": 0,
-            "message": "success",
-            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10000},
-        },
-        {
-            "result": False,
-            "code": 1,
-            "message": "failed",
-            "data": {"job_instance_name": "API Quick Distribution File1521101427176"},
-        },
-    ],
-    get_job_instance_status_return=[
-        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
-        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
-        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
-    ],
+INVALID_IP_CLIENT_BIZ_SET = CcMockClient(
     list_business_set_return={"result": True, "data": {"info": ["biz_set"]}},
 )
 
@@ -159,6 +168,7 @@ CLL_INFO = MagicMock(
             "download_speed_limit": 100,
             "timeout": 100,
             "rolling_config": {"expression": "10%", "mode": "1"},
+            "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
             "bk_scope_type": "biz",
@@ -184,6 +194,7 @@ CLL_INFO = MagicMock(
             "download_speed_limit": 100,
             "timeout": 100,
             "rolling_config": {"expression": "10%", "mode": "1"},
+            "headers": {"X-Bk-Tenant-Id": "system"},
         },
     ]
 )
@@ -214,6 +225,7 @@ BIZ_SET_CLL_INFO = MagicMock(
             "download_speed_limit": 100,
             "timeout": 100,
             "rolling_config": {"expression": "10%", "mode": "1"},
+            "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
             "bk_scope_type": "biz_set",
@@ -239,6 +251,7 @@ BIZ_SET_CLL_INFO = MagicMock(
             "download_speed_limit": 100,
             "timeout": 100,
             "rolling_config": {"expression": "10%", "mode": "1"},
+            "headers": {"X-Bk-Tenant-Id": "system"},
         },
     ]
 )
@@ -248,7 +261,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
     return ComponentTestCase(
         name="all biz fast_push_files v1.1  call fail case",
         inputs=INPUT,
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -264,7 +277,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(
-                func=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT.jobv3.fast_transfer_file,
+                func=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT.api.fast_transfer_file,
                 calls=[Call(**CLL_INFO()), Call(**CLL_INFO())],
             ),
         ],
@@ -286,7 +299,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         patchers=[
             Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
-            Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
+            Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
             Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="job.com/api_execute/"),
@@ -298,7 +311,7 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
     return ComponentTestCase(
         name="all biz biz set fast_push_files v1.0  call fail case",
         inputs=INPUT,
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
@@ -314,7 +327,7 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(
-                func=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT.jobv3.fast_transfer_file,
+                func=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT.api.fast_transfer_file,
                 calls=[
                     Call(**BIZ_SET_CLL_INFO()),
                     Call(**BIZ_SET_CLL_INFO()),
@@ -339,7 +352,7 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         patchers=[
             Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT),
-            Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT),
+            Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT),
             Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="job.com/api_execute/"),

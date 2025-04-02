@@ -52,6 +52,7 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
         ]
 
     def get_params_list(self, data, parent_data):
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
@@ -77,7 +78,7 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
             job_account = attr["job_target_account"]
             job_target_path = attr["job_target_path"]
             result, target_server = self.get_target_server_biz_set(
-                executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
+                tenant_id, executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
             )
 
             if not result:

@@ -24,8 +24,6 @@ from .execute_task_base import JobExecuteTaskServiceBase
 
 __group_name__ = _("作业平台(JOB)")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
@@ -36,9 +34,7 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase):
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
                 type="boolean",
-                schema=BooleanItemSchema(
-                    description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")
-                ),
+                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
         ]
 
@@ -51,6 +47,5 @@ class JobExecuteTaskComponent(Component):
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
     version = "1.0"
     desc = _(
-        "在接收到用户编辑的全局变量后，v1.0版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
-        "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
+        "在接收到用户编辑的全局变量后，v1.0版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n" "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
     )

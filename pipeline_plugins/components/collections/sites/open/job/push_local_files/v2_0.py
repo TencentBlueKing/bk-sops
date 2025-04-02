@@ -24,8 +24,6 @@ from pipeline_plugins.components.collections.sites.open.job.push_local_files.bas
 
 __group_name__ = _("作业平台(JOB)")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
@@ -39,6 +37,4 @@ class JobPushLocalFilesComponent(Component):
     bound_service = JobPushLocalFilesService
     form = "%scomponents/atoms/job/job_push_local_files/v2_0.js" % settings.STATIC_URL
     version = "2.0"
-    desc = _(
-        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
-    )
+    desc = _("本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。")

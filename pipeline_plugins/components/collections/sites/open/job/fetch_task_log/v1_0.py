@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from functools import partial
 
+from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
@@ -24,8 +25,6 @@ from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -59,14 +58,15 @@ class JobFetchTaskLogService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
         job_task_id = data.get_one_of_inputs("job_task_id")
         target_ip = data.get_one_of_inputs("job_target_ip")
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
-        result = get_job_instance_log(client, self.logger, job_task_id, biz_cc_id, target_ip)
+        result = get_job_instance_log(tenant_id, client, self.logger, job_task_id, biz_cc_id, target_ip)
         if not result["result"]:
             self.logger.error(
                 f"[get_job_instance_log] error: {result['message']} with params: "

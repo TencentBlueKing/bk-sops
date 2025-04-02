@@ -14,16 +14,16 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.job.local_content_upload.v1_1 import (
     JobLocalContentUploadComponent,
 )
@@ -51,15 +51,15 @@ class MockClient(object):
         get_job_instance_global_var_value_return=None,
         get_job_instance_log_return=None,
     ):
-        self.jobv3 = MagicMock()
-        self.jobv3.push_config_file = MagicMock(return_value=push_config_file_return)
-        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
-        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_log_return)
+        self.api = MagicMock()
+        self.api.push_config_file = MagicMock(return_value=push_config_file_return)
+        self.api.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_log_return)
 
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.get_client_by_username"
 )
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.get_node_callback_url"
@@ -125,7 +125,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT = MockClient(
 )
 
 # parent_data
-PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
+PARENT_DATA = {"executor": "executor", "biz_cc_id": 1, "tenant_id": "system"}
 
 INPUTS = {
     "local_name": "1.txt",
@@ -181,10 +181,15 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True, schedule_finished=True, outputs=dict(list(SUCCESS_OUTPUTS.items())),
+        success=True,
+        schedule_finished=True,
+        outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
-        CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
+        CallAssertion(
+            func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.api.push_config_file,
+            calls=[Call(KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
@@ -206,7 +211,10 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
         callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
-        CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
+        CallAssertion(
+            func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.api.push_config_file,
+            calls=[Call(KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
@@ -223,7 +231,10 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs=MANUAL_FAIL_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
+        CallAssertion(
+            func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.api.push_config_file,
+            calls=[Call(KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT),
@@ -246,7 +257,7 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file,
+            func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.api.push_config_file,
             calls=[
                 Call(
                     {
@@ -257,7 +268,8 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
                         "file_target_path": "/tmp/bk_sops_test/",
                         "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
                         "target_server": {"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 2}]},
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
