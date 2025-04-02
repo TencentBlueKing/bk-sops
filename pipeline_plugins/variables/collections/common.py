@@ -22,7 +22,6 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable, RegisterVariableMeta, SpliceVariable
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
-from gcloud.conf import settings as gcloud_settings
 from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
 from gcloud.exceptions import ApiRequestError
@@ -31,7 +30,6 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
-get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
 
 
 class CommonPlainVariable(SpliceVariable, metaclass=RegisterVariableMeta):
@@ -347,10 +345,10 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     def get_value(self):
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and biz_cc_id of pipeline is needed")
+        tenant_id = self.pipeline_data["tenant_id"]
         operator = self.pipeline_data["executor"]
         bk_biz_id = int(self.pipeline_data["biz_cc_id"])
         supplier_account = supplier_account_for_business(bk_biz_id)
-        client = get_client_by_user(operator)
 
         # 自定义项目分组和cc 人员分组
         staff_group_id_list = [group_id for group_id in self.value if str(group_id).isdigit()]
@@ -366,7 +364,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
         staff_names = ",".join(staff_names_list_clear)
 
         # 拼接cc分组人员和自定义分组人员
-        res = get_notify_receivers(client, bk_biz_id, supplier_account, cc_staff_group, staff_names)
+        res = get_notify_receivers(tenant_id, operator, bk_biz_id, supplier_account, cc_staff_group, staff_names)
 
         if not res["result"]:
             message = f'get cc({bk_biz_id}) staff_group failed: {res["message"]}'

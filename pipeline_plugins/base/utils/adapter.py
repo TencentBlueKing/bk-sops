@@ -14,15 +14,14 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from gcloud.utils import cmdb
-from gcloud.conf import settings
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_account=0, host_fields=None):
+def cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, supplier_account=0, host_fields=None):
     """根据模块列表过滤业务下主机
 
+    :param tenant_id: 租户 ID
     :param username: 请求用户名
     :type username: str
     :param biz_cc_id: 业务 CC ID
@@ -59,7 +58,7 @@ def cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_a
     ]
     :rtype: list
     """
-    host_info_list = cmdb.get_business_host_topo(username, biz_cc_id, supplier_account, host_fields)
+    host_info_list = cmdb.get_business_host_topo(tenant_id, username, biz_cc_id, supplier_account, host_fields)
 
     # filter host
     filtered = []
@@ -72,9 +71,10 @@ def cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_a
     return filtered
 
 
-def cc_format_module_hosts(username, biz_cc_id, module_id_list, supplier_account, data_format, host_fields):
+def cc_format_module_hosts(tenant_id, username, biz_cc_id, module_id_list, supplier_account, data_format, host_fields):
     """根据指定格式返回主机列表
 
+    :param tenant_id: 租户 ID
     :param username: 请求用户名
     :type username: str
     :param biz_cc_id: 业务 CC ID
@@ -120,7 +120,8 @@ def cc_format_module_hosts(username, biz_cc_id, module_id_list, supplier_account
     :rtype: dict(tree) or list(ip)
     """
 
-    module_host_list = cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_account, host_fields)
+    module_host_list = cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, supplier_account,
+                                                    host_fields)
     if data_format == "tree":
         module_host_dict = {}
         for item in module_host_list:

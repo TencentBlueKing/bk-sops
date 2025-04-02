@@ -49,7 +49,7 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "group": [{"id": "group1", "name": "group_test", "create_user": "tester"}],
         }
         self.context = {}
-        self.pipeline_data = {"executor": "tester", "project_id": 1}
+        self.pipeline_data = {"executor": "tester", "project_id": 1, "tenant_id": "test"}
         self.supplier_account = "supplier_account_token"
         ip_result = {
             "result": True,
