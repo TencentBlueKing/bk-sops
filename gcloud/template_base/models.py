@@ -96,6 +96,14 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             raise FlowExportError(str(e))
 
         all_template_ids = set(pipeline_temp_data["template"].keys())
+        tmpl_and_pipeline_id = self.filter(pipeline_template_id__in=all_template_ids).values(
+            "id", "pipeline_template_id"
+        )
+        expired_subprocess = self.check_templates_subprocess_expired(tmpl_and_pipeline_id, check_latest=True)
+        if expired_subprocess:
+            raise FlowExportError(
+                f"template {expired_subprocess} has expired subprocess, please update it before exporting."
+            )
         additional_template_id = all_template_ids - set(pipeline_template_id_list)
         subprocess_temp_list = list(
             self.filter(pipeline_template_id__in=additional_template_id).select_related("pipeline_template").values()
@@ -276,13 +284,15 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             "code": err_code.SUCCESS.code,
         }
 
-    def check_templates_subprocess_expired(self, tmpl_and_pipeline_id):
+    def check_templates_subprocess_expired(self, tmpl_and_pipeline_id, check_latest=False):
         # fetch all template relationship in template_ids
         pipeline_tmpl_ids = [item["pipeline_template_id"] for item in tmpl_and_pipeline_id]
         subproc_infos = TemplateRelationship.objects.filter(ancestor_template_id__in=pipeline_tmpl_ids)
 
         # get all subprocess reference template's version
-        subproc_templ = [info.descendant_template_id for info in subproc_infos]
+        subproc_templ = [
+            info.descendant_template_id for info in subproc_infos if check_latest or not info.always_use_latest
+        ]
         tmpl_versions = TemplateCurrentVersion.objects.filter(template_id__in=subproc_templ)
 
         # comparison data prepare
@@ -292,7 +302,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         # compare
         subproc_expired_templ = set()
         for info in subproc_infos:
-            if info.descendant_template_id not in tmpl_version_map or info.always_use_latest:
+            if info.descendant_template_id not in tmpl_version_map:
                 continue
             if info.version != tmpl_version_map.get(info.descendant_template_id):
                 subproc_expired_templ.add(info.ancestor_template_id)
