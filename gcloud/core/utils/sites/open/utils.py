@@ -30,12 +30,13 @@ CACHE_PREFIX = __name__.replace(".", "_")
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 
 
-def get_all_business_list(use_cache=True):
+def get_all_business_list(use_cache=True, tenant_id: str = None):
     username = settings.SYSTEM_USE_API_ACCOUNT
     cache_key = "%s_get_all_business_list_%s" % (CACHE_PREFIX, username)
     data = cache.get(cache_key)
 
     if not (use_cache and data):
+        bk_supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
         client = get_client_by_username(username=username, stage=settings.BK_APIGW_STAGE_NAME)
 
         result = client.api.search_business(
@@ -58,6 +59,7 @@ def get_user_business_list(username, tenant_id, use_cache=True):
     """Get authorized business list for a exact username.
 
     :param object username: User username
+    :param str tenant_id: 租户 ID
     :param bool use_cache: (Optional)
     """
     cache_key = "%s_get_user_business_list_%s" % (CACHE_PREFIX, username)
@@ -73,7 +75,7 @@ def get_user_business_list(username, tenant_id, use_cache=True):
             headers={"X-Bk-Tenant-Id": tenant_id},
             params={"condition": {"bk_data_status": {"$in": ["enable", "disabled", None]}}},
         )
-        print(tenant_id)
+
         if result["result"]:
             data = result["data"]["info"]
             cache.set(cache_key, data, DEFAULT_CACHE_TIME_FOR_CC)
@@ -91,7 +93,8 @@ def get_user_business_detail(username, bk_biz_id, tenant_id):
     """Get authorized business list for a exact username.
 
     :param object username: User username
-    :param bool use_cache: (Optional)
+    :param str tenant_id:
+    :param int bk_biz_id:
     """
 
     # user_info = _get_user_info(username, tenant_id)

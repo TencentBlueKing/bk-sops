@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from bkapi.bk_cmdb.shortcuts import get_client_by_username
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 from gcloud.conf import settings
 from gcloud.exceptions import APIError
@@ -20,6 +20,7 @@ from gcloud.exceptions import APIError
 def has_biz_set(tenant_id, bk_scope_id: int):
     """
     判断是否存在 id 为 bk_scope_id 的业务集
+
     :param tenant_id: 租户 ID
     :param bk_scope_id: 业务集 ID
     """

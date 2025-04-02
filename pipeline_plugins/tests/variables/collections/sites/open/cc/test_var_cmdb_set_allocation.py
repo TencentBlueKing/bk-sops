@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import patch, MagicMock
+from mock import MagicMock, patch
 from django.test import TestCase
 
 from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbSetAllocation
@@ -19,6 +19,7 @@ from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbSetAlloc
 
 class VarCmdbSetAllocationTestCase(TestCase):
     def setUp(self):
+        self.tenant_id = "test"
         self.name = "name_token"
         self.value = {
             "separator": ";",
@@ -41,7 +42,7 @@ class VarCmdbSetAllocationTestCase(TestCase):
             ],
         }
         self.context = {}
-        self.pipeline_data = {}
+        self.pipeline_data = {"tenant_id": self.tenant_id}
 
     def test_get_value_with_separator(self):
         set_allocation = VarCmdbSetAllocation(self.name, self.value, self.context, self.pipeline_data)
@@ -74,7 +75,7 @@ class VarCmdbSetAllocationTestCase(TestCase):
 
     def test_self_explain__search_object_attribute_success(self):
         client = MagicMock()
-        client.cc.search_object_attribute = MagicMock(
+        client.api.search_object_attribute = MagicMock(
             return_value={
                 "result": True,
                 "message": "success",
@@ -87,11 +88,15 @@ class VarCmdbSetAllocationTestCase(TestCase):
         )
 
         with patch(
-            "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_user", MagicMock(return_value=client)
+                "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_username",
+                MagicMock(return_value=client)
         ):
-            explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1)
+            explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1, tenant_id=self.tenant_id)
 
-        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set", "bk_biz_id": 1})
+        client.api.search_object_attribute.assert_called_once_with(
+            {"bk_obj_id": "set", "bk_biz_id": 1},
+            headers={"X-Bk-Tenant-Id": self.tenant_id},
+        )
         self.assertEqual(
             explain,
             {
@@ -121,14 +126,18 @@ class VarCmdbSetAllocationTestCase(TestCase):
 
     def test_self_explain__search_object_attribute_fail(self):
         client = MagicMock()
-        client.cc.search_object_attribute = MagicMock(return_value={"result": False, "message": "fail", "data": []})
+        client.api.search_object_attribute = MagicMock(return_value={"result": False, "message": "fail", "data": []})
 
         with patch(
-            "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_user", MagicMock(return_value=client)
+                "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_username",
+                MagicMock(return_value=client)
         ):
-            explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1)
+            explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1, tenant_id=self.tenant_id)
 
-        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set", "bk_biz_id": 1})
+        client.api.search_object_attribute.assert_called_once_with(
+            {"bk_obj_id": "set", "bk_biz_id": 1},
+            headers={"X-Bk-Tenant-Id": self.tenant_id},
+        )
         self.assertEqual(
             explain,
             {

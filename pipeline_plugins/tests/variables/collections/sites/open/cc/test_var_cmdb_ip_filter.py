@@ -18,13 +18,14 @@ from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbIpFilter
 
 class VarCmdbIpSelectorTestCase(TestCase):
     def setUp(self):
+        self.tenant_id = "test"
         self.name = "name_token"
         self.value = {
             "origin_ips": "1.1.1.1\n2.2.2.2\n1:3.3.3.3\n2:4.4.4.4",
             "gse_agent_status": 1,
         }
         self.context = {}
-        self.pipeline_data = {"executor": "tester", "project_id": 1}
+        self.pipeline_data = {"executor": "tester", "project_id": 1, "tenant_id": self.tenant_id}
         self.supplier_account = "supplier_account_token"
         get_agent_status_result = {
             "result": True,
@@ -53,7 +54,7 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.Project", mock_project
         )
         self.client = patch(
-            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_nodeman_client_by_user",
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_nodeman_client_by_username",
             MagicMock(return_value=client),
         )
 
