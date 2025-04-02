@@ -93,8 +93,8 @@ def get_user_business_detail(username, bk_biz_id, tenant_id):
     """Get authorized business list for a exact username.
 
     :param object username: User username
-    :param str tenant_id:
     :param int bk_biz_id:
+    :param str tenant_id:
     """
 
     # user_info = _get_user_info(username, tenant_id)

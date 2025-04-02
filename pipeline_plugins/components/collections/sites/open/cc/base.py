@@ -305,7 +305,7 @@ def get_module_set_id(topo_data, module_id):
 
 def cc_format_prop_data(tenant_id, executor, obj_id, prop_id, language, supplier_account):
     ret = {"result": True, "data": {}}
-    client = get_client_by_username(executor)
+    client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
     if language:
         setattr(client, "language", language)
     cc_kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
@@ -438,7 +438,7 @@ def cc_list_match_node_inst_id(tenant_id, executor, biz_cc_id, supplier_account,
         }
     ]
     """
-    client = get_client_by_username(executor)
+    client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
     search_biz_inst_topo_return = client.api.search_biz_inst_topo(
         kwargs,
@@ -507,7 +507,7 @@ def cc_list_select_node_inst_id(
         logger.error(message)
         return {"result": False, "message": message}
 
-    client = get_client_by_username(executor)
+    client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}
     # 获取主线模型业务拓扑
     get_mainline_object_topo_return = client.api.get_mainline_object_topo(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
@@ -661,7 +661,7 @@ class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMet
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
 
-        client = get_client_by_username(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))

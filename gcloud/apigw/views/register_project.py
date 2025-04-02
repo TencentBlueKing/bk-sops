@@ -61,7 +61,7 @@ def register_project(request):
 
     username = settings.SYSTEM_USE_API_ACCOUNT
     supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     biz_kwargs = {
         "bk_supplier_account": supplier_account,
         "condition": {"bk_biz_id": bk_biz_id},

@@ -17,6 +17,7 @@ from django.urls import re_path
 from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
+from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_account_for_business
@@ -37,7 +38,7 @@ def cc_get_set(request, biz_cc_id):
     @param biz_cc_id: 业务ID
     @return:
     """
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "fields": ["bk_set_name", "bk_set_id"]}
     supplier_account = supplier_account_for_business(biz_cc_id)
     cc_set_result = batch_request(
@@ -60,7 +61,7 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
     @param biz_set_id: 集群ID
     @return:
     """
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_set_id": int(biz_set_id), "fields": ["bk_module_name", "bk_module_id"]}
     supplier_account = supplier_account_for_business(biz_cc_id)
     cc_module_result = batch_request(
@@ -156,7 +157,7 @@ def cc_get_set_group(request, biz_cc_id):
     :param operator: 操作者
     :return:
     """
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "condition": {"bk_obj_id": "set"}}
     group_info = batch_request(
         client.api.search_dynamic_group,
@@ -176,7 +177,7 @@ def cc_get_set_attribute(request, biz_cc_id):
         "bk_biz_id": int(biz_cc_id),
         "bk_obj_id": "set",
     }
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     result = client.api.search_object_attribute(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     if not result["result"]:
         message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_set_attribute")
@@ -196,7 +197,7 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     @param biz_cc_id:
     @return:
     """
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
     cc_result = client.api.search_object_attribute(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
 

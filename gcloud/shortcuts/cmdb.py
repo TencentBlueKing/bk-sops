@@ -27,7 +27,7 @@ def get_business_group_members(tenant_id, bk_biz_id, groups):
     if not groups:
         return []
 
-    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT)
+    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
 
     group_fileds = [roles.CC_V2_ROLE_MAP.get(group) for group in groups]
     group_fileds = [group for group in group_fileds if group]
@@ -62,7 +62,7 @@ def get_business_attrinfo(tenant_id, attrs: list) -> list:
     if not attrs:
         return []
 
-    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT)
+    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
     supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     kwargs = {
         "bk_supplier_account": supplier_account,

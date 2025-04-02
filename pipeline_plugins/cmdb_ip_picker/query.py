@@ -82,7 +82,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         # IPV6环境下或者开启了GSE 2.0 版本
         default_host_fields.append("bk_agent_id")
     fields = set(default_host_fields + json.loads(request.GET.get("fields", "[]")))
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
 
     topo_modules_id = set()
 
@@ -237,7 +237,7 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=""):
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": bk_supplier_account,
     }
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     cc_result = client.api.get_mainline_object_topo(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     if not cc_result["result"]:
         message = handle_api_error(_("配置平台(CMDB)"), "cc.get_mainline_object_topo", kwargs, cc_result)
@@ -262,7 +262,7 @@ def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
     @param bk_supplier_account:
     @return:
     """
-    client = get_client_by_username(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
     result = batch_request(
         client.api.search_dynamic_group,

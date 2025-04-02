@@ -92,7 +92,7 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
     def execute(self, data, parent_data):
         operator = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
-        client = get_client_by_username(operator)
+        client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
 
         sa_ip_list = data.get_one_of_inputs("cc_ip_list")

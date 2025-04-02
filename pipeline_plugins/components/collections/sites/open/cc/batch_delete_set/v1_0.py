@@ -82,7 +82,7 @@ class CCBatchDeleteSetService(Service):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
-        client = get_client_by_username(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))

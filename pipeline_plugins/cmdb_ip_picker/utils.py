@@ -72,7 +72,7 @@ class IPPickerDataGenerator:
 
     def generate_group_data(self):
         """根据字符串生成动态分组数据"""
-        client = get_client_by_username(self.username)
+        client = get_client_by_username(self.username, stage=settings.BK_APIGW_STAGE_NAME)
         group_names = set(re.split("[,\n]", self.raw_data))
         result = batch_request(
             client.api.search_dynamic_group,
@@ -669,7 +669,7 @@ def get_cmdb_topo_tree(tenant_id, username, bk_biz_id, bk_supplier_account):
     }
     :rtype: dict
     """
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": bk_supplier_account,

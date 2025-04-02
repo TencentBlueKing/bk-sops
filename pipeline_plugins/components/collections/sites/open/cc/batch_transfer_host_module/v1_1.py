@@ -95,7 +95,7 @@ class CCBatchTransferHostModule(Service):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
-        client = get_client_by_username(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_host_transfer_detail = data.get_one_of_inputs("cc_host_transfer_detail")

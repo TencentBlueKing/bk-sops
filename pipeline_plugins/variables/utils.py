@@ -1,6 +1,7 @@
 # # -*- coding: utf-8 -*-
 import logging
 
+from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import batch_request
 from gcloud.utils.handlers import handle_api_error
@@ -60,7 +61,7 @@ def get_module_list(tenant_id, username, bk_biz_id, kwargs=None):
     @param bk_biz_id: 业务id
     @return: [{'bk_module_id':'', 'bk_module_name':''}...]
     """
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     params = {
         "bk_biz_id": bk_biz_id,
     }
@@ -87,7 +88,7 @@ def get_set_list(tenant_id, username, bk_biz_id, bk_supplier_account, kwargs=Non
     @param bk_supplier_account: 供应商账号
     @return: [{'bk_set_id':'', 'bk_set_name':''}, {'bk_set_id':'', 'bk_set_name':''}]
     """
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     params = {
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": bk_supplier_account,
@@ -112,7 +113,7 @@ def get_service_template_list(tenant_id, username, bk_biz_id, bk_supplier_accoun
     @param bk_supplier_account:
     @return: [{'id':'', 'name':''}, {'id':'', 'name':''}]
     """
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(bk_biz_id), "bk_supplier_account": bk_supplier_account}
     return batch_request(
         client.api.list_service_template,
@@ -134,7 +135,7 @@ def find_module_with_relation(tenant_id, bk_biz_id, username, set_ids, service_t
     """
     result = []
 
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     params = {"bk_biz_id": bk_biz_id, "bk_service_template_ids": service_template_ids, "fields": fields}
     start = 0
     step = 200
@@ -160,7 +161,7 @@ def get_biz_internal_module(tenant_id, username, bk_biz_id, bk_supplier_account)
     @param bk_supplier_account:
     @return:
     """
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
     get_biz_internal_module_return = client.api.get_biz_internal_module(
         params,
@@ -192,7 +193,7 @@ def list_biz_hosts(tenant_id, username, bk_biz_id, bk_supplier_account, kwargs=N
     @param bk_supplier_account:
     @return: [{'bk_host_innerip':''}, {'bk_host_innerip':''}]
     """
-    client = get_client_by_username(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
     if kwargs:
         params.update(kwargs)

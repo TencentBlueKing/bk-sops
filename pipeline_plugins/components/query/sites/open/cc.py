@@ -22,6 +22,7 @@ from iam.exceptions import RawAuthFailedException
 
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 from api.utils.request import batch_request
+from gcloud.conf import settings
 from gcloud.core.utils import get_user_business_list
 from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
@@ -46,7 +47,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     @param biz_cc_id:
     @return:
     """
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     include_not_editable = request.GET.get("all", False)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
@@ -73,7 +74,7 @@ def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account)
     @param request:
     @return:
     """
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
     cc_result = client.api.search_object_attribute(kwargs, headers=headers)
@@ -113,7 +114,7 @@ def cc_attribute_type_to_table_type(attribute):
 
 @supplier_account_inject
 def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_account):
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
     cc_result = client.api.search_object_attribute(kwargs, headers=headers)
@@ -150,7 +151,7 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
             - service_categories: [{"value" : 服务分类id, "label": 服务分类名称}, ...]
         - 请求失败 {"result": False, "data": [], "message": message}
     """
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
     list_service_category_return = client.api.list_service_category(kwargs, headers=headers)
@@ -193,7 +194,7 @@ def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
         }
         - 请求失败  {"result": False, "data": [], "message": message}
     """
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
     list_service_category_return = client.api.list_service_category(kwargs, headers=headers)
@@ -230,7 +231,7 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
             - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
         - 请求失败 {"result": False, "data": [], "message": message}
     """
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
     service_templates = []
@@ -310,7 +311,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     @return:
     """
     with_internal_module = request.GET.get("with_internal_module", False)
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
     cc_result = client.api.search_biz_inst_topo(
@@ -392,7 +393,7 @@ def cc_search_dynamic_group(request, biz_cc_id, supplier_account):
 
 @supplier_account_inject
 def cc_list_set_template(request, biz_cc_id, supplier_account):
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
 
@@ -414,7 +415,7 @@ def cc_get_editable_module_attribute(request, biz_cc_id):
         "bk_biz_id": int(biz_cc_id),
         "bk_obj_id": "module",
     }
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     result = client.api.search_object_attribute(kwargs, headers=headers)
     if not result["result"]:
@@ -437,7 +438,7 @@ def cc_input_host_property(request, biz_cc_id):
     """
     获取CMDB主机对应的属性名称和code
     """
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
 
     kwargs = {"bk_obj_id": "host", "bk_biz_id": int(biz_cc_id)}
@@ -462,7 +463,7 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
         "bk_biz_id": int(biz_cc_id),
         "bk_obj_id": "set",
     }
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
 
     result = client.api.search_object_attribute(kwargs, headers=headers)
@@ -484,7 +485,7 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
 
 
 def cc_search_status_options(request, biz_cc_id):
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     kwargs = {
         "bk_biz_id": int(biz_cc_id),
@@ -514,7 +515,7 @@ def cc_find_host_by_topo(request, biz_cc_id):
     # 模块ID列表，以 , 分割，例如 123,234,345
     bk_inst_id = request.GET.get("bk_inst_id", "")
 
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
 
     # 去除split后的空字符串
@@ -558,7 +559,7 @@ def list_business_set(request):
     @param request:
     @return:
     """
-    client = get_client_by_request(request)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
 
     count_resp = client.api.list_business_set({"page": {"enable_count": True}}, headers=headers)

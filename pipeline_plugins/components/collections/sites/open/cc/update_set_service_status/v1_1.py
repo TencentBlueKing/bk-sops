@@ -72,7 +72,7 @@ class CCUpdateSetServiceStatusService(Service):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
-        client = get_client_by_username(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         bk_biz_id = parent_data.get_one_of_inputs("bk_biz_id")
         supplier_account = supplier_account_for_business(bk_biz_id)
         set_list = data.get_one_of_inputs("set_list")

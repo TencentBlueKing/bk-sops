@@ -38,7 +38,7 @@ def cc_filter_set_variables(tenant_id, operator, bk_biz_id, bk_obj_id, bk_obj_va
     :param bk_obj_value: 过滤属性值
     :return:
     """
-    client = get_client_by_username(operator)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     obj_value_list = bk_obj_value.split(",")
     results = []
     # 多个过滤属性值时循环请求接口
@@ -102,7 +102,7 @@ class VarSetFilterSelector(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY}", type=Type.OBJECT, description="选择的集群信息"),
         ]
 
-        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT)
+        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
         params = {"bk_obj_id": "set"}
         if "bk_biz_id" in kwargs:
             params["bk_biz_id"] = kwargs["bk_biz_id"]

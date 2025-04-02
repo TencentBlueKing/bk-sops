@@ -33,7 +33,7 @@ def get_set_property(tenant_id, operator):
     @summary: 获取集群所有的属性
     @return:
     """
-    client = get_client_by_username(operator)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_obj_id": "set"}
     cc_result = client.api.search_object_attribute(
         kwargs,
@@ -58,7 +58,7 @@ def cc_execute_dynamic_group(tenant_id, operator, bk_biz_id, bk_group_id, set_fi
     :param bk_group_id: 动态分组id
     :return:
     """
-    client = get_client_by_username(operator)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     set_data_dir = {}
     kwargs = {"bk_biz_id": bk_biz_id, "id": bk_group_id, "fields": set_field}
     group_info = batch_request(
@@ -116,7 +116,7 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         fields = [FieldExplain(key="${KEY}", type=Type.STRING, description="选择的IP列表，以,分隔")]
 
-        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT)
+        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
         params = {"bk_obj_id": "set"}
         resp = client.api.search_object_attribute(
             params,

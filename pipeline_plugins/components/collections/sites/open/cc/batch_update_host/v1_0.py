@@ -102,7 +102,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
-        client = get_client_by_username(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         supplier_account = supplier_account_for_business(biz_cc_id)
         language = parent_data.get_one_of_inputs("language")
 

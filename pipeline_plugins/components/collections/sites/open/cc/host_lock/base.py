@@ -19,6 +19,7 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
+from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
@@ -54,7 +55,7 @@ class CCHostLockBaseService(HostLockTypeService, CCPluginIPMixin):
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
 
-        client = get_client_by_username(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))

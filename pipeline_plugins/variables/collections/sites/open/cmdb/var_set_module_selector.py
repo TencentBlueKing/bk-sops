@@ -42,7 +42,7 @@ def cc_search_set_module_name_by_id(tenant_id, operator, bk_biz_id, bk_set_id, b
     str_module_ids = [str(item) for item in bk_module_ids]
     set_module_info = {"set_id": bk_set_id, "module_id": bk_module_ids, "flat__module_id": ",".join(str_module_ids)}
     supplier_account = supplier_account_for_business(bk_biz_id)
-    client = get_client_by_username(operator)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     set_kwargs = {
         "bk_biz_id": bk_biz_id,
         "fields": ["bk_set_name"],
