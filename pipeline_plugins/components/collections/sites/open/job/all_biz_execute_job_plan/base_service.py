@@ -3,7 +3,6 @@ import re
 from copy import deepcopy
 from functools import partial
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
@@ -12,6 +11,7 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils import crypto
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin

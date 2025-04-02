@@ -31,7 +31,6 @@ TASK_RESULT = [
 import base64
 from functools import partial
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
@@ -42,6 +41,7 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job import GetJobTargetServerMixin, JobService
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 
@@ -177,7 +177,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
-            parent_data.inputs.get("tenant_id"),
+            parent_data.get_one_of_inputs("tenant_id"),
             data.outputs.client,
             self.logger,
             job_instance_id,

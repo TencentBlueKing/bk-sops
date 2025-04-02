@@ -15,7 +15,6 @@ from copy import deepcopy
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
-from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils import crypto
 from gcloud.utils.cmdb import get_business_host, get_business_host_ipv6
@@ -24,6 +23,7 @@ from pipeline_plugins.components.collections.sites.open.nodeman.base import Node
 
 __group_name__ = _("节点管理(Nodeman)")
 
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils import parse_passwd_value
 
 VERSION = "v4.0"
@@ -55,7 +55,8 @@ HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 class NodemanCreateTaskService(NodeManNewBaseService):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
-        client = BKNodeManClient(username=executor)
+        tenant_id = parent_data.inputs.tenant_id
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
         bk_biz_id = data.inputs.bk_biz_id
 
         nodeman_op_info = data.inputs.nodeman_op_info
@@ -74,7 +75,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             for host in nodeman_other_hosts:
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
                 ip_str = host["nodeman_ip_str"]
-                bk_host_ids.extend(self.get_host_id_list(ip_str, executor, bk_cloud_id, bk_biz_id))
+                bk_host_ids.extend(self.get_host_id_list(tenant_id, ip_str, executor, bk_cloud_id, bk_biz_id))
             # 操作类任务（升级、卸载等）
             kwargs = {
                 "job_type": job_name,
@@ -112,7 +113,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                     # 处理表格中每行的key/psw
                     auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
                     try:
-                        auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                        auth_key: str = self.parse2nodeman_ciphertext(tenant_id, data, executor, auth_key)
                     except ValueError:
                         return False
 
@@ -163,20 +164,30 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                         if settings.ENABLE_IPV6 and not use_inner_ip:
                             host_fields.append("bk_host_innerip_v6")
                             host_list = get_business_host_ipv6(
-                                executor, bk_biz_id, supplier_account, host_fields, inner_ip_list, bk_cloud_id
+                                tenant_id,
+                                executor,
+                                bk_biz_id,
+                                supplier_account,
+                                host_fields,
+                                inner_ip_list,
+                                bk_cloud_id,
                             )
                             bk_host_id_dict = {host["bk_host_innerip_v6"]: host["bk_host_id"] for host in host_list}
                         else:
                             host_list = get_business_host(
-                                executor, bk_biz_id, supplier_account, host_fields, inner_ip_list, bk_cloud_id
+                                tenant_id,
+                                executor,
+                                bk_biz_id,
+                                supplier_account,
+                                host_fields,
+                                inner_ip_list,
+                                bk_cloud_id,
                             )
                             bk_host_id_dict = {host["bk_host_innerip"]: host["bk_host_id"] for host in host_list}
                         try:
                             row_host_info["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs(
-                                "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip))
-                            )
+                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -209,7 +220,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             return False
 
         action = kwargs.pop("action")
-        result = getattr(client, action)(**kwargs)
+        result = client.api.action(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         return self.get_job_result(result, data, action, kwargs)
 
@@ -220,8 +231,4 @@ class NodemanCreateTaskComponent(Component):
     bound_service = NodemanCreateTaskService
     form = "%scomponents/atoms/nodeman/create_task/v4_0.js" % settings.STATIC_URL
     version = VERSION
-    desc = _(
-        "v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n"
-        "卸载AGENT操作参数和重装AGENT保持一致 \n"
-        "移除操作下线"
-    )
+    desc = _("v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n" "卸载AGENT操作参数和重装AGENT保持一致 \n" "移除操作下线")

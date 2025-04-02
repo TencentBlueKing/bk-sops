@@ -82,7 +82,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
-
+        tenant_id = parent_data.inputs.tenant_id
         bk_biz_id = data.inputs.biz_cc_id
         host_info = data.inputs.nodeman_host_info
         input_type = host_info.get("nodeman_host_input_type", None)
@@ -93,17 +93,15 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
         if input_type == "host_ip":
             bk_cloud_id = host_info.get("nodeman_bk_cloud_id", None)
             ip_str = host_info.get("nodeman_host_ip", "")
-            host_result = self.get_host_list(executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
+            host_result = self.get_host_list(tenant_id, executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
             if not host_result["result"]:
-                data.set_outputs(
-                    "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(host_result["message"]))
-                )
+                data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(host_result["message"])))
                 return False
             host = [int(host_id) for host_id in host_result["data"]]
         else:
             host = host_info.get("nodeman_host_id", "").strip().split(",")
 
-        return self.execute_operate(data, host, executor, bk_biz_id)
+        return self.execute_operate(tenant_id, data, host, executor, bk_biz_id)
 
 
 class NodemanPluginOperateComponent(Component):

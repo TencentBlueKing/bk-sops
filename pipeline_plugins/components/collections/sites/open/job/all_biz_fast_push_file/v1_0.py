@@ -47,13 +47,16 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
                     raise Exception("源文件信息处理失败，请检查ip配置是否正确")
 
                 job_kwargs = {
-                    "bk_scope_type": self.biz_scope_type,
-                    "bk_scope_id": str(biz_cc_id),
-                    "bk_biz_id": biz_cc_id,
-                    "file_source_list": [source],
-                    "target_server": target_server,
-                    "account_alias": job_account,
-                    "file_target_path": job_target_path,
+                    "data": {
+                        "bk_scope_type": self.biz_scope_type,
+                        "bk_scope_id": str(biz_cc_id),
+                        "bk_biz_id": biz_cc_id,
+                        "file_source_list": [source],
+                        "target_server": target_server,
+                        "account_alias": job_account,
+                        "file_target_path": job_target_path,
+                    },
+                    "headers": {"X-Bk-Tenant-Id": tenant_id},
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)

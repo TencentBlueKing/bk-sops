@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import traceback
 from functools import partial
 
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
@@ -23,6 +22,7 @@ from files.factory import ManagerFactory
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url
@@ -147,22 +147,25 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
         )
         return clean_result, target_server
 
-    def get_params_list(self, client, data, target_server, local_files_and_target_path):
+    def get_params_list(self, tenant_id, client, data, target_server, local_files_and_target_path):
         biz_cc_id = data.inputs.biz_cc_id
         target_account = data.inputs.job_target_account
         params_list = [
             {
-                "esb_client": client,
-                "bk_biz_id": biz_cc_id,
-                "file_tags": [
-                    _file["response"]["tag"]
-                    for _file in push_files_info["file_info"]
-                    if _file["response"]["result"] is True
-                ],
-                "target_path": push_files_info["target_path"].strip(),
-                "ips": None,
-                "account": target_account.strip(),
-                "target_server": target_server,
+                "data": {
+                    "esb_client": client,
+                    "bk_biz_id": biz_cc_id,
+                    "file_tags": [
+                        _file["response"]["tag"]
+                        for _file in push_files_info["file_info"]
+                        if _file["response"]["result"] is True
+                    ],
+                    "target_path": push_files_info["target_path"].strip(),
+                    "ips": None,
+                    "account": target_account.strip(),
+                    "target_server": target_server,
+                },
+                "headers": {"X-Bk-Tenant-Id": tenant_id},
             }
             for push_files_info in local_files_and_target_path
         ]
@@ -199,7 +202,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
             data.outputs.ex_data = "ip查询失败，请检查ip配置是否正常"
             return False
 
-        params_list = self.get_params_list(client, data, target_server, local_files_and_target_path)
+        params_list = self.get_params_list(tenant_id, client, data, target_server, local_files_and_target_path)
 
         if job_timeout:
             for param in params_list:
@@ -211,7 +214,6 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
                 file_manager.push_files_to_ips,
                 params_list,
                 interval_enabled=True,
-                headers={"X-Bk-Tenant-Id": tenant_id},
             )
         else:
             data.outputs.ex_data = _("执行参数为空，请确认")
