@@ -28,9 +28,9 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     get_module_set_id,
 )
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 
@@ -73,8 +73,9 @@ class CCUpdateModuleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -82,7 +83,11 @@ class CCUpdateModuleService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
-        tree_data = client.cc.search_biz_inst_topo(kwargs)
+        tree_data = client.api.search_biz_inst_topo(
+            kwargs,
+            path_params={"bk_biz_id": biz_cc_id},
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not tree_data["result"]:
             message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, tree_data)
             self.logger.error(message)
@@ -96,7 +101,8 @@ class CCUpdateModuleService(Service):
         cc_module_property = data.get_one_of_inputs("cc_module_property")
         if cc_module_property == "bk_module_type":
             bk_module_type = cc_format_prop_data(
-                executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"), supplier_account
+                tenant_id, executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"),
+                supplier_account
             )
             if not bk_module_type["result"]:
                 data.set_outputs("ex_data", bk_module_type["message"])
@@ -110,14 +116,19 @@ class CCUpdateModuleService(Service):
             cc_module_prop_value = data.get_one_of_inputs("cc_module_prop_value")
 
         for module_id in cc_module_select:
+            bk_set_id = get_module_set_id(tree_data["data"], module_id)
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
                 "bk_supplier_account": supplier_account,
-                "bk_set_id": get_module_set_id(tree_data["data"], module_id),
+                "bk_set_id": bk_set_id,
                 "bk_module_id": module_id,
                 "data": {cc_module_property: cc_module_prop_value},
             }
-            cc_result = client.cc.update_module(cc_kwargs)
+            cc_result = client.api.update_module(
+                cc_kwargs,
+                path_params={"bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id, "bk_module_id": module_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not cc_result["result"]:
                 message = cc_handle_api_error("cc.update_module", cc_kwargs, cc_result)
                 self.logger.error(message)

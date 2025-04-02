@@ -22,9 +22,9 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 VERSION = "1.0"
@@ -76,7 +76,9 @@ class CCBatchUpdateSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
@@ -100,7 +102,10 @@ class CCBatchUpdateSetService(Service):
         failed_update = []
 
         search_attr_kwargs = {"bk_obj_id": "set", "bk_supplier_account": supplier_account}
-        attr_result = client.cc.search_object_attribute(search_attr_kwargs)
+        attr_result = client.api.search_object_attribute(
+            search_attr_kwargs,
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not attr_result["result"]:
             message = handle_api_error("cc", "cc.search_object_attribute", search_attr_kwargs, attr_result)
             logger.error(message)
@@ -159,7 +164,11 @@ class CCBatchUpdateSetService(Service):
                 "fields": ["bk_set_id", "bk_set_name"],
                 "condition": {"bk_set_name": bk_set_name},
             }
-            search_result = client.cc.search_set(kwargs)
+            search_result = client.api.search_set(
+                kwargs,
+                path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             bk_set_id = 0
             for search_set in search_result["data"]["info"]:
                 if search_set["bk_set_name"] == bk_set_name:
@@ -171,7 +180,11 @@ class CCBatchUpdateSetService(Service):
                 "bk_set_id": bk_set_id,
                 "data": update_params,
             }
-            update_result = client.cc.update_set(kwargs)
+            update_result = client.api.update_set(
+                kwargs,
+                path_params={"bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if update_result["result"]:
                 self.logger.info("set 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)

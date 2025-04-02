@@ -14,7 +14,6 @@ import logging
 
 from django.utils.translation import gettext_lazy as _
 
-from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
@@ -23,10 +22,10 @@ from .thread import ThreadPool
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def local_wrapper(target_func, request_params, node_id=None, node_info=None, headers=None, path_params=None):
+def local_wrapper(target_func, request_params, node_id=None, node_info=None,
+                  path_params: dict = None, headers: dict = None):
     from bamboo_engine import local as bamboo_local
     from pipeline.engine.core import context as pipeline_context
 
@@ -36,7 +35,7 @@ def local_wrapper(target_func, request_params, node_id=None, node_info=None, hea
     if node_id:
         pipeline_context.set_node_id(node_id)
 
-    return target_func(request_params, headers=headers, path_params=path_params)
+    return target_func(request_params, path_params=path_params, headers=headers)
 
 
 def batch_request(
@@ -48,8 +47,8 @@ def batch_request(
     page_param=None,
     is_page_merge=False,
     check_iam_auth_fail=False,
-    headers=None,
-    path_params=None,
+    path_params: dict = None,
+    headers: dict = None,
 ):
     """
     并发请求接口
@@ -63,6 +62,8 @@ def batch_request(
     :param get_count: 获取总数函数
     :param limit: 一次请求数量
     :param check_iam_auth_fail: 是否检查iam授权失败
+    :param path_params: path参数
+    :param headers: 请求头
     :return: 请求结果
     """
     # 兼容其他分页参数类型
@@ -78,6 +79,7 @@ def batch_request(
         cur_page_param = "start"
         page_size_param = "limit"
 
+    # 请求第一次获取总数
     if is_page_merge:
         _data = {**{cur_page_param: 0, page_size_param: 1}, **params}
         result = func(_data, path_params=path_params, headers=headers)

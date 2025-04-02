@@ -25,7 +25,6 @@ logger = logging.getLogger("root")
 CACHE_PREFIX = __name__.replace(".", "_")
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 BUSINESS_LOCATION_V1 = "v1.0"
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def sync_projects_from_cmdb(username, tenant_id, use_cache=True):

@@ -32,9 +32,9 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_get_name_id_from_combine_value,
     cc_list_select_node_inst_id,
 )
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 
@@ -110,7 +110,9 @@ class CCCreateModuleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -130,7 +132,7 @@ class CCCreateModuleService(Service):
         else:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
+                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -177,7 +179,8 @@ class CCCreateModuleService(Service):
             # 校验模块类型
             if "bk_module_type" in cc_module_info:
                 format_prop_data_return = cc_format_prop_data(
-                    executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"), supplier_account
+                    tenant_id, executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"),
+                    supplier_account,
                 )
                 if not format_prop_data_return["result"]:
                     data.set_outputs("ex_data", format_prop_data_return["message"])
@@ -196,7 +199,11 @@ class CCCreateModuleService(Service):
                     "data": {"bk_parent_id": parent_id},
                 }
                 cc_kwargs["data"].update(cc_module_info)
-                cc_create_module_return = client.cc.create_module(cc_kwargs)
+                cc_create_module_return = client.api.create_module(
+                    cc_kwargs,
+                    path_params={"bk_biz_id": biz_cc_id, "bk_set_id": parent_id},
+                    headers={"X-Bk-Tenant-Id": tenant_id},
+                )
                 if not cc_create_module_return["result"]:
                     message = cc_handle_api_error("cc.create_module", cc_kwargs, cc_create_module_return)
                     self.logger.error(message)

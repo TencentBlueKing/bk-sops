@@ -22,15 +22,17 @@ from gcloud.conf import settings
 from gcloud.constants import Type
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_ids):
+def cc_search_set_module_name_by_id(tenant_id, operator, bk_biz_id, bk_set_id, bk_module_ids):
     """
     通过集群ID和模块ID查询对应的名字
+    :param tenant_id: 租户ID
     :param operator: 操作者
     :param bk_biz_id: 业务ID
     :param bk_set_id: 集群ID
@@ -39,15 +41,19 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
     """
     str_module_ids = [str(item) for item in bk_module_ids]
     set_module_info = {"set_id": bk_set_id, "module_id": bk_module_ids, "flat__module_id": ",".join(str_module_ids)}
-    client = get_client_by_user(operator)
-
+    supplier_account = supplier_account_for_business(bk_biz_id)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     set_kwargs = {
         "bk_biz_id": bk_biz_id,
         "fields": ["bk_set_name"],
         "condition": {"bk_set_id": bk_set_id},
         "page": {"start": 0, "limit": 1},
     }
-    set_result = client.cc.search_set(set_kwargs)
+    set_result = client.api.search_set(
+        set_kwargs,
+        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": bk_biz_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     if set_result["result"] and set_result["data"]["info"]:
         set_module_info["set_name"] = set_result["data"]["info"][0]["bk_set_name"]
     else:
@@ -56,7 +62,12 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
         raise ApiRequestError(err_msg)
 
     module_kwargs = {"bk_biz_id": bk_biz_id, "bk_set_id": bk_set_id, "fields": ["bk_module_id", "bk_module_name"]}
-    module_info = batch_request(client.cc.search_module, module_kwargs)
+    module_info = batch_request(
+        client.api.search_module,
+        module_kwargs,
+        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": bk_biz_id, "bk_set_id": bk_set_id},
+        headers={"X-Bk-Tenant-Id": tenant_id},
+    )
     bk_module_names = []
     for item in module_info:
         if item.get("bk_module_id") in bk_module_ids:
@@ -127,11 +138,12 @@ class VarSetModuleSelector(LazyVariable, SelfExplainVariable):
         """
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and biz_cc_id of pipeline is needed")
+        tenant_id = self.pipeline_data.get("tenant_id", "")
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_set_id = int(self.value.get("bk_set_id", 0))
         bk_module_ids = self.value.get("bk_module_id", [])
 
-        set_module_info = cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_ids)
+        set_module_info = cc_search_set_module_name_by_id(tenant_id, operator, bk_biz_id, bk_set_id, bk_module_ids)
 
         return SetModuleInfo(set_module_info)

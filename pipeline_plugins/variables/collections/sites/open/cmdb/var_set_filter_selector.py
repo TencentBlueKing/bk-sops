@@ -21,22 +21,24 @@ from pipeline.core.data.var import LazyVariable
 from gcloud.conf import settings
 from gcloud.constants import Type
 from gcloud.exceptions import ApiRequestError
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def cc_filter_set_variables(operator, bk_biz_id, bk_obj_id, bk_obj_value):
+def cc_filter_set_variables(tenant_id, operator, bk_biz_id, bk_obj_id, bk_obj_value):
     """
     通过集群ID、过滤属性ID、过滤属性值，过滤集群
+    :param tenant_id: 租户ID
     :param operator: 操作者
     :param bk_biz_id: 业务ID
     :param bk_obj_id: 过滤属性ID
     :param bk_obj_value: 过滤属性值
     :return:
     """
-    client = get_client_by_user(operator)
+    client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     obj_value_list = bk_obj_value.split(",")
     results = []
     # 多个过滤属性值时循环请求接口
@@ -46,7 +48,11 @@ def cc_filter_set_variables(operator, bk_biz_id, bk_obj_id, bk_obj_value):
             "condition": {bk_obj_id: obj_value},
         }
 
-        result = client.cc.search_set(kwargs)
+        result = client.api.search_set(
+            kwargs,
+            path_params={"bk_supplier_account": supplier_account_for_business(bk_biz_id), "bk_biz_id": bk_biz_id},
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not result["result"]:
             err_msg = _(
                 "[cc_filter_set_variables] 调用 cc.search_set 接口获取集群失败, " "kwargs={kwargs}, result={result}"
@@ -96,11 +102,11 @@ class VarSetFilterSelector(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY}", type=Type.OBJECT, description="选择的集群信息"),
         ]
 
-        client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
+        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
         params = {"bk_obj_id": "set"}
         if "bk_biz_id" in kwargs:
             params["bk_biz_id"] = kwargs["bk_biz_id"]
-        resp = client.cc.search_object_attribute(params)
+        resp = client.api.search_object_attribute(params, headers={"X-Bk-Tenant-Id": kwargs["tenant_id"]})
         resp_data = []
 
         if not resp["result"]:
@@ -134,10 +140,11 @@ class VarSetFilterSelector(LazyVariable, SelfExplainVariable):
             set_name: ${var.bk_set_name}
             set_id: ${var.bk_set_id}
         """
+        tenant_id = self.pipeline_data.get("tenant_id", "")
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_obj_id = self.value.get("bk_obj_id", "")
         bk_obj_value = self.value.get("bk_obj_value", "")
 
-        set_infos, bk_attributes = cc_filter_set_variables(operator, bk_biz_id, bk_obj_id, bk_obj_value)
+        set_infos, bk_attributes = cc_filter_set_variables(tenant_id, operator, bk_biz_id, bk_obj_id, bk_obj_value)
         return SetInfo(set_infos, bk_attributes)

@@ -40,6 +40,7 @@ class VariableFieldExplainView(APIView):
         serializer = VariableFieldExpainQuerySerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        validated_data["tenant_id"] = request.user.tenant_id
         data = {
             "variable_field_explain": [
                 var_cls.self_explain(**validated_data)

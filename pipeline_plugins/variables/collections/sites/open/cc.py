@@ -20,7 +20,6 @@ from django.contrib.admin.utils import flatten
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable
 
-from gcloud.conf import settings as gcloud_settings
 from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
@@ -36,9 +35,9 @@ from pipeline_plugins.variables.collections.sites.open.ip_filter_base import (
     GseAgentStatusIpFilter,
     GseAgentStatusIpV6Filter,
 )
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
 
 
 class VarIpPickerVariable(LazyVariable):
@@ -53,6 +52,7 @@ class VarIpPickerVariable(LazyVariable):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and project_id of pipeline is needed")
         var_ip_picker = self.value
+        tenant_id = self.pipeline_data["tenant_id"]
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -84,7 +84,8 @@ class VarIpPickerVariable(LazyVariable):
 
             # query cc to get module's ip list and filter tree_ip_list
             host_list = cc_get_inner_ip_by_module_id(
-                username, bk_biz_id, module_inst_id_list, bk_supplier_account, ["host_id", "bk_host_innerip"]
+                tenant_id, username, bk_biz_id, module_inst_id_list, bk_supplier_account,
+                ["host_id", "bk_host_innerip"]
             )
             cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
             select_ip = set()
@@ -123,6 +124,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and project_id of pipeline is needed")
+        tenant_id = self.pipeline_data["tenant_id"]
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -130,7 +132,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
         bk_supplier_account = supplier_account_for_project(project_id)
 
         ip_selector = self.value
-        ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
+        ip_result = get_ip_picker_result(tenant_id, username, bk_biz_id, bk_supplier_account, ip_selector)
         if not ip_result["result"]:
             logger.error(f"[ip_selector get_value] error: {ip_result}")
             raise Exception(f'ERROR: {ip_result["message"]}, ip_selector_key: {self.original_value.key}')
@@ -244,11 +246,15 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             ),
         ]
 
-        client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
+        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
+        tenant_id = kwargs["tenant_id"]
         params = {"bk_obj_id": "set"}
         if "bk_biz_id" in kwargs:
             params["bk_biz_id"] = kwargs["bk_biz_id"]
-        resp = client.cc.search_object_attribute(params)
+        resp = client.api.search_object_attribute(
+            params,
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         resp_data = []
 
         if not resp["result"]:
@@ -308,13 +314,14 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         ]
 
     @staticmethod
-    def _handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+    def _handle_value_with_ipv4(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
         """根据 ip 字符串获取对应主机属性信息"""
         ip_list = get_ip_by_regex(ip_str)
         if not ip_list:
             return []
 
         hosts_list = get_business_host(
+            tenant_id,
             username,
             bk_biz_id,
             bk_supplier_account,
@@ -324,10 +331,10 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         return hosts_list
 
     @staticmethod
-    def _handle_value_with_ipv4_and_ipv6(username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+    def _handle_value_with_ipv4_and_ipv6(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
         """根据 ip 字符串获取对应主机属性信息"""
         # 兼容多种字符串模式，转换成 host_id 列表后统一获取
-        result = cc_get_host_by_innerip_with_ipv6(username, bk_biz_id, ip_str, bk_supplier_account)
+        result = cc_get_host_by_innerip_with_ipv6(tenant_id, username, bk_biz_id, ip_str, bk_supplier_account)
         if not result["result"]:
             message = f"获取主机列表失败: {result} | cc_get_host_by_innerip_with_ipv6"
             logger.error(message)
@@ -335,7 +342,8 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         host_ids = [host["bk_host_id"] for host in result["data"]]
         if not host_ids:
             return []
-        return get_business_host_by_hosts_ids(username, bk_biz_id, bk_supplier_account, host_fields, host_ids)
+        return get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields,
+                                              host_ids)
 
     def get_value(self):
         """
@@ -376,6 +384,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
             "bk_cpu_module",
         ]
         username = self.pipeline_data["executor"]
+        tenant_id = self.pipeline_data["tenant_id"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
@@ -383,11 +392,12 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
 
         if settings.ENABLE_IPV6:
             hosts_list = self._handle_value_with_ipv4_and_ipv6(
-                username, bk_biz_id, bk_supplier_account, HOST_FIELDS + ["bk_host_innerip_v6"], self.value
+                tenant_id, username, bk_biz_id, bk_supplier_account, HOST_FIELDS + ["bk_host_innerip_v6"], self.value
             )
             ipv6_list, *_ = extract_ip_from_ip_str(self.value)
         else:
-            hosts_list = self._handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, HOST_FIELDS, self.value)
+            hosts_list = self._handle_value_with_ipv4(
+                tenant_id, username, bk_biz_id, bk_supplier_account, HOST_FIELDS, self.value)
             ipv6_list = []
         hosts = {}
         for host in hosts_list:
@@ -418,6 +428,7 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and project_id of pipeline is needed")
 
+        tenant_id = self.pipeline_data["tenant_id"]
         origin_ips = self.value.get("origin_ips", "")
         ip_cloud = self.value.get("ip_cloud", True)
         ip_separator = self.value.get("ip_separator", ",")
@@ -425,7 +436,7 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
         origin_ip_list = get_plat_ip_by_regex(origin_ips)
         filter_data = {**self.value, **self.pipeline_data}
         if settings.ENABLE_IPV6:
-            gse_agent_status_ipv6_filter = GseAgentStatusIpV6Filter(origin_ips, filter_data)
+            gse_agent_status_ipv6_filter = GseAgentStatusIpV6Filter(tenant_id, origin_ips, filter_data)
             match_result_ip = gse_agent_status_ipv6_filter.get_match_ip()
             if not ip_cloud:
                 return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
@@ -440,7 +451,7 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
             return ip_separator.join(result)
         else:
             # 进行gse agent状态过滤
-            gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
+            gse_agent_status_filter = GseAgentStatusIpFilter(tenant_id, origin_ip_list, filter_data)
             match_result_ip = gse_agent_status_filter.get_match_ip()
             if not ip_cloud:
                 return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])

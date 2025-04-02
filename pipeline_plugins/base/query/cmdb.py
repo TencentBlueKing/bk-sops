@@ -20,9 +20,9 @@ from django.utils.translation import gettext_lazy as _
 from gcloud.conf import settings
 from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
 from pipeline_plugins.base.utils.inject import supplier_account_inject
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 @supplier_account_inject
@@ -44,7 +44,8 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
     data_format = request.GET.get("format", "tree")
     # 查询 module 对应的主机
     module_hosts = cc_format_module_hosts(
-        request.user.username, biz_cc_id, select_modules, supplier_account, data_format, host_fields
+        request.user.tenant_id, request.user.username, biz_cc_id, select_modules, supplier_account, data_format,
+        host_fields,
     )
 
     return JsonResponse({"result": True, "data": module_hosts, "message": ""})
@@ -65,14 +66,18 @@ def cc_search_module(request, biz_cc_id, supplier_account):
         message = _(f"保存失败: 请求参数格式校验失败. 错误信息: {e} | cc_search_module")
         logger.error(message)
         return JsonResponse({"result": False, "data": {}, "message": message})
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     cc_kwargs = {
         "bk_biz_id": biz_cc_id,
         "bk_supplier_account": supplier_account,
         "bk_set_id": bk_set_id,
         "fields": module_fields,
     }
-    cc_result = client.cc.search_module(cc_kwargs)
+    cc_result = client.api.search_module(
+        cc_kwargs,
+        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id},
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
+    )
     if not cc_result["result"]:
         logger.warning(
             "client.cc.search_module ERROR###biz_cc_id=%s" "###cc_result=%s" % (biz_cc_id, json.dumps(cc_result))
