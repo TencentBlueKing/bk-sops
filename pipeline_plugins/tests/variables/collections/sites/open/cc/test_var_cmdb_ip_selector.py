@@ -81,9 +81,13 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "pipeline_plugins.variables.collections.sites.open.cc.supplier_account_for_project",
             MagicMock(return_value=self.supplier_account),
         )
-        self.project_patcher = patch("pipeline_plugins.variables.collections.sites.open.cc.Project", mock_project,)
+        self.project_patcher = patch(
+            "pipeline_plugins.variables.collections.sites.open.cc.Project",
+            mock_project,
+        )
         self.get_ip_picker_result_patcher = patch(
-            "pipeline_plugins.variables.collections.sites.open.cc.get_ip_picker_result", mock_get_ip_picker_result,
+            "pipeline_plugins.variables.collections.sites.open.cc.get_ip_picker_result",
+            mock_get_ip_picker_result,
         )
         self.supplier_account_for_project_patcher.start()
         self.project_patcher.start()
