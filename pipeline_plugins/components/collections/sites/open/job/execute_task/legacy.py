@@ -24,8 +24,6 @@ from .execute_task_base import JobExecuteTaskServiceBase
 
 __group_name__ = _("作业平台(JOB)")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
@@ -36,9 +34,7 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase):
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
                 type="boolean",
-                schema=BooleanItemSchema(
-                    description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")
-                ),
+                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
         ]
 

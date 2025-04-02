@@ -70,9 +70,7 @@ def chunk_table_data(column_dict, break_line):
             multiple_keys.append(key)
             value = value.split(break_line)
             if len(value) != count and count != 1:
-                message = _(
-                    f"非法请求: [单行自动扩展]中, [{value}] 按分隔符分割后的行数不一致, 请修复后重试 | chunk_table_data"
-                )
+                message = _(f"非法请求: [单行自动扩展]中, [{value}] 按分隔符分割后的行数不一致, 请修复后重试 | chunk_table_data")
                 logger.error(message)
                 return {"result": False, "message": message, "data": []}
             count = len(value)

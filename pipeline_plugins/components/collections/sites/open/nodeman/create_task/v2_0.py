@@ -16,7 +16,6 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
-from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils import crypto
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
@@ -27,6 +26,7 @@ from pipeline_plugins.components.collections.sites.open.nodeman.base import (
 
 __group_name__ = _("节点管理(Nodeman)")
 
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils import parse_passwd_value
 
 VERSION = "v2.0"
@@ -50,7 +50,8 @@ HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 class NodemanCreateTaskService(NodeManBaseService):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
-        client = BKNodeManClient(username=executor)
+        tenant_id = parent_data.inputs.tenant_id
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
         bk_biz_id = data.inputs.bk_biz_id
 
         nodeman_op_target = data.inputs.nodeman_op_target
@@ -70,7 +71,7 @@ class NodemanCreateTaskService(NodeManBaseService):
         if job_name in itertools.chain.from_iterable([OPERATE_JOB, REMOVE_JOB]):
 
             # 获取bk_host_id
-            bk_host_ids = self.get_host_id_list(ip_str, executor, bk_cloud_id, bk_biz_id)
+            bk_host_ids = self.get_host_id_list(tenant_id, ip_str, executor, bk_cloud_id, bk_biz_id)
             # 操作类任务（升级、卸载等）
             if job_name in OPERATE_JOB:
                 kwargs = {
@@ -112,7 +113,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                 # 处理表格中每行的key/psw
                 auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
                 try:
-                    auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                    auth_key: str = self.parse2nodeman_ciphertext(tenant_id, data, executor, auth_key)
                 except ValueError:
                     return False
 
@@ -143,18 +144,16 @@ class NodemanCreateTaskService(NodeManBaseService):
                     if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT"]:
                         if settings.ENABLE_IPV6 and not use_inner_ip:
                             bk_host_id_dict = get_host_id_by_inner_ipv6(
-                                executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                                tenant_id, executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
                             )
                         else:
                             bk_host_id_dict = get_host_id_by_inner_ip(
-                                executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                                tenant_id, executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
                             )
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs(
-                                "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip))
-                            )
+                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -185,7 +184,7 @@ class NodemanCreateTaskService(NodeManBaseService):
             return False
 
         action = kwargs.pop("action")
-        result = getattr(client, action)(**kwargs)
+        result = client.api.action(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         return self.get_job_result(result, data, action, kwargs)
 
@@ -221,8 +220,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                         "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
                         "nodeman_op_type": StringItemSchema(
                             description=_(
-                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、"
-                                " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
+                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
                             )
                         ),
                         "nodeman_ip_str": StringItemSchema(description=_("IP(升级，卸载，移除时需要)")),
@@ -232,22 +230,14 @@ class NodemanCreateTaskService(NodeManBaseService):
                                 description=_("主机相关信息"),
                                 property_schemas={
                                     "inner_ip": StringItemSchema(description=_("内网 IP")),
-                                    "login_ip": StringItemSchema(
-                                        description=_("主机登录 IP，可以为空，适配复杂网络时填写")
-                                    ),
-                                    "data_ip": StringItemSchema(
-                                        description=_("主机数据 IP，可以为空，适配复杂网络时填写")
-                                    ),
+                                    "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
+                                    "data_ip": StringItemSchema(description=_("主机数据 IP，可以为空，适配复杂网络时填写")),
                                     "outer_ip": StringItemSchema(description=_("外网 IP, 可以为空")),
-                                    "os_type": StringItemSchema(
-                                        description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")
-                                    ),
+                                    "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
                                     "port": StringItemSchema(description=_("端口号")),
                                     "account": StringItemSchema(description=_("登录帐号")),
                                     "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
-                                    "auth_key": StringItemSchema(
-                                        description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
-                                    ),
+                                    "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
                                 },
                             ),
                         ),

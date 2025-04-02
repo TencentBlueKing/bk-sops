@@ -11,22 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
-
 import ujson as json
+from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
-from pipeline_plugins.components.collections.sites.open.job import JobExecuteTaskComponent
-from pipeline_plugins.components.collections.sites.open.job import base
+
+from pipeline_plugins.components.collections.sites.open.job import JobExecuteTaskComponent, base
 
 base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
 
@@ -58,18 +56,18 @@ class MockClient(object):
         get_job_instance_status=None,
     ):
         self.set_bk_api_ver = MagicMock()
-        self.jobv3 = MagicMock()
-        self.jobv3.execute_job_plan = MagicMock(return_value=execute_job_return)
-        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_global_var_return)
-        self.jobv3.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
-        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
-        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
+        self.api = MagicMock()
+        self.api.execute_job_plan = MagicMock(return_value=execute_job_return)
+        self.api.get_job_instance_global_var_value = MagicMock(return_value=get_global_var_return)
+        self.api.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.api.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
+        self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
 # mock path
 # 因为legacy版本的JobExecuteTaskService类直接继承了JobExecuteTaskServiceBase类,所以mock路径也使用其父类的路径
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_client_by_username"
 )
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = (
@@ -221,7 +219,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -258,7 +256,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=EXECUTE_JOB_CALL_FAIL_CLIENT.jobv3.execute_job_plan,
+            func=EXECUTE_JOB_CALL_FAIL_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -280,7 +278,8 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             },
                         ],
                         "callback_url": "url_token",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -306,7 +305,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -333,7 +332,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=INVALID_CALLBACK_DATA_CLIENT.jobv3.execute_job_plan,
+            func=INVALID_CALLBACK_DATA_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -355,7 +354,8 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                             },
                         ],
                         "callback_url": "url_token",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -382,7 +382,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -413,7 +413,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.jobv3.execute_job_plan,
+            func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -435,7 +435,8 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
                             },
                         ],
                         "callback_url": "url_token",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -462,7 +463,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -496,7 +497,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.jobv3.execute_job_plan,
+            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -518,15 +519,21 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                             },
                         ],
                         "callback_url": "url_token",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.jobv3.get_job_instance_global_var_value,
-            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
+            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.api.get_job_instance_global_var_value,
+            calls=[
+                Call(
+                    {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
@@ -553,7 +560,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
         "biz_cc_id": 1,
         "biz_across": True,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -594,7 +601,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=EXECUTE_SUCCESS_CLIENT.jobv3.execute_job_plan,
+            func=EXECUTE_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -625,15 +632,21 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             },
                         ],
                         "callback_url": "url_token",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=EXECUTE_SUCCESS_CLIENT.jobv3.get_job_instance_global_var_value,
-            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
+            func=EXECUTE_SUCCESS_CLIENT.api.get_job_instance_global_var_value,
+            calls=[
+                Call(
+                    {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
@@ -658,7 +671,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -699,7 +712,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=GET_VAR_ERROR_SUCCESS_CLIENT.jobv3.execute_job_plan,
+            func=GET_VAR_ERROR_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
                     {
@@ -721,15 +734,21 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
                             },
                         ],
                         "callback_url": "url_token",
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=GET_VAR_ERROR_SUCCESS_CLIENT.jobv3.get_job_instance_global_var_value,
-            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
+            func=GET_VAR_ERROR_SUCCESS_CLIENT.api.get_job_instance_global_var_value,
+            calls=[
+                Call(
+                    {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
@@ -754,9 +773,10 @@ INVALID_IP_CASE = ComponentTestCase(
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"}
+        success=False,
+        outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"},
     ),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -783,9 +803,10 @@ IP_IS_EXIST_CASE = ComponentTestCase(
         "biz_cc_id": 1,
         "ip_is_exist": True,
     },
-    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    parent_data={"executor": "executor_token", "biz_cc_id": 1, "tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"}
+        success=False,
+        outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"},
     ),
     schedule_assertion=None,
     execute_call_assertion=[

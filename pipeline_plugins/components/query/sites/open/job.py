@@ -24,11 +24,13 @@ from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.cmdb import get_business_set_host
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import format_host_with_ipv6
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+
+DEFAULT_TENANT = "default"
 
 JOB_VAR_CATEGORY_CLOUD = 1
 JOB_VAR_CATEGORY_CONTEXT = 2
@@ -51,13 +53,14 @@ JOBV3_VAR_CATEGORY_GLOBAL_VARS = {
 
 
 def _job_get_scripts_data(request, biz_cc_id=None):
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
     source_type = request.GET.get("type")
     script_type = request.GET.get("script_type")
 
     if biz_cc_id is None or source_type == "public":
         kwargs = {"script_language": script_type or 0}
-        func = client.jobv3.get_public_script_list
+        func = client.api.get_public_script_list
     else:
         kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,
@@ -65,7 +68,7 @@ def _job_get_scripts_data(request, biz_cc_id=None):
             "bk_biz_id": biz_cc_id,
             "script_language": script_type or 0,
         }
-        func = client.jobv3.get_script_list
+        func = client.api.get_script_list
 
     script_list = batch_request(
         func=func,
@@ -75,6 +78,7 @@ def _job_get_scripts_data(request, biz_cc_id=None):
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
         check_iam_auth_fail=True,
+        headers={"X-Bk-Tenant-Id": tenant_id},
     )
 
     return script_list
@@ -129,7 +133,8 @@ def job_get_script_by_script_version(request, biz_cc_id):
     :return:
     """
     script_version = request.GET.get("script_version")
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
 
     kwargs = {
         "bk_scope_type": JobBizScopeType.BIZ.value,
@@ -137,7 +142,7 @@ def job_get_script_by_script_version(request, biz_cc_id):
         "bk_biz_id": biz_cc_id,
         "id": script_version,
     }
-    result = client.jobv3.get_script_version_detail(kwargs)
+    result = client.api.get_script_version_detail(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
         return JsonResponse(result)
@@ -146,15 +151,17 @@ def job_get_script_by_script_version(request, biz_cc_id):
 
 
 def job_get_job_tasks_by_biz(request, biz_cc_id):
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
     plan_list = batch_request(
-        func=client.jobv3.get_job_plan_list,
+        func=client.api.get_job_plan_list,
         params={"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id},
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
         check_iam_auth_fail=True,
+        headers={"X-Bk-Tenant-Id": tenant_id},
     )
     task_list = []
     for task in plan_list:
@@ -163,14 +170,16 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
 
 
 def job_get_job_task_detail(request, biz_cc_id, task_id):
-    client = get_client_by_user(request.user.username)
-    job_result = client.jobv3.get_job_plan_detail(
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
+    job_result = client.api.get_job_plan_detail(
         {
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "job_plan_id": task_id,
-        }
+        },
+        headers={"X-Bk-Tenant-Id": tenant_id},
     )
 
     if not job_result["result"]:
@@ -189,9 +198,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var = []
     steps = []
     if not task_detail:
-        message = _(
-            f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail"
-        )
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -206,6 +213,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             if settings.ENABLE_IPV6:
                 bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
                 hosts = get_business_set_host(
+                    tenant_id,
                     request.user.username,
                     supplier_account_for_business(biz_cc_id),
                     host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
@@ -221,9 +229,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                     ]
                 )
         else:
-            message = _(
-                f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | job_get_job_task_detail"
-            )
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | job_get_job_task_detail")
             logger.warning(message)
             continue
 
@@ -255,7 +261,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 
 
 def job_get_instance_detail(request, biz_cc_id, task_id):
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     log_kwargs = {
         "bk_scope_type": bk_scope_type,
@@ -263,7 +269,8 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
         "bk_biz_id": biz_cc_id,
         "job_instance_id": task_id,
     }
-    job_result = client.job.get_job_instance_log(log_kwargs)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
+    job_result = client.api.get_job_instance_ip_log(log_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not job_result["result"]:
         message = _(
             f"执行历史请求失败: 查询作业平台(JOB)的作业模板[app_id={biz_cc_id}]接口job.get_task. "
@@ -298,16 +305,18 @@ def jobv3_get_job_template_list(request, biz_cc_id):
     @param biz_cc_id: 业务 ID
     @return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     template_list = batch_request(
-        func=client.jobv3.get_job_template_list,
+        func=client.api.get_job_template_list,
         params={"bk_scope_type": bk_scope_type, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id},
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
         check_iam_auth_fail=True,
+        headers={"X-Bk-Tenant-Id": tenant_id},
     )
 
     data = []
@@ -324,10 +333,11 @@ def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
     @param job_template_id: 作业模版 ID
     @return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     plan_list = batch_request(
-        func=client.jobv3.get_job_plan_list,
+        func=client.api.get_job_plan_list,
         params={
             "bk_scope_type": bk_scope_type,
             "bk_scope_id": str(biz_cc_id),
@@ -339,6 +349,7 @@ def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
         check_iam_auth_fail=True,
+        headers={"X-Bk-Tenant-Id": tenant_id},
     )
 
     data = []
@@ -355,8 +366,9 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     @param job_plan_id: 作业执行方案 ID
     @return:
     """
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
     kwargs = {
         "bk_scope_type": bk_scope_type,
         "bk_scope_id": str(biz_cc_id),
@@ -364,7 +376,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
         "job_plan_id": job_plan_id,
     }
 
-    jobv3_result = client.jobv3.get_job_plan_detail(kwargs)
+    jobv3_result = client.api.get_job_plan_detail(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not jobv3_result["result"]:
         check_and_raise_raw_auth_fail_exception(jobv3_result)
         message = handle_api_error("jobv3", "get_job_plan_detail", kwargs, jobv3_result)
@@ -375,9 +387,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     plan_detail = jobv3_result["data"]
     global_var = []
     if not plan_detail:
-        message = _(
-            f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {jobv3_result}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_job_plan_detail"
-        )
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {jobv3_result}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_job_plan_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -389,6 +399,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
             if settings.ENABLE_IPV6:
                 bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
                 hosts = get_business_set_host(
+                    tenant_id,
                     request.user.username,
                     supplier_account_for_business(biz_cc_id),
                     host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
@@ -404,9 +415,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
                     ]
                 )
         else:
-            message = _(
-                f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | jobv3_get_job_plan_detail"
-            )
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | jobv3_get_job_plan_detail")
             logger.error(message)
             result = {"result": False, "message": message}
             return JsonResponse(result)
@@ -426,21 +435,20 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
 
 def jobv3_get_instance_list(request, biz_cc_id, type, status):
     username = request.user.username
-    client = get_client_by_user(username)
+    client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
-
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
     job_kwargs = {
         "bk_scope_type": bk_scope_type,
         "bk_scope_id": str(biz_cc_id),
         "bk_biz_id": biz_cc_id,
         "create_time_end": int(round(time.time() * 1000)) + TEN_MINUTES_MILLISECONDS * 1,
-        "create_time_start": int(round(time.time() * 1000))
-        - TEN_MINUTES_MILLISECONDS * 1,  # 取一天前到一天后这段时间的历史
+        "create_time_start": int(round(time.time() * 1000)) - TEN_MINUTES_MILLISECONDS * 1,  # 取一天前到一天后这段时间的历史
         "operator": username,
         "status": int(status),
         "type": int(type),
     }
-    job_result = client.jobv3.get_job_instance_list(job_kwargs)
+    job_result = client.api.get_job_instance_list(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not job_result["result"]:
         message = _(
             f"请求执行方案失败: 查询作业平台(JOB)的作业模板[app_id={biz_cc_id}]接口jobv3.get_job_instance_list."
@@ -460,9 +468,10 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
 def get_job_account_list(request, biz_cc_id):
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     job_kwargs = {"bk_scope_id": biz_cc_id, "bk_scope_type": bk_scope_type, "category": 1}
-    client = get_client_by_user(request.user.username)
+    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT_TENANT
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     account_list = batch_request(
-        client.jobv3.get_account_list,
+        client.api.get_account_list,
         job_kwargs,
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
@@ -470,6 +479,7 @@ def get_job_account_list(request, biz_cc_id):
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
         check_iam_auth_fail=True,
+        headers={"X-Bk-Tenant-Id": tenant_id},
     )
 
     if not account_list:

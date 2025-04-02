@@ -12,18 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.job import JobPushLocalFilesComponent
 
 
@@ -44,7 +43,9 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.push_local_files.v1_0_0.get_client_by_user"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v1_0_0.get_client_by_username"
+)
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.v1_0_0.get_node_callback_url"
@@ -71,7 +72,7 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False, outputs={"ex_data": "File Manager configuration error, contact administrator please."}
         ),
@@ -93,7 +94,7 @@ def FILE_MANAGER_TYPE_ERR_CASE():
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=False,
             outputs={
@@ -135,13 +136,14 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
-            success=False, outputs={"ex_data": '调用作业平台(JOB)接口api token返回失败, error=msg token, params="kwargs token"'}
+            success=False,
+            outputs={"ex_data": '调用作业平台(JOB)接口api token返回失败, error=msg token, params="kwargs token"'},
         ),
         schedule_assertion=None,
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -158,7 +160,8 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         account="job_target_account",
                         callback_url="callback_url",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
-                    )
+                        headers={"X-Bk-Tenant-Id": "system"},
+                    ),
                 ],
             ),
         ],
@@ -191,7 +194,7 @@ def CALLBACK_INVALID_CASE():
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={"job_inst_id": CALLBACK_INVALID_RESULT["data"]["job_id"], "job_inst_url": "url_token"},
@@ -207,7 +210,7 @@ def CALLBACK_INVALID_CASE():
             schedule_finished=False,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1:2.2.2.2", use_cache=False)],
@@ -226,7 +229,8 @@ def CALLBACK_INVALID_CASE():
                         target_server={
                             "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}, {"ip": "2.2.2.2", "bk_cloud_id": 0}]
                         },
-                    )
+                        headers={"X-Bk-Tenant-Id": "system"},
+                    ),
                 ],
             ),
         ],
@@ -263,7 +267,7 @@ def CALLBACK_STRUCT_ERR_CASE():
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={"job_inst_id": CALLBACK_STRUCT_ERR_RESULT["data"]["job_id"], "job_inst_url": "url_token"},
@@ -279,7 +283,7 @@ def CALLBACK_STRUCT_ERR_CASE():
             schedule_finished=False,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -296,6 +300,7 @@ def CALLBACK_STRUCT_ERR_CASE():
                         account="job_target_account",
                         callback_url="callback_url",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
@@ -330,7 +335,7 @@ def CALLBACK_FAIL_CASE():
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True, outputs={"job_inst_id": CALLBACK_FAIL_RESULT["data"]["job_id"], "job_inst_url": "url_token"}
         ),
@@ -349,7 +354,7 @@ def CALLBACK_FAIL_CASE():
             schedule_finished=False,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -366,6 +371,7 @@ def CALLBACK_FAIL_CASE():
                         account="job_target_account",
                         callback_url="callback_url",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
@@ -400,7 +406,7 @@ def SUCCESS_CASE():
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
-        parent_data={"executor": "executor", "project_id": "project_id"},
+        parent_data={"executor": "executor", "project_id": "project_id", "tenant_id": "system"},
         execute_assertion=ExecuteAssertion(
             success=True, outputs={"job_inst_id": SUCCESS_RESULT["data"]["job_id"], "job_inst_url": "url_token"}
         ),
@@ -411,7 +417,7 @@ def SUCCESS_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
@@ -428,6 +434,7 @@ def SUCCESS_CASE():
                         account="job_target_account",
                         callback_url="callback_url",
                         target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),

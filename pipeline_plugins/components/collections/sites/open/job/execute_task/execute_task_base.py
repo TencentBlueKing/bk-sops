@@ -21,6 +21,7 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 from gcloud.conf import settings
 from gcloud.utils import crypto
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP, JOBV3_VAR_CATEGORY_PASSWORD
@@ -33,8 +34,6 @@ from pipeline_plugins.components.utils import (
 )
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -100,9 +99,10 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
     def check_ip_is_exist(self, data):
         return data.get_one_of_inputs("ip_is_exist")
 
-    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
+    def build_ip_list(self, tenant_id, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
         if biz_across:
             result, server = self.get_target_server(
+                tenant_id=tenant_id,
                 ip_str=val,
                 executor=executor,
                 biz_cc_id=biz_cc_id,
@@ -116,6 +116,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             # 匹配不到管控区域IP格式IP，尝试从当前业务下获取
             if not result:
                 result, server = self.get_target_server(
+                    tenant_id=tenant_id,
                     ip_str=val,
                     executor=executor,
                     biz_cc_id=biz_cc_id,
@@ -129,6 +130,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                 return {}
         else:
             result, server = self.get_target_server(
+                tenant_id=tenant_id,
                 ip_str=val,
                 executor=executor,
                 biz_cc_id=biz_cc_id,
@@ -144,8 +146,8 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
-        client.set_bk_api_ver("v2")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -176,12 +178,10 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             if _value["category"] == JOBV3_VAR_CATEGORY_IP:
                 self.logger.info("[job_execute_task_base] start find ip, var={}".format(val))
                 if val:
-                    server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
+                    server = self.build_ip_list(tenant_id, biz_across, val, executor, biz_cc_id, data, ip_is_exist)
                     self.logger.info("[job_execute_task_base] find a ip var, ip_list is {}".format(server))
                     if not server:
-                        data.outputs.ex_data = _(
-                            f"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {val}"
-                        )
+                        data.outputs.ex_data = _(f"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {val}")
                         return False
                     global_vars.append({"name": _value["name"], "server": server})
             # 密文变量在没有修改的情况下不加入全局变量，避免脱敏字符串作为正式值进行作业执行逻辑
@@ -198,7 +198,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
-        job_result = client.jobv3.execute_job_plan(job_kwargs)
+        job_result = client.api.execute_job_plan(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]

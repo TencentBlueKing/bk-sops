@@ -47,13 +47,13 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
             ),
         ]
 
-    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id):
+    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id, tenant_id):
         clean_result, target_server = self.get_target_server_hybrid(
-            executor, biz_cc_id, data, target_ip_list, self.logger
+            tenant_id, executor, biz_cc_id, data, target_ip_list, self.logger
         )
         return clean_result, target_server
 
-    def get_params_list(self, client, data, target_server, local_files_and_target_path):
+    def get_params_list(self, tenant_id, client, data, target_server, local_files_and_target_path):
         biz_cc_id = data.inputs.biz_cc_id
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
@@ -69,18 +69,21 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
         target_account = data.inputs.job_target_account.strip()
         params_list = [
             {
-                "esb_client": client,
-                "bk_biz_id": biz_cc_id,
-                "file_tags": [
-                    _file["response"]["tag"]
-                    for _file in push_files_info["file_info"]
-                    if _file["response"]["result"] is True
-                ],
-                "target_path": push_files_info["target_path"].strip(),
-                "ips": None,
-                "target_server": target_server,
-                "account": target_account.strip(),
-                "rolling_config": rolling_config,
+                "data": {
+                    "esb_client": client,
+                    "bk_biz_id": biz_cc_id,
+                    "file_tags": [
+                        _file["response"]["tag"]
+                        for _file in push_files_info["file_info"]
+                        if _file["response"]["result"] is True
+                    ],
+                    "target_path": push_files_info["target_path"].strip(),
+                    "ips": None,
+                    "target_server": target_server,
+                    "account": target_account.strip(),
+                    "rolling_config": rolling_config,
+                },
+                "headers": {"X-Bk-Tenant-Id": tenant_id},
             }
             for push_files_info in local_files_and_target_path
         ]
@@ -94,6 +97,5 @@ class JobPushLocalFilesComponent(Component):
     form = "%scomponents/atoms/job/job_push_local_files/v2_1.js" % settings.STATIC_URL
     version = "v2.1"
     desc = _(
-        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
-        "注：插件版本v2.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
+        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。" "注：插件版本v2.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
     )

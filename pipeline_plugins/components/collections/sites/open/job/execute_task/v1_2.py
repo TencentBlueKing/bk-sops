@@ -26,8 +26,6 @@ from .execute_task_base import JobExecuteTaskServiceBase
 
 __group_name__ = _("作业平台(JOB)")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
@@ -64,8 +62,10 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         """
         return False
 
-    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
-        result, ip_list = self.get_target_server_hybrid(executor, biz_cc_id, data, val, logger_handle=self.logger)
+    def build_ip_list(self, tenant_id, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
+        result, ip_list = self.get_target_server_hybrid(
+            tenant_id, executor, biz_cc_id, data, val, logger_handle=self.logger
+        )
         if not result:
             return {}
         return ip_list
@@ -75,6 +75,7 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         默认使用ip新版分组
         """
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
+            parent_data.inputs.tenant_id,
             data.outputs.client,
             self.logger,
             job_instance_id,

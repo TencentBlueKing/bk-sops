@@ -11,6 +11,7 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils import crypto
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
@@ -26,8 +27,6 @@ from pipeline_plugins.components.utils import (
 )
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -68,9 +67,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
                     item_schema=ObjectItemSchema(
                         description=_("全局变量"),
                         property_schemas={
-                            "type": IntItemSchema(
-                                description=_("变量类型，字符串(1) 命名空间(2) IP(3) 密码(4) 数组(5)")
-                            ),
+                            "type": IntItemSchema(description=_("变量类型，字符串(1) 命名空间(2) IP(3) 密码(4) 数组(5)")),
                             "name": StringItemSchema(description=_("变量名")),
                             "value": StringItemSchema(description=_("变量值")),
                         },
@@ -109,7 +106,8 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -123,7 +121,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
         original_global_var = deepcopy(config_data.get("job_global_var")) or []
         global_var_list = []
 
-        if not has_biz_set(int(biz_cc_id)):
+        if not has_biz_set(tenant_id, int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         for _value in original_global_var:
@@ -146,7 +144,12 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
 
                 ip_list = self.get_ip_list(val)
                 result, server = self.get_target_server_biz_set(
-                    executor, ip_list, supplier_account=supplier_account, logger_handle=self.logger, need_build_ip=False
+                    tenant_id,
+                    executor,
+                    ip_list,
+                    supplier_account=supplier_account,
+                    logger_handle=self.logger,
+                    need_build_ip=False,
                 )
 
                 if not result:
@@ -170,7 +173,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
-        job_result = client.jobv3.execute_job_plan(job_kwargs)
+        job_result = client.api.execute_job_plan(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
@@ -189,6 +192,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
     def schedule(self, data, parent_data, callback_data=None):
         config_data = data.get_one_of_inputs("all_biz_job_config")
         biz_cc_id = int(config_data.get("all_biz_cc_id"))
-        if not has_biz_set(int(biz_cc_id)):
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        if not has_biz_set(tenant_id, int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
         return super().schedule(data, parent_data, callback_data)

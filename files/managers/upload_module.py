@@ -11,10 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .base import Manager
-from ..models import UploadModuleFileTag
-from ..exceptions import InvalidOperationError
 from ..env import BKAPP_FILE_MGR_SOURCE_ACCOUNT
+from ..exceptions import InvalidOperationError
+from ..models import UploadModuleFileTag
+from .base import Manager
 
 
 class UploadModuleManager(Manager):
@@ -45,6 +45,7 @@ class UploadModuleManager(Manager):
         bk_scope_type="biz",
         target_server=None,
         rolling_config=None,
+        headers=None,
     ):
 
         if not all([tag["type"] == "upload_module" for tag in file_tags]):
@@ -88,7 +89,7 @@ class UploadModuleManager(Manager):
         if callback_url:
             job_kwargs["callback_url"] = callback_url
 
-        job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
+        job_result = esb_client.api.fast_transfer_file(job_kwargs, headers=headers)
 
         if not job_result["result"]:
             return {

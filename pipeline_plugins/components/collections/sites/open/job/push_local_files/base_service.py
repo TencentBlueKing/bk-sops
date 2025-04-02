@@ -22,14 +22,13 @@ from files.factory import ManagerFactory
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -133,30 +132,40 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
             ),
         ]
 
-    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id):
+    def get_ip_list(self, data, target_ip_list, executor, biz_cc_id, tenant_id):
         across_biz = data.get_one_of_inputs("job_across_biz", False)
         # 获取 IP
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, target_ip_list, self.logger, False, is_across=across_biz
+            tenant_id,
+            executor,
+            biz_cc_id,
+            data,
+            target_ip_list,
+            self.logger,
+            False,
+            is_across=across_biz,
         )
         return clean_result, target_server
 
-    def get_params_list(self, client, data, target_server, local_files_and_target_path):
+    def get_params_list(self, tenant_id, client, data, target_server, local_files_and_target_path):
         biz_cc_id = data.inputs.biz_cc_id
         target_account = data.inputs.job_target_account
         params_list = [
             {
-                "esb_client": client,
-                "bk_biz_id": biz_cc_id,
-                "file_tags": [
-                    _file["response"]["tag"]
-                    for _file in push_files_info["file_info"]
-                    if _file["response"]["result"] is True
-                ],
-                "target_path": push_files_info["target_path"].strip(),
-                "ips": None,
-                "account": target_account.strip(),
-                "target_server": target_server,
+                "data": {
+                    "esb_client": client,
+                    "bk_biz_id": biz_cc_id,
+                    "file_tags": [
+                        _file["response"]["tag"]
+                        for _file in push_files_info["file_info"]
+                        if _file["response"]["result"] is True
+                    ],
+                    "target_path": push_files_info["target_path"].strip(),
+                    "ips": None,
+                    "account": target_account.strip(),
+                    "target_server": target_server,
+                },
+                "headers": {"X-Bk-Tenant-Id": tenant_id},
             }
             for push_files_info in local_files_and_target_path
         ]
@@ -165,6 +174,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.inputs.tenant_id
         biz_cc_id = data.inputs.biz_cc_id
         local_files_and_target_path = data.inputs.job_local_files_info["job_push_multi_local_files_table"]
         target_ip_list = data.inputs.job_target_ip_list
@@ -184,15 +194,15 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
             data.outputs.ex_data = err_msg.format(file_manager_type, e)
             return False
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         # filter 跨业务 IP
-        clean_result, target_server = self.get_ip_list(data, target_ip_list, executor, biz_cc_id)
+        clean_result, target_server = self.get_ip_list(data, target_ip_list, executor, biz_cc_id, tenant_id)
         if not clean_result:
             data.outputs.ex_data = "ip查询失败，请检查ip配置是否正常"
             return False
 
-        params_list = self.get_params_list(client, data, target_server, local_files_and_target_path)
+        params_list = self.get_params_list(tenant_id, client, data, target_server, local_files_and_target_path)
 
         if job_timeout:
             for param in params_list:
@@ -200,7 +210,11 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
 
         # 批量上传请求
         if len(params_list) == task_count:
-            push_results = batch_execute_func(file_manager.push_files_to_ips, params_list, interval_enabled=True)
+            push_results = batch_execute_func(
+                file_manager.push_files_to_ips,
+                params_list,
+                interval_enabled=True,
+            )
         else:
             data.outputs.ex_data = _("执行参数为空，请确认")
             return False

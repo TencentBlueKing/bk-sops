@@ -14,16 +14,16 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
-    ScheduleAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.sites.open.job import JobFastExecuteScriptComponent
 
 
@@ -51,17 +51,17 @@ class MockClient(object):
         get_job_instance_ip_log_return=None,
         get_job_instance_status=None,
     ):
-        self.jobv3 = MagicMock()
-        self.jobv3.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
-        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
-        self.jobv3.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
-        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
-        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
+        self.api = MagicMock()
+        self.api.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
+        self.api.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.api.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.api.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
+        self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.get_client_by_username"
 )
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.get_node_callback_url"
@@ -213,7 +213,7 @@ FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
 GET_NODE_CALLBACK_URL_MOCK = MagicMock(return_value="callback_url")
 
 # parent_data
-PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
+PARENT_DATA = {"executor": "executor", "biz_cc_id": 1, "tenant_id": "system"}
 
 # BASE_INPUTS
 BASE_INPUTS = {
@@ -301,7 +301,10 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         callback_data={},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(
+            func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.api.fast_execute_script,
+            calls=[Call(MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
@@ -321,14 +324,22 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=MANUAL_SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True, outputs=MANUAL_SUCCESS_OUTPUTS2, callback_data={"job_instance_id": 10000, "status": 3},
+        success=True,
+        outputs=MANUAL_SUCCESS_OUTPUTS2,
+        callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(
+            func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.api.fast_execute_script,
+            calls=[Call(MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": []},
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
@@ -346,7 +357,10 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs=MANUAL_FAIL_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(
+            func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.api.fast_execute_script,
+            calls=[Call(MANUAL_KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),

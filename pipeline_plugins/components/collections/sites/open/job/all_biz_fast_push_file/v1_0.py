@@ -25,6 +25,7 @@ __group_name__ = _("作业平台(JOB)")
 
 class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
     def get_params_list(self, data, parent_data):
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
@@ -40,19 +41,22 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
                 job_account = attr["job_target_account"]
                 job_target_path = attr["job_target_path"]
                 result, target_server = self.get_target_server_biz_set(
-                    executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
+                    tenant_id, executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
                 )
                 if not result:
                     raise Exception("源文件信息处理失败，请检查ip配置是否正确")
 
                 job_kwargs = {
-                    "bk_scope_type": self.biz_scope_type,
-                    "bk_scope_id": str(biz_cc_id),
-                    "bk_biz_id": biz_cc_id,
-                    "file_source_list": [source],
-                    "target_server": target_server,
-                    "account_alias": job_account,
-                    "file_target_path": job_target_path,
+                    "data": {
+                        "bk_scope_type": self.biz_scope_type,
+                        "bk_scope_id": str(biz_cc_id),
+                        "bk_biz_id": biz_cc_id,
+                        "file_source_list": [source],
+                        "target_server": target_server,
+                        "account_alias": job_account,
+                        "file_target_path": job_target_path,
+                    },
+                    "headers": {"X-Bk-Tenant-Id": tenant_id},
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)

@@ -40,13 +40,12 @@ from pipeline.core.flow.io import BooleanItemSchema, ObjectItemSchema, StringIte
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -76,9 +75,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
                 key="job_script_type",
                 type="string",
                 schema=StringItemSchema(
-                    description=_(
-                        "待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"
-                    ),
+                    description=_("待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"),
                     enum=["1", "2", "3", "4", "5"],
                 ),
             ),
@@ -122,9 +119,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
                 type="boolean",
-                schema=BooleanItemSchema(
-                    description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")
-                ),
+                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
         ]
 
@@ -148,7 +143,8 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
         if parent_data.get_one_of_inputs("language"):
@@ -159,7 +155,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
 
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, original_ip_list, self.logger, ip_is_exist
+            tenant_id, executor, biz_cc_id, data, original_ip_list, self.logger, ip_is_exist
         )
 
         if not clean_result:
@@ -192,7 +188,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
                     ),
                 }
             )
-        job_result = client.jobv3.fast_execute_script(job_kwargs)
+        job_result = client.api.fast_execute_script(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]

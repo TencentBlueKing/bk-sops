@@ -38,6 +38,7 @@ class Manager(object, metaclass=ABCMeta):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        headers=None,
     ):
         raise NotImplementedError()
 
