@@ -24,9 +24,9 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 
@@ -70,8 +70,9 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -83,7 +84,10 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
 
         # 查询主机可编辑属性
         search_attr_kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account}
-        search_attr_result = client.cc.search_object_attribute(search_attr_kwargs)
+        search_attr_result = client.api.search_object_attribute(
+            search_attr_kwargs,
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not search_attr_result["result"]:
             message = cc_handle_api_error("cc.search_object_attribute", search_attr_kwargs, search_attr_result)
             self.logger.error(message)
@@ -105,8 +109,8 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
             fault_ip = host["cc_fault_ip"]
             new_ip = host["cc_new_ip"]
 
-            fault_host_list = self.get_host_topo(executor, biz_cc_id, supplier_account, host_attrs, fault_ip)
-            new_host_list = self.get_host_topo(executor, biz_cc_id, supplier_account, host_attrs, new_ip)
+            fault_host_list = self.get_host_topo(tenant_id, executor, biz_cc_id, supplier_account, host_attrs, fault_ip)
+            new_host_list = self.get_host_topo(tenant_id, executor, biz_cc_id, supplier_account, host_attrs, new_ip)
 
             # 如果不存在，或者查询到的值大于1
             if not fault_host_list or len(fault_host_list) != 1:
@@ -135,7 +139,10 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
 
         # 更新替换机信息
         if copy_attrs:
-            update_result = client.cc.batch_update_host(batch_update_kwargs)
+            update_result = client.api.batch_update_host(
+                batch_update_kwargs,
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not update_result["result"]:
                 message = cc_handle_api_error("cc.batch_update_host", batch_update_kwargs, update_result)
                 self.logger.error(message)
@@ -148,7 +155,10 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
             "bk_biz_id": biz_cc_id,
             "bk_host_id": list(fault_replace_id_map.keys()),
         }
-        fault_transfer_result = client.cc.transfer_host_to_faultmodule(fault_transfer_kwargs)
+        fault_transfer_result = client.api.transfer_host_to_faultmodule(
+            fault_transfer_kwargs,
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
         if not fault_transfer_result["result"]:
             message = cc_handle_api_error(
                 "cc.transfer_host_to_faultmodule", fault_transfer_kwargs, fault_transfer_result
@@ -173,7 +183,10 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
 
         success = []
         for kwargs in transfer_kwargs_list:
-            transfer_result = client.cc.transfer_host_module(kwargs)
+            transfer_result = client.api.transfer_host_module(
+                kwargs,
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not transfer_result["result"]:
                 message = cc_handle_api_error("cc.transfer_host_module", kwargs, transfer_result)
                 self.logger.error(message)

@@ -539,7 +539,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获取全部业务对应维度信息
         total = len(proj_dimension_id_list)
         groups = []
-        proj_attr_info = get_business_attrinfo(proj_dimension_id_list)
+        proj_attr_info = get_business_attrinfo(taskflow.project.tenant_id, proj_dimension_id_list)
         for dimension in proj_dimension_id_list:
             result = {}
             dimension_total = 0
@@ -1235,7 +1235,8 @@ class TaskFlowInstance(models.Model):
         receivers = [self.executor]
 
         if self.project.from_cmdb:
-            cc_group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
+            cc_group_members = get_business_group_members(
+                self.project.tenant_id, self.project.bk_biz_id, receiver_group)
             receivers.extend(cc_group_members)
 
         members = list(

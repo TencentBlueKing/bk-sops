@@ -27,9 +27,9 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_list_select_node_inst_id,
 )
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 VERSION = "1.0"
@@ -87,7 +87,8 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
 
@@ -124,6 +125,7 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
                 continue
             # 获取 bk module id
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
+                tenant_id,
                 executor,
                 biz_cc_id,
                 supplier_account,
@@ -148,7 +150,10 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
                 "bk_module_id": [int(module_id) for module_id in cc_module_select],
                 "is_increment": is_append,
             }
-            update_result = client.cc.transfer_host_module(cc_kwargs)
+            update_result = client.api.transfer_host_module(
+                cc_kwargs,
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
 
             if update_result["result"]:
                 self.logger.info("主机所属业务模块更新成功, data={}".format(cc_kwargs))

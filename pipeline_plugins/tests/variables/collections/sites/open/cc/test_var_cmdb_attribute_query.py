@@ -20,6 +20,7 @@ from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbAttribut
 
 class VarCmdbAttributeQueryTestCase(TestCase):
     def setUp(self):
+        self.tenant_id = "test"
         self.name = "name_token"
         self.value = "  1.1.1.1 \n2.2.2.2 3.3.3.3\n4.4.4.4"
         self.context = {}
@@ -27,6 +28,7 @@ class VarCmdbAttributeQueryTestCase(TestCase):
         self.pipeline_data = {
             "executor": self.executer,
             "project_id": 1,
+            "tenant_id": self.tenant_id,
         }
         self.bk_biz_id = "bk_biz_id_token"
         self.supplier_account = "supplier_account_token"
@@ -68,6 +70,7 @@ class VarCmdbAttributeQueryTestCase(TestCase):
             },
         )
         mock_get_business_host.assert_called_once_with(
+            self.tenant_id,
             self.executer,
             self.bk_biz_id,
             self.supplier_account,

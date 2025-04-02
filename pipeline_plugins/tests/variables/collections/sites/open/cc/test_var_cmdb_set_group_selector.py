@@ -21,14 +21,15 @@ from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_select
     SetGroupInfo,
 )
 
-GET_CLIENT_BY_USER = "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_client_by_user"
+GET_CLIENT_BY_USERNAME = ("pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector."
+                          "get_client_by_username")
 
 
 class MockClient(object):
     def __init__(self, execute_dynamic_group_return=None, search_object_attribute_return=None):
-        self.cc = MagicMock()
-        self.cc.execute_dynamic_group = MagicMock(return_value=execute_dynamic_group_return)
-        self.cc.search_object_attribute = MagicMock(side_effect=search_object_attribute_return)
+        self.api = MagicMock()
+        self.api.execute_dynamic_group = MagicMock(return_value=execute_dynamic_group_return)
+        self.api.search_object_attribute = MagicMock(side_effect=search_object_attribute_return)
 
 
 set_field = [
@@ -129,11 +130,13 @@ GET_GROUP_INFO_FAIL_CLIENT = MockClient(
 
 class VarSetGroupSelectorTestCase(TestCase):
     def setUp(self):
+        self.tenant_id = "test"
         self.value = {"bk_group_id": "456"}
         self.multi_value = {"bk_group_id": "789"}
         self.pipeline_data = {
             "executor": "admin",
             "biz_cc_id": "123",
+            "tenant_id": self.tenant_id,
         }
         self.input_output_success_return = SetGroupInfo(
             {
@@ -199,7 +202,7 @@ class VarSetGroupSelectorTestCase(TestCase):
             set_field,
         )
 
-    @patch(GET_CLIENT_BY_USER, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
+    @patch(GET_CLIENT_BY_USERNAME, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
     def test_input_output_success_case(self, mock_get_client_by_user_return):
         """
         整个变量的输入输出正确的测试用例
@@ -209,7 +212,7 @@ class VarSetGroupSelectorTestCase(TestCase):
         )
         self.SetGroupInfoEqual(set_group_selector.get_value(), self.input_output_success_return)
 
-    @patch(GET_CLIENT_BY_USER, return_value=GET_GROUP_INFO_FAIL_CLIENT)
+    @patch(GET_CLIENT_BY_USERNAME, return_value=GET_GROUP_INFO_FAIL_CLIENT)
     def test_get_module_info_fail_case(self, mock_get_client_by_user_return):
         """
         获取模块信息失败的测试用例
@@ -222,7 +225,7 @@ class VarSetGroupSelectorTestCase(TestCase):
 
         self.assertTrue("ApiRequestError" in str(context.exception))
 
-    @patch(GET_CLIENT_BY_USER, return_value=MULTI_INPUT_OUTPUT_CLIENT)
+    @patch(GET_CLIENT_BY_USERNAME, return_value=MULTI_INPUT_OUTPUT_CLIENT)
     def test_multi_modules_success_case(self, mock_get_client_by_user_return):
         """
         多模块返回成功的测试用例
@@ -243,7 +246,7 @@ class VarSetGroupSelectorTestCase(TestCase):
 
     def test_self_explain__search_object_attribute_success(self):
         client = MagicMock()
-        client.cc.search_object_attribute = MagicMock(
+        client.api.search_object_attribute = MagicMock(
             return_value={
                 "result": True,
                 "message": "success",
@@ -256,12 +259,15 @@ class VarSetGroupSelectorTestCase(TestCase):
         )
 
         with patch(
-            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_client_by_user",
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_client_by_username",
             MagicMock(return_value=client),
         ):
-            explain = VarSetGroupSelector.self_explain()
+            explain = VarSetGroupSelector.self_explain(tenant_id=self.tenant_id)
 
-        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set"})
+        client.api.search_object_attribute.assert_called_once_with(
+            {"bk_obj_id": "set"},
+            headers={"X-Bk-Tenant-Id": self.tenant_id},
+        )
         self.assertEqual(
             explain,
             {
@@ -280,15 +286,18 @@ class VarSetGroupSelectorTestCase(TestCase):
 
     def test_self_explain__search_object_attribute_fail(self):
         client = MagicMock()
-        client.cc.search_object_attribute = MagicMock(return_value={"result": False, "message": "fail", "data": []})
+        client.api.search_object_attribute = MagicMock(return_value={"result": False, "message": "fail", "data": []})
 
         with patch(
-            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_client_by_user",
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_client_by_username",
             MagicMock(return_value=client),
         ):
-            explain = VarSetGroupSelector.self_explain()
+            explain = VarSetGroupSelector.self_explain(tenant_id=self.tenant_id)
 
-        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set"})
+        client.api.search_object_attribute.assert_called_once_with(
+            {"bk_obj_id": "set"},
+            headers={"X-Bk-Tenant-Id": self.tenant_id},
+        )
         self.assertEqual(
             explain,
             {

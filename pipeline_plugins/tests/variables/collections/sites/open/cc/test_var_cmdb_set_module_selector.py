@@ -22,14 +22,15 @@ from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_module_selec
     SetModuleInfo,
 )
 
-GET_CLIENT_BY_USER = "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_module_selector.get_client_by_user"
+GET_CLIENT_BY_USERNAME = ("pipeline_plugins.variables.collections.sites.open.cmdb.var_set_module_selector"
+                          ".get_client_by_username")
 
 
 class MockClient(object):
     def __init__(self, search_set_return=None, search_module_return=None):
-        self.cc = MagicMock()
-        self.cc.search_set = MagicMock(return_value=search_set_return)
-        self.cc.search_module = MagicMock(return_value=search_module_return)
+        self.api = MagicMock()
+        self.api.search_set = MagicMock(return_value=search_set_return)
+        self.api.search_module = MagicMock(return_value=search_module_return)
 
 
 INPUT_OUTPUT_SUCCESS_CLIENT = MockClient(
@@ -70,12 +71,14 @@ MULTI_MODULES_SUCCESS_CLIENT = MockClient(
 
 class VarSetModuleSelectorTestCase(TestCase):
     def setUp(self):
+        self.tenant_id = "test"
         self.value = {"bk_set_id": "456", "bk_module_id": [789]}
         self.multi_modules_value = {"bk_set_id": "456", "bk_module_id": [678, 789]}
 
         self.pipeline_data = {
             "executor": "admin",
             "biz_cc_id": "123",
+            "tenant_id": "test",
         }
         self.input_output_success_return = SetModuleInfo(
             {
@@ -119,7 +122,7 @@ class VarSetModuleSelectorTestCase(TestCase):
             }
         )
 
-    @patch(GET_CLIENT_BY_USER, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
+    @patch(GET_CLIENT_BY_USERNAME, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
     def test_input_output_success_case(self, mock_get_client_by_user_return):
         """
         整个变量的输入输出正确的测试用例
@@ -129,7 +132,7 @@ class VarSetModuleSelectorTestCase(TestCase):
         )
         self.SetModuleInfoEqual(set_module_selector.get_value(), self.input_output_success_return)
 
-    @patch(GET_CLIENT_BY_USER, return_value=GET_SET_INFO_FAIL_CLIENT)
+    @patch(GET_CLIENT_BY_USERNAME, return_value=GET_SET_INFO_FAIL_CLIENT)
     def test_get_set_info_fail_case(self, mock_get_client_by_user_return):
         """
         获取集群信息失败的测试用例
@@ -142,7 +145,7 @@ class VarSetModuleSelectorTestCase(TestCase):
 
         self.assertTrue("ApiRequestError" in str(context.exception))
 
-    @patch(GET_CLIENT_BY_USER, return_value=GET_MODULE_INFO_FAIL_CLIENT)
+    @patch(GET_CLIENT_BY_USERNAME, return_value=GET_MODULE_INFO_FAIL_CLIENT)
     def test_get_module_info_fail_case(self, mock_get_client_by_user_return):
         """
         获取模块信息失败的测试用例
@@ -155,7 +158,7 @@ class VarSetModuleSelectorTestCase(TestCase):
 
         self.assertTrue("ApiRequestError" in str(context.exception))
 
-    @patch(GET_CLIENT_BY_USER, return_value=MULTI_MODULES_SUCCESS_CLIENT)
+    @patch(GET_CLIENT_BY_USERNAME, return_value=MULTI_MODULES_SUCCESS_CLIENT)
     def test_multi_modules_success_case(self, mock_get_client_by_user_return):
         """
         多模块返回成功的测试用例

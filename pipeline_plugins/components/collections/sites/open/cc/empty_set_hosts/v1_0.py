@@ -28,9 +28,9 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
 )
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
 VERSION = "v1.0"
@@ -80,8 +80,9 @@ class CCEmptySetHostsService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
-        client = get_client_by_user(executor)
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -94,7 +95,7 @@ class CCEmptySetHostsService(Service):
         elif cc_set_select_method == SelectMethod.TEXT.value:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
+                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -110,7 +111,10 @@ class CCEmptySetHostsService(Service):
                 "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
             }
-            cc_result = client.cc.transfer_sethost_to_idle_module(cc_kwargs)
+            cc_result = client.api.transfer_sethost_to_idle_module(
+                cc_kwargs,
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
             if not cc_result["result"]:
                 message = cc_handle_api_error("cc.transfer_sethost_to_idle_module", cc_kwargs, cc_result)
                 self.logger.error(message)
