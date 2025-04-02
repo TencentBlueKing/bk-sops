@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.tests.mock_ import MagicMock, patch
+from mock import MagicMock, patch
 from django.test import TestCase
 
 from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbSetAllocation

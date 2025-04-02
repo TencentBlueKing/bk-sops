@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 
 from django.test import TestCase
-from gcloud.tests.mock_ import MagicMock, patch
+from mock import MagicMock, patch
 
 from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbIpSelector
 

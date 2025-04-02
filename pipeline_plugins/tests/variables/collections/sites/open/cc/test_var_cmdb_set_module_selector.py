@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from unittest.util import safe_repr
 
-from gcloud.tests.mock_ import MagicMock, patch
+from mock import MagicMock, patch
 
 from django.test import TestCase
 

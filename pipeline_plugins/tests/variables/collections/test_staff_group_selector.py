@@ -65,7 +65,11 @@ class StaffGroupSelectorTestCase(TestCase):
             MagicMock(return_value=self.supplier_account),
         )
 
-        self.get_notify_receivers_return = {"result": True, "message": "success", "data":"developer,maintainer,productor,tester,tester1,tester2,tester3,tester4"}
+        self.get_notify_receivers_return = {
+            "result": True,
+            "message": "success",
+            "data": "developer,maintainer,productor,tester,tester1,tester2,tester3,tester4",
+        }
         self.get_notify_receivers_patcher = patch(
             "pipeline_plugins.variables.collections.common.get_notify_receivers",
             MagicMock(return_value=self.get_notify_receivers_return),
