@@ -21,7 +21,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     CCPluginIPMixin,
@@ -99,12 +98,11 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_str = data.get_one_of_inputs("cc_host_ip")
         # 获取主机id列表
-        host_result = self.get_ip_info_list(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
+        host_result = self.get_ip_info_list(tenant_id, executor, biz_cc_id, ip_str)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False
@@ -118,7 +116,7 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
         elif cc_module_select_method == SelectMethod.TEXT.value:
             cc_module_select_text = data.get_one_of_inputs("cc_module_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -130,7 +128,6 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
 
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,
-            "bk_supplier_account": supplier_account,
             "bk_host_id": [int(host["HostID"]) for host in host_result["ip_result"]],
             "bk_module_id": cc_module_select,
             "is_increment": True if cc_is_increment == "true" else False,

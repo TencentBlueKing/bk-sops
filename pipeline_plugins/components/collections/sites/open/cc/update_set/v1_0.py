@@ -22,7 +22,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
@@ -102,14 +101,13 @@ class CCUpdateSetService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         if cc_set_select_method == SelectMethod.TOPO.value:
             cc_set_select = cc_format_tree_set_id(data.get_one_of_inputs("cc_set_select_topo"))
         elif cc_set_select_method == SelectMethod.TEXT.value:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.SET, cc_set_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -123,7 +121,6 @@ class CCUpdateSetService(Service):
         if cc_set_property == "bk_service_status":
             bk_service_status = cc_format_prop_data(
                 tenant_id, executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"),
-                supplier_account,
             )
             if not bk_service_status["result"]:
                 data.set_outputs("ex_data", bk_service_status["message"])
@@ -137,7 +134,6 @@ class CCUpdateSetService(Service):
         elif cc_set_property == "bk_set_env":
             bk_set_env = cc_format_prop_data(
                 tenant_id, executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"),
-                supplier_account,
             )
             if not bk_set_env["result"]:
                 data.set_outputs("ex_data", bk_set_env["message"])
@@ -161,10 +157,9 @@ class CCUpdateSetService(Service):
 
         for set_id in cc_set_select:
             cc_kwargs = {
+                cc_set_property: cc_set_prop_value,
                 "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
-                "data": {cc_set_property: cc_set_prop_value},
             }
             cc_result = client.api.update_set(
                 cc_kwargs,

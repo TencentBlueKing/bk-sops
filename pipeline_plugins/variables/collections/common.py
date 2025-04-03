@@ -26,7 +26,6 @@ from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import get_notify_receivers
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
@@ -348,7 +347,6 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
         tenant_id = self.pipeline_data["tenant_id"]
         operator = self.pipeline_data["executor"]
         bk_biz_id = int(self.pipeline_data["biz_cc_id"])
-        supplier_account = supplier_account_for_business(bk_biz_id)
 
         # 自定义项目分组和cc 人员分组
         staff_group_id_list = [group_id for group_id in self.value if str(group_id).isdigit()]
@@ -364,7 +362,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
         staff_names = ",".join(staff_names_list_clear)
 
         # 拼接cc分组人员和自定义分组人员
-        res = get_notify_receivers(tenant_id, operator, bk_biz_id, supplier_account, cc_staff_group, staff_names)
+        res = get_notify_receivers(tenant_id, operator, bk_biz_id, cc_staff_group, staff_names)
 
         if not res["result"]:
             message = f'get cc({bk_biz_id}) staff_group failed: {res["message"]}'

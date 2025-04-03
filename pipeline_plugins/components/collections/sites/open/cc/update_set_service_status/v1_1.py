@@ -108,9 +108,8 @@ class CCUpdateSetServiceStatusService(Service):
         for set_id in bk_set_ids:
             cc_kwargs = {
                 "bk_biz_id": bk_biz_id,
-                "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
-                "data": {"bk_service_status": set_status},
+                "bk_service_status": set_status,
             }
             cc_result = client.api.update_set(
                 cc_kwargs,

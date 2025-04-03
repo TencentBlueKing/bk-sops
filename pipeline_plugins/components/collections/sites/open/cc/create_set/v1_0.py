@@ -25,7 +25,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, cc_format_tree_mode_id
 
 logger = logging.getLogger("celery")
@@ -117,19 +116,18 @@ class CCCreateSetService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_parent_select"))
         cc_set_info = deepcopy(data.get_one_of_inputs("cc_set_info"))
 
         bk_set_env = cc_format_prop_data(
-            tenant_id, executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"), supplier_account
+            tenant_id, executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language")
         )
         if not bk_set_env["result"]:
             data.set_outputs("ex_data", bk_set_env["message"])
             return False
 
         bk_service_status = cc_format_prop_data(
-            tenant_id, executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"), supplier_account
+            tenant_id, executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language")
         )
         if not bk_service_status["result"]:
             data.set_outputs("ex_data", bk_service_status["message"])
@@ -167,19 +165,15 @@ class CCCreateSetService(Service):
 
         for parent_id in cc_set_parent_select:
             for set_data in set_list:
-                cc_kwargs = {
-                    "bk_biz_id": biz_cc_id,
-                    "bk_supplier_account": supplier_account,
-                    "data": {"bk_parent_id": parent_id},
-                }
-                cc_kwargs["data"].update(set_data)
+                set_data["bk_biz_id"] = biz_cc_id
+                set_data["bk_parent_id"] = parent_id
                 cc_result = client.api.create_set(
-                    cc_kwargs,
+                    set_data,
                     path_params={"bk_biz_id": biz_cc_id},
                     headers={"X-Bk-Tenant-Id": tenant_id},
                 )
                 if not cc_result["result"]:
-                    message = cc_handle_api_error("cc.create_set", cc_kwargs, cc_result)
+                    message = cc_handle_api_error("cc.create_set", set_data, cc_result)
                     self.logger.error(message)
                     data.set_outputs("ex_data", message)
                     return False

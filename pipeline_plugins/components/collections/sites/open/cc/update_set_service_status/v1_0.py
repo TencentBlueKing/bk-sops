@@ -22,7 +22,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
@@ -95,14 +94,13 @@ class CCUpdateSetServiceStatusService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         if cc_set_select_method == SelectMethod.TOPO.value:
             cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
         elif cc_set_select_method == SelectMethod.TEXT.value:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.SET, cc_set_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -115,9 +113,8 @@ class CCUpdateSetServiceStatusService(Service):
         for set_id in cc_set_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
-                "data": {"bk_service_status": data.get_one_of_inputs("cc_set_status")},
+                "bk_service_status": data.get_one_of_inputs("cc_set_status"),
             }
             cc_result = client.api.update_set(
                 cc_kwargs,
