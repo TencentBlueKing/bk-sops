@@ -243,6 +243,14 @@ class Group(OperationGroup):
         path="/api/v3/get_business_list/",
     )
 
+    # 获取文件上传地址
+    generate_local_file_upload_url = bind_property(
+        Operation,
+        name="generate_local_file_upload_url",
+        method="POST",
+        path="/api/v3/system/generate_local_file_upload_url",
+    )
+
 
 class Client(APIGatewayClient):
     """Bkapi bk-job client"""

@@ -29,9 +29,8 @@ def gsekit_get_config_template_list(request, biz_cc_id):
     :return:
     """
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else "default"
     template_raw_list = client.api.config_template_list(
-        path_params={"bk_biz_id": int(biz_cc_id)}, headers={"X-Bk-Tenant-Id": tenant_id}
+        path_params={"bk_biz_id": int(biz_cc_id)}, headers={"X-Bk-Tenant-Id": request.user.tenant_id}
     )
     template_list = [
         {"text": template["template_name"], "value": template["config_template_id"]} for template in template_raw_list

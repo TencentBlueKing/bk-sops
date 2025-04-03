@@ -15,8 +15,9 @@ logger = logging.getLogger("root")
 
 def monitor_get_strategy(request, biz_cc_id):
     client = get_client_by_username(username=request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else "default"
-    response = client.api.search_alarm_strategy({"bk_biz_id": biz_cc_id}, headers={"X-Bk-Tenant-Id": tenant_id})
+    response = client.api.search_alarm_strategy(
+        {"bk_biz_id": biz_cc_id}, headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+    )
     if not response["result"]:
         message = _(
             f"请求策略失败: 请求[监控平台]的策略[ID: {biz_cc_id}]返回失败: {response['message']}.请重试, 如持续失败可联系管理员处理 | monitor_get_strategy"

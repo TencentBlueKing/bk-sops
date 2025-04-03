@@ -14,35 +14,34 @@ import logging
 import time
 
 import requests
-from bkapi.jobv3_cloud.shortcuts import get_client_by_username
 
 from files.exceptions import ApiResultError, InvalidOperationError
 from files.managers.base import Manager
 from files.models import FileUploadRecord
 from gcloud.conf import settings
 from gcloud.core.models import Project
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 class JobRepoStorage:
     @staticmethod
     def generate_temporary_upload_url(
+        tenant_id: str,
         username: str,
         bk_biz_id: int,
         file_names: list,
         bk_scope_type: str = "biz",
     ):
-        esb_client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
+        client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
         job_kwargs = {
             "bk_scope_type": bk_scope_type,
             "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
             "file_name_list": file_names,
         }
-        job_result = esb_client.api.generate_local_file_upload_url(job_kwargs)
+        job_result = client.api.generate_local_file_upload_url(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         return job_result
 
     @staticmethod
@@ -72,9 +71,10 @@ class JobRepoManager(Manager):
 
     def save(self, name, content, shims=None, max_length=None, **kwargs):
         project_id = kwargs["project_id"]
+        tenant_id = kwargs["tenant_id"]
         bk_biz_id = Project.objects.filter(id=project_id).only("bk_biz_id").first().bk_biz_id
         url_fetch_result = self.storage.generate_temporary_upload_url(
-            username=kwargs["username"], bk_biz_id=bk_biz_id, file_names=[name]
+            tenant_id=tenant_id, username=kwargs["username"], bk_biz_id=bk_biz_id, file_names=[name]
         )
         if not url_fetch_result["result"]:
             logger.error(f"[fetch temporary upload url failed]: {url_fetch_result}")

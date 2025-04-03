@@ -47,6 +47,7 @@ def common_process_request(request, manager, *args, **kwargs):
 
     shims = "plugins_upload/job_push_local_files/{}".format(project_id)
     kwargs = {
+        "tenant_id": request.user.tenant_id,
         "project_id": int(project_id),
         "username": kwargs.get("specific_username") or request.user.username,
     }

@@ -24,14 +24,12 @@ from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
-DEFAULT = "default"
 BKAPP_NODEMAN_SUPPORT_TJJ = os.environ.get("BKAPP_NODEMAN_SUPPORT_TJJ", "False") == "True"
 
 
 def nodeman_get_cloud_area(request):
-    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT
     client = get_client_by_username(username=request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    cloud_area_result = client.api.cloud_list(headers={"X-Bk-Tenant-Id": tenant_id})
+    cloud_area_result = client.api.cloud_list(headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     if not cloud_area_result["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
         logger.error(message)
@@ -49,9 +47,8 @@ def nodeman_get_cloud_area(request):
 
 
 def nodeman_get_ap_list(request):
-    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT
     client = get_client_by_username(username=request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    ap_list = client.api.ap_list(headers={"X-Bk-Tenant-Id": tenant_id})
+    ap_list = client.api.ap_list(headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     if not ap_list["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.ap_list", {}, ap_list)
         logger.error(message)
@@ -67,9 +64,8 @@ def nodeman_get_ap_list(request):
 
 def nodeman_get_plugin_list(request, category):
     """获取插件列表"""
-    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT
     client = get_client_by_username(username=request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    plugin_list = client.api.plugin_list({"category": category}, headers={"X-Bk-Tenant-Id": tenant_id})
+    plugin_list = client.api.plugin_list({"category": category}, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
 
     if not plugin_list["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_process", {}, plugin_list)
@@ -88,11 +84,10 @@ def nodeman_get_plugin_list(request, category):
 
 def nodeman_get_plugin_version(request, plugin, os_type):
     """根据系统获取插件版本"""
-    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT
     client = get_client_by_username(username=request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"os": os_type.upper()}
     plugin_version_list = client.api.list_packages(
-        kwargs, headers={"X-Bk-Tenant-Id": tenant_id}, path_params={"process": plugin}
+        kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id}, path_params={"process": plugin}
     )
 
     if not plugin_version_list["result"]:
@@ -121,9 +116,8 @@ def nodeman_is_support_tjj(request):
 
 
 def nodeman_get_install_channel(request, cloud_id: int):
-    tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else DEFAULT
     client = get_client_by_username(username=request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    install_channel_result = client.api.install_channel_list(headers={"X-Bk-Tenant-Id": tenant_id})
+    install_channel_result = client.api.install_channel_list(headers={"X-Bk-Tenant-Id": request.user.tenant_id})
 
     if not install_channel_result["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.install_channel", {}, install_channel_result)

@@ -50,7 +50,6 @@ class ITSMNodeTransitionView(APIView):
         if "is_passed" not in request.data:
             return Response({"result": False, "message": "is_passed 该字段是必填项"})
         operator = request.user.username
-        tenant_id = request.user.tenant_id if settings.ENABLE_MULTI_TENANT_MODE else "default"
         serializer = ITSMViewRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -104,7 +103,7 @@ class ITSMNodeTransitionView(APIView):
 
         # 获取单据信息查询节点id
         ticket_info_result = client.api.retrieve_ticket_info(
-            path_params={"ticket_id": sn}, headers={"X-Bk-Tenant-Id": tenant_id}
+            path_params={"ticket_id": sn}, headers={"X-Bk-Tenant-Id": request.user.tenant_id}
         )
         if not ticket_info_result["result"]:
             message = handle_api_error("itsm", "get_ticket_info", request.data, ticket_info_result)
@@ -149,7 +148,7 @@ class ITSMNodeTransitionView(APIView):
         # 构建请求参数
         kwargs = {"operator": operator, "sn": sn, "state_id": state_id, "action_type": "TRANSITION", "fields": fields}
 
-        itsm_result = client.api.operate_node(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+        itsm_result = client.api.operate_node(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
 
         # 判断api请求结果是否成功
         if not itsm_result["result"]:

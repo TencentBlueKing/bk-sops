@@ -1545,8 +1545,8 @@ class Group(OperationGroup):
     fetch_public_keys = bind_property(
         Operation,
         name="fetch_public_keys",
-        method="GET",
-        path="/system/api/encrypt_rsa/fetch_public_keys/",
+        method="POST",
+        path="/system/core/api/encrypt_rsa/fetch_public_keys/",
     )
 
     # bkapi resource ap_list_ap

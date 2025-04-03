@@ -54,7 +54,7 @@ def get_host_id_by_inner_ip(tenant_id, executor, logger, bk_cloud_id: int, bk_bi
         "pagesize": -1,
         "conditions": [{"key": "inner_ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
-    result = client.api.search_host_plugin(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+    result = client.api.search_host_plugin(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
     if not result["result"]:
         error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
@@ -77,7 +77,7 @@ def get_host_id_by_inner_ipv6(tenant_id, executor, logger, bk_cloud_id: int, bk_
         "pagesize": -1,
         "conditions": [{"key": "ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
-    result = client.api.search_host_plugin(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+    result = client.api.search_host_plugin(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not result["result"]:
         error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
         logger.error(error)
@@ -91,7 +91,7 @@ def get_nodeman_public_key(tenant_id, executor, logger):
     拉取节点管理rsa公钥
     """
     client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
-    pub_key_response = client.api.fetch_public_keys(executor, headers={"X-Bk-Tenant-Id": tenant_id})
+    pub_key_response = client.api.fetch_public_keys({"names": ["DEFAULT"]}, headers={"X-Bk-Tenant-Id": tenant_id})
     if not pub_key_response["result"]:
         error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, pub_key_response)
         logger.error(error)

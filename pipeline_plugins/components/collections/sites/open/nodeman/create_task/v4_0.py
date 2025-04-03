@@ -220,7 +220,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             return False
 
         action = kwargs.pop("action")
-        result = client.api.action(**kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+        result = getattr(client.api, action)(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
         return self.get_job_result(result, data, action, kwargs)
 

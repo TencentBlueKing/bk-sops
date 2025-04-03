@@ -33,9 +33,9 @@ from gcloud.core.footer import FOOTER, FOOTER_INFO
 from gcloud.core.models import ProjectCounter, UserDefaultProject
 from gcloud.core.utils import convert_group_name
 from gcloud.openapi.schema import AnnotationAutoSchema
+from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 formatted_key_pattern = re.compile(r"^\${(.*?)}$")
 
@@ -49,9 +49,7 @@ def change_default_project(request, project_id):
         username=request.user.username, defaults={"default_project_id": project_id}
     )
 
-    ProjectCounter.objects.increase_or_create(
-        username=request.user.username, project_id=project_id
-    )
+    ProjectCounter.objects.increase_or_create(username=request.user.username, project_id=project_id)
 
     return JsonResponse({"result": True, "data": {}, "message": _("用户默认项目切换成功")})
 
@@ -160,8 +158,8 @@ def get_footer_info(request):
 
 @require_GET
 def get_msg_types(request):
-    client = get_client_by_user(request.user.username)
-    result = client.cmsi.get_msg_type()
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    result = client.api.v1_channels_list(headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     return JsonResponse(result)
 
 
