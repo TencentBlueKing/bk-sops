@@ -145,7 +145,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         started_time = timestamp_to_datetime(filters["create_time"])
         end_time = timestamp_to_datetime(filters["finish_time"]) + datetime.timedelta(days=1)
         appmaker_data = AppMaker.objects.filter(
-            is_deleted=False, create_time__gte=started_time, create_time__lte=end_time
+            is_deleted=False, create_time__gte=started_time, create_time__lte=end_time, project__tenant_id=filters["project__tenant_id"]
         )
         if project_id != "":
             appmaker_data = appmaker_data.filter(project_id=project_id)
@@ -506,7 +506,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         return total, groups
 
     def group_by_common_func(self, taskflow, filters, page, limit):
-        project_dict = dict(Project.objects.values_list("id", "name"))
+        project_dict = dict(Project.objects.filter(tenant_id=filters["project__tenant_id"]).values_list("id", "name"))
         proj_flow_type = taskflow.values_list("project", "flow_type")
         # 计算各业务的各类型任务数量
         proj_flow_dict = {}
@@ -539,7 +539,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获取全部业务对应维度信息
         total = len(proj_dimension_id_list)
         groups = []
-        proj_attr_info = get_business_attrinfo(taskflow.project.tenant_id, proj_dimension_id_list)
+        proj_attr_info = get_business_attrinfo(filters["project__tenant_id"], proj_dimension_id_list)
         for dimension in proj_dimension_id_list:
             result = {}
             dimension_total = 0
