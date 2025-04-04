@@ -15,6 +15,7 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service import (
     BaseAllBizJobExecuteJobPlanService,
 )
@@ -48,9 +49,11 @@ class AllBizJobExecuteJobPlanService(BaseAllBizJobExecuteJobPlanService):
         return True
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
             parent_data.get_one_of_inputs("tenant_id"),
-            data.outputs.client,
+            client,
             self.logger,
             job_instance_id,
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),

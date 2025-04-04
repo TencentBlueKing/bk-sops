@@ -20,6 +20,7 @@ from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 
 from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
 from .execute_task_base import JobExecuteTaskServiceBase
@@ -74,9 +75,11 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         """
         默认使用ip新版分组
         """
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
             parent_data.inputs.tenant_id,
-            data.outputs.client,
+            client,
             self.logger,
             job_instance_id,
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),

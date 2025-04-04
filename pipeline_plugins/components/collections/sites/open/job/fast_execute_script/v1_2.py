@@ -176,9 +176,11 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
         return True
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
             parent_data.get_one_of_inputs("tenant_id"),
-            data.outputs.client,
+            client,
             self.logger,
             job_instance_id,
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -300,7 +302,6 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result["data"]["job_instance_name"]
             data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
-            data.outputs.client = client
             return True
         else:
             message = job_handle_api_error("jobv3.fast_execute_script", job_kwargs, job_result)

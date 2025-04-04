@@ -180,7 +180,6 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
             data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result["data"]["job_instance_name"]
-            data.outputs.client = client
             data.outputs.biz_cc_id = biz_cc_id
             return True
         else:

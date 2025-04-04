@@ -36,6 +36,7 @@ from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service import (
     BaseAllBizJobFastExecuteScriptService,
@@ -97,9 +98,11 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         return True
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
             parent_data.inputs.tenant_id,
-            data.outputs.client,
+            client,
             self.logger,
             job_instance_id,
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),

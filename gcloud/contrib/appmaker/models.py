@@ -110,7 +110,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 app_params["username"],
                 app_params.get("category") or task_template.category,
                 app_params["desc"],
-                tenant_id,
+                tenant_id=tenant_id,
             )
             if not app_create_result["result"]:
                 message = _(f"轻应用保存失败: 请重试, 如多次失败可联系管理员处理. {app_create_result['result']} | save_app_maker")
@@ -160,7 +160,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     creator,
                     app_params.get("category") or task_template.category,
                     app_params["desc"],
-                    tenant_id,
+                    tenant_id=tenant_id,
                 )
                 if not app_edit_result["result"]:
                     message = _("轻应用保存失败, 请重试, 如多次失败可联系管理员处理 | save_app_maker")

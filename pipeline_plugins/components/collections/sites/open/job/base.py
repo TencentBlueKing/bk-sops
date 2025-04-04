@@ -456,9 +456,11 @@ class JobService(Service):
         return data.get_one_of_inputs("need_log_outputs_even_fail", False)
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         result, tagged_ip_dict = get_job_tagged_ip_dict(
             parent_data.inputs.tenant_id,
-            data.outputs.client,
+            client,
             self.logger,
             job_instance_id,
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -484,6 +486,8 @@ class JobService(Service):
         job_success = status in JOB_SUCCESS
         need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         # 失败情况下也需要要进行ip tag分组
         if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
             if not job_success:
@@ -499,7 +503,6 @@ class JobService(Service):
                 )
 
             if self.reload_outputs:
-                client = data.outputs.client
                 # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
@@ -550,7 +553,7 @@ class JobService(Service):
                 return True if job_success else False
             get_job_sops_var_dict_return = get_job_sops_var_dict(
                 tenant_id,
-                data.outputs.client,
+                client,
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -708,9 +711,11 @@ class Jobv3Service(Service):
         return data.get_one_of_inputs("need_log_outputs_even_fail", False)
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         result, tagged_ip_dict = get_job_tagged_ip_dict(
             parent_data.inputs.tenant_id,
-            data.outputs.client,
+            client,
             self.logger,
             job_instance_id,
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -737,6 +742,8 @@ class Jobv3Service(Service):
         job_success = status in JOB_SUCCESS
         need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
         tenant_id = parent_data.inputs.tenant_id
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         # 如果打开了ip分组，失败的情况也需要进行ip分组
         if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
             if not job_success:
@@ -752,8 +759,6 @@ class Jobv3Service(Service):
                 )
 
             if self.reload_outputs:
-                client = data.outputs.client
-
                 # 判断是否对IP进行Tag分组
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
@@ -804,7 +809,7 @@ class Jobv3Service(Service):
 
             get_jobv3_sops_var_dict_return = get_job_sops_var_dict(
                 tenant_id,
-                data.outputs.client,
+                client,
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),

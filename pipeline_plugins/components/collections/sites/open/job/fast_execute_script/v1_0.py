@@ -255,7 +255,6 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result["data"]["job_instance_name"]
             data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
-            data.outputs.client = client
             return True
         else:
             message = job_handle_api_error("jobv3.fast_execute_script", job_kwargs, job_result)
