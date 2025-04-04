@@ -36,7 +36,7 @@ iam = get_iam_client()
 
 
 class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
-    def save_app_maker(self, project_id, app_params, fake=False):
+    def save_app_maker(self, project_id, tenant_id, app_params, fake=False):
         """
         @summary:
         @param project_id: 项目 ID
@@ -110,11 +110,10 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 app_params["username"],
                 app_params.get("category") or task_template.category,
                 app_params["desc"],
+                tenant_id,
             )
             if not app_create_result["result"]:
-                message = _(
-                    f"轻应用保存失败: 请重试, 如多次失败可联系管理员处理. {app_create_result['result']} | save_app_maker"
-                )
+                message = _(f"轻应用保存失败: 请重试, 如多次失败可联系管理员处理. {app_create_result['result']} | save_app_maker")
                 logger.error(message)
                 return False, message
 
@@ -161,6 +160,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     creator,
                     app_params.get("category") or task_template.category,
                     app_params["desc"],
+                    tenant_id,
                 )
                 if not app_edit_result["result"]:
                     message = _("轻应用保存失败, 请重试, 如多次失败可联系管理员处理 | save_app_maker")
@@ -178,11 +178,11 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         # upload app logo
         if not fake and app_params["logo_content"]:
             logo = base64.b64encode(app_params["logo_content"])
-            app_logo_result = modify_app_logo(app_maker_obj.creator, app_code, logo)
+            app_logo_result = modify_app_logo(app_maker_obj.creator, app_code, logo, tenant_id)
             if not app_logo_result["result"]:
                 logger.error("AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id, app_logo_result["message"]))
             # update app maker info
-            app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
+            app_maker_obj.logo_url = get_app_logo_url(app_code=app_code, tenant_id=tenant_id)
 
         app_maker_obj.save()
         return True, app_maker_obj
@@ -207,7 +207,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 return False, _("删除失败：%s") % app_edit_result["message"]
 
             # delete app on blueking desk
-            app_del_result = del_maker_app(app_maker_obj.creator, app_maker_obj.code)
+            app_del_result = del_maker_app(app_maker_obj.creator, app_maker_obj.code, app_maker_obj.project.tenant_id)
             if not app_del_result["result"]:
                 return False, _("删除失败：%s") % app_del_result["message"]
 

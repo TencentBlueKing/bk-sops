@@ -58,14 +58,15 @@ def get_source_models():
     return source_models
 
 
-def get_all_source_objects():
-    return list(chain(*[source.objects.all() for source in get_source_models()]))
+def get_all_source_objects(tenant_id):
+    return list(chain(*[source.objects.filter(tenant_id=tenant_id) for source in get_source_models()]))
 
 
 class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, DestroyAPIView):
     queryset = get_all_source_objects
     serializer_class = PackageSourceSerializer
     permission_classes = [permissions.IsAuthenticated, PackageSourcePermission]
+    model_multi_tenant_filter = True
 
     def list(self, request, *args, **kwargs):
 
@@ -76,9 +77,11 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
             filters["types"] = [filters.pop("type")]
 
         if filters:
-            queryset = list(chain(*[source.objects.filter(**filters) for source in get_all_source_objects()]))
+            queryset = list(
+                chain(*[source.objects.filter(**filters) for source in get_all_source_objects(request.user.tenant_id)])
+            )
         else:
-            queryset = get_all_source_objects()
+            queryset = get_all_source_objects(request.user.tenant_id)
         page = self.paginate_queryset(queryset)
 
         serializer = self.get_serializer(page, many=True)
@@ -115,7 +118,12 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                     raise NotAcceptable(message)
                 try:
                     CachePackageSource.objects.add_cache_source(
-                        cache["name"], cache["type"], cache_packages, cache.get("desc", ""), **cache["details"]
+                        cache["name"],
+                        cache["type"],
+                        cache_packages,
+                        cache.get("desc", ""),
+                        tenant_id=request.user.tenant_id,
+                        **cache["details"]
                     )
                 except exceptions.GcloudExternalPluginsError as e:
                     message = "Create cache source raise error: %s" % e
@@ -133,7 +141,12 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                 original_kwargs, base_kwargs = source_model.objects.divide_details_parts(source_type, details)
                 original_kwargs["desc"] = origin.get("desc", "")
                 source_model.objects.add_original_source(
-                    origin["name"], source_type, origin["packages"], original_kwargs, **base_kwargs
+                    origin["name"],
+                    source_type,
+                    origin["packages"],
+                    original_kwargs,
+                    tenant_id=request.user.tenant_id,
+                    **base_kwargs
                 )
         return Response(status=status.HTTP_201_CREATED)
 
@@ -175,7 +188,11 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                     if "id" in cache:
                         try:
                             CachePackageSource.objects.update_base_source(
-                                cache["id"], cache["type"], cache_packages, **cache["details"]
+                                cache["id"],
+                                cache["type"],
+                                cache_packages,
+                                tenant_id=request.user.tenant_id,
+                                **cache["details"]
                             )
                         except CachePackageSource.DoesNotExist:
                             message = "Invalid cache source id: %s, which cannot be found" % cache["id"]
@@ -186,7 +203,12 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                     else:
                         try:
                             CachePackageSource.objects.add_cache_source(
-                                cache["name"], cache["type"], cache_packages, cache.get("desc", ""), **cache["details"]
+                                cache["name"],
+                                cache["type"],
+                                cache_packages,
+                                cache.get("desc", ""),
+                                tenant_id=request.user.tenant_id,
+                                **cache["details"]
                             )
                         except exceptions.GcloudExternalPluginsError as e:
                             message = "Create cache source raise error: %s" % str(e)
@@ -214,23 +236,32 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                     original_kwargs["desc"] = origin["desc"]
                 if "id" in origin:
                     source_model.objects.update_original_source(
-                        origin["id"], origin["packages"], original_kwargs, **base_kwargs
+                        origin["id"],
+                        origin["packages"],
+                        original_kwargs,
+                        tenant_id=request.user.tenant_id,
+                        **base_kwargs
                     )
                 else:
                     source_model.objects.add_original_source(
-                        origin["name"], source_type, origin["packages"], original_kwargs, **base_kwargs
+                        origin["name"],
+                        source_type,
+                        origin["packages"],
+                        original_kwargs,
+                        tenant_id=request.user.tenant_id,
+                        **base_kwargs
                     )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def destroy(self, request, *args, **kwargs):
         with transaction.atomic():
-            caches = CachePackageSource.objects.all()
+            caches = CachePackageSource.objects.filter(tenant_id=request.user.tenant_id)
             # 需要单独调用自定义 delete 方法
             for cache in caches:
                 cache.delete()
 
             for origin_type, origin_model in list(source_cls_factory.items()):
-                origins = origin_model.objects.all()
+                origins = origin_model.objects.filter(tenant_id=request.user.tenant_id)
                 # 需要单独调用自定义 delete 方法
                 for origin in origins:
                     origin.delete()

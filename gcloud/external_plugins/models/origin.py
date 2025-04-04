@@ -36,22 +36,22 @@ def original_source(cls):
 
 class OriginalPackageSourceManager(PackageSourceManager):
     @transaction.atomic()
-    def add_original_source(self, name, source_type, packages, original_kwargs=None, **base_kwargs):
-        full_kwargs = {"type": source_type, "name": name, "packages": packages}
+    def add_original_source(self, name, source_type, packages, original_kwargs=None, tenant_id=None, **base_kwargs):
+        full_kwargs = {"type": source_type, "name": name, "packages": packages, "tenant_id": tenant_id}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
         # 未开启缓存机制，需要创建 base source
         if not CachePackageSource.objects.get_base_source():
             base_source = super(OriginalPackageSourceManager, self).add_base_source(
-                name, source_type, packages, **base_kwargs
+                name, source_type, packages, tenant_id=tenant_id, **base_kwargs
             )
             full_kwargs["base_source_id"] = base_source.id
         original_source_cls = source_cls_factory[source_type]
         return original_source_cls.objects.create(**full_kwargs)
 
-    def update_original_source(self, package_source_id, packages, original_kwargs=None, **base_kwargs):
-        full_kwargs = {"packages": packages}
+    def update_original_source(self, package_source_id, packages, original_kwargs=None, tenant_id=None, **base_kwargs):
+        full_kwargs = {"packages": packages, "tenant_id": tenant_id}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
@@ -63,12 +63,12 @@ class OriginalPackageSourceManager(PackageSourceManager):
             # 新增时也未开启缓存，直接更新 base source
             if package_obj.base_source_id:
                 super(OriginalPackageSourceManager, self).update_base_source(
-                    package_source_id, package_obj.type, packages, **base_kwargs
+                    package_source_id, package_obj.type, packages, tenant_id=tenant_id, **base_kwargs
                 )
             # 新增时开启了缓存，需要初始化 base source
             else:
                 base_source = super(OriginalPackageSourceManager, self).add_base_source(
-                    package_obj.name, package_obj.type, packages, **base_kwargs
+                    package_obj.name, package_obj.type, packages, tenant_id=tenant_id, **base_kwargs
                 )
                 full_kwargs["base_source_id"] = base_source.id
         else:

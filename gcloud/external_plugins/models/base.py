@@ -19,7 +19,6 @@ source_cls_factory = {}
 
 
 class PackageSourceManager(models.Manager):
-
     @staticmethod
     def get_base_source_cls(source_type):
         """
@@ -59,9 +58,11 @@ class PackageSourceManager(models.Manager):
         return original_kwargs, base_kwargs
 
     @transaction.atomic()
-    def add_base_source(self, name, source_type, packages, **kwargs):
+    def add_base_source(self, name, source_type, packages, tenant_id, **kwargs):
         base_source_cls = self.get_base_source_cls(source_type)
-        base_source = base_source_cls.objects.create_source(name=name, packages=packages, from_config=False, **kwargs)
+        base_source = base_source_cls.objects.create_source(
+            name=name, packages=packages, from_config=False, tenant_id=tenant_id, **kwargs
+        )
         return base_source
 
     def delete_base_source(self, package_source_id, source_type):
@@ -77,6 +78,7 @@ class PackageSourceManager(models.Manager):
 class PackageSource(models.Model):
     type = models.CharField(_("包源类型"), max_length=64)
     base_source_id = models.IntegerField(_("包源模型 ID"), blank=True, null=True)
+    tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
 
     _base_source_attr = "_base_source"
 

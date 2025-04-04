@@ -35,7 +35,7 @@ class GcloudOrderingFilter(OrderingFilter):
     ordering_param = "order_by"
 
 
-class GcloudCommonMixin(IAMMixin, ApiMixin):
+class GcloudCommonMixin(MultiTenantMixin, IAMMixin, ApiMixin):
     pagination_class = GcloudLimitOffsetPagination
     filter_backends = (DjangoFilterBackend, SearchFilter, GcloudOrderingFilter)
 
@@ -63,7 +63,7 @@ class GcloudCommonMixin(IAMMixin, ApiMixin):
         return serializer_data
 
 
-class GcloudListViewSet(MultiTenantMixin, GcloudCommonMixin):
+class GcloudListViewSet(GcloudCommonMixin):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         # 支持使用方配置不分页

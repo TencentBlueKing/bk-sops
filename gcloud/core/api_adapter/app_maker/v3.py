@@ -34,10 +34,10 @@ except Exception as error:
     logger.exception("get PAASV3_APIGW_API_TOKEN from EnvironmentVariables raise error: {}".format(error))
 
 
-def _request_paasv3_light_app_api(url, method, params=None, data=None):
+def _request_paasv3_light_app_api(url, method, params=None, data=None, tenant_id=None):
     method_func = getattr(requests, method)
 
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", "X-Bk-Tenant-Id": tenant_id}
     if PAASV3_TOKEN:
         headers["Authorization"] = "Bearer {}".format(PAASV3_TOKEN)
 
@@ -58,9 +58,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response.raise_for_status()
     except requests.HTTPError as e:
-        message = _(
-            f"轻应用请求Paas接口报错: 请求url: {response.request.url}, 报错内容: {e}, 响应内容: {response.text}"
-        )
+        message = _(f"轻应用请求Paas接口报错: 请求url: {response.request.url}, 报错内容: {e}, 响应内容: {response.text}")
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -85,9 +83,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
             resp_data["message"] = resp_data.get("bk_error_msg")
         return resp_data
     except Exception as e:
-        message = _(
-            f"轻应用请求PaaS接口报错: 请求url {response.request.url}, 接口响应json格式转换失败 {e}，响应内容 {response.content}"
-        )
+        message = _(f"轻应用请求PaaS接口报错: 请求url {response.request.url}, 接口响应json格式转换失败 {e}，响应内容 {response.content}")
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -102,6 +98,7 @@ def create_maker_app(
     introduction="",
     add_user="",
     company_code="",
+    tenant_id="",
 ):
     """
     @summary: 创建 maker app
@@ -130,7 +127,7 @@ def create_maker_app(
         "introduction": introduction or app_name,
     }
 
-    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="post", data=data)
+    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="post", data=data, tenant_id=tenant_id)
 
     if resp["result"]:
         resp["data"]["bk_light_app_code"] = resp["data"]["light_app_code"]
@@ -148,6 +145,7 @@ def edit_maker_app(
     introduction="",
     add_user="",
     company_code="",
+    tenant_id="",
 ):
     """
     @summary: 修改 maker app
@@ -184,12 +182,12 @@ def edit_maker_app(
     if introduction:
         data["introduction"] = introduction
 
-    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="patch", data=data)
+    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="patch", data=data, tenant_id=tenant_id)
 
     return resp
 
 
-def del_maker_app(operator, app_maker_code):
+def del_maker_app(operator, app_maker_code, tenant_id):
     """
     @summary: 删除 maker app
     @param operator：操作者英文id
@@ -204,12 +202,12 @@ def del_maker_app(operator, app_maker_code):
         "light_app_code": app_maker_code,
     }
 
-    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="delete", params=params)
+    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="delete", params=params, tenant_id=tenant_id)
 
     return resp
 
 
-def modify_app_logo(operator, app_maker_code, logo):
+def modify_app_logo(operator, app_maker_code, logo, tenant_id):
     """
     @summary: 修改轻应用的 logo
     @param operator：操作者英文id
@@ -225,12 +223,12 @@ def modify_app_logo(operator, app_maker_code, logo):
         "logo": logo.decode("ascii"),
     }
 
-    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="patch", data=data)
+    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="patch", data=data, tenant_id=tenant_id)
 
     return resp
 
 
-def get_app_logo_url(app_code):
+def get_app_logo_url(app_code, tenant_id):
 
     params = {
         "bk_app_code": settings.APP_CODE,
@@ -238,7 +236,7 @@ def get_app_logo_url(app_code):
         "light_app_code": app_code,
     }
 
-    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="get", params=params)
+    resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="get", params=params, tenant_id=tenant_id)
 
     if not resp["result"]:
         return ""

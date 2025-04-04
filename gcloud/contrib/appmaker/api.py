@@ -61,9 +61,7 @@ def save(request, project_id):
         file_size = logo_obj.size
         # LOGO大小不能大于 100K
         if file_size > 100 * 1024:
-            message = _(
-                "轻应用保存失败: 非法的图片大小, 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | appmaker save"
-            )
+            message = _("轻应用保存失败: 非法的图片大小, 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | appmaker save")
             logger.error(message)
             return JsonResponse({"result": False, "message": message})
         logo_content = logo_obj.read()
@@ -87,7 +85,7 @@ def save(request, project_id):
         params["link_prefix"] = "%sappmaker/" % settings.APP_HOST
         fake = False
 
-    result, data = AppMaker.objects.save_app_maker(project_id, params, fake)
+    result, data = AppMaker.objects.save_app_maker(project_id, request.user.tenant_id, params, fake)
     if not result:
         return JsonResponse({"result": False, "message": data})
 

@@ -33,6 +33,7 @@ class SyncTask(models.Model):
     finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
     status = models.CharField(_("同步状态"), max_length=32, default=RUNNING, choices=SYNC_TASK_STATUS)
     details = models.TextField(_("同步详情信息"), blank=True)
+    tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
 
     class Meta:
         verbose_name = _("远程包源同步任务 SyncTask")

@@ -91,7 +91,9 @@ def do_migrate_app_maker(project: Project, app_makers):
         }
 
         try:
-            AppMaker.objects.save_app_maker(project_id=project.id, app_params=save_app_maker_params)
+            AppMaker.objects.save_app_maker(
+                project_id=project.id, app_params=save_app_maker_params, tenant_id=project.tenant_id
+            )
         except Exception:
             migrate_result.append(
                 {

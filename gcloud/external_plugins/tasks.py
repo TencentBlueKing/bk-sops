@@ -25,7 +25,7 @@ def sync_task(task_id):
     sync = SyncTask.objects.get(id=task_id)
     all_origin_dirs = []
     for origin_model in list(source_cls_factory.values()):
-        origins = origin_model.objects.all()
+        origins = origin_model.objects.filter(tenant_id=sync.tenant_id)
         for origin in origins:
             try:
                 origin.read()
@@ -38,7 +38,7 @@ def sync_task(task_id):
                 sync.finish_task(FAILED, message)
                 return False
 
-    caches = CachePackageSource.objects.all()
+    caches = CachePackageSource.objects.filter(tenant_id=sync.tenant_id)
     for cache in caches:
         try:
             cache.write(all_origin_dirs)

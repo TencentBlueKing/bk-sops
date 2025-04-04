@@ -13,14 +13,13 @@ specific language governing permissions and limitations under the License.
 from rest_framework import permissions
 from rest_framework.exceptions import NotAcceptable
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.external_plugins.models import CachePackageSource, SyncTask, RUNNING
-
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.serilaziers import SyncTaskSerializer
-from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.viewsets.package_source import get_all_source_objects
+from gcloud.external_plugins.models import RUNNING, CachePackageSource, SyncTask
+from gcloud.iam_auth import IAMMeta
 
 
 class SyncTaskPermission(IamPermission):
@@ -53,12 +52,14 @@ class SyncTaskViewSet(GcloudModelViewSet):
     permission_classes = [permissions.IsAuthenticated, SyncTaskPermission]
     search_fields = ["id", "pipeline_template__name"]
     filterset_class = SyncTaskFilter
+    model_multi_tenant_filter = True
 
     def create(self, request, *args, **kwargs):
-        if SyncTask.objects.filter(status=RUNNING).exists():
+        if self.queryset.filter(status=RUNNING, tenant_id=request.user.tenant_id).exists():
             raise NotAcceptable("There is already a running sync task, please wait for it to complete and try again")
-        if not CachePackageSource.objects.all().exists():
+        if not CachePackageSource.objects.filter(tenant_id=request.user.tenant_id).exists():
             raise NotAcceptable("No cache package found, please add cache package in Backend Manage")
-        if len(get_all_source_objects()) <= 1:
+        if len(get_all_source_objects(request.user.tenant_id)) <= 1:
             raise NotAcceptable("No original packages found, please add original packages in Backend Manage")
+        request.data.update({"tenant_id": request.user.tenant_id})
         return super(SyncTaskViewSet, self).create(request, *args, **kwargs)
