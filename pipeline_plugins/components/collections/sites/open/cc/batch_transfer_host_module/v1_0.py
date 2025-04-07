@@ -128,7 +128,6 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
                 tenant_id,
                 executor,
                 biz_cc_id,
-                supplier_account,
                 BkObjType.MODULE,
                 cc_module_path,
                 parent_data.get_one_of_inputs("bk_biz_name"),

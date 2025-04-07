@@ -156,12 +156,10 @@ class CCBatchModuleUpdateService(Service):
                 self.logger.error(message)
                 continue
 
-            supplier_account = supplier_account_for_business(biz_cc_id)
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
-
                 message = _(
                     f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}"
                 )

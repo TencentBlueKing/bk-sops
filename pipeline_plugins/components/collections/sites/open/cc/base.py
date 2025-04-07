@@ -303,12 +303,12 @@ def get_module_set_id(topo_data, module_id):
                 return set_id
 
 
-def cc_format_prop_data(tenant_id, executor, obj_id, prop_id, language, supplier_account):
+def cc_format_prop_data(tenant_id, executor, obj_id, prop_id, language, supplier_account=None):
     ret = {"result": True, "data": {}}
     client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
     if language:
         setattr(client, "language", language)
-    cc_kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
+    cc_kwargs = {"bk_obj_id": obj_id}
 
     cc_result = client.api.search_object_attribute(cc_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not cc_result["result"]:
@@ -396,13 +396,12 @@ def cc_parse_path_text(path_text):
     return path_list
 
 
-def cc_list_match_node_inst_id(tenant_id, executor, biz_cc_id, supplier_account, path_list):
+def cc_list_match_node_inst_id(tenant_id, executor, biz_cc_id, path_list):
     """
     路径匹配，对path_list中的所有路径与指定biz_cc_id的拓扑树匹配，返回匹配节点bk_inst_id
     :param tenant_id: 租户ID
     :param executor:
     :param biz_cc_id:
-    :param supplier_account:
     :param path_list: 路径列表，example: [[a, b], [a, c]]
     :return:
         True: list -匹配父节点的bk_inst_id
@@ -439,7 +438,7 @@ def cc_list_match_node_inst_id(tenant_id, executor, biz_cc_id, supplier_account,
     ]
     """
     client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": biz_cc_id}
     search_biz_inst_topo_return = client.api.search_biz_inst_topo(
         kwargs,
         path_params={"bk_biz_id": biz_cc_id},
@@ -478,7 +477,6 @@ def cc_list_select_node_inst_id(
     tenant_id: str,
     executor: str,
     biz_cc_id: int,
-    supplier_account: str,
     bk_obj_type: BkObjType,
     path_text: str,
     auto_complete_biz_name: str = None,
@@ -488,7 +486,6 @@ def cc_list_select_node_inst_id(
     :param tenant_id: 租户ID
     :param executor:
     :param biz_cc_id:
-    :param supplier_account:
     :param bk_obj_type: bk_obj_type: 校验层级类型, enum
     :param path_text: 目标主机/模块/自定义层级的文本路径
     :param auto_complete_biz_name:
@@ -508,7 +505,7 @@ def cc_list_select_node_inst_id(
         return {"result": False, "message": message}
 
     client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}
+    kwargs = {"bk_biz_id": biz_cc_id}
     # 获取主线模型业务拓扑
     get_mainline_object_topo_return = client.api.get_mainline_object_topo(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
     if not get_mainline_object_topo_return["result"]:
@@ -530,7 +527,7 @@ def cc_list_select_node_inst_id(
 
     # 获取选中节点bk_inst_id列表
     cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
-        tenant_id, executor, biz_cc_id, supplier_account, clean_path_list
+        tenant_id, executor, biz_cc_id, clean_path_list
     )
     if not cc_list_match_node_inst_id_return["result"]:
         return {"result": False, "message": cc_list_match_node_inst_id_return["message"]}

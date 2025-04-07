@@ -74,7 +74,7 @@ class CCBatchTransferHostModule(Service):
             ),
         ]
 
-    def get_cc_module_select(self, tenant_id, executor, biz_cc_id, supplier_account, parent_data, cc_module_path_list):
+    def get_cc_module_select(self, tenant_id, executor, biz_cc_id, parent_data, cc_module_path_list):
         cc_module_select = []
         for cc_module_path in cc_module_path_list:
             # 获取 bk module id
@@ -82,7 +82,6 @@ class CCBatchTransferHostModule(Service):
                 tenant_id,
                 executor,
                 biz_cc_id,
-                supplier_account,
                 BkObjType.MODULE,
                 cc_module_path,
                 parent_data.get_one_of_inputs("bk_biz_name"),
@@ -121,7 +120,7 @@ class CCBatchTransferHostModule(Service):
 
             # 获取所有的module_id
             result, cc_module_select, message = self.get_cc_module_select(
-                tenant_id, executor, biz_cc_id, supplier_account, parent_data, cc_module_path_list
+                tenant_id, executor, biz_cc_id, parent_data, cc_module_path_list
             )
 
             if not result:

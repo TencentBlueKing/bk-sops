@@ -124,7 +124,7 @@ class CCUpdateModuleService(Service):
         elif cc_module_select_method == SelectMethod.TEXT.value:
             cc_module_select_text = data.get_one_of_inputs("cc_module_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
