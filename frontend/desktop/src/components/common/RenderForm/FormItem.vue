@@ -39,7 +39,7 @@
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle, 'scheme-select-name': scheme.type === 'select' && !scheme.attrs.remote }]">
-                <span class="scheme-name">{{scheme.attrs.name}}</span>
+                <span class="scheme-name">{{scheme.name || scheme.attrs.name}}</span>
                 <span class="required" v-if="isRequired()">*</span>
                 <span class="scheme-code" v-if="!option.showHook">{{ scheme.tag_code }}</span>
                 <i
@@ -271,7 +271,7 @@
         },
         computed: {
             showFormTitle () {
-                return this.option.showGroup && !!this.scheme.attrs.name
+                return this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
