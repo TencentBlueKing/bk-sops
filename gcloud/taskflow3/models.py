@@ -1411,23 +1411,16 @@ class TaskConfigManager(models.Manager):
             template_id = -1 * int(template_id)
 
         # 根据 scope 直接排序，优先检查 TEMPLATE 配置
-        configs = (
-            self.filter(
-                (
-                    Q(scope=TaskConfig.SCOPE_TYPE_TEMPLATE, scope_id=template_id)
-                    | Q(scope=TaskConfig.SCOPE_TYPE_PROJECT, scope_id=project_id)
-                )
-                & Q(config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS)
+        configs = self.filter(
+            (
+                Q(scope=TaskConfig.SCOPE_TYPE_TEMPLATE, scope_id=template_id)
+                | Q(scope=TaskConfig.SCOPE_TYPE_PROJECT, scope_id=project_id)
             )
-            .order_by("-scope")
-            .only("config_value")
+            & Q(config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS)
+            & Q(config_value=TaskConfig.ENABLE_INDEPENDENT_SUBPROCESS)
         )
 
-        for config in configs:
-            if config.config_value == TaskConfig.ENABLE_INDEPENDENT_SUBPROCESS:
-                return True
-
-        return False
+        return configs.exists()
 
     def enable_fill_retry_params(self, task_id) -> bool:
         """

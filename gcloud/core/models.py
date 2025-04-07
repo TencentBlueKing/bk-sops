@@ -436,7 +436,7 @@ class EngineConfigManager(models.Manager):
                     | Q(scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT)
                 )
             )
-            .order_by("-scope")
+            .order_by("-scope")  # 优先取模板配置
             .only("engine_ver")
         )
 
