@@ -103,8 +103,7 @@ class CCUpdateModuleService(Service):
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
-        supplier_account = supplier_account_for_business(biz_cc_id)
-        kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
+        kwargs = {"bk_biz_id": biz_cc_id}
         tree_data = client.api.search_biz_inst_topo(
             kwargs,
             path_params={"bk_biz_id": biz_cc_id},
@@ -138,7 +137,6 @@ class CCUpdateModuleService(Service):
         if cc_module_property == "bk_module_type":
             bk_module_type = cc_format_prop_data(
                 tenant_id, executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"),
-                supplier_account,
             )
             if not bk_module_type["result"]:
                 data.set_outputs("ex_data", bk_module_type["message"])
@@ -153,11 +151,10 @@ class CCUpdateModuleService(Service):
 
         for module_id in cc_module_select:
             cc_kwargs = {
+                cc_module_property: cc_module_prop_value,
                 "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account,
                 "bk_set_id": get_module_set_id(tree_data["data"], module_id),
                 "bk_module_id": module_id,
-                "data": {cc_module_property: cc_module_prop_value},
             }
             cc_result = client.api.update_module(
                 cc_kwargs,

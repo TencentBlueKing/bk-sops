@@ -27,7 +27,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     ModuleCreateMethod,
     SelectMethod,
     cc_format_prop_data,
-    cc_format_tree_mode_id,
+    cc_format_tree_set_id,
     cc_get_name_id_from_combine_value,
     cc_list_select_node_inst_id,
 )
@@ -126,7 +126,7 @@ class CCCreateModuleService(Service):
             data.set_outputs("ex_data", _("请选择创建方式"))
             return False
         if cc_set_select_method == SelectMethod.TOPO.value:
-            cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
+            cc_set_select = cc_format_tree_set_id(data.get_one_of_inputs("cc_set_select_topo"))
         else:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
@@ -190,19 +190,16 @@ class CCCreateModuleService(Service):
             cc_module_infos.append(cc_module_info)
         for parent_id in cc_set_select:
             for cc_module_info in cc_module_infos:
-                cc_kwargs = {
-                    "bk_biz_id": biz_cc_id,
-                    "bk_set_id": parent_id,
-                    "data": {"bk_parent_id": parent_id},
-                }
-                cc_kwargs["data"].update(cc_module_info)
+                cc_module_info["bk_biz_id"] = biz_cc_id
+                cc_module_info["bk_set_id"] = parent_id
+                cc_module_info["bk_parent_id"] = parent_id
                 cc_create_module_return = client.api.create_module(
-                    cc_kwargs,
+                    cc_module_info,
                     path_params={"bk_biz_id": biz_cc_id, "bk_set_id": parent_id},
                     headers={"X-Bk-Tenant-Id": tenant_id},
                 )
                 if not cc_create_module_return["result"]:
-                    message = cc_handle_api_error("cc.create_module", cc_kwargs, cc_create_module_return)
+                    message = cc_handle_api_error("cc.create_module", cc_module_info, cc_create_module_return)
                     self.logger.error(message)
                     data.set_outputs("ex_data", message)
                     return False
