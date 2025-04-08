@@ -25,7 +25,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, cc_format_tree_mode_id
 
 logger = logging.getLogger("celery")

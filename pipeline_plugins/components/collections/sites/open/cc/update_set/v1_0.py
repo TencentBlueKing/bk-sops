@@ -22,7 +22,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
@@ -102,7 +101,6 @@ class CCUpdateSetService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         if cc_set_select_method == SelectMethod.TOPO.value:
             cc_set_select = cc_format_tree_set_id(data.get_one_of_inputs("cc_set_select_topo"))
@@ -123,7 +121,6 @@ class CCUpdateSetService(Service):
         if cc_set_property == "bk_service_status":
             bk_service_status = cc_format_prop_data(
                 tenant_id, executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"),
-                supplier_account,
             )
             if not bk_service_status["result"]:
                 data.set_outputs("ex_data", bk_service_status["message"])
@@ -137,7 +134,6 @@ class CCUpdateSetService(Service):
         elif cc_set_property == "bk_set_env":
             bk_set_env = cc_format_prop_data(
                 tenant_id, executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"),
-                supplier_account,
             )
             if not bk_set_env["result"]:
                 data.set_outputs("ex_data", bk_set_env["message"])

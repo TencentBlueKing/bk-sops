@@ -25,7 +25,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
@@ -141,7 +140,6 @@ class CCCreateSetService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_select_set_parent_method = data.get_one_of_inputs("cc_select_set_parent_method")
         if cc_select_set_parent_method == SelectMethod.TOPO.value:
             # topo类型直接通过cc_format_tree_mode_id解析父节点bz_inst_id
@@ -163,7 +161,6 @@ class CCCreateSetService(Service):
 
         bk_set_env = cc_format_prop_data(
             tenant_id, executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"),
-            supplier_account,
         )
         if not bk_set_env["result"]:
             data.set_outputs("ex_data", bk_set_env["message"])
@@ -171,7 +168,6 @@ class CCCreateSetService(Service):
 
         bk_service_status = cc_format_prop_data(
             tenant_id, executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"),
-            supplier_account,
         )
         if not bk_service_status["result"]:
             data.set_outputs("ex_data", bk_service_status["message"])

@@ -22,7 +22,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_prop_data,
     cc_format_tree_mode_id,
@@ -106,8 +105,11 @@ class CCUpdateModuleService(Service):
                 data.set_outputs("ex_data", bk_module_type["message"])
                 return False
 
-            cc_module_prop_value = bk_module_type["data"].get(data.get_one_of_inputs("cc_module_prop_value"))
-            if not cc_module_prop_value:
+            if data.get_one_of_inputs("cc_module_prop_value") in bk_module_type["data"].keys():
+                cc_module_prop_value = bk_module_type["data"].get(data.get_one_of_inputs("cc_module_prop_value"))
+            elif data.get_one_of_inputs("cc_module_prop_value") in bk_module_type["data"].values():
+                cc_module_prop_value = data.get_one_of_inputs("cc_module_prop_value")
+            else:
                 data.set_outputs("ex_data", _("模块类型校验失败，请重试并填写正确的模块类型"))
                 return False
         else:

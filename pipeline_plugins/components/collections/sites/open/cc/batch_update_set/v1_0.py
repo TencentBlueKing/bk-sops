@@ -101,7 +101,7 @@ class CCBatchUpdateSetService(Service):
         success_update = []
         failed_update = []
 
-        search_attr_kwargs = {"bk_obj_id": "set", "bk_supplier_account": supplier_account}
+        search_attr_kwargs = {"bk_obj_id": "set"}
         attr_result = client.api.search_object_attribute(
             search_attr_kwargs,
             headers={"X-Bk-Tenant-Id": tenant_id},

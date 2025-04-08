@@ -239,7 +239,7 @@
                 add_btn: true,
                 // 远程加载模块可填写属性
                 remote_url: function () {
-                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/'
+                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
                     if (resp.result === false) {
@@ -248,7 +248,7 @@
                     const data = resp.data;
                     // 将每一列的tag类型修改为input类型，扩充宽度
                     data.forEach(function (column) {
-                        column.type = 'input';
+                        // column.type = 'input';
                         column.attrs.width = "200px";
                     });
                     // 直接创建（按服务类型创建）时动态加入服务实例分类级联选择框

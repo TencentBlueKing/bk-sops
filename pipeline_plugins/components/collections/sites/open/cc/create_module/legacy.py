@@ -182,11 +182,9 @@ class CCCreateModuleService(Service):
                 if not format_prop_data_return["result"]:
                     data.set_outputs("ex_data", format_prop_data_return["message"])
                     return False
-                bk_module_type = format_prop_data_return["data"].get(cc_module_info["bk_module_type"])
-                if not bk_module_type:
+                if cc_module_info["bk_module_type"] not in format_prop_data_return["data"].values():
                     data.set_outputs("ex_data", _("模块类型校验失败，请重试并填写正确的模块类型"))
                     return False
-                cc_module_info["bk_module_type"] = bk_module_type
             cc_module_infos.append(cc_module_info)
         for parent_id in cc_set_select:
             for cc_module_info in cc_module_infos:
