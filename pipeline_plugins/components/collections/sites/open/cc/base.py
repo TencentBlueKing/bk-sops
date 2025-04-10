@@ -258,7 +258,7 @@ def cc_get_host_by_innerip_with_ipv6(
 
     # 用户直接输入的host_id list 则不做处理
     if host_id_detail:
-        host_list_result = get_hosts_by_hosts_ids(tenant_id, executor, bk_biz_id, supplier_account, host_id_list)
+        host_list_result = get_hosts_by_hosts_ids(tenant_id, executor, bk_biz_id, host_id_list)
         if not host_list_result["result"]:
             return host_list_result
         host_list = host_list_result["data"]
@@ -534,7 +534,6 @@ class CCPluginIPMixin:
         @param executor: executor 执行人
         @param biz_cc_id: biz_cc_id 业务id
         @param ip_str: ip_str ip字符串
-        @param supplier_account: supplier_account
         @return:
         """
         # 如果开启IPV6
@@ -565,11 +564,11 @@ class CCPluginIPMixin:
             return cc_get_ips_info_by_str_ipv6(tenant_id, executor, biz_cc_id, ip_str)
         return cc_get_ips_info_by_str(tenant_id, executor, biz_cc_id, ip_str)
 
-    def get_host_topo(self, tenant_id, executor, biz_cc_id, supplier_account, host_attrs, ip_str):
+    def get_host_topo(self, tenant_id, executor, biz_cc_id, host_attrs, ip_str):
         """获取主机拓扑"""
         if not settings.ENABLE_IPV6:
             ip_list = get_ip_by_regex(ip_str)
-            return cmdb.get_business_host_topo(tenant_id, executor, biz_cc_id, supplier_account, host_attrs, ip_list)
+            return cmdb.get_business_host_topo(tenant_id, executor, biz_cc_id, host_attrs, ip_list)
 
         property_filters = {}
         # 如果是ipv6的主机
@@ -601,7 +600,7 @@ class CCPluginIPMixin:
             }
 
         return cmdb.get_business_host_topo(
-            tenant_id, executor, biz_cc_id, supplier_account, host_attrs, ip_list=None,
+            tenant_id, executor, biz_cc_id, host_attrs, ip_list=None,
             property_filters=property_filters
         )
 
@@ -611,7 +610,6 @@ class CCPluginIPMixin:
         @param executor: executor 执行人
         @param biz_cc_id: biz_cc_id 业务id
         @param ip_str: ip_str ip字符串
-        @param supplier_account: supplier_account
         @return:
         """
         # 如果开启IPV6
@@ -645,7 +643,6 @@ class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMet
 
     def exec_transfer_host_module(self, data, parent_data, transfer_cmd):
         executor = parent_data.get_one_of_inputs("executor")
-        supplier_account = parent_data.get_one_of_inputs("biz_supplier_account")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
 
@@ -656,13 +653,12 @@ class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMet
 
         # 查询主机id
         ip_str = data.get_one_of_inputs("cc_host_ip")
-        host_result = self.get_host_list(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
+        host_result = self.get_host_list(tenant_id, executor, biz_cc_id, ip_str)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False
 
         transfer_kwargs = {
-            "bk_supplier_account": supplier_account,
             "bk_biz_id": biz_cc_id,
             "bk_host_id": [int(host_id) for host_id in host_result["data"]],
         }

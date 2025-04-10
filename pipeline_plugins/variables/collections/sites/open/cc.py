@@ -25,7 +25,6 @@ from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex, get_plat_ip_by_regex
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
-from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str
@@ -57,7 +56,6 @@ class VarIpPickerVariable(LazyVariable):
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
-        bk_supplier_account = supplier_account_for_project(project_id)
 
         produce_method = var_ip_picker["var_ip_method"]
         if produce_method == "custom":
@@ -84,7 +82,7 @@ class VarIpPickerVariable(LazyVariable):
 
             # query cc to get module's ip list and filter tree_ip_list
             host_list = cc_get_inner_ip_by_module_id(
-                tenant_id, username, bk_biz_id, module_inst_id_list, bk_supplier_account,
+                tenant_id, username, bk_biz_id, module_inst_id_list,
                 ["host_id", "bk_host_innerip"]
             )
             cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
@@ -129,10 +127,9 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
-        bk_supplier_account = supplier_account_for_project(project_id)
 
         ip_selector = self.value
-        ip_result = get_ip_picker_result(tenant_id, username, bk_biz_id, bk_supplier_account, ip_selector)
+        ip_result = get_ip_picker_result(tenant_id, username, bk_biz_id, ip_selector)
         if not ip_result["result"]:
             logger.error(f"[ip_selector get_value] error: {ip_result}")
             raise Exception(f'ERROR: {ip_result["message"]}, ip_selector_key: {self.original_value.key}')
@@ -314,7 +311,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         ]
 
     @staticmethod
-    def _handle_value_with_ipv4(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+    def _handle_value_with_ipv4(tenant_id, username, bk_biz_id, host_fields, ip_str):
         """根据 ip 字符串获取对应主机属性信息"""
         ip_list = get_ip_by_regex(ip_str)
         if not ip_list:
@@ -324,17 +321,16 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
             tenant_id,
             username,
             bk_biz_id,
-            bk_supplier_account,
             host_fields,
             ip_list,
         )
         return hosts_list
 
     @staticmethod
-    def _handle_value_with_ipv4_and_ipv6(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+    def _handle_value_with_ipv4_and_ipv6(tenant_id, username, bk_biz_id, host_fields, ip_str):
         """根据 ip 字符串获取对应主机属性信息"""
         # 兼容多种字符串模式，转换成 host_id 列表后统一获取
-        result = cc_get_host_by_innerip_with_ipv6(tenant_id, username, bk_biz_id, ip_str, bk_supplier_account)
+        result = cc_get_host_by_innerip_with_ipv6(tenant_id, username, bk_biz_id, ip_str)
         if not result["result"]:
             message = f"获取主机列表失败: {result} | cc_get_host_by_innerip_with_ipv6"
             logger.error(message)
@@ -342,7 +338,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         host_ids = [host["bk_host_id"] for host in result["data"]]
         if not host_ids:
             return []
-        return get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, bk_supplier_account, host_fields,
+        return get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, host_fields,
                                               host_ids)
 
     def get_value(self):
@@ -388,16 +384,15 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
-        bk_supplier_account = supplier_account_for_project(project_id)
 
         if settings.ENABLE_IPV6:
             hosts_list = self._handle_value_with_ipv4_and_ipv6(
-                tenant_id, username, bk_biz_id, bk_supplier_account, HOST_FIELDS + ["bk_host_innerip_v6"], self.value
+                tenant_id, username, bk_biz_id, HOST_FIELDS + ["bk_host_innerip_v6"], self.value
             )
             ipv6_list, *_ = extract_ip_from_ip_str(self.value)
         else:
             hosts_list = self._handle_value_with_ipv4(
-                tenant_id, username, bk_biz_id, bk_supplier_account, HOST_FIELDS, self.value)
+                tenant_id, username, bk_biz_id, HOST_FIELDS, self.value)
             ipv6_list = []
         hosts = {}
         for host in hosts_list:

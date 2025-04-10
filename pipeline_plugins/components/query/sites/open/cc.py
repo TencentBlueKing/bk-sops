@@ -317,10 +317,9 @@ def cc_search_topo(request, obj_id, category, biz_cc_id):
         return JsonResponse(result)
 
     if with_internal_module:
-        supplier_account = supplier_account_for_business(biz_cc_id)
         inter_result = client.api.get_biz_internal_module(
             kwargs,
-            path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id},
+            path_params={"bk_supplier_account": supplier_account_for_business(biz_cc_id), "bk_biz_id": biz_cc_id},
             headers=headers,
         )
         if not inter_result["result"]:

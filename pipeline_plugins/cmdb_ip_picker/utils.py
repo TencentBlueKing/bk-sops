@@ -41,7 +41,7 @@ class IPPickerDataGenerator:
         :params tenant_id: 租户ID
         :params input_type: 手动输入类型，值为ip(静态IP)/topo(动态IP)/group(动态分组)
         :params raw_data: 手动输入数据字符串
-        :params request_kwargs: 包括请求接口所需要的参数信息, 如username,bk_biz_id,bk_supplier_account
+        :params request_kwargs: 包括请求接口所需要的参数信息, 如username,bk_biz_id
         :params gen_kwargs: 包括信息匹配筛选所需要的信息，如biz_topo_tree
         :params bk_biz_id: 业务ID
         """
@@ -172,14 +172,13 @@ class IPPickerHandler:
     PROPERTY_FILTER_TYPES = ("set", "module", "host")
 
     def __init__(
-        self, tenant_id, selector, username, bk_biz_id, bk_supplier_account, is_manual=False, filters=None,
+        self, tenant_id, selector, username, bk_biz_id, is_manual=False, filters=None,
             excludes=None
     ):
         self.tenant_id = tenant_id
         self.selector = selector
         self.username = username
         self.bk_biz_id = bk_biz_id
-        self.bk_supplier_account = bk_supplier_account
         self.filters = format_condition_dict(filters or [])
         self.excludes = format_condition_dict(excludes or [])
         self.biz_topo_tree: dict = None
@@ -194,7 +193,7 @@ class IPPickerHandler:
 
         # 获取业务下的topo树
         if self.selector == "topo" or is_manual or self.filters or self.excludes:
-            topo_result = get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account)
+            topo_result = get_cmdb_topo_tree(tenant_id, username, bk_biz_id)
             if not topo_result["result"]:
                 self.error = topo_result
                 return
@@ -356,7 +355,6 @@ class IPPickerHandler:
             self.tenant_id,
             self.username,
             self.bk_biz_id,
-            self.bk_supplier_account,
             fields,
             property_filters=self.property_filters,
         )
@@ -378,13 +376,12 @@ class IPPickerHandler:
         return formatted_host_info
 
 
-def get_ip_picker_result(tenant_id, username, bk_biz_id, bk_supplier_account, kwargs):
+def get_ip_picker_result(tenant_id, username, bk_biz_id, kwargs):
     """
     @summary：根据前端表单数据获取合法的IP，IP选择器调用
     @param tenant_id: 租户ID
     @param username:
     @param bk_biz_id:
-    @param bk_supplier_account:
     @param kwargs:
     @return:
     """
@@ -400,7 +397,7 @@ def get_ip_picker_result(tenant_id, username, bk_biz_id, bk_supplier_account, kw
     excludes = kwargs["excludes"]
 
     ip_picker_handler = IPPickerHandler(
-        selector, username, bk_biz_id, bk_supplier_account, is_manual, filters, excludes
+        selector, username, bk_biz_id, is_manual, filters, excludes
     )
     if ip_picker_handler.error:
         logger.error(f"[get_ip_picker_result] error: {ip_picker_handler.error}")
@@ -412,7 +409,7 @@ def get_ip_picker_result(tenant_id, username, bk_biz_id, bk_supplier_account, kw
         input_type = kwargs["manual_input"]["type"]
 
         gen_kwargs = {"biz_topo_tree": ip_picker_handler.biz_topo_tree}
-        request_kwargs = {"username": username, "bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+        request_kwargs = {"username": username, "bk_biz_id": bk_biz_id}
         gen_result = IPPickerDataGenerator(
             tenant_id, input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id).generate()
 
@@ -682,10 +679,9 @@ def get_cmdb_topo_tree(tenant_id, username, bk_biz_id):
         result = {"result": False, "code": ERROR_CODES.API_CMDB_ERROR, "message": message, "data": []}
         return result
 
-    bk_supplier_account = supplier_account_for_business(bk_biz_id)
     inter_result = client.api.get_biz_internal_module(
         kwargs,
-        path_params={"bk_supplier_account": bk_supplier_account, "bk_biz_id": bk_biz_id},
+        path_params={"bk_supplier_account": supplier_account_for_business(bk_biz_id), "bk_biz_id": bk_biz_id},
         headers=headers,
     )
     if not inter_result["result"]:

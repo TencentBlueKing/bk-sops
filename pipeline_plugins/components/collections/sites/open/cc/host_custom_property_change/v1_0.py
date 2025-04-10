@@ -111,7 +111,7 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
 
         hostname_rule = sorted(hostname_rule, key=lambda e: str(e.__getitem__("field_order")))
         supplier_account = supplier_account_for_business(biz_cc_id)
-        ip_list = self.get_ip_info_list(tenant_id, operator, biz_cc_id, sa_ip_list, supplier_account)
+        ip_list = self.get_ip_info_list(tenant_id, operator, biz_cc_id, sa_ip_list)
         if not ip_list["result"] or not ip_list["ip_count"]:
             data.outputs.ex_data = _(
                 "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(
