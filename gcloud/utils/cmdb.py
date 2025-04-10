@@ -20,6 +20,7 @@ from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -100,15 +101,13 @@ def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, hos
     return host_info_list
 
 
-def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
+def get_business_host(tenant_id, username, bk_biz_id, host_fields, ip_list=None, bk_cloud_id=None):
     """根据主机内网 IP 过滤业务下的主机
     :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
@@ -128,7 +127,7 @@ def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fie
     ]
     :rtype: [type]
     """
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
+    kwargs = {"bk_biz_id": bk_biz_id, "fields": list(host_fields or [])}
 
     # 带管控区域的主机数据查询
     if ip_list and bk_cloud_id is not None:
@@ -154,14 +153,12 @@ def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fie
     )
 
 
-def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip_list=None,
+def get_business_set_host(tenant_id, username, host_fields, ip_list=None,
                           filter_field="bk_host_innerip"):
     """根据主机内网 IP 过滤业务下的主机
     :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
@@ -181,7 +178,6 @@ def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip
     ]
     """
     kwargs = {
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
@@ -197,7 +193,7 @@ def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip
     )
 
 
-def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None,
+def get_business_host_ipv6(tenant_id, username, bk_biz_id, host_fields, ip_list=None,
                            bk_cloud_id=None):
     """
     根据主机内网 IP 过滤业务下的主机, 主要查询ip_v6
@@ -206,8 +202,6 @@ def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, hos
     :type username: str
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
@@ -229,7 +223,6 @@ def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, hos
     """
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
@@ -250,22 +243,16 @@ def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, hos
     )
 
 
-def get_business_set_host_ipv6(tenant_id, username, supplier_account, host_fields, ip_list=None):
+def get_business_set_host_ipv6(tenant_id, username, host_fields, ip_list=None):
     """
     根据主机内网 IP 过滤业务集下的主机, 主要查询ip_v6
     :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
-    :param bk_biz_id: 业务 CC ID
-    :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
-    :param bk_cloud_id: IP列表对应的管控区域
-    :type bk_cloud_id: int
     :return:
     [
         {
@@ -281,7 +268,6 @@ def get_business_set_host_ipv6(tenant_id, username, supplier_account, host_field
     @param bk_biz_ids:
     """
     kwargs = {
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
@@ -297,13 +283,12 @@ def get_business_set_host_ipv6(tenant_id, username, supplier_account, host_field
     )
 
 
-def get_notify_receivers(tenant_id, username, biz_cc_id, supplier_account, receiver_group, more_receiver, logger=None):
+def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_receiver, logger=None):
     """
     @summary: 根据通知分组和附加通知人获取最终通知人
     @param tenant_id: 租户ID
     @param username: 请求用户名
     @param biz_cc_id: 业务CC ID
-    @param supplier_account: 租户 ID
     @param receiver_group: 通知分组
     @param more_receiver: 附加通知人
     @param logger: 日志句柄
@@ -319,7 +304,8 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, supplier_account, recei
 
     if logger is None:
         logger = logger_celery
-    kwargs = {"bk_supplier_account": supplier_account, "condition": {"bk_biz_id": int(biz_cc_id)}}
+    kwargs = {"condition": {"bk_biz_id": int(biz_cc_id)}}
+    supplier_account = supplier_account_for_business(biz_cc_id)
     cc_result = client.api.search_business(
         kwargs,
         path_params={"bk_supplier_account": supplier_account},
@@ -410,10 +396,9 @@ def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, bk_supplier_acco
     return True, {"code": 0, "message": "success", "data": host_list}
 
 
-def get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, supplier_account, host_fields, host_id_list=None):
+def get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, host_fields, host_id_list=None):
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
