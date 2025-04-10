@@ -27,7 +27,7 @@ from gcloud.core.utils import get_user_business_list
 from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_id_inject
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
@@ -134,15 +134,13 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id):
     return JsonResponse({"result": True, "data": obj_property})
 
 
-@supplier_account_inject
-def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account):
+def cc_list_service_category(request, biz_cc_id, bk_parent_id):
     """
     查询指定节点bk_parent_id的所有子服务分类
     url: /pipeline/cc_list_service_category/biz_cc_id/bk_parent_id/
     :param request:
     :param biz_cc_id:
     :param bk_parent_id: 父服务分类id, 根id = 0
-    :param supplier_account:
     :return:
         - 请求成功 {"result": True, "data": service_categories, "message": "success"}
             - service_categories: [{"value" : 服务分类id, "label": 服务分类名称}, ...]
@@ -150,7 +148,7 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
     """
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
     list_service_category_return = client.api.list_service_category(kwargs, headers=headers)
     if not list_service_category_return["result"]:
         message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
@@ -168,13 +166,11 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
     return JsonResponse({"result": True, "data": service_categories, "message": "success"})
 
 
-@supplier_account_inject
-def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
+def cc_get_service_category_topo(request, biz_cc_id):
     """
     获取指定biz_cc_id模板类型拓扑
     :param request:
     :param biz_cc_id:
-    :param supplier_account:
     :return:
         - 请求成功
         {
@@ -193,7 +189,7 @@ def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
     """
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
     list_service_category_return = client.api.list_service_category(kwargs, headers=headers)
     if not list_service_category_return["result"]:
         message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
@@ -215,14 +211,12 @@ def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": service_category_topo, "message": "success"})
 
 
-@supplier_account_inject
-def cc_list_service_template(request, biz_cc_id, supplier_account):
+def cc_list_service_template(request, biz_cc_id):
     """
     获取服务模板
     url: /pipeline/cc_list_service_template/biz_cc_id/
     :param request:
     :param biz_cc_id:
-    :param supplier_account:
     :return:
         - 请求成功 {"result": True, "data": service_templates, "message": "success"}
             - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
@@ -230,7 +224,7 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     """
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
     service_templates = []
     try:
         service_templates_untreated = batch_request(
@@ -299,8 +293,7 @@ def insert_inter_result_to_topo_data(inter_result_data, topo_data):
     return topo_data
 
 
-@supplier_account_inject
-def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
+def cc_search_topo(request, obj_id, category, biz_cc_id):
     """
     @summary: 查询对象拓扑
     @param request:
@@ -310,7 +303,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     with_internal_module = request.GET.get("with_internal_module", False)
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": biz_cc_id}
     cc_result = client.api.search_biz_inst_topo(
         kwargs,
         path_params={"bk_biz_id": biz_cc_id},
@@ -324,6 +317,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         return JsonResponse(result)
 
     if with_internal_module:
+        supplier_account = supplier_account_for_business(biz_cc_id)
         inter_result = client.api.get_biz_internal_module(
             kwargs,
             path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id},
@@ -345,20 +339,17 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": cc_topo})
 
 
-@supplier_account_inject
-def cc_search_topo_tree(request, biz_cc_id, supplier_account):
-    return cmdb_search_topo_tree(request, biz_cc_id, supplier_account)
+def cc_search_topo_tree(request, biz_cc_id):
+    return cmdb_search_topo_tree(request, biz_cc_id)
 
 
-@supplier_account_inject
-@supplier_id_inject
-def cc_search_host(request, biz_cc_id, supplier_account, supplier_id):
-    return cmdb_search_host(request, biz_cc_id, supplier_account, supplier_id)
+
+def cc_search_host(request, biz_cc_id):
+    return cmdb_search_host(request, biz_cc_id)
 
 
-@supplier_account_inject
-def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
-    return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
+def cc_get_mainline_object_topo(request, biz_cc_id):
+    return cmdb_get_mainline_object_topo(request, biz_cc_id)
 
 
 def cc_get_business(request):
@@ -383,16 +374,14 @@ def cc_get_business(request):
     return JsonResponse({"result": True, "data": data})
 
 
-@supplier_account_inject
-def cc_search_dynamic_group(request, biz_cc_id, supplier_account):
-    return cmdb_search_dynamic_group(request, biz_cc_id, supplier_account)
+def cc_search_dynamic_group(request, biz_cc_id):
+    return cmdb_search_dynamic_group(request, biz_cc_id)
 
 
-@supplier_account_inject
-def cc_list_set_template(request, biz_cc_id, supplier_account):
+def cc_list_set_template(request, biz_cc_id):
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
 
     set_templates = batch_request(
         client.api.list_set_template,

@@ -26,7 +26,7 @@ logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
 
 
-def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, host_fields,
+def get_business_host_topo(tenant_id, username, bk_biz_id, host_fields,
                            ip_list=None, property_filters=None):
     """获取业务下所有主机信息
     :param tenant_id: 租户ID
@@ -34,8 +34,6 @@ def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, hos
     :type username: str
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
@@ -69,7 +67,7 @@ def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, hos
     :rtype: list
     """
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
+    kwargs = {"bk_biz_id": bk_biz_id, "fields": list(host_fields or [])}
 
     if property_filters is not None:
         kwargs.update(property_filters)
@@ -357,10 +355,10 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_re
     return result
 
 
-def get_dynamic_group_list(tenant_id, username, bk_biz_id, bk_supplier_account):
+def get_dynamic_group_list(tenant_id, username, bk_biz_id):
     """获取业务下的所有动态分组列表"""
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    kwargs = {"bk_biz_id": bk_biz_id}
     result = batch_request(
         client.api.search_dynamic_group,
         kwargs,
@@ -374,7 +372,7 @@ def get_dynamic_group_list(tenant_id, username, bk_biz_id, bk_supplier_account):
     return dynamic_groups
 
 
-def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, bk_supplier_account, dynamic_group_id):
+def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, dynamic_group_id):
     """获取动态分组中对应主机列表"""
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     fields = ["bk_host_innerip", "bk_cloud_id", "bk_host_id"]
@@ -382,7 +380,6 @@ def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, bk_supplier_acco
         fields.append("bk_host_innerip_v6")
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": bk_supplier_account,
         "id": dynamic_group_id,
         "fields": fields,
     }

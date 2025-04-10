@@ -24,6 +24,7 @@ from gcloud.utils import cmdb
 from gcloud.utils.cmdb import get_dynamic_group_list
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import extract_ip_from_ip_str, format_sundry_ip
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 from ..components.collections.sites.open.cc.base import cc_parse_path_text
 from ..components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
@@ -305,8 +306,7 @@ class IPPickerHandler:
         """
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in inputted_group]
         try:
-            existing_dynamic_groups = get_dynamic_group_list(self.tenant_id, self.username, self.bk_biz_id,
-                                                             self.bk_supplier_account)
+            existing_dynamic_groups = get_dynamic_group_list(self.tenant_id, self.username, self.bk_biz_id)
             existing_dynamic_group_ids = set([dynamic_group["id"] for dynamic_group in existing_dynamic_groups])
             dynamic_group_ids = set(dynamic_group_ids) & existing_dynamic_group_ids
         except Exception as e:
@@ -315,7 +315,7 @@ class IPPickerHandler:
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
             success, result = cmdb.get_dynamic_group_host_list(
-                self.tenant_id, self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id
+                self.tenant_id, self.username, self.bk_biz_id, dynamic_group_id
             )
             if not success:
                 return {
@@ -622,7 +622,7 @@ def get_objects_of_topo_tree(bk_obj, obj_dct):
     return bk_objects
 
 
-def get_cmdb_topo_tree(tenant_id, username, bk_biz_id, bk_supplier_account):
+def get_cmdb_topo_tree(tenant_id, username, bk_biz_id):
     """从 CMDB API 获取业务完整拓扑树，包括空闲机池
 
     :param tenant_id: 租户 ID
@@ -631,8 +631,6 @@ def get_cmdb_topo_tree(tenant_id, username, bk_biz_id, bk_supplier_account):
     :type username: string
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param bk_supplier_account: 开发商账号
-    :type bk_supplier_account: int
     :return:
     {
         "result": True or False,
@@ -672,7 +670,6 @@ def get_cmdb_topo_tree(tenant_id, username, bk_biz_id, bk_supplier_account):
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": bk_supplier_account,
     }
     headers = {"X-Bk-Tenant-Id": tenant_id}
     topo_result = client.api.search_biz_inst_topo(
@@ -685,6 +682,7 @@ def get_cmdb_topo_tree(tenant_id, username, bk_biz_id, bk_supplier_account):
         result = {"result": False, "code": ERROR_CODES.API_CMDB_ERROR, "message": message, "data": []}
         return result
 
+    bk_supplier_account = supplier_account_for_business(bk_biz_id)
     inter_result = client.api.get_biz_internal_module(
         kwargs,
         path_params={"bk_supplier_account": bk_supplier_account, "bk_biz_id": bk_biz_id},
