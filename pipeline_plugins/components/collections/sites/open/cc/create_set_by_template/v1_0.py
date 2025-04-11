@@ -20,7 +20,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
@@ -94,7 +93,6 @@ class CCCreateSetBySetTemplateService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_select_set_parent_method = data.get_one_of_inputs("cc_select_set_parent_method")
 
         if cc_select_set_parent_method == SelectMethod.TOPO.value:
@@ -103,7 +101,7 @@ class CCCreateSetBySetTemplateService(Service):
         elif cc_select_set_parent_method == SelectMethod.TEXT.value:
             cc_set_parent_select_text = data.get_one_of_inputs("cc_set_parent_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.LAST_CUSTOM, cc_set_parent_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.LAST_CUSTOM, cc_set_parent_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -121,22 +119,24 @@ class CCCreateSetBySetTemplateService(Service):
         for parent_id in cc_set_parent_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account,
-                "data": {"bk_parent_id": parent_id},
+                "bk_parent_id": parent_id,
+                "set_template_id": cc_set_template,
             }
             for cc_set_name in cc_set_names.split(","):
                 try:
                     attr_data_list = data.get_one_of_inputs("cc_set_attr")
                 except Exception:
                     attr_data_list = []
-
-                cc_kwargs["data"].update(
-                    {"bk_parent_id": parent_id, "bk_set_name": cc_set_name, "set_template_id": cc_set_template}
-                )
-
+                cc_kwargs["bk_set_name"] = cc_set_name
                 if attr_data_list:
                     for attr_data in attr_data_list:
-                        cc_kwargs["data"].update({attr_data["attr_id"]: attr_data["attr_value"]})
+                        if attr_data["attr_id"] == "bk_capacity":
+                            try:
+                                attr_data["attr_value"] = int(attr_data["attr_value"])
+                            except ValueError:
+                                data.set_outputs("ex_data", _("集群容量必须为整数"))
+                                return False
+                        cc_kwargs.update({attr_data["attr_id"]: attr_data["attr_value"]})
 
                 cc_result = client.api.create_set(
                     cc_kwargs,

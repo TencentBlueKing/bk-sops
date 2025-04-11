@@ -23,7 +23,6 @@ from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
 from gcloud.utils.cmdb import get_notify_receivers
 from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -100,7 +99,6 @@ class NotifyService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         notify_type = data.get_one_of_inputs("bk_notify_type")
         receiver_info = data.get_one_of_inputs("bk_receiver_info")
         # 兼容原有数据格式
@@ -118,7 +116,7 @@ class NotifyService(Service):
 
         code = ""
         message = ""
-        res = get_notify_receivers(tenant_id, executor, biz_cc_id, supplier_account, receiver_group, more_receiver)
+        res = get_notify_receivers(tenant_id, executor, biz_cc_id, receiver_group, more_receiver)
 
         result, msg, receivers = res["result"], res["message"], res["data"]
 

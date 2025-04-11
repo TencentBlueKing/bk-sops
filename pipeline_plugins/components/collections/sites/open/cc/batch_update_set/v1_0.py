@@ -101,7 +101,7 @@ class CCBatchUpdateSetService(Service):
         success_update = []
         failed_update = []
 
-        search_attr_kwargs = {"bk_obj_id": "set", "bk_supplier_account": supplier_account}
+        search_attr_kwargs = {"bk_obj_id": "set"}
         attr_result = client.api.search_object_attribute(
             search_attr_kwargs,
             headers={"X-Bk-Tenant-Id": tenant_id},
@@ -143,7 +143,8 @@ class CCBatchUpdateSetService(Service):
             if not transform_success:
                 continue
 
-            if "bk_set_name" not in update_params:
+            # 检查set name是否存在
+            if not update_params.get("bk_set_name"):
                 message = _(f"集群属性更新失败: item: {update_item}, 目前Set名称未填写")
                 logger.error(message)
                 failed_update.append(message)
@@ -152,12 +153,13 @@ class CCBatchUpdateSetService(Service):
             if "bk_new_set_name" in update_params:
                 update_params["bk_set_name"] = update_params["bk_new_set_name"]
                 del update_params["bk_new_set_name"]
-
-            # 检查set name是否存在
-            if not bk_set_name:
-                message = _(f"集群属性更新失败: set 属性更新失败, set name有空值, item={update_item} | execute")
-                self.logger.info(message)
-                continue
+            if "bk_capacity" in update_params:
+                try:
+                    update_params["bk_capacity"] = int(update_params["bk_capacity"])
+                except ValueError:
+                    message = _(f"集群属性更新失败: item: {update_item}, 集群容量必须为整数")
+                    failed_update.append(message)
+                    continue
             # 根据set name查询set  id
             kwargs = {
                 "bk_biz_id": biz_cc_id,
@@ -175,13 +177,10 @@ class CCBatchUpdateSetService(Service):
                     bk_set_id = search_set["bk_set_id"]
                     break
             # 更新set属性
-            kwargs = {
-                "bk_biz_id": biz_cc_id,
-                "bk_set_id": bk_set_id,
-                "data": update_params,
-            }
+            update_params["bk_biz_id"] = biz_cc_id
+            update_params["bk_set_id"] = bk_set_id
             update_result = client.api.update_set(
-                kwargs,
+                update_params,
                 path_params={"bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id},
                 headers={"X-Bk-Tenant-Id": tenant_id},
             )

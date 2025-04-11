@@ -80,7 +80,7 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         host_result = self.get_ip_info_list(
-            tenant_id, executor, biz_cc_id, data.get_one_of_inputs("cc_host_ip"), supplier_account)
+            tenant_id, executor, biz_cc_id, data.get_one_of_inputs("cc_host_ip"))
 
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])

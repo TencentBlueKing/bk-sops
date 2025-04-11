@@ -11,9 +11,8 @@ from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_f
 
 class GetJobTargetServerMixin(object):
     def get_target_server_ipv6(self, tenant_id, executor, biz_cc_id, ip_str, logger_handle, data):
-        supplier_account = supplier_account_for_business(biz_cc_id)
         logger_handle.info("[get_target_server_ipv6] start search this ip:{}".format(ip_str))
-        host_result = cc_get_host_by_innerip_with_ipv6(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
+        host_result = cc_get_host_by_innerip_with_ipv6(tenant_id, executor, biz_cc_id, ip_str)
         logger_handle.info(
             "[get_target_server_ipv6] start search this ip: {} end, result={}".format(ip_str, host_result)
         )
@@ -57,7 +56,7 @@ class GetJobTargetServerMixin(object):
         )
         # 剩下的ip去全业务查
         host_result = cc_get_host_by_innerip_with_ipv6(
-            tenant_id, executor, None, ip_not_find_str, supplier_account, is_biz_set=True
+            tenant_id, executor, None, ip_not_find_str, is_biz_set=True
         )
         logger_handle.info(
             "[get_target_server_ipv6_across_business] start search this ip:{}, result:{}".format(
