@@ -120,7 +120,7 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
 
             if not new_host_list or len(new_host_list) != 1:
                 data.outputs.ex_data = data.outputs.ex_data = (
-                    _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
+                    _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % new_ip
                 )
                 return False
 

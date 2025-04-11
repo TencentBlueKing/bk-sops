@@ -114,7 +114,7 @@ class CCUpdateSetServiceStatusService(Service):
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
                 "bk_set_id": set_id,
-                "data": {"bk_service_status": data.get_one_of_inputs("cc_set_status")},
+                "bk_service_status": data.get_one_of_inputs("cc_set_status"),
             }
             cc_result = client.api.update_set(
                 cc_kwargs,

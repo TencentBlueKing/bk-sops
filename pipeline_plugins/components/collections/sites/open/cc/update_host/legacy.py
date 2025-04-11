@@ -141,8 +141,8 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
                 break
 
         cc_kwargs = {
+            cc_host_property: cc_host_prop_value,
             "bk_host_id": ",".join(host_result["data"]),
-            "data": {cc_host_property: cc_host_prop_value},
         }
         cc_result = client.api.update_host(
             cc_kwargs,

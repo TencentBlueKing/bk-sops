@@ -21,7 +21,6 @@ from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -60,8 +59,7 @@ class CCHostLockBaseService(HostLockTypeService, CCPluginIPMixin):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
         cc_host_ip = data.get_one_of_inputs("cc_host_ip")
-        supplier_account = supplier_account_for_business(biz_cc_id)
-        host_list_result = self.get_host_list(tenant_id, executor, biz_cc_id, cc_host_ip, supplier_account)
+        host_list_result = self.get_host_list(tenant_id, executor, biz_cc_id, cc_host_ip)
 
         if not host_list_result["result"]:
             data.outputs.ex_data = _(

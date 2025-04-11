@@ -119,21 +119,24 @@ class CCCreateSetBySetTemplateService(Service):
         for parent_id in cc_set_parent_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
-                "data": {"bk_parent_id": parent_id},
+                "bk_parent_id": parent_id,
+                "set_template_id": cc_set_template,
             }
             for cc_set_name in cc_set_names.split(","):
                 try:
                     attr_data_list = data.get_one_of_inputs("cc_set_attr")
                 except Exception:
                     attr_data_list = []
-
-                cc_kwargs["data"].update(
-                    {"bk_parent_id": parent_id, "bk_set_name": cc_set_name, "set_template_id": cc_set_template}
-                )
-
+                cc_kwargs["bk_set_name"] = cc_set_name
                 if attr_data_list:
                     for attr_data in attr_data_list:
-                        cc_kwargs["data"].update({attr_data["attr_id"]: attr_data["attr_value"]})
+                        if attr_data["attr_id"] == "bk_capacity":
+                            try:
+                                attr_data["attr_value"] = int(attr_data["attr_value"])
+                            except ValueError:
+                                data.set_outputs("ex_data", _("集群容量必须为整数"))
+                                return False
+                        cc_kwargs.update({attr_data["attr_id"]: attr_data["attr_value"]})
 
                 cc_result = client.api.create_set(
                     cc_kwargs,
