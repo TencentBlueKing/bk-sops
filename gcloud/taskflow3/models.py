@@ -145,7 +145,8 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         started_time = timestamp_to_datetime(filters["create_time"])
         end_time = timestamp_to_datetime(filters["finish_time"]) + datetime.timedelta(days=1)
         appmaker_data = AppMaker.objects.filter(
-            is_deleted=False, create_time__gte=started_time, create_time__lte=end_time, project__tenant_id=filters["project__tenant_id"]
+            is_deleted=False, create_time__gte=started_time, create_time__lte=end_time,
+            project__tenant_id=filters["project__tenant_id"],
         )
         if project_id != "":
             appmaker_data = appmaker_data.filter(project_id=project_id)

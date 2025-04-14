@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
 from packages.bkapi.bk_monitor.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
 from pipeline_plugins.components.utils.sites.open.choose_time_tools import choose_time
 from pipeline_plugins.components.utils.sites.open.utils import get_module_id_list_by_name
@@ -87,10 +86,8 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
 
-        supplier_account = supplier_account_for_business(bk_biz_id)
-
         request_body = self.get_request_body(
-            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account, tenant_id
+            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, tenant_id
         )
         if "all" not in target:
             request_body["dimension_config"].update({"metric_id": target})
@@ -99,19 +96,19 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
 
         return result_flag
 
-    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, username, bk_supplier_account, tenant_id):
+    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, username, tenant_id):
         dimension_map = {
             "business": self.get_biz_dimension,
             "IP": self.get_ip_dimension,
             "node": self.get_node_dimension,
         }
-        return dimension_map[shied_type](shied_value, bk_biz_id, username, bk_supplier_account, tenant_id)
+        return dimension_map[shied_type](shied_value, bk_biz_id, username, tenant_id)
 
     def get_request_body(
-        self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, bk_supplier_account, tenant_id
+        self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, tenant_id
     ):
         dimension_config = self.get_dimension_config(
-            shied_type, shied_value, bk_biz_id, username, bk_supplier_account, tenant_id
+            shied_type, shied_value, bk_biz_id, username, tenant_id
         )
         request_body = self.build_request_body(
             begin_time=begin_time,
@@ -122,18 +119,18 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
         )
         return request_body
 
-    def get_ip_dimension(self, scope_value, bk_biz_id, username, bk_supplier_account, tenant_id):
+    def get_ip_dimension(self, scope_value, bk_biz_id, username, tenant_id):
         ip_dimension = super(MonitorAlarmShieldServiceBase, self).get_ip_dimension_config(
             tenant_id, scope_value, bk_biz_id, username
         )
         return ip_dimension
 
     @staticmethod
-    def get_biz_dimension(scope_value, bk_biz_id, username, bk_supplier_account, tenant_id):
+    def get_biz_dimension(scope_value, bk_biz_id, username, tenant_id):
         return {"scope_type": "biz"}
 
     @staticmethod
-    def get_node_dimension(scope_value, bk_biz_id, username, bk_supplier_account, tenant_id):
+    def get_node_dimension(scope_value, bk_biz_id, username, tenant_id):
         bk_set_method = scope_value["bk_set_method"]
         if bk_set_method == "select":
             bk_set_value = scope_value["bk_set_select"]
@@ -147,7 +144,7 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
             bk_module_value = scope_value["bk_module_text"]
 
         # 获取全部集群列表
-        set_list = get_set_list(tenant_id, username, bk_biz_id, bk_supplier_account)
+        set_list = get_set_list(tenant_id, username, bk_biz_id)
 
         # 集群全选，筛选条件不为空则调接口获取集群id列表
         if ALL_SELECTED_STR not in bk_set_value:
@@ -155,7 +152,7 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
             # 根据选中的集群名称获取选中的集群列表
             set_list = get_list_by_selected_names(selected_set_names, set_list)
         # 获取全部服务模板列表
-        service_template_list = get_service_template_list(tenant_id, username, bk_biz_id, bk_supplier_account)
+        service_template_list = get_service_template_list(tenant_id, username, bk_biz_id)
         # 服务模板全选，则调接口获取服务模板列表
         if ALL_SELECTED_STR not in bk_module_value:
             selected_service_template_names = bk_module_value

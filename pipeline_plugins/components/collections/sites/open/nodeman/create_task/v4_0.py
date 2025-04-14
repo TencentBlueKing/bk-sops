@@ -18,7 +18,6 @@ from pipeline.component_framework.component import Component
 from gcloud.conf import settings
 from gcloud.utils import crypto
 from gcloud.utils.cmdb import get_business_host, get_business_host_ipv6
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.nodeman.base import NodeManNewBaseService
 
 __group_name__ = _("节点管理(Nodeman)")
@@ -158,7 +157,6 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                         job_name
                         in ["REINSTALL_PROXY", "REINSTALL_AGENT"] + NOT_NEED_AUTH_JOB + NOT_NEED_EXTRA_CONFIG_JOB
                     ):
-                        supplier_account = supplier_account_for_business(bk_biz_id)
                         host_fields = ["bk_host_id", "bk_host_innerip"]
                         # 如果开启了ipv6，并且用户输入的是ipv6的地址
                         if settings.ENABLE_IPV6 and not use_inner_ip:
@@ -167,7 +165,6 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                                 tenant_id,
                                 executor,
                                 bk_biz_id,
-                                supplier_account,
                                 host_fields,
                                 inner_ip_list,
                                 bk_cloud_id,
@@ -178,7 +175,6 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                                 tenant_id,
                                 executor,
                                 bk_biz_id,
-                                supplier_account,
                                 host_fields,
                                 inner_ip_list,
                                 bk_cloud_id,

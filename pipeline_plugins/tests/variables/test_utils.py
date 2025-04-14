@@ -39,7 +39,6 @@ class UtilsTestCase(TestCase):
             tenant_id="test",
             username="admin",
             bk_biz_id="123",
-            bk_supplier_account="supplier_account",
             kwargs=MULTIPLE_SUCCESS_KWARGS,
         )
         self.assertEqual(SUCCESS_RESULT, result)

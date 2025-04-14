@@ -16,8 +16,6 @@ from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.exceptions import APIError
 from gcloud.conf import settings
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
 
 def has_biz_set(tenant_id, bk_scope_id: int):
     """

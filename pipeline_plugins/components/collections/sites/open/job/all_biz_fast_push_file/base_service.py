@@ -20,7 +20,6 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import batch_execute_func, get_job_instance_url, has_biz_set, loose_strip
@@ -96,13 +95,11 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
     def get_file_source(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
-        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
         file_source = []
         for item in data.get_one_of_inputs("job_source_files", []):
             result, server = self.get_target_server_biz_set(
-                tenant_id, executor, [item], supplier_account, logger_handle=self.logger
+                tenant_id, executor, [item], logger_handle=self.logger
             )
             if not result:
                 raise Exception("源文件信息处理失败，请检查ip配置是否正确, ip_list={}".format(item))

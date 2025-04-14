@@ -20,7 +20,7 @@ from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemS
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from gcloud.core.models import EnvironmentVariables
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -80,7 +80,6 @@ class CCBatchUpdateSetService(Service):
 
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         cc_set_update_data_list = data.get_one_of_inputs("cc_set_update_data")
         cc_set_template_break_line = data.get_one_of_inputs("cc_set_template_break_line") or ","
@@ -168,7 +167,10 @@ class CCBatchUpdateSetService(Service):
             }
             search_result = client.api.search_set(
                 kwargs,
-                path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id},
+                path_params={
+                    "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+                    "bk_biz_id": biz_cc_id,
+                },
                 headers={"X-Bk-Tenant-Id": tenant_id},
             )
             bk_set_id = 0

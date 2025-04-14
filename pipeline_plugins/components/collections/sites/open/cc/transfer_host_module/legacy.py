@@ -22,7 +22,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_tree_mode_id
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -77,7 +76,6 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
         host_result = self.get_ip_info_list(
             tenant_id, executor, biz_cc_id, data.get_one_of_inputs("cc_host_ip"))
@@ -93,7 +91,6 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
 
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,
-            "bk_supplier_account": supplier_account,
             "bk_host_id": [int(host["HostID"]) for host in host_result["ip_result"]],
             "bk_module_id": cc_module_select,
             "is_increment": True if cc_is_increment == "true" else False,

@@ -449,7 +449,8 @@ def preview_task_tree(request, project_id):
     exclude_task_nodes_id = params.get("exclude_task_nodes_id", [])
 
     try:
-        data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id, request.user.tenant_id)
+        data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id,
+                                     request.user.tenant_id)
     except Exception as e:
         message = _(
             f"任务数据请求失败: 请求任务数据发生异常: {e}. 请重试, 如多次失败可联系管理员处理 | preview_task_tree"

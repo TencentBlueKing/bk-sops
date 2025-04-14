@@ -18,8 +18,8 @@ from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 
 logger = logging.getLogger("root")
@@ -69,10 +69,13 @@ def cc_search_module(request, biz_cc_id):
         "bk_set_id": bk_set_id,
         "fields": module_fields,
     }
-    supplier_account = supplier_account_for_business(biz_cc_id)
     cc_result = client.api.search_module(
         cc_kwargs,
-        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id},
+        path_params={
+            "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+            "bk_biz_id": biz_cc_id,
+            "bk_set_id": bk_set_id,
+        },
         headers={"X-Bk-Tenant-Id": request.user.tenant_id},
     )
     if not cc_result["result"]:

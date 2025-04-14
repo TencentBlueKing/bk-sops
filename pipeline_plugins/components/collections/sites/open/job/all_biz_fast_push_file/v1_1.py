@@ -16,7 +16,6 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 
 from gcloud.conf import settings
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service import (
     BaseAllBizJobFastPushFileService,
 )
@@ -60,7 +59,6 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
         file_source = self.get_file_source(data, parent_data)
 
         executor = parent_data.get_one_of_inputs("executor")
-        supplier_account = supplier_account_for_business(biz_cc_id)
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
 
@@ -78,7 +76,7 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
             job_account = attr["job_target_account"]
             job_target_path = attr["job_target_path"]
             result, target_server = self.get_target_server_biz_set(
-                tenant_id, executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
+                tenant_id, executor, [attr], logger_handle=self.logger, ip_key="job_ip_list"
             )
 
             if not result:

@@ -58,7 +58,6 @@ def cmdb_search_topo_tree(request, bk_biz_id):
     @summary: 获取 CMDB 上业务的拓扑树，包含空闲机和故障机模块，根节点是业务
     @param request:
     @param bk_biz_id: 业务 CMDB ID
-    @param bk_supplier_account: 业务开发商账号
     @return:
     """
     result = get_cmdb_topo_tree(request.user.tenant_id, request.user.username, bk_biz_id)

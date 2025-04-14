@@ -20,7 +20,7 @@ from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemS
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from gcloud.core.models import EnvironmentVariables
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -110,7 +110,6 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             return False
 
         hostname_rule = sorted(hostname_rule, key=lambda e: str(e.__getitem__("field_order")))
-        supplier_account = supplier_account_for_business(biz_cc_id)
         ip_list = self.get_ip_info_list(tenant_id, operator, biz_cc_id, sa_ip_list)
         if not ip_list["result"] or not ip_list["ip_count"]:
             data.outputs.ex_data = _(
@@ -198,6 +197,7 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
         host_list = []
         # 自增变量
         inc = [-1] * inc_num
+        supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
         for host in ip_list["ip_result"]:
             custom_property_value = ""
             inc_num_temp = 0

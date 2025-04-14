@@ -12,7 +12,6 @@ from gcloud.constants import JobBizScopeType
 from gcloud.utils import crypto
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP, JOBV3_VAR_CATEGORY_PASSWORD
@@ -114,7 +113,6 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
 
         config_data = data.get_one_of_inputs("all_biz_job_config")
         biz_cc_id = config_data.get("all_biz_cc_id")
-        supplier_account = supplier_account_for_business(biz_cc_id)
         is_tagged_ip = config_data.get("is_tagged_ip", False)
         data.inputs.biz_cc_id = biz_cc_id
         data.inputs.is_tagged_ip = is_tagged_ip
@@ -147,7 +145,6 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
                     tenant_id,
                     executor,
                     ip_list,
-                    supplier_account=supplier_account,
                     logger_handle=self.logger,
                     need_build_ip=False,
                 )

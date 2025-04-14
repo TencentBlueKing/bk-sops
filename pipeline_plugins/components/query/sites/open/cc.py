@@ -27,7 +27,7 @@ from gcloud.core.utils import get_user_business_list
 from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from gcloud.core.models import EnvironmentVariables
 from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
@@ -319,7 +319,10 @@ def cc_search_topo(request, obj_id, category, biz_cc_id):
     if with_internal_module:
         inter_result = client.api.get_biz_internal_module(
             kwargs,
-            path_params={"bk_supplier_account": supplier_account_for_business(biz_cc_id), "bk_biz_id": biz_cc_id},
+            path_params={
+                "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+                "bk_biz_id": biz_cc_id,
+            },
             headers=headers,
         )
         if not inter_result["result"]:
@@ -340,7 +343,6 @@ def cc_search_topo(request, obj_id, category, biz_cc_id):
 
 def cc_search_topo_tree(request, biz_cc_id):
     return cmdb_search_topo_tree(request, biz_cc_id)
-
 
 
 def cc_search_host(request, biz_cc_id):
@@ -530,7 +532,10 @@ def cc_find_host_by_topo(request, biz_cc_id):
             message = handle_api_error("cc", "find_host_by_topo", result["params"], func_result)
             failed_request_message.append(message)
         else:
-            data.append({"bk_inst_id": result["params"]["bk_inst_id"], "host_count": func_result["data"]["count"]})
+            data.append({
+                "bk_inst_id": result["params"]["data"]["bk_inst_id"],
+                "host_count": func_result["data"]["count"],
+            })
 
     if failed_request_message:
         return JsonResponse({"result": False, "data": [], "message": "\n".join(failed_request_message)})

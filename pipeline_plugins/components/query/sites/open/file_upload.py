@@ -26,7 +26,6 @@ from gcloud.core.models import EnvironmentVariables
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def _check_and_get_file_manager():

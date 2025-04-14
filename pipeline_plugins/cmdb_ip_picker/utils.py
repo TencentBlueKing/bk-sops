@@ -24,7 +24,7 @@ from gcloud.utils import cmdb
 from gcloud.utils.cmdb import get_dynamic_group_list
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import extract_ip_from_ip_str, format_sundry_ip
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from gcloud.core.models import EnvironmentVariables
 
 from ..components.collections.sites.open.cc.base import cc_parse_path_text
 from ..components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
@@ -397,7 +397,7 @@ def get_ip_picker_result(tenant_id, username, bk_biz_id, kwargs):
     excludes = kwargs["excludes"]
 
     ip_picker_handler = IPPickerHandler(
-        selector, username, bk_biz_id, is_manual, filters, excludes
+        tenant_id, selector, username, bk_biz_id, is_manual, filters, excludes
     )
     if ip_picker_handler.error:
         logger.error(f"[get_ip_picker_result] error: {ip_picker_handler.error}")
@@ -681,7 +681,10 @@ def get_cmdb_topo_tree(tenant_id, username, bk_biz_id):
 
     inter_result = client.api.get_biz_internal_module(
         kwargs,
-        path_params={"bk_supplier_account": supplier_account_for_business(bk_biz_id), "bk_biz_id": bk_biz_id},
+        path_params={
+            "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+            "bk_biz_id": bk_biz_id,
+        },
         headers=headers,
     )
     if not inter_result["result"]:
