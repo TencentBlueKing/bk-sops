@@ -41,6 +41,7 @@ def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
+    include_labels = request.GET.get("include_labels", None)
 
     if id_in:
         try:
@@ -63,13 +64,16 @@ def get_template_list(request, project_id):
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
     template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True, tz=request.tz)
-    template_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
-    # 注入标签和用户有权限的actions
+    template_labels = {}
+    if include_labels:
+        template_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
+    # 注入用户有权限的actions
     flow_allowed_actions = get_flow_allowed_actions_for_user(request.user.username, FLOW_ACTIONS, template_id_list)
     for template_info in template_list:
         template_id = template_info["id"]
         template_info.setdefault("auth_actions", [])
-        template_info["labels"] = template_labels.get(template_id, [])
+        if include_labels:
+            template_info["labels"] = template_labels.get(template_id, [])
         for action, allowed in flow_allowed_actions.get(str(template_id), {}).items():
             if allowed:
                 template_info["auth_actions"].append(action)

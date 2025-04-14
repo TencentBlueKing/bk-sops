@@ -79,7 +79,6 @@ class GetTemplateListAPITest(APITest):
                         "bk_biz_id": TEST_PROJECT_ID,
                         "bk_biz_name": TEST_PROJECT_NAME,
                         "auth_actions": ["TEST_ACTION"],
-                        "labels": [],
                     }
                     for tmpl in task_templates
                 ]
@@ -152,7 +151,6 @@ class GetTemplateListAPITest(APITest):
                     "bk_biz_id": TEST_PROJECT_ID,
                     "bk_biz_name": TEST_PROJECT_NAME,
                     "auth_actions": [],
-                    "labels": [],
                 }
                 for tmpl in task_templates
             ]
