@@ -18,7 +18,7 @@ from gcloud.utils import cmdb
 logger = logging.getLogger("root")
 
 
-def cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, supplier_account=0, host_fields=None):
+def cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, host_fields=None):
     """根据模块列表过滤业务下主机
 
     :param tenant_id: 租户 ID
@@ -28,8 +28,6 @@ def cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list,
     :type biz_cc_id: int
     :param module_id_list: 过滤模块 ID 列表
     :type module_id_list: list[int]
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int, optional
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list[str], optional
     :return: [
@@ -58,7 +56,7 @@ def cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list,
     ]
     :rtype: list
     """
-    host_info_list = cmdb.get_business_host_topo(tenant_id, username, biz_cc_id, supplier_account, host_fields)
+    host_info_list = cmdb.get_business_host_topo(tenant_id, username, biz_cc_id, host_fields)
 
     # filter host
     filtered = []
@@ -71,7 +69,7 @@ def cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list,
     return filtered
 
 
-def cc_format_module_hosts(tenant_id, username, biz_cc_id, module_id_list, supplier_account, data_format, host_fields):
+def cc_format_module_hosts(tenant_id, username, biz_cc_id, module_id_list, data_format, host_fields):
     """根据指定格式返回主机列表
 
     :param tenant_id: 租户 ID
@@ -81,8 +79,6 @@ def cc_format_module_hosts(tenant_id, username, biz_cc_id, module_id_list, suppl
     :type biz_cc_id: int
     :param module_id_list: 过滤模块 ID 列表
     :type module_id_list: list[int]
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int, optional
     :param data_format: 数据格式, tree or ip
     :type data_format: str
     :param host_fields: 主机过滤字段, defaults to None
@@ -120,8 +116,7 @@ def cc_format_module_hosts(tenant_id, username, biz_cc_id, module_id_list, suppl
     :rtype: dict(tree) or list(ip)
     """
 
-    module_host_list = cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, supplier_account,
-                                                    host_fields)
+    module_host_list = cc_get_inner_ip_by_module_id(tenant_id, username, biz_cc_id, module_id_list, host_fields)
     if data_format == "tree":
         module_host_dict = {}
         for item in module_host_list:

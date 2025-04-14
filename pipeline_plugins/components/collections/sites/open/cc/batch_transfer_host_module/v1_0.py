@@ -20,7 +20,6 @@ from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItem
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     CCPluginIPMixin,
@@ -90,7 +89,6 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
         cc_host_transfer_detail = data.get_one_of_inputs("cc_host_transfer_detail")
@@ -115,7 +113,7 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
         for attr in attr_list:
             cc_module_path = attr["cc_transfer_host_target_module"]
             # 获取主机id列表
-            host_result = self.get_host_list(executor, biz_cc_id, attr["cc_transfer_host_ip"], supplier_account)
+            host_result = self.get_host_list(tenant_id, executor, biz_cc_id, attr["cc_transfer_host_ip"])
             if not host_result["result"]:
                 message = _(
                     f"主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机属性:{attr}, 错误信息: {host_result['message']}"
@@ -128,7 +126,6 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
                 tenant_id,
                 executor,
                 biz_cc_id,
-                supplier_account,
                 BkObjType.MODULE,
                 cc_module_path,
                 parent_data.get_one_of_inputs("bk_biz_name"),
@@ -145,7 +142,6 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
 
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account,
                 "bk_host_id": [int(host_id) for host_id in host_result["data"]],
                 "bk_module_id": [int(module_id) for module_id in cc_module_select],
                 "is_increment": is_append,

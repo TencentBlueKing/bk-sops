@@ -23,7 +23,6 @@ from pipeline.core.flow.io import StringItemSchema
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_prop_data
 
 logger = logging.getLogger("celery")
@@ -75,11 +74,9 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
-
         # 查询主机id
         ip_str = data.get_one_of_inputs("cc_host_ip")
-        host_result = self.get_host_list_with_cloud_id(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
+        host_result = self.get_host_list_with_cloud_id(tenant_id, executor, biz_cc_id, ip_str)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False
@@ -89,7 +86,6 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         if cc_host_property == "bk_isp_name":
             bk_isp_name = cc_format_prop_data(
                 tenant_id, executor, "host", "bk_isp_name", parent_data.get_one_of_inputs("language"),
-                supplier_account
             )
             if not bk_isp_name["result"]:
                 data.set_outputs("ex_data", bk_isp_name["message"])
@@ -103,7 +99,6 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         elif cc_host_property == "bk_state_name":
             bk_state_name = cc_format_prop_data(
                 tenant_id, executor, "host", "bk_state_name", parent_data.get_one_of_inputs("language"),
-                supplier_account
             )
             if not bk_state_name["result"]:
                 data.set_outputs("ex_data", bk_state_name["message"])
@@ -116,7 +111,6 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         elif cc_host_property == "bk_province_name":
             bk_province_name = cc_format_prop_data(
                 tenant_id, executor, "host", "bk_province_name", parent_data.get_one_of_inputs("language"),
-                supplier_account
             )
             if not bk_province_name["result"]:
                 data.set_outputs("ex_data", bk_province_name["message"])
@@ -128,7 +122,7 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         else:
             cc_host_prop_value = data.get_one_of_inputs("cc_host_prop_value")
 
-        kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
+        kwargs = {"bk_obj_id": "host", "bk_biz_id": int(biz_cc_id)}
         result = client.api.search_object_attribute(
             kwargs,
             headers={"X-Bk-Tenant-Id": tenant_id},
@@ -147,9 +141,8 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
                 break
 
         cc_kwargs = {
+            cc_host_property: cc_host_prop_value,
             "bk_host_id": ",".join(host_result["data"]),
-            "bk_supplier_account": supplier_account,
-            "data": {cc_host_property: cc_host_prop_value},
         }
         cc_result = client.api.update_host(
             cc_kwargs,

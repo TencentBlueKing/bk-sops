@@ -22,7 +22,6 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_tree_mode_id
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -66,13 +65,11 @@ class CCEmptySetHostsService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select"))
         for set_id in cc_set_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
             }
             cc_result = client.api.transfer_sethost_to_idle_module(

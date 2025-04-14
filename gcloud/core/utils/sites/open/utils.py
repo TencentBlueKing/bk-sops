@@ -20,7 +20,6 @@ from gcloud.conf import settings
 from gcloud.core.api_adapter import get_user_info
 from gcloud.core.models import EnvironmentVariables
 
-# get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
