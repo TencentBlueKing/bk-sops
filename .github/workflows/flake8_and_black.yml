@@ -12,21 +12,33 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.6
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.6
-    - name: Install dependencies
+    - uses: actions/checkout@v4
+    - name: Install system dependencies (clang)
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black
+          sudo apt-get update
+          sudo apt-get install -y clang libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libffi-dev
+    - name: Install pyenv
+      run: |
+          curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+    - name: Install system dependencies (python)
+      run: |
+          export PYENV_ROOT="$HOME/.pyenv"
+          export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init --path)"
+          CC=clang pyenv install 3.6.12 -v
+          pyenv global 3.6.12
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install flake8==3.9.2 black==21.12b0
     - name: Lint with flake8
       run: |
-        flake8
+        source venv/bin/activate
+        flake8 --config=$GITHUB_WORKSPACE/.flake8
     - name: Format with black
       run: |
-        black .
+        source venv/bin/activate
+        black . --exclude=venv/*

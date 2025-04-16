@@ -14,6 +14,7 @@ exclude =
     */bin/*,
     local/*,
     blueapps/*,
+    venv/*,
     local_settings.py,
 max-line-length = 120
 max-complexity = 12
