@@ -43,9 +43,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "set_module_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
-    desc = _(
-        "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"
-    )
+    desc = _("集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -110,9 +108,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
                 ip_filter_result_list = ",".join([ip["InnerIP"] for ip in ip_filter_result["ip_result"]])
                 logger.info("[SetModuleIpSelector.get_value] ip_filter_result_list: %s" % ip_filter_result_list)
 
-                set_module_filter_ip_list = get_ip_list_by_module_id(
-                    tenant_id, username, bk_biz_id, module_ids
-                )
+                set_module_filter_ip_list = get_ip_list_by_module_id(tenant_id, username, bk_biz_id, module_ids)
                 # 获取在集群模块筛选的ip列表中的自定义输入ip
                 data = filter_ip(ip_filter_result_list, set_module_filter_ip_list)
         elif produce_method == "select":
@@ -291,7 +287,8 @@ def get_module_id_list(
 
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(
-        tenant_id, bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
+        tenant_id, bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"]
+    )
     # 拼接空闲机、待回收等模块ID
     module_id_list.extend(inner_module_id_list)
     logger.info("[get_module_id_list] inner_module_id_list: %s" % inner_module_id_list)
@@ -424,7 +421,13 @@ def get_ip_result_by_input_method(
 
     # 获取模块id列表
     module_ids = get_module_id_list(
-        tenant_id, bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template,
+        tenant_id,
+        bk_biz_id,
+        username,
+        set_list,
+        service_template_list,
+        filter_set,
+        filter_service_template,
     )
 
     # 根据模块 id 列表获取 ip 并返回

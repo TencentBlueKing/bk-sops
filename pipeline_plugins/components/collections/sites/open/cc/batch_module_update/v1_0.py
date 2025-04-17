@@ -23,13 +23,13 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_list_select_node_inst_id,
     get_module_set_id,
 )
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 VERSION = "1.0"
 
@@ -158,9 +158,7 @@ class CCBatchModuleUpdateService(Service):
                 tenant_id, executor, biz_cc_id, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
-                message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}"
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}")
                 failed_update.append(message)
                 self.logger.error(message)
                 continue
@@ -180,9 +178,7 @@ class CCBatchModuleUpdateService(Service):
                 self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, update_params))
                 success_update.append(update_item)
             else:
-                message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {update_params}, 错误消息: {update_result['message']}"
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {update_params}, 错误消息: {update_result['message']}")
                 self.logger.error(message)
                 failed_update.append(message)
 

@@ -11,10 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
-
-from gcloud.exceptions import APIError
 from gcloud.conf import settings
+from gcloud.exceptions import APIError
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 
 def has_biz_set(tenant_id, bk_scope_id: int):

@@ -22,13 +22,13 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -51,9 +51,7 @@ class CCUpdateSetServiceStatusService(Service):
                 name=_("填参方式"),
                 key="cc_set_select_method",
                 type="string",
-                schema=StringItemSchema(
-                    description=_("模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]
-                ),
+                schema=StringItemSchema(description=_("模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
             ),
             self.InputItem(
                 name=_("拓扑-集群列表"),
@@ -67,11 +65,7 @@ class CCUpdateSetServiceStatusService(Service):
                 name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(
-                    description=_(
-                        "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
-                    )
-                ),
+                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔")),
             ),
             self.InputItem(
                 name=_("服务状态"),

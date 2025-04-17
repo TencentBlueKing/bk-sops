@@ -15,8 +15,8 @@ __copyright__ = "Copyright (c) 2012-2018 Tencent. All Rights Reserved."
 
 import logging
 
-from gcloud.core import roles
 from gcloud.conf import settings
+from gcloud.core import roles
 from gcloud.core.models import EnvironmentVariables
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 

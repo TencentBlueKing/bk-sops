@@ -21,8 +21,8 @@ from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
 
@@ -63,19 +63,14 @@ class CCHostLockBaseService(HostLockTypeService, CCPluginIPMixin):
 
         if not host_list_result["result"]:
             data.outputs.ex_data = _(
-                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, message={}".format(
-                    host_list_result.get("message", "")
-                )
+                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, message={}".format(host_list_result.get("message", ""))
             )
             return False
 
         host_list = [int(host_id) for host_id in host_list_result["data"]]
         cc_host_lock_kwargs = {"id_list": host_list}
         cc_host_lock_method = getattr(client.api, method)
-        cc_host_lock_result = cc_host_lock_method(
-            cc_host_lock_kwargs,
-            headers={"X-Bk-Tenant-Id": tenant_id}
-        )
+        cc_host_lock_result = cc_host_lock_method(cc_host_lock_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         if cc_host_lock_result["result"]:
             return True
 

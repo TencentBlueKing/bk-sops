@@ -906,7 +906,7 @@ class Jobv3ScheduleService(Jobv3Service):
 
         for job_result in batch_result_list:
             result = job_result["result"]
-            job_id_str = job_result["params"]["job_instance_id"]
+            job_id_str = job_result["params"]["data"]["job_instance_id"]
             job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
             job_detail_url = job_urls[0] if job_urls else ""
             if result["result"]:

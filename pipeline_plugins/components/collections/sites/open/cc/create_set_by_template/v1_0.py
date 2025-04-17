@@ -20,14 +20,13 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
-
 
 __group_name__ = _("配置平台(CMDB)")
 VERSION = "v1.0"
@@ -47,27 +46,19 @@ class CCCreateSetBySetTemplateService(Service):
                 name=_("填参方式"),
                 key="cc_select_set_parent_method",
                 type="string",
-                schema=StringItemSchema(
-                    description=_("父实例填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]
-                ),
+                schema=StringItemSchema(description=_("父实例填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
             ),
             self.InputItem(
                 name=_("拓扑-父实例"),
                 key="cc_set_parent_select_topo",
                 type="array",
-                schema=ArrayItemSchema(
-                    description=_("父实例 ID 列表"), item_schema=IntItemSchema(description=_("实例 ID"))
-                ),
+                schema=ArrayItemSchema(description=_("父实例 ID 列表"), item_schema=IntItemSchema(description=_("实例 ID"))),
             ),
             self.InputItem(
                 name=_("文本路径-父实例"),
                 key="cc_set_parent_select_text",
                 type="string",
-                schema=StringItemSchema(
-                    description=_(
-                        "父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B`，多个父实例用换行分隔"
-                    )
-                ),
+                schema=StringItemSchema(description=_("父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B`，多个父实例用换行分隔")),
             ),
             self.InputItem(
                 name=_("集群名称"),

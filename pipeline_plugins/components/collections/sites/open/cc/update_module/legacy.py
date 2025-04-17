@@ -22,12 +22,12 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_prop_data,
     cc_format_tree_mode_id,
     get_module_set_id,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -49,9 +49,7 @@ class CCUpdateModuleService(Service):
                 name=_("模块"),
                 key="cc_module_select",
                 type="array",
-                schema=ArrayItemSchema(
-                    description=_("模块 ID 列表"), item_schema=IntItemSchema(description=_("模块 ID"))
-                ),
+                schema=ArrayItemSchema(description=_("模块 ID 列表"), item_schema=IntItemSchema(description=_("模块 ID"))),
             ),
             self.InputItem(
                 name=_("模块属性"),
@@ -99,7 +97,11 @@ class CCUpdateModuleService(Service):
         cc_module_property = data.get_one_of_inputs("cc_module_property")
         if cc_module_property == "bk_module_type":
             bk_module_type = cc_format_prop_data(
-                tenant_id, executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"),
+                tenant_id,
+                executor,
+                "module",
+                "bk_module_type",
+                parent_data.get_one_of_inputs("language"),
             )
             if not bk_module_type["result"]:
                 data.set_outputs("ex_data", bk_module_type["message"])

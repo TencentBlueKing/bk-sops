@@ -97,12 +97,8 @@ class MonitorAlarmShieldService(MonitorBaseService):
         }
         return dimension_map[shied_type](shied_value, bk_biz_id, username, tenant_id)
 
-    def get_request_body(
-        self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, tenant_id
-    ):
-        dimension_config = self.get_dimension_config(
-            shied_type, shied_value, bk_biz_id, username, tenant_id
-        )
+    def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, tenant_id):
+        dimension_config = self.get_dimension_config(shied_type, shied_value, bk_biz_id, username, tenant_id)
         request_body = self.build_request_body(
             begin_time=begin_time,
             bk_biz_id=bk_biz_id,

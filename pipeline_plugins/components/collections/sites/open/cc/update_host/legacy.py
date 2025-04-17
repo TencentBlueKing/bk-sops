@@ -20,9 +20,9 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_prop_data
 
 logger = logging.getLogger("celery")
@@ -85,7 +85,11 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         cc_host_property = data.get_one_of_inputs("cc_host_property")
         if cc_host_property == "bk_isp_name":
             bk_isp_name = cc_format_prop_data(
-                tenant_id, executor, "host", "bk_isp_name", parent_data.get_one_of_inputs("language"),
+                tenant_id,
+                executor,
+                "host",
+                "bk_isp_name",
+                parent_data.get_one_of_inputs("language"),
             )
             if not bk_isp_name["result"]:
                 data.set_outputs("ex_data", bk_isp_name["message"])
@@ -98,7 +102,11 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
 
         elif cc_host_property == "bk_state_name":
             bk_state_name = cc_format_prop_data(
-                tenant_id, executor, "host", "bk_state_name", parent_data.get_one_of_inputs("language"),
+                tenant_id,
+                executor,
+                "host",
+                "bk_state_name",
+                parent_data.get_one_of_inputs("language"),
             )
             if not bk_state_name["result"]:
                 data.set_outputs("ex_data", bk_state_name["message"])
@@ -110,7 +118,11 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
                 return False
         elif cc_host_property == "bk_province_name":
             bk_province_name = cc_format_prop_data(
-                tenant_id, executor, "host", "bk_province_name", parent_data.get_one_of_inputs("language"),
+                tenant_id,
+                executor,
+                "host",
+                "bk_province_name",
+                parent_data.get_one_of_inputs("language"),
             )
             if not bk_province_name["result"]:
                 data.set_outputs("ex_data", bk_province_name["message"])

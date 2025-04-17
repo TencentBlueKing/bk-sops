@@ -20,13 +20,13 @@ from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItem
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     CCPluginIPMixin,
     cc_list_select_node_inst_id,
 )
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -115,9 +115,7 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
             # 获取主机id列表
             host_result = self.get_host_list(tenant_id, executor, biz_cc_id, attr["cc_transfer_host_ip"])
             if not host_result["result"]:
-                message = _(
-                    f"主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机属性:{attr}, 错误信息: {host_result['message']}"
-                )
+                message = _(f"主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机属性:{attr}, 错误信息: {host_result['message']}")
                 self.logger.info(message)
                 failed_update.append(message)
                 continue
@@ -155,9 +153,7 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
                 self.logger.info("主机所属业务模块更新成功, data={}".format(cc_kwargs))
                 success_update.append(attr)
             else:
-                message = _(
-                    f"主机所属业务模块更新失败: 主机属性={attr}, kwargs: {cc_kwargs}, 错误信息: {update_result['message']}"
-                )
+                message = _(f"主机所属业务模块更新失败: 主机属性={attr}, kwargs: {cc_kwargs}, 错误信息: {update_result['message']}")
                 self.logger.info(message)
                 failed_update.append(message)
 

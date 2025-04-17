@@ -2,10 +2,10 @@
 import logging
 
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import batch_request
 from gcloud.utils.handlers import handle_api_error
-from gcloud.core.models import EnvironmentVariables
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")

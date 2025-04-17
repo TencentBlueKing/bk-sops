@@ -24,6 +24,7 @@ from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex, get_plat_ip_by_regex
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
@@ -34,7 +35,6 @@ from pipeline_plugins.variables.collections.sites.open.ip_filter_base import (
     GseAgentStatusIpFilter,
     GseAgentStatusIpV6Filter,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -82,8 +82,7 @@ class VarIpPickerVariable(LazyVariable):
 
             # query cc to get module's ip list and filter tree_ip_list
             host_list = cc_get_inner_ip_by_module_id(
-                tenant_id, username, bk_biz_id, module_inst_id_list,
-                ["host_id", "bk_host_innerip"]
+                tenant_id, username, bk_biz_id, module_inst_id_list, ["host_id", "bk_host_innerip"]
             )
             cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
             select_ip = set()
@@ -338,8 +337,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         host_ids = [host["bk_host_id"] for host in result["data"]]
         if not host_ids:
             return []
-        return get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, host_fields,
-                                              host_ids)
+        return get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, host_fields, host_ids)
 
     def get_value(self):
         """
@@ -391,8 +389,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
             )
             ipv6_list, *_ = extract_ip_from_ip_str(self.value)
         else:
-            hosts_list = self._handle_value_with_ipv4(
-                tenant_id, username, bk_biz_id, HOST_FIELDS, self.value)
+            hosts_list = self._handle_value_with_ipv4(tenant_id, username, bk_biz_id, HOST_FIELDS, self.value)
             ipv6_list = []
         hosts = {}
         for host in hosts_list:

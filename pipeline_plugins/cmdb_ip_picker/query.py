@@ -25,6 +25,8 @@ from gcloud.utils import cmdb
 from gcloud.utils.data_handler import chunk_data
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import format_sundry_ip
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username as get_nodeman_client_by_username
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 from .constants import ERROR_CODES, NO_ERROR
@@ -36,8 +38,6 @@ from .utils import (
     get_modules_of_bk_obj,
     get_objects_of_topo_tree,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
-from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username as get_nodeman_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -178,10 +178,12 @@ def cmdb_search_host(request, bk_biz_id):
                     {
                         "data": {"all_scope": True, "host_list": host},
                         "headers": {"X-Bk-Tenant-Id": request.user.tenant_id},
-                    } for host in host_list
+                    }
+                    for host in host_list
                 ]
-                results = batch_execute_func(nodeman_client.api.ipchooser_host_details, agent_kwargs,
-                                             interval_enabled=True)
+                results = batch_execute_func(
+                    nodeman_client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True
+                )
 
                 agent_data = []
                 for result in results:

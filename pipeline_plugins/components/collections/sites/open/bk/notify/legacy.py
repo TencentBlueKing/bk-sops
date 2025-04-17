@@ -126,14 +126,14 @@ class NotifyService(Service):
 
         for t in notify_type:
             kwargs = self._args_gen[t](self, receivers, title, content)
-            result = getattr(client.api, self._send_func[t])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
-
-            if not result["result"]:
-                data.set_outputs("ex_data", result["message"])
+            try:
+                result = getattr(client.api, self._send_func[t])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+            except Exception:
+                data.set_outputs("ex_data", result.get("message", "消息发送失败"))
                 return False
 
-            code = result["code"]
-            message = result["message"]
+            code = result.get("code", 0)
+            message = result.get("message", "消息发送成功")
 
         data.set_outputs("code", code)
         data.set_outputs("message", message)
@@ -141,17 +141,21 @@ class NotifyService(Service):
 
     def _email_args(self, receivers, title, content):
         return {
-            "receiver__username": receivers,
+            "receiver": receivers.split(","),
             "title": title,
             # 保留通知内容中的换行和空格
             "content": "<pre>%s</pre>" % content,
         }
 
     def _weixin_args(self, receivers, title, content):
-        return {"receiver__username": receivers, "data": {"heading": title, "message": content}}
+        return {"receiver": receivers.split(","), "data": {"heading": title, "message": content}}
 
     def _sms_args(self, receivers, title, content):
-        return {"receiver__username": receivers, "content": "%s\n%s" % (title, content)}
+        return {
+            "receiver": receivers.split(","),
+            "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
+            "is_content_base64": False,
+        }
 
     _send_func = {
         "weixin": "v1_send_weixin",

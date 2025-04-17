@@ -23,8 +23,8 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, cc_format_tree_set_id
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, cc_format_tree_set_id
 
 logger = logging.getLogger("celery")
 
@@ -46,9 +46,7 @@ class CCUpdateSetService(Service):
                 name=_("集群列表"),
                 key="cc_set_select",
                 type="array",
-                schema=ArrayItemSchema(
-                    description=_("集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
-                ),
+                schema=ArrayItemSchema(description=_("集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))),
             ),
             self.InputItem(
                 name=_("集群属性"),
@@ -82,7 +80,11 @@ class CCUpdateSetService(Service):
         cc_set_property = data.get_one_of_inputs("cc_set_property")
         if cc_set_property == "bk_service_status":
             bk_service_status = cc_format_prop_data(
-                tenant_id, executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"),
+                tenant_id,
+                executor,
+                "set",
+                "bk_service_status",
+                parent_data.get_one_of_inputs("language"),
             )
             if not bk_service_status["result"]:
                 data.set_outputs("ex_data", bk_service_status["message"])
@@ -95,7 +97,11 @@ class CCUpdateSetService(Service):
 
         elif cc_set_property == "bk_set_env":
             bk_set_env = cc_format_prop_data(
-                tenant_id, executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"),
+                tenant_id,
+                executor,
+                "set",
+                "bk_set_env",
+                parent_data.get_one_of_inputs("language"),
             )
             if not bk_set_env["result"]:
                 data.set_outputs("ex_data", bk_set_env["message"])

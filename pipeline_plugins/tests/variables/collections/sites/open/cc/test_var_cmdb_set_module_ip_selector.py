@@ -259,7 +259,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -270,7 +270,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -285,7 +285,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -295,7 +295,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -337,7 +337,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -347,7 +347,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -389,7 +389,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -399,7 +399,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -439,7 +439,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -450,7 +450,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -465,7 +465,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -475,7 +475,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -517,7 +517,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -532,7 +532,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -542,7 +542,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -578,7 +578,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -589,7 +589,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -604,7 +604,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -614,7 +614,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -654,7 +654,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -665,7 +665,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -680,7 +680,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -690,7 +690,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -755,7 +755,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -814,7 +814,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -829,7 +829,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -839,7 +839,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -875,7 +875,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -966,7 +966,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -977,7 +977,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -992,7 +992,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1002,7 +1002,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1096,7 +1096,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1106,7 +1106,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1167,7 +1167,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1178,7 +1178,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1193,7 +1193,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1203,7 +1203,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1239,7 +1239,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -1254,7 +1254,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1264,7 +1264,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1300,7 +1300,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -1337,7 +1337,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1347,7 +1347,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1383,7 +1383,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -1398,7 +1398,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1408,7 +1408,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1446,7 +1446,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1457,7 +1457,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1472,7 +1472,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1482,7 +1482,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1518,7 +1518,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -1577,7 +1577,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1588,7 +1588,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1603,7 +1603,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                         call(
                             dict(
@@ -1613,7 +1613,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         ),
                     ],
                 },
@@ -1649,7 +1649,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },
@@ -1686,7 +1686,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id}
+                            headers={"X-Bk-Tenant-Id": self.tenant_id},
                         )
                     ],
                 },

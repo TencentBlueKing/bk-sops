@@ -19,10 +19,10 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
 from gcloud.core.models import EnvironmentVariables
-from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
+from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 logger = logging.getLogger("celery")
 

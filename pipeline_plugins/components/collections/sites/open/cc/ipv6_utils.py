@@ -165,8 +165,7 @@ def get_ipv6_hosts(tenant_id, executor, bk_biz_id, ipv6_list, is_biz_set=False):
     return ipv6_host_list
 
 
-def get_ipv4_hosts_with_cloud(tenant_id, executor, bk_biz_id, ipv4_list_with_cloud_id,
-                              is_biz_set=False):
+def get_ipv4_hosts_with_cloud(tenant_id, executor, bk_biz_id, ipv4_list_with_cloud_id, is_biz_set=False):
     """
     根据ipv4带管控区域的列表查询主机，这个和get_ipv4_hosts地方在于，会将查出来的机器把ip和目标管控区域匹配的拿出来，抛弃不匹配的，再去校验匹配而来的主机
     @param tenant_id: 租户 ID
@@ -239,8 +238,7 @@ def get_ipv4_hosts_with_cloud(tenant_id, executor, bk_biz_id, ipv4_list_with_clo
     return ipv4_host_with_cloud_valid
 
 
-def get_ipv6_hosts_with_cloud(tenant_id, executor, bk_biz_id, ipv6_list_with_cloud_id,
-                              is_biz_set=False):
+def get_ipv6_hosts_with_cloud(tenant_id, executor, bk_biz_id, ipv6_list_with_cloud_id, is_biz_set=False):
     """
     根据ipv6带管控区域的列表查询主机，这个和get_ipv6_hosts地方在于，会将查出来的机器把ip和目标管控区域匹配的拿出来，抛弃不匹配的，再去校验匹配而来的主机
     @param tenant_id: 租户 ID
@@ -421,8 +419,7 @@ def get_ipv6_host_list(tenant_id, executor, bk_biz_id, ipv6_list, is_biz_set=Fal
     return {"result": True, "data": ipv6_host_list}
 
 
-def get_ipv4_host_with_cloud_list(tenant_id, executor, bk_biz_id, ipv4_list_with_cloud_id,
-                                  is_biz_set=False):
+def get_ipv4_host_with_cloud_list(tenant_id, executor, bk_biz_id, ipv4_list_with_cloud_id, is_biz_set=False):
     """
     # 查询所有ip_v4带管控区域带主机，并选出指定的ip，如果ip+cloud_id重复，则报错
     @param tenant_id: 租户 ID
@@ -455,8 +452,7 @@ def get_ipv4_host_with_cloud_list(tenant_id, executor, bk_biz_id, ipv4_list_with
     return {"result": True, "data": ipv4_host_with_cloud_valid}
 
 
-def get_ipv6_host_list_with_cloud_list(tenant_id, executor, bk_biz_id, ipv6_list_with_cloud,
-                                       is_biz_set=False):
+def get_ipv6_host_list_with_cloud_list(tenant_id, executor, bk_biz_id, ipv6_list_with_cloud, is_biz_set=False):
     """
     # 查询所有ip_v6带管控区域带主机，并选出指定的ip，如果ip+cloud_id重复，则报错
     @param tenant_id: 租户 ID

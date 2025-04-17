@@ -18,11 +18,11 @@ from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
-from gcloud.core.models import StaffGroupSet, EnvironmentVariables
+from gcloud.core.models import EnvironmentVariables, StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.variables.query.sites.open import select
 from pipeline_plugins.variables.utils import get_biz_internal_module, get_service_template_list, get_set_list
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -46,7 +46,7 @@ def cc_get_set(request, biz_cc_id):
             "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
             "bk_biz_id": biz_cc_id,
         },
-        headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
     )
     logger.info("[cc_get_set] cc_set_result: {cc_set_result}".format(cc_set_result=cc_set_result))
     result = [{"value": set_item["bk_set_id"], "text": set_item["bk_set_name"]} for set_item in cc_set_result]
@@ -72,7 +72,7 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
             "bk_biz_id": biz_cc_id,
             "bk_set_id": biz_set_id,
         },
-        headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
     )
     logger.info("[cc_get_module] cc_module_result: {cc_module_result}".format(cc_module_result=cc_module_result))
     result = [

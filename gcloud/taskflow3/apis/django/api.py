@@ -73,10 +73,10 @@ from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.utils import extract_nodes_by_statuses, fetch_node_id__auto_retry_info_map
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.throttle import check_task_operation_throttle, get_task_operation_frequence
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_web.preview import preview_template_tree
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 @require_GET
@@ -260,20 +260,24 @@ def detail(request, project_id):
 def get_job_instance_log(request, biz_cc_id):
     job_instance_id = request.GET["job_instance_id"]
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    step_instance_id = request.GET.get("step_instance_id")
+    bk_cloud_id = request.GET.get("bk_cloud_id")
+    ip = request.GET.get("ip")
     log_kwargs = {
         "bk_scope_type": bk_scope_type,
         "bk_scope_id": str(biz_cc_id),
         "bk_biz_id": biz_cc_id,
         "job_instance_id": job_instance_id,
+        "step_instance_id": step_instance_id,
+        "bk_cloud_id": bk_cloud_id,
+        "ip": ip,
     }
 
-    client = get_client_by_user(request.user.username)
-    job_result = client.job.get_job_instance_log(log_kwargs)
+    client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    job_result = client.api.get_job_instance_ip_log(log_kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
 
     if not job_result["result"]:
-        message = _(
-            f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}] 异常信息: {job_result['message']} | get_job_instance_log"
-        )
+        message = _(f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}] 异常信息: {job_result['message']} | get_job_instance_log")
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -449,12 +453,11 @@ def preview_task_tree(request, project_id):
     exclude_task_nodes_id = params.get("exclude_task_nodes_id", [])
 
     try:
-        data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id,
-                                     request.user.tenant_id)
-    except Exception as e:
-        message = _(
-            f"任务数据请求失败: 请求任务数据发生异常: {e}. 请重试, 如多次失败可联系管理员处理 | preview_task_tree"
+        data = preview_template_tree(
+            project_id, template_source, template_id, version, exclude_task_nodes_id, request.user.tenant_id
         )
+    except Exception as e:
+        message = _(f"任务数据请求失败: 请求任务数据发生异常: {e}. 请重试, 如多次失败可联系管理员处理 | preview_task_tree")
         logger.exception(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -507,9 +510,7 @@ def get_node_log(request, project_id, node_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if not task.has_node(node_id):
-        message = _(
-            f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log"
-        )
+        message = _(f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log")
         logger.error(message)
         return JsonResponse({"result": False, "data": None, "message": message})
 
@@ -544,9 +545,7 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        message = _(
-            f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback"
-        )
+        message = _(f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback")
         logger.error(message)
         return JsonResponse({"result": False, "message": message}, status=400)
 

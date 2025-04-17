@@ -21,7 +21,6 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 from gcloud.conf import settings
 from gcloud.utils import cmdb
@@ -34,6 +33,7 @@ from gcloud.utils.ip import (
     ip_pattern,
     ipv6_pattern,
 )
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
     get_hosts_by_hosts_ids,
     get_ipv4_host_list,
@@ -120,9 +120,7 @@ def cc_get_host_id_by_innerip(tenant_id, executor, bk_biz_id, ip_list):
         # find repeat innerip host
         host_counter = Counter([host["bk_host_innerip"] for host in host_list])
         mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
-        message = _(
-            f"IP [{', '.join(mutiple_innerip_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"
-        )
+        message = _(f"IP [{', '.join(mutiple_innerip_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
         logger.error(message)
         return {
             "result": False,
@@ -132,9 +130,7 @@ def cc_get_host_id_by_innerip(tenant_id, executor, bk_biz_id, ip_list):
     if len(host_list) < len(ip_list):
         return_innerip_set = {host["bk_host_innerip"] for host in host_list}
         absent_innerip = set(ip_list).difference(return_innerip_set)
-        message = _(
-            f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"
-        )
+        message = _(f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
         logger.error(message)
         return {"result": False, "message": message}
 
@@ -201,8 +197,7 @@ def cc_get_host_id_by_innerip_and_cloudid(tenant_id, executor, bk_biz_id, ip_str
                     return_innerip_set.add(host["bk_host_innerip"])
             absent_innerip = set(ipv4s).difference(return_innerip_set)
             message = (
-                f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: "
-                "请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+                f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: " "请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
             )
             logger.error(message)
             return {"result": False, "message": message}
@@ -210,9 +205,7 @@ def cc_get_host_id_by_innerip_and_cloudid(tenant_id, executor, bk_biz_id, ip_str
     return {"result": True, "data": list({str(host["bk_host_id"]) for host in hosts})}
 
 
-def cc_get_host_by_innerip_with_ipv6(
-    tenant_id, executor, bk_biz_id, ip_str, is_biz_set=False, host_id_detail=False
-):
+def cc_get_host_by_innerip_with_ipv6(tenant_id, executor, bk_biz_id, ip_str, is_biz_set=False, host_id_detail=False):
     """
     根据一个ip字符串查询host列表，ip字符串支持ipv4,ipv6,host_id,0:ipv4混输入模式，当is_biz_set=True时，bk_biz_set可以不填，
     此时 该接口主要用于 业务集相关当插件，比如业务集快速执行脚本，这个时候需要全业务去查询
@@ -228,9 +221,7 @@ def cc_get_host_by_innerip_with_ipv6(
         ip_str
     )
     # 先查ipv6
-    ipv6_host_list_result = get_ipv6_host_list(
-        tenant_id, executor, bk_biz_id, ipv6_list, is_biz_set=is_biz_set
-    )
+    ipv6_host_list_result = get_ipv6_host_list(tenant_id, executor, bk_biz_id, ipv6_list, is_biz_set=is_biz_set)
     # 遇到情况，终止查询
     if not ipv6_host_list_result["result"]:
         return ipv6_host_list_result
@@ -243,8 +234,7 @@ def cc_get_host_by_innerip_with_ipv6(
         return ipv6_host_with_cloud_list_result
 
     # 查询ipv4
-    ipv4_host_list_result = get_ipv4_host_list(
-        tenant_id, executor, bk_biz_id, ipv4_list, is_biz_set=is_biz_set)
+    ipv4_host_list_result = get_ipv4_host_list(tenant_id, executor, bk_biz_id, ipv4_list, is_biz_set=is_biz_set)
     if not ipv4_host_list_result["result"]:
         return ipv4_host_list_result
 
@@ -457,9 +447,7 @@ def cc_list_match_node_inst_id(tenant_id, executor, biz_cc_id, path_list):
                     inst_id_list.append(match_node["bk_inst_id"])
                 topo_node_list = match_node["child"]
             else:
-                message = _(
-                    f"拓扑路径 [{'>'.join(path)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"
-                )
+                message = _(f"拓扑路径 [{'>'.join(path)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id")
                 logger.error(message)
                 return {"result": False, "message": message}
     return {"result": True, "data": inst_id_list}
@@ -490,9 +478,7 @@ def cc_list_select_node_inst_id(
 
     # 对输入的文本路径进行业务层级校验
     if bk_obj_type.name not in BkObjType.__members__:
-        message = _(
-            f"拓扑路径 [{bk_obj_type}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | cc_list_select_node_inst_id"
-        )
+        message = _(f"拓扑路径 [{bk_obj_type}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | cc_list_select_node_inst_id")
         logger.error(message)
         return {"result": False, "message": message}
 
@@ -518,9 +504,7 @@ def cc_list_select_node_inst_id(
         return {"result": False, "message": _("输入文本路径[{}]与业务拓扑层级不匹配").format(">".join(path))}
 
     # 获取选中节点bk_inst_id列表
-    cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
-        tenant_id, executor, biz_cc_id, clean_path_list
-    )
+    cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(tenant_id, executor, biz_cc_id, clean_path_list)
     if not cc_list_match_node_inst_id_return["result"]:
         return {"result": False, "message": cc_list_match_node_inst_id_return["message"]}
     return {"result": True, "data": cc_list_match_node_inst_id_return["data"]}
@@ -600,8 +584,7 @@ class CCPluginIPMixin:
             }
 
         return cmdb.get_business_host_topo(
-            tenant_id, executor, biz_cc_id, host_attrs, ip_list=None,
-            property_filters=property_filters
+            tenant_id, executor, biz_cc_id, host_attrs, ip_list=None, property_filters=property_filters
         )
 
     def get_host_list_with_cloud_id(self, tenant_id, executor, biz_cc_id, ip_str):

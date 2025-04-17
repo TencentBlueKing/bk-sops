@@ -20,14 +20,14 @@ from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.core.utils import get_user_business_list
 from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
-from gcloud.core.models import EnvironmentVariables
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
@@ -407,9 +407,7 @@ def cc_get_editable_module_attribute(request, biz_cc_id):
     result = client.api.search_object_attribute(kwargs, headers=headers)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        message = _(
-            f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_module_attribute"
-        )
+        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_module_attribute")
         logger.error(message)
         return JsonResponse({"result": False, "data": message})
     data = result["data"]
@@ -456,9 +454,7 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
     result = client.api.search_object_attribute(kwargs, headers=headers)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        message = _(
-            f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_set_attribute"
-        )
+        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_set_attribute")
         logger.error(message)
         return JsonResponse({"result": False, "data": message})
     data = result["data"]
@@ -532,10 +528,12 @@ def cc_find_host_by_topo(request, biz_cc_id):
             message = handle_api_error("cc", "find_host_by_topo", result["params"], func_result)
             failed_request_message.append(message)
         else:
-            data.append({
-                "bk_inst_id": result["params"]["data"]["bk_inst_id"],
-                "host_count": func_result["data"]["count"],
-            })
+            data.append(
+                {
+                    "bk_inst_id": result["params"]["data"]["bk_inst_id"],
+                    "host_count": func_result["data"]["count"],
+                }
+            )
 
     if failed_request_message:
         return JsonResponse({"result": False, "data": [], "message": "\n".join(failed_request_message)})

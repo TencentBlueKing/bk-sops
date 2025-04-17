@@ -19,8 +19,8 @@ from django.utils.translation import gettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
-from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
+from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
 
 logger = logging.getLogger("root")
 
@@ -43,7 +43,12 @@ def cc_get_host_by_module_id(request, biz_cc_id):
     data_format = request.GET.get("format", "tree")
     # 查询 module 对应的主机
     module_hosts = cc_format_module_hosts(
-        request.user.tenant_id, request.user.username, biz_cc_id, select_modules, data_format, host_fields,
+        request.user.tenant_id,
+        request.user.username,
+        biz_cc_id,
+        select_modules,
+        data_format,
+        host_fields,
     )
 
     return JsonResponse({"result": True, "data": module_hosts, "message": ""})

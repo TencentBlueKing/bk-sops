@@ -125,9 +125,7 @@ def get_ipv4_info_list(tenant_id, username, biz_cc_id, ipv4_list):
     for ip_info in ipv4_info_list:
         ip_result.append(
             {
-                "InnerIP": ip_info["host"][
-                    "bk_host_innerip"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": ip_info["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": ip_info["host"]["bk_host_id"],
                 "Source": ip_info["host"].get("bk_cloud_id", -1),
                 "Sets": ip_info["set"],
@@ -169,9 +167,7 @@ def get_ipv4_info_list_with_cloud_id(tenant_id, username, biz_cc_id, ipv4_list_w
     for item in ipv4_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"][
-                    "bk_host_innerip"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -228,9 +224,7 @@ def get_ipv6_info_list_with_cloud_id(tenant_id, username, biz_cc_id, ipv6_list_w
     for item in ipv6_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"][
-                    "bk_host_innerip_v6"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"]["bk_host_innerip_v6"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -479,7 +473,8 @@ def get_module_id_list_by_name(tenant_id, bk_biz_id, username, set_list, service
     service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(
-        tenant_id, bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
+        tenant_id, bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"]
+    )
     return module_id_list
 
 
@@ -499,8 +494,15 @@ def get_difference_ip_list(original_ip_list, ip_list):
 
 
 def get_biz_ip_from_frontend(
-        tenant_id, ip_str, executor, biz_cc_id, data, logger_handle, is_across=False, ip_is_exist=False,
-        ignore_ex_data=False
+    tenant_id,
+    ip_str,
+    executor,
+    biz_cc_id,
+    data,
+    logger_handle,
+    is_across=False,
+    ip_is_exist=False,
+    ignore_ex_data=False,
 ):
     """
     从前端表单中获取有效IP
@@ -516,7 +518,8 @@ def get_biz_ip_from_frontend(
         err_msg = _("允许跨业务时IP格式需满足：【管控区域ID:IP】。失败 IP： {}")
     else:
         var_ip = cc_get_ips_info_by_str(
-            tenant_id=tenant_id, username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
+            tenant_id=tenant_id, username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False
+        )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
         err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
 
@@ -543,11 +546,7 @@ def get_repeat_ip(ip_list):
         repeat_ip_detail.setdefault(ip_info["ip"], []).append(ip_info["bk_cloud_id"])
 
     return ",".join(
-        [
-            "ip: {} 管控区域{}".format(repeat_ip, value)
-            for repeat_ip, value in repeat_ip_detail.items()
-            if len(value) > 0
-        ]
+        ["ip: {} 管控区域{}".format(repeat_ip, value) for repeat_ip, value in repeat_ip_detail.items() if len(value) > 0]
     )
 
 
@@ -587,8 +586,11 @@ def get_biz_ip_from_frontend_hybrid(tenant_id, executor, ip_str, biz_cc_id, data
         return True, plat_ip_list
 
     var_ip = cc_get_ips_info_by_str(
-        tenant_id=tenant_id, username=executor, biz_cc_id=biz_cc_id, ip_str=",".join(without_plat_ip_list),
-        use_cache=False
+        tenant_id=tenant_id,
+        username=executor,
+        biz_cc_id=biz_cc_id,
+        ip_str=",".join(without_plat_ip_list),
+        use_cache=False,
     )
     ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
 
@@ -606,9 +608,7 @@ def get_biz_ip_from_frontend_hybrid(tenant_id, executor, ip_str, biz_cc_id, data
         # 这种情况应该是存在一个ip下有多个管控区域的情况
         if not ignore_ex_data:
             repeat_err_msg = get_repeat_ip(ip_list)
-            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(
-                repeat_err_msg
-            )
+            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(repeat_err_msg)
         return False, []
     if not ip_list:
         if not ignore_ex_data:

@@ -22,8 +22,8 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_tree_mode_id
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_tree_mode_id
 
 logger = logging.getLogger("celery")
 
@@ -33,7 +33,6 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class CCEmptySetHostsService(Service):
-
     def inputs_format(self):
         return [
             self.InputItem(

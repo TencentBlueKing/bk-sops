@@ -79,9 +79,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
 
-        result, target_server = self.get_target_server_biz_set(
-            tenant_id, executor, ip_info, logger_handle=self.logger
-        )
+        result, target_server = self.get_target_server_biz_set(tenant_id, executor, ip_info, logger_handle=self.logger)
         if not result:
             raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败")
 

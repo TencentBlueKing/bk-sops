@@ -21,6 +21,7 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
@@ -29,7 +30,6 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_list_select_node_inst_id,
     get_module_set_id,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -52,9 +52,7 @@ class CCUpdateModuleService(Service):
                 name=_("填参方式"),
                 key="cc_module_select_method",
                 type="string",
-                schema=StringItemSchema(
-                    description=_("模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]
-                ),
+                schema=StringItemSchema(description=_("模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
             ),
             self.InputItem(
                 name=_("拓扑-模块"),
@@ -68,11 +66,7 @@ class CCUpdateModuleService(Service):
                 name=_("文本路径-模块"),
                 key="cc_module_select_text",
                 type="string",
-                schema=StringItemSchema(
-                    description=_(
-                        "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
-                    )
-                ),
+                schema=StringItemSchema(description=_("模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔")),
             ),
             self.InputItem(
                 name=_("模块属性"),
@@ -135,7 +129,11 @@ class CCUpdateModuleService(Service):
         cc_module_property = data.get_one_of_inputs("cc_module_property")
         if cc_module_property == "bk_module_type":
             bk_module_type = cc_format_prop_data(
-                tenant_id, executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"),
+                tenant_id,
+                executor,
+                "module",
+                "bk_module_type",
+                parent_data.get_one_of_inputs("language"),
             )
             if not bk_module_type["result"]:
                 data.set_outputs("ex_data", bk_module_type["message"])

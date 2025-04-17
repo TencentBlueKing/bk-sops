@@ -21,8 +21,8 @@ from pipeline.core.flow.io import StringItemSchema
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
 from gcloud.core.models import EnvironmentVariables
+from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")

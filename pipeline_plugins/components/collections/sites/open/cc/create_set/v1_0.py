@@ -22,9 +22,9 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, cc_format_tree_mode_id
 
 logger = logging.getLogger("celery")
@@ -88,9 +88,7 @@ class CCCreateSetService(Service):
                 name=_("父实例"),
                 key="cc_set_parent_select",
                 type="array",
-                schema=ArrayItemSchema(
-                    description=_("父实例 ID 列表"), item_schema=IntItemSchema(description=_("实例 ID"))
-                ),
+                schema=ArrayItemSchema(description=_("父实例 ID 列表"), item_schema=IntItemSchema(description=_("实例 ID"))),
             ),
             self.InputItem(
                 name=_("集群信息"),

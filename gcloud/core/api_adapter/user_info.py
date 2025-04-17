@@ -15,7 +15,6 @@ import logging
 
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
-
 from packages.bkapi.bk_user.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")

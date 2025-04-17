@@ -16,15 +16,15 @@ import re
 import requests
 from django.utils.translation import gettext_lazy as _
 
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils import cmdb
 from gcloud.utils.cmdb import get_dynamic_group_list
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import extract_ip_from_ip_str, format_sundry_ip
-from gcloud.core.models import EnvironmentVariables
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 from ..components.collections.sites.open.cc.base import cc_parse_path_text
 from ..components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
@@ -93,14 +93,14 @@ class IPPickerDataGenerator:
         """根据字符串生成ip数据"""
         if settings.ENABLE_IPV6:
             result = cc_get_ips_info_by_str_ipv6(
-                self.tenant_id, self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
+                self.tenant_id, self.username, self.request_kwargs["bk_biz_id"], self.raw_data
+            )
         else:
             result = cc_get_ips_info_by_str(
-                self.tenant_id, self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
-        if result["invalid_ip"]:
-            message = _(
-                f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data"
+                self.tenant_id, self.username, self.request_kwargs["bk_biz_id"], self.raw_data
             )
+        if result["invalid_ip"]:
+            message = _(f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data")
             logger.error(message)
             return {"result": False, "data": [], "message": message}
         ips = [
@@ -171,10 +171,7 @@ class IPPickerDataGenerator:
 class IPPickerHandler:
     PROPERTY_FILTER_TYPES = ("set", "module", "host")
 
-    def __init__(
-        self, tenant_id, selector, username, bk_biz_id, is_manual=False, filters=None,
-            excludes=None
-    ):
+    def __init__(self, tenant_id, selector, username, bk_biz_id, is_manual=False, filters=None, excludes=None):
         self.tenant_id = tenant_id
         self.selector = selector
         self.username = username
@@ -396,9 +393,7 @@ def get_ip_picker_result(tenant_id, username, bk_biz_id, kwargs):
     # 过滤条件
     excludes = kwargs["excludes"]
 
-    ip_picker_handler = IPPickerHandler(
-        tenant_id, selector, username, bk_biz_id, is_manual, filters, excludes
-    )
+    ip_picker_handler = IPPickerHandler(tenant_id, selector, username, bk_biz_id, is_manual, filters, excludes)
     if ip_picker_handler.error:
         logger.error(f"[get_ip_picker_result] error: {ip_picker_handler.error}")
         return ip_picker_handler.error
@@ -411,7 +406,8 @@ def get_ip_picker_result(tenant_id, username, bk_biz_id, kwargs):
         gen_kwargs = {"biz_topo_tree": ip_picker_handler.biz_topo_tree}
         request_kwargs = {"username": username, "bk_biz_id": bk_biz_id}
         gen_result = IPPickerDataGenerator(
-            tenant_id, input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id).generate()
+            tenant_id, input_type, input_value, request_kwargs, gen_kwargs, bk_biz_id=bk_biz_id
+        ).generate()
 
         if not gen_result["result"]:
             logger.error(
@@ -762,9 +758,7 @@ def get_gse_agent_status_ipv6(bk_agent_id_list):
         resp = requests.post(url=get_agent_status_url, json=params)
 
         if resp.status_code != 200:
-            raise Exception(
-                "[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content)
-            )
+            raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
         try:
             resp_data = resp.json()
         except Exception as e:

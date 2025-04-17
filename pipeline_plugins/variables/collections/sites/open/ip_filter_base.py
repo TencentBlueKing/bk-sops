@@ -23,10 +23,10 @@ from gcloud.utils import cmdb
 from gcloud.utils.data_handler import chunk_data
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import IpRegexType, extract_ip_from_ip_str, get_ip_by_regex_type
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 from pipeline_plugins.cmdb_ip_picker.utils import format_agent_data, get_gse_agent_status_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.components.utils.common import batch_execute_func
-from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -114,7 +114,8 @@ class GseAgentStatusIpFilter(IpFilterBase):
                 {
                     "data": {"all_scope": True, "host_list": host},
                     "headers": {"X-Bk-Tenant-Id": self.tenant_id},
-                } for host in host_list
+                }
+                for host in host_list
             ]
             results = batch_execute_func(client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True)
             agent_data = []

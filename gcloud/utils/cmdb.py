@@ -17,7 +17,7 @@ from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
-from gcloud.core.models import StaffGroupSet, EnvironmentVariables
+from gcloud.core.models import EnvironmentVariables, StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -25,8 +25,7 @@ logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
 
 
-def get_business_host_topo(tenant_id, username, bk_biz_id, host_fields,
-                           ip_list=None, property_filters=None):
+def get_business_host_topo(tenant_id, username, bk_biz_id, host_fields, ip_list=None, property_filters=None):
     """获取业务下所有主机信息
     :param tenant_id: 租户ID
     :param username: 请求用户名
@@ -150,8 +149,7 @@ def get_business_host(tenant_id, username, bk_biz_id, host_fields, ip_list=None,
     )
 
 
-def get_business_set_host(tenant_id, username, host_fields, ip_list=None,
-                          filter_field="bk_host_innerip"):
+def get_business_set_host(tenant_id, username, host_fields, ip_list=None, filter_field="bk_host_innerip"):
     """根据主机内网 IP 过滤业务下的主机
     :param tenant_id: 租户ID
     :param username: 请求用户名
@@ -190,8 +188,7 @@ def get_business_set_host(tenant_id, username, host_fields, ip_list=None,
     )
 
 
-def get_business_host_ipv6(tenant_id, username, bk_biz_id, host_fields, ip_list=None,
-                           bk_cloud_id=None):
+def get_business_host_ipv6(tenant_id, username, bk_biz_id, host_fields, ip_list=None, bk_cloud_id=None):
     """
     根据主机内网 IP 过滤业务下的主机, 主要查询ip_v6
     :param tenant_id: 租户ID
@@ -273,11 +270,7 @@ def get_business_set_host_ipv6(tenant_id, username, host_fields, ip_list=None):
     }
 
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    return batch_request(
-        client.api.list_hosts_without_biz,
-        kwargs,
-        headers={"X-Bk-Tenant-Id": tenant_id}
-    )
+    return batch_request(client.api.list_hosts_without_biz, kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
 
 def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_receiver, logger=None):
@@ -316,9 +309,7 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_re
     biz_count = cc_result["data"]["count"]
     if biz_count != 1:
         logger.error(handle_api_error("CMDB", "cc.search_business", kwargs, cc_result))
-        message = _(
-            f"业务人员信息查询失败: 从[配置平台]中查询业务[ID: {biz_cc_id}] 人员信息失败, 请检查业务存在以及拥有访问权限 | get_notify_receivers"
-        )
+        message = _(f"业务人员信息查询失败: 从[配置平台]中查询业务[ID: {biz_cc_id}] 人员信息失败, 请检查业务存在以及拥有访问权限 | get_notify_receivers")
         logger.error(message)
         result = {
             "result": False,

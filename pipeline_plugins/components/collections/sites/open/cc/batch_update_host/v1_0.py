@@ -21,9 +21,9 @@ from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemS
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_prop_data
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -35,8 +35,7 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 def verify_host_property(tenant_id, executor, language, cc_host_property, cc_host_prop_value):
     if cc_host_property == "bk_isp_name":
-        bk_isp_name = cc_format_prop_data(
-            tenant_id, executor, "host", "bk_isp_name", language)
+        bk_isp_name = cc_format_prop_data(tenant_id, executor, "host", "bk_isp_name", language)
         if not bk_isp_name["result"]:
             ex_data = bk_isp_name["message"]
             return False, ex_data
@@ -47,8 +46,7 @@ def verify_host_property(tenant_id, executor, language, cc_host_property, cc_hos
             return False, ex_data
 
     elif cc_host_property == "bk_state_name":
-        bk_state_name = cc_format_prop_data(
-            tenant_id, executor, "host", "bk_state_name", language)
+        bk_state_name = cc_format_prop_data(tenant_id, executor, "host", "bk_state_name", language)
         if not bk_state_name["result"]:
             ex_data = bk_state_name["message"]
             return False, ex_data
@@ -58,8 +56,7 @@ def verify_host_property(tenant_id, executor, language, cc_host_property, cc_hos
             ex_data = _("所在国家【{}】校验失败，请重试并修改为正确的所在国家".format(cc_host_prop_value))
             return False, ex_data
     elif cc_host_property == "bk_province_name":
-        bk_province_name = cc_format_prop_data(
-            tenant_id, executor, "host", "bk_province_name", language)
+        bk_province_name = cc_format_prop_data(tenant_id, executor, "host", "bk_province_name", language)
         if not bk_province_name["result"]:
             ex_data = bk_province_name["message"]
             return False, ex_data
@@ -114,9 +111,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
             for column in host_property_custom:
                 column_result = chunk_table_data(column, separator)
                 if not column_result["result"]:
-                    message = _(
-                        f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}"
-                    )
+                    message = _(f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}")
                     data.outputs.ex_data = message
                     self.logger.error(message)
                     return False

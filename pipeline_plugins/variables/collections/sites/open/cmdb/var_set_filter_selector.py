@@ -20,10 +20,10 @@ from pipeline.core.data.var import LazyVariable
 
 from gcloud.conf import settings
 from gcloud.constants import Type
-from gcloud.exceptions import ApiRequestError
 from gcloud.core.models import EnvironmentVariables
-from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
+from gcloud.exceptions import ApiRequestError
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 

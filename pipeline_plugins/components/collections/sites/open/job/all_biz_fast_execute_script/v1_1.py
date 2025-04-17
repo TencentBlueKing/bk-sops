@@ -120,9 +120,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
 
         # 拼装ip_list， bk_cloud_id为空则值为0
-        result, target_server = self.get_target_server_biz_set(
-            tenant_id, executor, ip_info, logger_handle=self.logger
-        )
+        result, target_server = self.get_target_server_biz_set(tenant_id, executor, ip_info, logger_handle=self.logger)
 
         if not result:
             raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败, 请检查ip配置是否正确")
