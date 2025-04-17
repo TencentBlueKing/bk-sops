@@ -17,10 +17,9 @@ from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
-from gcloud.core.models import StaffGroupSet
+from gcloud.core.models import StaffGroupSet, EnvironmentVariables
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -35,7 +34,7 @@ def get_business_host_topo(tenant_id, username, bk_biz_id, host_fields,
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
     :param host_fields: 主机过滤字段
-    :type host_fields: list
+    :type host_fields: list, set
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
     :param property_filters: 查询主机时的相关属性过滤条件, 当传递该参数时，ip_list参数生成的过滤条件失效
@@ -303,10 +302,9 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_re
     if logger is None:
         logger = logger_celery
     kwargs = {"condition": {"bk_biz_id": int(biz_cc_id)}}
-    supplier_account = supplier_account_for_business(biz_cc_id)
     cc_result = client.api.search_business(
         kwargs,
-        path_params={"bk_supplier_account": supplier_account},
+        path_params={"bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)},
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
     if not cc_result["result"]:
@@ -387,7 +385,7 @@ def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, dynamic_group_id
         client.api.execute_dynamic_group,
         kwargs,
         limit=200,
-        path_params={"bk_biz_id": bk_biz_id},
+        path_params={"bk_biz_id": bk_biz_id, "id": dynamic_group_id},
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
     return True, {"code": 0, "message": "success", "data": host_list}

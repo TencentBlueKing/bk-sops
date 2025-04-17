@@ -16,8 +16,6 @@ from abc import ABCMeta, abstractmethod
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from api.collections.nodeman import BKNodeManClient
-from gcloud.conf import settings as gcloud_settings
 from gcloud.constants import GseAgentStatus
 from gcloud.core.models import Project
 from gcloud.exceptions import ApiRequestError
@@ -25,18 +23,17 @@ from gcloud.utils import cmdb
 from gcloud.utils.data_handler import chunk_data
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import IpRegexType, extract_ip_from_ip_str, get_ip_by_regex_type
-from pipeline_plugins.base.utils.inject import supplier_account_for_business, supplier_id_for_project
 from pipeline_plugins.cmdb_ip_picker.utils import format_agent_data, get_gse_agent_status_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.components.utils.common import batch_execute_func
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
-get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
-get_nodeman_client_by_user = BKNodeManClient
 
 
 class IpFilterBase(metaclass=ABCMeta):
-    def __init__(self, origin_ip_list, data):
+    def __init__(self, tenant_id, origin_ip_list, data):
+        self.tenant_id = tenant_id
         self.origin_ip_list = origin_ip_list
         self.data = data
 
@@ -46,7 +43,7 @@ class IpFilterBase(metaclass=ABCMeta):
 
 
 class GseAgentStatusIpFilter(IpFilterBase):
-    def match_ges_v2(self, gse_agent_status, username, bk_biz_id, bk_supplier_id, origin_ip_list):
+    def match_ges_v2(self, gse_agent_status, username, bk_biz_id, origin_ip_list):
 
         fields = ["bk_host_id", "bk_cloud_id", "bk_host_innerip", "bk_agent_id"]
         # 生成一个host列表
@@ -56,7 +53,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
 
         ip_list = [host["ip"] for host in origin_ip_list]
         # 先去查出来所有host的gse_agent_id
-        hosts = cmdb.get_business_host(username, bk_biz_id, bk_supplier_id, host_fields=fields, ip_list=ip_list)
+        hosts = cmdb.get_business_host(self.tenant_id, username, bk_biz_id, host_fields=fields, ip_list=ip_list)
 
         # 构造一个{bk_agent_id: bk_cloud_id:ip}的字典
         remote_hosts = {}
@@ -108,14 +105,18 @@ class GseAgentStatusIpFilter(IpFilterBase):
             for host in data
         ]
 
-    def match_gse_v1(self, gse_agent_status, username, bk_biz_id, bk_supplier_id, origin_ip_list):
+    def match_gse_v1(self, gse_agent_status, username, bk_biz_id, origin_ip_list):
         match_ip = origin_ip_list
         if gse_agent_status in [GseAgentStatus.ONlINE.value, GseAgentStatus.OFFLINE.value]:
-
-            client = get_nodeman_client_by_user(username=username)
+            client = get_client_by_username(username=username)
             host_list = chunk_data(origin_ip_list, 1000, self.format_origin_ip, bk_biz_id=bk_biz_id)
-            agent_kwargs = [{"all_scope": True, "host_list": host} for host in host_list]
-            results = batch_execute_func(client.get_ipchooser_host_details, agent_kwargs, interval_enabled=True)
+            agent_kwargs = [
+                {
+                    "data": {"all_scope": True, "host_list": host},
+                    "headers": {"X-Bk-Tenant-Id": self.tenant_id},
+                } for host in host_list
+            ]
+            results = batch_execute_func(client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True)
             agent_data = []
             for result in results:
                 agent_result = result["result"]
@@ -149,18 +150,18 @@ class GseAgentStatusIpFilter(IpFilterBase):
         project_id = self.data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
-        bk_supplier_id = supplier_id_for_project(project_id)
         if not origin_ip_list:
             return []
 
         if settings.ENABLE_GSE_V2:
-            return self.match_ges_v2(gse_agent_status, username, bk_biz_id, bk_supplier_id, origin_ip_list)
+            return self.match_ges_v2(gse_agent_status, username, bk_biz_id, origin_ip_list)
         else:
-            return self.match_gse_v1(gse_agent_status, username, bk_biz_id, bk_supplier_id, origin_ip_list)
+            return self.match_gse_v1(gse_agent_status, username, bk_biz_id, origin_ip_list)
 
 
 class GseAgentStatusIpV6Filter:
-    def __init__(self, ip_str, data):
+    def __init__(self, tenant_id, ip_str, data):
+        self.tenant_id = tenant_id
         self.ip_str = ip_str
         self.data = data
 
@@ -169,7 +170,6 @@ class GseAgentStatusIpV6Filter:
         project_id = self.data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
-        supplier_account = supplier_account_for_business(bk_biz_id)
 
         ipv6_list, ipv4_list, _, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id = extract_ip_from_ip_str(self.ip_str)
 
@@ -177,7 +177,7 @@ class GseAgentStatusIpV6Filter:
 
         # 先去cmdb查询倒所有用户输入的主机
         hosts_result = cc_get_host_by_innerip_with_ipv6(
-            username, bk_biz_id, self.ip_str, supplier_account, host_id_detail=True
+            self.tenant_id, username, bk_biz_id, self.ip_str, host_id_detail=True
         )
 
         if not hosts_result["result"]:

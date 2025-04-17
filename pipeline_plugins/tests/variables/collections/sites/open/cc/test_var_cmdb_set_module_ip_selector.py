@@ -153,7 +153,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
 
     def setUp(self):
         self.tenant_id = "test"
-        self.supplier_account = "supplier_account_token"
 
         self.project_patcher = patch(
             "pipeline_plugins.variables.collections.sites.open.cmdb.var_cmdb_set_module_ip_selector.Project",
@@ -166,12 +165,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         ]
         self.bk_biz_id = 1
         mock_project_obj.bk_biz_id = self.bk_biz_id
-
-        self.supplier_account_for_project_patcher = patch(
-            "pipeline_plugins.variables.collections.sites.open.cmdb.var_cmdb_set_module_ip_selector."
-            "supplier_account_for_project",
-            MagicMock(return_value=self.supplier_account),
-        )
 
         self.cc_get_ips_info_by_str_patcher = patch(
             CC_GET_IPS_INFO_BY_STR, MagicMock(side_effect=cc_get_ips_info_by_str_func)
@@ -231,13 +224,11 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         )
         self.client.start()
         self.project_patcher.start()
-        self.supplier_account_for_project_patcher.start()
 
     def tearDown(self):
         self.client.stop()
         self.cc_get_ips_info_by_str_patcher.stop()
         self.project_patcher.stop()
-        self.supplier_account_for_project_patcher.stop()
 
     def test_select_method_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -290,7 +281,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -301,7 +291,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -344,7 +333,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -355,7 +343,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -398,7 +385,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -409,7 +395,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -476,7 +461,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -487,7 +471,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -545,7 +528,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -556,7 +538,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -619,7 +600,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -630,7 +610,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -697,7 +676,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -708,7 +686,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -848,7 +825,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -859,7 +835,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1013,7 +988,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1024,7 +998,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1119,7 +1092,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1130,7 +1102,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1218,7 +1189,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[62, 3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1229,7 +1199,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[62, 3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1281,7 +1250,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1292,7 +1260,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1366,7 +1333,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1377,7 +1343,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1429,7 +1394,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1440,7 +1404,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1505,7 +1468,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3, 4, 5, 6],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1516,7 +1478,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3, 4, 5, 6],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),
@@ -1638,7 +1599,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 62, 3, 4, 5, 6],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"start": 0, "limit": 1},
                             ),
@@ -1649,7 +1609,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 62, 3, 4, 5, 6],
-                                bk_supplier_account="supplier_account_token",
                                 fields=["bk_host_innerip"],
                                 page={"limit": 500, "start": 0},
                             ),

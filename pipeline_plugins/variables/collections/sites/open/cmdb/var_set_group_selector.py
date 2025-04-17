@@ -65,7 +65,7 @@ def cc_execute_dynamic_group(tenant_id, operator, bk_biz_id, bk_group_id, set_fi
         client.api.execute_dynamic_group,
         kwargs,
         limit=200,
-        path_params={"bk_biz_id": bk_biz_id},
+        path_params={"bk_biz_id": bk_biz_id, "id": bk_group_id},
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
     for _field in set_field:
