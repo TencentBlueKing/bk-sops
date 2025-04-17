@@ -26,7 +26,6 @@ from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import get_notify_receivers
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
@@ -73,9 +72,7 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [
-            FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")
-        ]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")]
 
 
 class Int(CommonPlainVariable, SelfExplainVariable):
@@ -116,17 +113,11 @@ class Select(LazyVariable, SelfExplainVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = _(
-        "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
-    )
+    desc = _("单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [
-            FieldExplain(
-                key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
-            )
-        ]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串")]
 
     def get_value(self):
         # multiple select
@@ -157,17 +148,11 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [
-            FieldExplain(
-                key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"
-            ),
+            FieldExplain(key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"),
             FieldExplain(key='${KEY["value"]}', type=Type.STRING, description="用户选中选项的value，多个以,分隔"),
             FieldExplain(key='${KEY["text"]}', type=Type.STRING, description="用户选中选项的text，多个以,分隔"),
-            FieldExplain(
-                key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"
-            ),
-            FieldExplain(
-                key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"
-            ),
+            FieldExplain(key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"),
+            FieldExplain(key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"),
         ]
 
     def get_value(self):
@@ -333,10 +318,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
-    desc = _(
-        "可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
-        "输出格式为选中人员用户名以 ',' 拼接的字符串"
-    )
+    desc = _("可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n" "输出格式为选中人员用户名以 ',' 拼接的字符串")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -348,7 +330,6 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
         tenant_id = self.pipeline_data["tenant_id"]
         operator = self.pipeline_data["executor"]
         bk_biz_id = int(self.pipeline_data["biz_cc_id"])
-        supplier_account = supplier_account_for_business(bk_biz_id)
 
         # 自定义项目分组和cc 人员分组
         staff_group_id_list = [group_id for group_id in self.value if str(group_id).isdigit()]
@@ -364,7 +345,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
         staff_names = ",".join(staff_names_list_clear)
 
         # 拼接cc分组人员和自定义分组人员
-        res = get_notify_receivers(tenant_id, operator, bk_biz_id, supplier_account, cc_staff_group, staff_names)
+        res = get_notify_receivers(tenant_id, operator, bk_biz_id, cc_staff_group, staff_names)
 
         if not res["result"]:
             message = f'get cc({bk_biz_id}) staff_group failed: {res["message"]}'

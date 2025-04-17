@@ -2,6 +2,7 @@
 import logging
 
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import batch_request
 from gcloud.utils.handlers import handle_api_error
@@ -79,19 +80,17 @@ def get_module_list(tenant_id, username, bk_biz_id, kwargs=None):
     return module_list_result["data"]
 
 
-def get_set_list(tenant_id, username, bk_biz_id, bk_supplier_account, kwargs=None):
+def get_set_list(tenant_id, username, bk_biz_id, kwargs=None):
     """
     @summary: 批量获取业务下所有集群
     @param tenant_id: 租户 ID
     @param username: 执行用户名
     @param bk_biz_id: 业务id
-    @param bk_supplier_account: 供应商账号
     @return: [{'bk_set_id':'', 'bk_set_name':''}, {'bk_set_id':'', 'bk_set_name':''}]
     """
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     params = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": bk_supplier_account,
         "fields": ["bk_set_name", "bk_set_id"],
     }
     if kwargs:
@@ -99,22 +98,24 @@ def get_set_list(tenant_id, username, bk_biz_id, bk_supplier_account, kwargs=Non
     return batch_request(
         client.api.search_set,
         params,
-        path_params={"bk_supplier_account": bk_supplier_account, "bk_biz_id": bk_biz_id},
+        path_params={
+            "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+            "bk_biz_id": bk_biz_id,
+        },
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
 
 
-def get_service_template_list(tenant_id, username, bk_biz_id, bk_supplier_account):
+def get_service_template_list(tenant_id, username, bk_biz_id):
     """
     @summary: 批量获取服务模板列表
     @param tenant_id: 租户 ID
     @param username: 执行接口用户名
     @param bk_biz_id: 业务id
-    @param bk_supplier_account:
     @return: [{'id':'', 'name':''}, {'id':'', 'name':''}]
     """
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_biz_id": int(bk_biz_id), "bk_supplier_account": bk_supplier_account}
+    kwargs = {"bk_biz_id": int(bk_biz_id)}
     return batch_request(
         client.api.list_service_template,
         kwargs,
@@ -153,19 +154,21 @@ def find_module_with_relation(tenant_id, bk_biz_id, username, set_ids, service_t
     return result
 
 
-def get_biz_internal_module(tenant_id, username, bk_biz_id, bk_supplier_account):
+def get_biz_internal_module(tenant_id, username, bk_biz_id):
     """
     @summary: 根据业务ID获取业务空闲机, 故障机和待回收模块
     @param tenant_id: 租户 ID
     @param bk_biz_id:
-    @param bk_supplier_account:
     @return:
     """
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    params = {"bk_biz_id": bk_biz_id}
     get_biz_internal_module_return = client.api.get_biz_internal_module(
         params,
-        path_params={"bk_supplier_account": bk_supplier_account, "bk_biz_id": bk_biz_id},
+        path_params={
+            "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+            "bk_biz_id": bk_biz_id,
+        },
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
     if not get_biz_internal_module_return["result"]:
@@ -183,18 +186,17 @@ def get_biz_internal_module(tenant_id, username, bk_biz_id, bk_supplier_account)
     return {"result": True, "data": result, "message": "success"}
 
 
-def list_biz_hosts(tenant_id, username, bk_biz_id, bk_supplier_account, kwargs=None):
+def list_biz_hosts(tenant_id, username, bk_biz_id, kwargs=None):
     """
     @summary: 批量获取业务下主机
     @param tenant_id: 租户 ID
     @param kwargs:
     @param username: 执行用户
     @param bk_biz_id: 业务id
-    @param bk_supplier_account:
     @return: [{'bk_host_innerip':''}, {'bk_host_innerip':''}]
     """
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    params = {"bk_biz_id": bk_biz_id}
     if kwargs:
         params.update(kwargs)
     start = 0

@@ -21,10 +21,9 @@ from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemS
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_prop_data
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -34,10 +33,9 @@ VERSION = "1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-def verify_host_property(tenant_id, executor, supplier_account, language, cc_host_property, cc_host_prop_value):
+def verify_host_property(tenant_id, executor, language, cc_host_property, cc_host_prop_value):
     if cc_host_property == "bk_isp_name":
-        bk_isp_name = cc_format_prop_data(
-            tenant_id, executor, "host", "bk_isp_name", language, supplier_account)
+        bk_isp_name = cc_format_prop_data(tenant_id, executor, "host", "bk_isp_name", language)
         if not bk_isp_name["result"]:
             ex_data = bk_isp_name["message"]
             return False, ex_data
@@ -48,8 +46,7 @@ def verify_host_property(tenant_id, executor, supplier_account, language, cc_hos
             return False, ex_data
 
     elif cc_host_property == "bk_state_name":
-        bk_state_name = cc_format_prop_data(
-            tenant_id, executor, "host", "bk_state_name", language, supplier_account)
+        bk_state_name = cc_format_prop_data(tenant_id, executor, "host", "bk_state_name", language)
         if not bk_state_name["result"]:
             ex_data = bk_state_name["message"]
             return False, ex_data
@@ -59,8 +56,7 @@ def verify_host_property(tenant_id, executor, supplier_account, language, cc_hos
             ex_data = _("所在国家【{}】校验失败，请重试并修改为正确的所在国家".format(cc_host_prop_value))
             return False, ex_data
     elif cc_host_property == "bk_province_name":
-        bk_province_name = cc_format_prop_data(
-            tenant_id, executor, "host", "bk_province_name", language, supplier_account)
+        bk_province_name = cc_format_prop_data(tenant_id, executor, "host", "bk_province_name", language)
         if not bk_province_name["result"]:
             ex_data = bk_province_name["message"]
             return False, ex_data
@@ -103,7 +99,6 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         language = parent_data.get_one_of_inputs("language")
 
         host_update_method = data.get_one_of_inputs("cc_host_update_method")
@@ -116,9 +111,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
             for column in host_property_custom:
                 column_result = chunk_table_data(column, separator)
                 if not column_result["result"]:
-                    message = _(
-                        f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}"
-                    )
+                    message = _(f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}")
                     data.outputs.ex_data = message
                     self.logger.error(message)
                     return False
@@ -130,7 +123,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
         update_host_message = []
         for host_property_dir in host_property_copy:
             ip_str = host_property_dir["bk_host_innerip"]
-            host_result = self.get_host_list_with_cloud_id(tenant_id, executor, biz_cc_id, ip_str, supplier_account)
+            host_result = self.get_host_list_with_cloud_id(tenant_id, executor, biz_cc_id, ip_str)
             if not host_result["result"]:
                 data.outputs.ex_data = host_result.get("message")
                 return False
@@ -141,7 +134,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
             for cc_host_property, cc_host_prop_value in host_property_dir.items():
                 if cc_host_prop_value:
                     is_legal, ex_data = verify_host_property(
-                        tenant_id, executor, supplier_account, language, cc_host_property, cc_host_prop_value
+                        tenant_id, executor, language, cc_host_property, cc_host_prop_value
                     )
                     if not is_legal:
                         data.outputs.ex_data = ex_data
@@ -151,7 +144,7 @@ class CCBatchUpdateHostService(Service, CCPluginIPMixin):
             host_update["properties"] = properties
             update_host_message.append(host_update)
 
-        cc_kwargs = {"bk_supplier_account": supplier_account, "update": update_host_message}
+        cc_kwargs = {"update": update_host_message}
 
         cc_result = client.api.batch_update_host(
             cc_kwargs,

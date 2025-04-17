@@ -17,7 +17,7 @@ from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
-from gcloud.core.models import StaffGroupSet
+from gcloud.core.models import EnvironmentVariables, StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -25,18 +25,15 @@ logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
 
 
-def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, host_fields,
-                           ip_list=None, property_filters=None):
+def get_business_host_topo(tenant_id, username, bk_biz_id, host_fields, ip_list=None, property_filters=None):
     """获取业务下所有主机信息
     :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段
-    :type host_fields: list
+    :type host_fields: list, set
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
     :param property_filters: 查询主机时的相关属性过滤条件, 当传递该参数时，ip_list参数生成的过滤条件失效
@@ -68,7 +65,7 @@ def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, hos
     :rtype: list
     """
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
+    kwargs = {"bk_biz_id": bk_biz_id, "fields": list(host_fields or [])}
 
     if property_filters is not None:
         kwargs.update(property_filters)
@@ -100,15 +97,13 @@ def get_business_host_topo(tenant_id, username, bk_biz_id, supplier_account, hos
     return host_info_list
 
 
-def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
+def get_business_host(tenant_id, username, bk_biz_id, host_fields, ip_list=None, bk_cloud_id=None):
     """根据主机内网 IP 过滤业务下的主机
     :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
@@ -128,7 +123,7 @@ def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fie
     ]
     :rtype: [type]
     """
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
+    kwargs = {"bk_biz_id": bk_biz_id, "fields": list(host_fields or [])}
 
     # 带管控区域的主机数据查询
     if ip_list and bk_cloud_id is not None:
@@ -154,14 +149,11 @@ def get_business_host(tenant_id, username, bk_biz_id, supplier_account, host_fie
     )
 
 
-def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip_list=None,
-                          filter_field="bk_host_innerip"):
+def get_business_set_host(tenant_id, username, host_fields, ip_list=None, filter_field="bk_host_innerip"):
     """根据主机内网 IP 过滤业务下的主机
     :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
@@ -181,7 +173,6 @@ def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip
     ]
     """
     kwargs = {
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
@@ -197,8 +188,7 @@ def get_business_set_host(tenant_id, username, supplier_account, host_fields, ip
     )
 
 
-def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, host_fields, ip_list=None,
-                           bk_cloud_id=None):
+def get_business_host_ipv6(tenant_id, username, bk_biz_id, host_fields, ip_list=None, bk_cloud_id=None):
     """
     根据主机内网 IP 过滤业务下的主机, 主要查询ip_v6
     :param tenant_id: 租户ID
@@ -206,8 +196,6 @@ def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, hos
     :type username: str
     :param bk_biz_id: 业务 CC ID
     :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
@@ -229,7 +217,6 @@ def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, hos
     """
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
@@ -250,22 +237,16 @@ def get_business_host_ipv6(tenant_id, username, bk_biz_id, supplier_account, hos
     )
 
 
-def get_business_set_host_ipv6(tenant_id, username, supplier_account, host_fields, ip_list=None):
+def get_business_set_host_ipv6(tenant_id, username, host_fields, ip_list=None):
     """
     根据主机内网 IP 过滤业务集下的主机, 主要查询ip_v6
     :param tenant_id: 租户ID
     :param username: 请求用户名
     :type username: str
-    :param bk_biz_id: 业务 CC ID
-    :type bk_biz_id: int
-    :param supplier_account: 开发商账号, defaults to 0
-    :type supplier_account: int
     :param host_fields: 主机过滤字段, defaults to None
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
-    :param bk_cloud_id: IP列表对应的管控区域
-    :type bk_cloud_id: int
     :return:
     [
         {
@@ -281,7 +262,6 @@ def get_business_set_host_ipv6(tenant_id, username, supplier_account, host_field
     @param bk_biz_ids:
     """
     kwargs = {
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
@@ -290,20 +270,15 @@ def get_business_set_host_ipv6(tenant_id, username, supplier_account, host_field
     }
 
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    return batch_request(
-        client.api.list_hosts_without_biz,
-        kwargs,
-        headers={"X-Bk-Tenant-Id": tenant_id}
-    )
+    return batch_request(client.api.list_hosts_without_biz, kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
 
 
-def get_notify_receivers(tenant_id, username, biz_cc_id, supplier_account, receiver_group, more_receiver, logger=None):
+def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_receiver, logger=None):
     """
     @summary: 根据通知分组和附加通知人获取最终通知人
     @param tenant_id: 租户ID
     @param username: 请求用户名
     @param biz_cc_id: 业务CC ID
-    @param supplier_account: 租户 ID
     @param receiver_group: 通知分组
     @param more_receiver: 附加通知人
     @param logger: 日志句柄
@@ -319,10 +294,10 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, supplier_account, recei
 
     if logger is None:
         logger = logger_celery
-    kwargs = {"bk_supplier_account": supplier_account, "condition": {"bk_biz_id": int(biz_cc_id)}}
+    kwargs = {"condition": {"bk_biz_id": int(biz_cc_id)}}
     cc_result = client.api.search_business(
         kwargs,
-        path_params={"bk_supplier_account": supplier_account},
+        path_params={"bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)},
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
     if not cc_result["result"]:
@@ -334,9 +309,7 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, supplier_account, recei
     biz_count = cc_result["data"]["count"]
     if biz_count != 1:
         logger.error(handle_api_error("CMDB", "cc.search_business", kwargs, cc_result))
-        message = _(
-            f"业务人员信息查询失败: 从[配置平台]中查询业务[ID: {biz_cc_id}] 人员信息失败, 请检查业务存在以及拥有访问权限 | get_notify_receivers"
-        )
+        message = _(f"业务人员信息查询失败: 从[配置平台]中查询业务[ID: {biz_cc_id}] 人员信息失败, 请检查业务存在以及拥有访问权限 | get_notify_receivers")
         logger.error(message)
         result = {
             "result": False,
@@ -371,10 +344,10 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, supplier_account, recei
     return result
 
 
-def get_dynamic_group_list(tenant_id, username, bk_biz_id, bk_supplier_account):
+def get_dynamic_group_list(tenant_id, username, bk_biz_id):
     """获取业务下的所有动态分组列表"""
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    kwargs = {"bk_biz_id": bk_biz_id}
     result = batch_request(
         client.api.search_dynamic_group,
         kwargs,
@@ -388,7 +361,7 @@ def get_dynamic_group_list(tenant_id, username, bk_biz_id, bk_supplier_account):
     return dynamic_groups
 
 
-def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, bk_supplier_account, dynamic_group_id):
+def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, dynamic_group_id):
     """获取动态分组中对应主机列表"""
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     fields = ["bk_host_innerip", "bk_cloud_id", "bk_host_id"]
@@ -396,7 +369,6 @@ def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, bk_supplier_acco
         fields.append("bk_host_innerip_v6")
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": bk_supplier_account,
         "id": dynamic_group_id,
         "fields": fields,
     }
@@ -404,16 +376,15 @@ def get_dynamic_group_host_list(tenant_id, username, bk_biz_id, bk_supplier_acco
         client.api.execute_dynamic_group,
         kwargs,
         limit=200,
-        path_params={"bk_biz_id": bk_biz_id},
+        path_params={"bk_biz_id": bk_biz_id, "id": dynamic_group_id},
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
     return True, {"code": 0, "message": "success", "data": host_list}
 
 
-def get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, supplier_account, host_fields, host_id_list=None):
+def get_business_host_by_hosts_ids(tenant_id, username, bk_biz_id, host_fields, host_id_list=None):
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",

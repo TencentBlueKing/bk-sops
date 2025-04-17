@@ -22,9 +22,8 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_tree_mode_id
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_tree_mode_id
 
 logger = logging.getLogger("celery")
 
@@ -34,7 +33,6 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class CCBatchDeleteSetService(Service):
-
     def inputs_format(self):
         return [
             self.InputItem(
@@ -66,19 +64,15 @@ class CCBatchDeleteSetService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select"))
 
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,
-            "bk_supplier_account": supplier_account,
             "delete": {"inst_ids": cc_set_select},
         }
         cc_result = client.api.batch_delete_set(
-            cc_kwargs,
-            path_params={"bk_biz_id": biz_cc_id},
-            headers={"X-Bk-Tenant-Id": tenant_id}
+            cc_kwargs, path_params={"bk_biz_id": biz_cc_id}, headers={"X-Bk-Tenant-Id": tenant_id}
         )
         if not cc_result["result"]:
             message = cc_handle_api_error("cc.batch_delete_set", cc_kwargs, cc_result)

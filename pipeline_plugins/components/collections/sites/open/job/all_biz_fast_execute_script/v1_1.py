@@ -37,7 +37,6 @@ from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service import (
     BaseAllBizJobFastExecuteScriptService,
 )
@@ -119,12 +118,9 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         ip_info = data.get_one_of_inputs("job_target_ip_table")
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 拼装ip_list， bk_cloud_id为空则值为0
-        result, target_server = self.get_target_server_biz_set(
-            tenant_id, executor, ip_info, supplier_account, logger_handle=self.logger
-        )
+        result, target_server = self.get_target_server_biz_set(tenant_id, executor, ip_info, logger_handle=self.logger)
 
         if not result:
             raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败, 请检查ip配置是否正确")

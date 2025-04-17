@@ -63,7 +63,6 @@ def register_project(request):
     supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     biz_kwargs = {
-        "bk_supplier_account": supplier_account,
         "condition": {"bk_biz_id": bk_biz_id},
     }
     biz_result = client.api.search_business(
@@ -82,7 +81,7 @@ def register_project(request):
     biz_info = biz_result["data"]["info"][0]
     biz_defaults = {
         "cc_name": biz_info.get("bk_biz_name"),
-        "cc_owner": biz_info.get("bk_supplier_account"),
+        "cc_owner": supplier_account,
         "cc_company": biz_info.get("bk_supplier_id", 0),
         "time_zone": biz_info.get("time_zone", ""),
         "life_cycle": biz_info.get("life_cycle", ""),

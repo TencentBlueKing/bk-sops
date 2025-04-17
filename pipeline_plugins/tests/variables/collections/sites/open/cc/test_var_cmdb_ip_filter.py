@@ -26,7 +26,6 @@ class VarCmdbIpSelectorTestCase(TestCase):
         }
         self.context = {}
         self.pipeline_data = {"executor": "tester", "project_id": 1, "tenant_id": self.tenant_id}
-        self.supplier_account = "supplier_account_token"
         get_agent_status_result = {
             "result": True,
             "code": 0,
@@ -44,26 +43,20 @@ class VarCmdbIpSelectorTestCase(TestCase):
         mock_project.objects.get = MagicMock(return_value=mock_project_obj)
 
         client = MagicMock()
-        client.get_ipchooser_host_details = MagicMock(return_value=get_agent_status_result)
+        client.api.ipchooser_host_details = MagicMock(return_value=get_agent_status_result)
 
-        self.supplier_account_for_project_patcher = patch(
-            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.supplier_id_for_project",
-            MagicMock(return_value=self.supplier_account),
-        )
         self.project_patcher = patch(
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.Project", mock_project
         )
         self.client = patch(
-            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_nodeman_client_by_username",
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_client_by_username",
             MagicMock(return_value=client),
         )
 
-        self.supplier_account_for_project_patcher.start()
         self.project_patcher.start()
         self.client.start()
 
     def tearDown(self):
-        self.supplier_account_for_project_patcher.stop()
         self.project_patcher.stop()
         self.client.stop()
 

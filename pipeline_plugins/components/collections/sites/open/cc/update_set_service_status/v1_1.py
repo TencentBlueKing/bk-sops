@@ -21,8 +21,8 @@ from pipeline.core.flow.io import StringItemSchema
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
@@ -74,7 +74,7 @@ class CCUpdateSetServiceStatusService(Service):
 
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         bk_biz_id = parent_data.get_one_of_inputs("bk_biz_id")
-        supplier_account = supplier_account_for_business(bk_biz_id)
+        supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
         set_list = data.get_one_of_inputs("set_list")
         cc_set_select = set_list.split(",")
         set_select_method = data.get_one_of_inputs("set_select_method")
@@ -108,9 +108,8 @@ class CCUpdateSetServiceStatusService(Service):
         for set_id in bk_set_ids:
             cc_kwargs = {
                 "bk_biz_id": bk_biz_id,
-                "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
-                "data": {"bk_service_status": set_status},
+                "bk_service_status": set_status,
             }
             cc_result = client.api.update_set(
                 cc_kwargs,

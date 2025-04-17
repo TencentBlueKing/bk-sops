@@ -16,31 +16,31 @@ import logging
 import ujson as json
 
 from gcloud.conf import settings
+from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 logger = logging.getLogger("root")
 
 
-def send_message(executor, notify_type, receivers, title, content, email_content=None):
+def send_message(executor, tenant_id, notify_type, receivers, title, content, email_content=None):
     # 兼容旧数据
     if not email_content:
         email_content = content
 
     if "email" in notify_type:
         notify_type[notify_type.index("email")] = "mail"
-    client = get_client_by_user(executor)
+    client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {
-        "receiver__username": receivers,
+        "receiver": receivers,
         "title": title,
         "content": content,
     }
+    _send_func = {"weixin": "v1_send_weixin", "email": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
     for msg_type in notify_type:
         kwargs.update({"msg_type": msg_type})
         if "mail" == msg_type:
             kwargs.update({"content": email_content})
-        send_result = client.cmsi.send_msg(kwargs)
-        if not send_result["result"]:
-            logger.error(
-                "taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), json.dumps(send_result))
-            )
+        try:
+            getattr(client.api, _send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+        except Exception as e:
+            logger.error("taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), str(e)))
     return True

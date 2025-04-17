@@ -22,8 +22,8 @@ from gcloud.conf import settings
 from gcloud.constants import Type
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 
@@ -65,7 +65,7 @@ def cc_execute_dynamic_group(tenant_id, operator, bk_biz_id, bk_group_id, set_fi
         client.api.execute_dynamic_group,
         kwargs,
         limit=200,
-        path_params={"bk_biz_id": bk_biz_id},
+        path_params={"bk_biz_id": bk_biz_id, "id": bk_group_id},
         headers={"X-Bk-Tenant-Id": tenant_id},
     )
     for _field in set_field:

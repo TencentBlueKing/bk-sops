@@ -23,14 +23,13 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_list_select_node_inst_id,
     get_module_set_id,
 )
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 VERSION = "1.0"
 
@@ -88,8 +87,7 @@ class CCBatchModuleUpdateService(Service):
             # 非单行扩展的情况无需处理
             attr_list = cc_module_update_data
 
-        supplier_account = supplier_account_for_business(biz_cc_id)
-        kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
+        kwargs = {"bk_biz_id": biz_cc_id}
         tree_data = client.api.search_biz_inst_topo(
             kwargs,
             path_params={"bk_biz_id": biz_cc_id},
@@ -104,7 +102,7 @@ class CCBatchModuleUpdateService(Service):
         success_update = []
         failed_update = []
 
-        search_attr_kwargs = {"bk_obj_id": "module", "bk_supplier_account": supplier_account}
+        search_attr_kwargs = {"bk_obj_id": "module"}
         attr_result = client.api.search_object_attribute(
             search_attr_kwargs,
             headers={"X-Bk-Tenant-Id": tenant_id},
@@ -156,40 +154,31 @@ class CCBatchModuleUpdateService(Service):
                 self.logger.error(message)
                 continue
 
-            supplier_account = supplier_account_for_business(biz_cc_id)
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
-
-                message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}"
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}")
                 failed_update.append(message)
                 self.logger.error(message)
                 continue
             bk_module_id = cc_list_select_node_inst_id_return["data"][0]
             bk_set_id = get_module_set_id(tree_data["data"], bk_module_id)
 
-            kwargs = {
-                "bk_biz_id": biz_cc_id,
-                "bk_set_id": bk_set_id,
-                "bk_module_id": bk_module_id,
-                "data": update_params,
-            }
+            update_params["bk_biz_id"] = biz_cc_id
+            update_params["bk_set_id"] = bk_set_id
+            update_params["bk_module_id"] = bk_module_id
             # 更新module属性
             update_result = client.api.update_module(
-                kwargs,
-                params={"bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id, "bk_module_id": bk_module_id},
+                update_params,
+                path_params={"bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id, "bk_module_id": bk_module_id},
                 headers={"X-Bk-Tenant-Id": tenant_id},
             )
             if update_result["result"]:
-                self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, kwargs))
+                self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, update_params))
                 success_update.append(update_item)
             else:
-                message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {kwargs}, 错误消息: {update_result['message']}"
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {update_params}, 错误消息: {update_result['message']}")
                 self.logger.error(message)
                 failed_update.append(message)
 

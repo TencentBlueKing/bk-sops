@@ -11,9 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch
-
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbAttributeQuery
 
@@ -31,7 +30,6 @@ class VarCmdbAttributeQueryTestCase(TestCase):
             "tenant_id": self.tenant_id,
         }
         self.bk_biz_id = "bk_biz_id_token"
-        self.supplier_account = "supplier_account_token"
         self.get_business_host_return = [
             {"bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1, "bk_attr": 1},
             {"bk_host_innerip": "1.1.1.2", "bk_cloud_id": 2, "bk_attr": 2},
@@ -43,17 +41,11 @@ class VarCmdbAttributeQueryTestCase(TestCase):
         mock_project = MagicMock()
         mock_project.objects.get = MagicMock(return_value=mock_project_obj)
         self.project_patcher = patch("pipeline_plugins.variables.collections.sites.open.cc.Project", mock_project)
-        self.supplier_account_for_project_patcher = patch(
-            "pipeline_plugins.variables.collections.sites.open.cc.supplier_account_for_project",
-            MagicMock(return_value=self.supplier_account),
-        )
 
         self.project_patcher.start()
-        self.supplier_account_for_project_patcher.start()
 
     def tearDown(self):
         self.project_patcher.stop()
-        self.supplier_account_for_project_patcher.stop()
 
     def test_get_value(self):
         mock_get_business_host = MagicMock(return_value=self.get_business_host_return)
@@ -73,7 +65,6 @@ class VarCmdbAttributeQueryTestCase(TestCase):
             self.tenant_id,
             self.executer,
             self.bk_biz_id,
-            self.supplier_account,
             [
                 "bk_cpu",
                 "bk_isp_name",

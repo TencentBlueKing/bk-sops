@@ -23,7 +23,6 @@ from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
 from gcloud.utils import cmdb
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex, get_ipv6_and_cloud_id_from_ipv6_cloud_str
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
 __all__ = [
@@ -62,12 +61,11 @@ def compare_ip_list_and_return(host_list, ip_list, host_key="bk_host_innerip", r
     return set()
 
 
-def get_ipv6_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv6_list):
+def get_ipv6_info_list(tenant_id, username, biz_cc_id, ipv6_list):
     ipv6_info_list = cmdb.get_business_host_topo(
         tenant_id=tenant_id,
         username=username,
         bk_biz_id=biz_cc_id,
-        supplier_account=supplier_account,
         host_fields=["bk_host_innerip_v6", "bk_host_id", "bk_cloud_id"],
         property_filters={
             "host_property_filter": {
@@ -102,7 +100,7 @@ def get_ipv6_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv6_li
     return True, ip_result
 
 
-def get_ipv4_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv4_list):
+def get_ipv4_info_list(tenant_id, username, biz_cc_id, ipv4_list):
     ip_result = []
 
     if not ipv4_list:
@@ -112,7 +110,6 @@ def get_ipv4_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv4_li
         tenant_id=tenant_id,
         username=username,
         bk_biz_id=biz_cc_id,
-        supplier_account=supplier_account,
         host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
         ip_list=ipv4_list,
     )
@@ -128,9 +125,7 @@ def get_ipv4_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv4_li
     for ip_info in ipv4_info_list:
         ip_result.append(
             {
-                "InnerIP": ip_info["host"][
-                    "bk_host_innerip"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": ip_info["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": ip_info["host"]["bk_host_id"],
                 "Source": ip_info["host"].get("bk_cloud_id", -1),
                 "Sets": ip_info["set"],
@@ -141,7 +136,7 @@ def get_ipv4_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv4_li
     return True, ip_result
 
 
-def get_ipv4_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_account, ipv4_list_with_cloud_id):
+def get_ipv4_info_list_with_cloud_id(tenant_id, username, biz_cc_id, ipv4_list_with_cloud_id):
     ip_list = [_ip.split(":")[1] for _ip in ipv4_list_with_cloud_id]
 
     if not ip_list:
@@ -151,7 +146,6 @@ def get_ipv4_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_ac
         tenant_id=tenant_id,
         username=username,
         bk_biz_id=biz_cc_id,
-        supplier_account=supplier_account,
         host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
         ip_list=ip_list,
     )
@@ -173,9 +167,7 @@ def get_ipv4_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_ac
     for item in ipv4_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"][
-                    "bk_host_innerip"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -186,7 +178,7 @@ def get_ipv4_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_ac
     return True, ip_result
 
 
-def get_ipv6_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_account, ipv6_list_with_cloud_id):
+def get_ipv6_info_list_with_cloud_id(tenant_id, username, biz_cc_id, ipv6_list_with_cloud_id):
     if not ipv6_list_with_cloud_id:
         return True, []
 
@@ -200,7 +192,6 @@ def get_ipv6_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_ac
         tenant_id=tenant_id,
         username=username,
         bk_biz_id=biz_cc_id,
-        supplier_account=supplier_account,
         host_fields=["bk_host_innerip_v6", "bk_host_id", "bk_cloud_id"],
         property_filters={
             "host_property_filter": {
@@ -233,9 +224,7 @@ def get_ipv6_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_ac
     for item in ipv6_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"][
-                    "bk_host_innerip_v6"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"]["bk_host_innerip_v6"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -246,13 +235,12 @@ def get_ipv6_info_list_with_cloud_id(tenant_id, username, biz_cc_id, supplier_ac
     return True, ip_result
 
 
-def get_host_info_list(tenant_id, username, biz_cc_id, supplier_account, host_id_list):
+def get_host_info_list(tenant_id, username, biz_cc_id, host_id_list):
     ip_result = []
     host_info_list = cmdb.get_business_host_topo(
         tenant_id=tenant_id,
         username=username,
         bk_biz_id=biz_cc_id,
-        supplier_account=supplier_account,
         host_fields=["bk_host_innerip_v6", "bk_host_innerip", "bk_host_id", "bk_cloud_id"],
         property_filters={
             "host_property_filter": {
@@ -295,29 +283,27 @@ def cc_get_ips_info_by_str_ipv6(tenant_id, username, biz_cc_id, ip_str, use_cach
         ip_str
     )
 
-    supplier_account = supplier_account_for_business(biz_cc_id)
-
-    ipv6_result, ipv6_data = get_ipv6_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv6_list)
+    ipv6_result, ipv6_data = get_ipv6_info_list(tenant_id, username, biz_cc_id, ipv6_list)
     if not ipv6_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_data}
 
     # ipv6带管控区域
     ipv6_list_with_cloud_id_result, ipv6_list_with_cloud_id_data = get_ipv6_info_list_with_cloud_id(
-        tenant_id, username, biz_cc_id, supplier_account, ipv6_list_with_cloud_id
+        tenant_id, username, biz_cc_id, ipv6_list_with_cloud_id
     )
     if not ipv6_list_with_cloud_id_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_list_with_cloud_id_data}
 
-    ipv4_result, ipv4_data = get_ipv4_info_list(tenant_id, username, biz_cc_id, supplier_account, ipv4_list)
+    ipv4_result, ipv4_data = get_ipv4_info_list(tenant_id, username, biz_cc_id, ipv4_list)
     if not ipv4_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv4_data}
 
-    host_result, host_data = get_host_info_list(tenant_id, username, biz_cc_id, supplier_account, host_id_list)
+    host_result, host_data = get_host_info_list(tenant_id, username, biz_cc_id, host_id_list)
     if not host_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": host_data}
 
     ipv4_with_cloud_id_result, ipv4_info_with_cloud_id_data = get_ipv4_info_list_with_cloud_id(
-        tenant_id, username, biz_cc_id, supplier_account, ipv4_list_with_cloud_id
+        tenant_id, username, biz_cc_id, ipv4_list_with_cloud_id
     )
     if not ipv4_with_cloud_id_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv4_with_cloud_id_result}
@@ -352,12 +338,10 @@ def cc_get_ips_info_by_str(tenant_id, username, biz_cc_id, ip_str, use_cache=Tru
 
     ip_input_list = get_ip_by_regex(ip_str)
 
-    supplier_account = supplier_account_for_business(biz_cc_id)
     ip_list = cmdb.get_business_host_topo(
         tenant_id=tenant_id,
         username=username,
         bk_biz_id=biz_cc_id,
-        supplier_account=supplier_account,
         host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
         ip_list=ip_input_list,
     )
@@ -489,7 +473,8 @@ def get_module_id_list_by_name(tenant_id, bk_biz_id, username, set_list, service
     service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(
-        tenant_id, bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
+        tenant_id, bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"]
+    )
     return module_id_list
 
 
@@ -509,8 +494,15 @@ def get_difference_ip_list(original_ip_list, ip_list):
 
 
 def get_biz_ip_from_frontend(
-        tenant_id, ip_str, executor, biz_cc_id, data, logger_handle, is_across=False, ip_is_exist=False,
-        ignore_ex_data=False
+    tenant_id,
+    ip_str,
+    executor,
+    biz_cc_id,
+    data,
+    logger_handle,
+    is_across=False,
+    ip_is_exist=False,
+    ignore_ex_data=False,
 ):
     """
     从前端表单中获取有效IP
@@ -526,7 +518,8 @@ def get_biz_ip_from_frontend(
         err_msg = _("允许跨业务时IP格式需满足：【管控区域ID:IP】。失败 IP： {}")
     else:
         var_ip = cc_get_ips_info_by_str(
-            tenant_id=tenant_id, username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
+            tenant_id=tenant_id, username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False
+        )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
         err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
 
@@ -553,11 +546,7 @@ def get_repeat_ip(ip_list):
         repeat_ip_detail.setdefault(ip_info["ip"], []).append(ip_info["bk_cloud_id"])
 
     return ",".join(
-        [
-            "ip: {} 管控区域{}".format(repeat_ip, value)
-            for repeat_ip, value in repeat_ip_detail.items()
-            if len(value) > 0
-        ]
+        ["ip: {} 管控区域{}".format(repeat_ip, value) for repeat_ip, value in repeat_ip_detail.items() if len(value) > 0]
     )
 
 
@@ -597,8 +586,11 @@ def get_biz_ip_from_frontend_hybrid(tenant_id, executor, ip_str, biz_cc_id, data
         return True, plat_ip_list
 
     var_ip = cc_get_ips_info_by_str(
-        tenant_id=tenant_id, username=executor, biz_cc_id=biz_cc_id, ip_str=",".join(without_plat_ip_list),
-        use_cache=False
+        tenant_id=tenant_id,
+        username=executor,
+        biz_cc_id=biz_cc_id,
+        ip_str=",".join(without_plat_ip_list),
+        use_cache=False,
     )
     ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
 
@@ -616,9 +608,7 @@ def get_biz_ip_from_frontend_hybrid(tenant_id, executor, ip_str, biz_cc_id, data
         # 这种情况应该是存在一个ip下有多个管控区域的情况
         if not ignore_ex_data:
             repeat_err_msg = get_repeat_ip(ip_list)
-            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(
-                repeat_err_msg
-            )
+            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(repeat_err_msg)
         return False, []
     if not ip_list:
         if not ignore_ex_data:

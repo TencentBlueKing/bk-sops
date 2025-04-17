@@ -22,9 +22,8 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_tree_mode_id
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin, cc_format_tree_mode_id
 
 logger = logging.getLogger("celery")
 
@@ -77,10 +76,8 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
-        host_result = self.get_ip_info_list(
-            tenant_id, executor, biz_cc_id, data.get_one_of_inputs("cc_host_ip"), supplier_account)
+        host_result = self.get_ip_info_list(tenant_id, executor, biz_cc_id, data.get_one_of_inputs("cc_host_ip"))
 
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
@@ -93,7 +90,6 @@ class CCTransferHostModuleService(Service, CCPluginIPMixin):
 
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,
-            "bk_supplier_account": supplier_account,
             "bk_host_id": [int(host["HostID"]) for host in host_result["ip_result"]],
             "bk_module_id": cc_module_select,
             "is_increment": True if cc_is_increment == "true" else False,
@@ -116,7 +112,4 @@ class CCTransferHostModuleComponent(Component):
     code = "cc_transfer_host_module"
     bound_service = CCTransferHostModuleService
     form = "%scomponents/atoms/cc/cc_transfer_host_module.js" % settings.STATIC_URL
-    desc = _(
-        "注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
-        "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
-    )
+    desc = _("注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n" "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块")
