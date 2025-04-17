@@ -26,7 +26,6 @@ from gcloud.core.models import EnvironmentVariables
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def _check_and_get_file_manager():
@@ -99,9 +98,7 @@ def get_repo_temporary_upload_url(request):
     shims = request.GET.get("shims", "frontend_upload")
 
     if not str(bk_biz_id) or not str(name):
-        message = _(
-            "文件上传失败: 业务ID和业务名称都应该提供.请重试, 如持续失败可联系管理员处理.  | get_repo_temporary_upload_url"
-        )
+        message = _("文件上传失败: 业务ID和业务名称都应该提供.请重试, 如持续失败可联系管理员处理.  | get_repo_temporary_upload_url")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 

@@ -10,9 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from mock import MagicMock, patch
-
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from pipeline_plugins.variables.collections.common import StaffGroupSelector
 
@@ -50,7 +49,6 @@ class StaffGroupSelectorTestCase(TestCase):
         self.custom_staff_group = ["1", "2", "3"]
         self.context = {}
         self.pipeline_data = {"executor": "tester", "biz_cc_id": 2, "tenant_id": "test"}
-        self.supplier_account = "supplier_account_token"
 
         self.values_list = MagicMock(
             values_list=MagicMock(return_value=["tester1,tester2", "tester2", "tester3", "tester4"])
@@ -58,11 +56,6 @@ class StaffGroupSelectorTestCase(TestCase):
         self.filter = MagicMock(return_value=self.values_list)
         self.staff_group_patcher = patch(
             "pipeline_plugins.variables.collections.common.StaffGroupSet.objects.filter", self.filter
-        )
-
-        self.supplier_account_for_project_patcher = patch(
-            "pipeline_plugins.variables.collections.common.supplier_account_for_business",
-            MagicMock(return_value=self.supplier_account),
         )
 
         self.get_notify_receivers_return = {
@@ -76,12 +69,10 @@ class StaffGroupSelectorTestCase(TestCase):
         )
 
         self.staff_group_patcher.start()
-        self.supplier_account_for_project_patcher.start()
         self.get_notify_receivers_patcher.start()
 
     def tearDown(self):
         self.staff_group_patcher.stop()
-        self.supplier_account_for_project_patcher.stop()
         self.get_notify_receivers_patcher.stop()
 
     def test_get_value_with_all_staff_names(self):

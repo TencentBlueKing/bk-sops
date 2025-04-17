@@ -25,7 +25,6 @@ from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.cmdb import get_business_set_host
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import format_host_with_ipv6
 
 logger = logging.getLogger("root")
@@ -210,7 +209,6 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                 hosts = get_business_set_host(
                     tenant_id,
                     request.user.username,
-                    supplier_account_for_business(biz_cc_id),
                     host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
                     ip_list=bk_host_ids,
                     filter_field="bk_host_id",
@@ -258,11 +256,17 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 def job_get_instance_detail(request, biz_cc_id, task_id):
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    step_instance_id = request.GET.get("step_instance_id")
+    bk_cloud_id = request.GET.get("bk_cloud_id")
+    ip = request.GET.get("ip")
     log_kwargs = {
         "bk_scope_type": bk_scope_type,
         "bk_scope_id": str(biz_cc_id),
         "bk_biz_id": biz_cc_id,
         "job_instance_id": task_id,
+        "step_instance_id": step_instance_id,
+        "bk_cloud_id": bk_cloud_id,
+        "ip": ip,
     }
     job_result = client.api.get_job_instance_ip_log(log_kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
     if not job_result["result"]:
@@ -393,7 +397,6 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
                 hosts = get_business_set_host(
                     tenant_id,
                     request.user.username,
-                    supplier_account_for_business(biz_cc_id),
                     host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
                     ip_list=bk_host_ids,
                     filter_field="bk_host_id",

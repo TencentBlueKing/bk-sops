@@ -18,15 +18,14 @@ from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 
 from gcloud.conf import settings
-from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
-from pipeline_plugins.base.utils.inject import supplier_account_inject
+from gcloud.core.models import EnvironmentVariables
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
+from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
 
 logger = logging.getLogger("root")
 
 
-@supplier_account_inject
-def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
+def cc_get_host_by_module_id(request, biz_cc_id):
     """
     查询模块对应主机
     :param request:
@@ -44,15 +43,18 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
     data_format = request.GET.get("format", "tree")
     # 查询 module 对应的主机
     module_hosts = cc_format_module_hosts(
-        request.user.tenant_id, request.user.username, biz_cc_id, select_modules, supplier_account, data_format,
+        request.user.tenant_id,
+        request.user.username,
+        biz_cc_id,
+        select_modules,
+        data_format,
         host_fields,
     )
 
     return JsonResponse({"result": True, "data": module_hosts, "message": ""})
 
 
-@supplier_account_inject
-def cc_search_module(request, biz_cc_id, supplier_account):
+def cc_search_module(request, biz_cc_id):
     """
     查询集群下的模块
     :param request:
@@ -69,13 +71,16 @@ def cc_search_module(request, biz_cc_id, supplier_account):
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     cc_kwargs = {
         "bk_biz_id": biz_cc_id,
-        "bk_supplier_account": supplier_account,
         "bk_set_id": bk_set_id,
         "fields": module_fields,
     }
     cc_result = client.api.search_module(
         cc_kwargs,
-        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id, "bk_set_id": bk_set_id},
+        path_params={
+            "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+            "bk_biz_id": biz_cc_id,
+            "bk_set_id": bk_set_id,
+        },
         headers={"X-Bk-Tenant-Id": request.user.tenant_id},
     )
     if not cc_result["result"]:

@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
-from gcloud.core.models import Business
 from gcloud.utils import cmdb
 from gcloud.utils.handlers import handle_api_error
 
@@ -53,7 +52,6 @@ class MonitorBaseService(Service):
                 tenant_id=tenant_id,
                 username=username,
                 bk_biz_id=bk_biz_id,
-                supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
                 host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip", "bk_host_innerip_v6"],
                 ip_list=ipv6_list,
             )
@@ -70,7 +68,6 @@ class MonitorBaseService(Service):
                 tenant_id=tenant_id,
                 username=username,
                 bk_biz_id=bk_biz_id,
-                supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
                 host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
                 ip_list=ipv4_list,
             )
@@ -85,7 +82,6 @@ class MonitorBaseService(Service):
                 tenant_id=tenant_id,
                 username=username,
                 bk_biz_id=bk_biz_id,
-                supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
                 host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
                 ip_list=ip_list,
             )

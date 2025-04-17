@@ -22,17 +22,16 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     ModuleCreateMethod,
     SelectMethod,
     cc_format_prop_data,
-    cc_format_tree_mode_id,
+    cc_format_tree_set_id,
     cc_get_name_id_from_combine_value,
     cc_list_select_node_inst_id,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -54,27 +53,19 @@ class CCCreateModuleService(Service):
                 name=_("填参方式"),
                 key="cc_set_select_method",
                 type="string",
-                schema=StringItemSchema(
-                    description=_("集群填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]
-                ),
+                schema=StringItemSchema(description=_("集群填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
             ),
             self.InputItem(
                 name=_("拓扑-集群列表"),
                 key="cc_set_select_topo",
                 type="array",
-                schema=ArrayItemSchema(
-                    description=_("所属集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
-                ),
+                schema=ArrayItemSchema(description=_("所属集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))),
             ),
             self.InputItem(
                 name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(
-                    description=_(
-                        "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
-                    )
-                ),
+                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔")),
             ),
             self.InputItem(
                 name=_("创建方式"),
@@ -117,7 +108,6 @@ class CCCreateModuleService(Service):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         cc_create_method = data.get_one_of_inputs("cc_create_method")
         # 校验创建及填参方式，避免中途校验失败时已进行多余的逻辑判断
@@ -128,11 +118,11 @@ class CCCreateModuleService(Service):
             data.set_outputs("ex_data", _("请选择创建方式"))
             return False
         if cc_set_select_method == SelectMethod.TOPO.value:
-            cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
+            cc_set_select = cc_format_tree_set_id(data.get_one_of_inputs("cc_set_select_topo"))
         else:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.SET, cc_set_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -179,33 +169,31 @@ class CCCreateModuleService(Service):
             # 校验模块类型
             if "bk_module_type" in cc_module_info:
                 format_prop_data_return = cc_format_prop_data(
-                    tenant_id, executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"),
-                    supplier_account,
+                    tenant_id,
+                    executor,
+                    "module",
+                    "bk_module_type",
+                    parent_data.get_one_of_inputs("language"),
                 )
                 if not format_prop_data_return["result"]:
                     data.set_outputs("ex_data", format_prop_data_return["message"])
                     return False
-                bk_module_type = format_prop_data_return["data"].get(cc_module_info["bk_module_type"])
-                if not bk_module_type:
+                if cc_module_info["bk_module_type"] not in format_prop_data_return["data"].values():
                     data.set_outputs("ex_data", _("模块类型校验失败，请重试并填写正确的模块类型"))
                     return False
-                cc_module_info["bk_module_type"] = bk_module_type
             cc_module_infos.append(cc_module_info)
         for parent_id in cc_set_select:
             for cc_module_info in cc_module_infos:
-                cc_kwargs = {
-                    "bk_biz_id": biz_cc_id,
-                    "bk_set_id": parent_id,
-                    "data": {"bk_parent_id": parent_id},
-                }
-                cc_kwargs["data"].update(cc_module_info)
+                cc_module_info["bk_biz_id"] = biz_cc_id
+                cc_module_info["bk_set_id"] = parent_id
+                cc_module_info["bk_parent_id"] = parent_id
                 cc_create_module_return = client.api.create_module(
-                    cc_kwargs,
+                    cc_module_info,
                     path_params={"bk_biz_id": biz_cc_id, "bk_set_id": parent_id},
                     headers={"X-Bk-Tenant-Id": tenant_id},
                 )
                 if not cc_create_module_return["result"]:
-                    message = cc_handle_api_error("cc.create_module", cc_kwargs, cc_create_module_return)
+                    message = cc_handle_api_error("cc.create_module", cc_module_info, cc_create_module_return)
                     self.logger.error(message)
                     data.set_outputs("ex_data", message)
                     return False

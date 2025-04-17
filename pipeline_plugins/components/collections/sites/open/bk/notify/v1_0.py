@@ -26,7 +26,6 @@ from gcloud.core.roles import CC_V2_ROLE_MAP
 from gcloud.utils.cmdb import get_notify_receivers
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger_celery = logging.getLogger("celery")
@@ -106,7 +105,6 @@ class NotifyService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         notify_type = data.get_one_of_inputs("bk_notify_type")
         title = data.get_one_of_inputs("bk_notify_title")
         content = data.get_one_of_inputs("bk_notify_content")
@@ -120,9 +118,7 @@ class NotifyService(Service):
         # 转换为cc3.0字段
         receiver_group = [CC_V2_ROLE_MAP[group] for group in receiver_groups]
 
-        result = get_notify_receivers(
-            tenant_id, executor, biz_cc_id, supplier_account, receiver_group, more_receiver, self.logger
-        )
+        result = get_notify_receivers(tenant_id, executor, biz_cc_id, receiver_group, more_receiver, self.logger)
 
         if not result["result"]:
             data.set_outputs("ex_data", result["message"])
@@ -138,25 +134,16 @@ class NotifyService(Service):
             usernames.insert(0, executor)
         unique_usernames = sorted(set(usernames), key=usernames.index)
 
-        base_kwargs = {
-            "receiver__username": ",".join(unique_usernames).strip(","),
-            "title": title,
-            "content": content,
-        }
+        receivers = ",".join(unique_usernames).strip(",")
 
         error_flag = False
         error = ""
         for msg_type in notify_type:
-            kwargs = {}
-            kwargs.update(**base_kwargs)
-            kwargs.update({"msg_type": msg_type})
-
-            # 保留通知内容中的换行和空格
-            if msg_type == "mail":
-                kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
-            result = getattr(client.cmsi, self._send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
-
-            if not result["result"]:
+            # todo: 如果是选择方式是邮件，则需要保留通知内容中的换行和空格
+            kwargs = self._args_gen[msg_type](self, receivers, title, content)
+            try:
+                result = getattr(client.api, self._send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+            except Exception:
                 message = bk_handle_api_error("cmsi.send_msg", kwargs, result)
                 self.logger.error(message)
                 error_flag = True
@@ -169,7 +156,33 @@ class NotifyService(Service):
 
         return True
 
+    def _email_args(self, receivers, title, content):
+        return {
+            "receiver": receivers.split(","),
+            "title": title,
+            # 保留通知内容中的换行和空格
+            "content": "<pre>%s</pre>" % content,
+        }
+
+    def _weixin_args(self, receivers, title, content):
+        return {"receiver": receivers.split(","), "data": {"heading": title, "message": content}}
+
+    def _voice_args(self, receivers, title, content):
+        return {
+            "auto_read_message": "蓝鲸通知 {}".format("%s: %s" % (title, content)),
+            "receiver": receivers.split(","),
+        }
+
+    def _sms_args(self, receivers, title, content):
+        return {
+            "receiver": receivers.split(","),
+            "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
+            "is_content_base64": False,
+        }
+
     _send_func = {"weixin": "v1_send_weixin", "email": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
+
+    _args_gen = {"weixin": _weixin_args, "email": _email_args, "sms": _sms_args, "voice": _voice_args}
 
 
 class NotifyComponent(Component):

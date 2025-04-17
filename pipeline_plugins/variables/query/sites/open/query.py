@@ -18,12 +18,11 @@ from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
-from gcloud.core.models import StaffGroupSet
+from gcloud.core.models import EnvironmentVariables, StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_account_for_business
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.variables.query.sites.open import select
 from pipeline_plugins.variables.utils import get_biz_internal_module, get_service_template_list, get_set_list
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -40,12 +39,14 @@ def cc_get_set(request, biz_cc_id):
     """
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "fields": ["bk_set_name", "bk_set_id"]}
-    supplier_account = supplier_account_for_business(biz_cc_id)
     cc_set_result = batch_request(
         client.api.search_set,
         kwargs,
-        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id},
-        headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+        path_params={
+            "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+            "bk_biz_id": biz_cc_id,
+        },
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
     )
     logger.info("[cc_get_set] cc_set_result: {cc_set_result}".format(cc_set_result=cc_set_result))
     result = [{"value": set_item["bk_set_id"], "text": set_item["bk_set_name"]} for set_item in cc_set_result]
@@ -63,12 +64,15 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
     """
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_set_id": int(biz_set_id), "fields": ["bk_module_name", "bk_module_id"]}
-    supplier_account = supplier_account_for_business(biz_cc_id)
     cc_module_result = batch_request(
         client.api.search_module,
         kwargs,
-        path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id, "bk_set_id": biz_set_id},
-        headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+        path_params={
+            "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+            "bk_biz_id": biz_cc_id,
+            "bk_set_id": biz_set_id,
+        },
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
     )
     logger.info("[cc_get_module] cc_module_result: {cc_module_result}".format(cc_module_result=cc_module_result))
     result = [
@@ -90,16 +94,14 @@ def get_staff_groups(request, project_id):
     return JsonResponse({"result": True, "data": staff_groups})
 
 
-@supplier_account_inject
-def cc_get_set_list(request, biz_cc_id, supplier_account):
+def cc_get_set_list(request, biz_cc_id):
     """
     @summary: 批量获取业务下所有集群，过滤掉name相同的集群
     @param request:
     @param biz_cc_id:
-    @param supplier_account:
     @return:
     """
-    cc_set_result = get_set_list(request.user.tenant_id, request.user.username, biz_cc_id, supplier_account)
+    cc_set_result = get_set_list(request.user.tenant_id, request.user.username, biz_cc_id)
     set_name_list = []
     result = []
     for set_item in cc_set_result:
@@ -112,14 +114,12 @@ def cc_get_set_list(request, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": result})
 
 
-@supplier_account_inject
-def cc_list_service_template(request, biz_cc_id, supplier_account):
+def cc_list_service_template(request, biz_cc_id):
     """
     获取服务模板
     url: /pipeline/cc_list_service_template/biz_cc_id/
     :param request:
     :param biz_cc_id:
-    :param supplier_account:
     :return:
         - 请求成功 {"result": True, "data": service_templates, "message": "success"}
             - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
@@ -127,11 +127,11 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     """
     tenant_id = request.user.tenant_id
     username = request.user.username
-    internal_module_result = get_biz_internal_module(tenant_id, username, biz_cc_id, supplier_account)
+    internal_module_result = get_biz_internal_module(tenant_id, username, biz_cc_id)
     logger.info("[cc_list_service_template] get_biz_internal_module return: {}".format(internal_module_result))
     internal_module_names = [m["name"] for m in internal_module_result["data"]]
 
-    service_templates_untreated = get_service_template_list(tenant_id, username, biz_cc_id, supplier_account)
+    service_templates_untreated = get_service_template_list(tenant_id, username, biz_cc_id)
     service_templates = []
     for template_untreated in service_templates_untreated:
         if template_untreated["name"] not in internal_module_names:
@@ -154,7 +154,6 @@ def cc_get_set_group(request, biz_cc_id):
     通过bk_biz_id获取当前业务下所有集群类型的动态分组
     :param biz_cc_id: 业务ID
     :param request:
-    :param operator: 操作者
     :return:
     """
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
@@ -189,8 +188,7 @@ def cc_get_set_attribute(request, biz_cc_id):
     return JsonResponse({"result": True, "data": set_attribute})
 
 
-@supplier_account_inject
-def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
+def cc_get_set_env(request, obj_id, biz_cc_id):
     """
     @summary: 获取环境类型
     @param request:
@@ -198,7 +196,7 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     @return:
     """
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
+    kwargs = {"bk_obj_id": obj_id}
     cc_result = client.api.search_object_attribute(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
 
     if not cc_result["result"]:

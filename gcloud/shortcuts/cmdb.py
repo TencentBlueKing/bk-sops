@@ -15,8 +15,8 @@ __copyright__ = "Copyright (c) 2012-2018 Tencent. All Rights Reserved."
 
 import logging
 
-from gcloud.core import roles
 from gcloud.conf import settings
+from gcloud.core import roles
 from gcloud.core.models import EnvironmentVariables
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -34,7 +34,6 @@ def get_business_group_members(tenant_id, bk_biz_id, groups):
 
     supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     kwargs = {
-        "bk_supplier_account": supplier_account,
         "condition": {"bk_biz_id": bk_biz_id},
         "fields": group_fileds,
     }
@@ -65,7 +64,6 @@ def get_business_attrinfo(tenant_id, attrs: list) -> list:
     client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
     supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     kwargs = {
-        "bk_supplier_account": supplier_account,
         "fields": [
             "bk_biz_id",
         ].extend(attrs),

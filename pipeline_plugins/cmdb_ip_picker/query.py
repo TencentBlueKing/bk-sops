@@ -25,6 +25,8 @@ from gcloud.utils import cmdb
 from gcloud.utils.data_handler import chunk_data
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import format_sundry_ip
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username as get_nodeman_client_by_username
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 from .constants import ERROR_CODES, NO_ERROR
@@ -36,8 +38,6 @@ from .utils import (
     get_modules_of_bk_obj,
     get_objects_of_topo_tree,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
-from packages.bkapi.bk_nodeman.shortcuts import get_client_by_username as get_nodeman_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -53,25 +53,22 @@ def format_agent_ip(data, *args, **kwargs):
     ]
 
 
-def cmdb_search_topo_tree(request, bk_biz_id, bk_supplier_account=""):
+def cmdb_search_topo_tree(request, bk_biz_id):
     """
     @summary: 获取 CMDB 上业务的拓扑树，包含空闲机和故障机模块，根节点是业务
     @param request:
     @param bk_biz_id: 业务 CMDB ID
-    @param bk_supplier_account: 业务开发商账号
     @return:
     """
-    result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account)
+    result = get_cmdb_topo_tree(request.user.tenant_id, request.user.username, bk_biz_id)
     return JsonResponse(result)
 
 
-def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=0):
+def cmdb_search_host(request, bk_biz_id):
     """
     @summary: 获取 CMDB 上业务的 IP 列表，以及 agent 状态等信息
     @param request:
     @param bk_biz_id: 业务 CMDB ID
-    @param bk_supplier_account: 业务开发商账号
-    @param bk_supplier_id: 业务开发商ID
     @params fields: list 查询字段，默认只返回 bk_host_innerip、bk_host_name、bk_host_id, 可以查询主机的任意字段，也可以查询
                 set、module、cloud、agent等信息
     @return:
@@ -89,7 +86,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     # get filter module id
     if request.GET.get("topo", None):
         topo = json.loads(request.GET.get("topo"))
-        topo_result = get_cmdb_topo_tree(tenant_id, request.user.username, bk_biz_id, bk_supplier_account)
+        topo_result = get_cmdb_topo_tree(tenant_id, request.user.username, bk_biz_id)
         if not topo_result["result"]:
             return JsonResponse(topo_result)
 
@@ -110,8 +107,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
 
-    raw_host_info_list = cmdb.get_business_host_topo(tenant_id, request.user.username, bk_biz_id, bk_supplier_account,
-                                                     fields)
+    raw_host_info_list = cmdb.get_business_host_topo(tenant_id, request.user.username, bk_biz_id, fields)
 
     # map cloud_area_id to cloud_area
     cloud_area_dict = {}
@@ -182,10 +178,12 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                     {
                         "data": {"all_scope": True, "host_list": host},
                         "headers": {"X-Bk-Tenant-Id": request.user.tenant_id},
-                    } for host in host_list
+                    }
+                    for host in host_list
                 ]
-                results = batch_execute_func(nodeman_client.api.ipchooser_host_details, agent_kwargs,
-                                             interval_enabled=True)
+                results = batch_execute_func(
+                    nodeman_client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True
+                )
 
                 agent_data = []
                 for result in results:
@@ -225,17 +223,15 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     return JsonResponse(result)
 
 
-def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=""):
+def cmdb_get_mainline_object_topo(request, bk_biz_id):
     """
     @summary: 获取配置平台业务拓扑模型
     @param request:
     @param bk_biz_id:
-    @param bk_supplier_account:
     @return:
     """
     kwargs = {
         "bk_biz_id": bk_biz_id,
-        "bk_supplier_account": bk_supplier_account,
     }
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     cc_result = client.api.get_mainline_object_topo(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
@@ -254,16 +250,15 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=""):
     return JsonResponse(result)
 
 
-def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
+def cmdb_search_dynamic_group(request, bk_biz_id):
     """
     @summary: 查询动态分组列表
     @param request:
     @param bk_biz_id:
-    @param bk_supplier_account:
     @return:
     """
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    kwargs = {"bk_biz_id": bk_biz_id}
     result = batch_request(
         client.api.search_dynamic_group,
         kwargs,

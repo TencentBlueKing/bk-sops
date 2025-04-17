@@ -160,9 +160,9 @@ def cmdb_business_sync_shutdown_periodic_task():
 
 
 @current_app.task
-def send_periodic_task_notify(executor, notify_type, receivers, title, content):
+def send_periodic_task_notify(executor, tenant_id, notify_type, receivers, title, content):
     try:
-        send_message(executor, notify_type, receivers, title, content)
+        send_message(executor, tenant_id, notify_type, [receivers], title, content)
     except Exception as e:
         logger.exception(f"send periodic task notify error: {e}")
 
@@ -180,6 +180,7 @@ def scan_periodic_task(is_send_notify: bool = True):
             "task__creator",
             "project__id",
             "project__name",
+            "project__tenant_id",
             "create_time",
             "edit_time",
             "task__last_run_at",
@@ -190,6 +191,7 @@ def scan_periodic_task(is_send_notify: bool = True):
     )
     data = {}
     user_task_id = {}
+    user_tenant_id = {}
     for p_task in periodic_tasks:
         last_month_time = datetime.datetime.now() + dateutil.relativedelta.relativedelta(
             months=-int(settings.PERIODIC_TASK_REMINDER_TIME)
@@ -199,6 +201,7 @@ def scan_periodic_task(is_send_notify: bool = True):
             continue
         creator = p_task["task__creator"]
         project_name = p_task["project__name"]
+        tenant_id = p_task["project__tenant_id"]
         task_dict = {
             "edit_time": p_task["edit_time"],
             "last_run_at": p_task["task__last_run_at"],
@@ -216,6 +219,7 @@ def scan_periodic_task(is_send_notify: bool = True):
         else:
             data[creator] = {project_name: [task_dict]}
             user_task_id[creator] = {p_task["id"]}
+            user_tenant_id[creator] = tenant_id
     # 发送通知
     if is_send_notify:
         for notifier, tasks in data.items():
@@ -229,8 +233,9 @@ def scan_periodic_task(is_send_notify: bool = True):
                         "task_projects": tasks,
                     },
                 )
+                tenant_id = user_tenant_id[notifier]
                 send_periodic_task_notify.delay(
-                    "admin", settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
+                    "admin", tenant_id, settings.PERIODIC_TASK_REMINDER_NOTIFY_TYPE, notifier, title, mail_content
                 )
             except Exception as e:
                 logger.exception(f"send periodic task notify error: {e}")

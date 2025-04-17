@@ -20,11 +20,11 @@ from pipeline.core.data.var import LazyVariable
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.constants import Type
+from gcloud.core.models import EnvironmentVariables
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 
@@ -36,12 +36,12 @@ def cc_search_set_module_name_by_id(tenant_id, operator, bk_biz_id, bk_set_id, b
     :param operator: 操作者
     :param bk_biz_id: 业务ID
     :param bk_set_id: 集群ID
-    :param bk_module_id: 模块ID
+    :param bk_module_ids: 模块ID
     :return:
     """
     str_module_ids = [str(item) for item in bk_module_ids]
     set_module_info = {"set_id": bk_set_id, "module_id": bk_module_ids, "flat__module_id": ",".join(str_module_ids)}
-    supplier_account = supplier_account_for_business(bk_biz_id)
+    supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     client = get_client_by_username(operator, stage=settings.BK_APIGW_STAGE_NAME)
     set_kwargs = {
         "bk_biz_id": bk_biz_id,

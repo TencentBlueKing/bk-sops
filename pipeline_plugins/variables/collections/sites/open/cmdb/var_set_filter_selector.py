@@ -20,10 +20,10 @@ from pipeline.core.data.var import LazyVariable
 
 from gcloud.conf import settings
 from gcloud.constants import Type
+from gcloud.core.models import EnvironmentVariables
 from gcloud.exceptions import ApiRequestError
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
 
@@ -50,7 +50,10 @@ def cc_filter_set_variables(tenant_id, operator, bk_biz_id, bk_obj_id, bk_obj_va
 
         result = client.api.search_set(
             kwargs,
-            path_params={"bk_supplier_account": supplier_account_for_business(bk_biz_id), "bk_biz_id": bk_biz_id},
+            path_params={
+                "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+                "bk_biz_id": bk_biz_id,
+            },
             headers={"X-Bk-Tenant-Id": tenant_id},
         )
         if not result["result"]:

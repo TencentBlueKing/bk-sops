@@ -20,14 +20,14 @@ from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.core.utils import get_user_business_list
 from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_id_inject
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request
 from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
@@ -39,8 +39,7 @@ from pipeline_plugins.components.utils import batch_execute_func
 logger = logging.getLogger("root")
 
 
-@supplier_account_inject
-def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
+def cc_search_object_attribute(request, obj_id, biz_cc_id):
     """
     @summary: 获取对象自定义属性
     @param request:
@@ -50,7 +49,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
     include_not_editable = request.GET.get("all", False)
-    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
+    kwargs = {"bk_obj_id": obj_id, "bk_biz_id": int(biz_cc_id)}
     cc_result = client.api.search_object_attribute(kwargs, headers=headers)
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
@@ -67,8 +66,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": obj_property})
 
 
-@supplier_account_inject
-def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account):
+def cc_search_object_attribute_all(request, obj_id, biz_cc_id):
     """
     @summary: 获取对象全部属性
     @param request:
@@ -76,7 +74,7 @@ def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account)
     """
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
+    kwargs = {"bk_obj_id": obj_id, "bk_biz_id": int(biz_cc_id)}
     cc_result = client.api.search_object_attribute(kwargs, headers=headers)
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
@@ -112,11 +110,10 @@ def cc_attribute_type_to_table_type(attribute):
     return result
 
 
-@supplier_account_inject
-def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_account):
+def cc_search_create_object_attribute(request, obj_id, biz_cc_id):
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
+    kwargs = {"bk_obj_id": obj_id, "bk_biz_id": int(biz_cc_id)}
     cc_result = client.api.search_object_attribute(kwargs, headers=headers)
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
@@ -137,15 +134,13 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
     return JsonResponse({"result": True, "data": obj_property})
 
 
-@supplier_account_inject
-def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account):
+def cc_list_service_category(request, biz_cc_id, bk_parent_id):
     """
     查询指定节点bk_parent_id的所有子服务分类
     url: /pipeline/cc_list_service_category/biz_cc_id/bk_parent_id/
     :param request:
     :param biz_cc_id:
     :param bk_parent_id: 父服务分类id, 根id = 0
-    :param supplier_account:
     :return:
         - 请求成功 {"result": True, "data": service_categories, "message": "success"}
             - service_categories: [{"value" : 服务分类id, "label": 服务分类名称}, ...]
@@ -153,7 +148,7 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
     """
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
     list_service_category_return = client.api.list_service_category(kwargs, headers=headers)
     if not list_service_category_return["result"]:
         message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
@@ -171,13 +166,11 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
     return JsonResponse({"result": True, "data": service_categories, "message": "success"})
 
 
-@supplier_account_inject
-def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
+def cc_get_service_category_topo(request, biz_cc_id):
     """
     获取指定biz_cc_id模板类型拓扑
     :param request:
     :param biz_cc_id:
-    :param supplier_account:
     :return:
         - 请求成功
         {
@@ -196,7 +189,7 @@ def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
     """
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
     list_service_category_return = client.api.list_service_category(kwargs, headers=headers)
     if not list_service_category_return["result"]:
         message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
@@ -218,14 +211,12 @@ def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": service_category_topo, "message": "success"})
 
 
-@supplier_account_inject
-def cc_list_service_template(request, biz_cc_id, supplier_account):
+def cc_list_service_template(request, biz_cc_id):
     """
     获取服务模板
     url: /pipeline/cc_list_service_template/biz_cc_id/
     :param request:
     :param biz_cc_id:
-    :param supplier_account:
     :return:
         - 请求成功 {"result": True, "data": service_templates, "message": "success"}
             - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
@@ -233,7 +224,7 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     """
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
     service_templates = []
     try:
         service_templates_untreated = batch_request(
@@ -302,8 +293,7 @@ def insert_inter_result_to_topo_data(inter_result_data, topo_data):
     return topo_data
 
 
-@supplier_account_inject
-def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
+def cc_search_topo(request, obj_id, category, biz_cc_id):
     """
     @summary: 查询对象拓扑
     @param request:
@@ -313,7 +303,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     with_internal_module = request.GET.get("with_internal_module", False)
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": biz_cc_id}
     cc_result = client.api.search_biz_inst_topo(
         kwargs,
         path_params={"bk_biz_id": biz_cc_id},
@@ -329,7 +319,10 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     if with_internal_module:
         inter_result = client.api.get_biz_internal_module(
             kwargs,
-            path_params={"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id},
+            path_params={
+                "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+                "bk_biz_id": biz_cc_id,
+            },
             headers=headers,
         )
         if not inter_result["result"]:
@@ -348,20 +341,16 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": cc_topo})
 
 
-@supplier_account_inject
-def cc_search_topo_tree(request, biz_cc_id, supplier_account):
-    return cmdb_search_topo_tree(request, biz_cc_id, supplier_account)
+def cc_search_topo_tree(request, biz_cc_id):
+    return cmdb_search_topo_tree(request, biz_cc_id)
 
 
-@supplier_account_inject
-@supplier_id_inject
-def cc_search_host(request, biz_cc_id, supplier_account, supplier_id):
-    return cmdb_search_host(request, biz_cc_id, supplier_account, supplier_id)
+def cc_search_host(request, biz_cc_id):
+    return cmdb_search_host(request, biz_cc_id)
 
 
-@supplier_account_inject
-def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
-    return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
+def cc_get_mainline_object_topo(request, biz_cc_id):
+    return cmdb_get_mainline_object_topo(request, biz_cc_id)
 
 
 def cc_get_business(request):
@@ -386,16 +375,14 @@ def cc_get_business(request):
     return JsonResponse({"result": True, "data": data})
 
 
-@supplier_account_inject
-def cc_search_dynamic_group(request, biz_cc_id, supplier_account):
-    return cmdb_search_dynamic_group(request, biz_cc_id, supplier_account)
+def cc_search_dynamic_group(request, biz_cc_id):
+    return cmdb_search_dynamic_group(request, biz_cc_id)
 
 
-@supplier_account_inject
-def cc_list_set_template(request, biz_cc_id, supplier_account):
+def cc_list_set_template(request, biz_cc_id):
     client = get_client_by_request(request, stage=settings.BK_APIGW_STAGE_NAME)
     headers = {"X-Bk-Tenant-Id": request.user.tenant_id}
-    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    kwargs = {"bk_biz_id": int(biz_cc_id)}
 
     set_templates = batch_request(
         client.api.list_set_template,
@@ -420,9 +407,7 @@ def cc_get_editable_module_attribute(request, biz_cc_id):
     result = client.api.search_object_attribute(kwargs, headers=headers)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        message = _(
-            f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_module_attribute"
-        )
+        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_module_attribute")
         logger.error(message)
         return JsonResponse({"result": False, "data": message})
     data = result["data"]
@@ -469,9 +454,7 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
     result = client.api.search_object_attribute(kwargs, headers=headers)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        message = _(
-            f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_set_attribute"
-        )
+        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_set_attribute")
         logger.error(message)
         return JsonResponse({"result": False, "data": message})
     data = result["data"]
@@ -545,7 +528,12 @@ def cc_find_host_by_topo(request, biz_cc_id):
             message = handle_api_error("cc", "find_host_by_topo", result["params"], func_result)
             failed_request_message.append(message)
         else:
-            data.append({"bk_inst_id": result["params"]["bk_inst_id"], "host_count": func_result["data"]["count"]})
+            data.append(
+                {
+                    "bk_inst_id": result["params"]["data"]["bk_inst_id"],
+                    "host_count": func_result["data"]["count"],
+                }
+            )
 
     if failed_request_message:
         return JsonResponse({"result": False, "data": [], "message": "\n".join(failed_request_message)})

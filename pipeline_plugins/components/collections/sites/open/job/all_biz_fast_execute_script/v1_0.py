@@ -36,7 +36,6 @@ from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service import (
     BaseAllBizJobFastExecuteScriptService,
 )
@@ -79,11 +78,8 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         script_param = str(data.get_one_of_inputs("job_script_param"))
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
-        supplier_account = supplier_account_for_business(biz_cc_id)
 
-        result, target_server = self.get_target_server_biz_set(
-            tenant_id, executor, ip_info, supplier_account, logger_handle=self.logger
-        )
+        result, target_server = self.get_target_server_biz_set(tenant_id, executor, ip_info, logger_handle=self.logger)
         if not result:
             raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败")
 

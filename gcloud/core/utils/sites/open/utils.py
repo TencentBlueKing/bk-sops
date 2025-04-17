@@ -19,8 +19,6 @@ from gcloud import exceptions
 from gcloud.conf import settings
 from gcloud.core.api_adapter import get_user_info
 from gcloud.core.models import EnvironmentVariables
-
-# get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
@@ -30,7 +28,10 @@ CACHE_PREFIX = __name__.replace(".", "_")
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 
 
-def get_all_business_list(tenant_id, use_cache=True, ):
+def get_all_business_list(
+    tenant_id,
+    use_cache=True,
+):
     username = settings.SYSTEM_USE_API_ACCOUNT
     cache_key = "%s_get_all_business_list_%s" % (CACHE_PREFIX, username)
     data = cache.get(cache_key)
@@ -40,8 +41,7 @@ def get_all_business_list(tenant_id, use_cache=True, ):
         client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
 
         result = client.api.search_business(
-            path_params={"bk_supplier_account": bk_supplier_account},
-            headers={"X-Bk-Tenant-Id": tenant_id}
+            path_params={"bk_supplier_account": bk_supplier_account}, headers={"X-Bk-Tenant-Id": tenant_id}
         )
 
         if result["result"]:

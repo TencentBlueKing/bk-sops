@@ -15,7 +15,6 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service import (
     BaseAllBizJobFastPushFileService,
 )
@@ -33,7 +32,6 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
         file_source = self.get_file_source(data, parent_data)
 
         executor = parent_data.get_one_of_inputs("executor")
-        supplier_account = supplier_account_for_business(biz_cc_id)
         # 拼装参数列表
         params_list = []
         for source in file_source:
@@ -41,7 +39,7 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
                 job_account = attr["job_target_account"]
                 job_target_path = attr["job_target_path"]
                 result, target_server = self.get_target_server_biz_set(
-                    tenant_id, executor, [attr], supplier_account, logger_handle=self.logger, ip_key="job_ip_list"
+                    tenant_id, executor, [attr], logger_handle=self.logger, ip_key="job_ip_list"
                 )
                 if not result:
                     raise Exception("源文件信息处理失败，请检查ip配置是否正确")

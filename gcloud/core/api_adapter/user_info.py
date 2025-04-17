@@ -15,8 +15,6 @@ import logging
 
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
-
-# get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 from packages.bkapi.bk_user.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
@@ -42,7 +40,10 @@ def get_user_info(username, tenant_id):
 
 def get_all_users(request):
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
-    resp = client.api.list_users({"fields": "display_name,username,id", "no_page": True})
+    resp = client.api.list_user(
+        {"fields": "display_name,username,id", "no_page": True},
+        headers={"X-Bk-Tenant-Id": request.user.tenant_id},
+    )
 
     if not resp["result"]:
         logger.error("usermanage API[list_users] return error: %s", resp)

@@ -22,9 +22,8 @@ from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItem
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
 
@@ -78,12 +77,11 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_hosts = data.get_one_of_inputs("cc_host_replace_detail")
         copy_attrs = data.get_one_of_inputs("copy_attributes", True)
 
         # 查询主机可编辑属性
-        search_attr_kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account}
+        search_attr_kwargs = {"bk_obj_id": "host"}
         search_attr_result = client.api.search_object_attribute(
             search_attr_kwargs,
             headers={"X-Bk-Tenant-Id": tenant_id},
@@ -102,28 +100,24 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
         host_attrs = editable_attrs
 
         # 只有复制故障机属性时才用到
-        batch_update_kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account, "update": []}
+        batch_update_kwargs = {"bk_obj_id": "host", "update": []}
         fault_replace_id_map = {}
         fault_host_map = {}
         for host in cc_hosts:
             fault_ip = host["cc_fault_ip"]
             new_ip = host["cc_new_ip"]
 
-            fault_host_list = self.get_host_topo(tenant_id, executor, biz_cc_id, supplier_account, host_attrs, fault_ip)
-            new_host_list = self.get_host_topo(tenant_id, executor, biz_cc_id, supplier_account, host_attrs, new_ip)
+            fault_host_list = self.get_host_topo(tenant_id, executor, biz_cc_id, host_attrs, fault_ip)
+            new_host_list = self.get_host_topo(tenant_id, executor, biz_cc_id, host_attrs, new_ip)
 
             # 如果不存在，或者查询到的值大于1
             if not fault_host_list or len(fault_host_list) != 1:
                 # 查询旧的主机出错
-                data.outputs.ex_data = data.outputs.ex_data = (
-                    _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
-                )
+                data.outputs.ex_data = data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
                 return False
 
             if not new_host_list or len(new_host_list) != 1:
-                data.outputs.ex_data = data.outputs.ex_data = (
-                    _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
-                )
+                data.outputs.ex_data = data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % new_ip
                 return False
 
             fault_host = fault_host_list[0]
@@ -151,7 +145,6 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
 
         # 将主机上交至故障机模块
         fault_transfer_kwargs = {
-            "bk_supplier_account": supplier_account,
             "bk_biz_id": biz_cc_id,
             "bk_host_id": list(fault_replace_id_map.keys()),
         }
@@ -174,7 +167,6 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
             transfer_kwargs_list.append(
                 {
                     "bk_biz_id": biz_cc_id,
-                    "bk_supplier_account": supplier_account,
                     "bk_host_id": [new_host["host"]["bk_host_id"]],
                     "bk_module_id": [module_info["bk_module_id"] for module_info in fault_host["module"]],
                     "is_increment": True,

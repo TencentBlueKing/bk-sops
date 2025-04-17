@@ -21,14 +21,13 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, StringItemSche
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
 )
-from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
 
@@ -51,9 +50,7 @@ class CCEmptySetHostsService(Service):
                 name=_("填参方式"),
                 key="cc_set_select_method",
                 type="string",
-                schema=StringItemSchema(
-                    description=_("集群填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]
-                ),
+                schema=StringItemSchema(description=_("集群填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
             ),
             self.InputItem(
                 name=_("拓扑-集群列表"),
@@ -67,11 +64,7 @@ class CCEmptySetHostsService(Service):
                 name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(
-                    description=_(
-                        "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
-                    )
-                ),
+                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔")),
             ),
         ]
 
@@ -88,14 +81,13 @@ class CCEmptySetHostsService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         if cc_set_select_method == SelectMethod.TOPO.value:
             cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
         elif cc_set_select_method == SelectMethod.TEXT.value:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                tenant_id, executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
+                tenant_id, executor, biz_cc_id, BkObjType.SET, cc_set_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
@@ -108,7 +100,6 @@ class CCEmptySetHostsService(Service):
         for set_id in cc_set_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
             }
             cc_result = client.api.transfer_sethost_to_idle_module(

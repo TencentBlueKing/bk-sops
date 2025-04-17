@@ -19,10 +19,10 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
 
@@ -110,21 +110,12 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             return False
 
         hostname_rule = sorted(hostname_rule, key=lambda e: str(e.__getitem__("field_order")))
-        supplier_account = supplier_account_for_business(biz_cc_id)
-        ip_list = self.get_ip_info_list(tenant_id, operator, biz_cc_id, sa_ip_list, supplier_account)
+        ip_list = self.get_ip_info_list(tenant_id, operator, biz_cc_id, sa_ip_list)
         if not ip_list["result"] or not ip_list["ip_count"]:
-            data.outputs.ex_data = _(
-                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(
-                    ip_list["invalid_ip"]
-                )
-            )
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
             return False
         if ip_list["invalid_ip"]:
-            data.outputs.ex_data = _(
-                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(
-                    ip_list["invalid_ip"]
-                )
-            )
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
             data.outputs.invalid_ip = ",".join(ip_list["invalid_ip"])
             return False
 
@@ -184,9 +175,7 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
                 headers={"X-Bk-Tenant-Id": tenant_id},
             )
             if not module_result.get("result"):
-                error_message = handle_api_error(
-                    "蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result
-                )
+                error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result)
                 data.set_outputs("ex_data", error_message)
                 self.logger.error(error_message)
                 return False
@@ -198,6 +187,7 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
         host_list = []
         # 自增变量
         inc = [-1] * inc_num
+        supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
         for host in ip_list["ip_result"]:
             custom_property_value = ""
             inc_num_temp = 0
