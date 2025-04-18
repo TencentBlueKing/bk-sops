@@ -103,9 +103,10 @@ def cc_attribute_type_to_table_type(attribute):
         result["attrs"]["items"] = []
         for item in attribute["option"]:
             # 修改时会通过cc_format_prop_data获取对应的属性id，这里使用name字段方便展示
+            # 默认值和选中的值保持一致，都用 item["id"]
             item_name = item["name"].strip()
             if item["is_default"] is True:
-                result["attrs"]["default"] = item_name
+                result["attrs"]["default"] = item["id"]
             result["attrs"]["items"].append({"text": item_name, "value": item["id"]})
     return result
 
