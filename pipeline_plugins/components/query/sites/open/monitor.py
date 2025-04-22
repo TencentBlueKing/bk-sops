@@ -8,7 +8,7 @@ from django.urls import re_path
 from django.utils.translation import gettext_lazy as _
 
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
-from packages.bkapi.bk_gsekit.shortcuts import get_client_by_username
+from packages.bkapi.bk_monitor.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
