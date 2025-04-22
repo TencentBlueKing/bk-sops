@@ -14,6 +14,7 @@ import logging
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 import env
 from gcloud.core.models import EnvironmentVariables
@@ -31,7 +32,10 @@ class Command(BaseCommand):
             print("[bk-sops]current version is not open v3,skip register_bksops_notice")
             return
         try:
-            call_command("register_application", raise_error=True)
+            if settings.ENABLE_MULTI_TENANT_MODE:
+                call_command("register_application", "--tenant", "system", raise_error=True)
+            else:
+                call_command("register_application", raise_error=True)
             EnvironmentVariables.objects.update_or_create(
                 defaults={"value": 1}, key="ENABLE_NOTICE_CENTER"
             )
