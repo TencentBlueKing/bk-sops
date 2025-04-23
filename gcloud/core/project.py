@@ -81,7 +81,7 @@ def sync_projects_from_cmdb(username, tenant_id, use_cache=True):
         logger.warning("[sync_project_from_cmdb_business] create projects failed due to: {}".format(e))
 
     # 计算出 CC 已删除并且存在于项目中的业务 ID 集合，对这部分项目也需要进行归档
-    exist_sync_biz_cc_ids = set(Project.objects.filter(from_cmdb=True).values_list("bk_biz_id", flat=True))
+    exist_sync_biz_cc_ids = set(Project.objects.filter(from_cmdb=True, tenant_id=tenant_id).values_list("bk_biz_id", flat=True))
     deleted_biz_cc_ids = exist_sync_biz_cc_ids - all_biz_cc_ids
 
     # update project's status which sync from cmdb

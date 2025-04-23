@@ -141,18 +141,18 @@ class NotifyService(Service):
 
     def _email_args(self, receivers, title, content):
         return {
-            "receiver": receivers.split(","),
+            "receiver__username": receivers.split(","),
             "title": title,
             # 保留通知内容中的换行和空格
             "content": "<pre>%s</pre>" % content,
         }
 
     def _weixin_args(self, receivers, title, content):
-        return {"receiver": receivers.split(","), "data": {"heading": title, "message": content}}
+        return {"receiver__username": receivers.split(","), "message_data": {"heading": title, "message": content}}
 
     def _sms_args(self, receivers, title, content):
         return {
-            "receiver": receivers.split(","),
+            "receiver__username": receivers.split(","),
             "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
             "is_content_base64": False,
         }

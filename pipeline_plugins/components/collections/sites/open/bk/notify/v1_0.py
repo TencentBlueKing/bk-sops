@@ -144,7 +144,7 @@ class NotifyService(Service):
             try:
                 result = getattr(client.api, self._send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
             except Exception:
-                message = bk_handle_api_error("cmsi.send_msg", kwargs, result)
+                message = bk_handle_api_error(f"cmsi.{self._send_func[msg_type]}", kwargs, result)
                 self.logger.error(message)
                 error_flag = True
                 error += "%s;" % message
@@ -158,31 +158,31 @@ class NotifyService(Service):
 
     def _email_args(self, receivers, title, content):
         return {
-            "receiver": receivers.split(","),
+            "receiver__username": receivers.split(","),
             "title": title,
             # 保留通知内容中的换行和空格
             "content": "<pre>%s</pre>" % content,
         }
 
     def _weixin_args(self, receivers, title, content):
-        return {"receiver": receivers.split(","), "data": {"heading": title, "message": content}}
+        return {"receiver__username": receivers.split(","), "message_data": {"heading": title, "message": content}}
 
     def _voice_args(self, receivers, title, content):
         return {
             "auto_read_message": "蓝鲸通知 {}".format("%s: %s" % (title, content)),
-            "receiver": receivers.split(","),
+            "receiver__username": receivers.split(","),
         }
 
     def _sms_args(self, receivers, title, content):
         return {
-            "receiver": receivers.split(","),
+            "receiver__username": receivers.split(","),
             "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
             "is_content_base64": False,
         }
 
-    _send_func = {"weixin": "v1_send_weixin", "email": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
+    _send_func = {"weixin": "v1_send_weixin", "mail": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
 
-    _args_gen = {"weixin": _weixin_args, "email": _email_args, "sms": _sms_args, "voice": _voice_args}
+    _args_gen = {"weixin": _weixin_args, "mail": _email_args, "sms": _sms_args, "voice": _voice_args}
 
 
 class NotifyComponent(Component):
