@@ -434,6 +434,9 @@
                     }
                 }
                 formItemConfig.attrs.name = variable.name
+                if (formItemConfig.type === 'combine') {
+                    formItemConfig.name = variable.name
+                }
                 formItemConfig.tag_code = variable.key
                 formItemConfig.status = variable.status
                 // 自定义输入框变量正则校验添加到插件配置项
@@ -636,7 +639,7 @@
                                     })
                                 }
                             }
-                                                
+
                             // 根据source_info中获取勾选的表单项code
                             const [formCode] = curVar?.source_info[subflow.id] || []
                             if (!formCode) return

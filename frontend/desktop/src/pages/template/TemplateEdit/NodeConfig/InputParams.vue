@@ -379,7 +379,6 @@
         .rf-group-name {
             display: none;
         }
-        
         .hide-render-icon {
             top: 0;
         }
@@ -426,6 +425,12 @@
         }
     }
     >.rf-form-group {
+        // 解决子元素浮动导致父元素高度塌陷的问题
+        &::after{
+            content: "";
+            display: block;
+            clear: both;
+        }
         .rf-group-name {
             float: left;
         }
