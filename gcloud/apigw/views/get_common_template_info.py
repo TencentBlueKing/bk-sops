@@ -33,7 +33,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 def get_common_template_info(request, template_id):
     try:
         tmpl = CommonTemplate.objects.select_related("pipeline_template").get(
-            id=template_id, is_deleted=False, tenant_id=request.app.tenant_id
+            id=template_id, is_deleted=False, tenant_id=request.user.tenant_id
         )
     except CommonTemplate.DoesNotExist:
         result = {

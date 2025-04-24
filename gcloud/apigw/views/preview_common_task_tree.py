@@ -56,7 +56,7 @@ def preview_common_task_tree(request, project_id, template_id):
 
     try:
         data = preview_template_tree(
-            request.project.id, COMMON, template_id, version, exclude_task_nodes_id, request.app.tenant_id
+            request.project.id, COMMON, template_id, version, exclude_task_nodes_id, request.user.tenant_id
         )
     except Exception as e:
         logger.exception("[API] preview_common_task_tree fail: {}".format(e))

@@ -109,7 +109,7 @@ def create_task(request, template_id, project_id):
     else:
         try:
             tmpl = CommonTemplate.objects.select_related("pipeline_template").get(
-                id=template_id, is_deleted=False, tenant_id=request.app.tenant_id
+                id=template_id, is_deleted=False, tenant_id=request.user.tenant_id
             )
         except CommonTemplate.DoesNotExist:
             result = {

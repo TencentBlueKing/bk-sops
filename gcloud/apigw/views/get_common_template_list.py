@@ -30,7 +30,7 @@ from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
 @timezone_inject
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related("pipeline_template").filter(
-        is_deleted=False, tenant_id=request.app.tenant_id
+        is_deleted=False, tenant_id=request.user.tenant_id
     )
     templates_data, common_templates_id_list = format_template_list_data(templates, return_id_list=True, tz=request.tz)
     # 注入用户有权限的actions

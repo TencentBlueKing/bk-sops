@@ -202,7 +202,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         del_name = time_now_str()
         if not fake:
             # rename before delete to avoid name conflict when create a new app
-            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20])
+            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20], tenant_id=app_maker_obj.project.tenant_id)
             if not app_edit_result["result"]:
                 return False, _("删除失败：%s") % app_edit_result["message"]
 

@@ -88,18 +88,18 @@ def get_user_business_list(username, tenant_id, use_cache=True):
 
 
 def get_user_business_detail(username, bk_biz_id, tenant_id):
-    """Get authorized business list for a exact username.
+    """Get authorized business list for an exact username.
 
-    :param object username: User username
-    :param bool use_cache: (Optional)
+    :param username: User username
+    :param bk_biz_id:
+    :param tenant_id: 租户 ID
     """
 
-    # user_info = _get_user_info(username, tenant_id)
     client = get_client_by_username(username=username, stage=settings.BK_APIGW_STAGE_NAME)
     result = client.api.search_business(
+        {"condition": {"bk_data_status": {"$in": ["enable", "disabled", None]}, "bk_biz_id": bk_biz_id}},
         path_params={"bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)},
         headers={"X-Bk-Tenant-Id": tenant_id},
-        params={"condition": {"bk_data_status": {"$in": ["enable", "disabled", None]}, "bk_biz_id": bk_biz_id}},
     )
 
     if result["result"]:

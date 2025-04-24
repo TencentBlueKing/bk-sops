@@ -68,7 +68,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
                 remote_hosts[bk_agent_id] = remote_host_value
 
         # 去查询agent状态
-        agent_map = get_gse_agent_status_ipv6(bk_agent_id_list=list(remote_hosts.keys()))
+        agent_map = get_gse_agent_status_ipv6(bk_agent_id_list=list(remote_hosts.keys()), tenant_id=self.tenant_id)
 
         agent_online_ip_list = []  # 在线的ip的列表
         agent_offline_ip_list = []  # 不在线的ip的列表
@@ -199,7 +199,7 @@ class GseAgentStatusIpV6Filter:
             bk_agent_id_list.append(bk_agent_id)
 
         try:
-            agent_id_status_map = get_gse_agent_status_ipv6(bk_agent_id_list)
+            agent_id_status_map = get_gse_agent_status_ipv6(bk_agent_id_list, tenant_id=self.tenant_id)
         except Exception as e:
             raise ApiRequestError(f"ERROR:{e}")
 

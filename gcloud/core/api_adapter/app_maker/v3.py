@@ -23,7 +23,7 @@ from gcloud.core.models import EnvironmentVariables
 
 logger = logging.getLogger("component")
 ENV = "stag" if settings.IS_LOCAL else "prod"
-LIGHT_APP_API = "{}/{}/system/light-applications/".format(
+LIGHT_APP_API = "{}/{}/system/light-applications".format(
     env.BK_APIGW_URL_TMPL.format(api_name=env.PAASV3_APIGW_NAME), ENV
 )
 
@@ -125,6 +125,8 @@ def create_maker_app(
         "app_tag": app_tag,
         "creator": creator,
         "introduction": introduction or app_name,
+        "app_tenant_id": tenant_id,
+        "app_tenant_mode": "single",
     }
 
     resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="post", data=data, tenant_id=tenant_id)
