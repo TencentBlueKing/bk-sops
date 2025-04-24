@@ -60,7 +60,7 @@
             async handleConfirm () {
                 const resp = await this.saveTemplateData({
                     templateId: this.row.id,
-                    projectId: this.projectId,
+                    projectId: Number(this.projectId),
                     common: false
                 })
                 if (!resp.result) {

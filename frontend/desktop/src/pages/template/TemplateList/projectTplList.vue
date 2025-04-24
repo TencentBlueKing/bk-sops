@@ -1688,7 +1688,8 @@
             },
             openBatchUpdateDialog (row) {
                 this.curSelectedRow = row
-                this.setTemplateData(row)
+                const { labelIds: template_labels } = row
+                this.setTemplateData({ ...row, template_labels })
                 this.isBatchUpdateDialogShow = true
             },
             handleTplBatchUpdateConfirm () {
