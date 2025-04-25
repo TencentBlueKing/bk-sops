@@ -25,8 +25,8 @@ BK_CHAT_API_ENTRY = settings.BK_CHAT_API_ENTRY
 
 class MessageSender:
     def send(self, executor, notify_type, notify_receivers, receivers, title, content, email_content=None):
-        bkchat_receivers = notify_receivers.split(",")
-        cmsi_receivers = [notify for notify in notify_type if notify != "bk_chat"]
+        bkchat_receivers = notify_receivers.split(",") if notify_receivers != "" else []
+        cmsi_receivers = [notify for notify in notify_type if notify != "bkchat"]
 
         if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
             logger.info("bkchat send message, receivers: {}".format(bkchat_receivers))
