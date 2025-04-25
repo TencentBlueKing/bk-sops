@@ -693,38 +693,40 @@
             },
             onConfirm () {
                 const handleConfirmation = () => {
-                    const selectedInputForms = this.$refs.inputParams ? this.$refs.inputParams.filter((item, index) => {
-                        return this.subflowForms[index].checked
-                    }) : []
-                    if (selectedInputForms.every(item => item.validate())) {
-                        this.subflowForms.filter(item => item.checked).forEach(item => {
-                            const activity = tools.deepClone(this.activities[item.id])
-                            activity.version = item.latestForm.version
-                            activity.constants = tools.deepClone(item.latestForm.form)
-                            Object.keys(activity.constants).forEach(key => {
-                                const varItem = activity.constants[key]
-                                varItem.value = item.latestForm.inputsValue[key]
-                                varItem.need_render = item.latestForm.inputsRenderConfig[key]
-                            })
-                            this.setActivities({ type: 'edit', location: activity })
-                            this.setSubprocessUpdated({
-                                subprocess_node_id: item.id
-                            })
+                    this.subflowForms.filter(item => item.checked).forEach(item => {
+                        const activity = tools.deepClone(this.activities[item.id])
+                        activity.version = item.latestForm.version
+                        activity.constants = tools.deepClone(item.latestForm.form)
+                        Object.keys(activity.constants).forEach(key => {
+                            const varItem = activity.constants[key]
+                            varItem.value = item.latestForm.inputsValue[key]
+                            varItem.need_render = item.latestForm.inputsRenderConfig[key]
                         })
-                        this.handleVariableChange()
-                        this.onCloseDialog(true)
+                        this.setActivities({ type: 'edit', location: activity })
+                        this.setSubprocessUpdated({
+                            subprocess_node_id: item.id
+                        })
+                    })
+                    this.handleVariableChange()
+                    this.onCloseDialog(true)
+                }
+
+                const selectedInputForms = this.$refs.inputParams ? this.$refs.inputParams.filter((item, index) => {
+                    return this.subflowForms[index].checked
+                }) : []
+
+                if (selectedInputForms.every(item => item.validate())) {
+                    if (this.isSourceList) {
+                        this.showSaveConfirmation(handleConfirmation)
                     } else {
-                        const errorEl = document.querySelector('.subflow-form-wrap .common-error-tip')
-                        if (errorEl) {
-                            errorEl.scrollIntoView()
-                        }
+                        handleConfirmation()
+                    }
+                } else {
+                    const errorEl = document.querySelector('.subflow-form-wrap .common-error-tip')
+                    if (errorEl) {
+                        errorEl.scrollIntoView()
                     }
                 }
-                if (this.isSourceList) {
-                    this.showSaveConfirmation(handleConfirmation)
-                    return
-                }
-                handleConfirmation()
             },
             // 显示保存确认弹窗
             showSaveConfirmation (confirmHandler) {
