@@ -557,6 +557,7 @@
                             this.isUpdatePipelineTree = false
                         } else {
                             this.previewData = tools.deepClone(this.curRow.pipeline_tree)
+                            this.selectedNodes = Object.values(this.previewData.activities).map(item => item.template_node_id)
                         }
                     } else if (!this.isEdit) {
                         this.formData.schemeId = this.schemeList.length ? [0] : []
