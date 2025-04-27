@@ -94,7 +94,7 @@ def register_project(request):
         "creator": username,
         "desc": "",
         "from_cmdb": True,
-        "tenant_id": request.app.tenant_id,
+        "tenant_id": request.user.tenant_id,
     }
 
     try:

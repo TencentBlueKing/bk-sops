@@ -68,7 +68,7 @@ def fast_create_task(request, project_id):
     has_common_subprocess = params.get("has_common_subprocess", False)
     try:
         template = (
-            CommonTemplate(pipeline_template=None, tenant_id=request.app.tenant_id)
+            CommonTemplate(pipeline_template=None, tenant_id=request.user.tenant_id)
             if has_common_subprocess
             else TaskTemplate(pipeline_template=None)
         )

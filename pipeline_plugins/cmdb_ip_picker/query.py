@@ -156,7 +156,7 @@ def cmdb_search_host(request, bk_biz_id):
                     bk_agent_id_list.append(bk_agent_id)
 
                 try:
-                    agent_id_status_map = get_gse_agent_status_ipv6(bk_agent_id_list)
+                    agent_id_status_map = get_gse_agent_status_ipv6(bk_agent_id_list, tenant_id)
                 except Exception as e:
                     result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": e}
                     return JsonResponse(result)

@@ -738,7 +738,7 @@ def get_bk_cloud_id_for_host(host_info, cloud_key="cloud"):
     return host_info[cloud_key][0]["id"]
 
 
-def get_gse_agent_status_ipv6(bk_agent_id_list):
+def get_gse_agent_status_ipv6(bk_agent_id_list, tenant_id):
     if not bk_agent_id_list:
         return {}
     ENV_MAP = {"PRODUCT": "prod", "STAGING": "stage"}
@@ -755,7 +755,7 @@ def get_gse_agent_status_ipv6(bk_agent_id_list):
             "agent_id_list": agent_ids,
         }
 
-        resp = requests.post(url=get_agent_status_url, json=params)
+        resp = requests.post(url=get_agent_status_url, json=params, headers={"X-Bk-Tenant-Id": tenant_id})
 
         if resp.status_code != 200:
             raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
