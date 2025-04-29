@@ -714,4 +714,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 # 去除下一个节点的入度
                 nodes[next_node_id]["last"].remove(cur_node_id)
                 cur_node_id = next_node_id
+            elif multi_next_node_stack:
+                # 如果当前节点没有出度, 则从多出度栈中拿一个节点作为下一个节点
+                cur_node_id = multi_next_node_stack.pop()
         return ordered_node_ids
