@@ -104,6 +104,7 @@ def mysetting(request):
         "USERNAME": request.user.username,
         "DISPLAY_NAME": getattr(request.user, "display_name", request.user.username),
         "TENANT_ID": getattr(request.user, "tenant_id", ""),
+        "ENABLE_MULTI_TENANT_MODE": settings.ENABLE_MULTI_TENANT_MODE,
         # 'NICK': request.session.get('nick', ''),          # 用户昵称
         "NICK": request.user.username,  # 用户昵称
         "AVATAR": request.session.get("avatar", ""),  # 用户头像
