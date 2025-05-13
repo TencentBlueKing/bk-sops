@@ -1956,7 +1956,7 @@
             background: #ffffff;
             border: 1px solid #dcdee5;
             box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
-            /deep/ .bk-table-body-wrapper {
+            ::v-deep .bk-table-body-wrapper {
                 overflow-y: auto;
             }
             .icon-wrap {

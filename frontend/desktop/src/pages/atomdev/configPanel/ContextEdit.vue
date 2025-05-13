@@ -107,7 +107,7 @@
     .context-edit {
         padding: 0;
     }
-    /deep/ .bk-form {
+    ::v-deep .bk-form {
         .bk-label {
             font-size: 12px;
         }

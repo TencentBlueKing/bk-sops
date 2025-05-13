@@ -169,7 +169,7 @@
     border: 1px solid #ececec;
     border-radius: 2px;
     overflow: hidden;
-    /deep/ .bk-big-tree-node .node-content {
+    ::v-deep .bk-big-tree-node .node-content {
         font-size: 12px;
     }
 }

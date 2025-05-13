@@ -562,14 +562,14 @@
     height: calc(100% - 72px);
     min-height: 500px;
     overflow: hidden;
-    /deep/ .jsflow .tool-panel-wrap {
+    ::v-deep .jsflow .tool-panel-wrap {
         left: 40px;
     }
     .node-preview-wrapper {
         height: 100%;
     }
 }
-/deep/ .pipeline-canvas {
+::v-deep .pipeline-canvas {
     .tool-wrapper {
         top: 19px;
         left: 40px;

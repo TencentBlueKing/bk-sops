@@ -938,10 +938,12 @@
 .query-button {
     padding: 10px;
     min-width: 450px;
+    text-align: center;
+
     @media screen and (max-width: 1420px) {
         min-width: 390px;
     }
-    text-align: center;
+
     .bk-button {
         height: 32px;
         line-height: 32px;
@@ -953,7 +955,7 @@
 .periodic-table-content {
     margin-top: 25px;
     background: #ffffff;
-    /deep/ .bk-table {
+    ::v-deep .bk-table {
         td.is-last .cell {
             overflow: visible;
         }
@@ -1051,7 +1053,7 @@
             border-radius: 50%;
         }
     }
-    /deep/.table-header-tips {
+    ::v-deep .table-header-tips {
         margin-left: 4px;
         font-size: 14px;
         color: #c4c6cc;

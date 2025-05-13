@@ -279,25 +279,25 @@
         margin-right: 20px;
         margin-top: 6px;
         min-width: 96px;
-        /deep/ .bk-checkbox-text {
+        ::v-deep .bk-checkbox-text {
             color: $greyDefault;
             font-size: 12px;
         }
-        &.is-disabled /deep/.bk-checkbox-text {
+        &.is-disabled ::v-deep .bk-checkbox-text {
             color: #c4c6cc;
         }
-        &.is-checked /deep/.bk-checkbox-text  {
+        &.is-checked ::v-deep .bk-checkbox-text  {
             color: #606266;
         }
     }
-    /deep/ .bk-checkbox-text {
+    ::v-deep .bk-checkbox-text {
         display: inline-flex;
         align-items: center;
         width: 100px;
     }
     .notify-type-table {
         min-height: 86px;
-        /deep/ .bk-table-header-label {
+        ::v-deep .bk-table-header-label {
             width: 100%;
             .notify-table-heder {
                 display: flex;
@@ -309,10 +309,10 @@
                 }
             }
         }
-        /deep/.bk-table-fixed {
+        ::v-deep .bk-table-fixed {
             height: 100% !important;
         }
-        /deep/.bk-table-body-wrapper {
+        ::v-deep .bk-table-body-wrapper {
             @include scrollbar;
             .cell {
                 display: flex;

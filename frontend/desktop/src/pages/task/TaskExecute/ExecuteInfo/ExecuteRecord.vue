@@ -141,7 +141,7 @@
 
 <style lang="scss" scoped>
 .execute-record {
-    /deep/.abnormal-section {
+    ::v-deep .abnormal-section {
         position: relative;
         font-size: 12px;
         margin-bottom: 8px !important;
@@ -222,8 +222,8 @@
             }
         }
     }
-    /deep/.input-section,
-    /deep/.outputs-section {
+    ::v-deep .input-section,
+    ::v-deep .outputs-section {
         font-size: 12px;
         .origin-value {
             position: absolute;
@@ -243,13 +243,13 @@
         flex: 1;
         margin: 20px 0 0 48px;
     }
-    /deep/.no-data-wrapper {
+    ::v-deep .no-data-wrapper {
         .no-data-wording {
             font-size: 12px;
             color: #63656e;
         }
     }
-    /deep/.exception-part {
+    ::v-deep .exception-part {
         margin-top: 20px;
         .part-text {
             font-size: 12px;
@@ -257,7 +257,7 @@
         }
     }
     .ex-data-wrap {
-        /deep/ pre {
+        ::v-deep pre {
             white-space: pre-wrap;
         }
     }
@@ -271,7 +271,7 @@
         height: 150px;
         margin-top: 32px;
     }
-    /deep/.section-title-wrap {
+    ::v-deep .section-title-wrap {
         display: flex;
         align-items: center;
         position: relative;

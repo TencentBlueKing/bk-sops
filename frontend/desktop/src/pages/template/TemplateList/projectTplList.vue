@@ -928,7 +928,7 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     this.templateLabels = res.data
-                    
+
                     form.children = res.data.map(item => Object.assign({}, item, { value: item.id }))
                     // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
                     const ids = this.$route.query['label_ids']
@@ -1781,7 +1781,7 @@
     &.disabled .export-tpl-btn {
         cursor: not-allowed;
     }
-    /deep/.bk-dropdown-content {
+    ::v-deep .bk-dropdown-content {
         z-index: 1;
     }
 }
@@ -1812,7 +1812,7 @@
         background-color: #fafafa !important;
     }
 }
-/deep/.bk-table-header-append .is-prepend {
+::v-deep .bk-table-header-append .is-prepend {
     height: 32px !important;
 }
 .selected-tpl-num {
@@ -1823,7 +1823,7 @@
     font-size: 12px;
     background: #f0f1f5;
     border-bottom: 1px solid #dfe0e5;
-    /deep/.bk-link-text {
+    ::v-deep .bk-link-text {
         margin-left: 6px;
         font-size: 12px;
         line-height: 1;
@@ -1840,7 +1840,7 @@
             display: block;
         }
     }
-    /deep/.bk-table {
+    ::v-deep .bk-table {
         td, th {
             height: 42px;
         }
@@ -1917,7 +1917,7 @@
             vertical-align: 1px;
         }
     }
-    /deep/.select-all-cell {
+    ::v-deep .select-all-cell {
         display: flex;
         align-items: center;
         &.full-selected {
@@ -1936,7 +1936,7 @@
             color: #979ba5;
         }
     }
-    /deep/.category-label {
+    ::v-deep .category-label {
         display: flex;
         align-items: center;
         .table-header-tips {
@@ -1947,8 +1947,8 @@
             cursor: pointer;
         }
     }
-    /deep/.edit-time,
-    /deep/.create-time {
+    ::v-deep .edit-time,
+    ::v-deep .create-time {
         .bk-table-caret-wrapper {
             display: none;
         }

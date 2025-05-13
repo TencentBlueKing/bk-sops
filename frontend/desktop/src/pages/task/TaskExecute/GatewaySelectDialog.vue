@@ -86,7 +86,7 @@
         .common-form-item > label {
             font-weight: normal;
         }
-        /deep/.bk-select .bk-select-tag-container {
+        ::v-deep .bk-select .bk-select-tag-container {
             padding-top: 0 !important;
         }
     }

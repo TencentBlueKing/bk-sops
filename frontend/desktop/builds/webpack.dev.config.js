@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
@@ -64,13 +65,36 @@ module.exports = merge(webpackBaseConfig, {
         rules: [
             {
                 test: /\.s?[ac]ss$/,
+                exclude: /node_modules/,
                 use: [
                     'style-loader',
                     'css-loader',
                     'postcss-loader',
-                    'sass-loader'
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            implementation: require('sass'), // 强制使用 Dart Sass
+                            sassOptions: {
+                                includePaths: [path.resolve(__dirname, '../src/')],
+                                indentedSyntax: false, // 如果使用 SCSS 语法需设为 false
+                                silenceDeprecations: ['import', 'legacy-js-api']
+                            }
+                        }
+                    }
                 ]
-
+            },
+            {
+                test: /\.css$/,
+                include: /node_modules/,
+                use: [
+                'style-loader',
+                {
+                    loader: 'css-loader',
+                    options: {
+                    importLoaders: 1 // 避免重复处理 @import
+                    }
+                }
+                ]
             }
         ]
     },

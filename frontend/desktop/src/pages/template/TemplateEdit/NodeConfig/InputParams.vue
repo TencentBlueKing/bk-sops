@@ -365,7 +365,7 @@
 .not-referred-forms {
     margin-top: 20px;
     background: #f0f1f5;
-    & >>> .bk-collapse-item {
+    & ::v-deep .bk-collapse-item {
         .bk-collapse-item-header {
             color: #333333;
             &:hover {
@@ -374,7 +374,7 @@
         }
     }
 }
-/deep/.render-form {
+::v-deep .render-form {
     >.rf-form-item {
         .rf-group-name {
             display: none;
@@ -404,7 +404,7 @@
         }
     }
 }
-/deep/.subflow-form {
+::v-deep .subflow-form {
     .rf-form-group {
         .rf-group-name {
             display: block;
