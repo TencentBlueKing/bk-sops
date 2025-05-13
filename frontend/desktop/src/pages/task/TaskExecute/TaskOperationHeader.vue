@@ -343,7 +343,7 @@
                 background: transparent;
                 cursor: pointer;
             }
-            /deep/ .bk-icon {
+            ::v-deep .bk-icon {
                 float: initial;
                 top: 0;
                 & + span {
@@ -383,7 +383,7 @@
                 &.btn-permission-disable {
                     border: 1px solid #e6e6e6;
                 }
-                /deep/ .bk-button-loading div {
+                ::v-deep .bk-button-loading div {
                     background: #ffffff;
                 }
             }
@@ -397,7 +397,7 @@
                 &.is-disabled {
                     color: #d8d8d8;
                 }
-                /deep/.common-icon-stop {
+                ::v-deep .common-icon-stop {
                     font-size: 24px;
                     margin-top: 10px;
                 }
@@ -435,7 +435,7 @@
             }
         }
     }
-    /deep/.bk-button .bk-icon {
+    ::v-deep .bk-button .bk-icon {
         font-size: 14px;
     }
 }

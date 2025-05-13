@@ -880,19 +880,19 @@
 
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
-/deep/.bk-sideslider-content {
+::v-deep .bk-sideslider-content {
     height: calc(100% - 60px);
     position: relative;
     padding: 18px 31px 48px 28px;
     overflow-y: auto;
     @include scrollbar;
 }
-/deep/.bk-sideslider-title {
+::v-deep .bk-sideslider-title {
     color: #313238;
     font-size: 16px;
     font-weight: normal;
 }
-/deep/.btn-footer {
+::v-deep .btn-footer {
     z-index: 100;
 }
 .config-section {
@@ -915,7 +915,7 @@
             cursor: pointer;
         }
     }
-    /deep/.bk-form {
+    ::v-deep .bk-form {
         .bk-label {
             font-size: 12px;
             color: #63656e;
@@ -957,12 +957,12 @@
         padding: 0 25px;
     }
 }
-/deep/.notify-type-wrapper {
+::v-deep .notify-type-wrapper {
     .bk-form-content {
         margin-left: 90px !important;
     }
 }
-/deep/.template-loading {
+::v-deep .template-loading {
     .bk-loading-wrapper {
         top: 65%;
     }

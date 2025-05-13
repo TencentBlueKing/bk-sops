@@ -322,7 +322,7 @@
                     }
                 }
             }
-            /deep/.percent-table {
+            ::v-deep .percent-table {
                 flex: 1;
                 min-width: 352px;
                 .bk-table {

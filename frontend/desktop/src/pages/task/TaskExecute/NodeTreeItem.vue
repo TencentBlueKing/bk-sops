@@ -388,7 +388,7 @@
     .dynamic-load {
         margin-left: 42px;
         height: 40px;
-        /deep/.bk-loading-wrapper {
+        ::v-deep .bk-loading-wrapper {
             top: 70%;
             left: 15%;
         }

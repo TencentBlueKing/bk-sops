@@ -51,7 +51,7 @@
 </script>
 <style lang="scss" scoped>
 .tag-testdatetime {
-    /deep/ .el-date-editor {
+    ::v-deep .el-date-editor {
         width: 100%;
     }
 }

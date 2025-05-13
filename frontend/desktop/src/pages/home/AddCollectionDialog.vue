@@ -490,7 +490,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
-/deep/ .common-dialog.add-collection .bk-dialog-tool{
+::v-deep .common-dialog.add-collection .bk-dialog-tool{
     min-height: 0;
 }
 .export-container {

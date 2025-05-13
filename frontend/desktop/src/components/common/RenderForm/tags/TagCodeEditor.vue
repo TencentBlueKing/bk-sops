@@ -261,7 +261,7 @@
                     font-weight: 700;
                 }
             }
-            /deep/.close-text {
+            ::v-deep .close-text {
                 color: #3a84ff;
             }
         }
@@ -275,7 +275,7 @@
         }
         .code-editor-wrap {
             position: relative;
-            /deep/.view-lines .variable-tag {
+            ::v-deep .view-lines .variable-tag {
                 display: inline-block;
                 color: #ffe8c3;
                 background: #76654b;
