@@ -98,7 +98,8 @@
         },
         {
             id: 'editor',
-            name: i18n.t('更新人')
+            name: i18n.t('更新人'),
+            isUser: true
         }
     ]
     export default {
@@ -306,7 +307,8 @@
             },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    acc[cur.id] = cur.values[0]
+                    const value = cur.values[0]
+                    acc[cur.id] = typeof value === 'string' ? value : value.id
                     return acc
                 }, {})
                 this.requestData = data

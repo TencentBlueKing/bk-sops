@@ -77,6 +77,10 @@
                                 <div v-else-if="item.id === 'category_name'">
                                     {{ props.row.flow_type === 'common_func' ? $t('task_职能化') : $t('常规') }}
                                 </div>
+                                <template v-else-if="isMultiTenantMode">
+                                    <bk-user-display-name v-if="item.id === 'creator_name'" :user-id="props.row.creator_name" />
+                                    <bk-user-display-name v-else-if="item.id === 'executor_name'" :user-id="props.row.executor_name" />
+                                </template>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
@@ -155,11 +159,13 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人')
+            name: i18n.t('创建人'),
+            isUser: true
         },
         {
             id: 'executor',
-            name: i18n.t('执行人')
+            name: i18n.t('执行人'),
+            isUser: true
         },
         {
             id: 'statusSync',
@@ -297,6 +303,9 @@
             }
         },
         computed: {
+            ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode
+            }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
             })
@@ -500,7 +509,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})

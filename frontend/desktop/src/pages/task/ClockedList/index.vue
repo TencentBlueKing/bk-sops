@@ -63,6 +63,10 @@
                                 <div v-else-if="item.id === 'state'">
                                     {{ row.state === 'not_started' ? $t('未执行') : row.state === 'started' ? $t('已执行') : row.state ? $t('启动失败') : '--' }}
                                 </div>
+                                <template v-else-if="isMultiTenantMode">
+                                    <bk-user-display-name v-if="item.id === 'creator'" :user-id="row.creator" />
+                                    <bk-user-display-name v-else-if="item.id === 'editor'" :user-id="row.editor" />
+                                </template>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -198,11 +202,13 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人')
+            name: i18n.t('创建人'),
+            isUser: true
         },
         {
             id: 'editor',
-            name: i18n.t('更新人')
+            name: i18n.t('更新人'),
+            isUser: true
         },
         {
             id: 'state',
@@ -349,6 +355,7 @@
         },
         computed: {
             ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode,
                 hasAdminPerm: state => state.hasAdminPerm
             }),
             ...mapState('project', {
@@ -469,7 +476,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})

@@ -110,13 +110,13 @@
                 isMoreOperateActive: false,
                 logListLoading: false,
                 logDetailLoading: false,
-                curLanguage: 'chinese'
+                curLanguage: 'chinese',
+                username: window.DISPLAY_NAME
             }
         },
         computed: {
             ...mapState({
-                view_mode: state => state.view_mode,
-                username: state => state.username
+                view_mode: state => state.view_mode
             }),
             ...mapState('project', {
                 project_id: state => state.project_id,

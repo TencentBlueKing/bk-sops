@@ -10,33 +10,53 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <bk-user-selector
-        v-model="setValue"
-        :api="api"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :search-limit="maxResult"
-        :multiple="multiple"
-        :tag-clearable="hasDeleteIcon"
-        :fixed-height="fixedHeight"
-        @change="change"
-        @select-user="select"
-        @remove-selected="remove">
-    </bk-user-selector>
+    <div class="user-selector-wrap">
+        <BKMultiTenantUserSelector
+            v-if="isMultiTenantMode"
+            v-model="setValue"
+            :api-base-url="apiBaseUrl"
+            :tenant-id="tenantId"
+            :current-user-id="username"
+            exact-search-key="bk_username"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :multiple="multiple">
+        </BKMultiTenantUserSelector>
+        <BkUserSelector
+            v-else
+            v-model="setValue"
+            :api="api"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :search-limit="maxResult"
+            :multiple="multiple"
+            :tag-clearable="hasDeleteIcon"
+            :fixed-height="fixedHeight"
+            @change="change"
+            @select-user="select"
+            @remove-selected="remove">
+        </BkUserSelector>
+    </div>
 </template>
 <script>
     import BkUserSelector from '@blueking/user-selector'
+    import BKMultiTenantUserSelector from '@blueking/bk-user-selector/vue2'
+    import '@blueking/bk-user-selector/vue2/vue2.css'
+    import { mapState } from 'vuex'
     export default {
         name: 'MemberSelect',
-        components: { BkUserSelector },
+        components: {
+            BkUserSelector,
+            BKMultiTenantUserSelector
+        },
         model: {
             prop: 'value',
             event: 'change'
         },
         props: {
             value: {
-                type: Array,
-                default: () => ([])
+                type: [Array, String],
+                default: ''
             },
             placeholder: String,
             disabled: {
@@ -49,7 +69,7 @@
             },
             multiple: {
                 type: Boolean,
-                default: true
+                default: false
             },
             maxData: {
                 type: Number,
@@ -63,10 +83,16 @@
         data () {
             return {
                 fixedHeight: false,
-                api: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
+                api: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
+                tenantId: window.TENANT_ID,
+                apiBaseUrl: window.BK_USER_WEB_APIGW_URL
             }
         },
         computed: {
+            ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode,
+                username: state => state.username
+            }),
             setValue: {
                 get () {
                     return this.value

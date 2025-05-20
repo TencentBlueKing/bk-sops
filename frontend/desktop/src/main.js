@@ -30,6 +30,7 @@ import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import '@toast-ui/editor/dist/toastui-editor.css'
+import BkUserDisplayName from '@blueking/bk-user-display-name'
 import { STRING_LENGTH } from '@/constants/index.js'
 import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
 import tools from './utils/tools'
@@ -221,6 +222,13 @@ Vue.prototype.filterXSS = (input, config = {}) => {
         }
     }, config))
 }
+
+BkUserDisplayName.configure({
+    // 必填，租户 ID
+    tenantId: window.TENANT_ID,
+    // 必填，网关地址
+    apiBaseUrl: window.BK_USER_WEB_APIGW_URL
+})
 
 new Vue({
     i18n,

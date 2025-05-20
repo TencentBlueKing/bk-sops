@@ -13,7 +13,12 @@
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
                 <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
-                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作人')" prop="operator"></bk-table-column>
+                <bk-table-column show-overflow-tooltip :render-header="renderTableHeader" :label="$t('操作人')" prop="operator">
+                    <template slot-scope="props">
+                        <bk-user-display-name v-if="isMultiTenantMode" :user-id="props.row.operator" />
+                        <span v-else>{{ props.row.operator || '--' }}</span>
+                    </template>
+                </bk-table-column>
                 <div class="static-ip-empty" slot="empty">
                     <NoData></NoData>
                 </div>
@@ -23,7 +28,7 @@
 </template>
 
 <script>
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import moment from 'moment'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
@@ -34,6 +39,11 @@
             return {
                 operateFlowData: []
             }
+        },
+        computed: {
+            ...mapState({
+                'isMultiTenantMode': state => state.isMultiTenantMode
+            })
         },
         mounted () {
             this.getOperationTemplateData()

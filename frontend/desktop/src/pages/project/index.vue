@@ -44,7 +44,14 @@
                             :render-header="renderTableHeader"
                             :min-width="item.min_width">
                             <template slot-scope="props">
-                                {{ props.row[item.id] || '--' }}
+                                <template v-if="item.id === 'creator'">
+                                    <bk-user-display-name v-if="isMultiTenantMode" :user-id="props.row.creator" />
+                                    <span v-else>{{ props.row.creator || '--' }}</span>
+                                </template>
+                                <!-- 其他 -->
+                                <template v-else>
+                                    {{ props.row[item.id] || '--' }}
+                                </template>
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('操作')">
@@ -181,7 +188,8 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人')
+            name: i18n.t('创建人'),
+            isUser: true
         }
     ]
     const OptBtnList = [
@@ -313,6 +321,9 @@
             }
         },
         computed: {
+            ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode
+            }),
             ...mapState('project', {
                 'project_id': state => state.project_id
             }),
@@ -515,7 +526,7 @@
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
                     const value = cur.values[0]
-                    acc[cur.id] = cur.children ? value.id : value
+                    acc[cur.id] = typeof value === 'string' ? value : value.id
                     return acc
                 }, {})
                 this.requestData = data

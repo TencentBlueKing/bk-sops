@@ -131,6 +131,10 @@
                                         </bk-popover>
 
                                     </template>
+                                    <template v-else-if="isMultiTenantMode">
+                                        <bk-user-display-name v-if="item.id === 'creator'" :user-id="row.creator" />
+                                        <bk-user-display-name v-else-if="item.id === 'editor'" :user-id="row.editor" />
+                                    </template>
                                     <!-- 其他 -->
                                     <template v-else>
                                         <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -274,11 +278,13 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人')
+            name: i18n.t('创建人'),
+            isUser: true
         },
         {
             id: 'editor',
-            name: i18n.t('更新人')
+            name: i18n.t('更新人'),
+            isUser: true
         },
         {
             id: 'enabled',
@@ -443,6 +449,7 @@
         },
         computed: {
             ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode,
                 username: state => state.username,
                 hasAdminPerm: state => state.hasAdminPerm
             }),
@@ -714,7 +721,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})

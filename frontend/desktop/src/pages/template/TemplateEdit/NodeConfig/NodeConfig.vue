@@ -822,7 +822,6 @@
                             desc = descList.join('<br>')
                         }
                     }
-                    const executorProxy = executor_proxy ? executor_proxy.split(',') : []
 
                     return {
                         plugin: code,
@@ -840,7 +839,7 @@
                         selectable: optional,
                         autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
                         timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
-                        executor_proxy: executorProxy
+                        executor_proxy
                     }
                 } else {
                     const {
@@ -865,7 +864,6 @@
                             templateName = templateData.name
                         }
                     }
-                    const executorProxy = executor_proxy ? executor_proxy.split(',') : []
                     return {
                         tpl: template_id || '',
                         name: templateName, // 流程模版名称
@@ -881,7 +879,7 @@
                         retryable: can_retry === undefined ? retryable : can_retry,
                         autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
                         timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
-                        executor_proxy: executorProxy
+                        executor_proxy
                     }
                 }
             },
@@ -1424,7 +1422,7 @@
                         timeout_config: timeoutConfig
                     })
                     if (this.common) {
-                        config['executor_proxy'] = executor_proxy.join(',')
+                        config['executor_proxy'] = executor_proxy
                     }
                 } else {
                     const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig, executor_proxy } = this.basicInfo
@@ -1471,7 +1469,7 @@
                         timeout_config: timeoutConfig
                     })
                     if (this.common) {
-                        config['executor_proxy'] = executor_proxy.join(',')
+                        config['executor_proxy'] = executor_proxy
                     }
                     delete config.can_retry
                     delete config.isSkipped
@@ -1612,7 +1610,7 @@
                             error_ignorable: ignorable
                         }
                         if (this.common) {
-                            nodeData['executor_proxy'] = executor_proxy.join(',')
+                            nodeData['executor_proxy'] = executor_proxy
                         }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()

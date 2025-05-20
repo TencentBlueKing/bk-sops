@@ -207,14 +207,12 @@
                 </bk-switcher>
             </bk-form-item>
             <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
-                <bk-user-selector
+                <member-select
+                    :value="formData.executor_proxy"
                     :disabled="isViewMode"
-                    v-model="formData.executor_proxy"
                     :placeholder="$t('请输入用户')"
-                    :api="userApi"
-                    :multiple="false"
                     @change="onUserSelectChange">
-                </bk-user-selector>
+                </member-select>
                 <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
             </bk-form-item>
         </bk-form>
@@ -443,14 +441,12 @@
                 </div>
             </bk-form-item>
             <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
-                <bk-user-selector
+                <member-select
+                    :value="formData.executor_proxy"
                     :disabled="isViewMode"
-                    v-model="formData.executor_proxy"
                     :placeholder="$t('请输入用户')"
-                    :api="userApi"
-                    :multiple="false"
                     @change="onUserSelectChange">
-                </bk-user-selector>
+                </member-select>
                 <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
             </bk-form-item>
         </bk-form>
@@ -459,14 +455,14 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
-    import BkUserSelector from '@blueking/user-selector'
+    import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
     export default {
         name: 'BasicInfo',
         components: {
-            BkUserSelector
+            MemberSelect
         },
         props: {
             projectId: [String, Number],
@@ -823,7 +819,7 @@
             onUserSelectChange (tags) {
                 this.formData.executor_proxy = tags
                 this.updateData()
-                this.isProxyValidateError = tags.length === 1 && tags[0] !== this.username
+                this.isProxyValidateError = tags && tags !== this.username
             },
             async onAlwaysUseLatestChange (val) {
                 this.formData.alwaysUseLatest = val

@@ -5,7 +5,12 @@
             :data="operateFlowData"
             v-bkloading="{ isLoading: isFlowLoading }">
             <bk-table-column width="160" show-overflow-tooltip :label="$t('操作时间')" prop="operate_date"></bk-table-column>
-            <bk-table-column width="100" show-overflow-tooltip :label="$t('操作人')" prop="operator"></bk-table-column>
+            <bk-table-column width="160" show-overflow-tooltip :label="$t('操作人')" prop="operator">
+                <template slot-scope="props">
+                    <bk-user-display-name v-if="isMultiTenantMode" :user-id="props.row.operator" />
+                    <span v-else>{{ props.row.operator }}</span>
+                </template>
+            </bk-table-column>
             <bk-table-column width="120" show-overflow-tooltip :label="$t('来源')" :prop="$store.state.lang === 'en' ? 'operate_source' : 'operate_source_name'"></bk-table-column>
             <bk-table-column width="100" show-overflow-tooltip :label="$t('操作类型')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
             <bk-table-column width="130" show-overflow-tooltip v-if="!nodeId" :label="$t('节点')" prop="node_name">
@@ -39,7 +44,7 @@
 </template>
 
 <script>
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import moment from 'moment'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
@@ -61,6 +66,12 @@
                 isFlowLoading: false,
                 operateFlowData: []
             }
+        },
+        
+        computed: {
+            ...mapState({
+                'isMultiTenantMode': state => state.isMultiTenantMode
+            })
         },
         watch: {
             nodeId (val) {

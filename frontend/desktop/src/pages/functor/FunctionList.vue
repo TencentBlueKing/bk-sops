@@ -94,6 +94,10 @@
                                     <span :class="executeStatus[props.row.task.id] && executeStatus[props.row.task.id].cls"></span>
                                     <span v-if="executeStatus[props.row.task.id]" class="task-status-text">{{executeStatus[props.row.task.id].text}}</span>
                                 </div>
+                                <template v-else-if="isMultiTenantMode">
+                                    <bk-user-display-name v-if="item.id === 'creator'" :user-id="props.row.creator" />
+                                    <bk-user-display-name v-else-if="item.id === 'claimant'" :user-id="props.row.claimant" />
+                                </template>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
@@ -281,7 +285,7 @@
                     <div>{{ getTransferTaskName() }}</div>
                 </bk-form-item>
                 <bk-form-item label="转交人" property="claimant">
-                    <member-select v-model="claimant" style="width: 100%;" :multiple="false"></member-select>
+                    <member-select v-model="claimant" style="width: 100%;"></member-select>
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
@@ -318,11 +322,13 @@
         },
         {
             id: 'creator',
-            name: i18n.t('提单人')
+            name: i18n.t('提单人'),
+            isUser: true
         },
         {
             id: 'claimant',
-            name: i18n.t('认领人')
+            name: i18n.t('认领人'),
+            isUser: true
         },
         {
             id: 'claimStatus',
@@ -438,7 +444,7 @@
                 isShowTransferDialog: false,
                 functorBasicInfoLoading: true,
                 transferId: '',
-                claimant: [],
+                claimant: '',
                 transferPending: false,
                 functorList: [],
                 executeStatus: {}, // 任务执行状态
@@ -525,6 +531,7 @@
         },
         computed: {
             ...mapState({
+                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'username': state => state.username,
                 'categorys': state => state.categorys,
                 'permissionMeta': state => state.permissionMeta
@@ -1098,7 +1105,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})
@@ -1160,12 +1167,12 @@
                     try {
                         this.transferPending = true
                         const params = {
-                            claimant: this.claimant[0],
+                            claimant: this.claimant,
                             id: this.transferId
                         }
                         await this.transferFunctionTask(params)
                         this.isShowTransferDialog = false
-                        this.claimant = []
+                        this.claimant = ''
                         this.transferId = ''
                         this.loadFunctionTask()
                     } catch (e) {
@@ -1177,7 +1184,7 @@
             },
             onTransferCancel () {
                 this.isShowTransferDialog = false
-                this.claimant = []
+                this.claimant = ''
                 this.transferId = ''
             }
         }

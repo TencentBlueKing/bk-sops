@@ -15,6 +15,7 @@
             <member-select
                 v-model="memberValue"
                 :disabled="!editable || disabled"
+                :multiple="true"
                 :placeholder="placeholder">
             </member-select>
         </div>
