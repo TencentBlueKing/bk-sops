@@ -292,6 +292,7 @@ def get_constant_preview_result(request):
     params = json.loads(request.body)
     constants = params.get("constants", {})
     extra_data = params.get("extra_data", {})
+    extra_data["tenant_id"] = request.user.tenant_id
 
     preview_results = get_constant_values(constants, extra_data)
 
