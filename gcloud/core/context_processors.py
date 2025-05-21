@@ -104,7 +104,7 @@ def mysetting(request):
         "USERNAME": request.user.username,
         "DISPLAY_NAME": getattr(request.user, "display_name", request.user.username),
         "TENANT_ID": getattr(request.user, "tenant_id", ""),
-        "ENABLE_MULTI_TENANT_MODE": settings.ENABLE_MULTI_TENANT_MODE,
+        "ENABLE_MULTI_TENANT_MODE": 1 if settings.ENABLE_MULTI_TENANT_MODE else 0,
         # 'NICK': request.session.get('nick', ''),          # 用户昵称
         "NICK": request.user.username,  # 用户昵称
         "AVATAR": request.session.get("avatar", ""),  # 用户头像
@@ -126,7 +126,8 @@ def mysetting(request):
         "MEMBER_SELECTOR_DATA_HOST": settings.BK_MEMBER_SELECTOR_DATA_HOST,
         "BK_STATIC_URL": frontend_entry_url,
         "BK_DOC_URL": settings.BK_DOC_URL.format(doc_lang_mappings.get(language, "ZH")),
-        "BK_USER_WEB_APIGW_URL": f"{settings.BK_API_URL_TMPL.format(api_name='bk-user-web')}/{settings.BK_APIGW_STAGE_NAME}",
+        "BK_USER_WEB_APIGW_URL": f"{settings.BK_API_URL_TMPL.format(api_name='bk-user-web')}/"
+        f"{settings.BK_APIGW_STAGE_NAME}",
         "FEEDBACK_URL": settings.FEEDBACK_URL,
         "FILE_MANAGER_TYPE": EnvironmentVariables.objects.get_var(file_manager_type, env.BKAPP_FILE_MANAGER_TYPE),
         "MAX_NODE_EXECUTE_TIMEOUT": settings.MAX_NODE_EXECUTE_TIMEOUT,
