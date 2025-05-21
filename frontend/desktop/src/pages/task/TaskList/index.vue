@@ -85,6 +85,11 @@
                                             {{props.row.name}}
                                         </router-link>
                                     </div>
+                                    <template v-else-if="isMultiTenantMode">
+                                        <bk-user-display-name v-if="item.id === 'creator_name'" :user-id="props.row.creator_name" />
+                                        <bk-user-display-name v-else-if="item.id === 'executor_name'" :user-id="props.row.executor_name" />
+                                        <bk-user-display-name v-else-if="item.id === 'recorded_executor_proxy'" :user-id="props.row.recorded_executor_proxy" />
+                                    </template>
                                     <!--执行方式-->
                                     <div v-else-if="item.id === 'create_method'">
                                         {{ transformCreateMethod(props.row.create_method) }}
@@ -221,11 +226,13 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人')
+            name: i18n.t('创建人'),
+            isUser: true
         },
         {
             id: 'executor',
-            name: i18n.t('执行人')
+            name: i18n.t('执行人'),
+            isUser: true
         },
         {
             id: 'statusSync',
@@ -239,7 +246,8 @@
         },
         {
             id: 'recorded_executor_proxy',
-            name: i18n.t('执行代理人')
+            name: i18n.t('执行代理人'),
+            isUser: true
         }
     ]
     const TABLE_FIELDS = [
@@ -430,6 +438,7 @@
         },
         computed: {
             ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode,
                 taskList: state => state.taskList.taskListData
             }),
             ...mapState('project', {
@@ -1068,7 +1077,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})

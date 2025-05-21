@@ -556,11 +556,13 @@
 @import '@/scss/mixins/scrollbar.scss';
 
 .tag-input {
+    text-align: left;
     /deep/ .el-input__inner {
         padding: 0 10px;
     }
     .rf-form-wrapper {
         position: relative;
+        overflow: hidden;
         .rf-select-list {
             position: absolute;
             top: 30px;

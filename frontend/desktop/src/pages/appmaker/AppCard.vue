@@ -88,7 +88,10 @@
                         <p>{{appData.template_name}}</p>
                     </div>
                     <div class="editor-name">{{$t('更新人')}}
-                        <p>{{appData.editor_name}}</p>
+                        <p>
+                            <bk-user-display-name v-if="isMultiTenantMode" :user-id="appData.editor_name" />
+                            <span v-else>{{ appData.editor_name }}</span>
+                        </p>
                     </div>
                     <div class="edit-time">{{$t('更新时间')}}
                         <p>{{appData.edit_time}}</p>
@@ -128,6 +131,7 @@
         },
         computed: {
             ...mapState({
+                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'username': state => state.username
             }),
             ...mapState('project', {

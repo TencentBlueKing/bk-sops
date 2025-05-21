@@ -137,7 +137,6 @@
                     <h4>{{ $t('其他') }}</h4>
                     <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
                         <member-select
-                            :multiple="false"
                             :disabled="isViewMode"
                             :placeholder="proxyPlaceholder"
                             :value="formData.executorProxy"
@@ -257,7 +256,7 @@
                     name,
                     category,
                     description,
-                    executorProxy: executor_proxy ? [executor_proxy] : [],
+                    executorProxy: executor_proxy,
                     receiverGroup: notify_receivers.receiver_group.slice(0),
                     notifyType,
                     labels: template_labels,
@@ -335,7 +334,7 @@
         },
         mounted () {
             // 模板没有设置执行代理人时，默认使用项目下的执行代理人
-            if (!this.formData.executorProxy.length) {
+            if (!this.formData.executorProxy) {
                 this.setExecutorProxy()
             }
             this.$refs.nameInput.focus()
@@ -406,7 +405,7 @@
                     category,
                     description,
                     template_labels: labels,
-                    executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
+                    executor_proxy: executorProxy,
                     receiver_group: receiverGroup,
                     notify_type: { success: notifyType[0], fail: notifyType[1], pending_processing: notifyType[2] },
                     default_flow_type: defaultFlowType
@@ -414,7 +413,7 @@
             },
             onSelectedExecutorProxy (val) {
                 this.formData.executorProxy = val
-                this.isProxyValidateError = val.length === 1 && val[0] !== this.username
+                this.isProxyValidateError = val && val !== this.username
             },
             jumpProjectManagement () {
                 if (this.isViewMode) return

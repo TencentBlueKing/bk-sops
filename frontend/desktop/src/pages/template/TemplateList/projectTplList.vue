@@ -141,6 +141,11 @@
                                         </router-link>
                                     </template>
                                 </div>
+                                <template v-else-if="isMultiTenantMode">
+                                    <bk-user-display-name v-if="item.id === 'executor_proxy'" :user-id="row.executor_proxy" />
+                                    <bk-user-display-name v-else-if="item.id === 'creator_name'" :user-id="row.creator_name" />
+                                    <bk-user-display-name v-else-if="item.id === 'editor_name'" :user-id="row.editor_name" />
+                                </template>
                                 <template v-else-if="item.id === 'label'">
                                     <div
                                         v-if="row.isSelectShow"
@@ -456,15 +461,18 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人')
+            name: i18n.t('创建人'),
+            isUser: true
         },
         {
             id: 'editor',
-            name: i18n.t('更新人')
+            name: i18n.t('更新人'),
+            isUser: true
         },
         {
             id: 'executor_proxy',
-            name: i18n.t('执行代理人')
+            name: i18n.t('执行代理人'),
+            isUser: true
         }
     ]
 
@@ -707,6 +715,7 @@
         },
         computed: {
             ...mapState({
+                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,
                 'username': state => state.username
@@ -1119,7 +1128,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})

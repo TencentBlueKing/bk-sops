@@ -114,6 +114,9 @@
                                     :href="`${site_url}taskflow/execute/${props.row.project_id}/?instance_id=${props.row.instance_id}`">
                                     {{props.row.instance_name}}
                                 </a>
+                                <template v-else-if="item.prop === 'creator' && isMultiTenantMode">
+                                    <bk-user-display-name :user-id="props.row.creator" />
+                                </template>
                                 <template v-else>
                                     <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
                                 </template>
@@ -307,6 +310,7 @@
         },
         computed: {
             ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode,
                 site_url: state => state.site_url
             }),
             isSearch () {

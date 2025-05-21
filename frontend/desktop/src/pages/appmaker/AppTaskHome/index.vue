@@ -152,7 +152,8 @@
         },
         {
             id: 'executor',
-            name: i18n.t('执行人')
+            name: i18n.t('执行人'),
+            isUser: true
         },
         {
             id: 'statusSync',
@@ -514,7 +515,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})

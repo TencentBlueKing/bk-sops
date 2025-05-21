@@ -44,7 +44,10 @@
                         <td style="padding: 12px 30px;">{{item.id}}</td>
                         <td>{{item.start_time || '--'}}</td>
                         <td>{{item.finish_time || '--'}}</td>
-                        <td>{{item.creator}}</td>
+                        <td>
+                            <bk-user-display-name v-if="isMultiTenantMode" :user-id="item.creator" />
+                            <span v-else>{{ item.creator }}</span>
+                        </td>
                         <td>
                             <div class="task-status">
                                 <i :class="getStatusCls(item.status)"></i>
@@ -100,7 +103,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -130,6 +133,11 @@
                     auto: i18n.t('自动')
                 }
             }
+        },
+        computed: {
+            ...mapState({
+                'isMultiTenantMode': state => state.isMultiTenantMode
+            })
         },
         created () {
             this.getSyncTask()

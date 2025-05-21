@@ -69,7 +69,8 @@ const store = new Vuex.Store({
                 return true
             }
         },
-        msgInstance: null
+        msgInstance: null,
+        isMultiTenantMode: window.ENABLE_MULTI_TENANT_MODE
     },
     mutations: {
         setAppId (state, id) {

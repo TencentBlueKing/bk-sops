@@ -68,10 +68,16 @@
                 </div>
                 <bk-form class="agent-form" :label-width="180" v-bkloading="{ isLoading: agentLoading, opacity: 1, zIndex: 100 }">
                     <bk-form-item :label="$t('执行代理人')">
-                        <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
+                        <div class="user-list">
+                            <bk-user-display-name v-if="isMultiTenantMode" :user-id="agent.executor_proxy" />
+                            <span v-else>{{ agent.executor_proxy || '--' }}</span>
+                        </div>
                     </bk-form-item>
                     <bk-form-item :label="$t('免代理用户')">
-                        <div class="user-list">{{ agent.executor_proxy_exempts || '--' }}</div>
+                        <div class="user-list">
+                            <bk-user-display-name v-if="isMultiTenantMode" :user-id="agent.executor_proxy_exempts" />
+                            <span v-else>{{ agent.executor_proxy_exempts || '--' }}</span>
+                        </div>
                     </bk-form-item>
                 </bk-form>
             </section>
@@ -87,7 +93,8 @@
                             <bk-table-column :label="$t('分组名称')" show-overflow-tooltip :width="300" property="name" :render-header="renderTableHeader"></bk-table-column>
                             <bk-table-column :label="$t('成员')" show-overflow-tooltip>
                                 <template slot-scope="props">
-                                    {{props.row.members || '--'}}
+                                    <bk-user-display-name v-if="isMultiTenantMode" :user-id="props.row.members" />
+                                    <span v-else>{{ props.row.members || '--' }}</span>
                                 </template>
                             </bk-table-column>
                             <bk-table-column :label="$t('操作')" :width="300">
@@ -201,22 +208,19 @@
             @cancel="closeAgentDialog">
             <bk-form class="agent-dialog" :model="editingAgent" :label-width="180">
                 <bk-form-item :label="$t('执行代理人')">
-                    <bk-user-selector
-                        v-model="editingAgent.executor_proxy"
+                    <member-select
+                        :value="editingAgent.executor_proxy"
                         :placeholder="$t('请输入用户')"
-                        :api="userApi"
-                        :multiple="false"
                         @change="onSelectedExecutorProxy">
-                    </bk-user-selector>
+                    </member-select>
                     <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
                 </bk-form-item>
                 <bk-form-item :label="$t('免代理用户')">
-                    <bk-user-selector
+                    <member-select
                         v-model="editingAgent.executor_proxy_exempts"
-                        :placeholder="$t('请输入用户')"
-                        :fixed-height="false"
-                        :api="userApi">
-                    </bk-user-selector>
+                        :multiple="true"
+                        :placeholder="$t('请输入用户')">
+                    </member-select>
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
@@ -238,11 +242,11 @@
                     <bk-input v-model="staffGroupDetail.name" />
                 </bk-form-item>
                 <bk-form-item :label="$t('成员')">
-                    <bk-user-selector
+                    <member-select
                         v-model="staffGroupDetail.members"
-                        :placeholder="$t('请输入用户')"
-                        :api="userApi">
-                    </bk-user-selector>
+                        :multiple="true"
+                        :placeholder="$t('请输入用户')">
+                    </member-select>
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
@@ -325,7 +329,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import BkUserSelector from '@blueking/user-selector'
+    import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import { LABEL_COLOR_LIST, DARK_COLOR_LIST } from '@/constants/index.js'
     import { mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
@@ -335,7 +339,7 @@
     export default {
         name: 'Mandate',
         components: {
-            BkUserSelector,
+            MemberSelect,
             PageHeader,
             NoData
         },
@@ -363,7 +367,6 @@
                 isLabelDialogShow: false,
                 labelDetail: {},
                 labelCount: {},
-                userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
                 darkColorList: DARK_COLOR_LIST,
@@ -489,6 +492,7 @@
         },
         computed: {
             ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode,
                 username: state => state.username
             })
         },
@@ -609,7 +613,7 @@
             },
             onSelectedExecutorProxy (val) {
                 this.editingAgent.executor_proxy = val
-                this.isProxyValidateError = val.length === 1 && val[0] !== this.username
+                this.isProxyValidateError = val && val !== this.username
             },
             // 更新代理人数据
             async updateAgentData () {
@@ -620,7 +624,7 @@
                 try {
                     const data = {
                         id: this.id,
-                        executor_proxy: this.editingAgent.executor_proxy.join(','),
+                        executor_proxy: this.editingAgent.executor_proxy,
                         executor_proxy_exempts: this.editingAgent.executor_proxy_exempts.join(',')
                     }
                     // 如果执行代理人没有修改则不传
@@ -660,7 +664,7 @@
             onEditAgent () {
                 this.isAgentDialogShow = true
                 this.editingAgent = {
-                    executor_proxy: this.agent.executor_proxy.split(',').filter(item => item.trim()),
+                    executor_proxy: this.agent.executor_proxy,
                     executor_proxy_exempts: this.agent.executor_proxy_exempts.split(',').filter(item => item.trim())
                 }
             },

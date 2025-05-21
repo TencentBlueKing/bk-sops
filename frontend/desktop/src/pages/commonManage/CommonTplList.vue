@@ -136,6 +136,10 @@
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
                                 </div>
+                                <template v-else-if="isMultiTenantMode">
+                                    <bk-user-display-name v-if="item.id === 'creator_name'" :user-id="row.creator_name" />
+                                    <bk-user-display-name v-else-if="item.id === 'editor_name'" :user-id="row.editor_name" />
+                                </template>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="row[item.id]">{{ row[item.id] || '--' }}</span>
@@ -301,11 +305,13 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人')
+            name: i18n.t('创建人'),
+            isUser: true
         },
         {
             id: 'editor',
-            name: i18n.t('更新人')
+            name: i18n.t('更新人'),
+            isUser: true
         }
     ]
     const TABLE_FIELDS = [
@@ -490,6 +496,7 @@
         },
         computed: {
             ...mapState({
+                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,
@@ -714,7 +721,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = typeof value === 'string' ? value : value.id
                     }
                     return acc
                 }, {})
