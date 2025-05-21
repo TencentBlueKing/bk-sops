@@ -544,8 +544,10 @@
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 .tag-textarea {
+    text-align: left;
     .rf-form-wrapper {
         position: relative;
+        overflow: hidden;
         .rf-select-list {
             position: absolute;
             top: 40px;
