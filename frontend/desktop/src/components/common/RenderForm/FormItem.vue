@@ -335,7 +335,7 @@
                         } else {
                             this.showHook = false
                             this.$nextTick(() => {
-                                this.onRenderChange()
+                                this.onRenderChange('automatic')
                             })
                         }
                     } else {
@@ -443,11 +443,16 @@
                 }
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
-            onRenderChange () {
+            onRenderChange (source = 'click') {
                 if (!this.option.formEdit || this.hook) {
                     return
                 }
-                this.$emit('onRenderChange', this.scheme.tag_code, !this.render)
+                this.$emit('onRenderChange', {
+                    key: this.scheme.tag_code,
+                    value: !this.render,
+                    name: this.scheme.attrs.name,
+                    source
+                })
             },
             validate (combineValue) {
                 // 表单未被勾选并且为显示状态

@@ -20,7 +20,7 @@
             :form-data="formData"
             :render-config="renderConfig"
             @change="onInputsValChange"
-            @onRenderChange="$emit('renderConfigChange', arguments)"
+            @onRenderChange="$emit('renderConfigChange', $event)"
             @onHookChange="onInputHookChange">
         </render-form>
         <bk-collapse v-if="formsNotReferredScheme.length > 0" :class="['not-referred-forms', { expand: notReferredExpand }]">

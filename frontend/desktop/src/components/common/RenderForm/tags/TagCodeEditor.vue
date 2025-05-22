@@ -54,6 +54,7 @@
                         enabled: showMiniMap
                     }
                 }"
+                @toggleFullScreen="toggleFullScreen"
                 @input="contentUpdate">
             </full-code-editor>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
@@ -151,6 +152,11 @@
             this.setVariableTag(this.value)
         },
         methods: {
+            toggleFullScreen () {
+                this.$nextTick(() => {
+                    this.setVariableTag(this.value)
+                })
+            },
             contentUpdate (val) {
                 if (this.hook) return
                 this.updateForm(val)
@@ -169,10 +175,11 @@
                 const matchMap = rows.reduce((acc, cur, idx) => {
                     const matchList = []
                     cur.replace(/\${([^${}]+)}/g, (match, $0) => {
-                        isExist = this.constantArr.some(item => {
+                        this.constantArr.some(item => {
                             const varText = item.slice(2, -1)
                             if ($0.indexOf(varText) > -1 && new RegExp(`^(.*\\W|\\W)?${varText}(\\W|\\W.*)?$`).test($0)) {
                                 matchList.push(match)
+                                isExist = true
                                 return true
                             }
                             return false

@@ -1871,7 +1871,10 @@ const en = {
     '流程批量更新成功！': 'Batch Process Update Successful!',
     '保存后子流程更新将立即生效，请谨慎操作': 'After saving, the sub-process updates will take effect immediately. Please proceed with caution.',
     '立即更新并保存': 'Update and Save Now',
-    '跳转到流程': 'Jump to Process'
+    '跳转到流程': 'Jump to Process',
+    '代码框自动开启免渲染模式提醒': 'Code box automatically enables no-render mode reminder',
+    '检测到【n】代码框没有使用变量，保存该节点代码框将自动改为免渲染模式。届时所有标准运维变量将不会被渲染。请确定是否保存': 'Detected that [{n}] code boxes do not use variables. Saving this node will automatically switch the code box to no-render mode, and all standard operations variables will not be rendered. Please confirm whether to save',
+    '即将废弃': 'About to be deprecated'
 }
 
 export default en
