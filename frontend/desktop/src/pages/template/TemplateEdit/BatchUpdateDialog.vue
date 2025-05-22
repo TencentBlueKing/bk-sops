@@ -882,7 +882,7 @@
                 .outputs-wrapper {
                     margin: 0 30px;
                 }
-                /deep/ .rf-form-item {
+                ::v-deep .rf-form-item {
                     margin: 0;
                     padding: 15px 20px;
                     .rf-tag-hook {
@@ -945,7 +945,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        /deep/ .bk-link-text {
+        ::v-deep .bk-link-text {
             font-size: 12px;
         }
     }

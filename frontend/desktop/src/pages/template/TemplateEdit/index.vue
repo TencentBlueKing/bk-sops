@@ -1958,10 +1958,10 @@
         overflow: hidden;
     }
     .tpl-view-model {
-        /deep/ .jsflow .tool-panel-wrap {
+        ::v-deep .jsflow .tool-panel-wrap {
             left: 40px;
         }
-        /deep/ .small-map {
+        ::v-deep .small-map {
             left: 40px;
         }
     }
@@ -1992,7 +1992,7 @@
     .leave-tips {
         padding: 30px;
     }
-    /deep/ .multiple-tab-dialog-content {
+    ::v-deep .multiple-tab-dialog-content {
         padding: 40px 0;
         text-align: center;
         h3 {

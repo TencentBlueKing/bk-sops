@@ -1265,13 +1265,13 @@
             min-height: 40px;
         }
         .bk-form {
-            /deep/ .bk-form-item {
+            ::v-deep .bk-form-item {
                 .bk-label {
                     color: #313138;
                     font-size: 12px;
                 }
             }
-            .bk-radio-group /deep/ .bk-form-radio {
+            .bk-radio-group ::v-deep .bk-form-radio {
                 margin-right: 30px;
                 font-size: 12px;
             }
@@ -1283,7 +1283,7 @@
     }
     .scheme-select {
         position: relative;
-        /deep/ .bk-select {
+        ::v-deep .bk-select {
             margin-right: 150px;
         }
         .scheme-save-btn {
@@ -1297,7 +1297,7 @@
     }
     .scheme-dialog {
         padding: 30px;
-        /deep/ .bk-form-content {
+        ::v-deep .bk-form-content {
             margin-right: 60px;
         }
         .scheme-tip {
@@ -1305,18 +1305,18 @@
             color: #ffb400;
         }
     }
-    /deep/ .bk-big-tree-node .node-content {
+    ::v-deep .bk-big-tree-node .node-content {
         font-size: 12px;
     }
     .input-search {
         width: calc(100% - 10px);
         margin: 0 5px 2px;
         border-bottom: 1px solid #dcdee5;
-        /deep/ .bk-form-input {
+        ::v-deep .bk-form-input {
             border: none;
             border-radius: 0;
         }
-        /deep/ .left-icon {
+        ::v-deep .left-icon {
             left: 5px;
         }
     }

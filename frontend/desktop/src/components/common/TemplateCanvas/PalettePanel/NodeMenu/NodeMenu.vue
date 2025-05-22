@@ -158,7 +158,7 @@
     }
     .bk-tab {
         height: calc(100% - 41px);
-        >>> .bk-tab-section {
+        ::v-deep .bk-tab-section {
             padding: 0;
             height: 100%;
             .bk-tab-content {

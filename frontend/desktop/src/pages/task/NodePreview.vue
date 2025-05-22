@@ -119,7 +119,7 @@
     &.has-bread-crumbs {
         height: calc(100% - 50px);
     }
-    /deep/ .jsflow .tool-panel-wrap {
+    ::v-deep .jsflow .tool-panel-wrap {
         left: 40px;
     }
 }

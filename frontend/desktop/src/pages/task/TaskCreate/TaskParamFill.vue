@@ -712,7 +712,7 @@
     &:hover {
         color: #f4aa1a;
     }
-    /deep/ .bk-tooltip-arrow {
+    ::v-deep .bk-tooltip-arrow {
         display: none;
     }
 }
@@ -726,13 +726,13 @@
 .step-form-content-size {
     max-width: 500px;
 }
-/deep/ .bk-tooltip-inner {
+::v-deep .bk-tooltip-inner {
     max-width: 600px;
     border: 1px solid #c4c6cc;
     background-color: #000;
 }
 .step-form-content {
-    /deep/ .bk-tooltip-arrow {
+    ::v-deep .bk-tooltip-arrow {
         position: absolute;
         bottom: 6px;
     }
@@ -744,7 +744,7 @@
         border: 1px solid #dddddd;
     }
 }
-/deep/.notify-type-wrapper {
+::v-deep .notify-type-wrapper {
     .bk-form-item:first-child {
         .bk-label {
             width: 70px !important;

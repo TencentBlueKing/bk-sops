@@ -564,7 +564,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 
 .tag-input {
-    /deep/ .el-input__inner {
+    ::v-deep .el-input__inner {
         padding: 0 10px;
     }
     .rf-form-wrapper {
@@ -629,7 +629,7 @@
             .div-input {
                 height: 32px;
             }
-            /deep/.var-tag {
+            ::v-deep .var-tag {
                 cursor: not-allowed;
             }
         }
@@ -643,7 +643,7 @@
         overflow: hidden;
         overflow-x: scroll;
         scrollbar-width: none;
-        /deep/.var-tag {
+        ::v-deep .var-tag {
             margin-right: 1px;
             padding: 0px 4px;
             background: #f0f1f5;

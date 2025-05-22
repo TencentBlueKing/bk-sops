@@ -671,7 +671,7 @@
     .upload-file-area {
         width: 530px;
         margin: 120px auto 100px;
-        /deep/.file-wrapper {
+        ::v-deep .file-wrapper {
             background: #fafbfd;
         }
     }

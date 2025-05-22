@@ -31,6 +31,7 @@ module.exports = merge(webpackBaseConfig, {
         rules: [
             {
                 test: /\.s?[ac]ss$/,
+                exclude: /node_modules/,
                 use: [
                     {
                         loader: MiniCssExtractPlugin.loader,
@@ -40,10 +41,34 @@ module.exports = merge(webpackBaseConfig, {
                     },
                     'css-loader',
                     'postcss-loader',
-                    'sass-loader'
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            implementation: require('sass'), // 强制使用 Dart Sass
+                            sassOptions: {
+                                includePaths: [path.resolve(__dirname, '../src/')],
+                                indentedSyntax: false, // 如果使用 SCSS 语法需设为 false
+                                silenceDeprecations: ['import', 'legacy-js-api']
+                            }
+                        }
+                    }
                 ]
 
+            },
+            {
+                test: /\.css$/,
+                include: /node_modules/,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            publicPath: '../'
+                        }
+                    },
+                    'css-loader'
+                ]
             }
+
         ]
     },
     plugins: [

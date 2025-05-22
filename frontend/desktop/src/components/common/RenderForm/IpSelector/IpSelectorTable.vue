@@ -269,10 +269,10 @@
 
 <style lang='scss' scoped>
 .ip-seletor-table {
-    /deep/th {
+    ::v-deep th {
         background: #fff;
     }
-    /deep/.cell > div {
+    ::v-deep .cell > div {
         overflow:hidden;
         text-overflow:ellipsis;
         white-space:nowrap;
@@ -328,8 +328,8 @@
         }
     }
     &.disabled {
-        /deep/th .bk-table-header-label,
-        /deep/td {
+        ::v-deep th .bk-table-header-label,
+        ::v-deep td {
             color: #cccccc !important;
         }
     }

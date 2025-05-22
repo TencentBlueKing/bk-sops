@@ -686,7 +686,7 @@
     .no-data-wrapper {
         padding-top: 20px;
     }
-    /deep/.render-form {
+    ::v-deep .render-form {
         >.rf-form-item {
             .rf-group-name {
                 display: none;
@@ -741,7 +741,7 @@
             }
         }
     }
-    /deep/.subflow-form {
+    ::v-deep .subflow-form {
         .rf-form-group {
             .rf-group-name {
                 display: block;

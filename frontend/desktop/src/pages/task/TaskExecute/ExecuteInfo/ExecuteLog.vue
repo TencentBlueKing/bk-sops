@@ -217,7 +217,7 @@
             font-size: 14px;
             font-weight: 600;
         }
-        /deep/.bk-select {
+        ::v-deep .bk-select {
             margin: 0 8px;
             width: 88px;
             height: 24px;
@@ -242,7 +242,7 @@
             }
         }
         .executeLog {
-            /deep/.bk-tab {
+            ::v-deep .bk-tab {
                 position: relative;
                 top: -16px;
                 margin-left: 120px;
@@ -258,7 +258,7 @@
             }
         }
     }
-    /deep/.bk-table .bk-table-body td.bk-table-expanded-cell {
+    ::v-deep .bk-table .bk-table-body td.bk-table-expanded-cell {
         background: #f5f7fa;
         padding: 16px 24px 22px 32px;
         .info-section:not(:last-child) {
@@ -304,7 +304,7 @@
             }
         }
         .ex-data-wrap {
-            /deep/ pre {
+            ::v-deep pre {
                 white-space: pre-wrap;
             }
         }

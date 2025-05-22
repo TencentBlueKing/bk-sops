@@ -105,7 +105,7 @@
         min-width: 100px;
         height: 32px;
         line-height: 32px;
-        /deep/ .el-checkbox__input.is-checked + .el-checkbox__label {
+        ::v-deep .el-checkbox__input.is-checked + .el-checkbox__label {
             color: #606266;
         }
     }

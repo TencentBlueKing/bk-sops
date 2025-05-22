@@ -419,7 +419,7 @@
         height: calc(100% - 54px);
         padding: 0 14px 0 24px;
     }
-    /deep/.select-all-cell {
+    ::v-deep .select-all-cell {
         display: flex;
         align-items: center;
         &.full-selected {
@@ -433,7 +433,7 @@
             }
         }
     }
-    /deep/.select-row {
+    ::v-deep .select-row {
         background: #e1ecff;
     }
     .is-loading {

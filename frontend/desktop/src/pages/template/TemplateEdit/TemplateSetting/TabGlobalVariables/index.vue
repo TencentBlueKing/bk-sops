@@ -782,16 +782,16 @@
         }
     }
 }
-/deep/.bk-sideslider-content {
+::v-deep .bk-sideslider-content {
     height: calc(100% - 60px);
 }
 
-/deep/.bk-sideslider-wrapper {
+::v-deep .bk-sideslider-wrapper {
     overflow: initial;
 }
 .global-variable-panel {
     height: 100%;
-    
+
     .resize-trigger {
         width: 5px;
         height: calc(100vh - 109px);
@@ -960,7 +960,7 @@
         .col-more {
             width: 40px;
         }
-        /deep/.icon-funnel {
+        ::v-deep .icon-funnel {
             font-size: 13px;
             color: #c4c6cc;
             cursor: pointer;
@@ -1003,7 +1003,7 @@
     }
     .empty-variable-tips {
         height: 280px;
-        /deep/ .no-data-wording {
+        ::v-deep .no-data-wording {
             font-size: 12px;
         }
     }

@@ -140,7 +140,7 @@
         &.disabled {
             color: #ccc;
             cursor: not-allowed;
-            /deep/.bk-checkbox:hover {
+            ::v-deep .bk-checkbox:hover {
                 border-color: #dcdfe6;
             }
         }
@@ -148,7 +148,7 @@
     .group-checkbox {
         flex-shrink: 0;
         margin-right: 8px;
-        /deep/ .bk-checkbox {
+        ::v-deep .bk-checkbox {
             border: 1px solid #dcdfe6;
             &:hover {
                 border-color: #409eff;
@@ -231,7 +231,7 @@
     position: relative;
     margin-bottom: 10px;
     width: 100%;
-    /deep/ .search-input {
+    ::v-deep .search-input {
         width: 100%;
     }
 }

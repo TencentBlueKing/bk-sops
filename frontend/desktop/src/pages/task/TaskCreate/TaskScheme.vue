@@ -260,7 +260,7 @@
                         this.$emit('updateSelectedNodes', selectNodes, true)
                         return
                     }
-                    
+
                     selectNodes = Array.from(new Set(selectNodes)) || []
                     this.$emit('updateSelectedNodes', selectNodes)
                 } catch (error) {
@@ -402,7 +402,7 @@
             justify-content: flex-end;
             margin: 12px 24px 0;
             font-size: 14px;
-            /deep/.bk-button-text i {
+            ::v-deep .bk-button-text i {
                 font-size: 12px;
                 margin-right: 3px;
                 vertical-align: middle;

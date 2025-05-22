@@ -112,10 +112,10 @@ $localBorderColor: #d8e2e7;
 .form-content {
     margin-left: 80px;
     min-height: 36px;
-    /deep/ .bk-textarea-wrapper {
+    ::v-deep .bk-textarea-wrapper {
         border: none;
     }
-    /deep/ .bk-form-textarea {
+    ::v-deep .bk-form-textarea {
         border: 1px solid #c4c6cc;
     }
 }

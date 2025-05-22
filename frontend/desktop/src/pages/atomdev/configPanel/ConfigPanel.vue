@@ -297,7 +297,7 @@
         overflow-y: auto;
         @include scrollbar;
 
-        /deep/ .bk-form {
+        ::v-deep .bk-form {
             .bk-label {
                 text-align: left;
                 color: #63656e;

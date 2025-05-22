@@ -78,10 +78,10 @@
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 .operate-flow {
-    /deep/ .bk-sideslider-content {
+    ::v-deep .bk-sideslider-content {
         padding: 20px 30px;
     }
-    /deep/ .operate-flow-table {
+    ::v-deep .operate-flow-table {
         .bk-table-body-wrapper {
             max-height: calc(100vh - 145px);
             color: #63656e;

@@ -580,7 +580,7 @@
             cursor: not-allowed;
             background-color: #fafbfd;
             border-color: #dcdee5;
-            /deep/.var-tag {
+            ::v-deep .var-tag {
                 cursor: not-allowed;
             }
         }
@@ -599,7 +599,7 @@
         word-wrap: break-word;
         overflow-x: hidden;
         overflow-y: auto;
-        /deep/.var-tag {
+        ::v-deep .var-tag {
             padding: 0px 4px;
             margin-right: 1px;
             background: #f0f1f5;
@@ -611,7 +611,7 @@
                 background: #eaebf0;
             }
         }
-        /deep/div {
+        ::v-deep div {
             word-break: break-all;
         }
         &.input-before::before {
@@ -620,7 +620,7 @@
             color: #c4c6cc;
         }
     }
-    /deep/.div-input {
+    ::v-deep .div-input {
         >div {
             width: 100%;
         }
