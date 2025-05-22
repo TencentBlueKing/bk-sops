@@ -95,10 +95,21 @@
             }),
             setValue: {
                 get () {
-                    return this.value
+                    if (this.isMultiTenantMode) {
+                        return this.value
+                    }
+                    return Array.isArray(this.value) ? this.value : this.value ? [this.value] : []
                 },
                 set (val) {
-                    this.$emit('change', val)
+                    if (this.isMultiTenantMode) {
+                        this.$emit('change', val)
+                        return
+                    }
+                    if (Array.isArray(val) && !Array.isArray(this.value)) {
+                        this.$emit('change', val[0])
+                    } else {
+                        this.$emit('change', val)
+                    }
                 }
             }
         },
@@ -116,6 +127,12 @@
     }
 </script>
 <style lang="scss" scoped>
+    .user-selector-wrap {
+        width: 100%;
+        .user-selector {
+            width: 100%;
+        }
+    }
     .tag-member-selector-wrap {
         .user-selector {
             width: 100%;
