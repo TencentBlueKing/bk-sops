@@ -19,7 +19,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+    validate_project_access,
+)
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
@@ -33,6 +38,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(TaskOperateInterceptor())
 def node_callback(request, task_id, project_id):
     try:

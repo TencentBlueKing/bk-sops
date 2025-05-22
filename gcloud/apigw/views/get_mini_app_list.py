@@ -15,7 +15,7 @@ from django.views.decorators.http import require_GET
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.apigw.views.utils import paginate_list_data
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth.intercept import iam_intercept
@@ -31,6 +31,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(ProjectViewInterceptor())
 def get_mini_app_list(request, project_id):
     mini_apps = AppMaker.objects.filter(is_deleted=False, project_id=request.project.id)

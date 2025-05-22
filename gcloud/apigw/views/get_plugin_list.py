@@ -22,6 +22,7 @@ from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     project_inject,
     return_json_response,
+    validate_project_access,
 )
 from gcloud.apigw.utils import api_hash_key
 from gcloud.core.models import DisabledComponent, ProjectBasedComponent
@@ -33,6 +34,7 @@ from gcloud.core.models import DisabledComponent, ProjectBasedComponent
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_plugin_list(request, project_id):
     project_id = request.project.id
