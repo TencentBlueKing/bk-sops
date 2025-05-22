@@ -160,6 +160,10 @@ def get_footer_info(request):
 def get_msg_types(request):
     client = get_client_by_username(request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
     result = client.api.v1_channels_list(headers={"X-Bk-Tenant-Id": request.user.tenant_id})
+    if not result["data"]:
+        result = {"result": False, "data": [], "message": "获取消息通道列表失败"}
+    else:
+        result = {"result": True, "data": result["data"], "message": "获取消息通道列表成功"}
     return JsonResponse(result)
 
 
