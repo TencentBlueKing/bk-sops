@@ -64,6 +64,11 @@
                 isFullScreen: false
             }
         },
+        watch: {
+            isFullScreen () {
+                this.$emit('toggleFullScreen')
+            }
+        },
         beforeDestroy () {
             document.body.removeEventListener('keyup', this.handleQuick, false)
         },

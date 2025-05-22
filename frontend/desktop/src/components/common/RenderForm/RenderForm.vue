@@ -23,7 +23,7 @@
             :constants="constants"
             @change="updateForm"
             @onHook="updateHook"
-            @onRenderChange="updateRender">
+            @onRenderChange="$emit('onRenderChange', $event)">
         </component>
     </div>
 </template>
@@ -331,9 +331,6 @@
             },
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
-            },
-            updateRender (field, val) {
-                this.$emit('onRenderChange', field, val)
             },
             // 设置变量隐藏逻辑
             setVariableHideLogic (key, val) {
