@@ -65,15 +65,18 @@
                         type: 'GET',
                         dataType: 'json',
                         success: function (resp) {
-                            if (resp.data) {
-                                let items = resp.data.map(function (item) {
+                            if (!resp.result) {
+                                show_msg(resp.message, 'error');
+                            } else {
+                                let data = resp.data.filter(function (item) {
+                                    return item.enabled
+                                });
+                                let items = data.map(function (item) {
                                     return {"name": item.name, "value": item.type}
                                 });
                                 if (items.length > 0) {
                                     self.items = items;
                                 }
-                            } else {
-                                show_msg(resp.message, 'error');
                             }
                         },
                         error: function (resp) {
