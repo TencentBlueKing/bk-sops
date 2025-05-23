@@ -94,9 +94,8 @@
                                     <span :class="executeStatus[props.row.task.id] && executeStatus[props.row.task.id].cls"></span>
                                     <span v-if="executeStatus[props.row.task.id]" class="task-status-text">{{executeStatus[props.row.task.id].text}}</span>
                                 </div>
-                                <template v-else-if="isMultiTenantMode">
-                                    <bk-user-display-name v-if="item.id === 'creator'" :user-id="props.row.creator" />
-                                    <bk-user-display-name v-else-if="item.id === 'claimant'" :user-id="props.row.claimant" />
+                                <template v-else-if="isMultiTenantMode && ['creator', 'claimant'].includes(item.id)">
+                                    <bk-user-display-name :user-id="props.row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>

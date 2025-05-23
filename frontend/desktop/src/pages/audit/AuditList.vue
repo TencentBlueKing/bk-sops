@@ -77,9 +77,8 @@
                                 <div v-else-if="item.id === 'category_name'">
                                     {{ props.row.flow_type === 'common_func' ? $t('task_职能化') : $t('常规') }}
                                 </div>
-                                <template v-else-if="isMultiTenantMode">
-                                    <bk-user-display-name v-if="item.id === 'creator_name'" :user-id="props.row.creator_name" />
-                                    <bk-user-display-name v-else-if="item.id === 'executor_name'" :user-id="props.row.executor_name" />
+                                <template v-else-if="isMultiTenantMode && ['creator_name', 'executor_name'].includes(item.id)">
+                                    <bk-user-display-name :user-id="props.row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>

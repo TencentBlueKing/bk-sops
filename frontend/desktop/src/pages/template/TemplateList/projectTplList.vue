@@ -141,10 +141,8 @@
                                         </router-link>
                                     </template>
                                 </div>
-                                <template v-else-if="isMultiTenantMode">
-                                    <bk-user-display-name v-if="item.id === 'executor_proxy'" :user-id="row.executor_proxy" />
-                                    <bk-user-display-name v-else-if="item.id === 'creator_name'" :user-id="row.creator_name" />
-                                    <bk-user-display-name v-else-if="item.id === 'editor_name'" :user-id="row.editor_name" />
+                                <template v-else-if="isMultiTenantMode && ['executor_proxy', 'creator_name', 'editor_name'].includes(item.id)">
+                                    <bk-user-display-name :user-id="row[item.id]" />
                                 </template>
                                 <template v-else-if="item.id === 'label'">
                                     <div

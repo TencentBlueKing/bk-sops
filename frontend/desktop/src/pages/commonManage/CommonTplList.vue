@@ -136,9 +136,8 @@
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
                                 </div>
-                                <template v-else-if="isMultiTenantMode">
-                                    <bk-user-display-name v-if="item.id === 'creator_name'" :user-id="row.creator_name" />
-                                    <bk-user-display-name v-else-if="item.id === 'editor_name'" :user-id="row.editor_name" />
+                                <template v-else-if="isMultiTenantMode && ['creator_name', 'editor_name'].includes(item.id)">
+                                    <bk-user-display-name :user-id="row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
