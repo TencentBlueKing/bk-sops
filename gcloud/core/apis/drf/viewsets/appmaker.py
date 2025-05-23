@@ -38,6 +38,7 @@ class AppmakerPermission(IamPermission):
 
 
 class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
+    project_id_multi_tenant_filter = True
     queryset = AppMaker.objects.filter(is_deleted=False)
     serializer_class = AppmakerSerializer
     iam_resource_helper = ViewSetResourceHelper(
