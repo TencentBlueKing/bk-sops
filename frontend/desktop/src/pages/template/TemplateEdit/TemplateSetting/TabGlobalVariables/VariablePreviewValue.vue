@@ -21,8 +21,8 @@
     export default {
         name: 'VariablePreviewValue',
         props: {
-            keyid: String,
-            params: Object
+            params: Object,
+            variableData: Object
         },
         data () {
             return {
@@ -31,25 +31,50 @@
             }
         },
         created () {
-            if (this.keyid) {
-                this.getVaribleValue()
+            if (this.variableData.key) {
+                this.getVariableValue()
             }
         },
         methods: {
             ...mapActions('template', [
                 'getConstantsPreviewResult'
             ]),
-            async getVaribleValue () {
+            async getVariableValue () {
                 try {
                     this.loading = true
+                    const { key, custom_type, value } = this.variableData
+
+                    if (window.ENABLE_MULTI_TENANT_MODE && custom_type === 'bk_user_selector') {
+                        await this.fetchUserDisplayInfo(value)
+                        return
+                    }
+
                     const resp = await this.getConstantsPreviewResult(this.params)
                     if (resp.result) {
-                        this.valueStr = resp.data[this.keyid]
+                        this.valueStr = resp.data[key]
                     }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.loading = false
+                }
+            },
+            async fetchUserDisplayInfo (value) {
+                if (!value) return
+
+                try {
+                    const resp = await fetch(`${window.BK_USER_WEB_APIGW_URL}/api/v3/open-web/tenant/users/-/display_info/?bk_usernames=${value}`, {
+                        headers: {
+                            'x-bk-tenant-id': window.TENANT_ID
+                        },
+                        credentials: 'include'
+                    })
+                    if (!resp.ok) return
+        
+                    const data = await resp.json()
+                    this.valueStr = data.data.map(item => item.display_name).join(',')
+                } catch (e) {
+                    console.error(e)
                 }
             }
         }
