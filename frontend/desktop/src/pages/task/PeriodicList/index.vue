@@ -131,9 +131,8 @@
                                         </bk-popover>
 
                                     </template>
-                                    <template v-else-if="isMultiTenantMode">
-                                        <bk-user-display-name v-if="item.id === 'creator'" :user-id="row.creator" />
-                                        <bk-user-display-name v-else-if="item.id === 'editor'" :user-id="row.editor" />
+                                    <template v-else-if="isMultiTenantMode && ['creator', 'editor'].includes(item.id)">
+                                        <bk-user-display-name :user-id="row[item.id]" />
                                     </template>
                                     <!-- 其他 -->
                                     <template v-else>

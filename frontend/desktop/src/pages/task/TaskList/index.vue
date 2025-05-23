@@ -85,10 +85,9 @@
                                             {{props.row.name}}
                                         </router-link>
                                     </div>
-                                    <template v-else-if="isMultiTenantMode">
-                                        <bk-user-display-name v-if="item.id === 'creator_name'" :user-id="props.row.creator_name" />
-                                        <bk-user-display-name v-else-if="item.id === 'executor_name'" :user-id="props.row.executor_name" />
-                                        <bk-user-display-name v-else-if="item.id === 'recorded_executor_proxy'" :user-id="props.row.recorded_executor_proxy" />
+                                    
+                                    <template v-else-if="isMultiTenantMode && ['creator_name', 'executor_name', 'recorded_executor_proxy'].includes(item.id)">
+                                        <bk-user-display-name :user-id="props.row[item.id]" />
                                     </template>
                                     <!--执行方式-->
                                     <div v-else-if="item.id === 'create_method'">

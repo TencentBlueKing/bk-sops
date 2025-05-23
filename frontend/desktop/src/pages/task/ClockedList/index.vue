@@ -63,9 +63,8 @@
                                 <div v-else-if="item.id === 'state'">
                                     {{ row.state === 'not_started' ? $t('未执行') : row.state === 'started' ? $t('已执行') : row.state ? $t('启动失败') : '--' }}
                                 </div>
-                                <template v-else-if="isMultiTenantMode">
-                                    <bk-user-display-name v-if="item.id === 'creator'" :user-id="row.creator" />
-                                    <bk-user-display-name v-else-if="item.id === 'editor'" :user-id="row.editor" />
+                                <template v-else-if="isMultiTenantMode && ['creator', 'editor'].includes(item.id)">
+                                    <bk-user-display-name :user-id="row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
