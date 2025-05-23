@@ -125,7 +125,7 @@
         </VariableCitedList>
         <VariablePreviewValue
             v-if="showPreviewValue"
-            :keyid="variableData.key"
+            :variable-data="variableData"
             :params="previewParams">
         </VariablePreviewValue>
     </div>
