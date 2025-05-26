@@ -40,6 +40,13 @@ class Group(OperationGroup):
         path="/api/v3/open/tenant/users/",
     )
 
+    display_info = bind_property(
+        Operation,
+        name="batch_query_user_display_info",
+        method="GET",
+        path="/api/v3/open/tenant/users/-/display_info/",
+    )
+
 
 class Client(APIGatewayClient):
     """Bkapi bk_user client"""
