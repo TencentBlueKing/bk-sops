@@ -1630,8 +1630,8 @@
                             cancelText: this.$t('取消'),
                             confirmFn: () => {
                                 this.automaticSwitchNeedRender.forEach(item => {
-                                    const { key, val } = item
-                                    this.inputsRenderConfig[key] = val
+                                    const { key, value } = item
+                                    this.inputsRenderConfig[key] = value
                                 })
                                 this.handleSaveConfirm()
                             },
