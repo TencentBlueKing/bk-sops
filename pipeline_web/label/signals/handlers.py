@@ -25,7 +25,7 @@ def node_in_save(node_in_model, nodes_objs, nodes_info):
     # update when exist
     if nodes_attr_label_to_update.exists():
         node_in_model.labels.through.objects.filter(
-            nodeinmodel_id__in=nodes_attr_label_to_update.values_list("id", flat=True)
+            nodeintemplateattrlabel_id__in=nodes_attr_label_to_update.values_list("id", flat=True)
         ).delete()
 
     # add when not exist
