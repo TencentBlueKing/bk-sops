@@ -83,8 +83,8 @@
                                         {{row.name}}
                                     </a>
                                 </div>
-                                <template v-else-if="isMultiTenantMode && ['creator_name', 'editor_name'].includes(item.id)">
-                                    <bk-user-display-name :user-id="row[item.id]" />
+                                <template v-else-if="['creator_name', 'editor_name'].includes(item.id)">
+                                    <UserDisplayName :name="row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -142,6 +142,7 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import permission from '@/mixins/permission.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
@@ -216,6 +217,7 @@
             Skeleton,
             SearchSelect,
             NoData,
+            UserDisplayName,
             TableSettingContent
         },
         mixins: [permission],
@@ -299,7 +301,6 @@
         },
         computed: {
             ...mapState({
-                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,

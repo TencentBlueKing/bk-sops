@@ -63,8 +63,8 @@
                                 <div v-else-if="item.id === 'state'">
                                     {{ row.state === 'not_started' ? $t('未执行') : row.state === 'started' ? $t('已执行') : row.state ? $t('启动失败') : '--' }}
                                 </div>
-                                <template v-else-if="isMultiTenantMode && ['creator', 'editor'].includes(item.id)">
-                                    <bk-user-display-name :user-id="row[item.id]" />
+                                <template v-else-if="['creator', 'editor'].includes(item.id)">
+                                    <UserDisplayName :name="row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -187,6 +187,7 @@
     import EditClockedTask from './EditClockedTask.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import CancelRequest from '@/api/cancelRequest.js'
 
     const SEARCH_LIST = [
@@ -268,6 +269,7 @@
             NoData,
             SearchSelect,
             TaskCreateDialog,
+            UserDisplayName,
             EditClockedTask
         },
         mixins: [permission],
@@ -354,7 +356,6 @@
         },
         computed: {
             ...mapState({
-                isMultiTenantMode: state => state.isMultiTenantMode,
                 hasAdminPerm: state => state.hasAdminPerm
             }),
             ...mapState('project', {

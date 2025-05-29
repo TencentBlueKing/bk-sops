@@ -86,8 +86,8 @@
                                         </router-link>
                                     </div>
                                     
-                                    <template v-else-if="isMultiTenantMode && ['creator_name', 'executor_name', 'recorded_executor_proxy'].includes(item.id)">
-                                        <bk-user-display-name :user-id="props.row[item.id]" />
+                                    <template v-else-if="['creator_name', 'executor_name', 'recorded_executor_proxy'].includes(item.id)">
+                                        <UserDisplayName :name="props.row[item.id]" />
                                     </template>
                                     <!--执行方式-->
                                     <div v-else-if="item.id === 'create_method'">
@@ -200,6 +200,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
     import Skeleton from '@/components/skeleton/index.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
     import CancelRequest from '@/api/cancelRequest.js'
@@ -318,6 +319,7 @@
         name: 'TaskList',
         components: {
             Skeleton,
+            UserDisplayName,
             NoData,
             SearchSelect
         },
@@ -437,7 +439,6 @@
         },
         computed: {
             ...mapState({
-                isMultiTenantMode: state => state.isMultiTenantMode,
                 taskList: state => state.taskList.taskListData
             }),
             ...mapState('project', {

@@ -77,8 +77,8 @@
                                 <div v-else-if="item.id === 'category_name'">
                                     {{ props.row.flow_type === 'common_func' ? $t('task_职能化') : $t('常规') }}
                                 </div>
-                                <template v-else-if="isMultiTenantMode && ['creator_name', 'executor_name'].includes(item.id)">
-                                    <bk-user-display-name :user-id="props.row[item.id]" />
+                                <template v-else-if="['creator_name', 'executor_name'].includes(item.id)">
+                                    <UserDisplayName :name="props.row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -140,6 +140,7 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import CancelRequest from '@/api/cancelRequest.js'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
 
     const SEARCH_LIST = [
         {
@@ -222,6 +223,7 @@
         name: 'auditHome',
         components: {
             Skeleton,
+            UserDisplayName,
             NoData,
             SearchSelect
         },
@@ -302,9 +304,6 @@
             }
         },
         computed: {
-            ...mapState({
-                isMultiTenantMode: state => state.isMultiTenantMode
-            }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
             })

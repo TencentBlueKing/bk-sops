@@ -131,8 +131,8 @@
                                         </bk-popover>
 
                                     </template>
-                                    <template v-else-if="isMultiTenantMode && ['creator', 'editor'].includes(item.id)">
-                                        <bk-user-display-name :user-id="row[item.id]" />
+                                    <template v-else-if="['creator', 'editor'].includes(item.id)">
+                                        <UserDisplayName :name="row[item.id]" />
                                     </template>
                                     <!-- 其他 -->
                                     <template v-else>
@@ -262,6 +262,7 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import moment from 'moment-timezone'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import Translate from '@/utils/cron.js'
     import CancelRequest from '@/api/cancelRequest.js'
 
@@ -354,6 +355,7 @@
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,
+            UserDisplayName,
             BootRecordDialog
         },
         mixins: [permission],
@@ -448,7 +450,6 @@
         },
         computed: {
             ...mapState({
-                isMultiTenantMode: state => state.isMultiTenantMode,
                 username: state => state.username,
                 hasAdminPerm: state => state.hasAdminPerm
             }),

@@ -45,8 +45,7 @@
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <template v-if="item.id === 'creator'">
-                                    <bk-user-display-name v-if="isMultiTenantMode" :user-id="props.row.creator" />
-                                    <span v-else>{{ props.row.creator || '--' }}</span>
+                                    <UserDisplayName :name="props.row.creator" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -170,6 +169,7 @@
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import CancelRequest from '@/api/cancelRequest.js'
 
     const SEARCH_LIST = [
@@ -247,6 +247,7 @@
         components: {
             Skeleton,
             NoData,
+            UserDisplayName,
             SearchSelect
         },
         mixins: [permission],
@@ -321,9 +322,6 @@
             }
         },
         computed: {
-            ...mapState({
-                isMultiTenantMode: state => state.isMultiTenantMode
-            }),
             ...mapState('project', {
                 'project_id': state => state.project_id
             }),

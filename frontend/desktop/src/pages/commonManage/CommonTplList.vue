@@ -136,8 +136,8 @@
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
                                 </div>
-                                <template v-else-if="isMultiTenantMode && ['creator_name', 'editor_name'].includes(item.id)">
-                                    <bk-user-display-name :user-id="row[item.id]" />
+                                <template v-else-if="['creator_name', 'editor_name'].includes(item.id)">
+                                    <UserDisplayName :name="row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -279,6 +279,7 @@
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import CancelRequest from '@/api/cancelRequest.js'
@@ -370,6 +371,7 @@
             SelectProjectModal,
             NoData,
             TableSettingContent,
+            UserDisplayName,
             SearchSelect
         },
         mixins: [permission],
@@ -495,7 +497,6 @@
         },
         computed: {
             ...mapState({
-                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,

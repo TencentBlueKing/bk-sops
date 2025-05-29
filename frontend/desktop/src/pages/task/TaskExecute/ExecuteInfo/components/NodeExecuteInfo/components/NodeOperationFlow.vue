@@ -9,8 +9,7 @@
             <bk-table-column width="160" :label="$t('操作来源')" :prop="$store.state.lang === 'en' ? 'operate_source' : 'operate_source_name'"></bk-table-column>
             <bk-table-column width="150" :label="$t('操作人')" prop="operator">
                 <template slot-scope="props">
-                    <bk-user-display-name v-if="isMultiTenantMode" :user-id="props.row.operator" />
-                    <span v-else>{{ props.row.operator }}</span>
+                    <UserDisplayName :name="props.row.operator" />
                 </template>
             </bk-table-column>
             <div class="empty-data" slot="empty">
@@ -21,11 +20,13 @@
 </template>
 
 <script>
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions } from 'vuex'
     import moment from 'moment'
     import NoData from '@/components/common/base/NoData.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     export default {
         components: {
+            UserDisplayName,
             NoData
         },
         props: {
@@ -46,11 +47,6 @@
                 isFlowLoading: false,
                 operateFlowData: []
             }
-        },
-        computed: {
-            ...mapState({
-                'isMultiTenantMode': state => state.isMultiTenantMode
-            })
         },
         watch: {
             nodeId (val) {

@@ -94,8 +94,8 @@
                                     <span :class="executeStatus[props.row.task.id] && executeStatus[props.row.task.id].cls"></span>
                                     <span v-if="executeStatus[props.row.task.id]" class="task-status-text">{{executeStatus[props.row.task.id].text}}</span>
                                 </div>
-                                <template v-else-if="isMultiTenantMode && ['creator', 'claimant'].includes(item.id)">
-                                    <bk-user-display-name :user-id="props.row[item.id]" />
+                                <template v-else-if="['creator', 'claimant'].includes(item.id)">
+                                    <UserDisplayName :name="props.row[item.id]" />
                                 </template>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -298,6 +298,7 @@
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
@@ -397,6 +398,7 @@
             Skeleton,
             NoData,
             MemberSelect,
+            UserDisplayName,
             SearchSelect
         },
         mixins: [permission, task],
@@ -530,7 +532,6 @@
         },
         computed: {
             ...mapState({
-                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'username': state => state.username,
                 'categorys': state => state.categorys,
                 'permissionMeta': state => state.permissionMeta
