@@ -118,6 +118,7 @@ def format_task_info_data(task, project=None, tz=None):
         "is_finished": task.pipeline_instance.is_finished,
         "template_source": task.template_source,
         "template_id": task.template_id,
+        "is_child_taskflow": task.is_child_taskflow,
     }
     if project:
         item.update(
