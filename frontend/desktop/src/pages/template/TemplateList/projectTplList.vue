@@ -141,8 +141,8 @@
                                         </router-link>
                                     </template>
                                 </div>
-                                <template v-else-if="isMultiTenantMode && ['executor_proxy', 'creator_name', 'editor_name'].includes(item.id)">
-                                    <bk-user-display-name :user-id="row[item.id]" />
+                                <template v-else-if="['executor_proxy', 'creator_name', 'editor_name'].includes(item.id)">
+                                    <UserDisplayName :name="row[item.id]" />
                                 </template>
                                 <template v-else-if="item.id === 'label'">
                                     <div
@@ -425,6 +425,7 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
     import SharedTemplateBtn from './SharedTemplate/index.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -542,6 +543,7 @@
             ListPageTipsTitle,
             SearchSelect,
             TableSettingContent,
+            UserDisplayName,
             NoData
         },
         mixins: [permission],
@@ -713,7 +715,6 @@
         },
         computed: {
             ...mapState({
-                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,
                 'username': state => state.username

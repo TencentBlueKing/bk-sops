@@ -89,8 +89,7 @@
                     </div>
                     <div class="editor-name">{{$t('更新人')}}
                         <p>
-                            <bk-user-display-name v-if="isMultiTenantMode" :user-id="appData.editor_name" />
-                            <span v-else>{{ appData.editor_name }}</span>
+                            <UserDisplayName :name="appData.editor_name" />
                         </p>
                     </div>
                     <div class="edit-time">{{$t('更新时间')}}
@@ -109,9 +108,13 @@
     import permission from '@/mixins/permission.js'
     import { mapState, mapActions } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
 
     export default {
         name: 'AppCard',
+        components: {
+            UserDisplayName
+        },
         mixins: [permission],
         props: {
             appData: Object,
@@ -131,7 +134,6 @@
         },
         computed: {
             ...mapState({
-                'isMultiTenantMode': state => state.isMultiTenantMode,
                 'username': state => state.username
             }),
             ...mapState('project', {

@@ -69,14 +69,12 @@
                 <bk-form class="agent-form" :label-width="180" v-bkloading="{ isLoading: agentLoading, opacity: 1, zIndex: 100 }">
                     <bk-form-item :label="$t('执行代理人')">
                         <div class="user-list">
-                            <bk-user-display-name v-if="isMultiTenantMode" :user-id="agent.executor_proxy" />
-                            <span v-else>{{ agent.executor_proxy || '--' }}</span>
+                            <UserDisplayName :name="agent.executor_proxy" />
                         </div>
                     </bk-form-item>
                     <bk-form-item :label="$t('免代理用户')">
                         <div class="user-list">
-                            <bk-user-display-name v-if="isMultiTenantMode" :user-id="agent.executor_proxy_exempts" />
-                            <span v-else>{{ agent.executor_proxy_exempts || '--' }}</span>
+                            <UserDisplayName :name="agent.executor_proxy_exempts" />
                         </div>
                     </bk-form-item>
                 </bk-form>
@@ -93,8 +91,7 @@
                             <bk-table-column :label="$t('分组名称')" show-overflow-tooltip :width="300" property="name" :render-header="renderTableHeader"></bk-table-column>
                             <bk-table-column :label="$t('成员')" show-overflow-tooltip>
                                 <template slot-scope="props">
-                                    <bk-user-display-name v-if="isMultiTenantMode" :user-id="props.row.members" />
-                                    <span v-else>{{ props.row.members || '--' }}</span>
+                                    <UserDisplayName :name="props.row.members" />
                                 </template>
                             </bk-table-column>
                             <bk-table-column :label="$t('操作')" :width="300">
@@ -335,12 +332,14 @@
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
 
     export default {
         name: 'Mandate',
         components: {
             MemberSelect,
             PageHeader,
+            UserDisplayName,
             NoData
         },
         mixins: [permission],
@@ -492,7 +491,6 @@
         },
         computed: {
             ...mapState({
-                isMultiTenantMode: state => state.isMultiTenantMode,
                 username: state => state.username
             })
         },
