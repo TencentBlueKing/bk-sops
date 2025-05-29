@@ -304,8 +304,6 @@
                         this.inputsRenderConfig = renderConfig
                         await this.getPluginDetail()
                     }
-                    // 获取输入参数的勾选状态
-                    this.hooked = this.getFormsHookState()
                 } catch (error) {
                     console.warn(error)
                 }
@@ -542,6 +540,8 @@
                     if (!this.isThirdPartyNode) {
                         this.outputs = this.pluginOutput[plugin][version]
                     }
+                    // 获取输入参数的勾选状态
+                    this.hooked = this.getFormsHookState()
                 } catch (e) {
                     console.log(e)
                 } finally {

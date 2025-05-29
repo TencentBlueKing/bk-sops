@@ -542,6 +542,7 @@
                 const range = selection.getRangeAt(0)
                 const rect = range.getBoundingClientRect()
                 const container = this.$el.querySelector('.rf-form-wrap')
+                if (!container) return
                 const editable = this.$el.querySelector('.div-input')
                 const containerRect = container.getBoundingClientRect()
 
