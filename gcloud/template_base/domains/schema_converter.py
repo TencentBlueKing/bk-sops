@@ -633,6 +633,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     cur_constant.pop("value")
                 if not is_subprocess:
                     cur_constant.update({"key": key})
+                    meta = constant.get("meta", {})
+                    if constant.get("is_meta", False) and meta:
+                        constant["value"] = meta.get("value", "")
                     for node_id, form_keys in constant["source_info"].items():
                         for form_key in form_keys:
                             param_constants[constant["source_type"]].setdefault(node_id, {})[form_key] = cur_constant
