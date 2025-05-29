@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import json
 import traceback
 
 import requests
@@ -47,9 +47,7 @@ class WechatWorkSendMessageService(Service):
                 name=_("提醒人"),
                 key="wechat_work_mentioned_members",
                 type="string",
-                schema=StringItemSchema(
-                    description=_("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人")
-                ),
+                schema=StringItemSchema(description=_("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人")),
             ),
             self.InputItem(
                 name=_("消息格式"),
@@ -67,14 +65,23 @@ class WechatWorkSendMessageService(Service):
 
         # 尝试解密
         chat_id: str = crypto.decrypt(parse_passwd_value(chat_id))
-
+        tenant_id = parent_data.inputs.tenant_id
         chat_id_list = chat_id.split("\n")
 
         print(chat_id_list)
 
-        url = EnvironmentVariables.objects.get_var("BKAPP_SOPS_WECHAT_WORK_WEB_HOOK")
-        if not url:
+        webhook_config = EnvironmentVariables.objects.get_var("BKAPP_SOPS_WECHAT_WORK_WEB_HOOK")
+        if not webhook_config:
             data.outputs.ex_data = "WechatWork send message URL is not config, contact admin please"
+            return False
+        try:
+            url_dict = json.loads(webhook_config)
+        except json.JSONDecodeError as e:
+            data.outputs.ex_data = f"Failed to parse Webhook config: {str(e)}"
+            return False
+        url = url_dict.get(tenant_id)
+        if not url:
+            data.outputs.ex_data = f"WechatWork send message URL is not config for tenant {tenant_id}"
             return False
 
         if not chat_id:
@@ -142,7 +149,4 @@ class WechatWorkSendMessageComponent(Component):
     form = "%scomponents/atoms/wechat_work/wechat_work_send_message/v1_0.js" % settings.STATIC_URL
     version = "1.0"
     is_default_version = True
-    desc = _(
-        "1.部署环境与企业微信服务器网络必须联通 "
-        "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770"
-    )
+    desc = _("1.部署环境与企业微信服务器网络必须联通 " "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770")
