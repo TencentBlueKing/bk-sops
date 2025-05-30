@@ -39,6 +39,7 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
             INSTALL_SUCCESS_CASE_WITH_TTJ,
             MULTI_CLOUD_ID_INSTALL_CASE,
             MULTI_CLOUD_ID_OPERATE_CASE,
+            INSTALL_AGENT_BK_ADDRESSING_CASE,
         ]
 
     def component_cls(self):
@@ -1043,6 +1044,124 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
                                 "bk_cloud_id": "2",
                                 "inner_ip": "2.2.2.2",
                                 "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "2",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "encrypt_auth_key",
+                                "outer_ip": "2.2.2.2",
+                                "login_ip": "2.2.2.2",
+                                "data_ip": "2.2.2.2",
+                                "force_update_agent_id": False,
+                            },
+                        ],
+                    }
+                )
+            ],
+        ),
+    ],
+    schedule_call_assertion=[
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
+    ],
+)
+
+
+INSTALL_AGENT_BK_ADDRESSING_CASE = ComponentTestCase(
+    name="nodeman v7.0 install task add bk_addressing success case",
+    inputs={
+        "bk_biz_id": "1",
+        "nodeman_node_type": "AGENT",
+        "nodeman_op_info": {
+            "nodeman_op_type": "INSTALL",
+            "nodeman_node_type": "AGENT",
+            "nodeman_other_hosts": [],
+            "nodeman_hosts": [
+                {
+                    "nodeman_ap_id": "1",
+                    "nodeman_bk_cloud_id": "1",
+                    "nodeman_bk_install_channel": 1,
+                    "inner_ip": "1.1.1.1",
+                    "os_type": "LINUX",
+                    "bk_addressing": "static",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "1.1.1.1",
+                    "login_ip": "1.1.1.1",
+                    "data_ip": "1.1.1.1",
+                },
+                {
+                    "nodeman_ap_id": "2",
+                    "nodeman_bk_cloud_id": "2",
+                    "nodeman_bk_install_channel": 1,
+                    "inner_ip": "2.2.2.2",
+                    "os_type": "LINUX",
+                    "bk_addressing": "static",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "2.2.2.2",
+                    "login_ip": "2.2.2.2",
+                    "data_ip": "2.2.2.2",
+                },
+            ],
+        },
+    },
+    parent_data={"executor": "tester"},
+    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        callback_data=None,
+        schedule_finished=True,
+        outputs={"fail_num": 0, "job_id": "1", "success_num": 1},
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            calls=[
+                Call(
+                    **{
+                        "job_type": "INSTALL_AGENT",
+                        "is_install_latest_plugins": True,
+                        "hosts": [
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "install_channel_id": 1,
+                                "inner_ip": "1.1.1.1",
+                                "os_type": "LINUX",
+                                "bk_addressing": "static",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "encrypt_auth_key",
+                                "outer_ip": "1.1.1.1",
+                                "login_ip": "1.1.1.1",
+                                "data_ip": "1.1.1.1",
+                                "force_update_agent_id": False,
+                            },
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "2",
+                                "install_channel_id": 1,
+                                "inner_ip": "2.2.2.2",
+                                "os_type": "LINUX",
+                                "bk_addressing": "static",
                                 "port": "22",
                                 "account": "test",
                                 "auth_type": "PASSWORD",

@@ -187,7 +187,8 @@ const template = {
         projectBaseInfo: {},
         notify_receivers: {
             receiver_group: [],
-            more_receiver: ''
+            more_receiver: '',
+            extra_info: {}
         },
         notify_type: { success: [], fail: [] },
         time_out: '',
@@ -220,11 +221,12 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels, default_flow_type } = data
+            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels, default_flow_type, notify_type_extra_info } = data
             state.name = name
             state.category = category
             state.notify_type = notify_type
             state.notify_receivers.receiver_group = receiver_group
+            state.notify_receivers.extra_info = notify_type_extra_info
             state.description = description
             state.executor_proxy = executor_proxy
             state.template_labels = template_labels
@@ -315,6 +317,7 @@ const template = {
             state.name = name
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
+            state.notify_receivers.extra_info = receiver.extra_info || {}
             state.notify_type = typeof notify_type === 'string' ? { success: JSON.parse(notify_type), fail: [] } : notify_type
             state.description = description
             state.executor_proxy = executor_proxy
@@ -352,7 +355,8 @@ const template = {
             state.notify_type = { success: [], fail: [] }
             state.notify_receivers = {
                 receiver_group: [],
-                more_receiver: ''
+                more_receiver: '',
+                extra_info: {}
             }
             state.description = ''
             state.executor_proxy = ''
@@ -377,7 +381,8 @@ const template = {
             state.notify_type = { success: [], fail: [] }
             state.notify_receivers = {
                 receiver_group: [],
-                more_receiver: ''
+                more_receiver: '',
+                extra_info: {}
             }
             state.description = ''
             state.executor_proxy = ''

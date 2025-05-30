@@ -379,7 +379,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
     .task-param-wrapper {
-        /deep/ .render-form {
+        ::v-deep .render-form {
             .rf-form-item {
                 margin: 0 0 24px;
                 .rf-group-name .required {

@@ -122,9 +122,13 @@
                     style="margin-right: 8px;"
                     :disabled="subflowFormsLoading || !selectedTplNum"
                     @click="onConfirm">
-                    {{ $t('批量更新') }}
+                    {{ isSourceList ? $t('立即更新并保存') : $t('批量更新') }}
                 </bk-button>
-                <bk-button @click="onCloseDialog(false)">{{ $t('取消') }}</bk-button>
+                <bk-button
+                    :theme="isSourceList ? 'primary' : 'default'"
+                    @click="onCancel">
+                    {{ isSourceList ? $t('跳转到流程') : $t('取消') }}
+                </bk-button>
             </div>
         </div>
         <bk-dialog
@@ -171,7 +175,12 @@
                 default () {
                     return []
                 }
-            }
+            },
+            source: {
+                type: String,
+                default: ''
+            },
+            templateId: [Number, String]
         },
         data () {
             return {
@@ -196,6 +205,9 @@
             },
             selectedTplNum () {
                 return this.subflowForms.filter(item => item.checked).length
+            },
+            isSourceList () {
+                return this.source === 'list'
             }
         },
         created () {
@@ -422,6 +434,9 @@
                     }
                 }
                 formItemConfig.attrs.name = variable.name
+                if (formItemConfig.type === 'combine') {
+                    formItemConfig.name = variable.name
+                }
                 formItemConfig.tag_code = variable.key
                 formItemConfig.status = variable.status
                 // 自定义输入框变量正则校验添加到插件配置项
@@ -624,7 +639,7 @@
                                     })
                                 }
                             }
-                                                
+
                             // 根据source_info中获取勾选的表单项code
                             const [formCode] = curVar?.source_info[subflow.id] || []
                             if (!formCode) return
@@ -677,10 +692,7 @@
                 this.setConstants(constants)
             },
             onConfirm () {
-                const selectedInputForms = this.$refs.inputParams ? this.$refs.inputParams.filter((item, index) => {
-                    return this.subflowForms[index].checked
-                }) : []
-                if (selectedInputForms.every(item => item.validate())) {
+                const handleConfirmation = () => {
                     this.subflowForms.filter(item => item.checked).forEach(item => {
                         const activity = tools.deepClone(this.activities[item.id])
                         activity.version = item.latestForm.version
@@ -697,12 +709,55 @@
                     })
                     this.handleVariableChange()
                     this.onCloseDialog(true)
+                }
+
+                const selectedInputForms = this.$refs.inputParams ? this.$refs.inputParams.filter((item, index) => {
+                    return this.subflowForms[index].checked
+                }) : []
+
+                if (selectedInputForms.every(item => item.validate())) {
+                    if (this.isSourceList) {
+                        this.showSaveConfirmation(handleConfirmation)
+                    } else {
+                        handleConfirmation()
+                    }
                 } else {
                     const errorEl = document.querySelector('.subflow-form-wrap .common-error-tip')
                     if (errorEl) {
                         errorEl.scrollIntoView()
                     }
                 }
+            },
+            // 显示保存确认弹窗
+            showSaveConfirmation (confirmHandler) {
+                const h = this.$createElement
+                this.$bkInfo({
+                    subHeader: h('div', { class: 'custom-header' }, [
+                        h('div', {
+                            class: 'custom-header-title',
+                            directives: [{
+                                name: 'bk-overflow-tips'
+                            }]
+                        }, [this.$t('保存后子流程更新将立即生效，请谨慎操作')])
+                    ]),
+                    extCls: 'dialog-custom-header-title',
+                    maskClose: false,
+                    width: 450,
+                    confirmFn: () => {
+                        confirmHandler()
+                        this.$emit('confirm')
+                    }
+                })
+            },
+            onCancel () {
+                if (this.isSourceList) {
+                    this.$router.push({
+                        name: 'templatePanel',
+                        params: { type: 'edit' },
+                        query: { template_id: this.templateId }
+                    })
+                }
+                this.onCloseDialog(true)
             },
             onCloseDialog (updated = false) {
                 this.$emit('close', updated)
@@ -827,7 +882,7 @@
                 .outputs-wrapper {
                     margin: 0 30px;
                 }
-                /deep/ .rf-form-item {
+                ::v-deep .rf-form-item {
                     margin: 0;
                     padding: 15px 20px;
                     .rf-tag-hook {
@@ -890,7 +945,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        /deep/ .bk-link-text {
+        ::v-deep .bk-link-text {
             font-size: 12px;
         }
     }

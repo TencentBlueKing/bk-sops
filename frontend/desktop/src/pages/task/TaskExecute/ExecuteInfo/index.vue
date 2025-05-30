@@ -760,7 +760,7 @@
             }
         }
         &.subprocess-scroll {
-            /deep/.scroll-area {
+            ::v-deep .scroll-area {
                 overflow-y: initial;
             }
         }

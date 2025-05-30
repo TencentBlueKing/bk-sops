@@ -159,7 +159,7 @@
         height: 100%;
         background: #f4f7fa;
     }
-    /deep/ .task-management-page {
+    ::v-deep .task-management-page {
         .canvas-wrapper.jsflow .tool-panel-wrap {
             left: 20px;
         }

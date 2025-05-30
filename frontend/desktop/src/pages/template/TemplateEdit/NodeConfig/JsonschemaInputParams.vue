@@ -55,7 +55,7 @@
 </script>
 <style lang="scss" scoped>
     .jsonschema-input-params {
-        >>> {
+        ::v-deep {
             .bk-schema-form-group-content {
                 grid-auto-columns: 100%;
             }

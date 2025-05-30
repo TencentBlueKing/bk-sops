@@ -166,7 +166,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    /deep/.markdownVideo {
+    ::v-deep .markdownVideo {
         width: 100%;
     }
     .editorContainer {

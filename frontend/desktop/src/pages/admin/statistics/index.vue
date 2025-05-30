@@ -184,10 +184,10 @@
             margin-top: 8px;
             padding-right: 26px;
         }
-        /deep/ .statistics-select {
+        ::v-deep .statistics-select {
             width: 250px;
         }
-        /deep/ .bar-chart-area {
+        ::v-deep .bar-chart-area {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
@@ -195,7 +195,7 @@
                 width: 49%;
             }
         }
-        /deep/ .tab-content-area {
+        ::v-deep .tab-content-area {
             border-radius: 2px;
             box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
             .bk-tab-section {

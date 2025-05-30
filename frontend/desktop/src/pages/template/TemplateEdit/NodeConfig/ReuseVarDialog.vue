@@ -256,7 +256,7 @@
             color: #ff9c01;
         }
         .bk-form:not(.bk-form-vertical) {
-            /deep/ .bk-form-content {
+            ::v-deep .bk-form-content {
                 margin-right: 30px;
             }
         }

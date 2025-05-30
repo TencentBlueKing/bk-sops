@@ -726,7 +726,7 @@
 .clocked-table-content {
     margin-top: 25px;
     background: #ffffff;
-    /deep/ .bk-table {
+    ::v-deep .bk-table {
         td.is-last .cell {
             overflow: visible;
         }

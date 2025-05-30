@@ -322,13 +322,13 @@
             color: #ea3636;
         }
         .bk-form:not(.bk-form-vertical) {
-            /deep/ .bk-form-content {
+            ::v-deep .bk-form-content {
                 margin-right: 30px;
             }
         }
     }
     .bk-table {
-        /deep/ .bk-table-row {
+        ::v-deep .bk-table-row {
             &.deleted {
                 background: #fff5f4;
             }
