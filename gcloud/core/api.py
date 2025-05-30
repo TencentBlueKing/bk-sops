@@ -160,6 +160,23 @@ def get_footer_info(request):
 def get_msg_types(request):
     client = get_client_by_user(request.user.username)
     result = client.cmsi.get_msg_type()
+    if settings.ENABLE_BK_CHAT_CHANNEL and not request.GET.get("only_cmsi"):
+        bk_chat = {
+            "type": "bkchat",
+            "icon": "iVBORw0KGgoAAAANSUhEUgAAACQAAAAgCAMAAABNTyq8AAAAAXNSR0IArs4c6QAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAOpQTF"
+            "RF////GX3/Fmj/IcH/M6P+FXD/AOvpF4P/IL7/H7r/FnT/Hrb/Jcb/Fmv/Jcr/AP7iF3j/APLmJc7/HrD/Tpf/IKn/G5f/ALP81Oz/Vov/"
+            "AP/o+/3/GqP/ANfwGY//AMf2AM/zALz6APnm4fb/MLb/HJ37gbH/FGH/AOXsK9P/Bq7+Qp3/IdH/e9T/oOr/GIj/A8H4hcn/AOHuEWH/AN"
+            "zvaqL/Y+D6c73/uNn/F4D/AHfdC6zpSOr2te3+yPb7AMHWKvHzg9/97fr/ALHKOY3/qvP7BYfmALnnmb7/1vX/df/0SLn/PNX/GWj/cm/M"
+            "ZQAAAWBJREFUeNp9zmFXgjAUgOFVhpqVmkoImIZOSUVFRCkVhBTU8v//nS6yTers9OzcbR/eDxcF+zpH1UFp+5NlWb0YeQF86pJCQWRb1z"
+            "w9u0s5CrIfuE7bKuMg+5YvFe2RfcdV2g4YE9klPjFDxdEVH84wEL3z4Rpjom6WGZ/vpMmqfQaiMTUww/DjLAxFtf/MGKj7QjlSBuPlslLI"
+            "50A+HS1oI0pKO200eSUgEomBhIBCBvicCMfR4QDNOqnWE2KOFhhjFQ7OxFEQQNQmUTMRRyrAMBAxJCJIVIvnb7RrEXNk1ijnn6hCfTnSBa"
+            "zlNogVREyhc2EoKJiyyChwdWDD1SwRR3me3HznbqYJiHJ8M53ZIOOGbyYIugDghuiebypQEPmPfHqZ0ZD/xDUU0tH6e8i8pQgaIyPFHVF+"
+            "y4uiaAmiZqNc1MiBKMX1PoHnNfSyVkw5/ooEoazJslwEciJ+j8oPxRxtqFiEHPIAAAAASUVORK5CYII=",
+            "label": "bkchat",
+            "tips": ("获取群ID方法：<br>" "1. 群聊右上角添加联系人：bkchat(蓝鲸信息流)<br>" '2. 输入 "小鲸 群ID" 获取群ID<br>' "3. 将获取到的群ID粘贴到输入框"),
+            "is_active": True,
+        }
+        result["data"].append(bk_chat)
     return JsonResponse(result)
 
 

@@ -352,7 +352,7 @@
             display: flex;
             background: #3a84ff;
             height: 12px;
-            /deep/.bk-tooltip {
+            ::v-deep .bk-tooltip {
                 width: 100%;
                 .bk-tooltip-ref {
                     display: flex;

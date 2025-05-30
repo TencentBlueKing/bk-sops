@@ -89,6 +89,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
             for host in nodeman_hosts:
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
                 install_channel_id = host.get("nodeman_bk_install_channel")
+                bk_addressing = host.get("bk_addressing")
                 use_inner_ip = True if host.get("inner_ip") else False
                 # use_inner_ip 判定用户输入的的是ipv4还是ipv6
                 inner_ip_list = self.get_ip_list(
@@ -141,6 +142,9 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                 }
                 if install_channel_id and install_channel_id != -1:
                     base_params["install_channel_id"] = install_channel_id
+                # v7.0增加字段 寻址方式bk_addressing
+                if bk_addressing:
+                    base_params["bk_addressing"] = bk_addressing
                 # 支持表格中一行多ip操作, 拼装表格内的inner_ip参数
                 for index, inner_ip in enumerate(inner_ip_list):
 

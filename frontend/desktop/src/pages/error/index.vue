@@ -62,7 +62,7 @@
         }
     }
     .content-wrapper {
-        /deep/ .error-title {
+        ::v-deep .error-title {
             margin: 10px 0;
             font-weight: bold;
         }

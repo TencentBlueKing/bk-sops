@@ -79,7 +79,7 @@
 </script>
 <style lang="scss" scoped>
 .tag-datetime {
-    /deep/ .el-date-editor {
+    ::v-deep .el-date-editor {
         width: 100%;
         &.el-input {
             .el-input__inner {

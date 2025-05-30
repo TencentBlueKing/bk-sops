@@ -166,7 +166,7 @@
                 width: 20%;
             }
         }
-        /deep/.render-form {
+        ::v-deep .render-form {
             >.rf-form-item,
             .form-item-group >.rf-form-item {
                 margin: 0;
@@ -201,7 +201,7 @@
                 }
             }
         }
-        /deep/.bk-schema-form {
+        ::v-deep .bk-schema-form {
             .bk-form-item {
                 margin: 0;
                 padding: 5px 0;

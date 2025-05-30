@@ -21,7 +21,7 @@
                 ref="configForm"
                 class="form-area"
                 :model="formData"
-                :label-width="140"
+                :label-width="120"
                 :rules="rules">
                 <section class="form-section">
                     <h4>{{ $t('基础') }}</h4>
@@ -123,9 +123,11 @@
                         <span class="tip-desc">{{ $t('选择通知方式后，将默认通知到任务执行人；可选择同时通知其他分组人员') }}</span>
                     </h4>
                     <NotifyTypeConfig
-                        :label-width="140"
+                        ref="notifyTypeConfig"
+                        :label-width="120"
                         :notify-type="formData.notifyType"
                         :notify-type-list="[{ text: $t('任务状态') }]"
+                        :notify-type-extra-info="formData.notifyTypeExtraInfo"
                         :receiver-group="formData.receiverGroup"
                         :project_id="projectId"
                         :common="common"
@@ -250,6 +252,7 @@
                 executor_proxy, template_labels, default_flow_type
             } = this.$store.state.template
             const { success, fail, pending_processing = [] } = notify_type
+            const { extra_info: extraInfo = {} } = notify_receivers
             const notifyType = [success.slice(0), fail.slice(0), pending_processing.slice(0)]
 
             return {
@@ -260,6 +263,7 @@
                     executorProxy: executor_proxy ? [executor_proxy] : [],
                     receiverGroup: notify_receivers.receiver_group.slice(0),
                     notifyType,
+                    notifyTypeExtraInfo: { ...extraInfo },
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
@@ -400,7 +404,7 @@
                 window.open(href, '_blank')
             },
             getTemplateConfig () {
-                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
+                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo } = this.formData
                 return {
                     name,
                     category,
@@ -409,6 +413,7 @@
                     executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                     receiver_group: receiverGroup,
                     notify_type: { success: notifyType[0], fail: notifyType[1], pending_processing: notifyType[2] },
+                    notify_type_extra_info: notifyTypeExtraInfo,
                     default_flow_type: defaultFlowType
                 }
             },
@@ -435,21 +440,29 @@
                 }
             },
             onSelectNotifyConfig (formData) {
-                const { notifyType, receiverGroup } = formData
+                const { notifyType, notifyTypeExtraInfo, receiverGroup } = formData
                 this.formData.notifyType = notifyType
+                this.formData.notifyTypeExtraInfo = notifyTypeExtraInfo
                 this.formData.receiverGroup = receiverGroup
             },
-            onSaveConfig () {
-                this.$refs.configForm.validate().then(result => {
-                    if (!result || this.isProxyValidateError) {
+            async onSaveConfig () {
+                try {
+                    if (this.isProxyValidateError) {
                         return
                     }
+                    const validations = await Promise.all([
+                        this.$refs.configForm.validate(),
+                        this.$refs.notifyTypeConfig.validate()
+                    ])
+                    if (validations.includes(false)) return
 
                     const data = this.getTemplateConfig()
                     this.setTplConfig(data)
                     this.closeTab()
                     this.$emit('templateDataChanged')
-                })
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             beforeClose () {
                 if (this.isViewMode) {
@@ -576,7 +589,7 @@
             padding: 0 25px;
         }
     }
-    /deep/ .bk-label {
+    ::v-deep .bk-label {
         font-size: 12px;
     }
     .user-selector {
