@@ -1925,6 +1925,7 @@
     }
     .exception-wrap {
         height: 280px;
+        margin-top: 200px;
         justify-content: center;
         .bk-exception-img {
             width: 220px;
@@ -1932,6 +1933,7 @@
             margin-bottom: 12px;
         }
         .bk-exception-text {
+            margin-top: 50px;
             font-size: 12px;
             color: #444444;
         }

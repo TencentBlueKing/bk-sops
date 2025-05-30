@@ -1039,6 +1039,7 @@
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
                 this.backToVariablePanel = false
+                this.isNotExistAtomOrVersion = false
                 if (openVariablePanel) {
                     this.onChangeSettingPanel('globalVariableTab')
                 }
