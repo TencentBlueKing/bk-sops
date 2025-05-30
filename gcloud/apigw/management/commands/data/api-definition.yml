@@ -2,6 +2,7 @@ apigateway:
   description: 标准运维（{{ settings.BK_APP_CODE }}）API 网关，包含了项目、流程、任务等资源的查询和操作接口
   description_en: {{ settings.BK_APP_CODE }} API Gateway, including query and operation interface of project, flow, task and other resources
   is_public: true
+  api_type: 1
   maintainers:
     {% for member in settings.BK_APIGW_MANAGER_MAINTAINERS %}
     - "{{ member }}"

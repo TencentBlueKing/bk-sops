@@ -43,7 +43,7 @@ class ComponentModelFilter(FilterSet):
 class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
     queryset = (
         ComponentModel.objects.filter(status=True)
-        .exclude(code__in=["remote_plugin", "subprocess_plugin"])
+        .exclude(code__in=["remote_plugin", "subprocess_plugin", "gsekit_job_exec", "gsekit_flush_process"])
         .extra(
             select={"converted_name": "CONVERT(SUBSTRING_INDEX(name, '-', -1) USING gbk)"}, order_by=["converted_name"]
         )
