@@ -22,7 +22,6 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_periodic_task_start_fail,
 )
 from gcloud.shortcuts.message.send_msg import CmsiSender, MessageSender
-from gcloud.periodictask.models import PeriodicTask
 
 logger = logging.getLogger("root")
 
