@@ -19,7 +19,7 @@ from rest_framework.exceptions import ValidationError
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.serializer import ClockedTaskSerializer
 from gcloud.constants import PROJECT
@@ -39,6 +39,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @request_validate(CreateTaskValidator)
 @iam_intercept(CreateClockedTaskInterceptor())
 def create_clocked_task(request, template_id, project_id):
@@ -59,7 +60,11 @@ def create_clocked_task(request, template_id, project_id):
         result = {
             "result": False,
             "message": "template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] "
-            "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id,),
+            "does not exist".format(
+                template_id=template_id,
+                project_id=project.id,
+                biz_id=project.bk_biz_id,
+            ),
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
         return result
