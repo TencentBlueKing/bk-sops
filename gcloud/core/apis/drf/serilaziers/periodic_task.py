@@ -29,6 +29,7 @@ from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.models import Project, ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
+from gcloud.core.models import EnvironmentVariables
 
 logger = logging.getLogger("root")
 
@@ -213,8 +214,13 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
-        if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
-            self.inspect_cron(attrs.get("cron"))
+        if settings.PERIODIC_TASK_SHORTEST_TIME:
+            exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS")
+            exempt_project_ids = exempt_project_ids.split(",") if exempt_project_ids else []
+            project_id = str(attrs.get("project").id)
+            need_validation = not (self.context["request"].user.is_superuser or project_id in exempt_project_ids)
+            if need_validation:
+                self.inspect_cron(attrs.get("cron"))
         return attrs
 
     class Meta:
@@ -238,6 +244,11 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
-        if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
-            self.inspect_cron(attrs.get("cron"))
+        if settings.PERIODIC_TASK_SHORTEST_TIME:
+            exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS")
+            exempt_project_ids = exempt_project_ids.split(",") if exempt_project_ids else []
+            project_id = str(attrs.get("project"))
+            need_validation = not (self.context["request"].user.is_superuser or project_id in exempt_project_ids)
+            if need_validation:
+                self.inspect_cron(attrs.get("cron"))
         return attrs
