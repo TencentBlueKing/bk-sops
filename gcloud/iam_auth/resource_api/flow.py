@@ -12,13 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 from django.core.cache import cache
 from django.db.models import Q
-
-from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.core.models import Project
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
@@ -44,7 +43,11 @@ class FlowResourceProvider(ResourceProvider):
         if results is None:
             queryset = (
                 TaskTemplate.objects.select_related("pipeline_template")
-                .filter(pipeline_template__name__icontains=keyword, is_deleted=False)
+                .filter(
+                    pipeline_template__name__icontains=keyword,
+                    is_deleted=False,
+                    project__tenant_id=options["bk_tenant_id"],
+                )
                 .only("pipeline_template__name")
             )
             if project_id:
@@ -75,13 +78,15 @@ class FlowResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = TaskTemplate.objects.filter(is_deleted=False)
+            queryset = TaskTemplate.objects.filter(project__tenant_id=options["bk_tenant_id"], is_deleted=False)
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
-                queryset = TaskTemplate.objects.filter(project_id=str(parent_id), is_deleted=False)
+                queryset = TaskTemplate.objects.filter(
+                    project__tenant_id=options["bk_tenant_id"], project_id=str(parent_id), is_deleted=False
+                )
             else:
-                queryset = TaskTemplate.objects.filter(is_deleted=False)
+                queryset = TaskTemplate.objects.filter(project__tenant_id=options["bk_tenant_id"], is_deleted=False)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -98,7 +103,11 @@ class FlowResourceProvider(ResourceProvider):
             for keyword in flow_keywords:
                 flow_filter |= Q(pipeline_template__name__icontains=keyword)  # TODO 优化
 
-            project_ids = Project.objects.filter(project_filter).values_list("id", flat=True)
+            project_ids = (
+                Project.objects.filter(project_filter)
+                .filter(tenant_id=options["bk_tenant_id"])
+                .values_list("id", flat=True)
+            )
             queryset = TaskTemplate.objects.filter(project_id__in=list(project_ids)).filter(flow_filter)
 
         count = queryset.count()
@@ -126,7 +135,7 @@ class FlowResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        queryset = TaskTemplate.objects.filter(id__in=ids)
+        queryset = TaskTemplate.objects.filter(id__in=ids, project__tenant_id=options["bk_tenant_id"])
         count = queryset.count()
 
         results = [
@@ -150,7 +159,7 @@ class FlowResourceProvider(ResourceProvider):
         }
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": flow_path_value_hook})
         filters = converter.convert(expression)
-        queryset = TaskTemplate.objects.filter(filters)
+        queryset = TaskTemplate.objects.filter(filters).filter(project__tenant_id=options["bk_tenant_id"])
         count = queryset.count()
 
         results = [
