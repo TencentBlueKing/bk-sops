@@ -900,7 +900,7 @@
     .disabled-search {
         position: relative;
         cursor: not-allowed;
-        /deep/ .bk-search-select {
+        ::v-deep .bk-search-select {
             border-color: #dcdee5 !important;
             background-color: #fafbfd !important;
         }
@@ -923,7 +923,7 @@
         &:not(:first-of-type) {
             margin-top: 20px;
         }
-        /deep/ .bk-form-checkbox {
+        ::v-deep .bk-form-checkbox {
             display: flex;
             align-items: center;
             &:not(:last-of-type) {
@@ -936,7 +936,7 @@
                 color: #606266;
             }
         }
-        /deep/.bk-checkbox-text {
+        ::v-deep .bk-checkbox-text {
             display: flex;
             align-items: center;
         }
@@ -997,13 +997,13 @@
     }
     .retry-times-input,
     .interval-input {
-        /deep/.bk-input-number {
+        ::v-deep .bk-input-number {
             width: 50px;
             .bk-form-input {
                 padding-right: 5px !important;
             }
         }
-        /deep/.group-append {
+        ::v-deep .group-append {
             align-items: center;
             border: 1px solid #c4c6cc !important;
             border-left: none !important;
@@ -1015,29 +1015,29 @@
             }
         }
         .control-active {
-            /deep/.group-append {
+            ::v-deep .group-append {
                 border-color: #3a84ff !important;
             }
         }
         .control-disable {
-            /deep/.group-append {
+            ::v-deep .group-append {
                 background-color: #fafbfd !important;
                 border-color: #dcdee5 !important;
             }
         }
     }
     .retry-times-input {
-        /deep/.bk-input-number {
+        ::v-deep .bk-input-number {
             width: 45px;
         }
     }
     .auto-retry-times,
     .timeout-setting-wrap {
-        /deep/ .bk-input-number .input-number-option {
+        ::v-deep .bk-input-number .input-number-option {
             display: none;
         }
     }
-    /deep/ .bk-form {
+    ::v-deep .bk-form {
         .bk-label {
             font-size: 12px;
         }

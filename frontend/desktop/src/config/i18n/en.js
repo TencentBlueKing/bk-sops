@@ -1896,12 +1896,20 @@ const en = {
     '【n】标签已存在': 'The tag [{n}] already exists',
     '场景名称重复：': 'Duplicate scene name:',
     '场景名称长度最小3个字符': 'The scene name must be at least 3 characters long',
-    '请输入群 ID，多个 ID 以分号隔开': 'Please enter group IDs, separated by semicolons if there are multiple IDs',
+    '请输入群 ID，多个 ID 以逗号隔开': 'Please enter group IDs, separated by comma if there are multiple IDs',
     '当前环境配置周期任务间隔不低于 n 分钟，如有特殊需求请联系管理员配置': 'In the current environment, the interval for scheduled tasks is no less than {n} minutes. If you have special requirements, please contact the administrator for configuration',
     '仅支持上传.mp4,.mov文件': 'Only .mp4 and .mov files are supported for upload',
     '选择视频文件': 'Select video file',
     '上传视频': 'Upload Video',
-    '蓝鲸智云': 'Tencent BlueKing'
+    '蓝鲸智云': 'Tencent BlueKing',
+    '立即更新': 'Update Now',
+    '流程批量更新成功！': 'Batch Process Update Successful!',
+    '保存后子流程更新将立即生效，请谨慎操作': 'After saving, the sub-process updates will take effect immediately. Please proceed with caution.',
+    '立即更新并保存': 'Update and Save Now',
+    '跳转到流程': 'Jump to Process',
+    '代码框自动开启免渲染模式提醒': 'Code box automatically enables no-render mode reminder',
+    '检测到【n】代码框没有使用变量，保存该节点代码框将自动改为免渲染模式。届时所有标准运维变量将不会被渲染。请确定是否保存': 'Detected that [{n}] code boxes do not use variables. Saving this node will automatically switch the code box to no-render mode, and all standard operations variables will not be rendered. Please confirm whether to save',
+    '即将废弃': 'About to be deprecated'
 }
 
 export default en

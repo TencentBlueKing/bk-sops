@@ -231,7 +231,7 @@
 </script>
 <style lang="scss" scoped>
     @import '@/scss/mixins/input-error.scss';
-    /deep/ .bk-select {
+    ::v-deep .bk-select {
         background-color: #ffffff;
         &.is-disabled {
             background-color: #fafafa;

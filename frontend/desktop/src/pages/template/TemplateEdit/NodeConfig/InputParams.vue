@@ -20,7 +20,7 @@
             :form-data="formData"
             :render-config="renderConfig"
             @change="onInputsValChange"
-            @onRenderChange="$emit('renderConfigChange', arguments)"
+            @onRenderChange="$emit('renderConfigChange', $event)"
             @onHookChange="onInputHookChange">
         </render-form>
         <bk-collapse v-if="formsNotReferredScheme.length > 0" :class="['not-referred-forms', { expand: notReferredExpand }]">
@@ -365,7 +365,7 @@
 .not-referred-forms {
     margin-top: 20px;
     background: #f0f1f5;
-    & /deep/ .bk-collapse-item {
+    & ::v-deep .bk-collapse-item {
         .bk-collapse-item-header {
             color: #333333;
             &:hover {
@@ -374,12 +374,11 @@
         }
     }
 }
-/deep/.render-form {
+::v-deep .render-form {
     >.rf-form-item {
         .rf-group-name {
             display: none;
         }
-
         .hide-render-icon {
             top: 0;
         }
@@ -405,7 +404,7 @@
         }
     }
 }
-/deep/.subflow-form {
+::v-deep .subflow-form {
     .rf-form-group {
         .rf-group-name {
             display: block;
@@ -426,6 +425,12 @@
         }
     }
     >.rf-form-group {
+        // 解决子元素浮动导致父元素高度塌陷的问题
+        &::after{
+            content: "";
+            display: block;
+            clear: both;
+        }
         .rf-group-name {
             float: left;
         }

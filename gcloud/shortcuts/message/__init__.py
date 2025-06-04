@@ -21,7 +21,7 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_pending_processing,
     title_and_content_for_periodic_task_start_fail,
 )
-from gcloud.shortcuts.message.send_msg import send_message
+from gcloud.shortcuts.message.send_msg import CmsiSender, MessageSender
 
 logger = logging.getLogger("root")
 
@@ -35,6 +35,9 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
     # {"success": ["weixin"], "fail": ["weixin"]}
     # []
     notify_types = taskflow.get_notify_type()
+    # 获取消息接收人, 形如：
+    # {'receiver_group':['Maintainers'],'more_receiver':'username1,username2',extra_info":{"bkchat":{fail:"",success:""}}
+    notify_receivers = taskflow.get_notify_receivers()
     receivers_list = taskflow.get_stakeholders()
     receivers = ",".join(receivers_list)
     executor = taskflow.executor
@@ -44,26 +47,33 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("fail", [])
+        bkchat_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("fail", "")
     elif msg_type == TASK_FINISHED:
         title, content, email_content = title_and_content_for_flow_finished(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("success", [])
+        bkchat_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("success", "")
     elif msg_type == PENDING_PROCESSING:
         title, content, email_content = title_and_content_for_pending_processing(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
         notify_type = notify_types.get("pending_processing", [])
-
+        bkchat_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("pending_processing", "")
     else:
         return False
-
     logger.info(
-        "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers}".format(
-            flow_id=taskflow.id, msg_type=msg_type, notify_type=notify_type, receivers=receivers
+        "taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers} {bkchat_receivers}".format(
+            flow_id=taskflow.id,
+            msg_type=msg_type,
+            notify_type=notify_type,
+            receivers=receivers,
+            bkchat_receivers=bkchat_receivers,
         )
     )
-    send_message(executor, notify_type, receivers, title, content, email_content=email_content)
+    MessageSender().send(
+        executor, notify_type, bkchat_receivers, receivers, title, content, email_content=email_content
+    )
 
     return True
 
@@ -81,13 +91,12 @@ def send_periodic_task_message(periodic_task, history):
             template_id=gcloud_periodic_task.template.id, notify_type=notify_type, receivers=receivers
         )
     )
-    send_message(gcloud_periodic_task.creator, notify_type, receivers, title, content)
+    CmsiSender().send(gcloud_periodic_task.creator, notify_type, receivers, title, content)
 
     return True
 
 
 def send_clocked_task_message(clocked_task, ex_data):
-
     notify_types = clocked_task.get_notify_type()
     receivers_list = clocked_task.get_stakeholders()
     receivers = ",".join(receivers_list)
@@ -100,6 +109,6 @@ def send_clocked_task_message(clocked_task, ex_data):
             task_id=clocked_task.id, msg_type="create fail", notify_type=notify_type, receivers=receivers
         )
     )
-    send_message(creator, notify_type, receivers, title, content)
+    CmsiSender().send(creator, notify_type, receivers, title, content)
 
     return True
