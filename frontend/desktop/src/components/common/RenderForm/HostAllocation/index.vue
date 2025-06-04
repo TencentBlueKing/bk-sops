@@ -351,7 +351,7 @@
     }
 </style>
 <style lang="scss" scoped>
-    /deep/ .data-table {
+    ::v-deep .data-table {
         .bk-table-empty-text {
             width: 100%;
             .no-data-wrapper {

@@ -80,7 +80,7 @@
             font-size: 12px;
             color: #63656e;
         }
-        /deep/ .search-input {
+        ::v-deep .search-input {
             input{
                 color: #313238;
                 height: 48px;

@@ -23,7 +23,7 @@
             :constants="constants"
             @change="updateForm"
             @onHook="updateHook"
-            @onRenderChange="updateRender">
+            @onRenderChange="$emit('onRenderChange', $event)">
         </component>
     </div>
 </template>
@@ -332,9 +332,6 @@
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
             },
-            updateRender (field, val) {
-                this.$emit('onRenderChange', field, val)
-            },
             // 设置变量隐藏逻辑
             setVariableHideLogic (key, val) {
                 if (key in this.watchVarInfo) {
@@ -454,7 +451,7 @@
 </style>
 <style lang="scss" scoped>
 .render-form {
-    /deep/ .rf-group-name {
+    ::v-deep .rf-group-name {
         margin-bottom: 8px;
         .scheme-name,
         .scheme-code {
@@ -480,7 +477,7 @@
             color: #ff9c01;
         }
     }
-    /deep/ .scheme-desc-wrap {
+    ::v-deep .scheme-desc-wrap {
         position: relative;
         color: #979ba5;
         .hide-html-text {

@@ -310,10 +310,10 @@
     .sub-flow {
         height: 100%;
         border: 0;
-        /deep/.canvas-wrapper {
+        ::v-deep .canvas-wrapper {
             background: #f5f7fa;
         }
-        /deep/.canvas-flow {
+        ::v-deep .canvas-flow {
             .active {
                 box-shadow: none;
                 &::before {
@@ -345,7 +345,7 @@
                 cursor: default;
             }
         }
-        /deep/.node-tips-content {
+        ::v-deep .node-tips-content {
             display: none;
         }
     }

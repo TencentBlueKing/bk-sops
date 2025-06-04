@@ -98,7 +98,7 @@
         <span v-if="input.value || searchSelectValue.length" @click.stop="handleClear" class="bk-icon icon-close-circle-shape close-icon"></span>
         <span v-else @click.stop="handleKeyEnter" :class="['bk-icon icon-search search-icon', { 'is-focus': input.focus }]"></span>
     </section>
-    
+
 </template>
 
 <script>
@@ -198,7 +198,7 @@
                     }
                 } else if (this.input.value) {
                     const inputOptions = this.list.filter(item => !item.children) || []
-                
+
                     return inputOptions.filter(option => {
                         const isMatch = this.searchSelectValue.some(item => item.id === option.id)
                         return !isMatch
@@ -729,7 +729,7 @@
                     padding-left: 2px;
                 }
             }
-            /deep/ .bk-tooltip {
+            ::v-deep .bk-tooltip {
                 width: 100%;
                 .bk-tooltip-ref {
                     width: 100%;
@@ -737,7 +737,7 @@
             }
         }
     }
-    
+
     .search-icon, .close-icon {
         position: absolute;
         top: 8px;
@@ -759,7 +759,7 @@
 </style>
 <style lang="scss">
     @import '@/scss/mixins/scrollbar.scss';
-    
+
     .select-list-popover,
     .search-list-popover {
         padding-bottom: 0 !important;
