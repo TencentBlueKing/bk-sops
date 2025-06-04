@@ -13,14 +13,13 @@ specific language governing permissions and limitations under the License.
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db.models import Q
-
-from gcloud.clocked_task.models import ClockedTask
-from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
+from gcloud.clocked_task.models import ClockedTask
 from gcloud.core.models import Project
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 
 attr_names = {"en": {"iam_resource_owner": "Resource Owner"}, "zh-cn": {"iam_resource_owner": "资源创建者"}}
 
@@ -35,6 +34,10 @@ class ClockedTaskResourceProvider(ResourceProvider):
         if page.limit == 0 or page.limit > 1000:
             raise InvalidPageException("limit in page too large")
 
+    def get_project_ids(self, tenant_id, extra_filter=Q()):
+
+        return list(Project.objects.filter(tenant_id=tenant_id).filter(extra_filter).values_list("id", flat=True))
+
     def search_instance(self, filter, page, **options):
         """
         clocked task search instance
@@ -45,9 +48,13 @@ class ClockedTaskResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = ClockedTask.objects.filter(task_name__icontains=keyword).only("task_name")
+            project_filter = Q()
             if project_id:
-                queryset = queryset.filter(project_id=project_id)
+                project_filter = Q(project_id=project_id)
+            project_ids = self.get_project_ids(options["bk_tenant_id"], project_filter)
+            queryset = ClockedTask.objects.filter(task_name__icontains=keyword, project_id__in=project_ids).only(
+                "task_name"
+            )
             results = [
                 {"id": str(clocked_task.id), "display_name": clocked_task.task_name}
                 for clocked_task in queryset[page.slice_from : page.slice_to]
@@ -72,7 +79,7 @@ class ClockedTaskResourceProvider(ResourceProvider):
         """
         if filter.attr == "iam_resource_owner":
             user_model = get_user_model()
-            users = user_model.objects.all().values_list("username", flat=True)
+            users = user_model.objects.filter(tenant_id=options["bk_tenant_id"]).values_list("username", flat=True)
             results = [{"id": username, "display_name": username} for username in users]
         else:
             results = []
@@ -85,15 +92,19 @@ class ClockedTaskResourceProvider(ResourceProvider):
         """
         queryset = []
         with_path = False
-
+        project_ids = self.get_project_ids(options["bk_tenant_id"])
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = ClockedTask.objects.all()
+            queryset = ClockedTask.objects.filter(project_id__in=project_ids)
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
-                queryset = ClockedTask.objects.filter(project_id=str(parent_id))
+                project = Project.objects.filter(tenant_id=options["bk_tenant_id"], id=parent_id).first()
+                if project:
+                    queryset = ClockedTask.objects.filter(project_id=parent_id)
+                else:
+                    queryset = ClockedTask.objects.none()
             else:
-                queryset = ClockedTask.objects.all()
+                queryset = ClockedTask.objects.filter(project_id__in=project_ids)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -101,17 +112,17 @@ class ClockedTaskResourceProvider(ResourceProvider):
             project_keywords = filter.search.get("project", [])
             clocked_task_keywords = filter.search.get("clocked_task", [])
 
-            project_filter = Q()
+            project_keyword_filter = Q()
             clocked_task_filter = Q()
 
             for keyword in project_keywords:
-                project_filter |= Q(name__icontains=keyword)
+                project_keyword_filter |= Q(name__icontains=keyword)
 
             for keyword in clocked_task_keywords:
                 clocked_task_filter |= Q(task_name__icontains=keyword)
 
-            project_ids = Project.objects.filter(project_filter).values_list("id", flat=True)
-            queryset = ClockedTask.objects.filter(project_id__in=list(project_ids)).filter(clocked_task_filter)
+            project_ids = self.get_project_ids(options["bk_tenant_id"], project_keyword_filter)
+            queryset = ClockedTask.objects.filter(project_id__in=project_ids).filter(clocked_task_filter)
 
         count = queryset.count()
         results = [
@@ -148,11 +159,12 @@ class ClockedTaskResourceProvider(ResourceProvider):
         """
         clocked_task 没有定义属性，只处理 filter 中的 ids 字段
         """
-        ids = []
+        queryset = ClockedTask.objects.none()
         if filter.ids:
             ids = [int(i) for i in filter.ids]
+            project_ids = self.get_project_ids(options["bk_tenant_id"])
+            queryset = ClockedTask.objects.filter(id__in=ids, project_id__in=project_ids)
 
-        queryset = ClockedTask.objects.filter(id__in=ids)
         count = queryset.count()
 
         results = [
@@ -181,8 +193,8 @@ class ClockedTaskResourceProvider(ResourceProvider):
         }
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project_id": clocked_task_path_value_hook})
         filters = converter.convert(expression)
-
-        queryset = ClockedTask.objects.filter(filters)
+        project_ids = self.get_project_ids(options["bk_tenant_id"])
+        queryset = ClockedTask.objects.filter(filters, project_id__in=project_ids)
         count = queryset.count()
 
         results = [

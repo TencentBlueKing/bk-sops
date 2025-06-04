@@ -65,7 +65,11 @@ class TaskResourceProvider(ResourceProvider):
         if results is None:
             queryset = (
                 TaskFlowInstance.objects.select_related("pipeline_instance")
-                .filter(pipeline_instance__name__icontains=keyword, is_deleted=Value(0))
+                .filter(
+                    project__tenant_id=options["bk_tenant_id"],
+                    pipeline_instance__name__icontains=keyword,
+                    is_deleted=Value(0),
+                )
                 .only("pipeline_instance__name")
             )
             if project_id:
@@ -99,7 +103,7 @@ class TaskResourceProvider(ResourceProvider):
             ]
         elif filter.attr == "iam_resource_owner":
             user_model = get_user_model()
-            users = user_model.objects.all().values_list("username", flat=True)
+            users = user_model.objects.filter(tenant_id=options["bk_tenant_id"]).values_list("username", flat=True)
             results = [{"id": username, "display_name": username} for username in users]
         else:
             results = []
@@ -114,13 +118,17 @@ class TaskResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = TaskFlowInstance.objects.filter(is_deleted=Value(0))
+            queryset = TaskFlowInstance.objects.filter(project__tenant_id=options["bk_tenant_id"], is_deleted=Value(0))
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
-                queryset = TaskFlowInstance.objects.filter(project_id=str(parent_id), is_deleted=Value(0))
+                queryset = TaskFlowInstance.objects.filter(
+                    project__tenant_id=options["bk_tenant_id"], project_id=str(parent_id), is_deleted=Value(0)
+                )
             else:
-                queryset = TaskFlowInstance.objects.filter(is_deleted=Value(0))
+                queryset = TaskFlowInstance.objects.filter(
+                    project__tenant_id=options["bk_tenant_id"], is_deleted=Value(0)
+                )
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -137,7 +145,9 @@ class TaskResourceProvider(ResourceProvider):
             for keyword in task_keywords:
                 task_filter |= Q(pipeline_instance__name__icontains=keyword)  # TODO 优化
 
-            project_ids = Project.objects.filter(project_filter).values_list("id", flat=True)
+            project_ids = Project.objects.filter(project_filter, tenant_id=options["tenant_id"]).values_list(
+                "id", flat=True
+            )
             queryset = TaskFlowInstance.objects.filter(project_id__in=list(project_ids)).filter(task_filter)
 
         count = queryset.count()
@@ -165,7 +175,7 @@ class TaskResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        queryset = TaskFlowInstance.objects.filter(id__in=ids)
+        queryset = TaskFlowInstance.objects.filter(id__in=ids, project__tenant_id=options["bk_tenant_id"])
 
         count = queryset.count()
         results = [
@@ -191,7 +201,7 @@ class TaskResourceProvider(ResourceProvider):
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": task_path_value_hook})
         filters = converter.convert(expression)
 
-        queryset = TaskFlowInstance.objects.filter(filters)
+        queryset = TaskFlowInstance.objects.filter(filters).filter(project__tenant_id=options["bk_tenant_id"])
         count = queryset.count()
         results = [
             {"id": str(task.id), "display_name": task.name} for task in queryset[page.slice_from : page.slice_to]

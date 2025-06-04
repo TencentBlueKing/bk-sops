@@ -12,13 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 from django.core.cache import cache
 from django.db.models import Q
-
-from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import DjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 
 
 class CommonFlowResourceProvider(ResourceProvider):
@@ -37,7 +36,7 @@ class CommonFlowResourceProvider(ResourceProvider):
         if results is None:
             queryset = (
                 CommonTemplate.objects.select_related("pipeline_template")
-                .filter(pipeline_template__name__icontains=keyword, is_deleted=False)
+                .filter(tenant_id=options["bk_tenant_id"], pipeline_template__name__icontains=keyword, is_deleted=False)
                 .only("pipeline_template__name")
             )
             results = [
@@ -67,19 +66,21 @@ class CommonFlowResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = CommonTemplate.objects.filter(is_deleted=False)
+            queryset = CommonTemplate.objects.filter(tenant_id=options["bk_tenant_id"], is_deleted=False)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
             # 过滤 common_flow 名称
             common_flow_keywords = filter.search.get("common_flow", [])
 
-            common_flow_filter = Q(is_deleted=False)
+            common_flow_filter = Q()
 
             for keyword in common_flow_keywords:
                 common_flow_filter |= Q(pipeline_template__name__icontains=keyword)  # TODO 优化
 
-            queryset = CommonTemplate.objects.filter(common_flow_filter)
+            queryset = CommonTemplate.objects.filter(tenant_id=options["bk_tenant_id"], is_deleted=False).filter(
+                common_flow_filter
+            )
 
         count = queryset.count()
         results = [
@@ -103,7 +104,7 @@ class CommonFlowResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        queryset = CommonTemplate.objects.filter(id__in=ids)
+        queryset = CommonTemplate.objects.filter(id__in=ids, tenant_id=options["bk_tenant_id"])
         count = queryset.count()
 
         results = [
@@ -127,7 +128,7 @@ class CommonFlowResourceProvider(ResourceProvider):
         }
         converter = DjangoQuerySetConverter(key_mapping)
         filters = converter.convert(expression)
-        queryset = CommonTemplate.objects.filter(filters)
+        queryset = CommonTemplate.objects.filter(filters, tenant_id=options["bk_tenant_id"])
         count = queryset.count()
 
         results = [
