@@ -1204,16 +1204,16 @@
             margin-right: 47px;
         }
     }
-    /deep/.selected-row {
+    ::v-deep .selected-row {
         background: #f0f5ff;
     }
-    /deep/.expand-row {
+    ::v-deep .expand-row {
         background: #fafbfd;
     }
     .template-operate-btn {
         color: $blueDefault;
     }
-    /deep/.recorded_executor_proxy-label {
+    ::v-deep .recorded_executor_proxy-label {
         display: flex;
         align-items: center;
         .table-header-tips {
@@ -1223,7 +1223,7 @@
             color: #c4c6cc;
         }
     }
-    /deep/ .cell .task-id {
+    ::v-deep .cell .task-id {
         margin-left: 16px;
     }
 }

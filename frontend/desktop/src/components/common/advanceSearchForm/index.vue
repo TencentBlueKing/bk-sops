@@ -407,7 +407,7 @@
             }
         }
     }
-    /deep/ .form-history {
+    ::v-deep .form-history {
         float: left;
         margin-right: 12px;
         width: 160px;
@@ -435,7 +435,7 @@
         background: #ffffff;
         border: 1px solid #dde4eb;
         border-radius: 2px;
-        /deep/ .bk-form-item {
+        ::v-deep .bk-form-item {
             float: left;
             height: 32px;
             margin-top: 20px !important;
@@ -450,7 +450,7 @@
                 }
             }
         }
-        /deep/ .bk-select.is-focus {
+        ::v-deep .bk-select.is-focus {
             background: #ffffff;
             z-index: 1;
         }

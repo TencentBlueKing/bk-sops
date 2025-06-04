@@ -307,12 +307,12 @@
 
     .bk-navigation {
         &.hide-header-border {
-            /deep/ .container-header {
+            & ::v-deep .container-header {
                 border-color: transparent;
                 box-shadow: 0;
             }
         }
-        /deep/ {
+        & ::v-deep {
             .bk-navigation-wrapper {
                 min-width: 1366px;
                 .navigation-container {

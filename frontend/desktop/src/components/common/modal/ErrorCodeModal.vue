@@ -84,7 +84,7 @@
     z-index: 2501;
     .error-content {
         padding-bottom: 40px;
-        /deep/ .error-title {
+        ::v-deep .error-title {
             margin: 10px 0;
             font-weight: bold;
         }

@@ -167,7 +167,7 @@
         }
     }
 }
-/deep/ .render-form {
+::v-deep .render-form {
     .el-input__inner,
     .el-tree,
     .el-date-editor,
@@ -178,10 +178,10 @@
     .el-cascader,
     .el-select,
     .user-selector-layout,
-    /deep/ .ip-search-wrap {
+    ::v-deep .ip-search-wrap {
         max-width: 598px;
     }
-    /deep/.module-form  {
+    ::v-deep .module-form  {
         .bk-form-content,
         .bk-input-number,
         .bk-select {
@@ -195,7 +195,7 @@
     }
 }
 .no-data {
-    /deep/ .no-data-wrapper {
+    ::v-deep .no-data-wrapper {
         position: relative;
         top: 90px;
     }

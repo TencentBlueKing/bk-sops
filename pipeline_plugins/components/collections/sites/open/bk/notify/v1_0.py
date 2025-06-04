@@ -135,18 +135,25 @@ class NotifyService(Service):
         error_flag = False
         error = ""
         for msg_type in notify_type:
-            kwargs = {}
-            kwargs.update(**base_kwargs)
-            kwargs.update({"msg_type": msg_type})
-
-            # 保留通知内容中的换行和空格
-            if msg_type == "mail":
-                kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
-
-            result = client.cmsi.send_msg(kwargs)
+            if msg_type == "voice":
+                kwargs = {
+                    "receiver__username": base_kwargs["receiver__username"],
+                    "auto_read_message": "{},{}".format(title, content),
+                }
+                result = client.cmsi.send_voice_msg(kwargs)
+            else:
+                kwargs = {"msg_type": msg_type, **base_kwargs}
+                # 保留通知内容中的换行和空格
+                if msg_type == "mail":
+                    kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
+                result = client.cmsi.send_msg(kwargs)
 
             if not result["result"]:
-                message = bk_handle_api_error("cmsi.send_msg", kwargs, result)
+                message = bk_handle_api_error(
+                    "cmsi.send_voice_msg" if msg_type == "voice" else "cmsi.send_msg",
+                    kwargs,
+                    result,
+                )
                 self.logger.error(message)
                 error_flag = True
                 error += "%s;" % message
