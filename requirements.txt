@@ -40,7 +40,7 @@ bk-monitor-report==1.2.2
 django-versionlog==1.8.1
 
 # iam sdk
-bk-iam==1.3.6
+bk-iam==2.0.3
 
 # celery 5
 celery==5.2.7
