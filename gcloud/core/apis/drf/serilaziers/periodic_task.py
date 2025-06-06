@@ -214,12 +214,11 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
-        if settings.PERIODIC_TASK_SHORTEST_TIME:
-            exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS")
-            exempt_project_ids = exempt_project_ids.split(",") if exempt_project_ids else []
-            project_id = str(attrs.get("project").id)
-            need_validation = not (self.context["request"].user.is_superuser or project_id in exempt_project_ids)
-            if need_validation:
+        if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
+            exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
+            exempt_project_ids = set(json.loads(exempt_project_ids))
+            project_id = attrs.get("project").id
+            if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs
 
@@ -244,11 +243,10 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
-        if settings.PERIODIC_TASK_SHORTEST_TIME:
-            exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS")
-            exempt_project_ids = exempt_project_ids.split(",") if exempt_project_ids else []
-            project_id = str(attrs.get("project"))
-            need_validation = not (self.context["request"].user.is_superuser or project_id in exempt_project_ids)
-            if need_validation:
+        if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
+            exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
+            exempt_project_ids = set(json.loads(exempt_project_ids))
+            project_id = attrs.get("project")
+            if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs
