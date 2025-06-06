@@ -13,40 +13,52 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from pipeline_web.label.models import (
-    Label,
-    NodeInTemplateAttrLabel,
-    NodeInInstanceAttrLabel
-)
+from pipeline_web.label.models import Label, NodeInInstanceAttrLabel, NodeInTemplateAttrLabel
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 def node_in_save(node_in_model, nodes_objs, nodes_info):
     nodes_pk_to_node_id = {node.pk: node.node_id for node in nodes_objs}
+    node_pks = nodes_pk_to_node_id.keys()
+    nodes_attr_label_to_update = node_in_model.objects.select_related("node").filter(node__pk__in=node_pks)
     # update when exist
-    nodes_attr_label_to_update = node_in_model.objects.select_related('node').filter(
-        node__pk__in=set(nodes_pk_to_node_id.keys()))
-    for node_attr_label in nodes_attr_label_to_update:
-        node_attr_label.labels.clear()
+    if nodes_attr_label_to_update.exists():
+        node_in_model.labels.through.objects.filter(
+            nodeintemplateattrlabel_id__in=nodes_attr_label_to_update.values_list("id", flat=True)
+        ).delete()
 
     # add when not exist
-    nodes_obj_to_add = nodes_objs.exclude(pk__in=set(nodes_attr_label_to_update.values_list('node__pk', flat=True)))
-    nodes_attr_label_to_add = [node_in_model(node=node_obj) for node_obj in nodes_obj_to_add]
-    node_in_model.objects.bulk_create(nodes_attr_label_to_add)
+    existing_node_pks = set(nodes_attr_label_to_update.values_list("node__pk", flat=True))
+    nodes_obj_to_add = [node_in_model(node=node) for node in nodes_objs if node.pk not in existing_node_pks]
+    if nodes_obj_to_add:
+        node_in_model.objects.bulk_create(nodes_obj_to_add, batch_size=100)
 
-    nodes_attr_label_all = node_in_model.objects.select_related('node').filter(
-        node__pk__in=set(nodes_pk_to_node_id.keys()))
-    for node_attr_label in nodes_attr_label_all:
-        node_info = nodes_info[node_attr_label.node.node_id]
-        for label_info in node_info.get('labels', []):
-            try:
-                label_obj = Label.objects.get(code=label_info['label'], group__code=label_info['group'])
-            except Label.DoesNotExist:
-                logger.warning('Label[code={label}, group_code={group_code}] does not exist'.format(
-                    label=label_info['label'], group_code=label_info['group']))
+    all_nodes_attr_label = node_in_model.objects.select_related("node").filter(node__pk__in=node_pks)
+    label_params = set()
+    for node_info in nodes_info.values():
+        for label_info in node_info.get("labels", []):
+            label_params.add((label_info["group"], label_info["label"]))
+    label_objs = Label.objects.filter(
+        group__code__in={g for g, _ in label_params}, code__in={c for _, c in label_params}
+    ).select_related("group")
+    label_dict = {(label.group.code, label.code): label for label in label_objs}
+
+    through_objs = []
+    for node_attr_label in all_nodes_attr_label:
+        node_info = nodes_info.get(node_attr_label.node.node_id, {})
+        for label_info in node_info.get("labels", []):
+            group_code = label_info["group"]
+            code = label_info["label"]
+            label_obj = label_dict.get((group_code, code))
+            if label_obj:
+                through_objs.append(
+                    node_in_model.labels.through(nodeinmodel_id=node_attr_label.id, label_id=label_obj.id)
+                )
             else:
-                node_attr_label.labels.add(label_obj)
+                logger.warning(f"Label[code={code}, group_code={group_code}] does not exist")
+    if through_objs:
+        node_in_model.labels.through.objects.bulk_create(through_objs, batch_size=100)
 
 
 def node_in_template_save_handle(sender, nodes_objs, nodes_info, **kwargs):
