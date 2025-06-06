@@ -10,14 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+import logging
+
 from django.apps import apps
 from django.db import transaction
-
-from .template_manager import TemplateManager
-from ..utils import replace_biz_id_value
-from ...common_template.models import CommonTemplate
 from django.utils.translation import ugettext_lazy as _
-import logging
+
+from ...common_template.models import CommonTemplate
+from ..utils import replace_biz_id_value
+from .template_manager import TemplateManager
 
 logger = logging.getLogger("root")
 
@@ -201,6 +202,6 @@ class TemplateImporter:
                 activity.update(
                     {
                         "template_source": "common",
-                        "constants": common_child_templates[activity["template_id"]]["constants"],
+                        # "constants": common_child_templates[activity["template_id"]]["constants"],
                     }
                 )
