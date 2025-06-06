@@ -32,7 +32,6 @@ from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import standardize_name
 
 logger = logging.getLogger("root")
-iam = get_iam_client()
 
 
 class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -48,6 +47,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
         logger.info("save_app_maker params: %s" % app_params)
         app_id = app_params["id"]
+        iam = get_iam_client(tenant_id)
         if app_id == "0" or not app_id:
             app_id = None
         template_id = app_params["template_id"]
@@ -202,7 +202,9 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         del_name = time_now_str()
         if not fake:
             # rename before delete to avoid name conflict when create a new app
-            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20], tenant_id=app_maker_obj.project.tenant_id)
+            app_edit_result = edit_maker_app(
+                app_maker_obj.creator, app_maker_obj.code, del_name[:20], tenant_id=app_maker_obj.project.tenant_id
+            )
             if not app_edit_result["result"]:
                 return False, _("删除失败：%s") % app_edit_result["message"]
 

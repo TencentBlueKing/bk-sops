@@ -11,25 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.db.models import Q
-from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import ApiMixin, permissions
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.label.serilaziers import NewLabelSerializer
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.openapi.schema import AnnotationAutoSchema
-
-from iam import Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
-
 from gcloud.utils.models import Convert
-
-iam = get_iam_client()
 
 
 class NewLabelViewSet(ApiMixin, ModelViewSet):
@@ -48,6 +44,8 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         project_id = request.data.get("project_id")
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         if not project_id:
             raise ValidationException("project_id should be provided.")
         allow_or_raise_auth_failed(
@@ -55,12 +53,14 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
             action=Action(IAMMeta.PROJECT_EDIT_ACTION),
-            resources=res_factory.resources_for_project(project_id),
+            resources=res_factory.resources_for_project(project_id, tenant_id),
         )
         return super(NewLabelViewSet, self).create(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         if not project_id:
             raise ValidationException("project_id should be provided.")
         allow_or_raise_auth_failed(
@@ -68,12 +68,14 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
             action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
+            resources=res_factory.resources_for_project(project_id, tenant_id),
         )
         return super(NewLabelViewSet, self).list(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         label = self.get_object()
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         if label.is_default:
             raise ValidationException("default label cannot be updated.")
         project_id = label.project_id
@@ -82,12 +84,14 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
             action=Action(IAMMeta.PROJECT_EDIT_ACTION),
-            resources=res_factory.resources_for_project(project_id),
+            resources=res_factory.resources_for_project(project_id, tenant_id),
         )
         return super(NewLabelViewSet, self).update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         label = self.get_object()
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         if label.is_default:
             raise ValidationException("default label cannot be deleted.")
         project_id = label.project_id
@@ -96,7 +100,7 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
             action=Action(IAMMeta.PROJECT_EDIT_ACTION),
-            resources=res_factory.resources_for_project(project_id),
+            resources=res_factory.resources_for_project(project_id, tenant_id),
         )
         self.perform_destroy(label)
         return Response({"result": True, "message": "success"})
@@ -110,6 +114,8 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
         param: project_id: 项目ID, integer, query, required
         """
         project_id = request.query_params.get("project_id")
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         if not project_id:
             raise ValidationException("project_id should be provided.")
         allow_or_raise_auth_failed(
@@ -117,7 +123,7 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
             action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
+            resources=res_factory.resources_for_project(project_id, tenant_id),
         )
         queryset = Label.objects.filter(Q(project_id=project_id) | Q(is_default=True)).order_by(Convert("name", "gbk"))
         serializer = self.get_serializer(queryset, many=True)
@@ -164,6 +170,8 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
     @staticmethod
     def _fetch_label_or_template_ids(request, fetch_label):
         base_id_name = "template_ids" if fetch_label else "label_ids"
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         if fetch_label:
             fetch_func = TemplateLabelRelation.objects.fetch_templates_labels
         else:
@@ -177,7 +185,7 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
             action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
+            resources=res_factory.resources_for_project(project_id, tenant_id),
         )
         base_ids = [int(base_id) for base_id in base_ids.strip().split(",")]
         return Response(fetch_func(base_ids))

@@ -59,6 +59,7 @@ def get_user_project_detail(request, project_id):
                 )
             ]
         ],
+        tenant_id=request.user.tenant_id,
     )
 
     return {

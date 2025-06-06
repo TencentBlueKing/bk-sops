@@ -314,7 +314,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                     iam_action = IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION
                     resources = res_factory.resources_for_common_flow_obj(template)
                     if request.data.get("project"):
-                        resources.extend(res_factory.resources_for_project(request.data["project"]))
+                        resources.extend(
+                            res_factory.resources_for_project(request.data["project"], request.user.tenant_id)
+                        )
                 self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
         elif view.action in ["list", "list_children_taskflow", "root_task_info", "task_count"]:
@@ -401,6 +403,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     @staticmethod
     def _inject_template_related_info(request, data):
+        tenant_id = request.user.tenant_id
         # 注入template_info（name、deleted
         # 项目流程
         template_ids = [
@@ -410,9 +413,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         ]
         # 注入流程相关权限
         templates_allowed_actions = get_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], template_ids
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], template_ids, tenant_id
         )
-        template_info = TaskTemplate.objects.filter(id__in=template_ids).values(
+        template_info = TaskTemplate.objects.filter(id__in=template_ids, project__tenant_id=tenant_id).values(
             "id", "pipeline_template__name", "is_deleted"
         )
         template_info_map = {
@@ -429,8 +432,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION],
             common_template_ids,
             request.query_params.get("project_id"),
+            request.user.tenant_id,
         )
-        common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids).values(
+        common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids, tenant_id=tenant_id).values(
             "id", "pipeline_template__name", "is_deleted"
         )
         common_template_info_map = {
@@ -457,6 +461,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        tenant_id = request.user.tenant_id
         if instance.pipeline_instance.is_expired:
             return Response({"detail": ErrorDetail("任务已过期", err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         serializer = self.get_serializer(instance)
@@ -471,12 +476,14 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_ACTION],
                 [data["template_id"]],
                 str(instance.project_id),
+                tenant_id,
             )
         elif data["template_source"] == PROJECT:
             template_id__allowed_actions_map = get_flow_allowed_actions_for_user(
                 request.user.username,
                 [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION],
                 [data["template_id"]],
+                tenant_id,
             )
 
         for act, allowed in (template_id__allowed_actions_map.get(str(data["template_id"])) or {}).items():

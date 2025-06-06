@@ -12,10 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.core.cache import cache
-
 from iam import DjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
+
 from gcloud.core.models import Project
 from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 
@@ -34,7 +34,9 @@ class ProjectResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = Project.objects.filter(name__icontains=keyword, is_disable=False).only("name")
+            queryset = Project.objects.filter(
+                tenant_id=options["bk_tenant_id"], name__icontains=keyword, is_disable=False
+            ).only("name")
             results = [
                 {"id": str(project.id), "display_name": project.name}
                 for project in queryset[page.slice_from : page.slice_to]
@@ -58,7 +60,7 @@ class ProjectResourceProvider(ResourceProvider):
         """
         project 没有上层资源，不需要处理 filter 中的字段
         """
-        queryset = Project.objects.all()
+        queryset = Project.objects.filter(tenant_id=options["bk_tenant_id"])
 
         count = queryset.count()
         results = [{"id": str(p.id), "display_name": p.name} for p in queryset[page.slice_from : page.slice_to]]
@@ -73,7 +75,7 @@ class ProjectResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        queryset = Project.objects.filter(id__in=ids)
+        queryset = Project.objects.filter(id__in=ids, tenant_id=options["bk_tenant_id"])
 
         count = queryset.count()
         results = [{"id": str(p.id), "display_name": p.name} for p in queryset]
@@ -92,7 +94,7 @@ class ProjectResourceProvider(ResourceProvider):
         converter = DjangoQuerySetConverter(key_mapping)
         filters = converter.convert(expression)
 
-        queryset = Project.objects.filter(filters)
+        queryset = Project.objects.filter(filters).filter(tenant_id=options["bk_tenant_id"])
         count = queryset.count()
         results = [{"id": str(p.id), "display_name": p.name} for p in queryset]
 

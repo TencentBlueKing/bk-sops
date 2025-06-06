@@ -10,12 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import permissions, mixins, viewsets
+from rest_framework import mixins, permissions, viewsets
 from rest_framework.response import Response
 
-from gcloud.core.models import StaffGroupSet
-from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer, ListSerializer
+from gcloud.core.apis.drf.serilaziers.staff_group import ListSerializer, StaffGroupSetSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin, IAMMixin
+from gcloud.core.models import StaffGroupSet
 from gcloud.iam_auth import IAMMeta, res_factory
 
 
@@ -42,7 +42,9 @@ class StaffGroupSetViewSet(
         serializer.is_valid(raise_exception=True)
         project_id = serializer.validated_data["project_id"]
         self.iam_auth_check(
-            request, action=IAMMeta.PROJECT_VIEW_ACTION, resources=res_factory.resources_for_project(project_id)
+            request,
+            action=IAMMeta.PROJECT_VIEW_ACTION,
+            resources=res_factory.resources_for_project(project_id, request.user.tenant_id),
         )
         queryset = self.get_queryset().filter(project_id=project_id)
         serializer = self.get_serializer(queryset, many=True)
@@ -55,7 +57,7 @@ class StaffGroupSetViewSet(
         self.iam_auth_check(
             request,
             action=IAMMeta.PROJECT_EDIT_ACTION,
-            resources=res_factory.resources_for_project(staff_group_obj.project_id),
+            resources=res_factory.resources_for_project(staff_group_obj.project_id, request.user.tenant_id),
         )
         serializer = self.serializer_class(instance=staff_group_obj)
         return Response(serializer.data)
@@ -65,7 +67,7 @@ class StaffGroupSetViewSet(
         self.iam_auth_check(
             request,
             action=IAMMeta.PROJECT_EDIT_ACTION,
-            resources=res_factory.resources_for_project(validated_data.get("project_id")),
+            resources=res_factory.resources_for_project(validated_data.get("project_id"), request.user.tenant_id),
         )
 
         instance = self.get_object()
@@ -80,7 +82,7 @@ class StaffGroupSetViewSet(
         self.iam_auth_check(
             request,
             action=IAMMeta.PROJECT_EDIT_ACTION,
-            resources=res_factory.resources_for_project(instance.project_id),
+            resources=res_factory.resources_for_project(instance.project_id, request.user.tenant_id),
         )
         instance.is_deleted = True
         instance.save()

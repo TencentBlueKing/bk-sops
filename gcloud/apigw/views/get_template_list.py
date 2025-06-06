@@ -38,7 +38,7 @@ def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
-
+    tenant_id = request.user.tenant_id
     if id_in:
         try:
             id_in = id_in.split(",")
@@ -57,13 +57,15 @@ def get_template_list(request, project_id):
         filter_kwargs["project_id"] = project.id
         templates = TaskTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
     else:
-        filter_kwargs["tenant_id"] = request.user.tenant_id
+        filter_kwargs["tenant_id"] = tenant_id
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
     template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True, tz=request.tz)
 
     # 注入用户有权限的actions
-    flow_allowed_actions = get_flow_allowed_actions_for_user(request.user.username, FLOW_ACTIONS, template_id_list)
+    flow_allowed_actions = get_flow_allowed_actions_for_user(
+        request.user.username, FLOW_ACTIONS, template_id_list, tenant_id
+    )
     for template_info in template_list:
         template_id = template_info["id"]
         template_info.setdefault("auth_actions", [])

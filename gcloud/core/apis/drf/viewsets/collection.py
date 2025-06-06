@@ -85,7 +85,7 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.D
         for r_type, id_list in resource_id_list_map.items():
             resource_allowed_actions_map[r_type] = getattr(
                 iam_auth_utils, "get_{}_allowed_actions_for_user".format(r_type)
-            )(request.user.username, self.append_resource_actions[r_type], id_list)
+            )(request.user.username, self.append_resource_actions[r_type], id_list, request.user.tenant_id)
 
         # 计算有查看权限的项目资源
         user_projects = set(

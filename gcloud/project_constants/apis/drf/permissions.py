@@ -11,25 +11,24 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import permissions
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
-from iam import Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
-
 from .serializers import ProjectConstantsListPermissionSerializer
-
-iam = get_iam_client()
 
 
 class ProjectConstantPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         if view.action == "list":
             serializer = ProjectConstantsListPermissionSerializer(data=request.query_params)
             serializer.is_valid(raise_exception=True)
 
-            project_resources = res_factory.resources_for_project(serializer.validated_data["project_id"])
+            project_resources = res_factory.resources_for_project(serializer.validated_data["project_id"], tenant_id)
             allow_or_raise_auth_failed(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
@@ -43,7 +42,7 @@ class ProjectConstantPermissions(permissions.BasePermission):
             serializer = view.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            project_resources = res_factory.resources_for_project(serializer.validated_data["project_id"])
+            project_resources = res_factory.resources_for_project(serializer.validated_data["project_id"], tenant_id)
             allow_or_raise_auth_failed(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
@@ -55,7 +54,9 @@ class ProjectConstantPermissions(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        project_resources = res_factory.resources_for_project(obj.project_id)
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
+        project_resources = res_factory.resources_for_project(obj.project_id, tenant_id)
         allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,

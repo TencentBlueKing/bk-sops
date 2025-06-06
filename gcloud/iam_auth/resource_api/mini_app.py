@@ -12,14 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 from django.core.cache import cache
 from django.db.models import Q
-
-from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.models import Project
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 
 
 def mini_app_path_value_hook(value):
@@ -42,9 +41,11 @@ class MiniAppResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = AppMaker.objects.filter(name__icontains=keyword, is_deleted=False).only("name")
+            queryset = AppMaker.objects.filter(
+                project__tenant_id=options["bk_tenant_id"], name__icontains=keyword, is_deleted=False
+            ).only("name")
             if project_id:
-                queryset = queryset.filter(project__id=project_id)
+                queryset = queryset.filter(project_id=project_id)
             results = [
                 {"id": str(mini_app.id), "display_name": mini_app.name}
                 for mini_app in queryset[page.slice_from : page.slice_to]
@@ -73,13 +74,15 @@ class MiniAppResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = AppMaker.objects.filter(is_deleted=False)
+            queryset = AppMaker.objects.filter(project__tenant_id=options["tenant_id"], is_deleted=False)
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
-                queryset = AppMaker.objects.filter(project_id=str(parent_id), is_deleted=False)
+                queryset = AppMaker.objects.filter(
+                    project__tenant_id=options["tenant_id"], project_id=str(parent_id), is_deleted=False
+                )
             else:
-                queryset = AppMaker.objects.filter(is_deleted=False)
+                queryset = AppMaker.objects.filter(project__tenant_id=options["tenant_id"], is_deleted=False)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -96,7 +99,9 @@ class MiniAppResourceProvider(ResourceProvider):
             for keyword in mini_app_keywords:
                 mini_app_filter |= Q(name__icontains=keyword)
 
-            project_ids = Project.objects.filter(project_filter).values_list("id", flat=True)
+            project_ids = Project.objects.filter(project_filter, tenant_id=options["bk_tenant_id"]).values_list(
+                "id", flat=True
+            )
             queryset = AppMaker.objects.filter(project_id__in=list(project_ids)).filter(mini_app_filter)
 
         count = queryset.count()
@@ -127,7 +132,7 @@ class MiniAppResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        queryset = AppMaker.objects.filter(id__in=ids)
+        queryset = AppMaker.objects.filter(id__in=ids, project__tenant_id=options["bk_tenant_id"])
         count = queryset.count()
         results = [
             {"id": str(mini_app.id), "display_name": mini_app.name, "_bk_iam_approver_": mini_app.creator}
@@ -151,7 +156,7 @@ class MiniAppResourceProvider(ResourceProvider):
         }  # TODO 优化
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": mini_app_path_value_hook})
         filters = converter.convert(expression)
-        queryset = AppMaker.objects.filter(filters)
+        queryset = AppMaker.objects.filter(filters).filter(project__tenant_id=options["tenant_id"])
         count = queryset.count()
 
         results = [

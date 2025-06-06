@@ -23,7 +23,12 @@ HAS_OBJECT_PERMISSION = "has_object_permission"
 
 class IamPermissionInfo:
     def __init__(
-        self, iam_action=None, resource_func=None, check_hook=HAS_PERMISSION, id_field="id", pass_all=False,
+        self,
+        iam_action=None,
+        resource_func=None,
+        check_hook=HAS_PERMISSION,
+        id_field="id",
+        pass_all=False,
     ):
         """
         :param iam_action: 权限类型
@@ -72,7 +77,7 @@ class IamPermission(IAMMixin, permissions.BasePermission):
             # 获取权限参数
             if check_hook == HAS_PERMISSION:
                 resource_param = self.get_id_field(request, permission_info.id_field)
-            resources = permission_info.resource_func(resource_param)
+            resources = permission_info.resource_func(resource_param, request.user.tenant_id)
         self.iam_auth_check(request, action=permission_info.iam_action, resources=resources)
 
         return True
@@ -95,7 +100,7 @@ class IamUserTypeBasedValidator(IAMMixin):
             return callable(func) and func(request)
         project_id = request.query_params.get("project__id") or request.query_params.get("project_id")
         action = IAMMeta.PROJECT_VIEW_ACTION if project_id else IAMMeta.ADMIN_VIEW_ACTION
-        resources = res_factory.resources_for_project(project_id) if project_id else []
+        resources = res_factory.resources_for_project(project_id, request.user.tenant_id) if project_id else []
         self.iam_auth_check(request, action=action, resources=resources)
         return True
 

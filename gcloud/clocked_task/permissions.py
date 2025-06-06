@@ -10,12 +10,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from gcloud.core.apis.drf.viewsets import IAMMixin
-from gcloud.iam_auth import get_iam_client, res_factory, IAMMeta
 from rest_framework import permissions
 
-
-iam = get_iam_client()
+from gcloud.core.apis.drf.viewsets import IAMMixin
+from gcloud.iam_auth import IAMMeta, res_factory
 
 
 class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
@@ -35,7 +33,7 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
                 self.iam_auth_check(
                     request,
                     action=self.actions[view.action],
-                    resources=res_factory.resources_for_project(project_id),
+                    resources=res_factory.resources_for_project(project_id, request.user.tenant_id),
                 )
             else:
                 self.iam_auth_check(

@@ -11,28 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Subject, Request
+from iam import Action, Request, Subject
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
-from gcloud.utils.strings import string_to_boolean
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import read_template_data_file
-
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-
-iam = get_iam_client()
+from gcloud.template_base.utils import read_template_data_file
+from gcloud.utils.strings import string_to_boolean
 
 
 class CommonTemplateViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         template_id = request.GET.get("template_id")
-
+        tenant_id = request.user.tenant_id
         subject = Subject("user", request.user.username)
+
+        iam = get_iam_client(tenant_id)
         action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-        resources = res_factory.resources_for_common_flow(template_id)
+        resources = res_factory.resources_for_common_flow(template_id, tenant_id)
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
 
         allowed = iam.is_allowed(request)
@@ -53,11 +50,13 @@ class ExportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
 
         data = request.data
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         template_id_list = data["template_id_list"]
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-        resources_list = res_factory.resources_list_for_common_flows(template_id_list)
+        resources_list = res_factory.resources_list_for_common_flows(template_id_list, tenant_id)
 
         if not resources_list:
             return
@@ -84,8 +83,10 @@ class ExportInterceptor(ViewInterceptor):
 class ImportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         templates_data = read_template_data_file(request.FILES["data_file"])["data"]["template_data"]
+        tenant_id = request.user.tenant_id
         request.FILES["data_file"].seek(0)
         override = string_to_boolean(request.POST["override"])
+        iam = get_iam_client(tenant_id)
 
         check_info = CommonTemplate.objects.import_operation_check(templates_data)
 
@@ -114,7 +115,7 @@ class ImportInterceptor(ViewInterceptor):
             if check_info["override_template"]:
                 tids = [template_info["id"] for template_info in check_info["override_template"]]
 
-                resources_list = res_factory.resources_list_for_common_flows(tids)
+                resources_list = res_factory.resources_list_for_common_flows(tids, tenant_id)
 
                 if not resources_list:
                     return

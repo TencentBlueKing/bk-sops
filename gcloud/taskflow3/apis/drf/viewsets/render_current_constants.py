@@ -11,27 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework import serializers
-from rest_framework.views import APIView
+from drf_yasg.utils import swagger_auto_schema
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
+from rest_framework import permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import permissions
-from iam import Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
-from drf_yasg.utils import swagger_auto_schema
+from rest_framework.views import APIView
 
-from gcloud.utils.json import safe_for_json
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
-
-iam = get_iam_client()
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.utils.json import safe_for_json
 
 
 class RenderCurrentConstantsPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         task_id = view.kwargs["task_id"]
-        task_resources = res_factory.resources_for_task(task_id)
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
+        task_resources = res_factory.resources_for_task(task_id, tenant_id)
 
         allow_or_raise_auth_failed(
             iam=iam,
@@ -54,7 +53,9 @@ class RenderCurrentConstantsView(APIView):
     permission_classes = [permissions.IsAuthenticated, RenderCurrentConstantsPermission]
 
     @swagger_auto_schema(
-        method="GET", operation_summary="获取某个任务所有全局变量当前渲染后的值", responses={200: RenderCurrentConstantsViewResponse},
+        method="GET",
+        operation_summary="获取某个任务所有全局变量当前渲染后的值",
+        responses={200: RenderCurrentConstantsViewResponse},
     )
     @action(methods=["GET"], detail=True)
     def get(self, request, task_id, format=None):

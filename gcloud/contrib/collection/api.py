@@ -12,7 +12,9 @@ from gcloud.iam_auth.utils import check_project_or_admin_view_action_for_user
 
 class BatchCancelCollectionApiView(APIView):
     @swagger_auto_schema(
-        method="POST", operation_summary="批量取消收藏", request_body=BatchCancelCollectionRequestSerializer,
+        method="POST",
+        operation_summary="批量取消收藏",
+        request_body=BatchCancelCollectionRequestSerializer,
         responses={200: BatchCancelCollectionResponse},
     )
     @action(methods=["POST"], detail=False)
@@ -27,7 +29,8 @@ class BatchCancelCollectionApiView(APIView):
         # 用户是否有该项目权限
         username = request.user.username
         project_id = serializer_data["project_id"]
-        if check_project_or_admin_view_action_for_user(project_id, username):
+        tenant_id = request.user.tenant_id
+        if check_project_or_admin_view_action_for_user(project_id, username, tenant_id):
             return Response({"result": False, "message": "No permission in the current project"})
 
         # 用户在该项目下的收藏id列表
@@ -38,16 +41,10 @@ class BatchCancelCollectionApiView(APIView):
         difference_ids = list(set(batch_cancel_collection_ids) - set(collection_ids))
 
         if difference_ids:
-            return Response({
-                "result": False,
-                "data": None,
-                "message": "Does not exist collection id: {}".format(difference_ids)
-            })
+            return Response(
+                {"result": False, "data": None, "message": "Does not exist collection id: {}".format(difference_ids)}
+            )
 
         with transaction.atomic():
             Collection.objects.filter(id__in=batch_cancel_collection_ids).delete()
-            return Response({
-                "result": True,
-                "data": None,
-                "message": None
-            })
+            return Response({"result": True, "data": None, "message": None})
