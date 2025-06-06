@@ -38,6 +38,7 @@ def get_common_template_list(request):
         request.user.username,
         COMMON_FLOW_ACTIONS,
         common_templates_id_list,
+        tenant_id=request.user.tenant_id,
     )
     for template in templates_data:
         template_id = template["id"]

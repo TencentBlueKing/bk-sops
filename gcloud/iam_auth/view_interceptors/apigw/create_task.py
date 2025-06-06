@@ -12,18 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import get_iam_client
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.constants import PROJECT
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-
-iam = get_iam_client()
 
 
 class CreateTaskInterceptor(ViewInterceptor):
@@ -31,6 +25,8 @@ class CreateTaskInterceptor(ViewInterceptor):
         if request.is_trust:
             return
 
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         params = json.loads(request.body)
         template_source = params.get("template_source", PROJECT)
         template_id = kwargs["template_id"]
@@ -38,12 +34,12 @@ class CreateTaskInterceptor(ViewInterceptor):
 
         if template_source in NON_COMMON_TEMPLATE_TYPES:
             action = Action(IAMMeta.FLOW_CREATE_TASK_ACTION)
-            resources = res_factory.resources_for_flow(template_id)
+            resources = res_factory.resources_for_flow(template_id, tenant_id)
             allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
         else:
             action = Action(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION)
             resources = [
-                res_factory.resources_for_common_flow(template_id)[0],
+                res_factory.resources_for_common_flow(template_id, tenant_id)[0],
                 res_factory.resources_for_project_obj(request.project)[0],
             ]
             allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

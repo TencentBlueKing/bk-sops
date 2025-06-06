@@ -11,23 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
 import logging
 
-from drf_yasg.utils import swagger_auto_schema
-
-from django.views.decorators.http import require_POST
+import ujson as json
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from drf_yasg.utils import swagger_auto_schema
+from iam import Action, MultiActionRequest, Request, Resource, Subject
+from iam.exceptions import AuthAPIError, AuthInvalidRequest
 from rest_framework.decorators import api_view
 
-from iam import Subject, Action, Resource, Request, MultiActionRequest
-from iam.exceptions import AuthInvalidRequest, AuthAPIError
-
-from gcloud.iam_auth import conf
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client, get_iam_api_client
-from gcloud.shortcuts.http import standard_response
+from gcloud.iam_auth import IAMMeta, conf, get_iam_api_client, get_iam_client
 from gcloud.openapi.schema import AnnotationAutoSchema
+from gcloud.shortcuts.http import standard_response
 
 logger = logging.getLogger("root")
 
@@ -43,8 +39,8 @@ def meta_info(request):
 def apply_perms_url(request):
     application = json.loads(request.body)
     username = request.user.username
-
-    iam = get_iam_client()
+    tenant_id = request.user.tenant_id
+    iam = get_iam_client(tenant_id)
 
     try:
         result, message, url = iam.get_apply_url(application, bk_username=username)
@@ -68,8 +64,8 @@ def is_allow(request):
     subject = Subject("user", request.user.username)
     action = Action(action_id)
     resource = [Resource(r["system"], r["type"], str(r["id"]), r["attributes"]) for r in resources]
-
-    iam = get_iam_client()
+    tenant_id = request.user.tenant_id
+    iam = get_iam_client(tenant_id)
 
     try:
         is_allow = iam.is_allowed(Request(conf.SYSTEM_ID, subject, action, resource, None))
@@ -96,8 +92,8 @@ def is_allow_common_flow_management(request):
     """
 
     subject = Subject("user", request.user.username)
-
-    iam = get_iam_client()
+    tenant_id = request.user.tenant_id
+    iam = get_iam_client(tenant_id)
 
     # 先检查是否拥有公共流程创建权限
     try:
@@ -111,7 +107,7 @@ def is_allow_common_flow_management(request):
         logger.info("%s has COMMON_FLOW_CREATE_ACTION permission" % request.user.username)
         return standard_response(True, "success", {"is_allow": is_allow})
 
-    iam_api = get_iam_api_client()
+    iam_api = get_iam_api_client(tenant_id)
 
     try:
         ok, message, data = iam_api.policy_query_by_actions(

@@ -25,9 +25,11 @@ from gcloud.tasktmpl3.models import TaskTemplate
 # flow
 
 
-def resources_for_flow(flow_id):
-    template_info = TaskTemplate.objects.fetch_values(
-        flow_id, "pipeline_template__creator", "pipeline_template__name", "project_id"
+def resources_for_flow(flow_id, tenant_id):
+    template_info = (
+        TaskTemplate.objects.filter(id=flow_id, project__tenant_id=tenant_id)
+        .values("pipeline_template__creator", "pipeline_template__name", "project_id")
+        .first()
     )
 
     return [
@@ -44,7 +46,7 @@ def resources_for_flow(flow_id):
     ]
 
 
-def resources_for_flow_obj(flow_obj):
+def resources_for_flow_obj(flow_obj, tenant_id=""):
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -59,8 +61,8 @@ def resources_for_flow_obj(flow_obj):
     ]
 
 
-def resources_list_for_flows(flow_id_list):
-    qs = TaskTemplate.objects.filter(id__in=flow_id_list, is_deleted=False).values(
+def resources_list_for_flows(flow_id_list, tenant_id):
+    qs = TaskTemplate.objects.filter(id__in=flow_id_list, project__tenant_id=tenant_id, is_deleted=False).values(
         "id", "pipeline_template__creator", "pipeline_template__name", "project_id"
     )
 
@@ -84,22 +86,24 @@ def resources_list_for_flows(flow_id_list):
 # project
 
 
-def resources_for_project(project_id):
-    project = Project.objects.get(id=project_id)
+def resources_for_project(project_id, tenant_id):
+    project = Project.objects.get(id=project_id, tenant_id=tenant_id)
 
     return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project_id), {"name": project.name})]
 
 
-def resources_for_project_obj(project_obj):
+def resources_for_project_obj(project_obj, tenant_id=""):
     return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project_obj.id), {"name": project_obj.name})]
 
 
 # task
 
 
-def resources_for_task(task_id):
-    task_info = TaskFlowInstance.objects.fetch_values(
-        task_id, "pipeline_instance__creator", "pipeline_instance__name", "project_id", "flow_type"
+def resources_for_task(task_id, tenant_id):
+    task_info = (
+        TaskFlowInstance.objects.filter(id=task_id, project__tenant_id=tenant_id)
+        .values("pipeline_instance__creator", "pipeline_instance__name", "project_id", "flow_type")
+        .first()
     )
 
     return [
@@ -117,7 +121,7 @@ def resources_for_task(task_id):
     ]
 
 
-def resources_for_task_obj(task_obj):
+def resources_for_task_obj(task_obj, tenant_id=""):
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -133,8 +137,8 @@ def resources_for_task_obj(task_obj):
     ]
 
 
-def resources_list_for_tasks(task_id_list):
-    qs = TaskFlowInstance.objects.filter(id__in=task_id_list).values(
+def resources_list_for_tasks(task_id_list, tenant_id):
+    qs = TaskFlowInstance.objects.filter(id__in=task_id_list, project__tenant_id=tenant_id).values(
         "id", "pipeline_instance__creator", "pipeline_instance__name", "project_id", "flow_type"
     )
 
@@ -159,8 +163,12 @@ def resources_list_for_tasks(task_id_list):
 # periodic_task
 
 
-def resources_for_periodic_task(task_id):
-    task_info = PeriodicTask.objects.fetch_values(task_id, "task__creator", "task__name", "project_id")
+def resources_for_periodic_task(task_id, tenant_id):
+    task_info = (
+        PeriodicTask.objects.filter(id=task_id, project__tenant_id=tenant_id)
+        .values("task__creator", "task__name", "project_id")
+        .first()
+    )
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -175,7 +183,7 @@ def resources_for_periodic_task(task_id):
     ]
 
 
-def resources_for_periodic_task_obj(task_obj):
+def resources_for_periodic_task_obj(task_obj, tenant_id=""):
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -190,8 +198,10 @@ def resources_for_periodic_task_obj(task_obj):
     ]
 
 
-def resources_list_for_periodic_tasks(task_id_list):
-    qs = PeriodicTask.objects.filter(id__in=task_id_list).values("id", "task__creator", "task__name", "project_id")
+def resources_list_for_periodic_tasks(task_id_list, tenant_id):
+    qs = PeriodicTask.objects.filter(id__in=task_id_list, project__tenant_id=tenant_id).values(
+        "id", "task__creator", "task__name", "project_id"
+    )
 
     return [
         [
@@ -213,8 +223,11 @@ def resources_list_for_periodic_tasks(task_id_list):
 # clocked_task
 
 
-def resources_for_clocked_task(clocked_task_id):
-    task_info = ClockedTask.objects.fetch_values(clocked_task_id, "creator", "task_name", "project_id")
+def resources_for_clocked_task(clocked_task_id, tenant_id):
+    project_ids = list(Project.objects.filter(tenant_id=tenant_id).values_list("id", flat=True))
+    task_info = (
+        ClockedTask.objects.filter(project_id__in=project_ids).values("creator", "task_name", "project_id").first()
+    )
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -229,7 +242,7 @@ def resources_for_clocked_task(clocked_task_id):
     ]
 
 
-def resources_for_clocked_task_obj(task_obj):
+def resources_for_clocked_task_obj(task_obj, tenant_id=""):
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -247,9 +260,11 @@ def resources_for_clocked_task_obj(task_obj):
 # common flow
 
 
-def resources_for_common_flow(common_flow_id):
-    template_info = CommonTemplate.objects.fetch_values(
-        common_flow_id, "pipeline_template__creator", "pipeline_template__name"
+def resources_for_common_flow(common_flow_id, tenant_id):
+    template_info = (
+        CommonTemplate.objects.filter(id=common_flow_id, tenant_id=tenant_id)
+        .values("pipeline_template__creator", "pipeline_template__name")
+        .first()
     )
 
     return [
@@ -265,7 +280,7 @@ def resources_for_common_flow(common_flow_id):
     ]
 
 
-def resources_for_common_flow_obj(common_flow_obj):
+def resources_for_common_flow_obj(common_flow_obj, tenant_id=""):
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -276,8 +291,8 @@ def resources_for_common_flow_obj(common_flow_obj):
     ]
 
 
-def resources_list_for_common_flows(common_flow_id_list):
-    qs = CommonTemplate.objects.filter(id__in=common_flow_id_list, is_deleted=False).values(
+def resources_list_for_common_flows(common_flow_id_list, tenant_id):
+    qs = CommonTemplate.objects.filter(id__in=common_flow_id_list, tenant_id=tenant_id, is_deleted=False).values(
         "id", "pipeline_template__creator", "pipeline_template__name"
     )
 
@@ -297,7 +312,7 @@ def resources_list_for_common_flows(common_flow_id_list):
 # mini app
 
 
-def resources_for_mini_app_obj(mini_app_obj):
+def resources_for_mini_app_obj(mini_app_obj, tenant_id=""):
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -312,8 +327,10 @@ def resources_for_mini_app_obj(mini_app_obj):
     ]
 
 
-def resources_list_for_mini_apps(mini_app_id_list):
-    qs = AppMaker.objects.filter(id__in=mini_app_id_list).values("id", "creator", "project_id")
+def resources_list_for_mini_apps(mini_app_id_list, tenant_id):
+    qs = AppMaker.objects.filter(id__in=mini_app_id_list, project__tenant_id=tenant_id).values(
+        "id", "creator", "project_id"
+    )
 
     return [
         [
@@ -331,7 +348,7 @@ def resources_list_for_mini_apps(mini_app_id_list):
 # function task
 
 
-def resources_for_function_task_obj(task_obj):
+def resources_for_function_task_obj(task_obj, tenant_id=""):
     return [
         Resource(
             IAMMeta.SYSTEM_ID,
@@ -347,8 +364,8 @@ def resources_for_function_task_obj(task_obj):
     ]
 
 
-def resources_list_for_common_flows_project(common_flow_id_list, project_id):
-    qs = CommonTemplate.objects.filter(id__in=common_flow_id_list, is_deleted=False).values(
+def resources_list_for_common_flows_project(common_flow_id_list, project_id, tenant_id):
+    qs = CommonTemplate.objects.filter(id__in=common_flow_id_list, tenant_id=tenant_id, is_deleted=False).values(
         "id", "pipeline_template__creator", "pipeline_template__name"
     )
 

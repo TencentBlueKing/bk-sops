@@ -16,18 +16,16 @@ import logging
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.intercept import ViewInterceptor
 from gcloud.contrib.template_market.models import TemplateSharedRecord
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.intercept import ViewInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
-
-iam = get_iam_client()
 
 
 class CopyTemplateInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         data = json.loads(request.body)
         new_project_id = data.get("new_project_id")
         template_ids = data.get("template_ids")
@@ -53,5 +51,5 @@ class CopyTemplateInterceptor(ViewInterceptor):
             raise ValueError(error_message)
 
         action = Action(IAMMeta.FLOW_CREATE_ACTION)
-        resources = res_factory.resources_for_project(new_project_id)
+        resources = res_factory.resources_for_project(new_project_id, tenant_id)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

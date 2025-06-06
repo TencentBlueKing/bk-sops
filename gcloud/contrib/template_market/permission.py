@@ -15,10 +15,10 @@ import logging
 from iam.exceptions import MultiAuthFailedException
 from rest_framework import permissions
 
+from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.contrib.template_market.models import TemplateSharedRecord
-from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.template_market.serializers import TemplateProjectBaseSerializer
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.utils import iam_multi_resource_auth_or_raise
@@ -52,13 +52,14 @@ class SharedTemplateRecordPermission(permissions.BasePermission):
 
         if view.action in ["create", "partial_update"]:
             username = request.user.username
+            tenant_id = request.user.tenant_id
             serializer = view.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
 
             template_id_list = serializer.validated_data["templates"]
             try:
                 iam_multi_resource_auth_or_raise(
-                    username, IAMMeta.FLOW_EDIT_ACTION, template_id_list, "resources_list_for_flows"
+                    username, IAMMeta.FLOW_EDIT_ACTION, template_id_list, "resources_list_for_flows", tenant_id
                 )
             except MultiAuthFailedException:
                 logging.exception("Template permission verification failed")

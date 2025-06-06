@@ -10,30 +10,28 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import permissions
-from rest_framework import serializers
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from iam import Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
-from gcloud.contrib.operate_record.constants import OperateType, OperateSource
-from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
+from rest_framework import permissions, serializers
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType
 from gcloud.contrib.operate_record.models import TaskOperateRecord
 from gcloud.contrib.operate_record.utils import extract_extra_info
-
-iam = get_iam_client()
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 class UpdateTaskConstantsPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         task_id = view.kwargs["task_id"]
-        task_resources = res_factory.resources_for_task(task_id)
-
+        tenant_id = request.user.tenant_id
+        task_resources = res_factory.resources_for_task(task_id, tenant_id)
+        iam = get_iam_client(tenant_id)
         allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
@@ -102,7 +100,9 @@ class UpdateTaskConstantsView(APIView):
         return Response(set_result)
 
     @swagger_auto_schema(
-        method="GET", operation_summary="查看任务参数的使用信息", responses={200: TaskConstantsResponseSerializer},
+        method="GET",
+        operation_summary="查看任务参数的使用信息",
+        responses={200: TaskConstantsResponseSerializer},
     )
     @action(methods=["GET"], detail=True)
     def get(self, request, task_id, *args, **kwargs):

@@ -15,12 +15,8 @@ from iam import Action, Subject
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response_for_resources_list
 from iam.shortcuts import allow_or_raise_auth_failed
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-
-iam = get_iam_client()
 
 
 class FastCreateTaskInterceptor(ViewInterceptor):
@@ -28,6 +24,8 @@ class FastCreateTaskInterceptor(ViewInterceptor):
         if request.is_trust:
             return
 
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         project = request.project
 
         subject = Subject("user", request.user.username)
@@ -44,10 +42,14 @@ class FastCreateTaskInterceptor(ViewInterceptor):
                 templates_in_task.add(activity["template_id"])
         if not has_common_subprocess:
             action = Action(IAMMeta.FLOW_VIEW_ACTION)
-            resources_list = res_factory.resources_list_for_flows(list(templates_in_task))
+            resources_list = res_factory.resources_list_for_flows(list(templates_in_task), tenant_id)
         else:
             action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-            resources_list = res_factory.resources_list_for_common_flows(list(templates_in_task))
+            resources_list = res_factory.resources_list_for_common_flows(list(templates_in_task), tenant_id)
         allow_or_raise_immediate_response_for_resources_list(
-            iam=iam, system=IAMMeta.SYSTEM_ID, subject=subject, action=action, resources_list=resources_list,
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=subject,
+            action=action,
+            resources_list=resources_list,
         )

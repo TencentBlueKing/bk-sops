@@ -14,13 +14,11 @@ specific language governing permissions and limitations under the License.
 import abc
 
 import ujson as json
+from iam import Action, Request, Subject
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-from iam import Action, Request, Subject
-
-iam = get_iam_client()
 
 
 class TaskSingleActionInterceptor(ViewInterceptor, metaclass=abc.ABCMeta):
@@ -30,10 +28,11 @@ class TaskSingleActionInterceptor(ViewInterceptor, metaclass=abc.ABCMeta):
 
     def process(self, request, *args, **kwargs):
         task_id = self.get_task_id(request, *args, **kwargs)
-
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         subject = Subject("user", request.user.username)
         action = Action(self.action)
-        resources = res_factory.resources_for_task(task_id)
+        resources = res_factory.resources_for_task(task_id, tenant_id)
 
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
         allowed = iam.is_allowed_with_cache(request)
@@ -100,7 +99,9 @@ class BatchStatusViewInterceptor(ViewInterceptor):
         task_ids = json.loads(request.body).get("task_ids") or []
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.TASK_VIEW_ACTION)
-        resources_list = res_factory.resources_list_for_tasks(task_ids)
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
+        resources_list = res_factory.resources_list_for_tasks(task_ids, tenant_id)
 
         if not resources_list:
             return

@@ -51,12 +51,12 @@ def file_upload(request):
     @param request:
     @return:
     """
-
+    tenant_id = request.user.tenant_id
     project_id = request.META["HTTP_APP_PROJECTID"]
-    iam = get_iam_client()
+    iam = get_iam_client(tenant_id)
     subject = Subject("user", request.user.username)
     action = Action(IAMMeta.PROJECT_VIEW_ACTION)
-    resources = res_factory.resources_for_project(project_id)
+    resources = res_factory.resources_for_project(project_id, tenant_id)
     allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
 
     ticket = request.META.get("HTTP_UPLOAD_TICKET", "")

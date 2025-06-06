@@ -57,13 +57,14 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, MultiTenantMixin, viewsets.ModelVie
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        tenant_id = request.user.tenant_id
         page = self.paginate_queryset(queryset)
         instances = page if page is not None else list(queryset)
         serializer = self.get_serializer(instances, many=True)
         deserialized_instances = serializer.data
         auth_actions = self.iam_get_instances_auth_actions(request, instances) or {}
         template_view_actions = get_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], [inst.template_id for inst in instances]
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], [inst.template_id for inst in instances], tenant_id
         )
         for deserialized_instance in deserialized_instances:
             deserialized_instance["auth_actions"] = auth_actions.get(deserialized_instance["id"], [])

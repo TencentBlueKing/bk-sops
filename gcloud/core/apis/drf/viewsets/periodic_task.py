@@ -72,6 +72,7 @@ class PeriodicTaskPermission(IamPermission):
     }
 
     def has_permission(self, request, view):
+        tenant_id = request.user.tenant_id
         if view.action == "list":
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
@@ -80,12 +81,12 @@ class PeriodicTaskPermission(IamPermission):
             template_id = request.data.get("template_id")
             if template_source == PROJECT:
                 iam_action = IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION
-                resources = res_factory.resources_for_flow(template_id)
+                resources = res_factory.resources_for_flow(template_id, tenant_id)
             else:
                 iam_action = IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION
-                resources = res_factory.resources_for_common_flow(template_id)
+                resources = res_factory.resources_for_common_flow(template_id, tenant_id)
                 if request.data.get("project"):
-                    resources.extend(res_factory.resources_for_project(request.data["project"]))
+                    resources.extend(res_factory.resources_for_project(request.data["project"], request.user.tenant_id))
             self.iam_auth_check(request=request, action=iam_action, resources=resources)
             return True
         return super().has_permission(request, view)
@@ -181,7 +182,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def list(self, request, *args, **kwargs):
         project_id = int(request.query_params.get("project__id", 0)) or None
-
+        tenant_id = request.user.tenant_id
         if project_id:
             order_by = request.query_params.get("order_by") or "-id"
             orderings = ("-is_collected", "-task__celery_task__enabled", order_by)
@@ -211,10 +212,10 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             COMMON: [inst["template_id"] for inst in instances if inst["template_source"] == COMMON],
         }
         template_view_actions = get_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], tmpl_data[PROJECT]
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], tmpl_data[PROJECT], tenant_id
         )
         common_template_view_actions = get_common_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], tmpl_data[COMMON]
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], tmpl_data[COMMON], tenant_id
         )
         view_actions = {
             PROJECT: template_view_actions,

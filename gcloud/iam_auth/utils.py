@@ -24,7 +24,6 @@ from .conf import IAMMeta
 from .shortcuts import get_iam_client
 
 logger = logging.getLogger("root")
-iam = get_iam_client()
 
 
 def get_user_projects(username, tenant_id):
@@ -35,7 +34,7 @@ def get_user_projects(username, tenant_id):
 
     key_mapping = {"project.id": "id"}
 
-    iam = get_iam_client()
+    iam = get_iam_client(tenant_id)
     filters = iam.make_filter(request, key_mapping=key_mapping)
 
     if not filters:
@@ -44,8 +43,8 @@ def get_user_projects(username, tenant_id):
     return Project.objects.filter(filters).filter(tenant_id=tenant_id)
 
 
-def get_flow_allowed_actions_for_user(username, actions, flow_id_list):
-    resources_list = res_factory.resources_list_for_flows(flow_id_list)
+def get_flow_allowed_actions_for_user(username, actions, flow_id_list, tenant_id):
+    resources_list = res_factory.resources_list_for_flows(flow_id_list, tenant_id)
 
     if not resources_list:
         return {}
@@ -54,26 +53,13 @@ def get_flow_allowed_actions_for_user(username, actions, flow_id_list):
         username,
         IAMMeta.SYSTEM_ID,
         actions,
-        res_factory.resources_list_for_flows(flow_id_list),
+        res_factory.resources_list_for_flows(flow_id_list, tenant_id),
+        tenant_id,
     )
 
 
-def get_common_flow_allowed_actions_for_user(username, actions, common_flow_id_list):
-    resources_list = res_factory.resources_list_for_common_flows(common_flow_id_list)
-
-    if not resources_list:
-        return {}
-
-    return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        resources_list,
-    )
-
-
-def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
-    resources_list = res_factory.resources_list_for_mini_apps(mini_app_id_list)
+def get_common_flow_allowed_actions_for_user(username, actions, common_flow_id_list, tenant_id):
+    resources_list = res_factory.resources_list_for_common_flows(common_flow_id_list, tenant_id)
 
     if not resources_list:
         return {}
@@ -83,38 +69,54 @@ def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
         IAMMeta.SYSTEM_ID,
         actions,
         resources_list,
+        tenant_id,
     )
 
 
-def get_task_allowed_actions_for_user(username, actions, task_id_list):
-    resources_list = res_factory.resources_list_for_tasks(task_id_list)
+def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list, tenant_id):
+    resources_list = res_factory.resources_list_for_mini_apps(mini_app_id_list, tenant_id)
 
     if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list)
+    return get_resources_allowed_actions_for_user(
+        username,
+        IAMMeta.SYSTEM_ID,
+        actions,
+        resources_list,
+        tenant_id,
+    )
 
 
-def get_periodic_task_allowed_actions_for_user(username, actions, periodic_task_id_list):
-    resources_list = res_factory.resources_list_for_periodic_tasks(periodic_task_id_list)
+def get_task_allowed_actions_for_user(username, actions, task_id_list, tenant_id):
+    resources_list = res_factory.resources_list_for_tasks(task_id_list, tenant_id)
 
     if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list)
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list, tenant_id)
 
 
-def get_resources_allowed_actions_for_user(username, system_id, actions, resources_list):
+def get_periodic_task_allowed_actions_for_user(username, actions, periodic_task_id_list, tenant_id):
+    resources_list = res_factory.resources_list_for_periodic_tasks(periodic_task_id_list, tenant_id)
+
+    if not resources_list:
+        return {}
+
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list, tenant_id)
+
+
+def get_resources_allowed_actions_for_user(username, system_id, actions, resources_list, tenant_id):
     subject = Subject("user", username)
     actions = [Action(act) for act in actions]
     request = MultiActionRequest(system_id, subject, actions, [], {})
 
-    iam = get_iam_client()
+    iam = get_iam_client(tenant_id)
     return iam.batch_resource_multi_actions_allowed(request, resources_list)
 
 
-def iam_multi_resource_auth_or_raise(username, action, resource_ids, get_resource_func):
-    iam = get_iam_client()
+def iam_multi_resource_auth_or_raise(username, action, resource_ids, get_resource_func, tenant_id):
+    iam = get_iam_client(tenant_id)
     action = Action(action)
     subject = Subject("user", username)
     resource_list = getattr(res_factory, get_resource_func)(resource_ids)
@@ -134,8 +136,8 @@ def iam_multi_resource_auth_or_raise(username, action, resource_ids, get_resourc
         raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)
 
 
-def iam_resource_auth_or_raise(username, action, resource_id=None, get_resource_func=None):
-    iam = get_iam_client()
+def iam_resource_auth_or_raise(username, action, tenant_id, resource_id=None, get_resource_func=None):
+    iam = get_iam_client(tenant_id)
     action = Action(action)
     subject = Subject("user", username)
     resources = None
@@ -146,10 +148,10 @@ def iam_resource_auth_or_raise(username, action, resource_id=None, get_resource_
         raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources or [])
 
 
-def check_project_or_admin_view_action_for_user(project_id, username):
-    iam = get_iam_client()
+def check_project_or_admin_view_action_for_user(project_id, username, tenant_id):
+    iam = get_iam_client(tenant_id)
     action = Action(IAMMeta.PROJECT_VIEW_ACTION) if project_id else Action(IAMMeta.ADMIN_VIEW_ACTION)
-    resources = res_factory.resources_for_project(project_id) if project_id else []
+    resources = res_factory.resources_for_project(project_id, tenant_id) if project_id else []
     allow_or_raise_auth_failed(
         iam=iam,
         system=IAMMeta.SYSTEM_ID,
@@ -165,8 +167,8 @@ def check_and_raise_raw_auth_fail_exception(result: dict, message=None):
         raise RawAuthFailedException(permissions=result.get("permission", {}))
 
 
-def get_common_flow_allowed_actions_for_user_and_project(username, actions, common_flow_id_list, project_id):
-    resources_list = res_factory.resources_list_for_common_flows_project(common_flow_id_list, project_id)
+def get_common_flow_allowed_actions_for_user_and_project(username, actions, common_flow_id_list, project_id, tenant_id):
+    resources_list = res_factory.resources_list_for_common_flows_project(common_flow_id_list, project_id, tenant_id)
 
     if not resources_list:
         return {}
@@ -176,4 +178,5 @@ def get_common_flow_allowed_actions_for_user_and_project(username, actions, comm
         IAMMeta.SYSTEM_ID,
         actions,
         resources_list,
+        tenant_id,
     )

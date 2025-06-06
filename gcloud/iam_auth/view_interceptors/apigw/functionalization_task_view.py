@@ -14,11 +14,8 @@ specific language governing permissions and limitations under the License.
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.intercept import ViewInterceptor
-
-iam = get_iam_client()
 
 
 class FunctionViewInterceptor(ViewInterceptor):
@@ -26,6 +23,8 @@ class FunctionViewInterceptor(ViewInterceptor):
         if request.is_trust:
             return
 
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FUNCTION_VIEW_ACTION)
         resources = []

@@ -36,6 +36,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @iam_intercept(ProjectViewInterceptor())
 def get_task_list(request, project_id):
     project = request.project
+    tenant_id = request.user.tenant_id
     params_validator = GetTaskListForm(data=request.GET)
     if not params_validator.is_valid():
         return {"result": False, "data": "", "message": params_validator.errors, "code": err_code.VALIDATION_ERROR.code}
@@ -47,7 +48,7 @@ def get_task_list(request, project_id):
         "create_method": "create_method",
         "template_id": "template_id",
     }
-    filter_kwargs = dict(is_deleted=Value(0), project_id=project.id)
+    filter_kwargs = dict(is_deleted=Value(0), project_id=project.id, project__tenant_id=tenant_id)
     for param, filter_key in param_mappings.items():
         if param in request.GET:
             filter_kwargs[filter_key] = params_validator.cleaned_data[param]
@@ -63,7 +64,9 @@ def get_task_list(request, project_id):
     task_list, task_id_list = format_task_list_data(tasks, project, True, request.tz)
     # 注入用户有权限的action
 
-    task_allowed_actions = get_task_allowed_actions_for_user(request.user.username, TASK_ACTIONS, task_id_list)
+    task_allowed_actions = get_task_allowed_actions_for_user(
+        request.user.username, TASK_ACTIONS, task_id_list, tenant_id
+    )
     for task_info in task_list:
         task_id = task_info["id"]
         task_info.setdefault("auth_actions", [])

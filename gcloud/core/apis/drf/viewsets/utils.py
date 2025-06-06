@@ -24,7 +24,6 @@ from gcloud import err_code
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client
 
-iam = get_iam_client()
 iam_logger = logging.getLogger("iam")
 logger = logging.getLogger("root")
 
@@ -76,6 +75,8 @@ class ApiMixin(GenericViewSet):
 class IAMMixin:
     @staticmethod
     def iam_auth_check(request, action, resources):
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,

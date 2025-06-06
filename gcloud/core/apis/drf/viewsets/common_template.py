@@ -170,7 +170,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         project_id = request.query_params.get("project__id")
         if not project_id:
             return []
-        iam = get_iam_client()
+        iam = get_iam_client(request.user.tenant_id)
         system = IAMMeta.SYSTEM_ID
 
         allowed_template_ids = []
