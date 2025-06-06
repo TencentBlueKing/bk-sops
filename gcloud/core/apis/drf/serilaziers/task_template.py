@@ -52,7 +52,7 @@ class TaskTemplateSerializer(TaskTemplateListSerializer):
         return json.dumps(obj.pipeline_tree)
 
 
-class TopCollectionTaskTemplateSerializer(TaskTemplateListSerializer):
+class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
     is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")
     collection_id = serializers.IntegerField(read_only=True, help_text="收藏ID")
 
