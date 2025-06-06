@@ -90,6 +90,7 @@ def format_template_list_data(templates, project=None, return_id_list=False, tz=
                     "project_name": project.name,
                     "bk_biz_id": project.bk_biz_id,
                     "bk_biz_name": project.name if project.from_cmdb else None,
+                    "executor_proxy": tmpl.executor_proxy,
                 }
             )
 

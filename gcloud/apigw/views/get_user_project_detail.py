@@ -20,6 +20,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.utils import api_hash_key
+from gcloud.core.models import ProjectConfig
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.utils import get_resources_allowed_actions_for_user
@@ -63,6 +64,13 @@ def get_user_project_detail(request, project_id):
         ],
     )
 
+    # 补充项目执行代理人信息
+    executor_proxy, executor_proxy_exempts = "", []
+    project_config = ProjectConfig.objects.filter(project_id=request.project.id).first()
+    if project_config:
+        executor_proxy = project_config.executor_proxy.strip()
+        executor_proxy_exempts = list(set(project_config.executor_proxy_exempts.split(",")))
+
     return {
         "result": True,
         "data": {
@@ -80,6 +88,8 @@ def get_user_project_detail(request, project_id):
                 for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items()
                 if allowed
             ],
+            "executor_proxy": executor_proxy,
+            "executor_proxy_exempts": executor_proxy_exempts
         },
         "code": err_code.SUCCESS.code,
     }
