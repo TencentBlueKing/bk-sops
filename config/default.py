@@ -48,7 +48,6 @@ from gcloud.exceptions import ApiRequestError
 
 APP_NAME = _("标准运维")
 OPEN_VER = env.RUN_VER
-BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
 # 区分社区版和其他open版本
 if OPEN_VER == "open":
     OPEN_VER = env.OPEN_VER
