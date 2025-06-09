@@ -44,7 +44,7 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     TopCollectionTaskTemplateSerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.taskflow3.models import TaskConfig, TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
@@ -118,20 +118,25 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     pagination_class = LimitOffsetPagination
     filterset_class = TaskTemplateFilter
     permission_classes = [permissions.IsAuthenticated, TaskTemplatePermission]
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_flow_obj,
-        actions=[
-            IAMMeta.FLOW_VIEW_ACTION,
-            IAMMeta.FLOW_EDIT_ACTION,
-            IAMMeta.FLOW_DELETE_ACTION,
-            IAMMeta.FLOW_CREATE_TASK_ACTION,
-            IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
-            IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
-            IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
-        ],
-    )
     ordering_fields = ["pipeline_template"] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
     project_multi_tenant_filter = True
+
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client,
+            resource_func=res_factory.resources_for_flow_obj,
+            actions=[
+                IAMMeta.FLOW_VIEW_ACTION,
+                IAMMeta.FLOW_EDIT_ACTION,
+                IAMMeta.FLOW_DELETE_ACTION,
+                IAMMeta.FLOW_CREATE_TASK_ACTION,
+                IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
+                IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
+                IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
+            ],
+        )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -353,9 +358,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @swagger_auto_schema(
-        method="GET", operation_summary="查询流程是否开启独立子流程", query_serializer=ProjectInfoQuerySerializer
-    )
+    @swagger_auto_schema(method="GET", operation_summary="查询流程是否开启独立子流程", query_serializer=ProjectInfoQuerySerializer)
     @action(methods=["GET"], detail=True)
     def enable_independent_subprocess(self, request, *args, **kwargs):
         template_id = kwargs.get("pk")
@@ -363,9 +366,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
 
-    @swagger_auto_schema(
-        method="GET", operation_summary="获取流程详情公开信息", query_serializer=ProjectFilterQuerySerializer
-    )
+    @swagger_auto_schema(method="GET", operation_summary="获取流程详情公开信息", query_serializer=ProjectFilterQuerySerializer)
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()

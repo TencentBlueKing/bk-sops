@@ -90,18 +90,23 @@ class CommonTemplateFilter(PropertyFilterSet):
 class CommonTemplateViewSet(GcloudModelViewSet):
     queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_common_flow_obj,
-        actions=[
-            IAMMeta.COMMON_FLOW_VIEW_ACTION,
-            IAMMeta.COMMON_FLOW_EDIT_ACTION,
-            IAMMeta.COMMON_FLOW_DELETE_ACTION,
-        ],
-    )
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
     ordering = ["-id"]
     model_multi_tenant_filter = True
+
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client,
+            resource_func=res_factory.resources_for_common_flow_obj,
+            actions=[
+                IAMMeta.COMMON_FLOW_VIEW_ACTION,
+                IAMMeta.COMMON_FLOW_EDIT_ACTION,
+                IAMMeta.COMMON_FLOW_DELETE_ACTION,
+            ],
+        )
 
     def get_serializer_class(self):
         if self.action in ["list", "list_with_top_collection", "list_for_periodic_task"]:

@@ -44,7 +44,7 @@ from gcloud.core.apis.drf.serilaziers.periodic_task import (
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.models import Project
-from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -113,16 +113,21 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
     serializer_class = PeriodicTaskReadOnlySerializer
     filter_class = PeriodicTaskFilter
     pagination_class = LimitOffsetPagination
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_periodic_task_obj,
-        actions=[
-            IAMMeta.PERIODIC_TASK_VIEW_ACTION,
-            IAMMeta.PERIODIC_TASK_EDIT_ACTION,
-            IAMMeta.PERIODIC_TASK_DELETE_ACTION,
-        ],
-    )
     permission_classes = [permissions.IsAuthenticated, PeriodicTaskPermission]
     project_multi_tenant_filter = True
+
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client,
+            resource_func=res_factory.resources_for_periodic_task_obj,
+            actions=[
+                IAMMeta.PERIODIC_TASK_VIEW_ACTION,
+                IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+                IAMMeta.PERIODIC_TASK_DELETE_ACTION,
+            ],
+        )
 
     def get_serializer_class(self):
         if self.action == "list":

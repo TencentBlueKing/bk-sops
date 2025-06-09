@@ -80,8 +80,6 @@ from gcloud.utils.strings import standardize_name, standardize_pipeline_node_nam
 
 logger = logging.getLogger("root")
 
-iam = get_iam_client()
-
 
 class TaskFLowStatusFilterHandler:
     FAILED = "failed"
@@ -330,9 +328,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     queryset = TaskFlowInstance.objects.filter(
         pipeline_instance__isnull=False, is_deleted=Value(0), pipeline_instance__is_expired=False
     ).order_by("-id")
-    iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
+
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client, resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS
+        )
 
     def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())

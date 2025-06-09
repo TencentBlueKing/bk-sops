@@ -74,15 +74,15 @@ class MiniAppResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = AppMaker.objects.filter(project__tenant_id=options["tenant_id"], is_deleted=False)
+            queryset = AppMaker.objects.filter(project__tenant_id=options["bk_tenant_id"], is_deleted=False)
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
                 queryset = AppMaker.objects.filter(
-                    project__tenant_id=options["tenant_id"], project_id=str(parent_id), is_deleted=False
+                    project__tenant_id=options["bk_tenant_id"], project_id=str(parent_id), is_deleted=False
                 )
             else:
-                queryset = AppMaker.objects.filter(project__tenant_id=options["tenant_id"], is_deleted=False)
+                queryset = AppMaker.objects.filter(project__tenant_id=options["bk_tenant_id"], is_deleted=False)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -156,7 +156,7 @@ class MiniAppResourceProvider(ResourceProvider):
         }  # TODO 优化
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": mini_app_path_value_hook})
         filters = converter.convert(expression)
-        queryset = AppMaker.objects.filter(filters).filter(project__tenant_id=options["tenant_id"])
+        queryset = AppMaker.objects.filter(filters).filter(project__tenant_id=options["bk_tenant_id"])
         count = queryset.count()
 
         results = [

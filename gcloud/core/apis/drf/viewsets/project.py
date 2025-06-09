@@ -20,7 +20,7 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet, GcloudUpdateViewSet
 from gcloud.core.models import Project
-from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
 
 class ProjectPermission(IamPermission):
@@ -57,15 +57,19 @@ class ProjectSetViewSet(GcloudUpdateViewSet, GcloudListViewSet):
     filterset_class = ProjectFilter
     model_multi_tenant_filter = settings.ENABLE_MULTI_TENANT_MODE
 
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_project_obj,
-        actions=[
-            IAMMeta.PROJECT_VIEW_ACTION,
-            IAMMeta.PROJECT_EDIT_ACTION,
-            IAMMeta.FLOW_CREATE_ACTION,
-            IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
-        ],
-    )
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client,
+            resource_func=res_factory.resources_for_project_obj,
+            actions=[
+                IAMMeta.PROJECT_VIEW_ACTION,
+                IAMMeta.PROJECT_EDIT_ACTION,
+                IAMMeta.FLOW_CREATE_ACTION,
+                IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
+            ],
+        )
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

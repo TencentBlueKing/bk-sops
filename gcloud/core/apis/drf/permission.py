@@ -112,4 +112,4 @@ class IamUserTypeBasedValidator(IAMMixin):
     @staticmethod
     def query_auditor_type(request):
         user = request.user.username
-        return user_role.is_user_role(user, IAMMeta.AUDIT_VIEW_ACTION)
+        return user_role.is_user_role(user, IAMMeta.AUDIT_VIEW_ACTION, request.user.tenant_id)

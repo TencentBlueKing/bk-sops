@@ -24,8 +24,6 @@ from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 
-iam = get_iam_client()
-
 
 class ClockedTaskViewSet(ApiMixin, IAMMixin, MultiTenantMixin, viewsets.ModelViewSet):
     queryset = ClockedTask.objects.all()
@@ -44,16 +42,20 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, MultiTenantMixin, viewsets.ModelVie
         "state": ["exact"],
     }
     pagination_class = LimitOffsetPagination
-    iam_resource_helper = ClockedTaskResourceHelper(
-        iam=iam,
-        system=IAMMeta.SYSTEM_ID,
-        actions=[
-            IAMMeta.CLOCKED_TASK_VIEW_ACTION,
-            IAMMeta.CLOCKED_TASK_EDIT_ACTION,
-            IAMMeta.CLOCKED_TASK_DELETE_ACTION,
-        ],
-    )
     project_id_multi_tenant_filter = True
+
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ClockedTaskResourceHelper(
+            iam=iam_client,
+            system=IAMMeta.SYSTEM_ID,
+            actions=[
+                IAMMeta.CLOCKED_TASK_VIEW_ACTION,
+                IAMMeta.CLOCKED_TASK_EDIT_ACTION,
+                IAMMeta.CLOCKED_TASK_DELETE_ACTION,
+            ],
+        )
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

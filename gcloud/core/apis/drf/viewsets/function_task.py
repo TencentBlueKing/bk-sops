@@ -19,7 +19,7 @@ from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.function_task import FunctionTaskSerializer
 from gcloud.core.apis.drf.viewsets import GcloudListViewSet
-from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
 
 
@@ -32,9 +32,6 @@ class FunctionTaskPermission(IamPermission):
 class FunctionTaskViewSet(GcloudListViewSet):
     queryset = FunctionTask.objects.filter(task__is_deleted=Value(0))
     serializer_class = FunctionTaskSerializer
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_function_task_obj, actions=TASK_ACTIONS, id_field="task.id"
-    )
     permission_classes = [permissions.IsAuthenticated, FunctionTaskPermission]
     filter_fields = {
         "id": ["exact"],
@@ -51,6 +48,16 @@ class FunctionTaskViewSet(GcloudListViewSet):
         "claim_time": ["gte", "lte"],
     }
     taskflow_multi_tenant_filter = True
+
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client,
+            resource_func=res_factory.resources_for_function_task_obj,
+            actions=TASK_ACTIONS,
+            id_field="task.id",
+        )
 
     def list(self, request, *args, **kwargs):
         bk_audit_add_event(username=request.user.username, action_id=IAMMeta.FUNCTION_VIEW_ACTION)

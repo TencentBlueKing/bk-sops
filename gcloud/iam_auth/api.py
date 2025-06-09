@@ -43,7 +43,7 @@ def apply_perms_url(request):
     iam = get_iam_client(tenant_id)
 
     try:
-        result, message, url = iam.get_apply_url(application, bk_username=username)
+        result, message, url = iam.get_apply_url(application)
     except AuthInvalidRequest as e:
         result = False
         message = str(e)

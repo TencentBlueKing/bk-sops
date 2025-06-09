@@ -18,6 +18,7 @@ from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.core.models import Project
 from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
+from blueapps.utils.logger import logger
 
 
 class ProjectResourceProvider(ResourceProvider):
@@ -29,6 +30,12 @@ class ProjectResourceProvider(ResourceProvider):
         """
         project 没有上层资源，不需要处理 filter 的 parent
         """
+        logger.info(
+            "[iam auth] search instance project, filter=%s, page=%s, options=%s",
+            filter,
+            page,
+            options,
+        )
         keyword = filter.keyword
         cache_keyword = "iam_search_instance_project_{}".format(keyword)
 
@@ -71,6 +78,11 @@ class ProjectResourceProvider(ResourceProvider):
         """
         project 没有定义属性，只处理 filter 中的 ids 字段
         """
+        logger.info(
+            "[iam auth] list instance by policy project, filter=%s, options=%s",
+            filter,
+            options,
+        )
         ids = []
         if filter.ids:
             ids = [int(i) for i in filter.ids]
@@ -85,6 +97,12 @@ class ProjectResourceProvider(ResourceProvider):
         """
         project 资源只处理 id 即可，owner 都是 admin，不处理
         """
+        logger.info(
+            "[iam auth] list instance by policy project, filter=%s, page=%s, options=%s",
+            filter,
+            page,
+            options,
+        )
 
         expression = filter.expression
         if not expression:

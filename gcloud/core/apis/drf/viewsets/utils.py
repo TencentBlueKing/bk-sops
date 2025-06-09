@@ -86,9 +86,11 @@ class IAMMixin:
         )
 
     def iam_get_instances_auth_actions(self, request, instances):
-        helper = getattr(self, "iam_resource_helper", None)
-        if not helper:
+        iam_resource_helper = getattr(self, "iam_resource_helper", None)
+        if not iam_resource_helper:
             return None
+
+        helper = iam_resource_helper(request.user.tenant_id)
 
         # 1. collect resources
         resources_list = []
@@ -125,9 +127,11 @@ class IAMMixin:
         return auth_actions
 
     def iam_get_instance_auth_actions(self, request, instance):
-        helper = getattr(self, "iam_resource_helper", None)
-        if not helper:
+        iam_resource_helper = getattr(self, "iam_resource_helper", None)
+        if not iam_resource_helper:
             return None
+
+        helper = iam_resource_helper(request.user.tenant_id)
 
         # 1. get resources
         resources = helper.get_resources(instance)

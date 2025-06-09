@@ -24,7 +24,7 @@ from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSe
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers import ProjectWithFavSerializer
 from gcloud.core.models import Project
-from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.utils import get_user_projects
 
 from .base import GcloudListViewSet
@@ -54,15 +54,19 @@ class UserProjectSetViewSet(GcloudListViewSet):
     search_fields = ["id", "name", "desc", "creator", "bk_biz_id"]
     model_multi_tenant_filter = True
 
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_project_obj,
-        actions=[
-            IAMMeta.PROJECT_VIEW_ACTION,
-            IAMMeta.PROJECT_EDIT_ACTION,
-            IAMMeta.FLOW_CREATE_ACTION,
-            IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
-        ],
-    )
+    @staticmethod
+    def iam_resource_helper(tanant_id):
+        iam_client = get_iam_client(tenant_id=tanant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client,
+            resource_func=res_factory.resources_for_project_obj,
+            actions=[
+                IAMMeta.PROJECT_VIEW_ACTION,
+                IAMMeta.PROJECT_EDIT_ACTION,
+                IAMMeta.FLOW_CREATE_ACTION,
+                IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
+            ],
+        )
 
     def list(self, request, *args, **kwargs):
         user_project_ids = list(

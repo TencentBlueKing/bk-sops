@@ -13,13 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from iam import Subject, Action, Request
+from iam import Action, Request, Subject
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import IAMMeta, get_iam_client
 
 logger = logging.getLogger("root")
-iam = get_iam_client()
 CACHE_PREFIX = __name__.replace(".", "_")
 
 
@@ -30,7 +28,7 @@ def is_user_functor(request):
     username = request.user.username
     if not username:
         return False
-    return is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION)
+    return is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION, request.user.tenant_id)
 
 
 def is_user_auditor(request):
@@ -40,15 +38,15 @@ def is_user_auditor(request):
     username = request.user.username
     if not username:
         return False
-    return is_user_role(username, IAMMeta.AUDIT_VIEW_ACTION)
+    return is_user_role(username, IAMMeta.AUDIT_VIEW_ACTION, request.user.tenant_id)
 
 
-def is_user_role(username, role_action):
+def is_user_role(username, role_action, tenant_id=""):
 
     subject = Subject("user", username)
     action = Action(role_action)
     request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
-
+    iam = get_iam_client(tenant_id=tenant_id)
     # can not raise exception at here, will cause index access error
     try:
         return iam.is_allowed(request)

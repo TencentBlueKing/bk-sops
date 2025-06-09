@@ -20,7 +20,7 @@ from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.appmaker import AppmakerSerializer
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
-from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
 
 class AppmakerPermission(IamPermission):
@@ -41,18 +41,23 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
     project_id_multi_tenant_filter = True
     queryset = AppMaker.objects.filter(is_deleted=False)
     serializer_class = AppmakerSerializer
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_mini_app_obj,
-        actions=[
-            IAMMeta.MINI_APP_CREATE_TASK_ACTION,
-            IAMMeta.MINI_APP_DELETE_ACTION,
-            IAMMeta.MINI_APP_EDIT_ACTION,
-            IAMMeta.MINI_APP_VIEW_ACTION,
-        ],
-    )
     permission_classes = [permissions.IsAuthenticated, AppmakerPermission]
     filter_fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"], "name": ["icontains"]}
     pagination_class = LimitOffsetPagination
+
+    @staticmethod
+    def iam_resource_helper(tenant_id):
+        iam_client = get_iam_client(tenant_id=tenant_id)
+        return ViewSetResourceHelper(
+            iam=iam_client,
+            resource_func=res_factory.resources_for_mini_app_obj,
+            actions=[
+                IAMMeta.MINI_APP_CREATE_TASK_ACTION,
+                IAMMeta.MINI_APP_DELETE_ACTION,
+                IAMMeta.MINI_APP_EDIT_ACTION,
+                IAMMeta.MINI_APP_VIEW_ACTION,
+            ],
+        )
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

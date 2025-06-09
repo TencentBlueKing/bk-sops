@@ -145,7 +145,7 @@ class TaskResourceProvider(ResourceProvider):
             for keyword in task_keywords:
                 task_filter |= Q(pipeline_instance__name__icontains=keyword)  # TODO 优化
 
-            project_ids = Project.objects.filter(project_filter, tenant_id=options["tenant_id"]).values_list(
+            project_ids = Project.objects.filter(project_filter, tenant_id=options["bk_tenant_id"]).values_list(
                 "id", flat=True
             )
             queryset = TaskFlowInstance.objects.filter(project_id__in=list(project_ids)).filter(task_filter)
