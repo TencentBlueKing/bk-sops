@@ -33,6 +33,14 @@ class ResourceApiDispatcher(DjangoBasicResourceApiDispatcher):
         self.system = system
         self._provider = {}
 
+    def _get_options(self, request):
+        opts = {"language": request.META.get("HTTP_BLUEKING_LANGUAGE", "zh-cn")}
+        if "HTTP_X_BK_TENANT_ID" in request.META:
+            opts["bk_tenant_id"] = request.META["HTTP_X_BK_TENANT_ID"]
+        else:
+            opts["bk_tenant_id"] = "default"
+        return opts
+
     def _dispatch(self, request):
 
         request_id = request.META.get("HTTP_X_REQUEST_ID", "")

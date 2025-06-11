@@ -12,11 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.iam_auth import IAMMeta, get_iam_client
 
 logger = logging.getLogger("root")
-
-iam = get_iam_client()
 
 
 def resource_creator_action_params(instance, resource_type, with_ancestors=False):
@@ -74,6 +73,8 @@ def resource_creator_action_attribute_params(resource_type, creator, attributes)
 
 
 def register_grant_resource_creator_actions(instance, resource_type, with_ancestors=False):
+    tenant_id = get_current_tenant_id()
+    iam = get_iam_client(tenant_id)
     try:
         application = resource_creator_action_params(instance, resource_type, with_ancestors)
 
@@ -93,6 +94,8 @@ def register_grant_resource_creator_actions(instance, resource_type, with_ancest
 
 
 def register_batch_grant_resource_creator_actions(instance: list, response_type, creator, with_ancestors=False):
+    tenant_id = get_current_tenant_id()
+    iam = get_iam_client(tenant_id)
     try:
         application = batch_resource_creator_action_params(instance, response_type, creator, with_ancestors)
 
@@ -116,6 +119,8 @@ def register_batch_grant_resource_creator_actions(instance: list, response_type,
 
 
 def register_grant_resource_creator_action_attributes(resource_type, creator, attributes):
+    tenant_id = get_current_tenant_id()
+    iam = get_iam_client(tenant_id)
     try:
         application = resource_creator_action_attribute_params(resource_type, creator, attributes)
 

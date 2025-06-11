@@ -26,6 +26,7 @@ from django.utils.translation import gettext_lazy as _
 from gcloud import err_code
 from gcloud.core.logging import local
 from gcloud.core.models import Project
+from gcloud.core.utils.sites.open.tenant_tools import _thread_locals, set_current_tenant_id
 
 logger = logging.getLogger("root")
 
@@ -112,3 +113,19 @@ class HttpRedirectMiddleware(MiddlewareMixin):
 
         if settings.DEFAULT_REDIRECT_HOST and settings.DEFAULT_REDIRECT_HOST not in absolute_uri:
             return HttpResponseIndexRedirect(request.get_full_path())
+
+
+class TenantMiddleware(MiddlewareMixin):
+    """自动处理租户ID的中间件"""
+
+    def process_request(self, request):
+        """请求进入时设置租户ID"""
+        # 从request.user获取租户ID（根据你的用户模型调整）
+        tenant_id = getattr(request.user, "tenant_id", None)
+        set_current_tenant_id(tenant_id)
+
+    def process_response(self, request, response):
+        """请求结束时清理数据（避免内存泄漏）"""
+        if hasattr(_thread_locals, "tenant_id"):
+            del _thread_locals.tenant_id
+        return response
