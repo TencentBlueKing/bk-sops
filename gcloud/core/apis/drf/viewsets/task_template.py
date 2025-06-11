@@ -133,7 +133,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     ordering_fields = ["pipeline_template"] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "list_with_top_collection"]:
             return TaskTemplateListSerializer
         return TaskTemplateSerializer
 
