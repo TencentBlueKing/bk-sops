@@ -49,7 +49,7 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
             self.iam_auth_check(
                 request,
                 action=self.actions[view.action],
-                resources=res_factory.resources_for_flow(template_id),
+                resources=res_factory.resources_for_flow(template_id, request.user.tenant_id),
             )
         return True
 

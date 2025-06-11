@@ -19,14 +19,16 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 
+from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.iam_auth import get_iam_client
 
 logger = logging.getLogger("root")
-iam = get_iam_client()
 
 
 def handle_api_error(system, api_name, params, result):
     request_id = result.get("request_id", "")
+    tenant_id = get_current_tenant_id()
+    iam = get_iam_client(tenant_id)
     if result.get("code") == HTTP_AUTH_FORBIDDEN_CODE:
         permission = result.get("permission", {})
 

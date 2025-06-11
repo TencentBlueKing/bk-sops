@@ -150,6 +150,7 @@ MIDDLEWARE += (
     "weixin.core.middlewares.WeixinLoginMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "gcloud.core.middlewares.TimezoneMiddleware",
+    "gcloud.core.middlewares.TenantMiddleware",
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
