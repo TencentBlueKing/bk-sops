@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+from collections.abc import Iterable
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -43,7 +44,7 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     TaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
 )
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.core.apis.drf.viewsets.base import GcloudCommonMixin, GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.taskflow3.models import TaskConfig, TaskTemplate
@@ -113,7 +114,7 @@ class TaskTemplateFilter(PropertyFilterSet):
         return query.filter(**condition)
 
 
-class TaskTemplateViewSet(GcloudModelViewSet):
+class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
     filterset_class = TaskTemplateFilter
@@ -137,6 +138,23 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                 IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
             ],
         )
+
+    def injection_auth_actions(self, request, serializer_data, queryset_data):
+        """重写权限注入方法，为创建人赋予所有权限"""
+        # 获取父类的权限检查结果
+        auth_result = super().injection_auth_actions(request, serializer_data, queryset_data)
+        helper = self.iam_resource_helper(request.user.tenant_id)
+        all_actions = helper.actions
+
+        # 统一处理单个实例和列表情况
+        instances = [queryset_data] if not isinstance(queryset_data, Iterable) else queryset_data
+        data_list = [serializer_data] if not isinstance(queryset_data, Iterable) else serializer_data
+
+        for data, instance in zip(data_list, instances):
+            if hasattr(instance, "pipeline_template") and request.user.username == instance.pipeline_template.creator:
+                data["auth_actions"] = all_actions
+
+        return auth_result
 
     def get_serializer_class(self):
         if self.action == "list":
