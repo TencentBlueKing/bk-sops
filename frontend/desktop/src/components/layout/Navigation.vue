@@ -102,7 +102,8 @@
                 hasAdminPerm: state => state.hasAdminPerm,
                 hasStatisticsPerm: state => state.hasStatisticsPerm,
                 app_id: state => state.app_id,
-                view_mode: state => state.view_mode
+                view_mode: state => state.view_mode,
+                isMultiTenantMode: state => state.isMultiTenantMode
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id,
@@ -128,10 +129,24 @@
                     return APPMAKER_ROUTE_LIST
                 } else if (this.hasAdminPerm) {
                     const adminRouteList = tools.deepClone(ADMIN_ROUTE_LIST)
-                    if (!this.hasStatisticsPerm) {
-                        // 暂时用写死的方式去掉管理员入口导航的运营数据
-                        adminRouteList[0][0].children = adminRouteList[0][0].children.filter(item => item.id !== 'operation')
-                    }
+                    const firstRouteGroup = adminRouteList[0][0]
+
+                    const filterConditions = [
+                        { // 多租户模式下过滤掉【插件开发】
+                            condition: this.isMultiTenantMode,
+                            idToRemove: 'atomDev'
+                        },
+                        { // 暂时用写死的方式去掉管理员入口导航的运营数据
+                            condition: !this.hasStatisticsPerm,
+                            idToRemove: 'operation'
+                        }
+                    ]
+
+                    // 应用所有过滤条件
+                    firstRouteGroup.children = filterConditions.reduce((children, { condition, idToRemove }) => {
+                        return condition ? children.filter(item => item.id !== idToRemove) : children
+                    }, firstRouteGroup.children)
+
                     return commonRouteList.concat(adminRouteList)
                 }
                 return commonRouteList
