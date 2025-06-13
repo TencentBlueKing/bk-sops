@@ -84,6 +84,14 @@
                     }
                 }
             }
+            .bk-table {
+                .bk-table-empty-block {
+                    width: 100% !important;
+                }
+                .cell {
+                    -webkit-line-clamp: none;
+                }
+            }
         }
     }
 </style>
