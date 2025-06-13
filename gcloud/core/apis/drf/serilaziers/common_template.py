@@ -18,6 +18,7 @@ from rest_framework import serializers
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
+from gcloud.constants import PROJECT
 
 
 class CommonTemplateListSerializer(BaseTemplateSerializer):
@@ -71,6 +72,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     pipeline_template = serializers.IntegerField(
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
+    scope = serializers.JSONField(help_text="流程使用范围")
 
     def _calculate_new_executor_proxies(self, old_pipeline_tree: dict, pipeline_tree: dict):
         new_executor_proxies = set()
@@ -109,6 +111,34 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
 
+    def _convert_scope_format(self, raw_scope):
+        if raw_scope == "*":
+            return {"project": ["*"]}
+        return {"project": [pid for pid in raw_scope.split(",")]}
+
+    def _validate_scope_changes(self, scope_value):
+        if scope_value == ["*"]:
+            return
+
+        references = self.instance.referencer()
+        if references is []:
+            return
+
+        for item in references:
+            if item.get("template_type") != PROJECT:
+                continue
+            project_id = item.get("project_id")
+            if str(project_id) not in scope_value:
+                raise serializers.ValidationError(f"公共流程在项目{project_id}中被引用，请检查配置")
+
+    def validate_scope(self, value):
+        request = self.context.get("request")
+        formatted_scope = self._convert_scope_format(value)
+
+        if request.method in ("PUT", "PATCH"):
+            self._validate_scope_changes(formatted_scope.get("project"))
+        return formatted_scope
+
     class Meta:
         model = CommonTemplate
         fields = [
@@ -130,4 +160,5 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "template_id",
             "version",
             "pipeline_template",
+            "scope",
         ]

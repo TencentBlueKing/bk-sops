@@ -102,6 +102,18 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
     ordering = ["-id"]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        project_id = self.request.query_params.get("project_id")
+        if not project_id:
+            return queryset
+        scope_project_ids = []
+        for template in queryset:
+            exemption_project = template.scope.get("project", [])
+            if "*" in exemption_project or project_id in exemption_project:
+                scope_project_ids.append(template.id)
+        return queryset.filter(id__in=scope_project_ids)
+
     def get_serializer_class(self):
         if self.action in ["list", "list_with_top_collection", "list_for_periodic_task"]:
             return CommonTemplateListSerializer
@@ -166,7 +178,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
     @staticmethod
     def _inject_project_based_task_create_action(request, common_template_ids, common_flow_action):
-        project_id = request.query_params.get("project__id")
+        project_id = request.query_params.get("project_id")
         if not project_id:
             return []
         iam = get_iam_client()
