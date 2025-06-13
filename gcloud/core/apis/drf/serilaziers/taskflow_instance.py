@@ -185,6 +185,17 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
             raise serializers.ValidationError(str(e))
         return value
 
+    def validate(self, attrs):
+        template_source = attrs.get("template_source")
+        if template_source == "common":
+            template = attrs.get("template")
+            project_id = attrs.get("project").id
+            project_scope = template.scope.get("project")
+
+            if not ("*" in project_scope or str(project_id) in project_scope):
+                raise serializers.ValidationError(f"公共流程{template.id}不能在项目{project_id}中使用，请检查配置")
+        return attrs
+
     class Meta:
         model = TaskFlowInstance
         exclude = ["current_flow"]

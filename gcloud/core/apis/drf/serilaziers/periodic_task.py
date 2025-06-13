@@ -30,6 +30,8 @@ from gcloud.core.models import Project, ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 from gcloud.core.models import EnvironmentVariables
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import COMMON
 
 logger = logging.getLogger("root")
 
@@ -173,6 +175,12 @@ class CronFieldSerializer(serializers.Serializer):
                 "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
             )
 
+    def check_template_project_binding(self, project, template_id):
+        project_id = project.id if isinstance(project, Project) else project
+        project_scope = CommonTemplate.objects.get(id=template_id).scope.get("project")
+        if not ("*" in project_scope or str(project_id) in project_scope):
+            raise serializers.ValidationError(f"公共流程{template_id}不能在项目{project_id}中使用，请检查配置")
+
 
 class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
     project = serializers.IntegerField(write_only=True)
@@ -214,6 +222,8 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
+        if attrs.get("template_source") == COMMON:
+            self.check_template_project_binding(attrs.get("project"), attrs.get("template_id"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
@@ -243,6 +253,8 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
 
     def validate(self, attrs):
         check_cron_params(attrs.get("cron"), attrs.get("project"))
+        if attrs.get("template_source") == COMMON:
+            self.check_template_project_binding(attrs.get("project"), attrs.get("template_id"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))

@@ -13,11 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.template_base.utils import fill_default_version_to_service_activities
+from gcloud.constants import get_default_scope
 
 logger = logging.getLogger("root")
 
@@ -75,6 +77,8 @@ class CommonTemplate(BaseTemplate):
     """
     @summary: common templates maintained by admin, which all businesses could use to creating tasks
     """
+
+    scope = models.JSONField(verbose_name=_("公共流程使用范围"), default=get_default_scope)
 
     objects = CommonTemplateManager()
 
