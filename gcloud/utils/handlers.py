@@ -41,9 +41,7 @@ def handle_api_error(system, api_name, params, result):
 
         else:
             try:
-                apply_result, apply_message, url = iam.get_apply_url(
-                    permission, bk_username=settings.SYSTEM_USE_API_ACCOUNT
-                )
+                apply_result, apply_message, url = iam.get_apply_url(permission)
             except Exception:
                 apply_result = False
                 apply_message = traceback.format_exc()

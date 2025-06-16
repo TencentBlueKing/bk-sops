@@ -106,19 +106,23 @@ def resources_for_task(task_id, tenant_id):
         .first()
     )
 
-    return [
-        Resource(
-            IAMMeta.SYSTEM_ID,
-            IAMMeta.TASK_RESOURCE,
-            str(task_id),
-            {
-                "iam_resource_owner": task_info["pipeline_instance__creator"],
-                "_bk_iam_path_": "/project,{}/".format(task_info["project_id"]),
-                "name": task_info["pipeline_instance__name"],
-                "type": task_info["flow_type"],
-            },
-        )
-    ]
+    return (
+        [
+            Resource(
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.TASK_RESOURCE,
+                str(task_id),
+                {
+                    "iam_resource_owner": task_info["pipeline_instance__creator"],
+                    "_bk_iam_path_": "/project,{}/".format(task_info["project_id"]),
+                    "name": task_info["pipeline_instance__name"],
+                    "type": task_info["flow_type"],
+                },
+            )
+        ]
+        if task_info
+        else []
+    )
 
 
 def resources_for_task_obj(task_obj, tenant_id=""):
