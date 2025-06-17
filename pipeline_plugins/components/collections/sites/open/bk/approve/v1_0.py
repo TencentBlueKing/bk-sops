@@ -23,8 +23,12 @@ from gcloud.conf import settings
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
-from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils import get_node_callback_url
+
+if settings.ENABLE_MULTI_TENANT_MODE:
+    from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
+else:
+    from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -74,18 +78,32 @@ class ApproveService(Service):
         verifier = data.get_one_of_inputs("bk_verifier")
         title = data.get_one_of_inputs("bk_approve_title")
         approve_content = data.get_one_of_inputs("bk_approve_content")
-        kwargs = {
-            "creator": executor,
-            "fields": [
-                {"key": "title", "value": title},
-                {"key": "APPROVER", "value": verifier.replace(" ", "")},
-                {"key": "APPROVAL_CONTENT", "value": approve_content},
-            ],
-            "fast_approval": True,
-            "meta": {
-                "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
-            },
-        }
+
+        if settings.ENABLE_MULTI_TENANT_MODE:
+            kwargs = {
+                "workflow_key": "system_bk_sops_workflows_key_100001_v1",
+                "form_data": {
+                    "ticket__title": title,
+                    "richText_content": approve_content,
+                    "multiUser_approver": verifier.replace(" ", "").split(","),
+                },
+                "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+                "options": {},
+            }
+        else:
+            kwargs = {
+                "creator": executor,
+                "fields": [
+                    {"key": "title", "value": title},
+                    {"key": "APPROVER", "value": verifier.replace(" ", "")},
+                    {"key": "APPROVAL_CONTENT", "value": approve_content},
+                ],
+                "fast_approval": True,
+                "meta": {
+                    "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
+                },
+            }
+
         result = client.api.create_ticket(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
@@ -107,7 +125,10 @@ class ApproveService(Service):
     def schedule(self, data, parent_data, callback_data=None):
         try:
             rejected_block = data.get_one_of_inputs("rejected_block", True)
-            approve_result = callback_data["approve_result"]
+            if settings.ENABLE_MULTI_TENANT_MODE:
+                approve_result = callback_data["ticket"]["approve_result"]
+            else:
+                approve_result = callback_data["approve_result"]
             data.outputs.approve_result = "通过" if approve_result else "拒绝"
             # 审核拒绝不阻塞
             if not approve_result and not rejected_block:
