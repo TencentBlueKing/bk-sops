@@ -99,7 +99,9 @@ def status(request, project_id):
     subprocess_id = request.GET.get("subprocess_id")
 
     try:
-        task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
+        task = TaskFlowInstance.objects.get(
+            pk=instance_id, project_id=project_id, project__tenant_id=request.user.tenant_id
+        )
     except TaskFlowInstance.DoesNotExist:
         message = _(f"任务查询失败: 任务[ID: {instance_id}]不存在, 请检查 | status")
         logger.error(message)
