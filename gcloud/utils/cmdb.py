@@ -20,6 +20,7 @@ from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables, StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
+from packages.bkapi.bk_user.shortcuts import get_client_by_username as get_user_client_by_username
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -289,6 +290,7 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_re
     client = get_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
     more_receivers = [name.strip() for name in more_receiver.split(",")]
     if not receiver_group:
+        more_receivers = get_user_display_name(tenant_id, more_receiver) if more_receiver else []
         result = {"result": True, "message": "success", "data": ",".join(more_receivers)}
         return result
 
@@ -340,8 +342,20 @@ def get_notify_receivers(tenant_id, username, biz_cc_id, receiver_group, more_re
     if more_receiver:
         receivers.extend(more_receivers)
 
-    result = {"result": True, "message": "success", "data": ",".join(sorted(set(receivers)))}
-    return result
+    display_name = get_user_display_name(tenant_id, ",".join(receivers)) if receivers else []
+    display_name_result = {"result": True, "message": "success", "data": ",".join(sorted(set(display_name)))}
+    return display_name_result
+
+
+def get_user_display_name(tenant_id, username):
+    client = get_user_client_by_username(username, stage=settings.BK_APIGW_STAGE_NAME)
+    response = client.api.display_info({"bk_usernames": username}, headers={"X-Bk-Tenant-Id": tenant_id})
+    user_list = response.get("data") or []
+    username_list = username.split(",")
+    display_name_map = {user["bk_username"]: user.get("display_name") for user in user_list}
+
+    display_names = [display_name_map.get(name, name) for name in username_list]
+    return display_names
 
 
 def get_dynamic_group_list(tenant_id, username, bk_biz_id):
