@@ -1,0 +1,1607 @@
+{
+    "system": {
+        "code": "bk_sops",
+        "name": "标准运维"
+    },
+    "form_models": [
+        {
+            "key": "$FormModel__tenant_id___bk_sops_form_key_100001_v1",
+            "name": "标准运维-审批模型",
+            "desc": "",
+            "portal_id": "DEFAULT",
+            "app_id": "core",
+            "translations": {
+                "name": "标准运维-审批模型",
+                "name_en": "标准运维-审批模型",
+                "desc": "",
+                "desc_en": ""
+            },
+            "meta": {
+                "fields": {
+                    "text_title": {
+                        "translations": {
+                            "name": "标题",
+                            "name_en": "标题",
+                            "name_zh_hans": "标题"
+                        },
+                        "key": "text_title",
+                        "name": "标题",
+                        "type": "text",
+                        "is_builtin": false, 
+                        "jsonschema": {
+                            "translations": {
+                                "title": "",
+                                "title_en": "",
+                                "title_zh_hans": ""
+                            },
+                            "type": "string",
+                            "title": "",
+                            "number_unit": "",
+                            "table_relation": null,
+                            "into_todo": [],
+                            "out_todo": [],
+                            "attr_relation": null,
+                            "itsm_jmespath": null,
+                            "itsm_options": null,
+                            "itsm_options_type": null,
+                            "format": null,
+                            "columns": null,
+                            "properties": null,
+                            "items": null
+                        },
+                        "meta": {
+                            "key": "text_title",
+                            "desc": "",
+                            "tips": "请输入标题",
+                            "type": "text",
+                            "title": {
+                                "value": "标题",
+                                "isHide": false
+                            },
+                            "permission": {
+                                "readonly": [
+                                    "title",
+                                    "key",
+                                    "tips",
+                                    "desc"
+                                ]
+                            },
+                            "translations": {
+                                "tips": {
+                                    "name": "请输入标题",
+                                    "name_en": "请输入标题",
+                                    "name_zh_hans": "请输入标题"
+                                },
+                                "title": {
+                                    "name": "标题",
+                                    "name_en": "标题",
+                                    "name_zh_hans": "标题"
+                                }
+                            }
+                        }
+                    },
+                    "richText_content": {
+                        "translations": {
+                            "name": "审批内容",
+                            "name_en": "审批内容",
+                            "name_zh_hans": "审批内容"
+                        },
+                        "key": "richText_content",
+                        "name": "审批内容",
+                        "type": "richText",
+                        "is_builtin": false,
+                        "jsonschema": {
+                            "translations": {
+                                "title": "",
+                                "title_en": "",
+                                "title_zh_hans": ""
+                            },
+                            "type": "string",
+                            "title": "",
+                            "number_unit": "",
+                            "table_relation": null,
+                            "into_todo": [],
+                            "out_todo": [],
+                            "attr_relation": null,
+                            "itsm_jmespath": null,
+                            "itsm_options": null,
+                            "itsm_options_type": null,
+                            "format": "richText",
+                            "columns": null,
+                            "properties": null,
+                            "items": null
+                        },
+                        "meta": {
+                            "key": "richText_content",
+                            "desc": "",
+                            "tips": "请输入内容",
+                            "type": "richText",
+                            "title": {
+                                "value": "审批内容",
+                                "isHide": false
+                            },
+                            "permission": {
+                                "readonly": [
+                                    "title",
+                                    "key",
+                                    "tips",
+                                    "desc"
+                                ]
+                            },
+                            "translations": {
+                                "tips": {
+                                    "name": "请输入内容",
+                                    "name_en": "请输入内容",
+                                    "name_zh_hans": "请输入内容"
+                                },
+                                "title": {
+                                    "name": "审批内容",
+                                    "name_en": "审批内容",
+                                    "name_zh_hans": "审批内容"
+                                }
+                            }
+                        }
+                    },
+                    "multiUser_approver": {
+                        "translations": {
+                            "name": "审批人",
+                            "name_en": "审批人",
+                            "name_zh_hans": "审批人"
+                        },
+                        "key": "multiUser_approver",
+                        "name": "审批人",
+                        "type": "multiUser",
+                        "is_builtin": false,
+                        "jsonschema": {
+                            "translations": {
+                                "title": "",
+                                "title_en": "",
+                                "title_zh_hans": ""
+                            },
+                            "type": "array",
+                            "title": "",
+                            "number_unit": "",
+                            "table_relation": null,
+                            "into_todo": [],
+                            "out_todo": [],
+                            "attr_relation": null,
+                            "itsm_jmespath": null,
+                            "itsm_options": null,
+                            "itsm_options_type": null,
+                            "format": null,
+                            "columns": null,
+                            "properties": null,
+                            "items": {
+                                "translations": {
+                                    "title": "",
+                                    "title_en": "",
+                                    "title_zh_hans": ""
+                                },
+                                "type": "string",
+                                "title": "",
+                                "number_unit": "",
+                                "table_relation": null,
+                                "into_todo": [],
+                                "out_todo": [],
+                                "attr_relation": null,
+                                "itsm_jmespath": null,
+                                "itsm_options": null,
+                                "itsm_options_type": null,
+                                "format": "user",
+                                "columns": null,
+                                "properties": null,
+                                "items": null
+                            }
+                        },
+                        "meta": {
+                            "key": "multiUser_approver",
+                            "desc": "",
+                            "tips": "请输入审批人",
+                            "type": "multiUser",
+                            "title": {
+                                "value": "审批人",
+                                "isHide": false
+                            },
+                            "permission": {
+                                "readonly": [
+                                    "title",
+                                    "key",
+                                    "tips",
+                                    "desc"
+                                ]
+                            },
+                            "translations": {
+                                "tips": {
+                                    "name": "请输入审批人",
+                                    "name_en": "请输入审批人",
+                                    "name_zh_hans": "请输入审批人"
+                                },
+                                "title": {
+                                    "name": "审批人",
+                                    "name_en": "审批人",
+                                    "name_zh_hans": "审批人"
+                                }
+                            }
+                        }
+                    }
+                },
+                "fields_order": [
+                    "text_title",
+                    "richText_content",
+                    "multiUser_approver"
+                ],
+                "components": null
+            }
+        }
+    ],
+    "workflow_categories": [
+        {
+            "key": "$WorkflowCategory__tenant_id___bk_sops_category_key_100001_v1",
+            "name": "标准运维",
+            "app_id": "core",
+            "portal_id": "DEFAULT",
+            "ticket_sn_prefix": "SOPS",
+            "translations": {
+                "name": "标准运维",
+                "name_en": "标准运维"
+            }
+        }
+    ],
+    "workflows": [
+        {
+            "workflow": {
+                "key": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1",
+                "name": "标准运维-审批流程",
+                "portal_id": "DEFAULT",
+                "desc": "",
+                "category": "$WorkflowCategory__tenant_id___bk_sops_category_key_100001_v1",
+                "translations": {
+                    "name": "标准运维-审批流程",
+                    "name_en": "标准运维-审批流程",
+                    "desc": "",
+                    "desc_en": ""
+                },
+                "engine_pattern": "FORMAL",
+                "form_model_key": "$FormModel__tenant_id___bk_sops_form_key_100001_v1",
+                "app_id": "core",
+                "meta": {
+                    "workflow_button": [
+                        {
+                            "translations": {
+                                "name": "关闭",
+                                "name_en": "Close",
+                                "name_zh_hant": "關閉"
+                            },
+                            "key": "close",
+                            "name": "关闭",
+                            "enable": true,
+                            "meta": {
+                                "button_permission": [
+                                    {
+                                        "type": "permission",
+                                        "value": []
+                                    }
+                                ],
+                                "urging_time": null
+                            },
+                            "extra": {}
+                        },
+                        {
+                            "translations": {
+                                "name": "终止",
+                                "name_en": "Cancel",
+                                "name_zh_hant": "終止"
+                            },
+                            "key": "terminate",
+                            "name": "终止",
+                            "enable": true,
+                            "meta": {
+                                "button_permission": [
+                                    {
+                                        "type": "permission",
+                                        "value": []
+                                    }
+                                ],
+                                "urging_time": null
+                            },
+                            "extra": {}
+                        },
+                        {
+                            "translations": {
+                                "name": "重新打开",
+                                "name_en": "Reopen",
+                                "name_zh_hant": "重新打開"
+                            },
+                            "key": "restart",
+                            "name": "重新打开",
+                            "enable": false,
+                            "meta": {
+                                "button_permission": null,
+                                "urging_time": null
+                            },
+                            "extra": {}
+                        },
+                        {
+                            "translations": {
+                                "name": "催办",
+                                "name_en": "Urge",
+                                "name_zh_hant": "催辦"
+                            },
+                            "key": "urging",
+                            "name": "催办",
+                            "enable": false,
+                            "meta": {
+                                "button_permission": null,
+                                "urging_time": null
+                            },
+                            "extra": {}
+                        }
+                    ]
+                }
+            },
+            "version": {
+                "key": "__tenant_id___bk_sops_workflows_key_100001_v1",
+                "workflow_key": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1",
+                "desc": null,
+                "workflows": {
+                    "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1": {
+                        "translations": {
+                            "name": "标准运维-审批流程",
+                            "name_en": "标准运维-审批流程",
+                            "name_zh_hans": "标准运维-审批流程"
+                        },
+                        "key": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1",
+                        "name": "标准运维-审批流程",
+                        "desc": "",
+                        "type": "",
+                        "is_sub": false,
+                        "activity_key": null,
+                        "connecting_objects": {
+                            "connectingobject_20250613145903_1": {
+                                "translations": {
+                                    "name": "",
+                                    "name_en": "",
+                                    "name_zh_hans": ""
+                                },
+                                "key": "connectingobject_20250613145903_1",
+                                "name": "",
+                                "type": "sequence_flow",
+                                "source_key": "activityobject20250613145600005701",
+                                "source_type": "activity",
+                                "dest_key": "activityobject_20250613145858_1",
+                                "dest_type": "activity"
+                            },
+                            "connectingobject_20250613145904_1": {
+                                "translations": {
+                                    "name": "",
+                                    "name_en": "",
+                                    "name_zh_hans": ""
+                                },
+                                "key": "connectingobject_20250613145904_1",
+                                "name": "",
+                                "type": "sequence_flow",
+                                "source_key": "activityobject_20250613145858_1",
+                                "source_type": "activity",
+                                "dest_key": "eventobject_20250613145901_1",
+                                "dest_type": "event"
+                            },
+                            "connectingobject20250613145600012603": {
+                                "translations": {
+                                    "name": "",
+                                    "name_en": "",
+                                    "name_zh_hans": ""
+                                },
+                                "key": "connectingobject20250613145600012603",
+                                "name": "",
+                                "type": "sequence_flow",
+                                "source_key": "eventobject20250613145600005701",
+                                "source_type": "event",
+                                "dest_key": "activityobject20250613145600005701",
+                                "dest_type": "activity"
+                            }
+                        },
+                        "relations": []
+                    }
+                },
+                "activities": {
+                    "activityobject_20250613145858_1": {
+                        "translations": {
+                            "name": "审批节点",
+                            "name_en": "Approve Node",
+                            "name_zh_hant": "審批節點"
+                        },
+                        "key": "activityobject_20250613145858_1",
+                        "workflow_key": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1",
+                        "name": "审批节点",
+                        "desc": "",
+                        "type": "APPROVE_TASK",
+                        "incomings": [
+                            "connectingobject_20250613145903_1"
+                        ],
+                        "outgoings": [
+                            "connectingobject_20250613145904_1"
+                        ],
+                        "meta": {
+                            "label": "approve",
+                            "fields": {
+                                "ticket__title": {
+                                    "state": "default",
+                                    "required": true
+                                },
+                                "textarea_content": {
+                                    "state": "default",
+                                    "required": true
+                                },
+                                "multiUser_approver": {
+                                    "state": "default",
+                                    "required": true
+                                }
+                            },
+                            "buttons": [
+                                {
+                                    "key": "approve",
+                                    "meta": {
+                                        "default": null,
+                                        "placeholder": null,
+                                        "translations": {
+                                            "name": "",
+                                            "name_en": "",
+                                            "name_zh_hans": ""
+                                        }
+                                    },
+                                    "name": "同意",
+                                    "extra": {
+                                        "theme": "success"
+                                    },
+                                    "enable": true,
+                                    "translations": {
+                                        "name": "同意",
+                                        "name_en": "Approve",
+                                        "name_zh_hant": "同意"
+                                    }
+                                },
+                                {
+                                    "key": "refuse",
+                                    "meta": {
+                                        "default": null,
+                                        "placeholder": null,
+                                        "translations": {
+                                            "name": "",
+                                            "name_en": "",
+                                            "name_zh_hans": ""
+                                        }
+                                    },
+                                    "name": "拒绝",
+                                    "extra": {
+                                        "theme": "danger"
+                                    },
+                                    "enable": true,
+                                    "translations": {
+                                        "name": "拒绝",
+                                        "name_en": "Reject",
+                                        "name_zh_hant": "拒絕"
+                                    }
+                                }
+                            ],
+                            "processors": [
+                                {
+                                    "id": "DATA_TABLE[multiUser_approver]",
+                                    "key": "DATA_TABLE",
+                                    "feel": "",
+                                    "name": "审批人",
+                                    "path": "multiUser_approver",
+                                    "type": "List[User]",
+                                    "default": null,
+                                    "variables": null,
+                                    "jsonschema": null,
+                                    "translations": {
+                                        "name": "审批人",
+                                        "name_en": "审批人",
+                                        "name_zh_hans": "审批人"
+                                    }
+                                }
+                            ],
+                            "working_mode": "cooperate",
+                            "processors_type": "user",
+                            "advanced_settings": {
+                                "auto_terminate": false
+                            }
+                        },
+                        "hooks": []
+                    },
+                    "activityobject20250613145600005701": {
+                        "translations": {
+                            "name": "提单",
+                            "name_en": "Submit",
+                            "name_zh_hans": "提单"
+                        },
+                        "key": "activityobject20250613145600005701",
+                        "workflow_key": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1",
+                        "name": "提单",
+                        "desc": "",
+                        "type": "SUBMIT",
+                        "incomings": [
+                            "connectingobject20250613145600012603"
+                        ],
+                        "outgoings": [
+                            "connectingobject_20250613145903_1"
+                        ],
+                        "meta": {
+                            "label": "submit",
+                            "fields": {},
+                            "buttons": [
+                                {
+                                    "key": "submit",
+                                    "name": "提交",
+                                    "extra": {
+                                        "theme": "primary"
+                                    },
+                                    "enable": true,
+                                    "translations": {
+                                        "name": "提交",
+                                        "name_en": "Submit",
+                                        "name_zh_hant": "提交"
+                                    }
+                                },
+                                {
+                                    "key": "save_draft",
+                                    "name": "保存草稿",
+                                    "extra": null,
+                                    "enable": true,
+                                    "translations": {
+                                        "name": "保存草稿",
+                                        "name_en": "Save Draft",
+                                        "name_zh_hant": "保存草稿"
+                                    }
+                                },
+                                {
+                                    "key": "save_template",
+                                    "name": "保存模板",
+                                    "extra": null,
+                                    "enable": true,
+                                    "translations": {
+                                        "name": "保存模板",
+                                        "name_en": "Save Template",
+                                        "name_zh_hant": "保存模板"
+                                    }
+                                }
+                            ]
+                        },
+                        "hooks": []
+                    }
+                },
+                "events": {
+                    "eventobject_20250613145901_1": {
+                        "translations": {
+                            "name": "结束",
+                            "name_en": "End",
+                            "name_zh_hant": "結束"
+                        },
+                        "key": "eventobject_20250613145901_1",
+                        "workflow_key": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1",
+                        "name": "结束",
+                        "desc": "",
+                        "type": "end",
+                        "incomings": [
+                            "connectingobject_20250613145904_1"
+                        ],
+                        "outgoings": [],
+                        "meta": {}
+                    },
+                    "eventobject20250613145600005701": {
+                        "translations": {
+                            "name": "开始",
+                            "name_en": "Start",
+                            "name_zh_hans": "开始"
+                        },
+                        "key": "eventobject20250613145600005701",
+                        "workflow_key": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1",
+                        "name": "开始",
+                        "desc": "",
+                        "type": "start",
+                        "incomings": [],
+                        "outgoings": [
+                            "connectingobject20250613145600012603"
+                        ],
+                        "meta": {}
+                    }
+                },
+                "gateways": {},
+                "meta": {
+                    "ticket_button": {
+                        "action_button": [
+                            {
+                                "translations": {
+                                    "name": "撤回",
+                                    "name_en": "Withdraw",
+                                    "name_zh_hant": "撤回"
+                                },
+                                "key": "withdraw",
+                                "name": "撤回",
+                                "enable": false,
+                                "extra": {},
+                                "meta": {
+                                    "can_withdraw_activity": []
+                                }
+                            },
+                            {
+                                "translations": {
+                                    "name": "挂起",
+                                    "name_en": "Suspend",
+                                    "name_zh_hant": "掛起"
+                                },
+                                "key": "suspend",
+                                "name": "挂起",
+                                "enable": true,
+                                "extra": {}
+                            },
+                            {
+                                "translations": {
+                                    "name": "恢复",
+                                    "name_en": "Restore",
+                                    "name_zh_hant": "恢復"
+                                },
+                                "key": "recovery",
+                                "name": "恢复",
+                                "enable": true,
+                                "extra": {}
+                            },
+                            {
+                                "translations": {
+                                    "name": "转建文章",
+                                    "name_en": "Create article",
+                                    "name_zh_hant": "轉建文章"
+                                },
+                                "key": "convert",
+                                "name": "转建文章",
+                                "enable": false,
+                                "extra": {},
+                                "meta": {
+                                    "can_convert_activity": []
+                                }
+                            }
+                        ]
+                    },
+                    "custom_button": [],
+                    "vips": [],
+                    "stage": {
+                        "is_enable": false,
+                        "model": "",
+                        "config": {}
+                    },
+                    "variables": []
+                },
+                "form_canvas_data": {
+                    "key": "20250613145800003701",
+                    "form_data": {
+                        "id": "form_vzIFuIrxX7",
+                        "type": "form",
+                        "align": "top",
+                        "class": [],
+                        "rules": [],
+                        "layout": [
+                            {
+                                "list": [
+                                    {
+                                        "key": "ticket__title",
+                                        "desc": "",
+                                        "tips": "请输入",
+                                        "type": "text",
+                                        "class": [],
+                                        "state": "default",
+                                        "title": {
+                                            "value": "标题",
+                                            "isHide": false
+                                        },
+                                        "width": "COL_12",
+                                        "columnId": "ticket__title",
+                                        "location": "form",
+                                        "permission": {
+                                            "readonly": [
+                                                "title",
+                                                "key",
+                                                "verification.required"
+                                            ],
+                                            "noOperate": [
+                                                "delete",
+                                                "copy"
+                                            ]
+                                        },
+                                        "defaultValue": "",
+                                        "translations": {
+                                            "title": {
+                                                "name": "标题",
+                                                "name_en": "Short description",
+                                                "name_zh_hant": "標題"
+                                            }
+                                        },
+                                        "verification": {
+                                            "required": {
+                                                "value": true,
+                                                "enabled": true
+                                            },
+                                            "wordLimit": {
+                                                "value": {
+                                                    "max": "",
+                                                    "min": 0
+                                                },
+                                                "enabled": false
+                                            },
+                                            "formatLimit": {
+                                                "value": {
+                                                    "errorTips": "",
+                                                    "expression": ""
+                                                },
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                ],
+                                "type": "row"
+                            },
+                            {
+                                "list": [
+                                    {
+                                        "key": "textarea_content",
+                                        "desc": "",
+                                        "rows": 4,
+                                        "tips": "请输入",
+                                        "type": "textarea",
+                                        "class": [],
+                                        "state": "default",
+                                        "title": {
+                                            "value": "审核内容",
+                                            "isHide": false
+                                        },
+                                        "width": "COL_6",
+                                        "columnId": "erym5PXD",
+                                        "location": "form",
+                                        "defaultValue": "",
+                                        "translations": {
+                                            "title": {
+                                                "name": "审核内容",
+                                                "name_en": "Plain text area",
+                                                "name_zh_hans": "审核内容"
+                                            }
+                                        },
+                                        "verification": {
+                                            "required": {
+                                                "value": false,
+                                                "enabled": false
+                                            },
+                                            "wordLimit": {
+                                                "value": {
+                                                    "max": "",
+                                                    "min": 0
+                                                },
+                                                "enabled": false
+                                            },
+                                            "formatLimit": {
+                                                "value": "",
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                ],
+                                "type": "row"
+                            },
+                            {
+                                "list": [
+                                    {
+                                        "key": "multiUser_approver",
+                                        "desc": "",
+                                        "tips": "请选择",
+                                        "type": "multiUser",
+                                        "class": [],
+                                        "state": "default",
+                                        "title": {
+                                            "value": "审核人",
+                                            "isHide": false
+                                        },
+                                        "width": "COL_6",
+                                        "columnId": "KbtnZ2FN",
+                                        "location": "form",
+                                        "userScope": {
+                                            "type": "custom",
+                                            "value": {},
+                                            "isRecursive": false
+                                        },
+                                        "userConfig": {
+                                            "setSelf": false,
+                                            "multiple": true,
+                                            "userInfo": [],
+                                            "showStyle": "flat",
+                                            "showVipIcon": true,
+                                            "isShowUserInfo": false
+                                        },
+                                        "defaultValue": "",
+                                        "translations": {
+                                            "title": {
+                                                "name": "审核人",
+                                                "name_en": "Multiple person",
+                                                "name_zh_hans": "审批人"
+                                            }
+                                        },
+                                        "verification": {
+                                            "required": {
+                                                "value": false,
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                ],
+                                "type": "row"
+                            }
+                        ],
+                        "styleCode": "",
+                        "dataLinkage": [],
+                        "verification": []
+                    },
+                    "jsonschema": {
+                        "type": "object",
+                        "properties": {
+                            "ticket__title": {
+                                "translations": {
+                                    "title": "标题",
+                                    "title_en": "Short description",
+                                    "title_zh_hans": "标题"
+                                },
+                                "type": "string",
+                                "title": "标题",
+                                "number_unit": "",
+                                "table_relation": null,
+                                "into_todo": [],
+                                "out_todo": [],
+                                "attr_relation": null,
+                                "itsm_jmespath": null,
+                                "itsm_options": null,
+                                "itsm_options_type": null,
+                                "format": null,
+                                "columns": null,
+                                "properties": null,
+                                "items": null
+                            },
+                            "textarea_content": {
+                                "translations": {
+                                    "title": "审核内容",
+                                    "title_en": "Plain text area",
+                                    "title_zh_hans": "审核内容"
+                                },
+                                "type": "string",
+                                "title": "审核内容",
+                                "number_unit": "",
+                                "table_relation": null,
+                                "into_todo": [],
+                                "out_todo": [],
+                                "attr_relation": null,
+                                "itsm_jmespath": null,
+                                "itsm_options": null,
+                                "itsm_options_type": null,
+                                "format": null,
+                                "columns": null,
+                                "properties": null,
+                                "items": null
+                            },
+                            "multiUser_approver": {
+                                "translations": {
+                                    "title": "审核人",
+                                    "title_en": "Multiple person",
+                                    "title_zh_hans": "审批人"
+                                },
+                                "type": "array",
+                                "title": "审核人",
+                                "number_unit": "",
+                                "table_relation": null,
+                                "into_todo": [],
+                                "out_todo": [],
+                                "attr_relation": null,
+                                "itsm_jmespath": null,
+                                "itsm_options": null,
+                                "itsm_options_type": null,
+                                "format": null,
+                                "columns": null,
+                                "properties": null,
+                                "items": {
+                                    "translations": {
+                                        "title": "",
+                                        "title_en": "",
+                                        "title_zh_hans": ""
+                                    },
+                                    "type": "string",
+                                    "title": "",
+                                    "number_unit": "",
+                                    "table_relation": null,
+                                    "into_todo": [],
+                                    "out_todo": [],
+                                    "attr_relation": null,
+                                    "itsm_jmespath": null,
+                                    "itsm_options": null,
+                                    "itsm_options_type": null,
+                                    "format": "user",
+                                    "columns": null,
+                                    "properties": null,
+                                    "items": null
+                                }
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "decision_table_relations": [],
+                    "datasheet_table_relations": []
+                },
+                "flow_canvas_data": {
+                    "data": [
+                        {
+                            "id": "connectingobject20250613145600012603",
+                            "shape": "sequence_flow",
+                            "router": {
+                                "args": {
+                                    "step": 20
+                                },
+                                "name": "manhattan"
+                            },
+                            "source": {
+                                "cell": "eventobject20250613145600005701",
+                                "port": "p-right"
+                            },
+                            "target": {
+                                "cell": "activityobject20250613145600005701",
+                                "port": "p-left"
+                            },
+                            "zIndex": 0,
+                            "connector": {
+                                "args": {
+                                    "radius": 8
+                                },
+                                "name": "rounded"
+                            }
+                        },
+                        {
+                            "id": "connectingobject_20250613145903_1",
+                            "shape": "sequence_flow",
+                            "router": {
+                                "args": {
+                                    "step": 20
+                                },
+                                "name": "manhattan"
+                            },
+                            "source": {
+                                "cell": "activityobject20250613145600005701",
+                                "port": "p-right"
+                            },
+                            "target": {
+                                "cell": "activityobject_20250613145858_1",
+                                "port": "p-left"
+                            },
+                            "zIndex": 0,
+                            "connector": {
+                                "args": {
+                                    "radius": 8
+                                },
+                                "name": "rounded"
+                            }
+                        },
+                        {
+                            "id": "connectingobject_20250613145904_1",
+                            "shape": "sequence_flow",
+                            "router": {
+                                "args": {
+                                    "step": 20
+                                },
+                                "name": "manhattan"
+                            },
+                            "source": {
+                                "cell": "activityobject_20250613145858_1",
+                                "port": "p-right"
+                            },
+                            "target": {
+                                "cell": "eventobject_20250613145901_1",
+                                "port": "p-left"
+                            },
+                            "zIndex": 0,
+                            "connector": {
+                                "args": {
+                                    "radius": 8
+                                },
+                                "name": "rounded"
+                            }
+                        },
+                        {
+                            "id": "eventobject20250613145600005701",
+                            "data": {
+                                "x": 20,
+                                "y": 180,
+                                "id": "eventobject20250613145600005701",
+                                "icon": "cw-icon cw-icon-kai-shi",
+                                "meta": "$.events.eventobject20250613145600005701.meta",
+                                "name": "$.events.eventobject20250613145600005701.name",
+                                "type": "start",
+                                "width": 80,
+                                "height": 40,
+                                "zIndex": 2,
+                                "isError": [],
+                                "isFinished": false,
+                                "isSelected": false,
+                                "translations": "$.events.eventobject20250613145600005701.translations"
+                            },
+                            "size": {
+                                "width": 80,
+                                "height": 40
+                            },
+                            "view": "vue-shape-view",
+                            "ports": {
+                                "items": [
+                                    {
+                                        "id": "p-right",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-right",
+                                        "zIndex": 20
+                                    }
+                                ],
+                                "groups": {
+                                    "port-right": {
+                                        "position": "right"
+                                    }
+                                }
+                            },
+                            "shape": "events",
+                            "zIndex": 2,
+                            "position": {
+                                "x": 20,
+                                "y": 180
+                            }
+                        },
+                        {
+                            "id": "activityobject20250613145600005701",
+                            "data": {
+                                "x": 180,
+                                "y": 160,
+                                "id": "activityobject20250613145600005701",
+                                "icon": "cw-icon cw-icon-shen-qing",
+                                "meta": "$.activities.activityobject20250613145600005701.meta",
+                                "name": "$.activities.activityobject20250613145600005701.name",
+                                "type": "SUBMIT",
+                                "width": 200,
+                                "height": 80,
+                                "zIndex": 2,
+                                "isError": [],
+                                "nodeType": "activities",
+                                "isFinished": true,
+                                "isSelected": false,
+                                "configurable": true,
+                                "translations": "$.activities.activityobject20250613145600005701.translations"
+                            },
+                            "size": {
+                                "width": 200,
+                                "height": 80
+                            },
+                            "view": "vue-shape-view",
+                            "ports": {
+                                "items": [
+                                    {
+                                        "id": "p-top",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-top",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-right",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-right",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-bottom",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-bottom",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-left",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-left",
+                                        "zIndex": 20
+                                    }
+                                ],
+                                "groups": {
+                                    "port-top": {
+                                        "position": "top"
+                                    },
+                                    "port-left": {
+                                        "position": "left"
+                                    },
+                                    "port-right": {
+                                        "position": "right"
+                                    },
+                                    "port-bottom": {
+                                        "position": "bottom"
+                                    }
+                                }
+                            },
+                            "shape": "activities",
+                            "zIndex": 2,
+                            "position": {
+                                "x": 180,
+                                "y": 160
+                            }
+                        },
+                        {
+                            "id": "activityobject_20250613145858_1",
+                            "data": {
+                                "x": 130,
+                                "y": 30,
+                                "id": "activityobject_20250613145858_1",
+                                "code": "APPROVE_TASK",
+                                "icon": "cw-icon cw-icon-shen-pi",
+                                "meta": "$.activities.activityobject_20250613145858_1.meta",
+                                "name": "$.activities.activityobject_20250613145858_1.name",
+                                "type": "APPROVE_TASK",
+                                "color": [
+                                    "#FFE5C7",
+                                    "#FD9D2C"
+                                ],
+                                "label": "审批节点",
+                                "width": 200,
+                                "config": {
+                                    "type": "tab",
+                                    "tabList": [
+                                        {
+                                            "type": "approval",
+                                            "label": "审批对象",
+                                            "isError": false
+                                        },
+                                        {
+                                            "meta": {
+                                                "buttons": [
+                                                    {
+                                                        "key": "approve",
+                                                        "meta": {
+                                                            "placeholder": "请输入"
+                                                        },
+                                                        "name": "同意",
+                                                        "label": "同意",
+                                                        "switch": true,
+                                                        "disabled": true
+                                                    },
+                                                    {
+                                                        "key": "refuse",
+                                                        "meta": {
+                                                            "placeholder": "请输入"
+                                                        },
+                                                        "name": "拒绝",
+                                                        "label": "拒绝",
+                                                        "switch": true,
+                                                        "disabled": true
+                                                    },
+                                                    {
+                                                        "key": "update",
+                                                        "name": "更新",
+                                                        "label": "更新",
+                                                        "switch": false,
+                                                        "disabled": false
+                                                    },
+                                                    {
+                                                        "key": "save",
+                                                        "name": "保存",
+                                                        "label": "保存",
+                                                        "switch": false,
+                                                        "disabled": false
+                                                    },
+                                                    {
+                                                        "key": "deliver",
+                                                        "meta": {
+                                                            "ranges": [
+                                                                {
+                                                                    "processors": [],
+                                                                    "processors_type": ""
+                                                                }
+                                                            ]
+                                                        },
+                                                        "name": "转单",
+                                                        "label": "转单",
+                                                        "switch": false,
+                                                        "disabled": false
+                                                    },
+                                                    {
+                                                        "key": "signature",
+                                                        "meta": {
+                                                            "ranges": [
+                                                                {
+                                                                    "processors": [],
+                                                                    "processors_type": ""
+                                                                }
+                                                            ],
+                                                            "patterns": []
+                                                        },
+                                                        "name": "加签",
+                                                        "label": "加签",
+                                                        "switch": false,
+                                                        "disabled": false
+                                                    },
+                                                    {
+                                                        "key": "back",
+                                                        "meta": {
+                                                            "pattern": "again",
+                                                            "activities": [
+                                                                "all"
+                                                            ]
+                                                        },
+                                                        "name": "退回",
+                                                        "label": "退回",
+                                                        "switch": false,
+                                                        "disabled": false
+                                                    }
+                                                ]
+                                            },
+                                            "type": "operate",
+                                            "label": "操作按钮",
+                                            "isError": false
+                                        },
+                                        {
+                                            "type": "fields",
+                                            "label": "字段配置",
+                                            "isError": false
+                                        }
+                                    ]
+                                },
+                                "height": 80,
+                                "isError": [],
+                                "toolbar": [
+                                    "copy",
+                                    "delete"
+                                ],
+                                "dataType": "activities",
+                                "nodeType": "activities",
+                                "isDisabled": false,
+                                "isFinished": true,
+                                "isSelected": false,
+                                "defaultData": {
+                                    "meta": {
+                                        "label": "approve",
+                                        "fields": {},
+                                        "buttons": [
+                                            {
+                                                "key": "approve",
+                                                "name": "同意",
+                                                "extra": {
+                                                    "theme": "success"
+                                                },
+                                                "translations": {
+                                                    "name": "同意",
+                                                    "name_en": "Approve",
+                                                    "name_zh_hant": "同意"
+                                                }
+                                            },
+                                            {
+                                                "key": "refuse",
+                                                "name": "拒绝",
+                                                "extra": {
+                                                    "theme": "danger"
+                                                },
+                                                "translations": {
+                                                    "name": "拒绝",
+                                                    "name_en": "Reject",
+                                                    "name_zh_hant": "拒絕"
+                                                }
+                                            }
+                                        ],
+                                        "processors": [],
+                                        "working_mode": "serial",
+                                        "processors_type": "",
+                                        "advanced_settings": {
+                                            "auto_terminate": false
+                                        }
+                                    },
+                                    "name": "审批节点",
+                                    "translations": {
+                                        "name": "审批节点",
+                                        "name_en": "Approve Node",
+                                        "name_zh_hant": "審批節點"
+                                    }
+                                },
+                                "configurable": true,
+                                "translations": "$.activities.activityobject_20250613145858_1.translations"
+                            },
+                            "size": {
+                                "width": 200,
+                                "height": 80
+                            },
+                            "view": "vue-shape-view",
+                            "ports": {
+                                "items": [
+                                    {
+                                        "id": "p-top",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-top",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-right",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-right",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-bottom",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-bottom",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-left",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-left",
+                                        "zIndex": 20
+                                    }
+                                ],
+                                "groups": {
+                                    "port-top": {
+                                        "position": "top"
+                                    },
+                                    "port-left": {
+                                        "position": "left"
+                                    },
+                                    "port-right": {
+                                        "position": "right"
+                                    },
+                                    "port-bottom": {
+                                        "position": "bottom"
+                                    }
+                                }
+                            },
+                            "shape": "activities",
+                            "zIndex": 2,
+                            "position": {
+                                "x": 440,
+                                "y": 160
+                            }
+                        },
+                        {
+                            "id": "eventobject_20250613145901_1",
+                            "data": {
+                                "x": 130,
+                                "y": 30,
+                                "id": "eventobject_20250613145901_1",
+                                "code": "end",
+                                "icon": "cw-icon cw-icon-jie-shu",
+                                "meta": "$.events.eventobject_20250613145901_1.meta",
+                                "name": "$.events.eventobject_20250613145901_1.name",
+                                "type": "end",
+                                "label": "结束",
+                                "width": 80,
+                                "height": 40,
+                                "isError": [],
+                                "toolbar": [
+                                    "delete"
+                                ],
+                                "dataType": "events",
+                                "nodeType": "events",
+                                "isDisabled": false,
+                                "isFinished": false,
+                                "isSelected": false,
+                                "defaultData": {
+                                    "meta": {},
+                                    "name": "结束",
+                                    "translations": {
+                                        "name": "结束",
+                                        "name_en": "End",
+                                        "name_zh_hant": "結束"
+                                    }
+                                },
+                                "translations": "$.events.eventobject_20250613145901_1.translations"
+                            },
+                            "size": {
+                                "width": 80,
+                                "height": 40
+                            },
+                            "view": "vue-shape-view",
+                            "ports": {
+                                "items": [
+                                    {
+                                        "id": "p-top",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-top",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-right",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-right",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-bottom",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-bottom",
+                                        "zIndex": 20
+                                    },
+                                    {
+                                        "id": "p-left",
+                                        "attrs": {
+                                            "circle": {
+                                                "r": 4,
+                                                "fill": "#fff",
+                                                "style": {
+                                                    "visibility": "hidden"
+                                                },
+                                                "magnet": true,
+                                                "stroke": "#1272FF",
+                                                "strokeWidth": 2
+                                            }
+                                        },
+                                        "group": "port-left",
+                                        "zIndex": 20
+                                    }
+                                ],
+                                "groups": {
+                                    "port-top": {
+                                        "position": "top"
+                                    },
+                                    "port-left": {
+                                        "position": "left"
+                                    },
+                                    "port-right": {
+                                        "position": "right"
+                                    },
+                                    "port-bottom": {
+                                        "position": "bottom"
+                                    }
+                                }
+                            },
+                            "shape": "events",
+                            "zIndex": 2,
+                            "position": {
+                                "x": 760,
+                                "y": 180
+                            }
+                        }
+                    ]
+                },
+                "normal_pattern_meta": null
+            }
+        }
+    ],
+    "key_mapping": {
+        "form_models": {
+            "__tenant_id___bk_sops_form_key_100001_v1": "$FormModel__tenant_id___bk_sops_form_key_100001_v1"
+        },
+        "workflow_categories": {
+            "__tenant_id___bk_sops_category_key_100001_v1": "$WorkflowCategory__tenant_id___bk_sops_category_key_100001_v1"
+        },
+        "workflows": {
+            "__tenant_id___bk_sops_workflows_key_100001_v1": "$Workflow__tenant_id___bk_sops_workflows_key_100001_v1"
+        }
+    }
+}

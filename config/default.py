@@ -69,6 +69,8 @@ INSTALLED_APPS += (
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
     "gcloud.contrib.template_market",
+    "gcloud.contrib.itsm_workflow",
+    "gcloud.contrib.init_tenant",
     "gcloud.apigw",
     "gcloud.common_template",
     "gcloud.label",
