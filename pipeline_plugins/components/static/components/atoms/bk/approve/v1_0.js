@@ -13,7 +13,7 @@
     $.atoms.bk_approve = [
         {
             tag_code: "bk_verifier",
-            type: "input",
+            type: "member_selector",
             attrs: {
                 name: gettext("审核人"),
                 hookable: true,
