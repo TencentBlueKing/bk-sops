@@ -175,12 +175,6 @@ class CronFieldSerializer(serializers.Serializer):
                 "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
             )
 
-    def check_template_project_binding(self, project, template_id):
-        project_id = project.id if isinstance(project, Project) else project
-        project_scope = CommonTemplate.objects.get(id=template_id).scope.get("project")
-        if not ("*" in project_scope or str(project_id) in project_scope):
-            raise serializers.ValidationError(f"公共流程{template_id}不能在项目{project_id}中使用，请检查配置")
-
 
 class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
     project = serializers.IntegerField(write_only=True)
@@ -221,13 +215,15 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
             raise serializers.ValidationError(_("project不存在"))
 
     def validate(self, attrs):
-        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        project_id = attrs.get("project").id
+        check_cron_params(attrs.get("cron"), project_id)
         if attrs.get("template_source") == COMMON:
-            self.check_template_project_binding(attrs.get("project"), attrs.get("template_id"))
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), attrs.get("template_id"))
+            if not result["result"]:
+                raise serializers.ValidationError(f"创建任务失败，{result['message']}")
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
-            project_id = attrs.get("project").id
             if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs
@@ -252,13 +248,15 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
     name = serializers.CharField(help_text="任务名", required=False)
 
     def validate(self, attrs):
-        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        project_id = attrs.get("project")
+        check_cron_params(attrs.get("cron"), project_id)
         if attrs.get("template_source") == COMMON:
-            self.check_template_project_binding(attrs.get("project"), attrs.get("template_id"))
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), attrs.get("template_id"))
+            if not result["result"]:
+                raise serializers.ValidationError(f"创建任务失败，{result['message']}")
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
-            project_id = attrs.get("project")
             if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs

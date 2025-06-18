@@ -88,10 +88,9 @@ class TemplateImporter:
                             and self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
                             and refer_template_config["template_type"] == "common"
                         ):
-                            template = CommonTemplate.objects.get(id=template_id)
-                            template_scope = template.scope.get("project")
-                            if not ("*" in template_scope or project_id in template_scope):
-                                raise Exception(f"公共流程{template_id}不能在项目{project_id}内使用，请检查配置")
+                            result = CommonTemplate.objects.check_template_project_scope(project_id, template_id)
+                            if not result["result"]:
+                                raise Exception(f"流程导入失败，{result['message']}")
                         else:
                             template = self.template_model_cls.objects.get(id=template_id)
                     except self.template_model_cls.DoesNotExist as e:

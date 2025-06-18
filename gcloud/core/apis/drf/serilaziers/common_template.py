@@ -35,10 +35,14 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
     template_id = serializers.IntegerField(help_text="流程ID")
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
+    project_scope = serializers.SerializerMethodField(help_text="流程使用范围")
 
     class Meta:
         model = CommonTemplate
         fields = "__all__"
+
+    def get_project_scope(self, obj):
+        return obj.extra_info.get("project_scope")
 
 
 class CommonTemplateSerializer(CommonTemplateListSerializer):
@@ -72,7 +76,9 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     pipeline_template = serializers.IntegerField(
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
-    scope = serializers.JSONField(help_text="流程使用范围")
+    project_scope = serializers.ListSerializer(
+        child=serializers.CharField(), help_text="流程使用范围", allow_empty=False, source="extra_info.project_scope"
+    )
 
     def _calculate_new_executor_proxies(self, old_pipeline_tree: dict, pipeline_tree: dict):
         new_executor_proxies = set()
@@ -121,23 +127,27 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             return
 
         references = self.instance.referencer()
-        if references is []:
+        if not references:
             return
 
+        invalid_projects = []
         for item in references:
             if item.get("template_type") != PROJECT:
                 continue
-            project_id = item.get("project_id")
-            if str(project_id) not in scope_value:
-                raise serializers.ValidationError(f"公共流程在项目{project_id}中被引用，请检查配置")
+            project_id = str(item["project_id"])
+            if project_id not in scope_value:
+                invalid_projects.append(project_id)
 
-    def validate_scope(self, value):
+        if invalid_projects:
+            invalid_projects = ",".join(invalid_projects)
+            raise serializers.ValidationError(f"公共流程在项目 {invalid_projects} 中被引用，请检查使用范围配置或者联系管理员")
+
+    def validate_project_scope(self, value):
         request = self.context.get("request")
-        formatted_scope = self._convert_scope_format(value)
 
         if request.method in ("PUT", "PATCH"):
-            self._validate_scope_changes(formatted_scope.get("project"))
-        return formatted_scope
+            self._validate_scope_changes(value)
+        return value
 
     class Meta:
         model = CommonTemplate
@@ -160,5 +170,5 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "template_id",
             "version",
             "pipeline_template",
-            "scope",
+            "project_scope",
         ]

@@ -93,9 +93,9 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
                 continue
             common_template_id = activity.get("template_id")
-            project_scope = CommonTemplate.objects.get(id=common_template_id).scope.get("project")
-            if not ("*" in project_scope or str(project_id) in project_scope):
-                raise serializers.ValidationError(f"公共流程{common_template_id}不能在项目{project_id}中使用，请检查配置")
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), common_template_id)
+            if not result["result"]:
+                raise serializers.ValidationError(f"保存流程失败，{result['message']}")
         return attrs
 
     class Meta:
