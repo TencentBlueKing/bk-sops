@@ -343,7 +343,7 @@ def import_yaml_templates(request: Request):
 
     importer = TemplateImporter(TEMPLATE_TYPE_MODEL[template_type])
     try:
-        import_result = importer.import_template(request.user.username, import_data, bk_biz_id)
+        import_result = importer.import_template(request.user.username, import_data, project_id, bk_biz_id)
     except Exception as e:
         logger.exception("[import_yaml_templates] error: {}".format(e))
         return JsonResponse({"result": False, "data": None, "message": e})
