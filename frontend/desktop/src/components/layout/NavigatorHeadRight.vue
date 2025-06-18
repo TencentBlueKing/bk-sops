@@ -116,6 +116,7 @@
         },
         computed: {
             ...mapState({
+                isMultiTenantMode: state => state.isMultiTenantMode,
                 view_mode: state => state.view_mode
             }),
             ...mapState('project', {
@@ -177,7 +178,11 @@
                     path: '/'
                 })
                 if (window.BK_PAAS_ESB_HOST) {
-                    const url = `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/`
+                    let url = `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/`
+                    if (this.isMultiTenantMode) {
+                        url = `${window.BK_PAAS_ESB_HOST}/api/v3/open-web/tenant/current-user/language/`
+                    }
+
                     try {
                         await axios.jsonp(url, { language: local })
                     } catch (error) {
