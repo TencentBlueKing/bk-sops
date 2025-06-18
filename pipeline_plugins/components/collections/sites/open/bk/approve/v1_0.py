@@ -10,8 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import logging
+import re
 import traceback
 
 from django.utils.translation import gettext_lazy as _
@@ -79,13 +79,20 @@ class ApproveService(Service):
         title = data.get_one_of_inputs("bk_approve_title")
         approve_content = data.get_one_of_inputs("bk_approve_content")
 
+        verifier = verifier.replace(" ", "")
+
         if settings.ENABLE_MULTI_TENANT_MODE:
+            # TODO 具体形态待确认
+            # verifier_list = [
+            #     f"({_verifier})" if "(" not in _verifier else _verifier for _verifier in verifier.split(",")
+            # ]
+            # verifier_matches = re.findall(r"\(([^()]*)\)", verifier_list)
             kwargs = {
                 "workflow_key": f"{tenant_id}_bk_sops_workflows_key_100001_v1",
                 "form_data": {
                     "ticket__title": title,
                     "textarea_content": approve_content,
-                    "multiUser_approver": verifier.replace(" ", "").split(","),
+                    "multiUser_approver": verifier.split(","),
                 },
                 "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
                 "options": {},
@@ -95,7 +102,7 @@ class ApproveService(Service):
                 "creator": executor,
                 "fields": [
                     {"key": "title", "value": title},
-                    {"key": "APPROVER", "value": verifier.replace(" ", "")},
+                    {"key": "APPROVER", "value": verifier},
                     {"key": "APPROVAL_CONTENT", "value": approve_content},
                 ],
                 "fast_approval": True,

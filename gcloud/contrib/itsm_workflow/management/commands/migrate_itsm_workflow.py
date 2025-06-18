@@ -57,5 +57,4 @@ class Command(BaseCommand):
                     files=files,
                 )
         except Exception as e:
-            print(e)
             logger.error(e)
