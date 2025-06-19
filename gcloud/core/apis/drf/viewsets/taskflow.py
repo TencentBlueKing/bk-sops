@@ -19,6 +19,7 @@ from bamboo_engine import states
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, QuerySet, Value
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django_filters import FilterSet
 from drf_yasg.utils import swagger_auto_schema
@@ -464,8 +465,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                         instance["auth_actions"].append(act)
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
         tenant_id = request.user.tenant_id
+        instance = self.get_object()
         if instance.pipeline_instance.is_expired:
             return Response({"detail": ErrorDetail("任务已过期", err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         serializer = self.get_serializer(instance)
@@ -838,3 +839,26 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             task.save(update_fields=["flow_type", "current_flow"])
             FunctionTask.objects.filter(task_id=task.id).delete()
         return Response({"result": True, "message": "convert to common task success", "data": None})
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        assert lookup_url_kwarg in self.kwargs, (
+            "Expected view %s to be called with a URL keyword argument "
+            'named "%s". Fix your URL conf, or set the `.lookup_field` '
+            "attribute on the view correctly." % (self.__class__.__name__, lookup_url_kwarg)
+        )
+
+        filter_kwargs = {
+            self.lookup_field: self.kwargs[lookup_url_kwarg],
+            "project__tenant_id": self.request.user.tenant_id,
+        }
+        obj = get_object_or_404(queryset, **filter_kwargs)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
