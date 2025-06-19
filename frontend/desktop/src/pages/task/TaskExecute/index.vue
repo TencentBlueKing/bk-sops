@@ -136,6 +136,9 @@
                         this.instanceActions.push(...this.appmakerDetail.auth_actions)
                     }
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     console.log(e)
                 } finally {
                     this.taskDataLoading = false
