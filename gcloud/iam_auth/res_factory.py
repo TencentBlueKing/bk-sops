@@ -32,18 +32,22 @@ def resources_for_flow(flow_id, tenant_id):
         .first()
     )
 
-    return [
-        Resource(
-            IAMMeta.SYSTEM_ID,
-            IAMMeta.FLOW_RESOURCE,
-            str(flow_id),
-            {
-                "iam_resource_owner": template_info["pipeline_template__creator"],
-                "_bk_iam_path_": "/project,{}/".format(template_info["project_id"]),
-                "name": template_info["pipeline_template__name"],
-            },
-        )
-    ]
+    return (
+        [
+            Resource(
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.FLOW_RESOURCE,
+                str(flow_id),
+                {
+                    "iam_resource_owner": template_info["pipeline_template__creator"],
+                    "_bk_iam_path_": "/project,{}/".format(template_info["project_id"]),
+                    "name": template_info["pipeline_template__name"],
+                },
+            )
+        ]
+        if template_info
+        else []
+    )
 
 
 def resources_for_flow_obj(flow_obj, tenant_id=""):
