@@ -176,16 +176,21 @@
                     domain,
                     path: '/'
                 })
-                if (window.BK_PAAS_ESB_HOST) {
-                    const url = `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/`
-                    try {
-                        await axios.jsonp(url, { language: local })
-                    } catch (error) {
-                        console.warn(error)
-                    } finally {
-                        window.location.reload()
+
+                // 定义API端点映射
+                const apiEndpoints = [
+                    { condition: window.BK_USER_WEB_APIGW_URL, url: `${window.BK_USER_WEB_APIGW_URL}/api/v3/open-web/tenant/current-user/language/` },
+                    { condition: window.BK_PAAS_ESB_HOST, url: `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/` }
+                ]
+
+                try {
+                    const endpoint = apiEndpoints.find(item => item.condition)
+                    if (endpoint) {
+                        await axios.jsonp(endpoint.url, { language: local })
                     }
-                } else {
+                } catch (error) {
+                    console.warn(error)
+                } finally {
                     window.location.reload()
                 }
             },
