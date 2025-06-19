@@ -19,7 +19,6 @@ from pipeline.conf import settings
 from pipeline.core.data.var import LazyVariable
 
 from gcloud.constants import Type
-from packages.bkapi.bk_user.shortcuts import get_client_by_username
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 logger = logging.getLogger("root")
@@ -33,13 +32,7 @@ class BkUserSelector(LazyVariable, SelfExplainVariable):
     form = "%svariables/bk_manage_user_selector.js" % settings.STATIC_URL
 
     def get_value(self):
-        client = get_client_by_username(self.value, stage=settings.BK_APIGW_STAGE_NAME)
-        response = client.api.display_info(
-            {"bk_usernames": self.value}, headers={"X-Bk-Tenant-Id": self.pipeline_data["tenant_id"]}
-        )
-        user_list = response.get("data") or []
-        display_names = [user.get("display_name") for user in user_list]
-        return ",".join(display_names)
+        return self.value
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
