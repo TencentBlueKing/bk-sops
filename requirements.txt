@@ -92,5 +92,5 @@ opentelemetry-instrumentation-redis==0.50b0
 opentelemetry-instrumentation-logging==0.50b0
 opentelemetry-instrumentation-requests==0.50b0
 
-bk-notice-sdk==1.4.0
+bk-notice-sdk==1.4.2
 croniter==1.4.1
