@@ -14,7 +14,6 @@ import logging
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.conf import settings
 
 import env
 from gcloud.core.models import EnvironmentVariables
@@ -26,21 +25,12 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # 非PAAS v3 无法开启通知中心
         if not env.IS_PAAS_V3:
-            EnvironmentVariables.objects.update_or_create(
-                defaults={"value": 0}, key="ENABLE_NOTICE_CENTER"
-            )
+            EnvironmentVariables.objects.update_or_create(defaults={"value": 0}, key="ENABLE_NOTICE_CENTER")
             print("[bk-sops]current version is not open v3,skip register_bksops_notice")
             return
         try:
-            if settings.ENABLE_MULTI_TENANT_MODE:
-                call_command("register_application", "--tenant", "system", raise_error=True)
-            else:
-                call_command("register_application", raise_error=True)
-            EnvironmentVariables.objects.update_or_create(
-                defaults={"value": 1}, key="ENABLE_NOTICE_CENTER"
-            )
+            call_command("register_application", raise_error=True)
+            EnvironmentVariables.objects.update_or_create(defaults={"value": 1}, key="ENABLE_NOTICE_CENTER")
         except Exception as e:
             print("[register_bksops_notice] err: {}".format(e))
-            EnvironmentVariables.objects.update_or_create(
-                defaults={"value": 0}, key="ENABLE_NOTICE_CENTER"
-            )
+            EnvironmentVariables.objects.update_or_create(defaults={"value": 0}, key="ENABLE_NOTICE_CENTER")
