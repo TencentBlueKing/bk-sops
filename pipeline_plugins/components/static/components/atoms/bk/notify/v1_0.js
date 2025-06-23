@@ -139,7 +139,7 @@
                     },
                     {
                         tag_code: "bk_more_receiver",
-                        type: "input",
+                        type: "member_selector",
                         attrs: {
                             name: gettext("附加人员"),
                             placeholder: gettext("填写用户名，多个用英文逗号 `,` 分隔"),
