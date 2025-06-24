@@ -396,7 +396,11 @@ class ProjectConfigManager(models.Manager):
 
 class StaffGroupSetManager(models.Manager):
     def get_members_with_group_ids(self, group_ids):
-        return list(self.filter(id__in=group_ids, is_deleted=False).values_list("members", flat=True))
+        members_list = []
+        for members in self.filter(id__in=group_ids, is_deleted=False).values_list("members", flat=True):
+            if members:
+                members_list.extend([name.strip() for name in members.split(",") if name.strip()])
+        return members_list
 
 
 class StaffGroupSet(models.Model):
