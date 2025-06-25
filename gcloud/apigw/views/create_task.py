@@ -55,14 +55,13 @@ from gcloud.utils.strings import standardize_pipeline_node_name
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 
-def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
+def get_exclude_nodes_by_execute_nodes(execute_nodes, pipline_tree):
     """
     @summary: 通过要选择执行的节点列表和任务模板获取要跳过执行的节点
     @return: 要跳过执行的节点
     """
-    pipeline_data = template.pipeline_tree
     all_nodes = set()
-    for aid, act_data in pipeline_data[PE.activities].items():
+    for aid, act_data in pipline_tree[PE.activities].items():
         all_nodes.add(aid)
     # 排除掉在all_nodes中不存在的节点
     execute_nodes = set(execute_nodes).intersection(all_nodes)
@@ -179,11 +178,14 @@ def create_task(request, template_id, project_id):
             logger.exception(message)
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
     else:
+        # tmpl.pipeline_tree不能重复执行
+        pipeline_tree = tmpl.pipeline_tree
+
         # 如果请求参数中含有非空的execute_task_nodes_id(要执行的节点)，就将其转换为exclude_task_nodes_id(要排除的节点)
         if not params["execute_task_nodes_id"]:
             exclude_task_nodes_id = params["exclude_task_nodes_id"]
         else:
-            exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], tmpl)
+            exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], pipeline_tree)
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 tmpl,
@@ -191,6 +193,7 @@ def create_task(request, template_id, project_id):
                 params["constants"],
                 exclude_task_nodes_id,
                 params["simplify_vars"],
+                pipeline_tree,
             )
         except Exception as e:
             message = f"[API] create_task create pipeline without tree error: {e}"

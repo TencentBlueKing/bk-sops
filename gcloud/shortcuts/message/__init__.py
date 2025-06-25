@@ -31,9 +31,6 @@ PENDING_PROCESSING = "pending_processing"
 
 
 def send_task_flow_message(taskflow, msg_type, node_name=""):
-
-    # {"success": ["weixin"], "fail": ["weixin"]}
-    # []
     notify_types = taskflow.get_notify_type()
     # 获取消息接收人, 形如：
     # {'receiver_group':['Maintainers'],'more_receiver':'username1,username2',extra_info":{"bkchat":{fail:"",success:""}}
