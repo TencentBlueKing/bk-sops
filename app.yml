@@ -1,4 +1,4 @@
-!!python/unicode 'language': python
+!!python/unicode "language": python
 app_code: bk_sops
 app_name: 标准运维
 app_name_en: Standard OPS
@@ -14,6 +14,6 @@ desktop:
   height: 720
   is_max: True
 container:
-    memory: 4096
+  memory: 4096
 yums:
   - git
