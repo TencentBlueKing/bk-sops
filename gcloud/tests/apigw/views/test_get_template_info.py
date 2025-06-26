@@ -38,7 +38,10 @@ class GetTemplateInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -46,9 +49,11 @@ class GetTemplateInfoAPITest(APITest):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+        tmpl.executor_proxy = "username"
 
         with mock.patch(
-            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
             pipeline_tree.pop("line")
@@ -66,6 +71,10 @@ class GetTemplateInfoAPITest(APITest):
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_PROJECT_NAME,
                 "pipeline_tree": pipeline_tree,
+                "has_subprocess": True,
+                "subproc_has_update": True,
+                "executor_proxy": tmpl.executor_proxy,
+                "constants": pipeline_tree.get("constants", {}),
             }
 
             response = self.client.get(path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID))
@@ -76,13 +85,17 @@ class GetTemplateInfoAPITest(APITest):
             self.assertEqual(assert_data, data["data"])
 
     @mock.patch(
-        TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_raise=TaskTemplate.DoesNotExist())),
+        TASKTEMPLATE_SELECT_RELATE,
+        MagicMock(return_value=MockQuerySet(get_raise=TaskTemplate.DoesNotExist())),
     )
     @mock.patch(
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -98,7 +111,10 @@ class GetTemplateInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -106,9 +122,11 @@ class GetTemplateInfoAPITest(APITest):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+        tmpl.executor_proxy = "username"
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
             pipeline_tree.pop("line")
@@ -126,6 +144,10 @@ class GetTemplateInfoAPITest(APITest):
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_PROJECT_NAME,
                 "pipeline_tree": pipeline_tree,
+                "has_subprocess": True,
+                "subproc_has_update": True,
+                "executor_proxy": tmpl.executor_proxy,
+                "constants": pipeline_tree.get("constants", {}),
             }
 
             response = self.client.get(
@@ -139,13 +161,17 @@ class GetTemplateInfoAPITest(APITest):
             self.assertEqual(assert_data, data["data"])
 
     @mock.patch(
-        COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_raise=CommonTemplate.DoesNotExist())),
+        COMMONTEMPLATE_SELECT_RELATE,
+        MagicMock(return_value=MockQuerySet(get_raise=CommonTemplate.DoesNotExist())),
     )
     @mock.patch(
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )

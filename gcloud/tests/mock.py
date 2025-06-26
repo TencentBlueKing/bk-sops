@@ -76,9 +76,11 @@ class MockBaseTemplate(object):
         self.category = kwargs.get("category", "category")
         self.pipeline_template = kwargs.get("pipeline_template", MockPipelineTemplate())
         self.pipeline_tree = kwargs.get(
-            "pipeline_tree", {"line": "line", "location": "location", "activities": [], "constants": {}}
+            "pipeline_tree", {"line": "line", "location": "location", "activities": {}, "constants": {}}
         )
         self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
+        self.pipeline_template.has_subprocess = kwargs.get("has_subprocess", True)
+        self.subprocess_info = kwargs.get("subprocess_info", {"subproc_has_update": True})
 
 
 class MockTaskTemplate(MockBaseTemplate):
@@ -155,6 +157,11 @@ class MockPeriodicTask(object):
                 "side_effect": kwargs.get("modify_constants_raise"),
             }
         )
+        self.editor = kwargs.get("editor", "editor")
+        self.edit_time = kwargs.get("edit_time", now())
+        self.template_version = kwargs.get("template_version", 1)
+        self.template = kwargs.get("template", MockPipelineTemplate())
+        self.template.version = kwargs.get("version", 1)
 
 
 class MockPipelinePeriodicTaskHistory(object):

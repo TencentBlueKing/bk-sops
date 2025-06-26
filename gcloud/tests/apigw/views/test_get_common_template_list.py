@@ -67,6 +67,8 @@ class GetCommontemplateListAPITest(APITest):
                         "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
                         "category": tmpl.category,
                         "auth_actions": ["TEST_ACTION"],
+                        "has_subprocess": True,
+                        "subproc_has_update": True,
                     }
                     for tmpl in task_templates
                 ]

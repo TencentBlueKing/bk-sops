@@ -75,6 +75,9 @@ class GetPeriodicTaskListAPITest(APITest):
                 "last_run_at": format_datetime(task.last_run_at),
                 "total_run_count": task.total_run_count,
                 "auth_actions": ["TEST_ACTION"],
+                "editor": task.editor,
+                "edit_time": format_datetime(task.edit_time),
+                "is_latest": True,
             }
             for task in periodic_tasks
         ]

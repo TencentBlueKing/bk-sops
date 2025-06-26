@@ -93,6 +93,7 @@ class GetUserProjectDetailAPITest(APITest):
             {
                 "project_id": TEST_PROJECT_ID_2,
                 "project_name": TEST_PROJECT_NAME,
+                "executor_proxy": "",
                 "from_cmdb": True,
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_BIZ_NAME,

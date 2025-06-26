@@ -37,7 +37,10 @@ class GetPeriodicTaskInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -55,6 +58,9 @@ class GetPeriodicTaskInfoAPITest(APITest):
             "total_run_count": task.total_run_count,
             "form": task.form,
             "pipeline_tree": task.pipeline_tree,
+            "editor": task.editor,
+            "edit_time": format_datetime(task.edit_time),
+            "is_latest": True,
         }
 
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
@@ -71,7 +77,10 @@ class GetPeriodicTaskInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -89,6 +98,9 @@ class GetPeriodicTaskInfoAPITest(APITest):
             "total_run_count": task.total_run_count,
             "form": task.form,
             "pipeline_tree": task.pipeline_tree,
+            "editor": task.editor,
+            "edit_time": format_datetime(task.edit_time),
+            "is_latest": True,
         }
 
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):

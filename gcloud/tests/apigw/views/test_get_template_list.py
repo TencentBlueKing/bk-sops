@@ -79,6 +79,9 @@ class GetTemplateListAPITest(APITest):
                         "bk_biz_id": TEST_PROJECT_ID,
                         "bk_biz_name": TEST_PROJECT_NAME,
                         "auth_actions": ["TEST_ACTION"],
+                        "has_subprocess": True,
+                        "subproc_has_update": True,
+                        "executor_proxy": tmpl.executor_proxy,
                     }
                     for tmpl in task_templates
                 ]
@@ -151,6 +154,9 @@ class GetTemplateListAPITest(APITest):
                     "bk_biz_id": TEST_PROJECT_ID,
                     "bk_biz_name": TEST_PROJECT_NAME,
                     "auth_actions": [],
+                    "has_subprocess": True,
+                    "subproc_has_update": True,
+                    "executor_proxy": tmpl.executor_proxy,
                 }
                 for tmpl in task_templates
             ]

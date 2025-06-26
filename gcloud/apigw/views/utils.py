@@ -78,8 +78,11 @@ def format_template_data(template, project=None, tz=None):
     if hasattr(template, "executor_proxy"):
         data.update({"executor_proxy": template.executor_proxy})
 
-    constant = process_pipeline_constants(pipeline_tree)
-    data.update({"constant": constant})
+    if pipeline_tree["constants"]:
+        constants = process_pipeline_constants(pipeline_tree)
+    else:
+        constants = {}
+    data.update({"constants": constants})
 
     return data
 
