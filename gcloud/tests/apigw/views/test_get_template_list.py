@@ -57,6 +57,8 @@ class GetTemplateListAPITest(APITest):
 
         task_tmpl1 = MockTaskTemplate(id=1, pipeline_template=pt1)
         task_tmpl2 = MockTaskTemplate(id=2, pipeline_template=pt2)
+        task_tmpl1.executor_proxy = "username"
+        task_tmpl2.executor_proxy = "username"
 
         task_templates = [task_tmpl1, task_tmpl2]
 
@@ -133,6 +135,8 @@ class GetTemplateListAPITest(APITest):
 
         task_tmpl1 = MockCommonTemplate(id=1, pipeline_template=pt1)
         task_tmpl2 = MockCommonTemplate(id=2, pipeline_template=pt2)
+        task_tmpl1.executor_proxy = "username"
+        task_tmpl2.executor_proxy = "username"
 
         task_templates = [task_tmpl1, task_tmpl2]
 

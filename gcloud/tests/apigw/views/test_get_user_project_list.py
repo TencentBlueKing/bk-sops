@@ -28,7 +28,8 @@ class GetUserProjectListAPITest(APITest):
         return "/apigw/get_user_project_list/"
 
     @patch(
-        APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST, MagicMock(side_effect=Exception()),
+        APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST,
+        MagicMock(side_effect=Exception()),
     )
     def test_get_user_project_list__raise(self):
         response = self.client.get(path=self.url())
@@ -48,7 +49,8 @@ class GetUserProjectListAPITest(APITest):
         ]
 
         with patch(
-            APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST, MagicMock(return_value=project_list),
+            APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST,
+            MagicMock(return_value=project_list),
         ):
             response = self.client.get(path=self.url(), data={"bk_username": "text"})
 
@@ -59,7 +61,7 @@ class GetUserProjectListAPITest(APITest):
             self.assertEqual(
                 data["data"],
                 [
-                    {"project_id": 1, "bk_biz_id": 1, "name": "name1"},
-                    {"project_id": 2, "bk_biz_id": 2, "name": "name2"},
+                    {"project_id": 1, "bk_biz_id": 1, "name": "name1", "executor_proxy": ""},
+                    {"project_id": 2, "bk_biz_id": 2, "name": "name2", "executor_proxy": ""},
                 ],
             )
