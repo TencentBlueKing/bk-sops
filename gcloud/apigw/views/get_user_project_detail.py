@@ -20,6 +20,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.utils import api_hash_key
+from gcloud.core.models import ProjectConfig
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.utils import get_resources_allowed_actions_for_user
@@ -68,6 +69,9 @@ def get_user_project_detail(request, project_id):
         "data": {
             "project_id": request.project.id,
             "project_name": request.project.name,
+            "executor_proxy": ProjectConfig.objects.task_executor_for_project(
+                str(request.project.id), request.user.username
+            ),
             "from_cmdb": request.project.from_cmdb,
             "bk_biz_id": biz_detail["bk_biz_id"],
             "bk_biz_name": biz_detail["bk_biz_name"],

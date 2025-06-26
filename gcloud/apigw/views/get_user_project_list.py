@@ -20,6 +20,7 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_r
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.utils import get_user_projects
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.core.models import ProjectConfig
 
 
 @login_exempt
@@ -38,8 +39,17 @@ def get_user_project_list(request):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
+    proxy_mapping = {
+        pid.id: ProjectConfig.objects.task_executor_for_project(pid.id, request.user.username) for pid in projects
+    }
+
     data = [
-        {"project_id": proj.id, "bk_biz_id": proj.bk_biz_id, "name": proj.name}
+        {
+            "project_id": proj.id,
+            "bk_biz_id": proj.bk_biz_id,
+            "name": proj.name,
+            "executor_proxy": proxy_mapping[proj.id],
+        }
         for proj in projects
         if not proj.is_disable
     ]

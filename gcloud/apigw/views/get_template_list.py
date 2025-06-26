@@ -72,7 +72,7 @@ def get_template_list(request, project_id):
     for template_info in template_list:
         template_id = template_info["id"]
         template_info.setdefault("auth_actions", [])
-        if include_labels:
+        if include_labels and template_source in NON_COMMON_TEMPLATE_TYPES:
             template_info["labels"] = template_labels.get(template_id, [])
         for action, allowed in flow_allowed_actions.get(str(template_id), {}).items():
             if allowed:
