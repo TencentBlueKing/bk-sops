@@ -384,6 +384,27 @@ class ProjectConfigManager(models.Manager):
 
         return executor_proxy
 
+    def batch_get_task_executor_for_projects(self, project_ids, executor):
+        """获取所有项目下的执行者"""
+        if not project_ids:
+            return {}
+
+        result = {pid: executor for pid in project_ids}
+
+        configs = self.filter(project_id__in=project_ids).values(
+            "project_id", "executor_proxy", "executor_proxy_exempts"
+        )
+
+        for config in configs:
+            project_id = config["project_id"]
+            executor_proxy = config["executor_proxy"].strip()
+            exempts = set(config["executor_proxy_exempts"].split(","))
+
+            if executor_proxy and executor not in exempts:
+                result[project_id] = executor_proxy
+
+        return result
+
 
 class StaffGroupSetManager(models.Manager):
     def get_members_with_group_ids(self, group_ids):

@@ -29,6 +29,7 @@ from gcloud.core.models import ProjectConfig
 @return_json_response
 @mark_request_whether_is_trust
 def get_user_project_list(request):
+    include_executor_proxy = request.GET.get("include_executor_proxy", None)
     try:
         projects = get_user_projects(request.user.username)
     except Exception as e:
@@ -38,17 +39,17 @@ def get_user_project_list(request):
             "message": "can not fetch project for user[{}]".format(request.user.username),
             "code": err_code.UNKNOWN_ERROR.code,
         }
-
-    proxy_mapping = {
-        pid.id: ProjectConfig.objects.task_executor_for_project(pid.id, request.user.username) for pid in projects
-    }
+    proxy_mapping = {}
+    if include_executor_proxy:
+        project_ids = [proj.id for proj in projects]
+        proxy_mapping = ProjectConfig.objects.batch_get_task_executor_for_projects(project_ids, request.user.username)
 
     data = [
         {
             "project_id": proj.id,
             "bk_biz_id": proj.bk_biz_id,
             "name": proj.name,
-            "executor_proxy": proxy_mapping[proj.id],
+            **({"executor_proxy": proxy_mapping.get(proj.id)} if include_executor_proxy else {}),
         }
         for proj in projects
         if not proj.is_disable

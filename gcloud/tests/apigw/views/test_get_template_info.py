@@ -49,7 +49,6 @@ class GetTemplateInfoAPITest(APITest):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
-        tmpl.executor_proxy = "username"
 
         with mock.patch(
             TASKTEMPLATE_SELECT_RELATE,
@@ -71,10 +70,6 @@ class GetTemplateInfoAPITest(APITest):
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_PROJECT_NAME,
                 "pipeline_tree": pipeline_tree,
-                "has_subprocess": True,
-                "subproc_has_update": True,
-                "executor_proxy": tmpl.executor_proxy,
-                "constants": pipeline_tree.get("constants", {}),
             }
 
             response = self.client.get(path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID))
@@ -122,7 +117,6 @@ class GetTemplateInfoAPITest(APITest):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
-        tmpl.executor_proxy = "username"
 
         with mock.patch(
             COMMONTEMPLATE_SELECT_RELATE,
@@ -144,10 +138,6 @@ class GetTemplateInfoAPITest(APITest):
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_PROJECT_NAME,
                 "pipeline_tree": pipeline_tree,
-                "has_subprocess": True,
-                "subproc_has_update": True,
-                "executor_proxy": tmpl.executor_proxy,
-                "constants": pipeline_tree.get("constants", {}),
             }
 
             response = self.client.get(

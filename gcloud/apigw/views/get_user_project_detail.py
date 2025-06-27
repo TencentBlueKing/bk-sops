@@ -39,6 +39,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @iam_intercept(ProjectViewInterceptor())
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
+    include_executor_proxy = request.GET.get("include_executor_proxy", None)
     try:
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
     except Exception as e:
@@ -63,27 +64,31 @@ def get_user_project_detail(request, project_id):
             ]
         ],
     )
+    data = {
+        "project_id": request.project.id,
+        "project_name": request.project.name,
+        "from_cmdb": request.project.from_cmdb,
+        "bk_biz_id": biz_detail["bk_biz_id"],
+        "bk_biz_name": biz_detail["bk_biz_name"],
+        "bk_biz_developer": biz_detail["bk_biz_developer"],
+        "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
+        "bk_biz_tester": biz_detail["bk_biz_tester"],
+        "bk_biz_productor": biz_detail["bk_biz_productor"],
+        "auth_actions": [
+            action for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items() if allowed
+        ],
+    }
+    if include_executor_proxy:
+        data.update(
+            {
+                "executor_proxy": ProjectConfig.objects.task_executor_for_project(
+                    str(request.project.id), request.user.username
+                )
+            }
+        )
 
     return {
         "result": True,
-        "data": {
-            "project_id": request.project.id,
-            "project_name": request.project.name,
-            "executor_proxy": ProjectConfig.objects.task_executor_for_project(
-                str(request.project.id), request.user.username
-            ),
-            "from_cmdb": request.project.from_cmdb,
-            "bk_biz_id": biz_detail["bk_biz_id"],
-            "bk_biz_name": biz_detail["bk_biz_name"],
-            "bk_biz_developer": biz_detail["bk_biz_developer"],
-            "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
-            "bk_biz_tester": biz_detail["bk_biz_tester"],
-            "bk_biz_productor": biz_detail["bk_biz_productor"],
-            "auth_actions": [
-                action
-                for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items()
-                if allowed
-            ],
-        },
+        "data": data,
         "code": err_code.SUCCESS.code,
     }

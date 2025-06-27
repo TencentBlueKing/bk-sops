@@ -61,7 +61,7 @@ class GetUserProjectListAPITest(APITest):
             self.assertEqual(
                 data["data"],
                 [
-                    {"project_id": 1, "bk_biz_id": 1, "name": "name1", "executor_proxy": ""},
-                    {"project_id": 2, "bk_biz_id": 2, "name": "name2", "executor_proxy": ""},
+                    {"project_id": 1, "bk_biz_id": 1, "name": "name1"},
+                    {"project_id": 2, "bk_biz_id": 2, "name": "name2"},
                 ],
             )

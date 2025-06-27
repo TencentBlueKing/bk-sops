@@ -79,8 +79,6 @@ class MockBaseTemplate(object):
             "pipeline_tree", {"line": "line", "location": "location", "activities": {}, "constants": {}}
         )
         self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
-        self.pipeline_template.has_subprocess = kwargs.get("has_subprocess", True)
-        self.subprocess_info = kwargs.get("subprocess_info", {"subproc_has_update": True})
 
 
 class MockTaskTemplate(MockBaseTemplate):

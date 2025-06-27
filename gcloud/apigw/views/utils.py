@@ -48,7 +48,7 @@ def info_data_from_period_task(task, detail=True, tz=None):
     return info
 
 
-def format_template_data(template, project=None, tz=None):
+def format_template_data(template, project=None, include_subprocess=None, tz=None):
     pipeline_tree = template.pipeline_tree
     pipeline_tree.pop("line")
     pipeline_tree.pop("location")
@@ -63,8 +63,6 @@ def format_template_data(template, project=None, tz=None):
         "edit_time": format_datetime(template.pipeline_template.edit_time, tz),
         "category": template.category,
         "pipeline_tree": pipeline_tree,
-        "has_subprocess": template.pipeline_template.has_subprocess,
-        "subproc_has_update": template.subprocess_info["subproc_has_update"],
     }
     if project:
         data.update(
@@ -78,11 +76,13 @@ def format_template_data(template, project=None, tz=None):
     if hasattr(template, "executor_proxy"):
         data.update({"executor_proxy": template.executor_proxy})
 
-    if pipeline_tree["constants"]:
-        constants = process_pipeline_constants(pipeline_tree)
-    else:
-        constants = {}
-    data.update({"constants": constants})
+    if include_subprocess:
+        data.update(
+            {
+                "has_subprocess": template.pipeline_template.has_subprocess,
+                "subprocess_has_update": template.subprocess_has_update,
+            }
+        )
 
     return data
 
@@ -99,8 +99,6 @@ def format_template_list_data(templates, project=None, return_id_list=False, tz=
             "editor": tmpl.pipeline_template.editor,
             "edit_time": format_datetime(tmpl.pipeline_template.edit_time, tz),
             "category": tmpl.category,
-            "has_subprocess": tmpl.pipeline_template.has_subprocess,
-            "subproc_has_update": tmpl.subprocess_info["subproc_has_update"],
         }
 
         if project:

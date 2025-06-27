@@ -53,9 +53,6 @@ class GetCommonTemplateInfoAPITest(APITest):
                 "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
                 "category": tmpl.category,
                 "pipeline_tree": pipeline_tree,
-                "has_subprocess": True,
-                "subproc_has_update": True,
-                "constants": pipeline_tree.get("constants", {}),
             }
 
             response = self.client.get(path=self.url().format(template_id=TEST_TEMPLATE_ID))
