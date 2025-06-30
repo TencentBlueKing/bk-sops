@@ -1013,7 +1013,7 @@
                         color: #3a84ff;
                     }
                 }
-                /deep/ .bk-form-content {
+                ::v-deep .bk-form-content {
                     margin-left: 0 !important;
                     width: 600px;
                 }
@@ -1071,7 +1071,7 @@
     .delete-dialog {
         padding: 30px;
         word-break: break-all;
-        /deep/ .bk-form-content {
+        ::v-deep .bk-form-content {
             margin-right: 30px;
         }
         .user-selector {

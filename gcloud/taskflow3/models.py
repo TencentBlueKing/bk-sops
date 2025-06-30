@@ -1263,6 +1263,9 @@ class TaskFlowInstance(models.Model):
         # 这里保证执行人在列表第一位，且名单中通知人唯一，其他接收人不保证顺序
         return sorted(set(receivers), key=receivers.index)
 
+    def get_notify_receivers(self):
+        return json.loads(self.template.notify_receivers)
+
     def get_notify_type(self):
         notify_type = json.loads(self.template.notify_type)
         return (

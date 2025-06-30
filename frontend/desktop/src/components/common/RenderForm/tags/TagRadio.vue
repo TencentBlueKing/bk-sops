@@ -93,12 +93,12 @@
 <style lang="scss" scoped>
     .radio-item {
         display: inline-block;
-        /deep/ .el-radio__label {
+        ::v-deep .el-radio__label {
             display: inline-block;
             padding-right: 10px;
             min-width: 80px;
         }
-        /deep/ .el-radio {
+        ::v-deep .el-radio {
             height: 32px;
             line-height: 32px;
             &.is-checked .el-radio__label {

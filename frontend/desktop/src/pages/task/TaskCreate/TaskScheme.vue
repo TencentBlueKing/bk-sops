@@ -125,6 +125,18 @@
                 default () {
                     return []
                 }
+            },
+            appmakerSchemeId: {
+                type: String,
+                default: ''
+            },
+            selectedScheme: {
+                type: Array,
+                default: () => ([])
+            },
+            isStepChange: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
@@ -156,12 +168,19 @@
         methods: {
             ...mapActions('task/', [
                 'loadTaskScheme',
-                'getDefaultTaskScheme'
+                'getDefaultTaskScheme',
+                'getTaskInstanceData'
             ]),
             // 选择方案并进行切换更新选择的节点
             onCheckChange (scheme) {
                 scheme.isChecked = !scheme.isChecked
-                this.$emit('selectScheme')
+
+                let selectNodes = []
+                this.schemeList.forEach(scheme => {
+                    scheme.isChecked && selectNodes.push(...JSON.parse(scheme.data))
+                })
+                selectNodes = Array.from(new Set(selectNodes)) || []
+                this.$emit('updateSelectedNodes', selectNodes)
             },
             async initLoad () {
                 try {
@@ -175,28 +194,77 @@
             // 获取方案列表
             async loadSchemeList () {
                 try {
-                    this.schemeList = await this.loadTaskScheme({
+                    const resp = await this.loadTaskScheme({
                         project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
-                    const { task_id: reuseTaskId } = this.$route.query
-                    let selectNodes = []
-                    this.schemeList.forEach(scheme => {
-                        this.$set(scheme, 'isChecked', false)
-                        this.$set(scheme, 'isDefault', false)
-                        if (this.viewMode !== 'appmaker' && this.defaultSchemeList.includes(scheme.id)) {
-                            scheme.isDefault = true
-                            if (!reuseTaskId && this.viewMode !== 'appmaker') { // 优先复用变量的勾选
-                                scheme.isChecked = true
-                                selectNodes.push(...JSON.parse(scheme.data))
-                            }
-                        }
+
+                    this.schemeList = resp.map(scheme => {
+                        scheme.isChecked = false
+                        scheme.isDefault = false
+                        return scheme
                     })
-                    selectNodes = Array.from(new Set(selectNodes)) || []
-                    this.$emit('setCanvasSelected', selectNodes)
+
+                    // 获取默认选中的节点
+                    this.getDefaultSelectNodes()
                 } catch (e) {
                     console.log(e)
+                }
+            },
+            /**
+             * 获取默认选中的节点
+             * 执行方案默认选中优先级
+             * 1. 已选中执行方案
+             * 2. 流程复用、轻应用使用执行方案（这两种现象不会同时存在）
+             * 3. 默认执行方案
+             * 4. 默认全部节点
+             */
+            async getDefaultSelectNodes () {
+                try {
+                    let selectNodes = []
+                    const { task_id: reuseTaskId } = this.$route.query
+
+                    if (this.isStepChange) {
+                        // 已选中执行方案
+                        this.selectedScheme.forEach(schemeId => {
+                            const schemeInfo = this.schemeList.find(scheme => scheme.id === schemeId)
+                            schemeInfo.isChecked = !!schemeInfo
+                        })
+                        // 默认已选中
+                        this.$emit('updateSelectedNodes', selectNodes, true)
+                        return
+                    } else if (this.appmakerSchemeId) {
+                        // 轻应用执行方案
+                        const schemeInfo = this.schemeList.find(item => item.id === Number(this.appmakerSchemeId))
+                        if (schemeInfo) {
+                            selectNodes = [...JSON.parse(schemeInfo.data)]
+                        }
+                    } else if (reuseTaskId) {
+                        // 流程复用节点
+                        const instanceData = await this.getTaskInstanceData(reuseTaskId)
+                        const pipelineTree = JSON.parse(instanceData.pipeline_tree)
+                        selectNodes = Object.values(pipelineTree.activities).map(item => item.template_node_id)
+                    } else if (this.defaultSchemeList.length) {
+                        // 默认执行方案
+                        this.defaultSchemeList.forEach(schemeId => {
+                            const schemeInfo = this.schemeList.find(scheme => scheme.id === schemeId)
+                            if (schemeInfo) {
+                                schemeInfo.isChecked = true
+                                schemeInfo.isDefault = true
+                                selectNodes.push(...JSON.parse(schemeInfo.data))
+                            }
+                        })
+                    } else {
+                        // 默认全部
+                        this.$emit('updateSelectedNodes', selectNodes, true)
+                        return
+                    }
+
+                    selectNodes = Array.from(new Set(selectNodes)) || []
+                    this.$emit('updateSelectedNodes', selectNodes)
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             // 获取默认方案列表
@@ -219,10 +287,13 @@
              * 执行方案全选/半选
              */
             onAllCheckChange (val) {
+                let selectNodes = []
                 this.schemeList.forEach(scheme => {
                     scheme.isChecked = val
+                    val && selectNodes.push(...JSON.parse(scheme.data))
                 })
-                this.$emit('selectAllScheme', val)
+                selectNodes = Array.from(new Set(selectNodes)) || []
+                this.$emit('updateSelectedNodes', selectNodes)
             },
             /**
              * 任务方案面板是否显示
@@ -331,7 +402,7 @@
             justify-content: flex-end;
             margin: 12px 24px 0;
             font-size: 14px;
-            /deep/.bk-button-text i {
+            ::v-deep .bk-button-text i {
                 font-size: 12px;
                 margin-right: 3px;
                 vertical-align: middle;

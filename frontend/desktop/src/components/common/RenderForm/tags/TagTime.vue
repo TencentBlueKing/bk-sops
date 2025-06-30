@@ -29,7 +29,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    
+
     import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
 
@@ -103,7 +103,7 @@
 </script>
 <style lang="scss" scoped>
 .tag-time {
-    /deep/ .el-date-editor {
+    ::v-deep .el-date-editor {
         width: 100%;
         .el-range-input {
             font-size: 12px;

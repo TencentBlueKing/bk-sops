@@ -283,7 +283,7 @@
                 word-break: break-all;
             }
         }
-        /deep/ .bk-dialog-footer {
+        ::v-deep .bk-dialog-footer {
             display: none;
         }
     }

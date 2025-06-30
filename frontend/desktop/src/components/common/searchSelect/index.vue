@@ -257,7 +257,7 @@
 </script>
 <style lang="scss">
     @import '@/scss/mixins/scrollbar.scss';
-    
+
     .select-list-popover,
     .search-list-popover {
         padding-bottom: 0 !important;

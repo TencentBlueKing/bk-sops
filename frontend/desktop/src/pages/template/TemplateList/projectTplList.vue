@@ -226,6 +226,12 @@
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
                                     <span v-if="!isFlowVisited(row.id) " class="red-dot"></span>
+                                    <bk-button
+                                        v-if="row.subprocess_has_update && hasPermission(['flow_edit'], row.auth_actions)"
+                                        text
+                                        @click="openBatchUpdateDialog(row)">
+                                        {{ $t('立即更新') }}
+                                    </bk-button>
                                 </div>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -407,6 +413,13 @@
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
+        <TemplateUpdateDialog
+            :is-show="isBatchUpdateDialogShow"
+            :project-id="project_id"
+            :row="curSelectedRow"
+            @confirm="handleTplBatchUpdateConfirm"
+            @close="isBatchUpdateDialogShow = false">
+        </TemplateUpdateDialog>
     </div>
 </template>
 <script>
@@ -426,6 +439,7 @@
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
     import SharedTemplateBtn from './SharedTemplate/index.vue'
     import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
+    import TemplateUpdateDialog from './TemplateUpdateDialog.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -507,7 +521,7 @@
         {
             id: 'subprocess_has_update',
             label: i18n.t('子流程更新'),
-            width: 180
+            min_width: 180
         },
         {
             key: 'category',
@@ -540,6 +554,7 @@
             ImportYamlTplDialog,
             ExportTemplateDialog,
             SharedTemplateBtn,
+            TemplateUpdateDialog,
             ListPageTipsTitle,
             SearchSelect,
             TableSettingContent,
@@ -710,7 +725,8 @@
                 searchSelectValue,
                 templateLabelLoading: false,
                 tableMaxHeight: window.innerHeight - 246,
-                isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET
+                isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET,
+                isBatchUpdateDialogShow: false
             }
         },
         computed: {
@@ -1680,6 +1696,21 @@
                 }
                 return false
             },
+            openBatchUpdateDialog (row) {
+                this.curSelectedRow = row
+                const { labelIds: template_labels } = row
+                this.setTemplateData({ ...row, template_labels })
+                this.isBatchUpdateDialogShow = true
+            },
+            handleTplBatchUpdateConfirm () {
+                this.curSelectedRow = {}
+                this.isBatchUpdateDialogShow = false
+                this.getTemplateList()
+                this.$bkMessage({
+                    message: this.$t('流程批量更新成功！'),
+                    theme: 'success'
+                })
+            },
             onFlowClone (row) {
                 const applyAuth = []
                 if (!this.hasPermission(['flow_view'], row.auth_actions)) {
@@ -1760,7 +1791,7 @@
     &.disabled .export-tpl-btn {
         cursor: not-allowed;
     }
-    /deep/.bk-dropdown-content {
+    ::v-deep .bk-dropdown-content {
         z-index: 1;
     }
 }
@@ -1791,7 +1822,7 @@
         background-color: #fafafa !important;
     }
 }
-/deep/.bk-table-header-append .is-prepend {
+::v-deep .bk-table-header-append .is-prepend {
     height: 32px !important;
 }
 .selected-tpl-num {
@@ -1802,7 +1833,7 @@
     font-size: 12px;
     background: #f0f1f5;
     border-bottom: 1px solid #dfe0e5;
-    /deep/.bk-link-text {
+    ::v-deep .bk-link-text {
         margin-left: 6px;
         font-size: 12px;
         line-height: 1;
@@ -1819,7 +1850,7 @@
             display: block;
         }
     }
-    /deep/.bk-table {
+    ::v-deep .bk-table {
         td, th {
             height: 42px;
         }
@@ -1880,10 +1911,14 @@
             border-radius: 50%;
         }
     }
+    .subflow-update {
+        display: flex;
+        align-items: center;
+    }
     .subflow-has-update {
         color: $redDefault;
         .red-dot {
-            margin-left: 3px;
+            margin: 0 10px 0 5px;
             display: inline-block;
             width: 6px;
             height: 6px;
@@ -1892,7 +1927,7 @@
             vertical-align: 1px;
         }
     }
-    /deep/.select-all-cell {
+    ::v-deep .select-all-cell {
         display: flex;
         align-items: center;
         &.full-selected {
@@ -1911,7 +1946,7 @@
             color: #979ba5;
         }
     }
-    /deep/.category-label {
+    ::v-deep .category-label {
         display: flex;
         align-items: center;
         .table-header-tips {
@@ -1922,8 +1957,8 @@
             cursor: pointer;
         }
     }
-    /deep/.edit-time,
-    /deep/.create-time {
+    ::v-deep .edit-time,
+    ::v-deep .create-time {
         .bk-table-caret-wrapper {
             display: none;
         }
