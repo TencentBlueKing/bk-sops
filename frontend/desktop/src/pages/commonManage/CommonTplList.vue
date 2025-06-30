@@ -79,7 +79,6 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
-                        :max-height="tableMaxHeight"
                         :default-sort="getDefaultSortConfig"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
@@ -136,16 +135,13 @@
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
                                 </div>
-                                <template v-else-if="['creator_name', 'editor_name'].includes(item.id)">
-                                    <UserDisplayName :name="row[item.id]" />
-                                </template>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="row[item.id]">{{ row[item.id] || '--' }}</span>
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="190" class="operation-cell" :fixed="templateList.length ? 'right' : false" :resizable="false">
+                        <bk-table-column :label="$t('操作')" width="190" class="operation-cell" :fixed="templateList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <div class="template-operation" :template-name="props.row.name">
                                     <template>
@@ -279,7 +275,6 @@
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
-    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import CancelRequest from '@/api/cancelRequest.js'
@@ -305,13 +300,11 @@
         },
         {
             id: 'creator',
-            name: i18n.t('创建人'),
-            isUser: true
+            name: i18n.t('创建人')
         },
         {
             id: 'editor',
-            name: i18n.t('更新人'),
-            isUser: true
+            name: i18n.t('更新人')
         }
     ]
     const TABLE_FIELDS = [
@@ -371,7 +364,6 @@
             SelectProjectModal,
             NoData,
             TableSettingContent,
-            UserDisplayName,
             SearchSelect
         },
         mixins: [permission],
@@ -491,8 +483,7 @@
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue,
-                tableMaxHeight: window.innerHeight - 144
+                searchSelectValue
             }
         },
         computed: {
@@ -721,7 +712,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = typeof value === 'string' ? value : value.id
+                        acc[cur.id] = cur.children ? value.id : value
                     }
                     return acc
                 }, {})
@@ -942,7 +933,7 @@
             filterDeleteErrorTpls (templateIds) {
                 const creatorInfo = this.searchSelectValue.find(item => item.id === 'template_id')
                 if (creatorInfo) {
-                    creatorInfo.values = [templateIds]
+                    creatorInfo.values = templateIds
                 } else {
                     const form = this.searchList.find(item => item.id === 'template_id')
                     this.searchSelectValue.push({ ...form, values: [templateIds] })
@@ -1402,7 +1393,7 @@ a {
     &.disabled .export-tpl-btn {
         cursor: not-allowed;
     }
-    /deep/.bk-dropdown-content {
+    ::v-deep .bk-dropdown-content {
         z-index: 1;
     }
 }
@@ -1441,7 +1432,7 @@ a {
     font-size: 12px;
     background: #f0f1f5;
     border-bottom: 1px solid #dfe0e5;
-    /deep/.bk-link-text {
+    ::v-deep .bk-link-text {
         margin-left: 6px;
         font-size: 12px;
         line-height: 1;
@@ -1489,7 +1480,7 @@ a {
     .subflow-has-update {
         color: $redDefault;
     }
-    /deep/.select-all-cell {
+    ::v-deep .select-all-cell {
         display: flex;
         align-items: center;
         &.full-selected {
@@ -1508,7 +1499,7 @@ a {
             color: #979ba5;
         }
     }
-    /deep/.category-label {
+    ::v-deep .category-label {
         display: flex;
         align-items: center;
         .table-header-tips {
@@ -1519,8 +1510,8 @@ a {
             cursor: pointer;
         }
     }
-    /deep/.edit-time,
-    /deep/.create-time {
+    ::v-deep .edit-time,
+    ::v-deep .create-time {
         .bk-table-caret-wrapper {
             display: none;
         }

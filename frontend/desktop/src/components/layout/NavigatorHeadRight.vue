@@ -186,7 +186,11 @@
                 try {
                     const endpoint = apiEndpoints.find(item => item.condition)
                     if (endpoint) {
-                        await axios.jsonp(endpoint.url, { language: local })
+                        if (endpoint === apiEndpoints[0]) {
+                            await axios.put(endpoint.url, { language: local })
+                        } else {
+                            await axios.jsonp(endpoint.url, { language: local })
+                        }
                     }
                 } catch (error) {
                     console.warn(error)
