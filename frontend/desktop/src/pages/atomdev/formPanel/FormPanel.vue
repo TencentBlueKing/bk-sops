@@ -175,7 +175,7 @@
     .form-drag-area {
         min-height: 100%;
     }
-    /deep/ {
+    ::v-deep {
         .rf-tag-hook {
             position: absolute;
             top: 4px;

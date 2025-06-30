@@ -213,7 +213,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    /deep/ .tag-cascader-popperover.el-cascader {
+    ::v-deep .tag-cascader-popperover.el-cascader {
         width: 100%;
         line-height: 32px;
         .el-cascader__search-input,

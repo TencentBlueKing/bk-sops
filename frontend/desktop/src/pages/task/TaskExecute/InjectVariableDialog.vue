@@ -214,7 +214,7 @@
             &:not(:first-child) {
                 margin-top: 15px;
             }
-            /deep/.bk-form {
+            ::v-deep .bk-form {
                 display: flex;
                 align-items: center;
                 margin-right: 27px;

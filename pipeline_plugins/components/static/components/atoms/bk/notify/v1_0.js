@@ -59,7 +59,7 @@
             methods: {
                 _tag_init: function () {
                     let self = this;
-                    let url = $.context.get('site_url') + 'core/api/get_msg_types/';
+                    let url = $.context.get('site_url') + 'core/api/get_msg_types/?only_cmsi=1';
                     $.ajax({
                         url: url,
                         type: 'GET',

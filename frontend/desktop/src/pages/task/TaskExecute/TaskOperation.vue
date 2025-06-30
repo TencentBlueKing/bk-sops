@@ -2338,7 +2338,7 @@
     background: #f4f7fa;
 }
 
-/deep/ .atom-failed {
+::v-deep .atom-failed {
     font-size: 12px;
 }
 
@@ -2352,7 +2352,7 @@
         width: 100%;
         height: 100%;
         transition: width 0.5s ease-in-out;
-        /deep/ .pipeline-canvas{
+        ::v-deep .pipeline-canvas{
             width: 100%;
             .node-canvas {
                 width: 100%;
@@ -2365,7 +2365,7 @@
             }
         }
         .task-management-page {
-            /deep/ .canvas-wrapper.jsflow {
+            ::v-deep .canvas-wrapper.jsflow {
                 background: #f5f7fa;
                 .jtk-endpoint {
                     z-index: 2 !important;
@@ -2396,7 +2396,7 @@
         }
     }
 }
-/deep/.bk-sideslider {
+::v-deep .bk-sideslider {
     .bk-sideslider-content {
         height: calc(100% - 60px);
     }
@@ -2510,10 +2510,10 @@
     }
 }
 .approval-dialog-content {
-    /deep/ .bk-form-radio {
+    ::v-deep .bk-form-radio {
         margin-right: 10px;
     }
-    /deep/.bk-label {
+    ::v-deep .bk-label {
         width: auto !important;
     }
 }

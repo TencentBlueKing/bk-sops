@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-
+import requests
 import ujson as json
 
 from gcloud.conf import settings
@@ -20,27 +20,70 @@ from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
+BK_CHAT_API_ENTRY = settings.BK_CHAT_API_ENTRY
 
-def send_message(executor, tenant_id, notify_type, receivers, title, content, email_content=None):
-    # 兼容旧数据
-    if not email_content:
-        email_content = content
 
-    if "email" in notify_type:
-        notify_type[notify_type.index("email")] = "mail"
-    client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {
-        "receiver": receivers,
-        "title": title,
-        "content": content,
-    }
-    _send_func = {"weixin": "v1_send_weixin", "email": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
-    for msg_type in notify_type:
-        kwargs.update({"msg_type": msg_type})
-        if "mail" == msg_type:
-            kwargs.update({"content": email_content})
-        try:
-            getattr(client.api, _send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
-        except Exception as e:
-            logger.error("taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), str(e)))
-    return True
+class MessageSender:
+    def send(self, executor, notify_type, notify_receivers, receivers, title, content, email_content=None):
+        bkchat_receivers = notify_receivers.split(",") if notify_receivers != "" else []
+        cmsi_receivers = [notify for notify in notify_type if notify != "bkchat"]
+
+        if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
+            logger.info("bkchat send message, receivers: {}".format(bkchat_receivers))
+            BkchatSender().send(bkchat_receivers, content)
+        logger.info("cmsi send message, receivers: {}".format(cmsi_receivers))
+        CmsiSender().send(executor, cmsi_receivers, receivers, title, content, email_content)
+
+
+class CmsiSender:
+    def send(self, executor, notify_type, receivers, title, content, email_content=None):
+        # 兼容旧数据
+        if not email_content:
+            email_content = content
+
+        if "email" in notify_type:
+            notify_type[notify_type.index("email")] = "mail"
+        client = get_client_by_user(executor)
+        base_kwargs = {
+            "receiver__username": receivers,
+            "title": title,
+            "content": content,
+        }
+        for msg_type in notify_type:
+            if msg_type == "voice":
+                kwargs = {"receiver__username": receivers, "auto_read_message": "{},{}".format(title, content)}
+                send_result = client.cmsi.send_voice_msg(kwargs)
+            else:
+                kwargs = {"msg_type": msg_type, **base_kwargs}
+                if msg_type == "mail":
+                    kwargs["content"] = email_content
+                send_result = client.cmsi.send_msg(kwargs)
+            if not send_result["result"]:
+                logger.error(
+                    "taskflow send message failed, kwargs={}, result={}".format(
+                        json.dumps(kwargs),
+                        json.dumps(send_result),
+                    )
+                )
+
+
+class BkchatSender:
+    def _get_bkchat_api(self):
+        return "{}/{}".format(BK_CHAT_API_ENTRY, "prod/im/api/v1/send_msg")
+
+    def send(self, notify, content):
+        params = {"bk_app_code": settings.BK_CHAT_APP_CODE, "bk_app_secret": settings.BK_CHAT_APP_SECRET_KEY}
+
+        data = {
+            "im": "WEWORK",
+            "msg_type": "text",
+            "msg_param": {"content": content},
+            "receiver": {"receiver_type": "group", "receiver_ids": notify},
+        }
+
+        result = requests.post(url=self._get_bkchat_api(), params=params, json=data)
+        send_result = result.json()
+        if send_result.get("code") != 0:
+            logger.error(
+                "bkchat send message failed, kwargs={}, result={}".format(json.dumps(data), json.dumps(send_result))
+            )

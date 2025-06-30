@@ -11,20 +11,36 @@
                     class="notify-type-table"
                     :style="{ width: tableWidth ? `${tableWidth}px` : '100%' }"
                     :data="formData.notifyType"
+                    :col-border="true"
                     v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1, zIndex: 100 }">
                     <bk-table-column
                         v-for="(col, index) in allNotifyTypeList"
                         :key="index"
+                        :fixed="col.type ? false : 'left'"
+                        :min-width="col.type === 'bkchat' ? 300 : 85"
                         :render-header="getNotifyTypeHeader">
-                        <template slot-scope="props">
-                            <bk-switcher
-                                v-if="col.type"
-                                size="small"
-                                theme="primary"
-                                :disabled="isViewMode"
-                                :value="props.row.includes(col.type)"
-                                @change="onSelectNotifyType(props.$index, col.type, $event)">
-                            </bk-switcher>
+                        <template slot-scope="{ row, $index }">
+                            <template v-if="col.type">
+                                <bk-checkbox
+                                    :disabled="isViewMode"
+                                    :value="row.includes(col.type)"
+                                    @change="onSelectNotifyType($index, col.type, $event)">
+                                </bk-checkbox>
+                                <bk-input
+                                    v-if="col.type === 'bkchat'"
+                                    :name="`chat_group_id_${$index}`"
+                                    :class="['ml10', { 'vee-error': veeErrors.has(`chat_group_id_${$index}`) }]"
+                                    v-validate="{ required: row.includes(col.type) }"
+                                    :disabled="isViewMode || !row.includes(col.type)"
+                                    :placeholder="$t('请输入群 ID，多个 ID 以逗号隔开')"
+                                    :value="getChatNotifyTypeValue($index)"
+                                    @change="onChatNotifyTypeChange($index, $event)">
+                                </bk-input>
+                                <span
+                                    v-if="col.type === 'bkchat' && veeErrors.has(`chat_group_id_${$index}`)"
+                                    v-bk-tooltips="veeErrors.first(`chat_group_id_${$index}`)"
+                                    class="bk-icon icon-exclamation-circle-shape error-msg" />
+                            </template>
                             <span v-else>{{ props.$index === 0 ? $t('成功') : props.$index === 1 ? $t('失败') : $t('等待处理') }}</span>
                         </template>
                         <div class="empty-data" slot="empty">
@@ -77,6 +93,10 @@
                 type: Array,
                 default: () => []
             },
+            notifyTypeExtraInfo: {
+                type: Object,
+                default: () => ({})
+            },
             receiverGroup: {
                 type: Array,
                 default: () => []
@@ -101,11 +121,13 @@
             project_id: [String, Number]
         },
         data () {
+            const formData = {
+                notifyType: tools.deepClone(this.notifyType),
+                notifyTypeExtraInfo: tools.deepClone(this.notifyTypeExtraInfo),
+                receiverGroup: tools.deepClone(this.receiverGroup)
+            }
             return {
-                formData: {
-                    notifyType: [[]],
-                    receiverGroup: []
-                },
+                formData,
                 notifyTypeLoading: false,
                 allNotifyTypeList: [],
                 notifyGroupLoading: false,
@@ -128,20 +150,6 @@
                     list = defaultList.concat(this.projectNotifyGroup)
                 }
                 return list
-            }
-        },
-        watch: {
-            notifyType: {
-                handler (val) {
-                    this.formData.notifyType = tools.deepClone(val)
-                },
-                immediate: true
-            },
-            receiverGroup: {
-                handler (val) {
-                    this.formData.receiverGroup = tools.deepClone(val)
-                },
-                immediate: true
             }
         },
         created () {
@@ -184,7 +192,15 @@
                             }]
                         }, [
                             col.label
-                        ])
+                        ]),
+                        col.tips ? h('i', {
+                            class: 'bk-icon icon-exclamation-circle ml5',
+                            style: { 'font-size': '14px' },
+                            directives: [{
+                                name: 'bk-tooltips',
+                                value: { content: col.tips, allowHTML: true }
+                            }]
+                        }) : ''
                     ])
                 } else {
                     return h('p', {
@@ -197,6 +213,18 @@
                     ])
                 }
             },
+            getChatNotifyTypeValue (index) {
+                const { notifyTypeExtraInfo } = this.formData
+                if (!notifyTypeExtraInfo.bkchat) {
+                    notifyTypeExtraInfo.bkchat = { success: '', fail: '' }
+                }
+                return notifyTypeExtraInfo.bkchat[index === 0 ? 'success' : 'fail']
+            },
+            onChatNotifyTypeChange (index, val) {
+                const { bkchat } = this.formData.notifyTypeExtraInfo
+                bkchat[index === 0 ? 'success' : 'fail'] = val
+                this.$emit('change', this.formData)
+            },
             onSelectNotifyType (row, type, val) {
                 const data = this.formData.notifyType[row]
                 if (val) {
@@ -206,6 +234,11 @@
                     if (index > -1) {
                         data.splice(index, 1)
                     }
+                }
+                // bkchat同时方式取消勾选时需要情况群id
+                if (!val && type === 'bkchat') {
+                    const { bkchat } = this.formData.notifyTypeExtraInfo
+                    bkchat[row === 0 ? 'success' : 'fail'] = ''
                 }
                 this.$emit('change', this.formData)
             },
@@ -227,6 +260,10 @@
                 } finally {
                     this.notifyGroupLoading = false
                 }
+            },
+            // 校验
+            validate () {
+                return this.$validator.validateAll().then(valid => valid)
             }
         }
     }
@@ -234,6 +271,7 @@
 
 <style lang="scss" scoped>
     @import "@/scss/config.scss";
+    @import '@/scss/mixins/scrollbar.scss';
     .notify-type {
         width: 100%;
     }
@@ -241,30 +279,60 @@
         margin-right: 20px;
         margin-top: 6px;
         min-width: 96px;
-        /deep/ .bk-checkbox-text {
+        ::v-deep .bk-checkbox-text {
             color: $greyDefault;
             font-size: 12px;
         }
-        &.is-disabled /deep/.bk-checkbox-text {
+        &.is-disabled ::v-deep .bk-checkbox-text {
             color: #c4c6cc;
         }
-        &.is-checked /deep/.bk-checkbox-text  {
+        &.is-checked ::v-deep .bk-checkbox-text  {
             color: #606266;
         }
     }
-    /deep/ .bk-checkbox-text {
+    ::v-deep .bk-checkbox-text {
         display: inline-flex;
         align-items: center;
         width: 100px;
     }
     .notify-type-table {
         min-height: 86px;
-        /deep/ .notify-table-heder {
-            display: flex;
-            align-items: center;
-            .notify-icon {
-                margin-right: 4px;
-                width: 18px;
+        ::v-deep .bk-table-header-label {
+            width: 100%;
+            .notify-table-heder {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                .notify-icon {
+                    margin-right: 4px;
+                    width: 18px;
+                }
+            }
+        }
+        ::v-deep .bk-table-fixed {
+            height: 100% !important;
+        }
+        ::v-deep .bk-table-body-wrapper {
+            @include scrollbar;
+            .cell {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 6px 15px;
+                .bk-form-checkbox {
+                    margin: 0;
+                    min-width: 0;
+                    flex-shrink: 0;
+                }
+            }
+            .vee-error .bk-textarea-wrapper {
+                border-color: #ea3636;
+            }
+            .error-msg {
+                font-size: 14px;
+                margin-left: -14px;
+                transform: translateX(-10px);
+                color: #ea3636;
             }
         }
     }

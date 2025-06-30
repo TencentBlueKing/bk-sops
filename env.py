@@ -176,6 +176,14 @@ MESSAGE_HELPER_URL = os.getenv("BKAPP_MESSAGE_HELPER_URL", "")
 BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
 
+# bk_chat通知渠道
+ENABLE_BK_CHAT_CHANNEL = False if os.getenv("BKAPP_ENABLE_BK_CHAT_CHANNEL") is None else True
+# bk_chat通知路由
+BK_CHAT_API_ENTRY = os.getenv("BK_CHAT_API_ENTRY", "")
+# bk_chat通知渠道过滤app
+BK_CHAT_APP_CODE = os.getenv("BK_CHAT_APP_CODE", os.getenv("BKPAAS_APP_ID"))
+BK_CHAT_APP_SECRET_KEY = os.getenv("BK_CHAT_APP_SECRET_KEY", os.getenv("BKPAAS_APP_SECRET"))
+
 # 流程商店
 ENABLE_TEMPLATE_MARKET = int(os.getenv("ENABLE_TEMPLATE_MARKET", 0))
 # 流程商店 API 地址

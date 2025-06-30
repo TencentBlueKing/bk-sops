@@ -650,7 +650,7 @@
             min-height: 40px;
         }
         .bk-form {
-            /deep/ .bk-form-item {
+            ::v-deep .bk-form-item {
                 .bk-label {
                     color: #313138;
                     font-size: 12px;
@@ -660,7 +660,7 @@
     }
     .scheme-select {
         position: relative;
-        /deep/ .bk-select {
+        ::v-deep .bk-select {
             margin-right: 150px;
         }
         .scheme-save-btn {
@@ -679,7 +679,7 @@
     }
     .scheme-dialog {
         padding: 30px;
-        /deep/ .bk-form-content {
+        ::v-deep .bk-form-content {
             margin-right: 60px;
         }
         .scheme-tip {
@@ -687,7 +687,7 @@
             color: #ffb400;
         }
     }
-    /deep/ .bk-big-tree-node .node-content {
+    ::v-deep .bk-big-tree-node .node-content {
         font-size: 12px;
     }
 </style>
@@ -699,11 +699,11 @@
         }
     }
     .bk-form-content {
-        /deep/ .el-autocomplete,
+        ::v-deep .el-autocomplete,
             .el-input{
                 height: 30px;
                 width: 100%;
-                /deep/.el-input__inner {
+                ::v-deep .el-input__inner {
                         height: 30px !important;
                         border: 1px solid #c4c6cc;
                 }

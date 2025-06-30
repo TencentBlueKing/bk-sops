@@ -719,7 +719,7 @@
     top: -1px;
     cursor: pointer;
 }
-/deep/.recorded_executor_proxy-label {
+::v-deep .recorded_executor_proxy-label {
         display: flex;
         align-items: center;
         .table-header-tips {
@@ -729,7 +729,7 @@
             color: #c4c6cc;
         }
     }
-/deep/ .cell .task-id {
+::v-deep .cell .task-id {
     margin-left: 16px;
 }
 </style>

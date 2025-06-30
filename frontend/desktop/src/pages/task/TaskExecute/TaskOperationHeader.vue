@@ -316,7 +316,7 @@
         .operation-btn {
             width: 108px;
             margin-left: 8px;
-            /deep/.bk-button {
+            ::v-deep .bk-button {
                 width: 108px;
                 font-size: 14px;
                 i {

@@ -773,7 +773,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/copy_template_across_project/{project_id>}/
+          path: /{env.api_sub_path}apigw/copy_template_across_project/{project_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}

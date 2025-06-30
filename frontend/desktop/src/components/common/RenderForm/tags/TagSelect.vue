@@ -394,18 +394,18 @@
     .el-select {
         position: relative;
         width: 100%;
-        /deep/ .el-input__inner {
+        ::v-deep .el-input__inner {
             padding-left: 10px;
             padding-right: 60px;
             height: 32px;
             line-height: 32px;
             font-size: 12px;
         }
-        /deep/.el-input__prefix {
+        ::v-deep .el-input__prefix {
             left: auto;
             right: 28px;
         }
-        /deep/.el-tag.el-tag--info.el-tag--small.el-tag--light { // 解决已选多选项选项过长不换行问题
+        ::v-deep .el-tag.el-tag--info.el-tag--small.el-tag--light { // 解决已选多选项选项过长不换行问题
             height: auto;
             &.individual {
                 background: rgba(254, 156, 0, 0.1);
