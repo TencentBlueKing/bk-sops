@@ -186,7 +186,7 @@
                 try {
                     const endpoint = apiEndpoints.find(item => item.condition)
                     if (endpoint) {
-                        if (endpoint.url.includes('/api/v3/open-web/tenant/current-user/language')) {
+                        if (window.BK_USER_WEB_APIGW_URL) {
                             await axios.put(endpoint.url, { language: local })
                         } else {
                             await axios.jsonp(endpoint.url, { language: local })
