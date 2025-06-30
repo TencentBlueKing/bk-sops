@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
-import re
 import traceback
 
 from django.utils.translation import gettext_lazy as _
@@ -94,6 +93,7 @@ class ApproveService(Service):
                     "textarea_content": approve_content,
                     "multiUser_approver": verifier.split(","),
                 },
+                "system_id": settings.APP_CODE,
                 "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
                 "options": {},
             }
@@ -110,8 +110,9 @@ class ApproveService(Service):
                     "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
                 },
             }
-
-        result = client.api.create_ticket(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+        result = client.api.create_ticket(
+            kwargs, headers={"X-Bk-Tenant-Id": tenant_id, "SYSTEM-TOKEN": settings.SECRET_KEY}
+        )
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)
@@ -119,7 +120,8 @@ class ApproveService(Service):
             return False
 
         data.outputs.sn = result["data"]["sn"]
-
+        if settings.ENABLE_MULTI_TENANT_MODE:
+            data.outputs.id = result["data"]["id"]
         task_id: int = parent_data.get_one_of_inputs("task_id")
         send_taskflow_message.delay(
             task_id=task_id,

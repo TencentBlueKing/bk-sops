@@ -341,6 +341,13 @@ class Group(OperationGroup):
         path="/api/v1/system/migrate/",
     )
 
+    handle_approval_node = bind_property(
+        Operation,
+        name="handle_approval_node",
+        method="POST",
+        path="/api/v1/handle_approval_node/",
+    )
+
 
 class Client(APIGatewayClient):
     """Bkapi bk_itsm4 client"""
