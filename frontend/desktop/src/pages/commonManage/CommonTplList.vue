@@ -191,6 +191,13 @@
                                                 </li>
                                                 <li class="opt-btn">
                                                     <a
+                                                        class="template-operate-btn"
+                                                        @click="onVisibleRangCheck(props.row)">
+                                                        {{$t('可见范围')}}
+                                                    </a>
+                                                </li>
+                                                <li class="opt-btn">
+                                                    <a
                                                         v-cursor="{ active: !hasPermission(['common_flow_delete'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
                                                         :class="{
@@ -255,9 +262,21 @@
             :show="isSelectProjectShow"
             :confirm-loading="permissionLoading"
             :confirm-cursor="!hasCreateTaskPerm"
+            :on-set-project-visible="isOnSetVisible"
             @onChange="handleProjectChange"
             @onConfirm="handleCreateTaskConfirm"
             @onCancel="handleCreateTaskCancel">
+        </SelectProjectModal>
+        <SelectProjectModal
+            :title="$t('可见范围配置')"
+            :show="isProjectVisibleShow"
+            :confirm-loading="permissionLoading"
+            :confirm-cursor="!hasCreateTaskPerm"
+            :on-set-project-visible="isOnSetVisible"
+            :multi-project-scope="multiProjectScope"
+            @onVisibleChange="handleProjectVisibleChange"
+            @onVisibleConfirm="handleProjectVisibleConfirm"
+            @onVisibleCancel="handleProjectVisibleCancel">
         </SelectProjectModal>
     </div>
 </template>
@@ -483,7 +502,12 @@
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                isProjectVisibleShow: false,
+                isOnSetVisible: false,
+                projectScopeSelectList: [],
+                publicProcessId: undefined,
+                multiProjectScope: []
             }
         },
         computed: {
@@ -564,7 +588,8 @@
                 'setUserProjectConfig'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'saveTemplateData'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -573,7 +598,8 @@
                 'batchDeleteTpl'
             ]),
             ...mapMutations('template/', [
-                'setProjectBaseInfo'
+                'setProjectBaseInfo',
+                'setProjectScope'
             ]),
             async queryCreateCommonTplPerm () {
                 try {
@@ -1248,9 +1274,35 @@
                     this.collectingId = ''
                 }
             },
-
+            // 点击可见范围
+            onVisibleRangCheck (row) {
+                console.log('点击可见范围row', row)
+                this.multiProjectScope = row.project_scope
+                this.publicProcessId = row.id
+                this.isOnSetVisible = true
+                this.isProjectVisibleShow = true
+            },
+            handleProjectVisibleChange (visible) {
+                this.projectScopeSelectList = visible.map(item => typeof item === 'number' ? String(item) : item)
+            },
+            handleProjectVisibleCancel () {
+                this.isProjectVisibleShow = false
+                this.isOnSetVisible = false
+            },
+            async handleProjectVisibleConfirm () {
+                await this.saveTemplateData({
+                    templateId: this.publicProcessId,
+                    common: true,
+                    isSetProjectScope: true,
+                    project_scope: this.projectScopeSelectList
+                })
+                this.projectScopeSelectLis = []
+                this.isProjectVisibleShow = false
+                this.isOnSetVisible = false
+            },
             // 点击创建任务
             handleCreateTaskClick (tpl) {
+                this.isOnSetVisible = false
                 this.selectedTpl = tpl
                 this.isSelectProjectShow = true
                 this.permissionLoading = false
@@ -1310,9 +1362,11 @@
                 }
             },
             handleCreateTaskCancel () {
+                // if()
                 this.selectedTpl = {}
                 this.selectedProject = {}
                 this.isSelectProjectShow = false
+                this.isProjectVisibleShow = false
             },
             onTaskClone (row) {
                 const applyAuth = []

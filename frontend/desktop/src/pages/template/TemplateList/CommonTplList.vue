@@ -15,6 +15,13 @@
             <div class="list-wrapper">
                 <div class="search-wrapper mb20">
                     <bk-button
+                        class="only-project-visible-btn"
+                        data-test-id="process_form_onlyProjectVisible"
+                        :theme="isClickOnlyProjectVisible ? 'primary' : 'default'"
+                        @click="handeleOnlyProjectVisible">
+                        {{$t('仅项目可见的')}}
+                    </bk-button>
+                    <bk-button
                         class="my-create-btn"
                         data-test-id="process_form_myCreateProcess"
                         @click="handleMyCreateFilter">
@@ -287,7 +294,8 @@
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                isClickOnlyProjectVisible: false
             }
         },
         computed: {
@@ -365,7 +373,7 @@
                     const data = this.getQueryData()
                     const source = new CancelRequest()
                     data.cancelToken = source.token
-                    const templateListData = await this.loadTemplateList(data)
+                    const templateListData = await this.loadTemplateList(this.isClickOnlyProjectVisible ? { ...data, project__id: this.project_id } : data)
                     this.templateList = templateListData.results
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
@@ -713,6 +721,11 @@
                     query: { template_id: tpl.id, common: '1' },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 })
+            },
+            // 点击仅项目可见的
+            async handeleOnlyProjectVisible () {
+                this.isClickOnlyProjectVisible = !this.isClickOnlyProjectVisible
+                await this.getTemplateList()
             }
         }
     }
@@ -734,6 +747,10 @@
     .my-create-btn {
         position: relative;
         right: 495px;
+    }
+    .only-project-visible-btn{
+        position: relative;
+        right: 510px;
     }
 }
 a {

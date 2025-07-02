@@ -932,7 +932,11 @@ const template = {
          * 保存模板数据
          * @param {Object} data 模板完整数据
          */
-        saveTemplateData ({ state }, { templateId, projectId, common }) {
+        async saveTemplateData ({ state, commit, dispatch }, { templateId, projectId, common, isSetProjectScope = false, project_scope = [] }) {
+            if (isSetProjectScope) {
+                const templateData = await dispatch('loadTemplateData', { templateId, common })
+                commit('setTemplateData', templateData)
+            }
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type,
@@ -974,7 +978,7 @@ const template = {
             }
             const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
 
-            if (!validateResult.result) {
+            if (!validateResult.result && !isSetProjectScope) {
                 return new Promise((resolve, reject) => {
                     resolve(validateResult)
                 })
@@ -1013,10 +1017,9 @@ const template = {
             if (templateId && init_executor_proxy === executor_proxy) {
                 delete params.executor_proxy
             }
-
             // 新增用post, 编辑用patch
             const method = templateId === undefined ? 'post' : common ? 'put' : 'patch'
-            return axios[method](url, params, {
+            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: ['*'] } : { ...params, project_scope }) : params, {
                 headers
             }).then(response => {
                 state.init_executor_proxy = state.executor_proxy

@@ -414,7 +414,7 @@
             :project-id="project_id"
             :row="curSelectedRow"
             @confirm="handleTplBatchUpdateConfirm"
-            @close="isBatchUpdateDialogShow = false">
+            @close="closeBatchUpdateDialogShow">
         </TemplateUpdateDialog>
     </div>
 </template>
@@ -782,6 +782,9 @@
             next()
         },
         methods: {
+            closeBatchUpdateDialogShow () {
+                this.isBatchUpdateDialogShow = false
+            },
             ...mapActions([
                 'addToCollectList',
                 'deleteCollect'
