@@ -221,6 +221,14 @@
                     padding-left: 13px;
                     padding-right: 15px;
                 }
+                .cell {
+                    >.bk-form-item {
+                        border: none;
+                        .bk-form-content {
+                            margin: 0 !important;
+                        }
+                    }
+                }
                 .el-table {
                     tr,
                     .el-table__cell {
