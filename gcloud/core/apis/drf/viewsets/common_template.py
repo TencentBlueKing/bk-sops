@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+import django_filters
 import ujson as json
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
@@ -72,6 +73,8 @@ class CommonTemplatePermission(IamPermission):
 
 
 class CommonTemplateFilter(PropertyFilterSet):
+    project_id = django_filters.CharFilter(method="filter_by_project_id")
+
     class Meta:
         model = CommonTemplate
         fields = {
@@ -85,6 +88,18 @@ class CommonTemplateFilter(PropertyFilterSet):
             "pipeline_template__create_time": ["gte", "lte"],
         }
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
+
+    def filter_by_project_id(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        templates = queryset.values("id", "extra_info")
+        matched_ids = []
+        for item in templates:
+            exemption_project = item["extra_info"].get("project_scope", [])
+            if "*" in exemption_project or value in exemption_project:
+                matched_ids.append(item["id"])
+        return queryset.filter(id__in=matched_ids)
 
 
 class CommonTemplateViewSet(GcloudModelViewSet):
@@ -166,7 +181,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
     @staticmethod
     def _inject_project_based_task_create_action(request, common_template_ids, common_flow_action):
-        project_id = request.query_params.get("project__id")
+        project_id = request.query_params.get("project_id")
         if not project_id:
             return []
         iam = get_iam_client()
