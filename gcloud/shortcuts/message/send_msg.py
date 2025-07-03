@@ -23,24 +23,44 @@ logger = logging.getLogger("root")
 
 def send_message(executor, tenant_id, notify_type, receivers, title, content, email_content=None):
     # 兼容旧数据
-    if not email_content:
-        email_content = content
+    if email_content:
+        content = email_content
 
-    if "email" in notify_type:
-        notify_type[notify_type.index("email")] = "mail"
     client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
-    kwargs = {
-        "receiver": receivers,
-        "title": title,
-        "content": content,
-    }
-    _send_func = {"weixin": "v1_send_weixin", "email": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
+    _send_func = {"weixin": "v1_send_weixin", "mail": "v1_send_mail", "sms": "v1_send_sms", "voice": "v1_send_voice"}
+    _args_gen = {"mail": _email_args, "weixin": _weixin_args, "voice": _voice_args, "sms": _sms_args}
     for msg_type in notify_type:
-        kwargs.update({"msg_type": msg_type})
-        if "mail" == msg_type:
-            kwargs.update({"content": email_content})
+        kwargs = _args_gen[msg_type](receivers, title, content)
         try:
             getattr(client.api, _send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         except Exception as e:
             logger.error("taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), str(e)))
     return True
+
+
+def _email_args(receivers, title, content):
+    return {
+        "receiver__username": receivers,
+        "title": title,
+        # 保留通知内容中的换行和空格
+        "content": "<pre>%s</pre>" % content,
+    }
+
+
+def _weixin_args(receivers, title, content):
+    return {"receiver__username": receivers, "message_data": {"heading": title, "message": content}}
+
+
+def _voice_args(receivers, title, content):
+    return {
+        "auto_read_message": "蓝鲸通知 {}".format("%s: %s" % (title, content)),
+        "receiver__username": receivers,
+    }
+
+
+def _sms_args(receivers, title, content):
+    return {
+        "receiver__username": receivers,
+        "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
+        "is_content_base64": False,
+    }
