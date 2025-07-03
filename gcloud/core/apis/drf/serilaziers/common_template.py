@@ -35,10 +35,14 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
     template_id = serializers.IntegerField(help_text="流程ID")
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
+    project_scope = serializers.SerializerMethodField(help_text="流程使用范围")
 
     class Meta:
         model = CommonTemplate
         exclude = ["extra_info"]
+
+    def get_project_scope(self, obj):
+        return obj.extra_info.get("project_scope")
 
 
 class CommonTemplateSerializer(CommonTemplateListSerializer):
