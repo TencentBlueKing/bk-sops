@@ -187,7 +187,12 @@
                     const endpoint = apiEndpoints.find(item => item.condition)
                     if (endpoint) {
                         if (window.BK_USER_WEB_APIGW_URL) {
-                            await axios.put(endpoint.url, { language: local })
+                            await axios.put(endpoint.url, { language: local }, {
+                                headers: {
+                                    'x-bk-tenant-id': window.TENANT_ID
+                                }
+                            }
+                            )
                         } else {
                             await axios.jsonp(endpoint.url, { language: local })
                         }
