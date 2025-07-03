@@ -464,7 +464,6 @@ MAKO_SANDBOX_IMPORT_MODULES = {
     "random": "random",
     "time": "time",
     "os.path": "os.path",
-    "json": "json",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:
