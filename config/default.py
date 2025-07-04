@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import datetime
 import importlib
 import sys
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from bamboo_engine.config import Settings as BambooSettings
 from bkcrypto import constants as bkcrypto_constants
@@ -757,8 +757,9 @@ BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
 PLUGIN_DISTRIBUTOR_NAME = env.PLUGIN_DISTRIBUTOR_NAME or APP_CODE
 
 # IAM APIGW 地址
-BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
-BK_IAM_APIGATEWAY_URL = env.BK_IAM_APIGW_HOST
+BK_IAM_APIGATEWAY_STAGE = os.getenv("BK_IAM_APIGATEWAY_STAGE", "prod")
+BK_IAM_APIGATEWAY_URL = env.BK_APIGW_URL_TMPL.format(api_name="bk-iam").rstrip("/") + "/"
+BK_IAM_APIGATEWAY_URL = urljoin(BK_IAM_APIGATEWAY_URL, BK_IAM_APIGATEWAY_STAGE)
 
 # 节点日志持久化时间
 LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS
