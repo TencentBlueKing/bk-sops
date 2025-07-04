@@ -262,7 +262,7 @@
             :show="isSelectProjectShow"
             :confirm-loading="permissionLoading"
             :confirm-cursor="!hasCreateTaskPerm"
-            :on-set-project-visible="isOnSetVisible"
+            :is-set-project-visible="isSetVisible"
             @onChange="handleProjectChange"
             @onConfirm="handleCreateTaskConfirm"
             @onCancel="handleCreateTaskCancel">
@@ -272,7 +272,7 @@
             :show="isProjectVisibleShow"
             :confirm-loading="permissionLoading"
             :confirm-cursor="!hasCreateTaskPerm"
-            :on-set-project-visible="isOnSetVisible"
+            :is-set-project-visible="isSetVisible"
             :project-scope-list="projectScopeList"
             @onVisibleChange="handleProjectVisibleChange"
             @onVisibleConfirm="handleProjectVisibleConfirm"
@@ -504,7 +504,7 @@
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 isProjectVisibleShow: false,
-                isOnSetVisible: false,
+                isSetVisible: false,
                 projectScopeSelectList: [],
                 publicProcessId: undefined,
                 projectScopeList: []
@@ -1282,7 +1282,7 @@
                     this.projectScopeList = row.project_scope
                 }
                 this.publicProcessId = row.id
-                this.isOnSetVisible = true
+                this.isSetVisible = true
                 this.isProjectVisibleShow = true
             },
             handleProjectVisibleChange (visible) {
@@ -1290,7 +1290,7 @@
             },
             handleProjectVisibleCancel () {
                 this.isProjectVisibleShow = false
-                this.isOnSetVisible = false
+                this.isSetVisible = false
             },
             async handleProjectVisibleConfirm () {
                 await this.saveTemplateData({
@@ -1301,12 +1301,12 @@
                 })
                 this.projectScopeSelectList = []
                 this.isProjectVisibleShow = false
-                this.isOnSetVisible = false
+                this.isSetVisible = false
                 this.getTemplateList()
             },
             // 点击创建任务
             handleCreateTaskClick (tpl) {
-                this.isOnSetVisible = false
+                this.isSetVisible = false
                 this.selectedTpl = tpl
                 this.isSelectProjectShow = true
                 this.permissionLoading = false
