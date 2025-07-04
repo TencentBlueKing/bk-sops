@@ -22,7 +22,28 @@
         <div class="select-wrapper">
             <bk-form>
                 <bk-form-item :label="$t('选择项目')">
-                    <bk-select
+                    <bk-select class="project-select"
+                        v-if="isSetProjectVisible"
+                        :searchable="true"
+                        :clearable="true"
+                        :multiple="true"
+                        :display-tag="true"
+                        :auto-height="false"
+                        @change="handleProjectVisibleSelect"
+                        v-model="localProjectScopeList">
+                        <bk-option-group
+                            v-for="(group, index) in projects"
+                            :name="group.name"
+                            :key="index"
+                            :show-select-all="true">
+                            <bk-option v-for="item in group.children"
+                                :key="item.id"
+                                :id="item.id"
+                                :name="item.name">
+                            </bk-option>
+                        </bk-option-group>
+                    </bk-select>
+                    <bk-select v-else
                         class="project-select"
                         :clearable="false"
                         :searchable="true"
@@ -75,12 +96,21 @@
             confirmCursor: {
                 type: Boolean,
                 default: false
+            },
+            isSetProjectVisible: {
+                type: Boolean,
+                default: false
+            },
+            projectScopeList: {
+                type: Array,
+                default: () => []
             }
         },
         data () {
             return {
                 id: this.project,
-                hasError: false
+                hasError: false,
+                localProjectScopeList: []
             }
         },
         computed: {
@@ -121,9 +151,29 @@
         watch: {
             project (val) {
                 this.id = val
+            },
+            projectScopeList (val) {
+                if (val.includes('*')) {
+                    const allIds = []
+                    this.projects.forEach((group) => {
+                        group.children.forEach((item) => {
+                            allIds.push(item.id)
+                        })
+                    })
+                    this.localProjectScopeList = allIds
+                } else {
+                    this.localProjectScopeList = [...val]
+                }
             }
         },
         methods: {
+            handleProjectVisibleSelect (row) {
+                this.$emit('onVisibleChange', row)
+            },
+            handleVisibleConfirm () {
+                this.$emit('onVisibleConfirm')
+                this.localProjectScopeList = []
+            },
             handleProjectSelect (id) {
                 this.id = id
                 this.hasError = false
@@ -131,20 +181,28 @@
                 this.$emit('onChange', project)
             },
             handleConfirm () {
-                if (this.confirmLoading) {
-                    return
-                }
-                if (typeof this.id === 'number') {
-                    const project = this.projectList.find(item => item.id === this.id)
-                    this.$emit('onConfirm', project)
+                if (this.isSetProjectVisible) {
+                    this.handleVisibleConfirm()
                 } else {
-                    this.hasError = true
+                    if (this.confirmLoading) {
+                        return
+                    }
+                    if (typeof this.id === 'number') {
+                        const project = this.projectList.find(item => item.id === this.id)
+                        this.$emit('onConfirm', project)
+                    } else {
+                        this.hasError = true
+                    }
                 }
             },
             handleCancel () {
-                this.id = ''
-                this.hasError = false
-                this.$emit('onCancel')
+                if (this.isSetProjectVisible) {
+                    this.$emit('onVisibleCancel')
+                } else {
+                    this.id = ''
+                    this.hasError = false
+                    this.$emit('onCancel')
+                }
             }
         }
     }
