@@ -110,7 +110,7 @@
             return {
                 id: this.project,
                 hasError: false,
-                multiProjectVisibleScope: [...this.multiProjectScope]
+                multiProjectVisibleScope: []
             }
         },
         computed: {
@@ -151,6 +151,19 @@
         watch: {
             project (val) {
                 this.id = val
+            },
+            multiProjectScope (val) {
+                if (val.includes('*')) {
+                    const allIds = []
+                    this.projects.forEach((group) => {
+                        group.children.forEach((item) => {
+                            allIds.push(item.id)
+                        })
+                    })
+                    this.multiProjectVisibleScope = allIds
+                } else {
+                    this.multiProjectVisibleScope = [...val]
+                }
             }
         },
         methods: {

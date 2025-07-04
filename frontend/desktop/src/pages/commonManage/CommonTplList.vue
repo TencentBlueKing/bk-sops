@@ -1276,8 +1276,11 @@
             },
             // 点击可见范围
             onVisibleRangCheck (row) {
-                console.log('点击可见范围row', row)
-                this.multiProjectScope = row.project_scope
+                if (row.project_scope[0] !== '*') {
+                    this.multiProjectScope = row.project_scope.map(item => typeof item !== 'number' ? Number(item) : item)
+                } else {
+                    this.multiProjectScope = row.project_scope
+                }
                 this.publicProcessId = row.id
                 this.isOnSetVisible = true
                 this.isProjectVisibleShow = true
@@ -1299,6 +1302,7 @@
                 this.projectScopeSelectLis = []
                 this.isProjectVisibleShow = false
                 this.isOnSetVisible = false
+                this.getTemplateList()
             },
             // 点击创建任务
             handleCreateTaskClick (tpl) {
