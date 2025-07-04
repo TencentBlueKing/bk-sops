@@ -182,15 +182,17 @@
                     { condition: window.BK_USER_WEB_APIGW_URL, url: `${window.BK_USER_WEB_APIGW_URL}/api/v3/open-web/tenant/current-user/language/` },
                     { condition: window.BK_PAAS_ESB_HOST, url: `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/` }
                 ]
-
+    
                 try {
                     const endpoint = apiEndpoints.find(item => item.condition)
                     if (endpoint) {
                         if (window.BK_USER_WEB_APIGW_URL) {
                             await axios.put(endpoint.url, { language: local }, {
                                 headers: {
-                                    'x-bk-tenant-id': window.TENANT_ID
-                                }
+                                    'X-Bk-Tenant-Id': window.TENANT_ID,
+                                    'X-Requested-With': undefined
+                                },
+                                xsrfHeaderName: ''
                             }
                             )
                         } else {
