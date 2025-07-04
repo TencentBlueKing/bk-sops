@@ -189,7 +189,7 @@
                         if (window.BK_USER_WEB_APIGW_URL) {
                             await axios.put(endpoint.url, { language: local }, {
                                 headers: {
-                                    'x-bk-tenant-id': window.TENANT_ID,
+                                    'X-Bk-Tenant-Id': window.TENANT_ID,
                                     'X-Requested-With': undefined
                                 },
                                 xsrfHeaderName: ''
