@@ -22,11 +22,11 @@ def get_iam_client(tenant_id=""):
     app_code = env.BKAPP_SOPS_IAM_APP_CODE
     app_secret = env.BKAPP_SOPS_IAM_APP_SECRET_KEY
     if settings.BK_IAM_SKIP:
-        return DummyIAM(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGW_HOST, bk_tenant_id=tenant_id)
-    return IAM(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGW_HOST, bk_tenant_id=tenant_id)
+        return DummyIAM(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGATEWAY_URL, bk_tenant_id=tenant_id)
+    return IAM(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGATEWAY_URL, bk_tenant_id=tenant_id)
 
 
 def get_iam_api_client(tenant_id):
     app_code = env.BKAPP_SOPS_IAM_APP_CODE
     app_secret = env.BKAPP_SOPS_IAM_APP_SECRET_KEY
-    return Client(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGW_HOST, bk_tenant_id=tenant_id)
+    return Client(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGATEWAY_URL, bk_tenant_id=tenant_id)

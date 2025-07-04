@@ -185,7 +185,9 @@ TEMPLATE_MARKET_HOST = os.getenv("TEMPLATE_MARKET_HOST", "")
 # 模板市场文档路由
 TEMPLATE_MARKET_DOC_URL = os.getenv("TEMPLATE_MARKET_DOC_URL", "")
 
-ENABLE_MULTI_TENANT_MODE = bool(os.getenv("ENABLE_MULTI_TENANT_MODE", False))
+ENABLE_MULTI_TENANT_MODE = (
+    os.getenv("BKPAAS_MULTI_TENANT_MODE", os.getenv("ENABLE_MULTI_TENANT_MODE", "false")).lower() == "true"
+)
 
 # 统计信息清理配置
 CLEAN_EXPIRED_STATISTICS_CRON = tuple(os.getenv("BKAPP_CLEAN_EXPIRED_STATISTICS_CRON", "30 0 * * *").split())

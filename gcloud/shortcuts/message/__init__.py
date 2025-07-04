@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.common import (
@@ -23,6 +24,7 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_periodic_task_start_fail,
 )
 from gcloud.shortcuts.message.send_msg import send_message
+from packages.bkapi.bk_user.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -39,20 +41,24 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
     receivers = taskflow.get_stakeholders()
     executor = taskflow.executor
     tenant_id = taskflow.project.tenant_id
-
+    client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
+    display_info = client.api.display_info({"bk_usernames": executor}, headers={"X-Bk-Tenant-Id": tenant_id})
+    user_list = display_info.get("data") or []
+    display_names = [user.get("display_name") for user in user_list]
+    executor_display_name = ",".join(display_names)
     if msg_type == ATOM_FAILED:
         title, content, email_content = title_and_content_for_atom_failed(
-            taskflow, taskflow.pipeline_instance, node_name, executor
+            taskflow, taskflow.pipeline_instance, node_name, executor_display_name
         )
         notify_type = notify_types.get("fail", [])
     elif msg_type == TASK_FINISHED:
         title, content, email_content = title_and_content_for_flow_finished(
-            taskflow, taskflow.pipeline_instance, node_name, executor
+            taskflow, taskflow.pipeline_instance, node_name, executor_display_name
         )
         notify_type = notify_types.get("success", [])
     elif msg_type == PENDING_PROCESSING:
         title, content, email_content = title_and_content_for_pending_processing(
-            taskflow, taskflow.pipeline_instance, node_name, executor
+            taskflow, taskflow.pipeline_instance, node_name, executor_display_name
         )
         notify_type = notify_types.get("pending_processing", [])
 
