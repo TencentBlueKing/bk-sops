@@ -64,7 +64,7 @@ NODE_LOG_DATA_SOURCE_CONFIG = json.loads(os.getenv("NODE_LOG_DATA_SOURCE_CONFIG"
 PAASV3_APIGW_API_TOKEN = os.getenv("BKAPP_PAASV3_APIGW_API_TOKEN")
 
 # APIGW 访问地址
-BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL") or os.getenv("BKAPP_BK_API_URL_TMPL")
+BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL") or os.getenv("BKAPP_BK_API_URL_TMPL", "")
 
 # 是否允许 celery worker 发送监控事件
 CELERY_SEND_EVENTS = bool(os.getenv("CELERY_SEND_EVENTS", False))
