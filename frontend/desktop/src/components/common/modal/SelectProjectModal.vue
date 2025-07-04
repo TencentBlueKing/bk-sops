@@ -23,14 +23,14 @@
             <bk-form>
                 <bk-form-item :label="$t('选择项目')">
                     <bk-select class="project-select"
-                        v-if="onSetProjectVisible"
+                        v-if="isSetProjectVisible"
                         :searchable="true"
                         :clearable="true"
                         :multiple="true"
                         :display-tag="true"
                         :auto-height="false"
                         @change="handleProjectVisibleSelect"
-                        v-model="multiProjectVisibleScope">
+                        v-model="localProjectScopeList">
                         <bk-option-group
                             v-for="(group, index) in projects"
                             :name="group.name"
@@ -97,11 +97,11 @@
                 type: Boolean,
                 default: false
             },
-            onSetProjectVisible: {
+            isSetProjectVisible: {
                 type: Boolean,
                 default: false
             },
-            multiProjectScope: {
+            projectScopeList: {
                 type: Array,
                 default: () => []
             }
@@ -110,7 +110,7 @@
             return {
                 id: this.project,
                 hasError: false,
-                multiProjectVisibleScope: []
+                localProjectScopeList: []
             }
         },
         computed: {
@@ -152,7 +152,7 @@
             project (val) {
                 this.id = val
             },
-            multiProjectScope (val) {
+            projectScopeList (val) {
                 if (val.includes('*')) {
                     const allIds = []
                     this.projects.forEach((group) => {
@@ -160,9 +160,9 @@
                             allIds.push(item.id)
                         })
                     })
-                    this.multiProjectVisibleScope = allIds
+                    this.localProjectScopeList = allIds
                 } else {
-                    this.multiProjectVisibleScope = [...val]
+                    this.localProjectScopeList = [...val]
                 }
             }
         },
@@ -172,7 +172,7 @@
             },
             handleVisibleConfirm () {
                 this.$emit('onVisibleConfirm')
-                this.multiProjectVisibleScope = []
+                this.localProjectScopeList = []
             },
             handleProjectSelect (id) {
                 this.id = id
@@ -181,7 +181,7 @@
                 this.$emit('onChange', project)
             },
             handleConfirm () {
-                if (this.onSetProjectVisible) {
+                if (this.isSetProjectVisible) {
                     this.handleVisibleConfirm()
                 } else {
                     if (this.confirmLoading) {
@@ -196,7 +196,7 @@
                 }
             },
             handleCancel () {
-                if (this.onSetProjectVisible) {
+                if (this.isSetProjectVisible) {
                     this.$emit('onVisibleCancel')
                 } else {
                     this.id = ''

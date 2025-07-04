@@ -273,7 +273,7 @@
             :confirm-loading="permissionLoading"
             :confirm-cursor="!hasCreateTaskPerm"
             :on-set-project-visible="isOnSetVisible"
-            :multi-project-scope="multiProjectScope"
+            :project-scope-list="projectScopeList"
             @onVisibleChange="handleProjectVisibleChange"
             @onVisibleConfirm="handleProjectVisibleConfirm"
             @onVisibleCancel="handleProjectVisibleCancel">
@@ -507,7 +507,7 @@
                 isOnSetVisible: false,
                 projectScopeSelectList: [],
                 publicProcessId: undefined,
-                multiProjectScope: []
+                projectScopeList: []
             }
         },
         computed: {
@@ -1277,9 +1277,9 @@
             // 点击可见范围
             onVisibleRangCheck (row) {
                 if (row.project_scope[0] !== '*') {
-                    this.multiProjectScope = row.project_scope.map(item => typeof item !== 'number' ? Number(item) : item)
+                    this.projectScopeList = row.project_scope.map(item => typeof item !== 'number' ? Number(item) : item)
                 } else {
-                    this.multiProjectScope = row.project_scope
+                    this.projectScopeList = row.project_scope
                 }
                 this.publicProcessId = row.id
                 this.isOnSetVisible = true
@@ -1299,7 +1299,7 @@
                     isSetProjectScope: true,
                     project_scope: this.projectScopeSelectList
                 })
-                this.projectScopeSelectLis = []
+                this.projectScopeSelectList = []
                 this.isProjectVisibleShow = false
                 this.isOnSetVisible = false
                 this.getTemplateList()
@@ -1366,7 +1366,6 @@
                 }
             },
             handleCreateTaskCancel () {
-                // if()
                 this.selectedTpl = {}
                 this.selectedProject = {}
                 this.isSelectProjectShow = false
