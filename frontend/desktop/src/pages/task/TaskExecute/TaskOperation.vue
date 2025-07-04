@@ -2390,7 +2390,7 @@
                     cursor: default;
                 }
             }
-            /deep/.small-map {
+            ::v-deep .small-map {
                 left: 20px;
             }
         }
@@ -2517,7 +2517,7 @@
         width: auto !important;
     }
 }
-/deep/.suspend-line {
+::v-deep .suspend-line {
     display: flex;
     font-size: 12px;
     color: #ffb946;
