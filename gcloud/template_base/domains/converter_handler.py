@@ -39,7 +39,7 @@ class YamlSchemaConverterHandler:
     def load_yaml_docs(stream: Any):
         """导入Yaml数据文件，返回Yaml字段格式流程列表"""
         try:
-            yaml_docs = list(yaml.load_all(stream, Loader=yaml.FullLoader))
+            yaml_docs = list(yaml.safe_load_all(stream))
         except yaml.YAMLError as e:
             logger.exception("[load_yaml_docs]: {}".format(e))
             return {"result": False, "data": None, "message": e}

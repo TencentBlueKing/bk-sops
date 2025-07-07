@@ -464,6 +464,7 @@ MAKO_SANDBOX_IMPORT_MODULES = {
     "random": "random",
     "time": "time",
     "os.path": "os.path",
+    "config.mock.mock_json": "json",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:
