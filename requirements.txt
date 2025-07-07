@@ -47,9 +47,9 @@ django-versionlog==1.6.0
 bk-iam==1.2.0
 
 # celery 5
-celery==5.1.2
+celery==4.4.0
 django-celery-beat==2.2.0
-django-celery-results==2.1.0
+django-celery-results==2.0.1
 redis==4.1.4
 django-timezone-field==4.1.0
 importlib-metadata==3.7.3
