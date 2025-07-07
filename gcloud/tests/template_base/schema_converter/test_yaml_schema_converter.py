@@ -25,7 +25,7 @@ class YamlSchemaConverterTestCase(TestCase):
         with open("{}/test_complicated_data.json".format(self.dir_path)) as infile:
             self.original_data = json.load(infile)
         with open("{}/test_complicated_yaml_data.yaml".format(self.dir_path)) as infile:
-            self.yaml_docs = list(yaml.load_all(infile, Loader=yaml.FullLoader))
+            self.yaml_docs = list(yaml.safe_load_all(infile))
 
         self.convert_handler = YamlSchemaConverterHandler(version="v1")
 
@@ -90,7 +90,7 @@ class YamlSchemaConverterTestCase(TestCase):
 
     def test_converter_convert_constants(self):
         with open("{}/test_yaml_data.yaml".format(self.dir_path)) as infile:
-            yaml_docs = list(yaml.load_all(infile, Loader=yaml.FullLoader))
+            yaml_docs = list(yaml.safe_load_all(infile))
         with open("{}/test_original_data.json".format(self.dir_path)) as infile:
             original_data = json.load(infile)
         yaml_constants = yaml_docs[0]["spec"]["constants"]
