@@ -50,6 +50,7 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 @iam_intercept(CreatePeriodicTaskInterceptor())
 def create_periodic_task(request, template_id, project_id):
     project = request.project
+    include_edit_info = request.GET.get("include_edit_info", None)
 
     # check if the periodic task of the project reach the limit
     periodic_task_limit = env.PERIODIC_TASK_PROJECT_MAX_NUMBER
@@ -138,5 +139,5 @@ def create_periodic_task(request, template_id, project_id):
         logger.exception("[API] create_periodic_task create error: {}".format(e))
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
-    data = info_data_from_period_task(task)
+    data = info_data_from_period_task(task, include_edit_info=include_edit_info)
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}
