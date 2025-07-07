@@ -78,7 +78,7 @@ def register_grant_resource_creator_actions(instance, resource_type, with_ancest
     try:
         application = resource_creator_action_params(instance, resource_type, with_ancestors)
 
-        ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
+        ok, message = iam.grant_resource_creator_actions(application)
         if not ok:
             logging.error(
                 "[{resource_type}({resource_id}) created grant] {api} failed".format(
