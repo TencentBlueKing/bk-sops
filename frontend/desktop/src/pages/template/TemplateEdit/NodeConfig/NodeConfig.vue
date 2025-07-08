@@ -712,17 +712,16 @@
                     this.formsNotReferred = resp.data.constants_not_referred
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
                     this.updateBasicInfo({ version: resp.data.version })
-                    this.outputs = Object.keys(resp.data.pipeline_tree.constants).map(item => {
-                        const output = resp.data.pipeline_tree.constants[item]
-                        if (output && output.source_type.includes('component_outputs')) {
-                            return {
-                                plugin_code: output.plugin_code,
-                                name: output.name,
-                                key: output.key,
-                                version: output.hasOwnProperty('version') ? output.version : 'legacy'
-                            }
-                        } else return null
-                    }).filter(item => item !== null)
+                    // 输出变量
+                    this.outputs = Object.keys(resp.data.outputs).map(item => {
+                        const output = resp.data.outputs[item]
+                        return {
+                            plugin_code: output.plugin_code,
+                            name: output.name,
+                            key: output.key,
+                            version: output.hasOwnProperty('version') ? output.version : 'legacy'
+                        }
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
