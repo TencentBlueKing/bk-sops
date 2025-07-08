@@ -118,8 +118,7 @@ def register_batch_grant_resource_creator_actions(instance: list, response_type,
         )
 
 
-def register_grant_resource_creator_action_attributes(resource_type, creator, attributes):
-    tenant_id = get_current_tenant_id()
+def register_grant_resource_creator_action_attributes(resource_type, creator, tenant_id, attributes):
     iam = get_iam_client(tenant_id)
     try:
         application = resource_creator_action_attribute_params(resource_type, creator, attributes)

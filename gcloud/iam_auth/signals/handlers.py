@@ -32,4 +32,4 @@ def user_enter_handler(username, **kwargs):
         return
     cache.set(f"user_enter_{username}", 1, 60 * 60)
     logger.info(f"register_grant_resource_creator_task: {username}")
-    register_grant_resource_creator_task.delay(username=username)
+    register_grant_resource_creator_task.delay(username=username, tenant_id=tenant_id)
