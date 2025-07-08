@@ -99,7 +99,7 @@ def register_batch_grant_resource_creator_actions(instance: list, response_type,
     try:
         application = batch_resource_creator_action_params(instance, response_type, creator, with_ancestors)
 
-        ok, message = iam.grant_batch_resource_creator_actions(application, bk_username=creator)
+        ok, message = iam.grant_batch_resource_creator_actions(application)
         if not ok:
             logging.error(
                 "[{resource_type}({resource_id}) batch created grant] {api} failed".format(
@@ -124,7 +124,7 @@ def register_grant_resource_creator_action_attributes(resource_type, creator, at
     try:
         application = resource_creator_action_attribute_params(resource_type, creator, attributes)
 
-        ok, message = iam.grant_resource_creator_action_attributes(application, bk_username=creator)
+        ok, message = iam.grant_resource_creator_action_attributes(application)
         if not ok:
             logging.error(
                 "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(
