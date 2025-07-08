@@ -42,6 +42,7 @@ def get_template_list(request, project_id):
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
     include_labels = request.GET.get("include_labels", None)
+    include_executor_proxy = request.GET.get("include_executor_proxy", None)
 
     if id_in:
         try:
@@ -63,7 +64,9 @@ def get_template_list(request, project_id):
     else:
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
-    template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True, tz=request.tz)
+    template_list, template_id_list = format_template_list_data(
+        templates, project, return_id_list=True, tz=request.tz, include_executor_proxy=include_executor_proxy
+    )
     template_labels = {}
     if include_labels:
         template_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)

@@ -61,6 +61,7 @@ def create_periodic_task(request, template_id, project_id):
         return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
 
     params = json.loads(request.body)
+    include_edit_info = params.get("include_edit_info", None)
     template_source = params.get("template_source", PROJECT)
     logger.info(
         "[API] apigw create_periodic_task info, "
@@ -138,5 +139,5 @@ def create_periodic_task(request, template_id, project_id):
         logger.exception("[API] create_periodic_task create error: {}".format(e))
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
-    data = info_data_from_period_task(task)
+    data = info_data_from_period_task(task, include_edit_info=include_edit_info)
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

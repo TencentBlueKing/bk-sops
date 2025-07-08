@@ -34,12 +34,13 @@ from apigw_manager.apigw.decorators import apigw_require
 @timezone_inject
 @iam_intercept(ProjectViewInterceptor())
 def get_periodic_task_list(request, project_id):
+    include_edit_info = request.GET.get("include_edit_info", None)
     project = request.project
     task_list = PeriodicTask.objects.filter(project_id=project.id)
     data = []
     task_id_list = []
     for task in task_list:
-        task_info = info_data_from_period_task(task, detail=False, tz=request.tz)
+        task_info = info_data_from_period_task(task, detail=False, tz=request.tz, include_edit_info=include_edit_info)
         task_id_list.append(task_info["id"])
         data.append(task_info)
     # 注入用户有权限的actions
