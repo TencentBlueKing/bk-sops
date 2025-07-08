@@ -414,7 +414,7 @@
             :project-id="project_id"
             :row="curSelectedRow"
             @confirm="handleTplBatchUpdateConfirm"
-            @close="closeBatchUpdateDialogShow">
+            @close="isBatchUpdateDialogShow = false">
         </TemplateUpdateDialog>
     </div>
 </template>
@@ -808,9 +808,6 @@
                 'setProjectBaseInfo',
                 'setTemplateData'
             ]),
-            closeBatchUpdateDialogShow () {
-                this.isBatchUpdateDialogShow = false
-            },
             async initData () {
                 try {
                     this.configLoading = true
