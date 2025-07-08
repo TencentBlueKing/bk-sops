@@ -667,23 +667,24 @@
                     } else {
                         $.atoms[plugin] = inputs
                     }
-
-                    // 输出参数
-                    const outputs = []
-                    // 获取第三方插件公共输出参数
-                    if (!this.pluginOutput['remote_plugin']) {
-                        await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                    if (!this.isSubflow) {
+                        // 输出参数
+                        const outputs = []
+                        // 获取第三方插件公共输出参数
+                        if (!this.pluginOutput['remote_plugin']) {
+                            await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        }
+                        const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                        for (const [key, val] of Object.entries(respOutputs.properties)) {
+                            outputs.push({
+                                name: val.title || key,
+                                key,
+                                type: val.type,
+                                schema: { description: val.description }
+                            })
+                        }
+                        this.outputs = [...storeOutputs, ...outputs]
                     }
-                    const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                    for (const [key, val] of Object.entries(respOutputs.properties)) {
-                        outputs.push({
-                            name: val.title || key,
-                            key,
-                            type: val.type,
-                            schema: { description: val.description }
-                        })
-                    }
-                    this.outputs = [...storeOutputs, ...outputs]
                 } catch (error) {
                     console.warn(error)
                 }
@@ -711,17 +712,17 @@
                     this.formsNotReferred = resp.data.constants_not_referred
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
                     this.updateBasicInfo({ version: resp.data.version })
-
-                    // 输出变量
-                    this.outputs = Object.keys(resp.data.outputs).map(item => {
-                        const output = resp.data.outputs[item]
-                        return {
-                            plugin_code: output.plugin_code,
-                            name: output.name,
-                            key: output.key,
-                            version: output.hasOwnProperty('version') ? output.version : 'legacy'
+                    this.outputs = Object.keys(resp.data.pipeline_tree.constants).map(item => {
+                        const output = resp.data.pipeline_tree.constants[item]
+                        if (output && output.source_type.includes('component_outputs')) {
+                            return {
+                                plugin_code: output.plugin_code,
+                                name: output.name,
+                                key: output.key,
+                                version: output.hasOwnProperty('version') ? output.version : 'legacy'
+                            }
                         }
-                    })
+                    }).filter(Boolean)
                 } catch (e) {
                     console.log(e)
                 } finally {

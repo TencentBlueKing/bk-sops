@@ -4,14 +4,14 @@
             class="shared-btn"
             data-test-id="process_form_sharedProcess"
             :disabled="!selected.length"
-            @click="isShowSlider = true">
+            @click="openShowSlider">
             {{$t('共享到商店')}}
         </bk-button>
         <SharedTplSlider
             :is-show="isShowSlider"
             :selected="selected"
             :project_id="project_id"
-            @close="isShowSlider = false">
+            @close="closeShowSlider">
         </SharedTplSlider>
     </div>
 </template>
@@ -32,6 +32,14 @@
         data () {
             return {
                 isShowSlider: false
+            }
+        },
+        methods: {
+            closeShowSlider () {
+                this.isShowSlider = false
+            },
+            openShowSlider () {
+                this.isShowSlider = true
             }
         }
     }
