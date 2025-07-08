@@ -721,8 +721,8 @@
                                 key: output.key,
                                 version: output.hasOwnProperty('version') ? output.version : 'legacy'
                             }
-                        }
-                    }).filter(Boolean)
+                        } else return null
+                    }).filter(item => item !== null)
                 } catch (e) {
                     console.log(e)
                 } finally {
