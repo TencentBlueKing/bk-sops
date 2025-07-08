@@ -10,16 +10,26 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
+
 from django.core.cache import cache
 from django.dispatch import receiver
 
 from gcloud.core.signals import user_enter
+from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.iam_auth.tasks import register_grant_resource_creator_task
+
+logger = logging.getLogger("root")
 
 
 @receiver(user_enter)
 def user_enter_handler(username, **kwargs):
+    logger.info("====================================================")
+    tenant_id = get_current_tenant_id()
+    logger.info(f"tenant_id: {tenant_id}")
+    logger.info("====================================================")
     if cache.get(f"user_enter_{username}"):
         return
     cache.set(f"user_enter_{username}", 1, 60 * 60)
+    logger.info(f"register_grant_resource_creator_task: {username}")
     register_grant_resource_creator_task.delay(username=username)
