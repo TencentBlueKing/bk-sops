@@ -25,7 +25,7 @@ from pipeline.variable_framework.models import VariableModel
 logger = logging.getLogger("root")  # noqa
 
 
-def info_data_from_period_task(task, detail=True, tz=None):
+def info_data_from_period_task(task, detail=True, tz=None, include_edit_info=None):
     info = {
         "id": task.id,
         "name": task.name,
@@ -36,10 +36,15 @@ def info_data_from_period_task(task, detail=True, tz=None):
         "enabled": task.enabled,
         "last_run_at": format_datetime(task.last_run_at, tz),
         "total_run_count": task.total_run_count,
-        "editor": task.editor,
-        "edit_time": format_datetime(task.edit_time, tz),
-        "is_latest": task.template_version == task.template.version if task.template_version else None,
     }
+    if include_edit_info:
+        info.update(
+            {
+                "editor": task.editor,
+                "edit_time": format_datetime(task.edit_time, tz),
+                "is_latest": task.template_version == task.template.version if task.template_version else None,
+            }
+        )
 
     if detail:
         info["form"] = task.form
@@ -48,7 +53,7 @@ def info_data_from_period_task(task, detail=True, tz=None):
     return info
 
 
-def format_template_data(template, project=None, include_subprocess=None, tz=None):
+def format_template_data(template, project=None, include_subprocess=None, tz=None, include_executor_proxy=None):
     pipeline_tree = template.pipeline_tree
     pipeline_tree.pop("line")
     pipeline_tree.pop("location")
@@ -73,7 +78,7 @@ def format_template_data(template, project=None, include_subprocess=None, tz=Non
                 "bk_biz_name": project.name if project.from_cmdb else None,
             }
         )
-    if hasattr(template, "executor_proxy"):
+    if include_executor_proxy and hasattr(template, "executor_proxy"):
         data.update({"executor_proxy": template.executor_proxy})
 
     if include_subprocess:
@@ -87,7 +92,7 @@ def format_template_data(template, project=None, include_subprocess=None, tz=Non
     return data
 
 
-def format_template_list_data(templates, project=None, return_id_list=False, tz=None):
+def format_template_list_data(templates, project=None, return_id_list=False, tz=None, include_executor_proxy=None):
     data = []
     ids = []
     for tmpl in templates:
@@ -114,7 +119,7 @@ def format_template_list_data(templates, project=None, return_id_list=False, tz=
         if return_id_list:
             ids.append(item["id"])
 
-        if hasattr(tmpl, "executor_proxy"):
+        if include_executor_proxy and hasattr(tmpl, "executor_proxy"):
             item.update({"executor_proxy": tmpl.executor_proxy})
 
         data.append(item)

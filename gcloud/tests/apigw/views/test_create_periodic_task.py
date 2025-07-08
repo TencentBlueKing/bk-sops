@@ -49,9 +49,6 @@ class CreatePeriodicTaskAPITest(APITest):
             "total_run_count": task.total_run_count,
             "form": task.form,
             "pipeline_tree": task.pipeline_tree,
-            "editor": task.editor,
-            "edit_time": format_datetime(task.edit_time),
-            "is_latest": True,
         }
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
@@ -121,9 +118,6 @@ class CreatePeriodicTaskAPITest(APITest):
             "total_run_count": task.total_run_count,
             "form": task.form,
             "pipeline_tree": task.pipeline_tree,
-            "editor": task.editor,
-            "edit_time": format_datetime(task.edit_time),
-            "is_latest": True,
         }
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
