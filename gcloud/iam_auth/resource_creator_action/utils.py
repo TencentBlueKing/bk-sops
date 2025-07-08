@@ -125,6 +125,10 @@ def register_grant_resource_creator_action_attributes(resource_type, creator, at
         application = resource_creator_action_attribute_params(resource_type, creator, attributes)
 
         ok, message = iam.grant_resource_creator_action_attributes(application)
+        logging.info("ok: %s" % ok)
+        logging.info("message: %s" % message)
+        logging.info(f"application:{application}")
+        logging.info(f"tenant_id:{tenant_id}")
         if not ok:
             logging.error(
                 "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(
