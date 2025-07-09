@@ -188,6 +188,7 @@
                     if (endpoint) {
                         if (window.BK_USER_WEB_APIGW_URL) {
                             await fetch(endpoint.url, {
+                                method: 'PUT',
                                 headers: {
                                     'X-Bk-Tenant-Id': window.TENANT_ID
                                 },
