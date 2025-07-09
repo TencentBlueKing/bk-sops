@@ -190,7 +190,8 @@
                             await fetch(endpoint.url, {
                                 method: 'PUT',
                                 headers: {
-                                    'X-Bk-Tenant-Id': window.TENANT_ID
+                                    'X-Bk-Tenant-Id': window.TENANT_ID,
+                                    'Content-Type': 'application/json'
                                 },
                                 credentials: 'include',
                                 body: JSON.stringify({ language: local })
