@@ -187,14 +187,12 @@
                     const endpoint = apiEndpoints.find(item => item.condition)
                     if (endpoint) {
                         if (window.BK_USER_WEB_APIGW_URL) {
-                            await axios.put(endpoint.url, { language: local }, {
+                            await fetch(endpoint.url, {
                                 headers: {
-                                    'X-Bk-Tenant-Id': window.TENANT_ID,
-                                    'X-Requested-With': undefined
+                                    'X-Bk-Tenant-Id': window.TENANT_ID
                                 },
-                                xsrfHeaderName: ''
-                            }
-                            )
+                                credentials: 'include'
+                            })
                         } else {
                             await axios.jsonp(endpoint.url, { language: local })
                         }
