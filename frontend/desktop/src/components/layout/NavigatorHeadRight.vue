@@ -189,7 +189,7 @@
                         if (window.BK_USER_WEB_APIGW_URL) {
                             await fetch(endpoint.url, {
                                 headers: {
-                                    'x-bk-tenant-id': window.TENANT_ID
+                                    'X-Bk-Tenant-Id': window.TENANT_ID
                                 },
                                 credentials: 'include'
                             })
