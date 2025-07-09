@@ -192,7 +192,8 @@
                                 headers: {
                                     'X-Bk-Tenant-Id': window.TENANT_ID
                                 },
-                                credentials: 'include'
+                                credentials: 'include',
+                                body: JSON.stringify({ language: local })
                             })
                         } else {
                             await axios.jsonp(endpoint.url, { language: local })
