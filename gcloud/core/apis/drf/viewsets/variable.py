@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.conf import settings
 from pipeline.variable_framework.models import VariableModel
 
 from gcloud.core.apis.drf.serilaziers import VariableSerializer
@@ -20,5 +20,11 @@ from gcloud.core.apis.drf.viewsets import GcloudReadOnlyViewSet
 class VariableViewSet(GcloudReadOnlyViewSet):
     pagination_class = None
     serializer_class = VariableSerializer
-    queryset = VariableModel.objects.filter(status=True).exclude(code="ip")
+    queryset = VariableModel.objects.filter(status=True)
     lookup_field = "code"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if settings.ENABLE_MULTI_TENANT_MODE:
+            queryset = queryset.exclude(code="ip")
+        return queryset
