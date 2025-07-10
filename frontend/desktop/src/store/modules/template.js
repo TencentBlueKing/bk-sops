@@ -201,9 +201,13 @@ const template = {
             subproc_has_update: false
         },
         internalVariable: [],
-        default_flow_type: 'common'
+        default_flow_type: 'common',
+        project_scope: []
     },
     mutations: {
+        setProjectScope (state, project_scope) {
+            state.project_scope = project_scope
+        },
         setTemplateName (state, name) {
             state.name = name
         },
@@ -308,7 +312,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope
             } = data
 
             const pipelineData = JSON.parse(pipeline_tree)
@@ -326,6 +330,7 @@ const template = {
             state.category = category
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
+            state.project_scope = project_scope
             this.commit('template/setPipelineTree', pipelineData)
         },
         setProjectBaseInfo (state, data) {
@@ -932,15 +937,11 @@ const template = {
          * 保存模板数据
          * @param {Object} data 模板完整数据
          */
-        async saveTemplateData ({ state, commit, dispatch }, { templateId, projectId, common, isSetProjectScope = false, project_scope = [] }) {
-            if (isSetProjectScope) {
-                const templateData = await dispatch('loadTemplateData', { templateId, common })
-                commit('setTemplateData', templateData)
-            }
+        async saveTemplateData ({ state, commit, dispatch }, { templateId, projectId, common, isSetProjectScope = false }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type,
-                init_executor_proxy
+                init_executor_proxy, project_scope
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => ({
@@ -1022,6 +1023,9 @@ const template = {
             return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: ['*'] } : { ...params, project_scope }) : params, {
                 headers
             }).then(response => {
+                if (common && templateId === undefined) {
+                    state.project_scope = ['*']
+                }
                 state.init_executor_proxy = state.executor_proxy
                 return response.data
             })

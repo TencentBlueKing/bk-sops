@@ -589,6 +589,7 @@
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
+                'loadTemplateData',
                 'saveTemplateData'
             ]),
             ...mapActions('templateList/', [
@@ -599,6 +600,8 @@
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo',
+                'setProjectScope',
+                'setTemplateData',
                 'setProjectScope'
             ]),
             async queryCreateCommonTplPerm () {
@@ -708,6 +711,7 @@
                 if (!this.hasCreateCommonTplPerm) {
                     this.applyForPermission(['common_flow_create'])
                 } else {
+                    this.setProjectScope([])
                     this.$router.push({
                         name: 'commonTemplatePanel',
                         params: { type: 'new' }
@@ -1275,7 +1279,7 @@
                 }
             },
             // 点击可见范围
-            onVisibleRangCheck (row) {
+            async onVisibleRangCheck (row) {
                 if (row.project_scope[0] !== '*') {
                     this.projectScopeList = row.project_scope.map(item => typeof item !== 'number' ? Number(item) : item)
                 } else {
@@ -1284,9 +1288,12 @@
                 this.publicProcessId = row.id
                 this.isSetVisible = true
                 this.isProjectVisibleShow = true
+                const templateData = await this.loadTemplateData({ templateId: row.template_id, common: true })
+                this.setTemplateData(templateData)
             },
             handleProjectVisibleChange (visible) {
                 this.projectScopeSelectList = visible.map(item => typeof item === 'number' ? String(item) : item)
+                this.setProjectScope(this.projectScopeSelectList)
             },
             handleProjectVisibleCancel () {
                 this.isProjectVisibleShow = false
@@ -1296,8 +1303,7 @@
                 await this.saveTemplateData({
                     templateId: this.publicProcessId,
                     common: true,
-                    isSetProjectScope: true,
-                    project_scope: this.projectScopeSelectList
+                    isSetProjectScope: true
                 })
                 this.projectScopeSelectList = []
                 this.isProjectVisibleShow = false

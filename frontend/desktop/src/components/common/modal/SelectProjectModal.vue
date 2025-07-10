@@ -29,8 +29,19 @@
                         :multiple="true"
                         :display-tag="true"
                         :auto-height="false"
-                        @change="handleProjectVisibleSelect"
+                        @change="handleProjectVisibleChange"
                         v-model="localProjectScopeList">
+                        <div class="bk-option-group-name selectAllProjectScope">
+                            <span class="btn-check-all">
+                                全选{{isSelectAllProjectScope ? '(' + getAllProjectId().length + ')' : ''}}
+                            </span>
+                            <bk-checkbox
+                                class="selectAllProjectScope-checkbox"
+                                :value="isSelectAllProjectScope"
+                                @change="handleSelectAllProjectScope">
+                            </bk-checkbox>
+                        </div>
+                        
                         <bk-option-group
                             v-for="(group, index) in projects"
                             :name="group.name"
@@ -39,9 +50,11 @@
                             <bk-option v-for="item in group.children"
                                 :key="item.id"
                                 :id="item.id"
-                                :name="item.name">
+                                :name="item.name"
+                                :disabled="isSelectAllProjectScope && item.name !== '全选'">
                             </bk-option>
                         </bk-option-group>
+                          
                     </bk-select>
                     <bk-select v-else
                         class="project-select"
@@ -110,7 +123,8 @@
             return {
                 id: this.project,
                 hasError: false,
-                localProjectScopeList: []
+                localProjectScopeList: [],
+                isSelectAllProjectScope: false
             }
         },
         computed: {
@@ -154,21 +168,39 @@
             },
             projectScopeList (val) {
                 if (val.includes('*')) {
-                    const allIds = []
-                    this.projects.forEach((group) => {
-                        group.children.forEach((item) => {
-                            allIds.push(item.id)
-                        })
-                    })
-                    this.localProjectScopeList = allIds
+                    this.isSelectAllProjectScope = true
+                    this.localProjectScopeList = this.getAllProjectId()
                 } else {
                     this.localProjectScopeList = [...val]
+                    this.isSelectAllProjectScope = this.localProjectScopeList.length === this.getAllProjectId().length
                 }
             }
         },
         methods: {
-            handleProjectVisibleSelect (row) {
+            getAllProjectId () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
+            },
+            handleProjectVisibleChange (row) {
+                if (row.length === this.getAllProjectId().length) {
+                    this.isSelectAllProjectScope = true
+                } else {
+                    this.isSelectAllProjectScope = false
+                }
                 this.$emit('onVisibleChange', row)
+            },
+            handleSelectAllProjectScope (row) {
+                if (row) {
+                    this.localProjectScopeList = this.getAllProjectId()
+                } else {
+                    this.localProjectScopeList = []
+                }
+                this.$emit('onVisibleChange', this.localProjectScopeList)
             },
             handleVisibleConfirm () {
                 this.$emit('onVisibleConfirm')
@@ -213,5 +245,15 @@
     }
     .project-select {
         width: 260px;
+    }
+    .selectAllProjectScope{
+        margin: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #dcdee5;
+    }
+    .selectAllProjectScope-checkbox{
+        margin-right: 14px;
     }
 </style>
