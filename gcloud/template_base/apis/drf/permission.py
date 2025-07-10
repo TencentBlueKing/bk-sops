@@ -47,7 +47,7 @@ class TemplatePermissionMixin:
         tenant_id = request.user.tenant_id
         iam = get_iam_client(tenant_id)
         action = self.iam_mapping_config[self.template_type]["delete_action"]
-        resources_list = self.iam_mapping_config[self.template_type]["resources_list_func"](template_ids)
+        resources_list = self.iam_mapping_config[self.template_type]["resources_list_func"](template_ids, tenant_id)
         allow_or_raise_immediate_response_for_resources_list(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
