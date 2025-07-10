@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from pipeline.variable_framework.models import VariableModel
 
-from gcloud.core.apis.drf.viewsets import GcloudReadOnlyViewSet
 from gcloud.core.apis.drf.serilaziers import VariableSerializer
+from gcloud.core.apis.drf.viewsets import GcloudReadOnlyViewSet
 
 
 class VariableViewSet(GcloudReadOnlyViewSet):
     pagination_class = None
     serializer_class = VariableSerializer
-    queryset = VariableModel.objects.filter(status=True)
+    queryset = VariableModel.objects.filter(status=True).exclude(code="ip")
     lookup_field = "code"
