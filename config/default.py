@@ -198,7 +198,7 @@ if env.BKAPP_CORS_ALLOW:
 else:
     CORS_ALLOW_CREDENTIALS = False
 
-CSRF_TRUSTED_ORIGINS = env.BKAPP_CSRF_TRUSTED_ORIGINS.split(",")
+CSRF_TRUSTED_ORIGINS = [origin for origin in env.BKAPP_CSRF_TRUSTED_ORIGINS.split(",") if origin]
 
 if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
