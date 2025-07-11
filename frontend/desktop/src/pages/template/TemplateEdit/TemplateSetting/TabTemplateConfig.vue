@@ -128,7 +128,7 @@
                             v-model="baseInfoProjectScopeList">
                             <div class="bk-option-group-name select-all-project-scope">
                                 <span class="btn-check-all">
-                                    {{ $t('全选') }}{{isBaseInfoSelectAllProjectScope ? '(' + getAllProjectId().length + ')' : ''}}
+                                    {{ $t('全选') }}{{isBaseInfoSelectAllProjectScope ? '(' + allProjectIds.length + ')' : ''}}
                                 </span>
                                 <bk-checkbox
                                     class="select-all-project-scope-checkbox"
@@ -400,16 +400,25 @@
                     }
                 })
                 return projects
+            },
+            allProjectIds () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
             }
         },
         created () {
             if (this.common) {
                 if (this.formData.project_scope.includes('*')) {
                     this.isBaseInfoSelectAllProjectScope = true
-                    this.baseInfoProjectScopeList = this.getAllProjectId()
+                    this.baseInfoProjectScopeList = this.allProjectIds
                 } else {
                     this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
-                    this.isBaseInfoSelectAllProjectScope = this.baseInfoProjectScopeList.length === this.getAllProjectId().length
+                    this.isBaseInfoSelectAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
                 }
             }
         },
@@ -431,18 +440,9 @@
                 'getProjectConfig',
                 'createTemplateLabel'
             ]),
-            getAllProjectId () {
-                const allIds = []
-                this.projects.forEach((group) => {
-                    group.children.forEach((item) => {
-                        allIds.push(item.id)
-                    })
-                })
-                return allIds
-            },
             handleBaseInfoSelectAllProjectScope (row) {
                 if (row) {
-                    this.baseInfoProjectScopeList = this.getAllProjectId()
+                    this.baseInfoProjectScopeList = this.allProjectIds
                 } else {
                     this.baseInfoProjectScopeList = []
                 }
@@ -451,7 +451,7 @@
             },
             handleBaseInfoProjectVisibleChange (row) {
                 const filterList = [...new Set(row)]
-                if (filterList.length === this.getAllProjectId().length) {
+                if (filterList.length === this.allProjectIds.length) {
                     this.isBaseInfoSelectAllProjectScope = true
                 } else {
                     this.isBaseInfoSelectAllProjectScope = false

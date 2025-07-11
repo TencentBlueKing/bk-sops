@@ -33,7 +33,7 @@
                         v-model="localProjectScopeList">
                         <div class="bk-option-group-name select-all-project-scope">
                             <span class="btn-check-all">
-                                {{ $t('全选') }}{{isSelectAllProjectScope ? '(' + getAllProjectId().length + ')' : ''}}
+                                {{ $t('全选') }}{{isSelectAllProjectScope ? '(' + allProjectIds.length + ')' : ''}}
                             </span>
                             <bk-checkbox
                                 class="select-all-project-scope-checkbox"
@@ -160,6 +160,15 @@
                 })
 
                 return projects
+            },
+            allProjectIds () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
             }
         },
         watch: {
@@ -169,26 +178,17 @@
             projectScopeList (val) {
                 if (val.includes('*')) {
                     this.isSelectAllProjectScope = true
-                    this.localProjectScopeList = this.getAllProjectId()
+                    this.localProjectScopeList = this.allProjectIds
                 } else {
                     this.localProjectScopeList = [...val]
-                    this.isSelectAllProjectScope = this.localProjectScopeList.length === this.getAllProjectId().length
+                    this.isSelectAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
                 }
             }
         },
         methods: {
-            getAllProjectId () {
-                const allIds = []
-                this.projects.forEach((group) => {
-                    group.children.forEach((item) => {
-                        allIds.push(item.id)
-                    })
-                })
-                return allIds
-            },
             handleProjectVisibleChange (row) {
                 const filterList = [...new Set(row)]
-                if (filterList.length === this.getAllProjectId().length) {
+                if (filterList.length === this.allProjectIds.length) {
                     this.isSelectAllProjectScope = true
                 } else {
                     this.isSelectAllProjectScope = false
@@ -197,7 +197,7 @@
             },
             handleSelectAllProjectScope (row) {
                 if (row) {
-                    this.localProjectScopeList = this.getAllProjectId()
+                    this.localProjectScopeList = this.allProjectIds
                 } else {
                     this.localProjectScopeList = []
                 }
