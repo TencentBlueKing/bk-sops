@@ -325,7 +325,8 @@
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
-                'infoBasicConfig': state => state.infoBasicConfig
+                'infoBasicConfig': state => state.infoBasicConfig,
+                'project_scope': state => state.template.project_scope
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -526,7 +527,8 @@
                 'replaceLineAndLocation',
                 'setPipelineTree',
                 'setInternalVariable',
-                'setConstants'
+                'setConstants',
+                'setProjectScope'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -821,7 +823,7 @@
                 }
 
                 try {
-                    const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common, 'project_scope': this.project_scope })
                     if (!resp.result) {
                         // 前端校验返回数据包含errorId，此时采用message消息提醒
                         if ('errorId' in resp) {

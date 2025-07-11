@@ -70,6 +70,7 @@ const en = {
     '新建任务': 'New Task',
     '执行历史': 'History',
     '我创建的': 'Mine',
+    '可见范围': 'Visible Range',
 
     // 表格设置
     '表格设置': 'Table Settings',
