@@ -19,6 +19,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.constants import PROJECT
+from gcloud.core.models import Project
 
 
 class CommonTemplateListSerializer(BaseTemplateSerializer):
@@ -42,7 +43,12 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
         exclude = ["extra_info"]
 
     def get_project_scope(self, obj):
-        return obj.extra_info.get("project_scope")
+        project_scope = obj.extra_info.get("project_scope")
+        if project_scope == ["*"]:
+            return project_scope
+        else:
+            project_list = Project.objects.filter(id__in=project_scope).values_list("name", flat=True)
+            return project_list
 
 
 class CommonTemplateSerializer(CommonTemplateListSerializer):
@@ -116,11 +122,6 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
         if len(new_executor_proxies) > 1 or (new_executor_proxies and user.username != new_executor_proxies.pop()):
             raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
-
-    def _convert_scope_format(self, raw_scope):
-        if raw_scope == "*":
-            return {"project": ["*"]}
-        return {"project": [pid for pid in raw_scope.split(",")]}
 
     def _validate_scope_changes(self, scope_value):
         if scope_value == ["*"]:
