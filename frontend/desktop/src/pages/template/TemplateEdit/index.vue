@@ -823,7 +823,6 @@
                 }
 
                 try {
-                    console.log('state-project_scope', this.project_scope)
                     const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common, 'project_scope': this.project_scope })
                     if (!resp.result) {
                         // 前端校验返回数据包含errorId，此时采用message消息提醒
