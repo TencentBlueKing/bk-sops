@@ -116,6 +116,41 @@
                             }">
                         </i>
                     </bk-form-item>
+                    <bk-form-item v-if="common" property="project_scope" :label="$t('可见范围')" data-test-id="tabTemplateConfig_form_projectScope">
+                        <bk-select class="project-select"
+                            :searchable="true"
+                            :clearable="true"
+                            :multiple="true"
+                            :display-tag="true"
+                            :auto-height="false"
+                            :readonly="isViewMode"
+                            @change="handleBaseInfoProjectVisibleChange"
+                            v-model="baseInfoProjectScopeList">
+                            <div class="bk-option-group-name select-all-project-scope">
+                                <span class="btn-check-all">
+                                    {{ $t('全选') }}{{isBaseInfoSelectAllProjectScope ? '(' + getAllProjectId().length + ')' : ''}}
+                                </span>
+                                <bk-checkbox
+                                    class="select-all-project-scope-checkbox"
+                                    :value="isBaseInfoSelectAllProjectScope"
+                                    id="select-all-project-scope"
+                                    @change="handleBaseInfoSelectAllProjectScope">
+                                </bk-checkbox>
+                            </div>
+                            <bk-option-group
+                                v-for="(group, index) in projects"
+                                :name="group.name"
+                                :key="index"
+                                :show-select-all="true">
+                                <bk-option v-for="item in group.children"
+                                    :key="item.id"
+                                    :id="item.id"
+                                    :name="item.name"
+                                    :disabled="isBaseInfoSelectAllProjectScope">
+                                </bk-option>
+                            </bk-option-group>
+                        </bk-select>
+                    </bk-form-item>
                 </section>
                 <section class="form-section">
                     <h4>
@@ -249,7 +284,7 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels, default_flow_type
+                executor_proxy, template_labels, default_flow_type, project_scope
             } = this.$store.state.template
             const { extra_info: extraInfo = {} } = notify_receivers
 
@@ -263,7 +298,8 @@
                     notifyType: [notify_type.success.slice(0), notify_type.fail.slice(0)],
                     notifyTypeExtraInfo: { ...extraInfo },
                     labels: template_labels,
-                    defaultFlowType: default_flow_type
+                    defaultFlowType: default_flow_type,
+                    project_scope: project_scope
                 },
                 stringLength: STRING_LENGTH,
                 rules: {
@@ -320,7 +356,9 @@
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
                 labelLoading: false,
-                proxyPlaceholder: ''
+                proxyPlaceholder: '',
+                isBaseInfoSelectAllProjectScope: false,
+                baseInfoProjectScopeList: []
             }
         },
         computed: {
@@ -332,24 +370,94 @@
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName,
-                'authActions': state => state.authActions
-            })
+                'authActions': state => state.authActions,
+                'projectList': state => state.userProjectList
+            }),
+            projects () {
+                const projects = []
+                const projectsGroup = [
+                    {
+                        name: i18n.t('业务'),
+                        id: 1,
+                        children: []
+                    },
+                    {
+                        id: 2,
+                        name: i18n.t('项目'),
+                        children: []
+                    }
+                ]
+                this.projectList.forEach(item => {
+                    if (item.from_cmdb) {
+                        projectsGroup[0].children.push(item)
+                    } else {
+                        projectsGroup[1].children.push(item)
+                    }
+                })
+                projectsGroup.forEach(group => {
+                    if (group.children.length) {
+                        projects.push(group)
+                    }
+                })
+                return projects
+            }
         },
+        created () {
+            if (this.common) {
+                if (this.formData.project_scope.includes('*')) {
+                    this.isBaseInfoSelectAllProjectScope = true
+                    this.baseInfoProjectScopeList = this.getAllProjectId()
+                } else {
+                    this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
+                    this.isBaseInfoSelectAllProjectScope = this.baseInfoProjectScopeList.length === this.getAllProjectId().length
+                }
+            }
+        },
+      
         mounted () {
             // 模板没有设置执行代理人时，默认使用项目下的执行代理人
             if (!this.formData.executorProxy.length) {
                 this.setExecutorProxy()
             }
             this.$refs.nameInput.focus()
+            console.log('formData', this.formData)
         },
         methods: {
             ...mapMutations('template/', [
-                'setTplConfig'
+                'setTplConfig',
+                'setProjectScope'
             ]),
             ...mapActions('project', [
                 'getProjectConfig',
                 'createTemplateLabel'
             ]),
+            getAllProjectId () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
+            },
+            handleBaseInfoSelectAllProjectScope (row) {
+                if (row) {
+                    this.baseInfoProjectScopeList = this.getAllProjectId()
+                } else {
+                    this.baseInfoProjectScopeList = []
+                }
+                this.baseInfoProjectScopeList = row.map(item => typeof item === 'number' ? String(item) : item)
+                this.setProjectScope(this.baseInfoProjectScopeList)
+            },
+            handleBaseInfoProjectVisibleChange (row) {
+                const filterList = [...new Set(row)]
+                if (filterList.length === this.getAllProjectId().length) {
+                    this.isBaseInfoSelectAllProjectScope = true
+                } else {
+                    this.isBaseInfoSelectAllProjectScope = false
+                }
+                this.setProjectScope(filterList.map(item => typeof item === 'number' ? String(item) : item))
+            },
             onSelectCategory (val) {
                 if (val) {
                     window.reportInfo({
@@ -403,6 +511,7 @@
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo } = this.formData
+                const localProjectList = this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
                 return {
                     name,
                     category,
@@ -412,7 +521,8 @@
                     receiver_group: receiverGroup,
                     notify_type: { success: notifyType[0], fail: notifyType[1] },
                     notify_type_extra_info: notifyTypeExtraInfo,
-                    default_flow_type: defaultFlowType
+                    default_flow_type: defaultFlowType,
+                    project_scope: localProjectList
                 }
             },
             onSelectedExecutorProxy (val) {
@@ -622,4 +732,14 @@
         display: block;
     }
 }
+    .select-all-project-scope{
+        margin: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #dcdee5;
+    }
+    .select-all-project-scope-checkbox{
+        margin-right: 14px;
+    }
 </style>

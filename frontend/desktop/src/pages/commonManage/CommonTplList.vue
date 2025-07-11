@@ -371,6 +371,11 @@
             id: 'editor_name',
             label: i18n.t('更新人'),
             width: 160
+        },
+        {
+            id: 'project_scope',
+            label: i18n.t('可见范围'),
+            width: 200
         }
     ]
     export default {

@@ -31,12 +31,12 @@
                         :auto-height="false"
                         @change="handleProjectVisibleChange"
                         v-model="localProjectScopeList">
-                        <div class="bk-option-group-name selectAllProjectScope">
+                        <div class="bk-option-group-name select-all-project-scope">
                             <span class="btn-check-all">
-                                全选{{isSelectAllProjectScope ? '(' + getAllProjectId().length + ')' : ''}}
+                                {{ $t('全选') }}{{isSelectAllProjectScope ? '(' + getAllProjectId().length + ')' : ''}}
                             </span>
                             <bk-checkbox
-                                class="selectAllProjectScope-checkbox"
+                                class="select-all-project-scope-checkbox"
                                 :value="isSelectAllProjectScope"
                                 @change="handleSelectAllProjectScope">
                             </bk-checkbox>
@@ -51,7 +51,7 @@
                                 :key="item.id"
                                 :id="item.id"
                                 :name="item.name"
-                                :disabled="isSelectAllProjectScope && item.name !== '全选'">
+                                :disabled="isSelectAllProjectScope">
                             </bk-option>
                         </bk-option-group>
                           
@@ -187,12 +187,13 @@
                 return allIds
             },
             handleProjectVisibleChange (row) {
-                if (row.length === this.getAllProjectId().length) {
+                const filterList = [...new Set(row)]
+                if (filterList.length === this.getAllProjectId().length) {
                     this.isSelectAllProjectScope = true
                 } else {
                     this.isSelectAllProjectScope = false
                 }
-                this.$emit('onVisibleChange', row)
+                this.$emit('onVisibleChange', filterList)
             },
             handleSelectAllProjectScope (row) {
                 if (row) {
@@ -246,14 +247,14 @@
     .project-select {
         width: 260px;
     }
-    .selectAllProjectScope{
+    .select-all-project-scope{
         margin: 0 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         border-bottom: 1px solid #dcdee5;
     }
-    .selectAllProjectScope-checkbox{
+    .select-all-project-scope-checkbox{
         margin-right: 14px;
     }
 </style>

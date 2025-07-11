@@ -224,7 +224,8 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels, default_flow_type, notify_type_extra_info } = data
+            const { name, category, notify_type, receiver_group, description, executor_proxy,
+                template_labels, default_flow_type, notify_type_extra_info, project_scope } = data
             state.name = name
             state.category = category
             state.notify_type = notify_type
@@ -234,6 +235,7 @@ const template = {
             state.executor_proxy = executor_proxy
             state.template_labels = template_labels
             state.default_flow_type = default_flow_type
+            state.project_scope = project_scope
         },
         setSubprocessUpdated (state, subflow) {
             if (state.subprocess_info) {
