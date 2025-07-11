@@ -66,6 +66,9 @@ class CommonTemplatePermission(IamPermission):
         "update": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        "partial_update": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
         "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
         "enable_independent_subprocess": IamPermissionInfo(pass_all=True),
         "common_info": IamPermissionInfo(pass_all=True),
