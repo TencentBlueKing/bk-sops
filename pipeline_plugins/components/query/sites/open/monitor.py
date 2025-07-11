@@ -2,12 +2,11 @@
 
 import logging
 
-from django.conf.urls import url
+from django.http import JsonResponse
+from django.urls import re_path
+from django.utils.translation import gettext_lazy as _
 
 from api import BKMonitorClient
-from django.utils.translation import ugettext_lazy as _
-from django.http import JsonResponse
-
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 
 logger = logging.getLogger("root")
@@ -30,4 +29,4 @@ def monitor_get_strategy(request, biz_cc_id):
     return JsonResponse({"result": True, "data": strategy_list})
 
 
-monitor_urlpatterns = [url(r"^monitor_get_strategy/(?P<biz_cc_id>\d+)/$", monitor_get_strategy)]
+monitor_urlpatterns = [re_path(r"^monitor_get_strategy/(?P<biz_cc_id>\d+)/$", monitor_get_strategy)]

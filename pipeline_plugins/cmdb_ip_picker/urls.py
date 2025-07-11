@@ -11,12 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import query
 
 urlpatterns = [
-    url(r'^cmdb_search_topo_tree/(?P<bk_biz_id>\d+)/$', query.cmdb_search_topo_tree),
-    url(r'^cmdb_search_host/(?P<bk_biz_id>\d+)/$', query.cmdb_search_host),
-    url(r'^cmdb_get_mainline_object_topo/(?P<bk_biz_id>\d+)/$', query.cmdb_get_mainline_object_topo),
+    re_path(r"^cmdb_search_topo_tree/(?P<bk_biz_id>\d+)/$", query.cmdb_search_topo_tree),
+    re_path(r"^cmdb_search_host/(?P<bk_biz_id>\d+)/$", query.cmdb_search_host),
+    re_path(r"^cmdb_get_mainline_object_topo/(?P<bk_biz_id>\d+)/$", query.cmdb_get_mainline_object_topo),
 ]

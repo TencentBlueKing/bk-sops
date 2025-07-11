@@ -12,11 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext_lazy as _
+from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
-from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
 
@@ -27,7 +26,10 @@ class DisplayService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("展示内容"), key="bk_display_message", type="string", schema=StringItemSchema(description=_("展示内容"))
+                name=_("展示内容"),
+                key="bk_display_message",
+                type="string",
+                schema=StringItemSchema(description=_("展示内容")),
             ),
         ]
 

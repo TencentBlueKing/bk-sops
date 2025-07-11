@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from copy import deepcopy
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
 from api.collections.nodeman import BKNodeManClient
@@ -178,7 +178,9 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                         try:
                             row_host_info["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
+                            data.set_outputs(
+                                "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip))
+                            )
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -191,7 +193,10 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                             if len(others_ip_list) == len(inner_ip_list):
                                 row_host_info[ip_type] = others_ip_list[index]
                             else:
-                                data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
+                                data.set_outputs(
+                                    "ex_data",
+                                    _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)),
+                                )
                                 return False
 
                     row_host_params_list.append(row_host_info)
@@ -219,4 +224,8 @@ class NodemanCreateTaskComponent(Component):
     bound_service = NodemanCreateTaskService
     form = "%scomponents/atoms/nodeman/create_task/v4_0.js" % settings.STATIC_URL
     version = VERSION
-    desc = _("v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n" "卸载AGENT操作参数和重装AGENT保持一致 \n" "移除操作下线")
+    desc = _(
+        "v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n"
+        "卸载AGENT操作参数和重装AGENT保持一致 \n"
+        "移除操作下线"
+    )

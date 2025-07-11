@@ -11,15 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
-from gcloud.contrib.template_market.viewsets import TemplatePreviewAPIView, TemplateSceneViewSet
 
+from gcloud.contrib.template_market.viewsets import TemplatePreviewAPIView, TemplateSceneViewSet
 
 template_market_router = DefaultRouter()
 template_market_router.register(r"templates_scene", TemplateSceneViewSet)
 
 urlpatterns = [
-    url(r"^api/", include(template_market_router.urls)),
-    url(r"^api/template_preview/$", TemplatePreviewAPIView.as_view()),
+    re_path(r"^api/", include(template_market_router.urls)),
+    re_path(r"^api/template_preview/$", TemplatePreviewAPIView.as_view()),
 ]

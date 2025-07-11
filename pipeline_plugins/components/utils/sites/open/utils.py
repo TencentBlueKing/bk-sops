@@ -16,7 +16,7 @@ import re
 from collections import Counter
 
 from cryptography.fernet import Fernet
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 import env
 from gcloud.conf import settings
@@ -126,7 +126,9 @@ def get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list):
     for ip_info in ipv4_info_list:
         ip_result.append(
             {
-                "InnerIP": ip_info["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": ip_info["host"][
+                    "bk_host_innerip"
+                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": ip_info["host"]["bk_host_id"],
                 "Source": ip_info["host"].get("bk_cloud_id", -1),
                 "Sets": ip_info["set"],
@@ -168,7 +170,9 @@ def get_ipv4_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv4
     for item in ipv4_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"][
+                    "bk_host_innerip"
+                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -225,7 +229,9 @@ def get_ipv6_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv6
     for item in ipv6_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"]["bk_host_innerip_v6"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"][
+                    "bk_host_innerip_v6"
+                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -536,7 +542,11 @@ def get_repeat_ip(ip_list):
         repeat_ip_detail.setdefault(ip_info["ip"], []).append(ip_info["bk_cloud_id"])
 
     return ",".join(
-        ["ip: {} 管控区域{}".format(repeat_ip, value) for repeat_ip, value in repeat_ip_detail.items() if len(value) > 0]
+        [
+            "ip: {} 管控区域{}".format(repeat_ip, value)
+            for repeat_ip, value in repeat_ip_detail.items()
+            if len(value) > 0
+        ]
     )
 
 
@@ -594,7 +604,9 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
         # 这种情况应该是存在一个ip下有多个管控区域的情况
         if not ignore_ex_data:
             repeat_err_msg = get_repeat_ip(ip_list)
-            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(repeat_err_msg)
+            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(
+                repeat_err_msg
+            )
         return False, []
     if not ip_list:
         if not ignore_ex_data:

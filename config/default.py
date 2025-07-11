@@ -21,7 +21,9 @@ from bkcrypto.asymmetric.options import RSAAsymmetricOptions
 from blueapps.conf.default_settings import *  # noqa
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.opentelemetry.utils import inject_logging_trace_info
-from django.utils.translation import ugettext_lazy as _
+from django.db.backends.mysql.features import DatabaseFeatures
+from django.utils.functional import cached_property
+from django.utils.translation import gettext_lazy as _
 from pipeline.celery.queues import ScalableQueues
 
 import env
@@ -215,7 +217,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.33.15"
+STATIC_VERSION = "3.34.2-rc1"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -687,6 +689,7 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
@@ -931,3 +934,22 @@ CLEAN_EXPIRED_STATISTICS_CRON = env.CLEAN_EXPIRED_STATISTICS_CRON
 # 允许的HTTP插件域名
 ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = env.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK
 ALLOWED_HTTP_PLUGIN_DOMAINS = env.ALLOWED_HTTP_PLUGIN_DOMAINS
+
+# 定义一个补丁来兼容 MySQL 5.7
+class PatchFeatures:
+    @cached_property
+    def minimum_database_version(self):
+        if self.connection.mysql_is_mariadb:
+            return (10, 4)
+        else:
+            return (5, 7)
+
+
+# 将补丁应用到 DatabaseFeatures 中
+DatabaseFeatures.minimum_database_version = PatchFeatures.minimum_database_version
+
+SCHEME_HTTPS = "https"
+SCHEME_HTTP = "http"
+BKPAAS_BK_DOMAIN = env.BKPAAS_BK_DOMAIN
+CSRF_TRUSTED_ORIGINS = [f"{SCHEME_HTTPS}://*.{BKPAAS_BK_DOMAIN}", f"{SCHEME_HTTP}://*.{BKPAAS_BK_DOMAIN}"]
+

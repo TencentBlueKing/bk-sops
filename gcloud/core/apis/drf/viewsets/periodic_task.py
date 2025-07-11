@@ -15,7 +15,7 @@ import logging
 
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.exceptions import PipelineException
 from rest_framework import permissions, status
 from rest_framework.exceptions import APIException

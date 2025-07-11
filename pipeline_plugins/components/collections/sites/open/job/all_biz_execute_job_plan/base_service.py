@@ -4,7 +4,7 @@ from copy import deepcopy
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
@@ -68,7 +68,9 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
                     item_schema=ObjectItemSchema(
                         description=_("全局变量"),
                         property_schemas={
-                            "type": IntItemSchema(description=_("变量类型，字符串(1) 命名空间(2) IP(3) 密码(4) 数组(5)")),
+                            "type": IntItemSchema(
+                                description=_("变量类型，字符串(1) 命名空间(2) IP(3) 密码(4) 数组(5)")
+                            ),
                             "name": StringItemSchema(description=_("变量名")),
                             "value": StringItemSchema(description=_("变量值")),
                         },

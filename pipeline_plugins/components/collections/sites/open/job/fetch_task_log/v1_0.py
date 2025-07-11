@@ -14,14 +14,14 @@ specific language governing permissions and limitations under the License.
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import StringItemSchema
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -50,7 +50,10 @@ class JobFetchTaskLogService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务日志"), key="job_task_log", type="string", schema=StringItemSchema(description=_("任务日志"))
+                name=_("任务日志"),
+                key="job_task_log",
+                type="string",
+                schema=StringItemSchema(description=_("任务日志")),
             )
         ]
 

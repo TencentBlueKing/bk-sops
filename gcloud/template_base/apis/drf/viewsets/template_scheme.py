@@ -15,7 +15,7 @@ import logging
 from collections import Counter
 
 from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateRelationship, TemplateScheme
@@ -139,25 +139,33 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         template_quote_scheme_ids_set = set(self.get_scheme_quote_count_dict(pipeline_template_template_id).keys())
 
         if remove_scheme_ids_set & template_quote_scheme_ids_set:
-            message = _(f"执行方案删除失败: 待删除的[执行方案]已被引用[{template_quote_scheme_ids_set}], 请处理后重试 | batch_operate")
+            message = _(
+                f"执行方案删除失败: 待删除的[执行方案]已被引用[{template_quote_scheme_ids_set}], 请处理后重试 | batch_operate"
+            )
             logger.error(message)
             return message
 
         app_maker_names = self.get_app_maker_names_scheme_quote(template_id, remove_scheme_ids_set)
         if app_maker_names:
-            message = _(f"执行方案删除失败: 待删除的[执行方案]已被这些轻应用所引用{app_maker_names}, 请处理后重试 | batch_operate")
+            message = _(
+                f"执行方案删除失败: 待删除的[执行方案]已被这些轻应用所引用{app_maker_names}, 请处理后重试 | batch_operate"
+            )
             logger.error(message)
             return message
 
         periodic_names = self.get_periodic_task_names_scheme_quote(template_id, remove_scheme_ids_set)
         if periodic_names:
-            message = _(f"执行方案删除失败: 待删除的[执行方案]已被这些周期任务所引用{periodic_names}, 请处理后重试 | batch_operate")
+            message = _(
+                f"执行方案删除失败: 待删除的[执行方案]已被这些周期任务所引用{periodic_names}, 请处理后重试 | batch_operate"
+            )
             logger.error(message)
             return message
 
         clocked_names = self.get_clocked_task_names_scheme_quote(template_id, remove_scheme_ids_set)
         if clocked_names:
-            message = _(f"执行方案删除失败: 待删除的[执行方案]已被这些计划任务所引用{clocked_names}, 请处理后重试 | batch_operate")
+            message = _(
+                f"执行方案删除失败: 待删除的[执行方案]已被这些计划任务所引用{clocked_names}, 请处理后重试 | batch_operate"
+            )
             logger.error(message)
             return message
 

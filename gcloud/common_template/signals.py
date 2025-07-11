@@ -16,4 +16,4 @@ from django.dispatch import Signal
 # 项目模板保存后可见的信号，在模板保存事务提交后发出
 # template_id: 模板 ID
 # is_deleted: 模板是否被删除
-post_template_save_commit = Signal(providing_args=["template_id", "is_deleted"])
+post_template_save_commit = Signal()  # providing_args=["template_id", "is_deleted"]

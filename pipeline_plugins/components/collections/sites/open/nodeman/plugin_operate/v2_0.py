@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
@@ -29,7 +29,10 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("插件操作信息"),
@@ -82,7 +85,9 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
         ip_str = data.inputs.nodeman_host_ip
         host_result = self.get_host_list(executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
         if not host_result["result"]:
-            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(host_result["message"])))
+            data.set_outputs(
+                "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(host_result["message"]))
+            )
             return False
         host = [int(host_id) for host_id in host_result["data"]]
 

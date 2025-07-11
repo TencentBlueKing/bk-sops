@@ -18,7 +18,7 @@ from enum import Enum
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
@@ -121,7 +121,9 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         # find repeat innerip host
         host_counter = Counter([host["bk_host_innerip"] for host in host_list])
         mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
-        message = _(f"IP [{', '.join(mutiple_innerip_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+        message = _(
+            f"IP [{', '.join(mutiple_innerip_hosts)}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"
+        )
         logger.error(message)
         return {
             "result": False,
@@ -131,7 +133,9 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     if len(host_list) < len(ip_list):
         return_innerip_set = {host["bk_host_innerip"] for host in host_list}
         absent_innerip = set(ip_list).difference(return_innerip_set)
-        message = _(f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip")
+        message = _(
+            f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"
+        )
         logger.error(message)
         return {"result": False, "message": message}
 
@@ -200,7 +204,8 @@ def cc_get_host_id_by_innerip_and_cloudid(executor, bk_biz_id, ip_str, supplier_
                     return_innerip_set.add(host["bk_host_innerip"])
             absent_innerip = set(ipv4s).difference(return_innerip_set)
             message = (
-                f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
+                f"IP [{', '.join(absent_innerip)}] 在本业务下不存在: "
+                "请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip_and_cloudid"
             )
             logger.error(message)
             return {"result": False, "message": message}
@@ -448,7 +453,9 @@ def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list)
                     inst_id_list.append(match_node["bk_inst_id"])
                 topo_node_list = match_node["child"]
             else:
-                message = _(f"拓扑路径 [{'>'.join(path)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id")
+                message = _(
+                    f"拓扑路径 [{'>'.join(path)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"
+                )
                 logger.error(message)
                 return {"result": False, "message": message}
     return {"result": True, "data": inst_id_list}
@@ -478,7 +485,9 @@ def cc_list_select_node_inst_id(
 
     # 对输入的文本路径进行业务层级校验
     if bk_obj_type.name not in BkObjType.__members__:
-        message = _(f"拓扑路径 [{bk_obj_type}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | cc_list_select_node_inst_id")
+        message = _(
+            f"拓扑路径 [{bk_obj_type}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | cc_list_select_node_inst_id"
+        )
         logger.error(message)
         return {"result": False, "message": message}
 

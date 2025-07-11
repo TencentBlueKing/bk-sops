@@ -14,7 +14,7 @@ specific lan
 import itertools
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateScheme
 from rest_framework import permissions
@@ -115,7 +115,9 @@ class BatchTemplateFormWithSchemesView(APIView):
                 try:
                     preview_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
                 except Exception as e:
-                    message = _(f"请求参数信息失败: 批量获取带执行方案的流程表单失败, 错误信息: {e}, 请重试. 如持续失败可联系管理员处理 | batch form with schemes")
+                    message = _(
+                        f"请求参数信息失败: 批量获取带执行方案的流程表单失败, 错误信息: {e}, 请重试. 如持续失败可联系管理员处理 | batch form with schemes"
+                    )
                     logger.error(message)
                     return Response({"result": False, "message": message, "data": {}})
                 data[template_id].append(

@@ -15,6 +15,7 @@ exclude =
     local/*,
     blueapps/*,
     local_settings.py,
+    scripts/*,
 max-line-length = 120
 max-complexity = 12
 format = pylint

@@ -15,30 +15,25 @@ import logging
 import traceback
 
 from django.http import JsonResponse
-from django.conf.urls import url
-
+from django.urls import path, re_path
+from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
 from api.utils.request import batch_request
+from gcloud.conf import settings
+from gcloud.core.utils import get_user_business_list
+from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
-from pipeline_plugins.base.utils.inject import (
-    supplier_account_inject,
-    supplier_id_inject,
-)
+from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_id_inject
 from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
+    cmdb_search_host,
+    cmdb_search_topo_tree,
 )
-
-from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
-from gcloud.exceptions import APIError, ApiRequestError
-from gcloud.core.utils import get_user_business_list
 from pipeline_plugins.components.utils import batch_execute_func
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -397,7 +392,9 @@ def cc_get_editable_module_attribute(request, biz_cc_id):
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_module_attribute")
+        message = _(
+            f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_module_attribute"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "data": message})
     data = result["data"]
@@ -441,7 +438,9 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_set_attribute")
+        message = _(
+            f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_set_attribute"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "data": message})
     data = result["data"]
@@ -540,53 +539,53 @@ def list_business_set(request):
 
 
 cc_urlpatterns = [
-    url(r"^cc_get_editable_module_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_module_attribute),
-    url(
+    re_path(r"^cc_get_editable_module_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_module_attribute),
+    re_path(
         r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
         cc_search_object_attribute,
     ),
-    url(
+    re_path(
         r"^cc_search_object_attribute_all/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
         cc_search_object_attribute_all,
     ),
-    url(
+    re_path(
         r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
         cc_search_create_object_attribute,
     ),
-    url(
+    re_path(
         r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$",
         cc_search_topo,
     ),
-    url(
+    re_path(
         r"^cc_list_service_category/(?P<biz_cc_id>\w+)/(?P<bk_parent_id>\w+)/$",
         cc_list_service_category,
     ),
-    url(
+    re_path(
         r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$",
         cc_list_service_template,
     ),
-    url(
+    re_path(
         r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$",
         cc_get_service_category_topo,
     ),
     # IP selector
-    url(r"^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$", cc_search_topo_tree),
-    url(r"^cc_search_host/(?P<biz_cc_id>\d+)/$", cc_search_host),
-    url(
+    re_path(r"^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$", cc_search_topo_tree),
+    re_path(r"^cc_search_host/(?P<biz_cc_id>\d+)/$", cc_search_host),
+    re_path(
         r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$",
         cc_get_mainline_object_topo,
     ),
-    url(r"^cc_get_business_list/$", cc_get_business),
-    url(r"^cc_search_dynamic_group/(?P<biz_cc_id>\d+)/$", cc_search_dynamic_group),
+    re_path(r"^cc_get_business_list/$", cc_get_business),
+    re_path(r"^cc_search_dynamic_group/(?P<biz_cc_id>\d+)/$", cc_search_dynamic_group),
     # 查询集群模板
-    url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
+    re_path(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
     # 主机自定义属性表格
-    url(r"^cc_input_host_property/(?P<biz_cc_id>\d+)/$", cc_input_host_property),
+    re_path(r"^cc_input_host_property/(?P<biz_cc_id>\d+)/$", cc_input_host_property),
     # 查询Set服务状态
-    url(r"^cc_search_status_options/(?P<biz_cc_id>\d+)/$", cc_search_status_options),
+    re_path(r"^cc_search_status_options/(?P<biz_cc_id>\d+)/$", cc_search_status_options),
     # 获取可更改的set属性
-    url(r"^cc_get_set_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_set_attribute),
+    re_path(r"^cc_get_set_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_set_attribute),
     # 批量查询拓扑节点下的主机
-    url(r"^cc_find_host_by_topo/(?P<biz_cc_id>\d+)/$", cc_find_host_by_topo),
-    url("list_business_set/", list_business_set),
+    re_path(r"^cc_find_host_by_topo/(?P<biz_cc_id>\d+)/$", cc_find_host_by_topo),
+    path("list_business_set/", list_business_set),
 ]

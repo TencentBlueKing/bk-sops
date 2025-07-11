@@ -27,7 +27,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from opentelemetry import trace
 from pipeline.core.data.var import Variable
 from pipeline.engine import api as pipeline_api
@@ -201,7 +201,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             message = _(f"任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理. {e} | start_v2")
             logger.error(message)
@@ -213,7 +215,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
@@ -407,7 +411,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         f"update context values failed: pipeline instance state error, "
                         f"tree state is {status_result}"
                     )
-                    message = _(f"任务参数设置失败: 任务状态校验失败，" f"任务状态为{status_result['data']['state']}，不支持进行参数修改。")
+                    message = _(
+                        f"任务参数设置失败: 任务状态校验失败，"
+                        f"任务状态为{status_result['data']['state']}，不支持进行参数修改。"
+                    )
                     return {"result": False, "data": "", "message": message, "code": err_code.VALIDATION_ERROR.code}
 
                 bamboo_runtime = BambooDjangoRuntime()
@@ -418,7 +425,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 )
                 if not update_res.result:
                     logger.error("update context values failed: %s" % update_res.exc_trace)
-                    message = _(f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants")
+                    message = _(
+                        f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants"
+                    )
                     logger.error(message)
                     return {
                         "result": False,
@@ -506,7 +515,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 # do not raise error when subprocess not exist or has not been executed
                 task_status = self.CREATED_STATUS
             except Exception:
-                message = _(f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
+                message = _(
+                    f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1"
+                )
                 logger.exception(message)
                 return {
                     "result": False,
@@ -585,10 +596,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if with_new_status:
             # 遍历树，获取需要进行状态优化的节点，标记哪些节点具有独立子流程
             # 遍历状态树，hit -> 状态优化，独立子流程 -> 递归
-            node_infos_gby_code: typing.Dict[
-                str, typing.List[typing.Dict[str, typing.Any]]
-            ] = find_nodes_from_pipeline_tree(
-                self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
+            node_infos_gby_code: typing.Dict[str, typing.List[typing.Dict[str, typing.Any]]] = (
+                find_nodes_from_pipeline_tree(
+                    self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
+                )
             )
 
             node_ids_gby_code: typing.Dict[str, typing.Set[str]] = {}
@@ -601,9 +612,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             }
 
             status_tree, root_pipeline_id = task_status, task_status["id"]
-            node_id__auto_retry_info: typing.Dict[
-                str, typing.Dict[str, typing.Any]
-            ] = fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
+            node_id__auto_retry_info: typing.Dict[str, typing.Dict[str, typing.Any]] = (
+                fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
+            )
 
             self.format_bamboo_engine_status(
                 task_status, node_ids_gby_code, code__status_map, node_id__auto_retry_info, False, is_subquery

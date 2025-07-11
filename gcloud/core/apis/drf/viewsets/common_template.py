@@ -236,7 +236,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.common_template.name,
+            sender=RecordType.common_template,
             operator=creator,
             operate_type=OperateType.create.name,
             operate_source=OperateSource.common.name,
@@ -285,7 +285,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, template)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.common_template.name,
+            sender=RecordType.common_template,
             operator=editor,
             operate_type=OperateType.update.name,
             operate_source=OperateSource.common.name,
@@ -310,7 +310,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         self.perform_destroy(template)
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.common_template.name,
+            sender=RecordType.common_template,
             operator=request.user.username,
             operate_type=OperateType.delete.name,
             operate_source=OperateSource.common.name,

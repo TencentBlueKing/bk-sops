@@ -14,14 +14,14 @@ specific language governing permissions and limitations under the License.
 import logging
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
-
-from gcloud.conf import settings
-from api.utils.request import batch_request
-from gcloud.utils.handlers import handle_api_error
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
+
+from api.utils.request import batch_request
+from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 logger = logging.getLogger("celery")
@@ -41,7 +41,8 @@ class CCUpdateSetServiceStatusService(Service):
                 key="set_select_method",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("集群填入方式，Set名称(name)，Set ID(id)，自定义（根据集群属性过滤）"), enum=["name", "id", "custom"]
+                    description=_("集群填入方式，Set名称(name)，Set ID(id)，自定义（根据集群属性过滤）"),
+                    enum=["name", "id", "custom"],
                 ),
             ),
             self.InputItem(
@@ -57,7 +58,10 @@ class CCUpdateSetServiceStatusService(Service):
                 schema=StringItemSchema(description=_("集群范围，多个集群使用英文','分割")),
             ),
             self.InputItem(
-                name=_("服务状态"), key="set_status", type="string", schema=StringItemSchema(description=_("实时拉取的服务状态")),
+                name=_("服务状态"),
+                key="set_status",
+                type="string",
+                schema=StringItemSchema(description=_("实时拉取的服务状态")),
             ),
         ]
 

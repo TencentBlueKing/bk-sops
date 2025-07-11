@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.db import models, transaction
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pipeline_web.constants import PWE
 from pipeline_web.core.abstract import Node
-from pipeline_web.core.signals import node_in_template_post_save, node_in_template_delete, node_in_instance_post_save
+from pipeline_web.core.signals import node_in_instance_post_save, node_in_template_delete, node_in_template_post_save
 from pipeline_web.parser.format import get_all_nodes
 
 
