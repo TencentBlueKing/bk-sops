@@ -41,6 +41,7 @@ from gcloud.core.apis.drf.serilaziers.common_template import (
     CommonTemplateSerializer,
     CreateCommonTemplateSerializer,
     TopCollectionCommonTemplateSerializer,
+    PatchCommonTemplateSerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
@@ -67,6 +68,9 @@ class CommonTemplatePermission(IamPermission):
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "partial_update": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "update_specific_fields": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
@@ -301,6 +305,36 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, template)
+        # 记录操作流水
+        operate_record_signal.send(
+            sender=RecordType.common_template.name,
+            operator=editor,
+            operate_type=OperateType.update.name,
+            operate_source=OperateSource.common.name,
+            instance_id=serializer.instance.id,
+        )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.COMMON_FLOW_EDIT_ACTION,
+            resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
+            instance=template,
+        )
+        return Response(data)
+
+    @swagger_auto_schema(method="POST", operation_summary="更新模板数据")
+    @action(detail=True, methods=["POST"])
+    def update_specific_fields(self, request, *args, **kwargs):
+        template = self.get_object()
+        editor = request.user.username
+
+        serializer = PatchCommonTemplateSerializer(template, data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        # 发送信号
+        post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, template)
+
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.common_template.name,
