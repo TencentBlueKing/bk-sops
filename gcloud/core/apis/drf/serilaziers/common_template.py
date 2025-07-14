@@ -19,6 +19,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.constants import PROJECT
+from gcloud.core.models import Project
 
 
 class CommonTemplateListSerializer(BaseTemplateSerializer):
@@ -36,6 +37,7 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
     project_scope = serializers.SerializerMethodField(help_text="流程使用范围")
+    project_scope_name = serializers.SerializerMethodField(help_text="流程范围项目名称")
 
     class Meta:
         model = CommonTemplate
@@ -43,6 +45,14 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
 
     def get_project_scope(self, obj):
         return obj.extra_info.get("project_scope")
+
+    def get_project_scope_name(self, obj):
+        project_scope = obj.extra_info.get("project_scope")
+        if project_scope == ["*"]:
+            return project_scope
+        else:
+            project_list = Project.objects.filter(id__in=project_scope).values_list("name", flat=True)
+            return project_list
 
 
 class CommonTemplateSerializer(CommonTemplateListSerializer):
@@ -117,11 +127,6 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
 
-    def _convert_scope_format(self, raw_scope):
-        if raw_scope == "*":
-            return {"project": ["*"]}
-        return {"project": [pid for pid in raw_scope.split(",")]}
-
     def _validate_scope_changes(self, scope_value):
         if scope_value == ["*"]:
             return
@@ -172,3 +177,9 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "pipeline_template",
             "project_scope",
         ]
+
+
+class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
+    class Meta:
+        model = CommonTemplate
+        fields = ["project_scope"]
