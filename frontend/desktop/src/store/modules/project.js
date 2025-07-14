@@ -84,7 +84,7 @@ const project = {
         // 更新环境变量
         updateEnvVariable ({ commit }, data) {
             const { id } = data
-            return axios.put(`api/v3/project_constants/${id}`, data).then(response => response.data)
+            return axios.put(`api/v3/project_constants/${id}/`, data).then(response => response.data)
         },
         // 删除环境变量
         deleteEnvVariable ({ commit }, id) {
