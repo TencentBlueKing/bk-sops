@@ -37,7 +37,7 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
     project_scope = serializers.SerializerMethodField(help_text="流程使用范围")
-    project_scope_name = serializers.SerializerMethodField(help_text="流程")
+    project_scope_name = serializers.SerializerMethodField(help_text="流程范围项目名称")
 
     class Meta:
         model = CommonTemplate
