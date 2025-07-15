@@ -13,15 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc.host_custom_property_change.v1_0 import (
     CCHostCustomPropertyChangeComponent,
 )
@@ -51,15 +51,15 @@ class MockClient(object):
         find_module_batch_return=None,
         get_host_base_info_func=None,
     ):
-        self.cc = MagicMock()
-        self.cc.find_set_batch = MagicMock(return_value=find_set_batch_return)
-        self.cc.find_module_batch = MagicMock(return_value=find_module_batch_return)
-        self.cc.get_host_base_info = MagicMock(side_effect=get_host_base_info_func)
-        self.cc.batch_update_host = MagicMock(return_value=batch_update_host_return)
+        self.api = MagicMock()
+        self.api.find_set_batch = MagicMock(return_value=find_set_batch_return)
+        self.api.find_module_batch = MagicMock(return_value=find_module_batch_return)
+        self.api.get_host_base_info = MagicMock(side_effect=get_host_base_info_func)
+        self.api.batch_update_host = MagicMock(return_value=batch_update_host_return)
 
 
 def get_host_base_info(*args, **kwargs):
-    if kwargs["bk_host_id"] == 1212:
+    if kwargs["path_params"]["bk_host_id"] == 1212:
         data = {
             "code": 0,
             "result": True,
@@ -88,7 +88,7 @@ def get_host_base_info_fail(*args, **kwargs):
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.cc.host_custom_property_change.v1_0.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.cc.host_custom_property_change.v1_0.get_client_by_username"
 )
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_ips_info_by_str"
 
@@ -234,13 +234,13 @@ CC_GET_IPS_INFO_BY_STR_VALUE = {
     ],
     "invalid_ip": [],
 }
-
+COMMON_PARENT = {"tenant_id": "system", "executor": "executor", "biz_cc_id": 1}
 # test case
 # 没有输入规则 修改主机名不成功的案例
 NO_INPUT_RULE_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
     name="no input rule change host property fail case",
     inputs=INPUT_DATA_NO_RULE,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "请选择至少一种规则"}),
     schedule_assertion=None,
     patchers=[Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value=CC_GET_IPS_INFO_BY_STR_VALUE)],
@@ -250,7 +250,7 @@ NO_INPUT_RULE_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
 FIND_SET_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
     name="find set batch fail change host property fail case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -260,10 +260,19 @@ FIND_SET_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         },
     ),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
-            func=FIND_SET_BATCH_FAIL_CLIENT.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call("system", "executor", 1, "1.1.1.1,2.2.2.2")],
+        ),
+        CallAssertion(
+            func=FIND_SET_BATCH_FAIL_CLIENT.api.find_set_batch,
+            calls=[
+                Call(
+                    {"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]},
+                    path_params={"bk_biz_id": 1},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_assertion=None,
@@ -277,7 +286,7 @@ FIND_SET_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
 FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
     name="find set batch success find module batch fail change host property fail case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -287,14 +296,29 @@ FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = C
         },
     ),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
-            func=FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CLIENT.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call("system", "executor", 1, "1.1.1.1,2.2.2.2")],
         ),
         CallAssertion(
-            func=FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CLIENT.cc.find_module_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]})],
+            func=FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CLIENT.api.find_set_batch,
+            calls=[
+                Call(
+                    {"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]},
+                    path_params={"bk_biz_id": 1},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
+        ),
+        CallAssertion(
+            func=FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CLIENT.api.find_module_batch,
+            calls=[
+                Call(
+                    {"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]},
+                    path_params={"bk_biz_id": 1},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_assertion=None,
@@ -308,7 +332,7 @@ FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = C
 GET_HOST_BASE_INFO_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
     name="get host base info fail case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -317,14 +341,29 @@ GET_HOST_BASE_INFO_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         },
     ),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
-            func=GET_HOST_BASE_INFO_CLIENT_FAIL.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call("system", "executor", 1, "1.1.1.1,2.2.2.2")],
         ),
         CallAssertion(
-            func=GET_HOST_BASE_INFO_CLIENT_FAIL.cc.find_module_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]})],
+            func=GET_HOST_BASE_INFO_CLIENT_FAIL.api.find_set_batch,
+            calls=[
+                Call(
+                    {"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]},
+                    path_params={"bk_biz_id": 1},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
+        ),
+        CallAssertion(
+            func=GET_HOST_BASE_INFO_CLIENT_FAIL.api.find_module_batch,
+            calls=[
+                Call(
+                    {"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]},
+                    path_params={"bk_biz_id": 1},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_assertion=None,
@@ -338,7 +377,7 @@ GET_HOST_BASE_INFO_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
 INVALID_IP_CASE = ComponentTestCase(
     name="Invalid IP Case",
     inputs=INPUT_DATA_INVALID,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
         success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = ['1.1.1']"}
     ),
@@ -356,12 +395,15 @@ INVALID_IP_CASE = ComponentTestCase(
 CHANGE_HOST_PROPERTY_SUCCESS_CASE = ComponentTestCase(
     name="Change Host property Success Case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
-            func=EXECUTE_TASK_SUCCESS_CLIENT.cc.batch_update_host,
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call("system", "executor", 1, "1.1.1.1,2.2.2.2")],
+        ),
+        CallAssertion(
+            func=EXECUTE_TASK_SUCCESS_CLIENT.api.batch_update_host,
             calls=[
                 Call(
                     {
@@ -369,7 +411,8 @@ CHANGE_HOST_PROPERTY_SUCCESS_CASE = ComponentTestCase(
                             {"bk_host_id": 1212, "properties": {"dbrole": "adminset_amodule_a1%1%1%13ww"}},
                             {"bk_host_id": 3434, "properties": {"dbrole": "admin_qset_bmodule_b2%2%2%24wwww"}},
                         ]
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -385,7 +428,7 @@ CHANGE_HOST_PROPERTY_SUCCESS_CASE = ComponentTestCase(
 CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
     name="Change Host property Fail Case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -396,14 +439,29 @@ CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         },
     ),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
-            func=EXECUTE_TASK_FAIL_CLIENT.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call("system", "executor", 1, "1.1.1.1,2.2.2.2")],
         ),
         CallAssertion(
-            func=EXECUTE_TASK_FAIL_CLIENT.cc.find_module_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]})],
+            func=EXECUTE_TASK_FAIL_CLIENT.api.find_set_batch,
+            calls=[
+                Call(
+                    {"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]},
+                    path_params={"bk_biz_id": 1},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
+        ),
+        CallAssertion(
+            func=EXECUTE_TASK_FAIL_CLIENT.api.find_module_batch,
+            calls=[
+                Call(
+                    {"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]},
+                    path_params={"bk_biz_id": 1},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_assertion=None,

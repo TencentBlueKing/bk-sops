@@ -34,8 +34,8 @@ class CCBatchUpdateHostComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, batch_update_host_return=None):
-        self.cc = MagicMock()
-        self.cc.batch_update_host = MagicMock(return_value=batch_update_host_return)
+        self.api = MagicMock()
+        self.api.batch_update_host = MagicMock(return_value=batch_update_host_return)
 
 
 BATCH_UPDATE_HOST_SUCCESS_CLIENT = MockClient(
@@ -46,7 +46,9 @@ BATCH_UPDATE_HOST_FAIL_CLIENT = MockClient(
     batch_update_host_return={"result": False, "code": 0, "message": "error", "data": None}
 )
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.get_client_by_user"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.get_client_by_username"
+)
 CC_GET_IPS_INFO_BY_STR = (
     "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip_and_cloudid"
 )
@@ -94,7 +96,7 @@ CC_GET_IPS_INFO_BY_STR_VALUE = {
 INVALID_IP_CASE = ComponentTestCase(
     name="Invalid IP Case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"}),
     schedule_assertion=None,
     execute_call_assertion=None,
@@ -110,7 +112,7 @@ INVALID_IP_CASE = ComponentTestCase(
 CC_HOST_PROP_VALUE_ILLEGAL = ComponentTestCase(
     name="cc host prop value illegal",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "参数值校验失败，请重试并修改为正确的参数值"}),
     schedule_assertion=None,
     execute_call_assertion=None,
@@ -124,27 +126,27 @@ CC_HOST_PROP_VALUE_ILLEGAL = ComponentTestCase(
 BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
     name="batch update host success",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1", 0)],
+            calls=[Call("system", "executor", 1, "1.1.1.1")],
         ),
         CallAssertion(
-            func=BATCH_UPDATE_HOST_SUCCESS_CLIENT.cc.batch_update_host,
+            func=BATCH_UPDATE_HOST_SUCCESS_CLIENT.api.batch_update_host,
             calls=[
                 Call(
                     {
-                        "bk_supplier_account": 0,
                         "update": [
                             {
                                 "bk_host_id": 111,
                                 "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 ),
             ],
         ),
@@ -160,13 +162,13 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
 BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
     name="batch update host success",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
             "ex_data": "调用配置平台(CMDB)接口cc.batch_update_host返回失败, "
             "error=error, "
-            'params={"bk_supplier_account":0,'
+            "params={"
             '"update":[{"bk_host_id":111,"properties":{"operator":"admin","bk_bak_operator":"admin",'
             '"bk_comment":"test"}}]}'
         },
@@ -175,21 +177,21 @@ BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1", 0)],
+            calls=[Call("system", "executor", 1, "1.1.1.1")],
         ),
         CallAssertion(
-            func=BATCH_UPDATE_HOST_FAIL_CLIENT.cc.batch_update_host,
+            func=BATCH_UPDATE_HOST_FAIL_CLIENT.api.batch_update_host,
             calls=[
                 Call(
                     {
-                        "bk_supplier_account": 0,
                         "update": [
                             {
                                 "bk_host_id": 111,
                                 "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
