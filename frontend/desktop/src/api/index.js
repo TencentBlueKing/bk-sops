@@ -10,24 +10,23 @@
 * specific language governing permissions and limitations under the License.
 */
 import axios from 'axios'
-import axiosDefaults from 'axios/lib/defaults'
 import bus from '@/utils/bus.js'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
 import { generateTraceId } from '@/utils/uuid.js'
 import { showLoginModal } from '@blueking/login-modal'
 
-axiosDefaults.baseURL = window.SITE_URL
-axiosDefaults.xsrfCookieName = window.APP_CODE + '_csrftoken'
-axiosDefaults.xsrfHeaderName = 'X-CSRFToken'
-axiosDefaults.withCredentials = true
-axiosDefaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+axios.defaults.baseURL = window.SITE_URL
+axios.defaults.xsrfCookieName = window.APP_CODE + '_csrftoken'
+axios.defaults.xsrfHeaderName = 'X-CSRFToken'
+axios.defaults.withCredentials = true
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 
 // jquery ajax error handler
 setJqueryAjaxConfig()
 
 axios.interceptors.request.use(
     config => {
-        config.headers.common.traceparent = generateTraceId()
+        config.headers.traceparent = generateTraceId()
         return config
     },
     error => Promise.reject(error)
@@ -91,7 +90,7 @@ axios.interceptors.response.use(
                         const successUrl = `${window.location.origin}${window.SITE_URL}static/bk_sops/login_success.html`
                         let [loginUrl] = data.login_url.split('?')
                         loginUrl = `${loginUrl}?c_url=${encodeURIComponent(successUrl)}`
-    
+
                         showLoginModal({ loginUrl })
                     }
                 }

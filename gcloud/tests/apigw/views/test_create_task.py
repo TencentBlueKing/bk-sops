@@ -83,13 +83,14 @@ class CreateTaskAPITest(APITest):
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
                     HTTP_BK_USERNAME=TEST_USERNAME,
                 )
-
+                pipeline_tree = tmpl.pipeline_tree
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
                     tmpl,
                     {"name": "name", "creator": TEST_USERNAME, "description": ""},
                     {},
                     ["ne584c1e69f53d109f0d99eacc3bd670"],
                     [],
+                    pipeline_tree,
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -142,13 +143,14 @@ class CreateTaskAPITest(APITest):
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
                     HTTP_BK_USERNAME=TEST_USERNAME,
                 )
-
+                pipeline_tree = tmpl.pipeline_tree
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
                     tmpl,
                     {"name": "name", "creator": TEST_USERNAME, "description": ""},
                     {},
                     ["ne584c1e69f53d109f0d99eacc3bd670"],
                     [],
+                    pipeline_tree,
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(

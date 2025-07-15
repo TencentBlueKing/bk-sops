@@ -215,7 +215,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.32.1-p6"
+STATIC_VERSION = "3.32.1-p8"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -464,7 +464,7 @@ MAKO_SANDBOX_IMPORT_MODULES = {
     "random": "random",
     "time": "time",
     "os.path": "os.path",
-    "json": "json",
+    "config.mock.mock_json": "json",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:
@@ -919,3 +919,7 @@ ENABLE_CLEAN_EXPIRED_STATISTICS = env.ENABLE_CLEAN_EXPIRED_STATISTICS
 STATISTICS_VALIDITY_DAY = env.STATISTICS_VALIDITY_DAY
 CLEAN_EXPIRED_STATISTICS_BATCH_NUM = env.CLEAN_EXPIRED_STATISTICS_BATCH_NUM
 CLEAN_EXPIRED_STATISTICS_CRON = env.CLEAN_EXPIRED_STATISTICS_CRON
+
+# 允许的HTTP插件域名
+ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = env.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK
+ALLOWED_HTTP_PLUGIN_DOMAINS = env.ALLOWED_HTTP_PLUGIN_DOMAINS

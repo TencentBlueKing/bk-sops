@@ -20,11 +20,13 @@ from requests import request
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.utils.validate import DomainValidator
 from pipeline.conf import settings
 from pipeline.utils.boolrule import BoolRule
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ObjectItemSchema, ArrayItemSchema
 from pipeline.component_framework.component import Component
+
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -113,6 +115,13 @@ class HttpRequestService(Service):
         timeout = min(abs(int(data.inputs.bk_http_timeout)), 60) or 60
         success_exp = data.inputs.bk_http_success_exp.strip()
         other = {"headers": {}, "timeout": timeout}
+
+        valid_url, allowed_domains = DomainValidator.validate(url)
+        if not valid_url:
+            data.outputs.ex_data = _("仅允许访问域名({allowed_domains})下的URL").format(
+                allowed_domains=",".join(allowed_domains),
+            )
+            return False
 
         if method.upper() not in ["GET", "HEAD"]:
             other["data"] = body.encode("utf-8")
