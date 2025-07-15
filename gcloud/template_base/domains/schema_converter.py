@@ -41,7 +41,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "description": "",
     }
     NODE_NECESSARY_FIELDS = {
-        "ServiceActivity": ["id", "type", "name", "component"],
+        "ServiceActivity": ["id", "type", "name", "component", "auto_retry"],
         "SubProcess": ["id", "type", "name", "template_id"],
         "EmptyEndEvent": ["id", "type"],
         "EmptyStartEvent": ["id", "type"],
