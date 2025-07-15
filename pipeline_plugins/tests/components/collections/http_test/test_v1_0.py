@@ -53,7 +53,7 @@ HTTP_CALL_REQUEST_ERR_CASE = ComponentTestCase(
     name="http call request error case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -61,14 +61,14 @@ HTTP_CALL_REQUEST_ERR_CASE = ComponentTestCase(
     },
     parent_data={},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
-    schedule_assertion=ScheduleAssertion(success=False, outputs={"ex_data": u"请求异常，详细信息: exc_token1"}),
+    schedule_assertion=ScheduleAssertion(success=False, outputs={"ex_data": "请求异常，详细信息: exc_token1"}),
     schedule_call_assertion=[
         CallAssertion(
             func=HTTP_REQUEST,
             calls=[
                 Call(
                     method="method_token",
-                    url="url_token",
+                    url=".",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
@@ -90,7 +90,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
     name="http call response is not json case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -99,7 +99,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
     parent_data={},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=ScheduleAssertion(
-        success=False, outputs={"ex_data": u"请求响应数据格式非 JSON", "status_code": NOT_JSON_RESPONSE.status_code}
+        success=False, outputs={"ex_data": "请求响应数据格式非 JSON", "status_code": NOT_JSON_RESPONSE.status_code}
     ),
     schedule_call_assertion=[
         CallAssertion(
@@ -107,7 +107,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url="url_token",
+                    url=".",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
@@ -129,7 +129,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
     name="http call response status 500 case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -140,7 +140,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
     schedule_assertion=ScheduleAssertion(
         success=False,
         outputs={
-            "ex_data": u"请求失败，状态码: {}，响应: {}".format(STAUS_500_RESPONSE.status_code, STAUS_500_RESPONSE.json()),
+            "ex_data": "请求失败，状态码: {}，响应: {}".format(STAUS_500_RESPONSE.status_code, STAUS_500_RESPONSE.json()),
             "data": STAUS_500_RESPONSE.json(),
             "status_code": STAUS_500_RESPONSE.status_code,
         },
@@ -151,7 +151,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url="url_token",
+                    url=".",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
@@ -176,7 +176,7 @@ HTTP_CALL_EXP_TEST_ERR_CASE = ComponentTestCase(
     name="http call bool rule test err case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -189,7 +189,7 @@ HTTP_CALL_EXP_TEST_ERR_CASE = ComponentTestCase(
         outputs={
             "data": EXP_TEST_ERR_RESPONSE.json(),
             "status_code": EXP_TEST_ERR_RESPONSE.status_code,
-            "ex_data": u"请求成功条件判定出错: exc_token3",
+            "ex_data": "请求成功条件判定出错: exc_token3",
         },
     ),
     schedule_call_assertion=[
@@ -198,7 +198,7 @@ HTTP_CALL_EXP_TEST_ERR_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url="url_token",
+                    url=".",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=5,
@@ -226,7 +226,7 @@ HTTP_CALL_NO_HEADER_CASE = ComponentTestCase(
     name="http call no header case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "",
@@ -245,7 +245,7 @@ HTTP_CALL_NO_HEADER_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url="url_token",
+                    url=".",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     headers={"Content-type": "application/json"},
@@ -273,7 +273,7 @@ HTTP_CALL_WITH_HEADER_CASE = ComponentTestCase(
     name="http call with header case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [{"name": "name1", "value": "value1"}, {"name": "name2", "value": "value2"}],
         "bk_http_success_exp": "",
@@ -295,7 +295,7 @@ HTTP_CALL_WITH_HEADER_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url="url_token",
+                    url=".",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     headers={"name2": "value2", "Content-type": "application/json", "name1": "value1"},
@@ -324,7 +324,7 @@ HTTP_CALL_EXP_FAIL_CASE = ComponentTestCase(
     name="http call expression fail case",
     inputs={
         "bk_http_request_method": "GET",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token1",
@@ -337,13 +337,11 @@ HTTP_CALL_EXP_FAIL_CASE = ComponentTestCase(
         outputs={
             "data": HTTP_CALL_EXP_FAIL_RESPONSE.json(),
             "status_code": HTTP_CALL_EXP_FAIL_RESPONSE.status_code,
-            "ex_data": u"请求成功判定失败",
+            "ex_data": "请求成功判定失败",
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(
-            func=HTTP_REQUEST, calls=[Call(method="GET", url="url_token", verify=False, timeout=60, headers={})]
-        ),
+        CallAssertion(func=HTTP_REQUEST, calls=[Call(method="GET", url=".", verify=False, timeout=60, headers={})]),
         CallAssertion(func=HTTP_CALL_EXP_FAIL_BOOLRULE.test, calls=[Call(context={"resp": "json_token4"})]),
     ],
     patchers=[
@@ -365,7 +363,7 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
     name="http call expression success case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": "url_token",
+        "bk_http_request_url": ".",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token2",
@@ -387,7 +385,7 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url="url_token",
+                    url=".",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
