@@ -103,6 +103,11 @@
                                 },
                                 "version": "legacy"
                             },
+                            "auto_retry": {
+                                "enable": false,
+                                "interval": 0,
+                                "times": 1
+                            },
                             "error_ignorable": false,
                             "id": "nc9a4ab053d03d74ad3a36a7435b6eed",
                             "incoming": [
@@ -306,6 +311,11 @@
                                 },
                                 "version": "legacy"
                             },
+                            "auto_retry": {
+                                "enable": false,
+                                "interval": 0,
+                                "times": 1
+                            },
                             "error_ignorable": false,
                             "id": "n82baa417b9637fca111113c73bbd8d6",
                             "incoming": [
@@ -336,6 +346,11 @@
                                     }
                                 },
                                 "version": "legacy"
+                            },
+                            "auto_retry": {
+                                "enable": false,
+                                "interval": 0,
+                                "times": 1
                             },
                             "error_ignorable": false,
                             "id": "nf58f7ea7f9738c7bad0e9066d6aaf8f",
@@ -631,6 +646,11 @@
                                 },
                                 "version": "legacy"
                             },
+                            "auto_retry": {
+                                "enable": false,
+                                "interval": 0,
+                                "times": 1
+                            },
                             "error_ignorable": false,
                             "id": "n0843c82737d300796a4085926bf830e",
                             "incoming": [
@@ -657,6 +677,11 @@
                                 },
                                 "version": "legacy"
                             },
+                            "auto_retry": {
+                                "enable": false,
+                                "interval": 0,
+                                "times": 1
+                            },
                             "error_ignorable": false,
                             "id": "n50b402b290e3dc59ed78162b82c4548",
                             "incoming": [
@@ -682,6 +707,11 @@
                                     }
                                 },
                                 "version": "legacy"
+                            },
+                            "auto_retry": {
+                                "enable": false,
+                                "interval": 0,
+                                "times": 1
                             },
                             "error_ignorable": false,
                             "id": "n85b38c0ea2b37c0a39c254873dcd1b6",
@@ -712,6 +742,11 @@
                                     }
                                 },
                                 "version": "legacy"
+                            },
+                            "auto_retry": {
+                                "enable": false,
+                                "interval": 0,
+                                "times": 1
                             },
                             "error_ignorable": false,
                             "id": "neffe5b75f1b372dbd32f75a2ca46687",
