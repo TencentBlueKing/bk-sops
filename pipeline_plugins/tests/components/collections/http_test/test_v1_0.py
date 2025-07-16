@@ -25,9 +25,13 @@ from pipeline.component_framework.test import (
     Patcher,
 )
 from pipeline_plugins.components.collections.http.v1_0 import HttpComponent
+from django.conf import settings
 
 
 class HttpComponentTest(TestCase, ComponentTestMixin):
+    def setUp(self):
+        settings.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = False
+
     def cases(self):
         return [
             HTTP_CALL_REQUEST_ERR_CASE,
@@ -53,7 +57,7 @@ HTTP_CALL_REQUEST_ERR_CASE = ComponentTestCase(
     name="http call request error case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -68,7 +72,7 @@ HTTP_CALL_REQUEST_ERR_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url=".",
+                    url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
@@ -90,7 +94,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
     name="http call response is not json case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -107,7 +111,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url=".",
+                    url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
@@ -129,7 +133,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
     name="http call response status 500 case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -151,7 +155,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url=".",
+                    url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
@@ -176,7 +180,7 @@ HTTP_CALL_EXP_TEST_ERR_CASE = ComponentTestCase(
     name="http call bool rule test err case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token",
@@ -198,7 +202,7 @@ HTTP_CALL_EXP_TEST_ERR_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url=".",
+                    url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=5,
@@ -226,7 +230,7 @@ HTTP_CALL_NO_HEADER_CASE = ComponentTestCase(
     name="http call no header case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "",
@@ -245,7 +249,7 @@ HTTP_CALL_NO_HEADER_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url=".",
+                    url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     headers={"Content-type": "application/json"},
@@ -273,7 +277,7 @@ HTTP_CALL_WITH_HEADER_CASE = ComponentTestCase(
     name="http call with header case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [{"name": "name1", "value": "value1"}, {"name": "name2", "value": "value2"}],
         "bk_http_success_exp": "",
@@ -295,7 +299,7 @@ HTTP_CALL_WITH_HEADER_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url=".",
+                    url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     headers={"name2": "value2", "Content-type": "application/json", "name1": "value1"},
@@ -324,7 +328,7 @@ HTTP_CALL_EXP_FAIL_CASE = ComponentTestCase(
     name="http call expression fail case",
     inputs={
         "bk_http_request_method": "GET",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token1",
@@ -341,7 +345,9 @@ HTTP_CALL_EXP_FAIL_CASE = ComponentTestCase(
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(func=HTTP_REQUEST, calls=[Call(method="GET", url=".", verify=False, timeout=60, headers={})]),
+        CallAssertion(
+            func=HTTP_REQUEST, calls=[Call(method="GET", url="url_token", verify=False, timeout=60, headers={})]
+        ),
         CallAssertion(func=HTTP_CALL_EXP_FAIL_BOOLRULE.test, calls=[Call(context={"resp": "json_token4"})]),
     ],
     patchers=[
@@ -363,7 +369,7 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
     name="http call expression success case",
     inputs={
         "bk_http_request_method": "method_token",
-        "bk_http_request_url": ".",
+        "bk_http_request_url": "url_token",
         "bk_http_request_body": "body_token",
         "bk_http_request_header": [],
         "bk_http_success_exp": "exp_token2",
@@ -385,7 +391,7 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
             calls=[
                 Call(
                     method="method_token",
-                    url=".",
+                    url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
                     timeout=60,
@@ -399,4 +405,28 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=HTTP_REQUEST, return_value=HTTP_CALL_EXP_SUCCESS_RESPONSE),
         Patcher(target=HTTP_BOOLRULE, return_value=HTTP_CALL_EXP_SUCCESS_BOOLRULE),
     ],
+)
+
+
+class HttpComponentValidateTestCase(TestCase, ComponentTestMixin):
+    def cases(self):
+        return [HTTP_CALL_REQUEST_VALIDATE_CASE]
+
+    def component_cls(self):
+        return HttpComponent
+
+
+HTTP_CALL_REQUEST_VALIDATE_CASE = ComponentTestCase(
+    name="http call request error case",
+    inputs={
+        "bk_http_request_method": "method_token",
+        "bk_http_request_url": "url_token",
+        "bk_http_request_body": "body_token",
+        "bk_http_request_header": [],
+        "bk_http_success_exp": "exp_token",
+        "bk_http_timeout": 0,
+    },
+    parent_data={},
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    schedule_assertion=ScheduleAssertion(success=False, outputs={"ex_data": "仅允许访问域名(.)下的URL"}),
 )
