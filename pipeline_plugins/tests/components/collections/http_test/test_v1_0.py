@@ -409,6 +409,9 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
 
 
 class HttpComponentValidateTestCase(TestCase, ComponentTestMixin):
+    def setUp(self):
+        settings.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = True
+
     def cases(self):
         return [HTTP_CALL_REQUEST_VALIDATE_CASE]
 
