@@ -486,6 +486,7 @@ const en = {
     '间隔时间必须是正整数': 'Interval must be a positive integer',
     '流程名称不能为空': 'Flow name cannot be empty',
     '流程名称不能包含': 'Flow name cannot contain ',
+    '请选择可见范围': 'Select visible range',
     '非法字符': ' ',
     '流程名称长度不能超过': 'Length of flow name cannot be larger than ',
     '个字符': ' characters',

@@ -330,7 +330,7 @@
                     project_scope: [
                         {
                             required: true,
-                            message: '请选择可见范围',
+                            message: i18n.t('请选择可见范围'),
                             trigger: 'blur'
                         }
                     ]
