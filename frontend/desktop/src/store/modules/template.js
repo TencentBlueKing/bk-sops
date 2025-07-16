@@ -935,6 +935,9 @@ const template = {
                 return response.data.data
             })
         },
+        updateCommonProjectScope ({ commit }, { templateId, project_scope }) {
+            return axios.post(`/api/v3/common_template/${templateId}/update_specific_fields/`, { project_scope })
+        },
         /**
          * 保存模板数据
          * @param {Object} data 模板完整数据
