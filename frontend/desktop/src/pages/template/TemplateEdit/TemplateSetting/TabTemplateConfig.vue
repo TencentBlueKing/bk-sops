@@ -116,7 +116,13 @@
                             }">
                         </i>
                     </bk-form-item>
-                    <bk-form-item v-if="common" property="project_scope" :label="$t('可见范围')" data-test-id="tabTemplateConfig_form_projectScope">
+                    <bk-form-item v-if="common" property="project_scope" :label="$t('可见范围')" :required="true"
+                        data-test-id="tabTemplateConfig_form_projectScope">
+                        <bk-checkbox
+                            v-model="isOutermostBaseInfoAllProjectScope"
+                            @change="handleBaseInfoSelectAllProjectScope">
+                            {{ $t('全选') }}
+                        </bk-checkbox>
                         <bk-select class="project-select"
                             :searchable="true"
                             :clearable="true"
@@ -124,6 +130,7 @@
                             :display-tag="true"
                             :auto-height="false"
                             :readonly="isViewMode"
+                            :disabled="isOutermostBaseInfoAllProjectScope"
                             @change="handleBaseInfoProjectVisibleChange"
                             v-model="baseInfoProjectScopeList">
                             <div class="bk-option-group-name select-all-project-scope">
@@ -319,6 +326,13 @@
                             message: i18n.t('流程名称不能包含') + '\'‘"”$&<>' + i18n.t('非法字符'),
                             trigger: 'blur'
                         }
+                    ],
+                    project_scope: [
+                        {
+                            required: true,
+                            message: '请选择可见范围',
+                            trigger: 'blur'
+                        }
                     ]
                 },
                 isProxyValidateError: false,
@@ -358,7 +372,8 @@
                 labelLoading: false,
                 proxyPlaceholder: '',
                 isBaseInfoSelectAllProjectScope: false,
-                baseInfoProjectScopeList: []
+                baseInfoProjectScopeList: [],
+                isOutermostBaseInfoAllProjectScope: false
             }
         },
         computed: {
@@ -416,9 +431,13 @@
                 if (this.formData.project_scope.includes('*')) {
                     this.isBaseInfoSelectAllProjectScope = true
                     this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.isOutermostBaseInfoAllProjectScope = true
                 } else {
                     this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
+                    this.formData.project_scope = this.baseInfoProjectScopeList
                     this.isBaseInfoSelectAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
+                    this.isOutermostBaseInfoAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
                 }
             }
         },
@@ -429,7 +448,6 @@
                 this.setExecutorProxy()
             }
             this.$refs.nameInput.focus()
-            console.log('formData', this.formData)
         },
         methods: {
             ...mapMutations('template/', [
@@ -443,10 +461,11 @@
             handleBaseInfoSelectAllProjectScope (row) {
                 if (row) {
                     this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
                 } else {
                     this.baseInfoProjectScopeList = []
+                    this.formData.project_scope = []
                 }
-                this.baseInfoProjectScopeList = row.map(item => typeof item === 'number' ? String(item) : item)
                 this.setProjectScope(this.baseInfoProjectScopeList)
             },
             handleBaseInfoProjectVisibleChange (row) {
@@ -456,6 +475,7 @@
                 } else {
                     this.isBaseInfoSelectAllProjectScope = false
                 }
+                this.formData.project_scope = filterList
                 this.setProjectScope(filterList.map(item => typeof item === 'number' ? String(item) : item))
             },
             onSelectCategory (val) {

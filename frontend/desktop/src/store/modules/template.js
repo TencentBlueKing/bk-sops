@@ -1022,11 +1022,14 @@ const template = {
             }
             // 新增用post, 编辑用patch
             const method = templateId === undefined ? 'post' : common ? 'put' : 'patch'
-            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: ['*'] } : { ...params, project_scope }) : params, {
+            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: project_scope.length > 0 ? project_scope : ['*'] } : { ...params, project_scope }) : params, {
                 headers
             }).then(response => {
                 if (common && templateId === undefined) {
-                    state.project_scope = ['*']
+                    if (project_scope.length <= 0) {
+                        console.log(project_scope.length <= 0)
+                        state.project_scope = ['*']
+                    }
                 }
                 state.init_executor_proxy = state.executor_proxy
                 return response.data

@@ -22,6 +22,11 @@
         <div class="select-wrapper">
             <bk-form>
                 <bk-form-item :label="$t('选择项目')">
+                    <bk-checkbox
+                        v-model="isOutermostAllProjectScope"
+                        @change="handleSelectAllProjectScope">
+                        {{ $t('全选') }}
+                    </bk-checkbox>
                     <bk-select class="project-select"
                         v-if="isSetProjectVisible"
                         :searchable="true"
@@ -29,6 +34,7 @@
                         :multiple="true"
                         :display-tag="true"
                         :auto-height="false"
+                        :disabled="isOutermostAllProjectScope"
                         @change="handleProjectVisibleChange"
                         v-model="localProjectScopeList">
                         <div class="bk-option-group-name select-all-project-scope">
@@ -41,7 +47,7 @@
                                 @change="handleSelectAllProjectScope">
                             </bk-checkbox>
                         </div>
-                        
+                    
                         <bk-option-group
                             v-for="(group, index) in projects"
                             :name="group.name"
@@ -50,8 +56,7 @@
                             <bk-option v-for="item in group.children"
                                 :key="item.id"
                                 :id="item.id"
-                                :name="item.name"
-                                :disabled="isSelectAllProjectScope">
+                                :name="item.name">
                             </bk-option>
                         </bk-option-group>
                           
@@ -124,7 +129,8 @@
                 id: this.project,
                 hasError: false,
                 localProjectScopeList: [],
-                isSelectAllProjectScope: false
+                isSelectAllProjectScope: false,
+                isOutermostAllProjectScope: false
             }
         },
         computed: {
@@ -179,9 +185,11 @@
                 if (val.includes('*')) {
                     this.isSelectAllProjectScope = true
                     this.localProjectScopeList = this.allProjectIds
+                    this.isOutermostAllProjectScope = true
                 } else {
                     this.localProjectScopeList = [...val]
                     this.isSelectAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
+                    this.isOutermostAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
                 }
             }
         },
@@ -203,10 +211,6 @@
                 }
                 this.$emit('onVisibleChange', this.localProjectScopeList)
             },
-            handleVisibleConfirm () {
-                this.$emit('onVisibleConfirm')
-                this.localProjectScopeList = []
-            },
             handleProjectSelect (id) {
                 this.id = id
                 this.hasError = false
@@ -215,7 +219,7 @@
             },
             handleConfirm () {
                 if (this.isSetProjectVisible) {
-                    this.handleVisibleConfirm()
+                    this.$emit('onVisibleConfirm')
                 } else {
                     if (this.confirmLoading) {
                         return

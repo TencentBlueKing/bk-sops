@@ -297,6 +297,7 @@
     // moment用于时区使用
     import moment from 'moment-timezone'
     import CancelRequest from '@/api/cancelRequest.js'
+    import axios from 'axios'
 
     const SEARCH_LIST = [
         {
@@ -373,7 +374,7 @@
             width: 160
         },
         {
-            id: 'project_scope',
+            id: 'project_scope_name',
             label: i18n.t('可见范围'),
             width: 200
         }
@@ -1293,8 +1294,6 @@
                 this.publicProcessId = row.id
                 this.isSetVisible = true
                 this.isProjectVisibleShow = true
-                const templateData = await this.loadTemplateData({ templateId: row.template_id, common: true })
-                this.setTemplateData(templateData)
             },
             handleProjectVisibleChange (visible) {
                 this.projectScopeSelectList = visible.map(item => typeof item === 'number' ? String(item) : item)
@@ -1305,11 +1304,7 @@
                 this.isSetVisible = false
             },
             async handleProjectVisibleConfirm () {
-                await this.saveTemplateData({
-                    templateId: this.publicProcessId,
-                    common: true,
-                    isSetProjectScope: true
-                })
+                await axios.post(`/api/v3/common_template/${this.publicProcessId}/update_specific_fields/`, { project_scope: this.projectScopeSelectList })
                 this.projectScopeSelectList = []
                 this.isProjectVisibleShow = false
                 this.isSetVisible = false
