@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
@@ -86,7 +86,10 @@ class GsekitJobExecService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("环境类型"), key="gsekit_bk_env", type="string", schema=StringItemSchema(description=_("当前业务的环境类型")),
+                name=_("环境类型"),
+                key="gsekit_bk_env",
+                type="string",
+                schema=StringItemSchema(description=_("当前业务的环境类型")),
             ),
             self.InputItem(
                 name=_("操作对象"),
@@ -101,31 +104,50 @@ class GsekitJobExecService(Service):
                 schema=StringItemSchema(description=_("操作类型")),
             ),
             self.InputItem(
-                name=_("集群ID"), key="gsekit_set", type="string", schema=StringItemSchema(description=_("集群ID")),
+                name=_("集群ID"),
+                key="gsekit_set",
+                type="string",
+                schema=StringItemSchema(description=_("集群ID")),
             ),
             self.InputItem(
-                name=_("模块ID"), key="gsekit_module", type="string", schema=StringItemSchema(description=_("模块ID"),),
+                name=_("模块ID"),
+                key="gsekit_module",
+                type="string",
+                schema=StringItemSchema(
+                    description=_("模块ID"),
+                ),
             ),
             self.InputItem(
                 name=_("服务实例"),
                 key="gsekit_service_id",
                 type="string",
-                schema=StringItemSchema(description=_("服务实例ID"),),
+                schema=StringItemSchema(
+                    description=_("服务实例ID"),
+                ),
             ),
             self.InputItem(
-                name=_("进程"), key="gsekit_process_name", type="string", schema=StringItemSchema(description=_("进程ID"),),
+                name=_("进程"),
+                key="gsekit_process_name",
+                type="string",
+                schema=StringItemSchema(
+                    description=_("进程ID"),
+                ),
             ),
             self.InputItem(
                 name=_("进程实例"),
                 key="gsekit_process_id",
                 type="string",
-                schema=StringItemSchema(description=_("进程实例ID"),),
+                schema=StringItemSchema(
+                    description=_("进程实例ID"),
+                ),
             ),
             self.InputItem(
                 name=_("配置文件模版"),
                 key="gsekit_config_template",
                 type="list",
-                schema=StringItemSchema(description=_("配置文件模版名"),),
+                schema=StringItemSchema(
+                    description=_("配置文件模版名"),
+                ),
             ),
         ]
 

@@ -10,18 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+import logging
+
+from django.utils.translation import gettext_lazy as _
 
 from . import env
+from .bartenders.bk_repo import BKRepoBartender
 from .bartenders.job_repo import JobRepoBartender
+from .bartenders.nfs import HostNFSBartender
+from .bartenders.upload_module import UploadModuleBartender
 from .managers.bk_repo import BKRepoManager
 from .managers.job_repo import JobRepoManager
 from .managers.nfs import HostNFSManager
 from .managers.upload_module import UploadModuleManager
-from .bartenders.nfs import HostNFSBartender
-from .bartenders.upload_module import UploadModuleBartender
-from .bartenders.bk_repo import BKRepoBartender
-import logging
 
 logger = logging.getLogger("root")
 
@@ -31,7 +32,9 @@ class ManagerFactory(object):
     def get_manager(cls, manager_type):
         creator = getattr(cls, "_create_{}_manager".format(manager_type), None)
         if not creator or not callable(creator):
-            message = _(f"文件上传失败: 无法找到对应的FileManager: {manager_type}, 请重试, 如持续失败可联系管理员处理 | get_manager")
+            message = _(
+                f"文件上传失败: 无法找到对应的FileManager: {manager_type}, 请重试, 如持续失败可联系管理员处理 | get_manager"
+            )
             logger.error(message)
             raise LookupError(message)
 

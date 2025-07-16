@@ -16,9 +16,9 @@ import json
 import logging
 from typing import List
 
+import pytz
 from django.conf import settings
-from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable, RegisterVariableMeta, SpliceVariable
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
@@ -75,7 +75,9 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")]
+        return [
+            FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")
+        ]
 
 
 class Int(CommonPlainVariable, SelfExplainVariable):
@@ -116,11 +118,17 @@ class Select(LazyVariable, SelfExplainVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = _("单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值")
+    desc = _(
+        "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串")]
+        return [
+            FieldExplain(
+                key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
+            )
+        ]
 
     def get_value(self):
         # multiple select
@@ -151,11 +159,17 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [
-            FieldExplain(key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"),
+            FieldExplain(
+                key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"
+            ),
             FieldExplain(key='${KEY["value"]}', type=Type.STRING, description="用户选中选项的value，多个以,分隔"),
             FieldExplain(key='${KEY["text"]}', type=Type.STRING, description="用户选中选项的text，多个以,分隔"),
-            FieldExplain(key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"),
-            FieldExplain(key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"),
+            FieldExplain(
+                key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"
+            ),
+            FieldExplain(
+                key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"
+            ),
         ]
 
     def get_value(self):
@@ -213,7 +227,7 @@ class FormatSupportCurrentTime(LazyVariable, SelfExplainVariable):
     def get_value(self):
         time_format = self.value.get("time_format", "%Y-%m-%d %H:%M:%S").strip()
         time_zone = self.value.get("time_zone", "Asia/Shanghai")
-        now = datetime.datetime.now(timezone.pytz.timezone(time_zone))
+        now = datetime.datetime.now(pytz.timezone(time_zone))
         current_time = now.strftime(time_format)
         return current_time
 
@@ -233,7 +247,7 @@ class CurrentTime(LazyVariable, SelfExplainVariable):
     def get_value(self):
         time_units = self.value.get("time_unit") or ["year", "month", "day", "hour", "minute", "second"]
         time_zone = self.value.get("time_zone", "Asia/Shanghai")
-        now = datetime.datetime.now(timezone.pytz.timezone(time_zone))
+        now = datetime.datetime.now(pytz.timezone(time_zone))
         current_time = now.strftime(self._generate_time_format(time_units))
         return current_time
 
@@ -321,7 +335,10 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
-    desc = _("可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n" "输出格式为选中人员用户名以 ',' 拼接的字符串")
+    desc = _(
+        "可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
+        "输出格式为选中人员用户名以 ',' 拼接的字符串"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

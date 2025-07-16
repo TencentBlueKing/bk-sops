@@ -11,9 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from gcloud.apigw.views.claim_functionalization_task import claim_functionalization_task
+from gcloud.apigw.views.copy_template_across_project import copy_template_across_project
 from gcloud.apigw.views.create_and_start_task import create_and_start_task
 from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
@@ -55,80 +56,79 @@ from gcloud.apigw.views.query_task_count import query_task_count
 from gcloud.apigw.views.register_project import register_project
 from gcloud.apigw.views.set_periodic_task_enabled import set_periodic_task_enabled
 from gcloud.apigw.views.start_task import start_task
-from gcloud.apigw.views.copy_template_across_project import copy_template_across_project
 
 urlpatterns = [
-    url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
-    url(r"^get_template_list/(?P<project_id>\d+)/$", get_template_list),
-    url(
+    re_path(r"^dispatch_plugin_query/$", dispatch_plugin_query),
+    re_path(r"^get_template_list/(?P<project_id>\d+)/$", get_template_list),
+    re_path(
         r"^get_template_info/(?P<template_id>\d+)/(?P<project_id>\d+)/$",
         get_template_info,
     ),
-    url(r"^get_common_template_list/$", get_common_template_list),
-    url(r"^get_common_template_info/(?P<template_id>\d+)/$", get_common_template_info),
-    url(r"^create_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_task),
-    url(r"^fast_create_task/(?P<project_id>\d+)/$", fast_create_task),
-    url(r"^start_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", start_task),
-    url(r"^operate_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", operate_task),
-    url(r"^get_task_status/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_status),
-    url(r"^query_task_count/(?P<project_id>\d+)/$", query_task_count),
-    url(r"^get_periodic_task_list/(?P<project_id>\d+)/$", get_periodic_task_list),
-    url(
+    re_path(r"^get_common_template_list/$", get_common_template_list),
+    re_path(r"^get_common_template_info/(?P<template_id>\d+)/$", get_common_template_info),
+    re_path(r"^create_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_task),
+    re_path(r"^fast_create_task/(?P<project_id>\d+)/$", fast_create_task),
+    re_path(r"^start_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", start_task),
+    re_path(r"^operate_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", operate_task),
+    re_path(r"^get_task_status/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_status),
+    re_path(r"^query_task_count/(?P<project_id>\d+)/$", query_task_count),
+    re_path(r"^get_periodic_task_list/(?P<project_id>\d+)/$", get_periodic_task_list),
+    re_path(
         r"^get_periodic_task_info/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
         get_periodic_task_info,
     ),
-    url(
+    re_path(
         r"^create_periodic_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$",
         create_periodic_task,
     ),
-    url(
+    re_path(
         r"^set_periodic_task_enabled/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
         set_periodic_task_enabled,
     ),
-    url(
+    re_path(
         r"^modify_cron_for_periodic_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
         modify_cron_for_periodic_task,
     ),
-    url(r"^modify_constants_for_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", modify_constants_for_task),
-    url(
+    re_path(r"^modify_constants_for_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", modify_constants_for_task),
+    re_path(
         r"^modify_constants_for_periodic_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
         modify_constants_for_periodic_task,
     ),
-    url(r"^get_task_list/(?P<project_id>\d+)/$", get_task_list),
-    url(r"^get_task_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_detail),
-    url(
+    re_path(r"^get_task_list/(?P<project_id>\d+)/$", get_task_list),
+    re_path(r"^get_task_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_detail),
+    re_path(
         r"^get_task_node_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
         get_task_node_detail,
     ),
-    url(r"^node_callback/(?P<task_id>\d+)/(?P<project_id>\d+)/$", node_callback),
-    url(r"^import_common_template/$", import_common_template),
-    url(r"^get_plugin_list/(?P<project_id>\d+)/$", get_plugin_list),
-    url(r"^get_plugin_detail/(?P<project_id>\d+)/$", get_plugin_detail),
-    url(r"^get_user_project_list/$", get_user_project_list),
-    url(r"^get_user_project_detail/(?P<project_id>\d+)/$", get_user_project_detail),
-    url(
+    re_path(r"^node_callback/(?P<task_id>\d+)/(?P<project_id>\d+)/$", node_callback),
+    re_path(r"^import_common_template/$", import_common_template),
+    re_path(r"^get_plugin_list/(?P<project_id>\d+)/$", get_plugin_list),
+    re_path(r"^get_plugin_detail/(?P<project_id>\d+)/$", get_plugin_detail),
+    re_path(r"^get_user_project_list/$", get_user_project_list),
+    re_path(r"^get_user_project_detail/(?P<project_id>\d+)/$", get_user_project_detail),
+    re_path(
         r"^get_template_schemes/(?P<project_id>\d+)/(?P<template_id>\d+)/$",
         get_template_schemes,
     ),
-    url(
+    re_path(
         r"^preview_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$",
         preview_task_tree,
     ),
-    url(
+    re_path(
         r"^get_task_node_data/(?P<project_id>\d+)/(?P<task_id>\d+)/$",
         get_task_node_data,
     ),
-    url(r"^operate_node/(?P<project_id>\d+)/(?P<task_id>\d+)/$", operate_node),
-    url(r"^get_tasks_status/(?P<project_id>\d+)/$", get_tasks_status),
-    url(r"^get_tasks_manual_intervention_state/(?P<project_id>\d+)/$", get_tasks_manual_intervention_state),
-    url(r"^import_project_template/(?P<project_id>\d+)/$", import_project_template),
-    url(r"^claim_functionalization_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", claim_functionalization_task),
-    url(r"^get_functionalization_task_list/$", get_functionalization_task_list),
-    url(r"^preview_common_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$", preview_common_task_tree),
-    url(r"^register_project/$", register_project),
-    url(r"^create_and_start_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_and_start_task),
-    url(r"^create_clocked_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_clocked_task),
-    url(r"^get_mini_app_list/(?P<project_id>\d+)/$", get_mini_app_list),
-    url(r"^get_task_count/(?P<project_id>\d+)/$", get_task_count),
-    url(r"^copy_template_across_project/(?P<project_id>\d+)/$", copy_template_across_project),
+    re_path(r"^operate_node/(?P<project_id>\d+)/(?P<task_id>\d+)/$", operate_node),
+    re_path(r"^get_tasks_status/(?P<project_id>\d+)/$", get_tasks_status),
+    re_path(r"^get_tasks_manual_intervention_state/(?P<project_id>\d+)/$", get_tasks_manual_intervention_state),
+    re_path(r"^import_project_template/(?P<project_id>\d+)/$", import_project_template),
+    re_path(r"^claim_functionalization_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", claim_functionalization_task),
+    re_path(r"^get_functionalization_task_list/$", get_functionalization_task_list),
+    re_path(r"^preview_common_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$", preview_common_task_tree),
+    re_path(r"^register_project/$", register_project),
+    re_path(r"^create_and_start_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_and_start_task),
+    re_path(r"^create_clocked_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_clocked_task),
+    re_path(r"^get_mini_app_list/(?P<project_id>\d+)/$", get_mini_app_list),
+    re_path(r"^get_task_count/(?P<project_id>\d+)/$", get_task_count),
+    re_path(r"^copy_template_across_project/(?P<project_id>\d+)/$", copy_template_across_project),
 ]

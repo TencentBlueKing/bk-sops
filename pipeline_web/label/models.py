@@ -12,10 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from pipeline_web.core.models import NodeInTemplateAttr, NodeInInstanceAttr
 from pipeline_web.core.abstract import NodeAttr
+from pipeline_web.core.models import NodeInInstanceAttr, NodeInTemplateAttr
 
 
 class LabelGroup(models.Model):

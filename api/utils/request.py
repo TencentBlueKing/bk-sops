@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError

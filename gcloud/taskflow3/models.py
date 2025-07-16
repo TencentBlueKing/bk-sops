@@ -19,7 +19,7 @@ from copy import deepcopy
 import ujson as json
 from django.db import connection, models, transaction
 from django.db.models import Count, Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.models import ComponentModel
 from pipeline.core.constants import PE
 from pipeline.engine import states
@@ -444,10 +444,11 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
         task_instance_id_list = taskflow.values_list("id", flat=True)
         group_type = filters.get("type", "day")
-        select = {"time": connection.ops.date_trunc_sql(group_type, "create_time")}
+        time_sql, params = connection.ops.date_trunc_sql(group_type, "create_time", params=[])
+        select = {"time": time_sql}
         results = (
             TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
-            .extra(select=select)
+            .extra(select=select, select_params=params)
             .values("time", "create_method")
             .annotate(value=Count("id"))
         ).order_by("time")

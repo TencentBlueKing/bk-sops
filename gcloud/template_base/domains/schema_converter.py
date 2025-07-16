@@ -16,7 +16,7 @@ from abc import ABCMeta, abstractmethod
 
 import jsonschema
 import yaml
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
 
@@ -615,9 +615,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
         sorted_node = dict(
             sorted(
                 converted_node.items(),
-                key=lambda pair: self.NODE_FIELD_ORDER.index(pair[0])
-                if pair[0] in self.NODE_FIELD_ORDER
-                else len(self.NODE_FIELD_ORDER),
+                key=lambda pair: (
+                    self.NODE_FIELD_ORDER.index(pair[0])
+                    if pair[0] in self.NODE_FIELD_ORDER
+                    else len(self.NODE_FIELD_ORDER)
+                ),
             )
         )
         return sorted_node

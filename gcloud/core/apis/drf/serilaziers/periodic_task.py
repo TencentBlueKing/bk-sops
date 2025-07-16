@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django_celery_beat.models import PeriodicTask as CeleryTask
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
@@ -22,14 +22,13 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import ValidationError
 
 import env
-from gcloud.utils.strings import inspect_time
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
-from gcloud.core.models import Project, ProjectConfig
+from gcloud.core.models import EnvironmentVariables, Project, ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
-from gcloud.core.models import EnvironmentVariables
+from gcloud.utils.strings import inspect_time
 
 logger = logging.getLogger("root")
 

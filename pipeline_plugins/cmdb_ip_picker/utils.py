@@ -14,7 +14,7 @@ import logging
 import re
 
 import requests
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
@@ -85,7 +85,9 @@ class IPPickerDataGenerator:
         else:
             result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         if result["invalid_ip"]:
-            message = _(f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data")
+            message = _(
+                f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data"
+            )
             logger.error(message)
             return {"result": False, "data": [], "message": message}
         ips = [
@@ -734,7 +736,9 @@ def get_gse_agent_status_ipv6(bk_agent_id_list):
         resp = requests.post(url=get_agent_status_url, json=params)
 
         if resp.status_code != 200:
-            raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
+            raise Exception(
+                "[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content)
+            )
         try:
             resp_data = resp.json()
         except Exception as e:

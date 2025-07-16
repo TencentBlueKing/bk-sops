@@ -15,12 +15,12 @@ import datetime
 import json
 from typing import List
 
+import pytz
 from bamboo_engine.context import Context
 from bamboo_engine.template import Template
 from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
@@ -128,7 +128,7 @@ class SubprocessPluginService(Service):
                 getattr(Project.objects.filter(id=parent_data.get_one_of_inputs("project_id")).first(), "time_zone")
                 or settings.TIME_ZONE
             )
-            time_stamp = datetime.datetime.now(tz=timezone.pytz.timezone(project_tz)).strftime("%Y%m%d%H%M%S")
+            time_stamp = datetime.datetime.now(tz=pytz.timezone(project_tz)).strftime("%Y%m%d%H%M%S")
             template_name = getattr(PipelineTemplate.objects.filter(template_id=subprocess.template_id).first(), "name")
             pipeline_instance_kwargs = {
                 "name": f"{template_name}_{time_stamp}",
@@ -203,7 +203,7 @@ class SubprocessPluginService(Service):
             pipeline_constants = pipeline_instance.execution_data.get("constants")
             extra_info = extract_extra_info(pipeline_constants)
             operate_record_signal.send(
-                sender=RecordType.task.name,
+                sender=RecordType.task,
                 operator="system",
                 operate_type=OperateType.create.name,
                 operate_source=OperateSource.parent.name,
@@ -219,7 +219,7 @@ class SubprocessPluginService(Service):
 
         # 记录操作流水
         operate_record_signal.send(
-            sender=RecordType.task.name,
+            sender=RecordType.task,
             operator="system",
             operate_type=OperateType.start.name,
             operate_source=OperateSource.parent.name,

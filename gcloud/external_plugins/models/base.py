@@ -12,8 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models, transaction
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext_lazy as _
 from pipeline.contrib.external_plugins.models import source_cls_factory as base_source_cls_factory
 
 source_cls_factory = {}
@@ -79,7 +78,7 @@ class PackageSource(models.Model):
     type = models.CharField(_("包源类型"), max_length=64)
     base_source_id = models.IntegerField(_("包源模型 ID"), blank=True, null=True)
 
-    _base_source_attr = '_base_source'
+    _base_source_attr = "_base_source"
 
     class Meta:
         abstract = True
@@ -114,19 +113,15 @@ class PackageSource(models.Model):
         if source_type != self.type:
             with transaction.atomic():
                 new_base_source_cls = base_source_cls_factory[source_type]
-                base_source = new_base_source_cls.objects.create_source(name=self.name,
-                                                                        packages=packages,
-                                                                        from_config=False,
-                                                                        **kwargs)
+                base_source = new_base_source_cls.objects.create_source(
+                    name=self.name, packages=packages, from_config=False, **kwargs
+                )
                 self.type = source_type
                 self.delete_base_source()
                 self.base_source_id = base_source.id
                 self.save()
         else:
             base_source_cls = base_source_cls_factory[self.type]
-            base_source_cls.objects.filter(id=self.base_source_id).update(
-                packages=packages,
-                **kwargs
-            )
+            base_source_cls.objects.filter(id=self.base_source_id).update(packages=packages, **kwargs)
             if hasattr(self, self._base_source_attr):
                 self.base_source.refresh_from_db()

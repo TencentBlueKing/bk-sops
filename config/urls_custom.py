@@ -11,36 +11,36 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.conf import settings
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 # 用户自定义 urlconf
 urlpatterns_custom = [
-    url(r"^", include("gcloud.core.urls")),
-    url(r"^", include("gcloud.resources.urls")),
-    url(r"^apigw/", include("gcloud.apigw.urls")),
-    url(r"^common_template/", include("gcloud.common_template.urls")),
-    url(r"^template/", include("gcloud.tasktmpl3.urls")),
-    url(r"^template/", include("gcloud.template_base.urls")),
-    url(r"^taskflow/", include("gcloud.taskflow3.urls")),
-    url(r"^appmaker/", include("gcloud.contrib.appmaker.urls")),
-    url(r"^collection/", include("gcloud.contrib.collection.urls")),
-    url(r"^develop/", include("gcloud.contrib.develop.urls")),
-    url(r"^function/", include("gcloud.contrib.function.urls")),
-    url(r"^pipeline/", include("pipeline_plugins.base.urls")),
-    url(r"^pipeline/", include("pipeline_plugins.components.urls")),
-    url(r"^pipeline/", include("pipeline_plugins.variables.urls")),
-    url(r"^analysis/", include("gcloud.contrib.analysis.urls")),
-    url(r"^periodictask/", include("gcloud.periodictask.urls")),
-    url(r"^weixin/", include("weixin.urls")),
-    url(r"^weixin/login/", include("weixin.core.urls")),
-    url(r"^admin/", include("gcloud.contrib.admin.urls")),
-    url(r"^plugin_service/", include("plugin_service.urls")),
-    url(r"^mako_operations/", include("gcloud.mako_template_helper.urls")),
-    url(r"^engine_admin/", include("pipeline.contrib.engine_admin.urls")),
-    url(r"^template_market/", include("gcloud.contrib.template_market.urls")),
+    re_path(r"^", include("gcloud.core.urls")),
+    re_path(r"^", include("gcloud.resources.urls")),
+    re_path(r"^apigw/", include("gcloud.apigw.urls")),
+    re_path(r"^common_template/", include("gcloud.common_template.urls")),
+    re_path(r"^template/", include("gcloud.tasktmpl3.urls")),
+    re_path(r"^template/", include("gcloud.template_base.urls")),
+    re_path(r"^taskflow/", include("gcloud.taskflow3.urls")),
+    re_path(r"^appmaker/", include("gcloud.contrib.appmaker.urls")),
+    re_path(r"^collection/", include("gcloud.contrib.collection.urls")),
+    re_path(r"^develop/", include("gcloud.contrib.develop.urls")),
+    re_path(r"^function/", include("gcloud.contrib.function.urls")),
+    re_path(r"^pipeline/", include("pipeline_plugins.base.urls")),
+    re_path(r"^pipeline/", include("pipeline_plugins.components.urls")),
+    re_path(r"^pipeline/", include("pipeline_plugins.variables.urls")),
+    re_path(r"^analysis/", include("gcloud.contrib.analysis.urls")),
+    re_path(r"^periodictask/", include("gcloud.periodictask.urls")),
+    re_path(r"^weixin/", include("weixin.urls")),
+    re_path(r"^weixin/login/", include("weixin.core.urls")),
+    re_path(r"^admin/", include("gcloud.contrib.admin.urls")),
+    re_path(r"^plugin_service/", include("plugin_service.urls")),
+    re_path(r"^mako_operations/", include("gcloud.mako_template_helper.urls")),
+    re_path(r"^engine_admin/", include("pipeline.contrib.engine_admin.urls")),
+    re_path(r"^template_market/", include("gcloud.contrib.template_market.urls")),
 ]
 
 schema_view = get_schema_view(
@@ -56,7 +56,7 @@ schema_view = get_schema_view(
 
 if settings.ENVIRONMENT != "production" or settings.ENABLE_SWAGGER_UI:
     urlpatterns_custom += [
-        url(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json"),
-        url(r"^swagger/$", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
-        url(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+        re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json"),
+        re_path(r"^swagger/$", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+        re_path(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     ]

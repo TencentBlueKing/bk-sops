@@ -10,13 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
-from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base import (
-    MonitorAlarmShieldServiceBase,
-)
+from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base import MonitorAlarmShieldServiceBase
 
 __group_name__ = _("监控平台(Monitor)")
 

@@ -13,16 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from django.dispatch import Signal, receiver
 
-from gcloud.contrib.operate_record.helpers import record_template_operation_helper, record_task_operation_helper
 from gcloud.contrib.operate_record.constants import RecordType
+from gcloud.contrib.operate_record.helpers import record_task_operation_helper, record_template_operation_helper
 
 # signal_sender: RecordType
-operate_record_signal = Signal(
-    ["operator", "operate_type", "operate_source", "instance_id", "project_id", "node_id", "extra_info"]
-)
+# ["operator", "operate_type", "operate_source", "instance_id", "project_id", "node_id", "extra_info"]
+operate_record_signal = Signal()
 
 
-@receiver(operate_record_signal, sender=RecordType.template.name)
+@receiver(operate_record_signal, sender=RecordType.template)
 def record_template_handler(operator, operate_type, operate_source, instance_id, project_id, **kwargs):
     record_template_operation_helper(
         operator=operator,
@@ -33,14 +32,17 @@ def record_template_handler(operator, operate_type, operate_source, instance_id,
     )
 
 
-@receiver(operate_record_signal, sender=RecordType.common_template.name)
+@receiver(operate_record_signal, sender=RecordType.common_template)
 def record_common_template_handler(operator, operate_type, operate_source, instance_id, **kwargs):
     record_template_operation_helper(
-        operator=operator, operate_type=operate_type, operate_source=operate_source, template_id=instance_id,
+        operator=operator,
+        operate_type=operate_type,
+        operate_source=operate_source,
+        template_id=instance_id,
     )
 
 
-@receiver(operate_record_signal, sender=RecordType.task.name)
+@receiver(operate_record_signal, sender=RecordType.task)
 def record_task_handler(operator, operate_type, operate_source, instance_id, project_id, extra_info="", **kwargs):
     record_task_operation_helper(
         operator=operator,
@@ -52,7 +54,7 @@ def record_task_handler(operator, operate_type, operate_source, instance_id, pro
     )
 
 
-@receiver(operate_record_signal, sender=RecordType.task_node.name)
+@receiver(operate_record_signal, sender=RecordType.task_node)
 def record_task_node_handler(operator, operate_type, operate_source, instance_id, project_id, node_id, **kwargs):
     record_task_operation_helper(
         operator=operator,

@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import itertools
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
@@ -152,7 +152,9 @@ class NodemanCreateTaskService(NodeManBaseService):
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
+                            data.set_outputs(
+                                "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip))
+                            )
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -165,7 +167,10 @@ class NodemanCreateTaskService(NodeManBaseService):
                             if len(others_ip_list) == len(inner_ip_list):
                                 one[ip_type] = others_ip_list[index]
                             else:
-                                data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
+                                data.set_outputs(
+                                    "ex_data",
+                                    _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)),
+                                )
                                 return False
                     one.update(base_params)
 
@@ -216,7 +221,8 @@ class NodemanCreateTaskService(NodeManBaseService):
                         "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
                         "nodeman_op_type": StringItemSchema(
                             description=_(
-                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
+                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、"
+                                " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
                             )
                         ),
                         "nodeman_ip_str": StringItemSchema(description=_("IP(升级，卸载，移除时需要)")),
@@ -226,14 +232,22 @@ class NodemanCreateTaskService(NodeManBaseService):
                                 description=_("主机相关信息"),
                                 property_schemas={
                                     "inner_ip": StringItemSchema(description=_("内网 IP")),
-                                    "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
-                                    "data_ip": StringItemSchema(description=_("主机数据 IP，可以为空，适配复杂网络时填写")),
+                                    "login_ip": StringItemSchema(
+                                        description=_("主机登录 IP，可以为空，适配复杂网络时填写")
+                                    ),
+                                    "data_ip": StringItemSchema(
+                                        description=_("主机数据 IP，可以为空，适配复杂网络时填写")
+                                    ),
                                     "outer_ip": StringItemSchema(description=_("外网 IP, 可以为空")),
-                                    "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
+                                    "os_type": StringItemSchema(
+                                        description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")
+                                    ),
                                     "port": StringItemSchema(description=_("端口号")),
                                     "account": StringItemSchema(description=_("登录帐号")),
                                     "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
-                                    "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
+                                    "auth_key": StringItemSchema(
+                                        description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
+                                    ),
                                 },
                             ),
                         ),

@@ -18,7 +18,7 @@ from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Count
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.periodic_task.models import PeriodicTask
 from pipeline.models import PipelineInstance, PipelineTemplate, TemplateRelationship
@@ -541,7 +541,9 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 class TaskTemplate(BaseTemplate):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
-    default_flow_type = models.CharField(_("偏好任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common")
+    default_flow_type = models.CharField(
+        _("偏好任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common"
+    )
 
     objects = TaskTemplateManager()
 

@@ -34,7 +34,7 @@ def page_not_found(request, exception):
     if request.path.startswith(settings.STATIC_URL):
         return HttpResponseNotFound()
 
-    user = LoginRequiredMiddleware().authenticate(request)
+    user = LoginRequiredMiddleware(get_response=home).authenticate(request)
 
     if user:
         request.user = user
@@ -44,8 +44,8 @@ def page_not_found(request, exception):
         return render(request, "core/base_vue.html", {})
 
     # 未登录重定向到首页，跳到登录页面
-    if hasattr(LoginRequiredMiddleware(), "is_user_forbidden"):
-        user_forbidden, msg = LoginRequiredMiddleware().is_user_forbidden(request)
+    if hasattr(LoginRequiredMiddleware(get_response=home), "is_user_forbidden"):
+        user_forbidden, msg = LoginRequiredMiddleware(get_response=home).is_user_forbidden(request)
         if user_forbidden:
             handler = ResponseHandler(ConfFixture, settings)
             return handler.build_403_response(msg)

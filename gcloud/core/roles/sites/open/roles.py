@@ -11,18 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-MAINTAINERS = 'Maintainers'
-PRODUCTPM = 'ProductPm'
-DEVELOPER = 'Developer'
-TESTER = 'Tester'
-OWNER = 'Owner'
-COOPERATION = 'Cooperation'
-ADMIN = 'Admin'
-FUNCTOR = 'Functor'  # 职能化人员
-AUDITOR = 'Auditor'
-NORMAL = 'Normal'
+MAINTAINERS = "Maintainers"
+PRODUCTPM = "ProductPm"
+DEVELOPER = "Developer"
+TESTER = "Tester"
+OWNER = "Owner"
+COOPERATION = "Cooperation"
+ADMIN = "Admin"
+FUNCTOR = "Functor"  # 职能化人员
+AUDITOR = "Auditor"
+NORMAL = "Normal"
 
 ROLES_DECS = {
     MAINTAINERS: _("运维人员"),
@@ -34,7 +34,6 @@ ROLES_DECS = {
     TESTER: _("测试人员"),
     DEVELOPER: _("开发人员"),
     AUDITOR: _("审计人员"),
-
 }
 
 ALL_ROLES = [
@@ -61,17 +60,13 @@ CC_ROLES = [
 ]
 
 # 默认通知分组
-CC_PERSON_GROUP = [
-    {"value": role, "text": ROLES_DECS[role]} for role in CC_ROLES
-]
+CC_PERSON_GROUP = [{"value": role, "text": ROLES_DECS[role]} for role in CC_ROLES]
 
-DEFAULT_CC_NOTIFY_SET = (
-    MAINTAINERS,
-)
+DEFAULT_CC_NOTIFY_SET = (MAINTAINERS,)
 
 CC_V2_ROLE_MAP = {
-    MAINTAINERS: 'bk_biz_maintainer',
-    PRODUCTPM: 'bk_biz_productor',
-    DEVELOPER: 'bk_biz_developer',
-    TESTER: 'bk_biz_tester'
+    MAINTAINERS: "bk_biz_maintainer",
+    PRODUCTPM: "bk_biz_productor",
+    DEVELOPER: "bk_biz_developer",
+    TESTER: "bk_biz_tester",
 }

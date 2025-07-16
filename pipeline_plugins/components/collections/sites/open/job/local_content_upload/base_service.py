@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import base64
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import BooleanItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
@@ -55,7 +55,9 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
                 key="job_ip_list",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的")
+                    description=_(
+                        "IP必须填写【管控区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+                    )
                 ),
             ),
             self.InputItem(

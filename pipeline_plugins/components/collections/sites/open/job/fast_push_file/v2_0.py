@@ -15,7 +15,7 @@ from copy import deepcopy
 from functools import partial
 
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
@@ -219,7 +219,10 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("分发请求成功数")),
             ),
             self.OutputItem(
-                name=_("分发成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
+                name=_("分发成功数"),
+                key="success_count",
+                type="string",
+                schema=StringItemSchema(description=_("上传成功数")),
             ),
             self.OutputItem(
                 name=_("任务id"),

@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.http import JsonResponse
-from django.conf.urls import url
+from django.urls import re_path
 
 from api import BKGseKitClient
 
@@ -36,5 +36,5 @@ def gsekit_get_config_template_list(request, biz_cc_id):
 
 
 gsekit_urlpatterns = [
-    url(r"^gsekit_get_config_template_list/(?P<biz_cc_id>\d+)/$", gsekit_get_config_template_list),
+    re_path(r"^gsekit_get_config_template_list/(?P<biz_cc_id>\d+)/$", gsekit_get_config_template_list),
 ]

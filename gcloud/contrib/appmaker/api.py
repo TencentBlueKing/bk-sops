@@ -16,7 +16,7 @@ import logging
 import jsonschema
 import magic
 from django.http import JsonResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET
 
 from gcloud.conf import settings
@@ -61,7 +61,9 @@ def save(request, project_id):
         file_size = logo_obj.size
         # LOGO大小不能大于 100K
         if file_size > 100 * 1024:
-            message = _("轻应用保存失败: 非法的图片大小, 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | appmaker save")
+            message = _(
+                "轻应用保存失败: 非法的图片大小, 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | appmaker save"
+            )
             logger.error(message)
             return JsonResponse({"result": False, "message": message})
         logo_content = logo_obj.read()

@@ -26,17 +26,17 @@ Including another URLconf
 """
 
 from django.conf import settings
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, path, re_path
 from django.views import static
 
 from config.urls_custom import urlpatterns_custom
 from gcloud.core.views import page_not_found
 
 urlpatterns = [
-    url(r"^django_admin/", admin.site.urls),
-    url(r"^account/", include("blueapps.account.urls")),
-    url(r"^notice/", include("bk_notice_sdk.urls")),
+    re_path(r"^django_admin/", admin.site.urls),
+    re_path(r"^account/", include("blueapps.account.urls")),
+    re_path(r"^notice/", include("bk_notice_sdk.urls")),
 ]
 
 # app自定义路径
@@ -45,12 +45,12 @@ urlpatterns += urlpatterns_custom
 if settings.IS_LOCAL:
     urlpatterns += [
         # media
-        url(r"^media/(?P<path>.*)$", static.serve, {"document_root": settings.MEDIA_ROOT}),
-        url("favicon.ico", static.serve, {"document_root": settings.STATIC_ROOT, "path": "core/images/bk_sops.png"}),
+        re_path(r"^media/(?P<path>.*)$", static.serve, {"document_root": settings.MEDIA_ROOT}),
+        path("favicon.ico", static.serve, {"document_root": settings.STATIC_ROOT, "path": "core/images/bk_sops.png"}),
     ]
     if not settings.DEBUG:
         urlpatterns += [
-            url(r"^static/(?P<path>.*)$", static.serve, {"document_root": settings.STATIC_ROOT}),
+            re_path(r"^static/(?P<path>.*)$", static.serve, {"document_root": settings.STATIC_ROOT}),
         ]
 
 handler404 = page_not_found

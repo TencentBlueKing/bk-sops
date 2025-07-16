@@ -21,7 +21,7 @@ import ujson as json
 import yaml
 from django.db.models import Model
 from django.http import HttpResponse, JsonResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateRelationship
 from rest_framework.decorators import api_view
@@ -32,10 +32,7 @@ from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.base_template import (
-    YamlExportInterceptor,
-    YamlImportInterceptor,
-)
+from gcloud.iam_auth.view_interceptors.base_template import YamlExportInterceptor, YamlImportInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.template_base.apis.django.validators import (
     FileValidator,
@@ -45,10 +42,7 @@ from gcloud.template_base.apis.django.validators import (
 from gcloud.template_base.domains import TEMPLATE_TYPE_MODEL
 from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
 from gcloud.template_base.domains.importer import TemplateImporter
-from gcloud.template_base.utils import (
-    format_import_result_to_response_data,
-    read_template_data_file,
-)
+from gcloud.template_base.utils import format_import_result_to_response_data, read_template_data_file
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import string_to_boolean
@@ -425,7 +419,9 @@ def base_template_parents(request: Request, template_model_cls: object, filters:
     qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
 
     if len(qs) != 1:
-        message = _(f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理, 根据过滤条件: {filters}, 找到{len(qs)}条数据 | base_template_parents")
+        message = _(
+            f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理, 根据过滤条件: {filters}, 找到{len(qs)}条数据 | base_template_parents"
+        )
         logger.error(message)
         return JsonResponse(
             {

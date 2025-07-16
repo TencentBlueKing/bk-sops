@@ -13,14 +13,14 @@ specific language governing permissions and limitations under the License.
 
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 
 class BkWeixinUserManager(models.Manager):
     def create_user(self, userid, **extra_fields):
         now = timezone.now()
         if not userid:
-            raise ValueError('The given userid must be set')
+            raise ValueError("The given userid must be set")
         user = self.model(userid=userid, date_joined=now, **extra_fields)
         user.save()
         return user
@@ -29,7 +29,7 @@ class BkWeixinUserManager(models.Manager):
         """
         获取用户，无则创建，有则更新
         """
-        update_fields = ['name', 'gender', 'country', 'city', 'province', 'avatar_url']
+        update_fields = ["name", "gender", "country", "city", "province", "avatar_url"]
         # 清理无需字段
         for field in extra_fields:
             if field not in update_fields:
@@ -37,7 +37,7 @@ class BkWeixinUserManager(models.Manager):
         try:
             user = self.get(userid=userid)
             for field in update_fields:
-                field_value = extra_fields.get(field) or ''
+                field_value = extra_fields.get(field) or ""
                 if field_value:
                     setattr(user, field, field_value)
             user.save()
@@ -48,6 +48,7 @@ class BkWeixinUserManager(models.Manager):
 
 class BkWeixinUser(models.Model):
     """微信公众号或企业微信用户"""
+
     userid = models.CharField(_("微信用户在应用里的唯一标识(公众号openid/企业微信userid)"), max_length=128, unique=True)
     name = models.CharField(_("名称"), max_length=127, blank=True)
     gender = models.CharField(_("性别"), max_length=15, blank=True)
@@ -64,7 +65,7 @@ class BkWeixinUser(models.Model):
     # (2)weixin.core.api.QyWeiXinApi.get_user_info_for_account返回需要的字段
 
     class Meta:
-        db_table = 'bk_weixin_user'
+        db_table = "bk_weixin_user"
         verbose_name = _("微信用户")
         verbose_name_plural = _("微信用户")
 

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from rest_framework.routers import DefaultRouter
 
 from gcloud.contrib.admin import migration_api, views
@@ -35,27 +35,27 @@ v3_drf_api.register(r"periodic_task", AdminPeriodicTaskViewSet)
 
 
 urlpatterns = [
-    url(r"^api/v3/", include(v3_drf_api.urls)),
-    url(r"^template/restore", views.restore_template),
-    url(r"^template/refresh_template_notify_type/$", views.refresh_template_notify_type),
-    url(r"^template/make_template_notify_type_loadable/$", views.make_template_notify_type_loadable),
-    url(r"^taskflow/upsert_context", views.upsert_taskflow_v2_context),
-    url(r"^taskflow/detail", views.get_taskflow_v1_detail),
-    url(r"^taskflow/node/detail", views.get_taskflow_v1_node_detail),
-    url(r"^taskflow/node/history/log", views.get_node_v1_history_log),
-    url(r"^search", views.search),
-    url(r"^command/get_cache_key/(?P<key>\w+)/$", views.get_cache_key),
-    url(r"^command/delete_cache_key/(?P<key>\w+)/$", views.delete_cache_key),
-    url(r"^command/get_settings/$", views.get_settings),
-    url(r"^command/upsert_iam_system_provider_config/$", views.upsert_iam_system_provider_config),
-    url(r"^command/migrate_pipeline_parent_data/$", views.migrate_pipeline_parent_data),
-    url(r"^migration/register_resource_config/$", migration_api.register_resource_config),
-    url(r"^migration/migrate_app_maker/$", migration_api.migrate_app_maker),
-    url(r"^migration/migrate_staff_group/$", migration_api.migrate_staff_group),
-    url(r"^migration/migrate_template_category/$", migration_api.migrate_template_category),
-    url(r"^migration/fix_engine_version_zero_task/$", migration_api.fix_engine_version_zero_task),
-    url(r"^batch_insert_project_based_component/$", batch_insert_project_based_component),
-    url(r"^batch_delete_project_based_component/$", batch_delete_project_based_component),
-    url(r"^batch_revoke_task/$", batch_revoke_task),
-    url(r"^command/get_enabled_periodic_task/$", views.get_enabled_periodic_task),
+    re_path(r"^api/v3/", include(v3_drf_api.urls)),
+    re_path(r"^template/restore", views.restore_template),
+    re_path(r"^template/refresh_template_notify_type/$", views.refresh_template_notify_type),
+    re_path(r"^template/make_template_notify_type_loadable/$", views.make_template_notify_type_loadable),
+    re_path(r"^taskflow/upsert_context", views.upsert_taskflow_v2_context),
+    re_path(r"^taskflow/detail", views.get_taskflow_v1_detail),
+    re_path(r"^taskflow/node/detail", views.get_taskflow_v1_node_detail),
+    re_path(r"^taskflow/node/history/log", views.get_node_v1_history_log),
+    re_path(r"^search", views.search),
+    re_path(r"^command/get_cache_key/(?P<key>\w+)/$", views.get_cache_key),
+    re_path(r"^command/delete_cache_key/(?P<key>\w+)/$", views.delete_cache_key),
+    re_path(r"^command/get_settings/$", views.get_settings),
+    re_path(r"^command/upsert_iam_system_provider_config/$", views.upsert_iam_system_provider_config),
+    re_path(r"^command/migrate_pipeline_parent_data/$", views.migrate_pipeline_parent_data),
+    re_path(r"^migration/register_resource_config/$", migration_api.register_resource_config),
+    re_path(r"^migration/migrate_app_maker/$", migration_api.migrate_app_maker),
+    re_path(r"^migration/migrate_staff_group/$", migration_api.migrate_staff_group),
+    re_path(r"^migration/migrate_template_category/$", migration_api.migrate_template_category),
+    re_path(r"^migration/fix_engine_version_zero_task/$", migration_api.fix_engine_version_zero_task),
+    re_path(r"^batch_insert_project_based_component/$", batch_insert_project_based_component),
+    re_path(r"^batch_delete_project_based_component/$", batch_delete_project_based_component),
+    re_path(r"^batch_revoke_task/$", batch_revoke_task),
+    re_path(r"^command/get_enabled_periodic_task/$", views.get_enabled_periodic_task),
 ]

@@ -11,12 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from pipeline_plugins.base.query import cmdb
 
-
 urlpatterns = [
-    url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cmdb.cc_get_host_by_module_id),
-    url(r'^cc_search_module/(?P<biz_cc_id>\d+)/$', cmdb.cc_search_module),
+    re_path(r"^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$", cmdb.cc_get_host_by_module_id),
+    re_path(r"^cc_search_module/(?P<biz_cc_id>\d+)/$", cmdb.cc_search_module),
 ]

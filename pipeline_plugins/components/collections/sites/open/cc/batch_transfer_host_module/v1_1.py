@@ -13,22 +13,21 @@ specific language governing permissions and limitations under the License.
 import logging
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import get_ip_by_regex
-
-from pipeline_plugins.components.utils import convert_num_to_str
-from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
     cc_list_select_node_inst_id,
 )
+from pipeline_plugins.components.utils import convert_num_to_str
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -111,7 +110,9 @@ class CCBatchTransferHostModule(Service):
             # 获取主机id列表
             host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, cc_host_ip_list, supplier_account)
             if not host_result["result"]:
-                message = _(f"主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机属性:{attr}, 错误信息: {host_result['message']}")
+                message = _(
+                    f"主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机属性:{attr}, 错误信息: {host_result['message']}"
+                )
                 self.logger.info(message)
                 failed_update.append(message)
                 continue
@@ -122,7 +123,9 @@ class CCBatchTransferHostModule(Service):
             )
 
             if not result:
-                message = _(f"主机转移模块失败: [配置平台]未找到目标模块, 请检查配置. 主机属性: {attr}, 错误信息: {message}")
+                message = _(
+                    f"主机转移模块失败: [配置平台]未找到目标模块, 请检查配置. 主机属性: {attr}, 错误信息: {message}"
+                )
                 self.logger.info(message)
                 failed_update.append(message)
                 continue

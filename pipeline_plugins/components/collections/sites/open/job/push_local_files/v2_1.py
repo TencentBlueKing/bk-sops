@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 
@@ -94,5 +94,6 @@ class JobPushLocalFilesComponent(Component):
     form = "%scomponents/atoms/job/job_push_local_files/v2_1.js" % settings.STATIC_URL
     version = "v2.1"
     desc = _(
-        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。" "注：插件版本v2.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
+        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
+        "注：插件版本v2.1中滚动执行要求作业平台版本>=V3.6.0.0。\n"
     )
