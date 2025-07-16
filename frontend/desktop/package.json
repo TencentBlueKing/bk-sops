@@ -37,7 +37,7 @@
     "moment-timezone": "^0.5.23",
     "monaco-editor": "0.23.0",
     "qs": "^6.5.2",
-    "serialize-javascript": "^3.0.0",
+    "serialize-javascript": "^4.0.0",
     "vee-validate": "^2.1.0-beta.6",
     "vue": "^2.6.10",
     "vue-i18n": "^8.17.5",
@@ -109,7 +109,7 @@
     "vue-template-compiler": "^2.5.16",
     "webpack": "^4.47.0",
     "webpack-cli": "^3.0.3",
-    "webpack-dev-server": "^3.2.1",
+    "webpack-dev-server": "^5.2.2",
     "webpack-merge": "^4.1.2",
     "worker-loader": "^2.0.0",
     "write-file-webpack-plugin": "^4.3.2"
