@@ -689,7 +689,6 @@ def monitor_report_config():
 
         from bk_monitor_report import MonitorReporter  # noqa
         from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
-
         from blueapps.core.celery import celery_app  # noqa
 
         reporter = MonitorReporter(
@@ -935,6 +934,7 @@ CLEAN_EXPIRED_STATISTICS_CRON = env.CLEAN_EXPIRED_STATISTICS_CRON
 ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = env.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK
 ALLOWED_HTTP_PLUGIN_DOMAINS = env.ALLOWED_HTTP_PLUGIN_DOMAINS
 
+
 # 定义一个补丁来兼容 MySQL 5.7
 class PatchFeatures:
     @cached_property
@@ -952,4 +952,3 @@ SCHEME_HTTPS = "https"
 SCHEME_HTTP = "http"
 BKPAAS_BK_DOMAIN = env.BKPAAS_BK_DOMAIN
 CSRF_TRUSTED_ORIGINS = [f"{SCHEME_HTTPS}://*.{BKPAAS_BK_DOMAIN}", f"{SCHEME_HTTP}://*.{BKPAAS_BK_DOMAIN}"]
-
