@@ -1030,7 +1030,6 @@ const template = {
             }).then(response => {
                 if (common && templateId === undefined) {
                     if (project_scope.length <= 0) {
-                        console.log(project_scope.length <= 0)
                         state.project_scope = ['*']
                     }
                 }
