@@ -37,12 +37,16 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
     project_scope = serializers.SerializerMethodField(help_text="流程使用范围")
+    project_scope_name = serializers.SerializerMethodField(help_text="流程范围项目名称")
 
     class Meta:
         model = CommonTemplate
         exclude = ["extra_info"]
 
     def get_project_scope(self, obj):
+        return obj.extra_info.get("project_scope")
+
+    def get_project_scope_name(self, obj):
         project_scope = obj.extra_info.get("project_scope")
         if project_scope == ["*"]:
             return project_scope
@@ -173,3 +177,9 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "pipeline_template",
             "project_scope",
         ]
+
+
+class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
+    class Meta:
+        model = CommonTemplate
+        fields = ["project_scope"]
