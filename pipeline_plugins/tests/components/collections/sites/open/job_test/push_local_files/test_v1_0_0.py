@@ -146,7 +146,15 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+                calls=[
+                    Call(
+                        tenant_id="system",
+                        username="executor",
+                        biz_cc_id="biz_cc_id",
+                        ip_str="1.1.1.1",
+                        use_cache=False,
+                    )
+                ],
             ),
             CallAssertion(
                 func=PUSH_FAIL_MANAGER.push_files_to_ips,
@@ -213,7 +221,15 @@ def CALLBACK_INVALID_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1:2.2.2.2", use_cache=False)],
+                calls=[
+                    Call(
+                        tenant_id="system",
+                        username="executor",
+                        biz_cc_id="biz_cc_id",
+                        ip_str="1.1.1.1:2.2.2.2",
+                        use_cache=False,
+                    )
+                ],
             ),
             CallAssertion(
                 func=CALLBACK_INVALID_MANAGER.push_files_to_ips,
@@ -286,7 +302,15 @@ def CALLBACK_STRUCT_ERR_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+                calls=[
+                    Call(
+                        tenant_id="system",
+                        username="executor",
+                        biz_cc_id="biz_cc_id",
+                        ip_str="1.1.1.1",
+                        use_cache=False,
+                    )
+                ],
             ),
             CallAssertion(
                 func=CALLBACK_STRUCT_ERR_MANAGER.push_files_to_ips,
@@ -357,7 +381,15 @@ def CALLBACK_FAIL_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+                calls=[
+                    Call(
+                        tenant_id="system",
+                        username="executor",
+                        biz_cc_id="biz_cc_id",
+                        ip_str="1.1.1.1",
+                        use_cache=False,
+                    )
+                ],
             ),
             CallAssertion(
                 func=CALLBACK_FAIL_MANAGER.push_files_to_ips,
@@ -420,7 +452,15 @@ def SUCCESS_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+                calls=[
+                    Call(
+                        tenant_id="system",
+                        username="executor",
+                        biz_cc_id="biz_cc_id",
+                        ip_str="1.1.1.1",
+                        use_cache=False,
+                    )
+                ],
             ),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
