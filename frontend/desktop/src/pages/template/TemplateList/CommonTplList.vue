@@ -373,7 +373,7 @@
                     const data = this.getQueryData()
                     const source = new CancelRequest()
                     data.cancelToken = source.token
-                    const templateListData = await this.loadTemplateList(this.isClickOnlyProjectVisible ? { ...data, project_id: this.project_id } : data)
+                    const templateListData = await this.loadTemplateList(this.isClickOnlyProjectVisible ? { ...data, exclude_wildcard: 1 } : data)
                     this.templateList = templateListData.results
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
@@ -400,7 +400,8 @@
                     pipeline_template__creator: creator || undefined,
                     pipeline_template__editor: editor || undefined,
                     new: true,
-                    id__in: tplIds
+                    id__in: tplIds,
+                    project_id: this.project_id
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
