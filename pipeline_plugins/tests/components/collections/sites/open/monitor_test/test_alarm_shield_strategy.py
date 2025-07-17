@@ -40,46 +40,24 @@ class MonitorAlarmShieldStrategyComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, search_host=None):
-        self.cc = MagicMock()
-        self.cc.search_host = MagicMock(return_value=search_host)
+        self.api = MagicMock()
+        self.api.search_host = MagicMock(return_value=search_host)
 
 
 class MockMonitorClient(object):
     def __init__(self, add_shield_result=None):
-        self.add_shield = MagicMock(return_value=add_shield_result)
+        self.api = MagicMock()
+        self.api.add_shield = MagicMock(return_value=add_shield_result)
 
     def __call__(self, *args, **kwargs):
         return self
 
 
-class MockCMDB(object):
-    def __init__(self):
-        self.get_business_host = MagicMock(
-            return_value=[
-                {"bk_cloud_id": 0, "bk_host_id": 1, "bk_host_innerip": "127.0.0.1"},
-                {"bk_cloud_id": 1, "bk_host_id": 2, "bk_host_innerip": "127.0.0.2"},
-            ]
-        )
-
-
-class MockBusiness(object):
-    def __init__(self):
-        objects = MagicMock()
-        objects.supplier_account_for_business = MagicMock(return_value="sa_token")
-        self.objects = objects
-
-
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_strategy.v1_0" ".get_client_by_user"
-)
-MONITOR_CLIENT = (
-    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_strategy.v1_0" ".BKMonitorClient"
+    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_strategy.v1_0" ".get_client_by_username"
 )
 CMDB_GET_BIZ_HOST = "gcloud.utils.cmdb.get_business_host"
-BIZ_MODEL_SUPPLIER_ACCOUNT_FOR_BIZ = (
-    "pipeline_plugins.components.collections.sites.open.monitor.base.Business.objects.supplier_account_for_business"
-)
 
 # mock client
 CREATE_SHIELD_FAIL_CLIENT = MockClient()
@@ -113,7 +91,7 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
         "bk_alarm_shield_strategy_begin_time": "2019-11-04 00:00:00",
         "bk_alarm_shield_strategy_end_time": "2019-11-05 00:00:00",
     },
-    parent_data={"executor": "executor", "biz_cc_id": 2},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -135,10 +113,10 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_SHIELD_FAIL_MONITOR_CLIENT.add_shield,
+            func=CREATE_SHIELD_FAIL_MONITOR_CLIENT.api.add_shield,
             calls=[
                 Call(
-                    **{
+                    {
                         "begin_time": "2019-11-04 00:00:00",
                         "bk_biz_id": 2,
                         "category": "strategy",
@@ -152,15 +130,15 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
                         "end_time": "2019-11-05 00:00:00",
                         "notice_config": {},
                         "shield_notice": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         )
     ],
     patchers=[
-        Patcher(target=MONITOR_CLIENT, return_value=CREATE_SHIELD_FAIL_MONITOR_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_SHIELD_FAIL_MONITOR_CLIENT),
         Patcher(target=CMDB_GET_BIZ_HOST, return_value=CREATE_SHIELD_FAIL_GET_BIZ_HOST_RETURN),
-        Patcher(target=BIZ_MODEL_SUPPLIER_ACCOUNT_FOR_BIZ, return_value=CREATE_SHIELD_FAIL_SUPPLIER_RETURN),
     ],
 )
 
@@ -172,15 +150,15 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
         "bk_alarm_shield_strategy_begin_time": "2019-11-04 00:00:00",
         "bk_alarm_shield_strategy_end_time": "2019-11-05 00:00:00",
     },
-    parent_data={"executor": "executor", "biz_cc_id": 2},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(success=True, outputs={"shield_id": "1", "message": "success"}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_SHIELD_SUCCESS_MONITOR_CLIENT.add_shield,
+            func=CREATE_SHIELD_SUCCESS_MONITOR_CLIENT.api.add_shield,
             calls=[
                 Call(
-                    **{
+                    {
                         "begin_time": "2019-11-04 00:00:00",
                         "bk_biz_id": 2,
                         "category": "strategy",
@@ -194,14 +172,14 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
                         "end_time": "2019-11-05 00:00:00",
                         "notice_config": {},
                         "shield_notice": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         )
     ],
     patchers=[
-        Patcher(target=MONITOR_CLIENT, return_value=CREATE_SHIELD_SUCCESS_MONITOR_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_SHIELD_SUCCESS_MONITOR_CLIENT),
         Patcher(target=CMDB_GET_BIZ_HOST, return_value=CREATE_SHIELD_SUCCESS_GET_BIZ_HOST_RETURN),
-        Patcher(target=BIZ_MODEL_SUPPLIER_ACCOUNT_FOR_BIZ, return_value=CREATE_SHIELD_SUCCESS_SUPPLIER_RETURN),
     ],
 )
