@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
@@ -20,6 +21,11 @@ from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.template_base.utils import fill_default_version_to_service_activities
 
 logger = logging.getLogger("root")
+
+
+def get_default_project_scope():
+    """获取默认的项目范围配置"""
+    return {"project_scope": ["*"]}
 
 
 class CommonTemplateManager(BaseTemplateManager):
@@ -70,11 +76,22 @@ class CommonTemplateManager(BaseTemplateManager):
             operator=operator,
         )
 
+    def check_template_project_scope(self, project_id, template):
+        if not isinstance(template, CommonTemplate):
+            template = self.get(id=template)
+
+        project_scope = template.extra_info.get("project_scope")
+        if not ("*" in project_scope or project_id in project_scope):
+            return {"result": False, "message": f"项目{project_id}不在公共流程{template.id}的使用范围内"}
+        return {"result": True}
+
 
 class CommonTemplate(BaseTemplate):
     """
     @summary: common templates maintained by admin, which all businesses could use to creating tasks
     """
+
+    extra_info = models.JSONField(_("额外信息"), default=get_default_project_scope)
 
     objects = CommonTemplateManager()
 

@@ -19,6 +19,7 @@ from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.core.models import Project
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
@@ -83,6 +84,19 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
         if user.username != value and value:
             raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
+
+    def validate(self, attrs):
+        pipeline_tree = json.loads(attrs["pipeline_tree"])
+        project_id = attrs["project"].id
+
+        for activity in pipeline_tree.get("activities").values():
+            if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
+                continue
+            common_template_id = activity.get("template_id")
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), common_template_id)
+            if not result["result"]:
+                raise serializers.ValidationError(f"保存流程失败，{result['message']}")
+        return attrs
 
     class Meta:
         model = TaskTemplate

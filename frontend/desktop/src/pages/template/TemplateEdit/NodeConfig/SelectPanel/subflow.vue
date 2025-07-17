@@ -185,6 +185,7 @@
                     }
                     if (this.commonTpl) {
                         data.common = true
+                        data.project_id = this.$route.params.project_id
                     } else {
                         data.project__id = this.$route.params.project_id
                     }

@@ -116,6 +116,37 @@
                             }">
                         </i>
                     </bk-form-item>
+                    <bk-form-item v-if="common" property="project_scope" :label="$t('可见范围')" :required="true"
+                        data-test-id="tabTemplateConfig_form_projectScope">
+                        <bk-checkbox
+                            v-model="isOutermostBaseInfoAllProjectScope"
+                            :disabled="isViewMode"
+                            @change="handleBaseInfoSelectAllProjectScope">
+                            {{ $t('全选') }}
+                        </bk-checkbox>
+                        <bk-select class="project-select"
+                            :searchable="true"
+                            :clearable="true"
+                            :multiple="true"
+                            :display-tag="true"
+                            :auto-height="false"
+                            :readonly="isViewMode"
+                            :disabled="isOutermostBaseInfoAllProjectScope || isViewMode"
+                            @change="handleBaseInfoProjectVisibleChange"
+                            v-model="baseInfoProjectScopeList">
+                            <bk-option-group
+                                v-for="(group, index) in projects"
+                                :name="group.name"
+                                :key="index"
+                                :show-select-all="true">
+                                <bk-option v-for="item in group.children"
+                                    :key="item.id"
+                                    :id="item.id"
+                                    :name="item.name">
+                                </bk-option>
+                            </bk-option-group>
+                        </bk-select>
+                    </bk-form-item>
                 </section>
                 <section class="form-section">
                     <h4>
@@ -249,7 +280,7 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels, default_flow_type
+                executor_proxy, template_labels, default_flow_type, project_scope, template_id
             } = this.$store.state.template
             const { extra_info: extraInfo = {} } = notify_receivers
 
@@ -263,7 +294,9 @@
                     notifyType: [notify_type.success.slice(0), notify_type.fail.slice(0)],
                     notifyTypeExtraInfo: { ...extraInfo },
                     labels: template_labels,
-                    defaultFlowType: default_flow_type
+                    defaultFlowType: default_flow_type,
+                    project_scope: project_scope,
+                    template_id: template_id
                 },
                 stringLength: STRING_LENGTH,
                 rules: {
@@ -281,6 +314,13 @@
                         {
                             regex: NAME_REG,
                             message: i18n.t('流程名称不能包含') + '\'‘"”$&<>' + i18n.t('非法字符'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    project_scope: [
+                        {
+                            required: true,
+                            message: i18n.t('请选择可见范围'),
                             trigger: 'blur'
                         }
                     ]
@@ -320,7 +360,10 @@
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
                 labelLoading: false,
-                proxyPlaceholder: ''
+                proxyPlaceholder: '',
+                isBaseInfoSelectAllProjectScope: false,
+                baseInfoProjectScopeList: [],
+                isOutermostBaseInfoAllProjectScope: false
             }
         },
         computed: {
@@ -332,9 +375,61 @@
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName,
-                'authActions': state => state.authActions
-            })
+                'authActions': state => state.authActions,
+                'projectList': state => state.userProjectList
+            }),
+            projects () {
+                const projects = []
+                const projectsGroup = [
+                    {
+                        name: i18n.t('业务'),
+                        id: 1,
+                        children: []
+                    },
+                    {
+                        id: 2,
+                        name: i18n.t('项目'),
+                        children: []
+                    }
+                ]
+                this.projectList.forEach(item => {
+                    if (item.from_cmdb) {
+                        projectsGroup[0].children.push(item)
+                    } else {
+                        projectsGroup[1].children.push(item)
+                    }
+                })
+                projectsGroup.forEach(group => {
+                    if (group.children.length) {
+                        projects.push(group)
+                    }
+                })
+                return projects
+            },
+            allProjectIds () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
+            }
         },
+        created () {
+            if (this.common) {
+                if (this.formData.project_scope.includes('*')) {
+                    this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.isOutermostBaseInfoAllProjectScope = true
+                } else {
+                    this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.isOutermostBaseInfoAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
+                }
+            }
+        },
+      
         mounted () {
             // 模板没有设置执行代理人时，默认使用项目下的执行代理人
             if (!this.formData.executorProxy.length) {
@@ -344,12 +439,32 @@
         },
         methods: {
             ...mapMutations('template/', [
-                'setTplConfig'
+                'setTplConfig',
+                'setProjectScope'
             ]),
             ...mapActions('project', [
                 'getProjectConfig',
                 'createTemplateLabel'
             ]),
+            handleBaseInfoSelectAllProjectScope (row) {
+                if (row) {
+                    this.isOutermostBaseInfoAllProjectScope = true
+                    this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                } else {
+                    this.isOutermostBaseInfoAllProjectScope = false
+                    this.baseInfoProjectScopeList = []
+                    this.formData.project_scope = []
+                }
+                this.setProjectScope(row ? ['*'] : this.baseInfoProjectScopeList)
+            },
+            handleBaseInfoProjectVisibleChange (row) {
+                const filterList = [...new Set(row)]
+                this.baseInfoProjectScopeList = filterList
+                const changeAllProjectScope = filterList.length === this.allProjectIds.length
+                this.formData.project_scope = filterList
+                this.setProjectScope(changeAllProjectScope ? ['*'] : filterList.map(item => typeof item === 'number' ? String(item) : item))
+            },
             onSelectCategory (val) {
                 if (val) {
                     window.reportInfo({
@@ -403,6 +518,7 @@
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo } = this.formData
+                const localProjectList = this.baseInfoProjectScopeList.length === this.allProjectIds.length ? ['*'] : this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
                 return {
                     name,
                     category,
@@ -412,7 +528,8 @@
                     receiver_group: receiverGroup,
                     notify_type: { success: notifyType[0], fail: notifyType[1] },
                     notify_type_extra_info: notifyTypeExtraInfo,
-                    default_flow_type: defaultFlowType
+                    default_flow_type: defaultFlowType,
+                    project_scope: localProjectList
                 }
             },
             onSelectedExecutorProxy (val) {
@@ -622,4 +739,14 @@
         display: block;
     }
 }
+    .select-all-project-scope{
+        margin: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #dcdee5;
+    }
+    .select-all-project-scope-checkbox{
+        margin-right: 14px;
+    }
 </style>

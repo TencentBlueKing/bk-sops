@@ -185,6 +185,16 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
             raise serializers.ValidationError(str(e))
         return value
 
+    def validate(self, attrs):
+        template_source = attrs.get("template_source")
+        if template_source == "common":
+            template = attrs.get("template")
+            project_id = attrs.get("project").id
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), template)
+            if not result["result"]:
+                raise serializers.ValidationError(f"新建任务失败，{result['message']}")
+        return attrs
+
     class Meta:
         model = TaskFlowInstance
         exclude = ["current_flow"]

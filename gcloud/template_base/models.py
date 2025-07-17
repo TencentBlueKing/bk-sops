@@ -412,9 +412,14 @@ class BaseTemplate(models.Model):
         task_template_cls = apps.get_model("tasktmpl3", "TaskTemplate")
         task_template_qs = task_template_cls.objects.filter(
             pipeline_template_id__in=pipeline_template_referencer, is_deleted=False
-        ).values("id", "pipeline_template__name")
+        ).values("id", "pipeline_template__name", "project__id")
         result = [
-            {"template_type": PROJECT, "id": template_info["id"], "name": template_info["pipeline_template__name"]}
+            {
+                "template_type": PROJECT,
+                "id": template_info["id"],
+                "name": template_info["pipeline_template__name"],
+                "project_id": template_info["project__id"],
+            }
             for template_info in task_template_qs
         ]
 
