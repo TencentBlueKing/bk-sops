@@ -607,8 +607,7 @@
             ...mapMutations('template/', [
                 'setProjectBaseInfo',
                 'setProjectScope',
-                'setTemplateData',
-                'setProjectScope'
+                'setTemplateData'
             ]),
             async queryCreateCommonTplPerm () {
                 try {
@@ -628,6 +627,13 @@
                     data.cancelToken = source.token
                     const templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results
+                    this.templateList.forEach((item) => {
+                        if (item.project_scope_name.includes('*')) {
+                            item.project_scope_name = '所有项目'
+                        } else {
+                            item.project_scope_name = item.project_scope_name.join(',')
+                        }
+                    })
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -1291,22 +1297,23 @@
                 } else {
                     this.projectScopeList = row.project_scope
                 }
+                this.projectScopeSelectList = row.project_scope
                 this.publicProcessId = row.id
                 this.isSetVisible = true
                 this.isProjectVisibleShow = true
             },
-            handleProjectVisibleChange (visible) {
-                this.projectScopeSelectList = visible.map(item => typeof item === 'number' ? String(item) : item)
+            handleProjectVisibleChange ({ project_scope, isSelectAllProjectScope }) {
+                this.projectScopeSelectList = isSelectAllProjectScope ? ['*'] : project_scope.map(item => typeof item === 'number' ? String(item) : item)
                 this.setProjectScope(this.projectScopeSelectList)
             },
             handleProjectVisibleCancel () {
                 this.isProjectVisibleShow = false
                 this.isSetVisible = false
             },
-            async handleProjectVisibleConfirm () {
+            async handleProjectVisibleConfirm ({ isSelectAllProjectScope }) {
                 await this.updateCommonProjectScope({
                     templateId: this.publicProcessId,
-                    project_scope: this.projectScopeSelectList
+                    project_scope: isSelectAllProjectScope ? ['*'] : this.projectScopeSelectList
                 })
                 this.projectScopeSelectList = []
                 this.isProjectVisibleShow = false

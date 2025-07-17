@@ -120,6 +120,7 @@
                         data-test-id="tabTemplateConfig_form_projectScope">
                         <bk-checkbox
                             v-model="isOutermostBaseInfoAllProjectScope"
+                            :disabled="isViewMode"
                             @change="handleBaseInfoSelectAllProjectScope">
                             {{ $t('全选') }}
                         </bk-checkbox>
@@ -130,20 +131,9 @@
                             :display-tag="true"
                             :auto-height="false"
                             :readonly="isViewMode"
-                            :disabled="isOutermostBaseInfoAllProjectScope"
+                            :disabled="isOutermostBaseInfoAllProjectScope || isViewMode"
                             @change="handleBaseInfoProjectVisibleChange"
                             v-model="baseInfoProjectScopeList">
-                            <div class="bk-option-group-name select-all-project-scope">
-                                <span class="btn-check-all">
-                                    {{ $t('全选') }}{{isBaseInfoSelectAllProjectScope ? '(' + allProjectIds.length + ')' : ''}}
-                                </span>
-                                <bk-checkbox
-                                    class="select-all-project-scope-checkbox"
-                                    :value="isBaseInfoSelectAllProjectScope"
-                                    id="select-all-project-scope"
-                                    @change="handleBaseInfoSelectAllProjectScope">
-                                </bk-checkbox>
-                            </div>
                             <bk-option-group
                                 v-for="(group, index) in projects"
                                 :name="group.name"
@@ -152,8 +142,7 @@
                                 <bk-option v-for="item in group.children"
                                     :key="item.id"
                                     :id="item.id"
-                                    :name="item.name"
-                                    :disabled="isBaseInfoSelectAllProjectScope">
+                                    :name="item.name">
                                 </bk-option>
                             </bk-option-group>
                         </bk-select>
@@ -291,7 +280,7 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels, default_flow_type, project_scope
+                executor_proxy, template_labels, default_flow_type, project_scope, template_id
             } = this.$store.state.template
             const { extra_info: extraInfo = {} } = notify_receivers
 
@@ -306,7 +295,8 @@
                     notifyTypeExtraInfo: { ...extraInfo },
                     labels: template_labels,
                     defaultFlowType: default_flow_type,
-                    project_scope: project_scope
+                    project_scope: project_scope,
+                    template_id: template_id
                 },
                 stringLength: STRING_LENGTH,
                 rules: {
@@ -429,14 +419,12 @@
         created () {
             if (this.common) {
                 if (this.formData.project_scope.includes('*')) {
-                    this.isBaseInfoSelectAllProjectScope = true
                     this.baseInfoProjectScopeList = this.allProjectIds
                     this.formData.project_scope = this.baseInfoProjectScopeList
                     this.isOutermostBaseInfoAllProjectScope = true
                 } else {
                     this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
                     this.formData.project_scope = this.baseInfoProjectScopeList
-                    this.isBaseInfoSelectAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
                     this.isOutermostBaseInfoAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
                 }
             }
@@ -460,23 +448,22 @@
             ]),
             handleBaseInfoSelectAllProjectScope (row) {
                 if (row) {
+                    this.isOutermostBaseInfoAllProjectScope = true
                     this.baseInfoProjectScopeList = this.allProjectIds
                     this.formData.project_scope = this.baseInfoProjectScopeList
                 } else {
+                    this.isOutermostBaseInfoAllProjectScope = false
                     this.baseInfoProjectScopeList = []
                     this.formData.project_scope = []
                 }
-                this.setProjectScope(this.baseInfoProjectScopeList)
+                this.setProjectScope(row ? ['*'] : this.baseInfoProjectScopeList)
             },
             handleBaseInfoProjectVisibleChange (row) {
                 const filterList = [...new Set(row)]
-                if (filterList.length === this.allProjectIds.length) {
-                    this.isBaseInfoSelectAllProjectScope = true
-                } else {
-                    this.isBaseInfoSelectAllProjectScope = false
-                }
+                this.baseInfoProjectScopeList = filterList
+                const changeAllProjectScope = filterList.length === this.allProjectIds.length
                 this.formData.project_scope = filterList
-                this.setProjectScope(filterList.map(item => typeof item === 'number' ? String(item) : item))
+                this.setProjectScope(changeAllProjectScope ? ['*'] : filterList.map(item => typeof item === 'number' ? String(item) : item))
             },
             onSelectCategory (val) {
                 if (val) {
@@ -531,7 +518,7 @@
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo } = this.formData
-                const localProjectList = this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
+                const localProjectList = this.baseInfoProjectScopeList.length === this.allProjectIds.length ? ['*'] : this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
                 return {
                     name,
                     category,
