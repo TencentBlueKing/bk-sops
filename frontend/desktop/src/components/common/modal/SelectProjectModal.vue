@@ -24,6 +24,7 @@
                 <bk-form-item :label="$t('选择项目')">
                     <bk-checkbox
                         v-model="isOutermostAllProjectScope"
+                        v-if="isSetProjectVisible"
                         @change="handleSelectAllProjectScope">
                         {{ $t('全选') }}
                     </bk-checkbox>
@@ -37,17 +38,6 @@
                         :disabled="isOutermostAllProjectScope"
                         @change="handleProjectVisibleChange"
                         v-model="localProjectScopeList">
-                        <div class="bk-option-group-name select-all-project-scope">
-                            <span class="btn-check-all">
-                                {{ $t('全选') }}{{isSelectAllProjectScope ? '(' + allProjectIds.length + ')' : ''}}
-                            </span>
-                            <bk-checkbox
-                                class="select-all-project-scope-checkbox"
-                                :value="isSelectAllProjectScope"
-                                @change="handleSelectAllProjectScope">
-                            </bk-checkbox>
-                        </div>
-                    
                         <bk-option-group
                             v-for="(group, index) in projects"
                             :name="group.name"
@@ -183,25 +173,18 @@
             },
             projectScopeList (val) {
                 if (val.includes('*')) {
-                    this.isSelectAllProjectScope = true
                     this.localProjectScopeList = this.allProjectIds
                     this.isOutermostAllProjectScope = true
                 } else {
                     this.localProjectScopeList = [...val]
-                    this.isSelectAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
                     this.isOutermostAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
                 }
             }
         },
         methods: {
             handleProjectVisibleChange (row) {
-                const filterList = [...new Set(row)]
-                if (filterList.length === this.allProjectIds.length) {
-                    this.isSelectAllProjectScope = true
-                } else {
-                    this.isSelectAllProjectScope = false
-                }
-                this.$emit('onVisibleChange', filterList)
+                this.localProjectScopeList = [...new Set(row)]
+                this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
             },
             handleSelectAllProjectScope (row) {
                 if (row) {
@@ -209,7 +192,7 @@
                 } else {
                     this.localProjectScopeList = []
                 }
-                this.$emit('onVisibleChange', this.localProjectScopeList)
+                this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: row })
             },
             handleProjectSelect (id) {
                 this.id = id
@@ -219,7 +202,7 @@
             },
             handleConfirm () {
                 if (this.isSetProjectVisible) {
-                    this.$emit('onVisibleConfirm')
+                    this.$emit('onVisibleConfirm', { isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
                 } else {
                     if (this.confirmLoading) {
                         return

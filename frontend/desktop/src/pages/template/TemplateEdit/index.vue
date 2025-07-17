@@ -563,6 +563,7 @@
                             // 无时区的公共流程使用本地的时间
                             name = 'new' + moment().format('YYYYMMDDHHmmss')
                         }
+                        this.setProjectScope(['*'])
                     }
                     this.setTemplateName(name)
                     this.templateDataLoading = false
