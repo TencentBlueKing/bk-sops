@@ -1319,6 +1319,7 @@
                     }
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
+                    const filteredNodes = activities.filter(item => item !== id)
                     if (citedNum <= 1) {
                         this.deleteUnhookingVar()
                     } else {
@@ -1335,7 +1336,7 @@
                             })
                             sourceInfo[id].splice(atomIndex, 1)
                         }
-                        if (Object.keys(sourceInfo).length === 0) {
+                        if (Object.keys(sourceInfo).length === 0 && filteredNodes.length <= 0) {
                             this.$delete(this.localConstants, key)
                         }
                         const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
