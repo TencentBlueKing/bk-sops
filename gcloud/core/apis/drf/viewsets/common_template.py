@@ -99,12 +99,12 @@ class CommonTemplateFilter(PropertyFilterSet):
     def filter_by_project_id(self, queryset, name, value):
         if not value:
             return queryset
-
+        exclude_wildcard = self.request.query_params.get("exclude_wildcard") == "1"
         templates = queryset.values("id", "extra_info")
         matched_ids = []
         for item in templates:
             exemption_project = item["extra_info"].get("project_scope", [])
-            if "*" in exemption_project or value in exemption_project:
+            if (not exclude_wildcard and "*" in exemption_project) or value in exemption_project:
                 matched_ids.append(item["id"])
         return queryset.filter(id__in=matched_ids)
 
