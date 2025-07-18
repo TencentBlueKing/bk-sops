@@ -82,6 +82,9 @@ class TaskTemplatePermission(IamPermission):
         "common_info": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
+        "update_template_labels": IamPermissionInfo(
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
     }
 
 
@@ -367,3 +370,15 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})
+
+    @swagger_auto_schema(method="POST", operation_summary="修改流程模板标签")
+    @action(methods=["POST"], detail=True)
+    def update_template_labels(self, request, *args, **kwargs):
+        label_ids = request.data.get("label_ids")
+        template = self.get_object()
+        try:
+            self._sync_template_lables(template.id, label_ids)
+            return Response({"name": template.name, "label_ids": label_ids})
+        except Exception as e:
+            message = str(e)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
