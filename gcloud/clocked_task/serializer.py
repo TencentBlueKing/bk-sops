@@ -48,6 +48,15 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
                 if task_parameters.get(method)
             ]
         )
+        validation_errors = []
+        for key, value in task_parameters.get("constants", {}).items():
+            if key == value:
+                validation_errors.append(key)
+
+        if validation_errors:
+            raise serializers.ValidationError(
+                "constants {} value cannot be the same as key".format(", ".join(validation_errors))
+            )
         if node_appoint_method_num > 1:
             raise serializers.ValidationError("can not use multiple method to appoint execute nodes")
         return data

@@ -250,3 +250,14 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
             if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs
+
+    def validate_constants(self, data):
+        validation_errors = []
+        for key, const in data.items():
+            if key == const:
+                validation_errors.append(key)
+        if validation_errors:
+            raise serializers.ValidationError(
+                "constants {} value cannot be the same as key".format(", ".join(validation_errors))
+            )
+        return data

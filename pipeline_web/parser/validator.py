@@ -35,7 +35,9 @@ def validate_web_pipeline_tree(web_pipeline_tree):
         if key != key_value:
             key_validation_erros.append("constants {} key property value: {} not matched".format(key, key_value))
             continue
-
+        if key_value == const.get("value"):
+            key_validation_erros.append("constants {} value cannot be the same as key".format(key))
+            continue
         if not KEY_PATTERN_RE.match(key):
             key_validation_erros.append("invalid key: {}".format(key))
 
