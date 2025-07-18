@@ -42,6 +42,7 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     TaskTemplateListSerializer,
     TaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
+    TemplateLabelQuerySerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, res_factory
@@ -371,14 +372,15 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})
 
-    @swagger_auto_schema(method="POST", operation_summary="修改流程模板标签")
+    @swagger_auto_schema(method="POST", operation_summary="修改流程模板标签", request_body=TemplateLabelQuerySerializer)
     @action(methods=["POST"], detail=True)
     def update_template_labels(self, request, *args, **kwargs):
         label_ids = request.data.get("label_ids")
         template = self.get_object()
         try:
             self._sync_template_lables(template.id, label_ids)
-            return Response({"name": template.name, "label_ids": label_ids})
         except Exception as e:
             message = str(e)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        return Response({"name": template.name, "label_ids": label_ids})

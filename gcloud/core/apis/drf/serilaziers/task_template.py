@@ -108,3 +108,9 @@ class ProjectInfoQuerySerializer(serializers.Serializer):
 
 class ProjectFilterQuerySerializer(serializers.Serializer):
     project__id = serializers.IntegerField(help_text="项目ID")
+
+
+class TemplateLabelQuerySerializer(serializers.Serializer):
+    label_ids = serializers.ListField(
+        child=serializers.IntegerField(), allow_empty=True, required=True, help_text="标签ID列表"
+    )
