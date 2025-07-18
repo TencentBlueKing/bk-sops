@@ -256,7 +256,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         try:
             self._handle_serializer(request, serializer)
             instance = serializer.save()
-        except PipelineException as e:
+        except (PipelineException, APIException) as e:
             raise ValidationException(e)
         instance.set_enabled(True)
         headers = self.get_success_headers(serializer.data)
