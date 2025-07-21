@@ -40,7 +40,6 @@ module.exports = merge(webpackBaseConfig, {
                         }
                     },
                     'css-loader',
-                    'postcss-loader',
                     {
                         loader: 'sass-loader',
                         options: {
@@ -84,7 +83,8 @@ module.exports = merge(webpackBaseConfig, {
         // 只打 moment.js 中文包，减小体积
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
-            filename: 'css/[name].[contenthash:10].css'
+            filename: 'css/[name].[contenthash:10].css',
+            ignoreOrder: true
         }),
         new CopyPlugin([
             {
@@ -107,7 +107,7 @@ module.exports = merge(webpackBaseConfig, {
         chunks: false,
         entrypoints: false,
         modules: false,
-        children: false,
+        children: true,
         publicPath: true,
         colors: true,
         errors: true,
