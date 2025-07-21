@@ -308,7 +308,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope
             } = data
 
             const pipelineData = pipeline_tree ? JSON.parse(pipeline_tree) : undefined
@@ -326,6 +326,7 @@ const template = {
             state.category = category
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
+            state.project_scope = project_scope
             if (pipeline_tree) {
                 this.commit('template/setPipelineTree', pipelineData)
             }
@@ -932,6 +933,9 @@ const template = {
         },
         updateLabelIds ({ commit }, { id, label_ids }) {
             return axios.post(`/api/v3/template/${id}/update_template_labels/`, { label_ids })
+        },
+        updateCommonProjectScope ({ commit }, { templateId, project_scope }) {
+            return axios.post(`/api/v3/common_template/${templateId}/update_specific_fields/`, { project_scope })
         },
         /**
          * 保存模板数据
