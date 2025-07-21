@@ -183,3 +183,7 @@ class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
     class Meta:
         model = CommonTemplate
         fields = ["project_scope"]
+
+    def validate_project_scope(self, value):
+        self._validate_scope_changes(value)
+        return value
