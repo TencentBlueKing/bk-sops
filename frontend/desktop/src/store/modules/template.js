@@ -314,7 +314,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope, project_scope
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope
             } = data
 
             const pipelineData = pipeline_tree ? JSON.parse(pipeline_tree) : undefined
