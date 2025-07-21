@@ -257,3 +257,7 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 class GseAgentStatus(Enum):
     OFFLINE = 0
     ONlINE = 1
+
+
+def get_default_scope():
+    return {PROJECT: ["*"]}
