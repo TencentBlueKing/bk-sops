@@ -19,7 +19,6 @@ from django_test_toolkit.mixins.drf import DrfPermissionExemptMixin
 from django_test_toolkit.testcases import ToolkitApiTestCase
 from pipeline.models import PipelineTemplate, Snapshot
 
-from gcloud.core.models import Project
 from gcloud.common_template.models import CommonTemplate
 from unittest.mock import patch
 
@@ -43,10 +42,6 @@ class TestCommonTemplateView(
             category="category",
             pipeline_template=self.pipeline_template,
         )
-        self.test_project = Project.objects.create(
-            name="proj",
-            creator="creator",
-        )
         self.mock_referencer_data = [
             {"template_type": "project", "id": 2, "name": "test_task_template", "project_id": 100},
         ]
@@ -64,7 +59,7 @@ class TestCommonTemplateView(
         self.assertTrue(response.data["result"])
         self.assertIsNotNone(response.data["data"])
 
-    def test_patch_common_template_fail(self):
+    def test_update_common_template_fail(self):
         with patch.object(CommonTemplate, "referencer", return_value=self.mock_referencer_data) as mock_referencer:
             self.template_url = "/api/v3/common_template/{}/update_specific_fields/".format(self.common_template.id)
             query_params = {"project_scope": ["1"]}
