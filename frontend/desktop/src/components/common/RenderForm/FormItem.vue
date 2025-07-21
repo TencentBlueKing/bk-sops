@@ -429,7 +429,11 @@
                 return required
             },
             updateForm (fieldArr, val) {
-                this.$emit('change', fieldArr, val)
+                if (fieldArr[0] === val) {
+                    this.$emit('change', fieldArr, '')
+                } else {
+                    this.$emit('change', fieldArr, val)
+                }
             },
             onShowForm () {
                 this.showForm = true
