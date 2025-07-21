@@ -112,10 +112,12 @@ class NodemanCreateTaskService(NodeManNewBaseService):
 
                     # 处理表格中每行的key/psw
                     auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
-                    try:
-                        auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
-                    except ValueError:
-                        return False
+                    if not auth_params["auth_type"] == "TJJ_PASSWORD":
+                        # TJJ类型不需要转换
+                        try:
+                            auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                        except ValueError:
+                            return False
 
                     if auth_params["auth_type"] == "PASSWORD":
                         auth_params["password"] = auth_key

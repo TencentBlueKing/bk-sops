@@ -10,14 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+import logging
+
 from django.apps import apps
 from django.db import transaction
-
-from .template_manager import TemplateManager
-from ..utils import replace_biz_id_value
-from ...common_template.models import CommonTemplate
 from django.utils.translation import ugettext_lazy as _
-import logging
+
+from ...common_template.models import CommonTemplate
+from ..utils import replace_biz_id_value
+from .template_manager import TemplateManager
 
 logger = logging.getLogger("root")
 
@@ -26,7 +27,7 @@ class TemplateImporter:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def import_template(self, operator: str, template_data: list, bk_biz_id: int = None) -> dict:
+    def import_template(self, operator: str, template_data: list, project_id: str, bk_biz_id: int = None) -> dict:
         """
         以 operator 的身份来导入若干个模板
 
@@ -44,6 +45,8 @@ class TemplateImporter:
             }
         ]
         :type template_data: list
+        :param project_id: 项目ID
+        :type project_id: str
         :param bk_biz_id: 导入业务ID，公共流程为None
         :type bk_biz_id: int
         :return: [description]
@@ -85,7 +88,9 @@ class TemplateImporter:
                             and self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
                             and refer_template_config["template_type"] == "common"
                         ):
-                            template = CommonTemplate.objects.get(id=template_id)
+                            result = CommonTemplate.objects.check_template_project_scope(project_id, template_id)
+                            if not result["result"]:
+                                raise Exception(f"流程导入失败，{result['message']}")
                         else:
                             template = self.template_model_cls.objects.get(id=template_id)
                     except self.template_model_cls.DoesNotExist as e:

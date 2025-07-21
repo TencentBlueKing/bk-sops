@@ -30,6 +30,8 @@ from gcloud.core.models import Project, ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 from gcloud.core.models import EnvironmentVariables
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import COMMON
 
 logger = logging.getLogger("root")
 
@@ -213,11 +215,15 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
             raise serializers.ValidationError(_("project不存在"))
 
     def validate(self, attrs):
-        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        project_id = attrs.get("project").id
+        check_cron_params(attrs.get("cron"), project_id)
+        if attrs.get("template_source") == COMMON:
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), attrs.get("template_id"))
+            if not result["result"]:
+                raise serializers.ValidationError(f"创建任务失败，{result['message']}")
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
-            project_id = attrs.get("project").id
             if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs
@@ -242,11 +248,15 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
     name = serializers.CharField(help_text="任务名", required=False)
 
     def validate(self, attrs):
-        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        project_id = attrs.get("project")
+        check_cron_params(attrs.get("cron"), project_id)
+        if attrs.get("template_source") == COMMON:
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), attrs.get("template_id"))
+            if not result["result"]:
+                raise serializers.ValidationError(f"创建任务失败，{result['message']}")
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
-            project_id = attrs.get("project")
             if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs

@@ -51,7 +51,10 @@ class CreatePeriodicTaskAPITest(APITest):
             "pipeline_tree": task.pipeline_tree,
         }
         proj = MockProject(
-            project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
         )
         template = MockTaskTemplate()
         template.version = "version"
@@ -61,7 +64,8 @@ class CreatePeriodicTaskAPITest(APITest):
             with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
                 with mock.patch(PERIODIC_TASK_CREATE, MagicMock(return_value=task)):
                     with mock.patch(
-                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID, replace_template_id_mock,
+                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID,
+                        replace_template_id_mock,
                     ):
                         response = self.client.post(
                             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -116,7 +120,10 @@ class CreatePeriodicTaskAPITest(APITest):
             "pipeline_tree": task.pipeline_tree,
         }
         proj = MockProject(
-            project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
         )
         template = MockCommonTemplate()
         template.version = "version"
@@ -126,7 +133,8 @@ class CreatePeriodicTaskAPITest(APITest):
             with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
                 with mock.patch(PERIODIC_TASK_CREATE, MagicMock(return_value=task)):
                     with mock.patch(
-                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID, replace_template_id_mock,
+                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID,
+                        replace_template_id_mock,
                     ):
                         response = self.client.post(
                             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -177,7 +185,8 @@ class CreatePeriodicTaskAPITest(APITest):
 
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     @mock.patch(
-        APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError("")),
+        APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE,
+        MagicMock(side_effect=jsonschema.ValidationError("")),
     )
     def test_create_periodic_task__params_validate_fail(self):
         response = self.client.post(
@@ -208,7 +217,10 @@ class CreatePeriodicTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -231,7 +243,10 @@ class CreatePeriodicTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )

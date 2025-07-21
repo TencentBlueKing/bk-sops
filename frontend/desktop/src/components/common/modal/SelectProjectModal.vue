@@ -22,7 +22,36 @@
         <div class="select-wrapper">
             <bk-form>
                 <bk-form-item :label="$t('选择项目')">
-                    <bk-select
+                    <bk-checkbox
+                        v-model="isOutermostAllProjectScope"
+                        v-if="isSetProjectVisible"
+                        @change="handleSelectAllProjectScope">
+                        {{ $t('全选') }}
+                    </bk-checkbox>
+                    <bk-select class="project-select"
+                        v-if="isSetProjectVisible"
+                        :searchable="true"
+                        :clearable="true"
+                        :multiple="true"
+                        :display-tag="true"
+                        :auto-height="false"
+                        :disabled="isOutermostAllProjectScope"
+                        @change="handleProjectVisibleChange"
+                        v-model="localProjectScopeList">
+                        <bk-option-group
+                            v-for="(group, index) in projects"
+                            :name="group.name"
+                            :key="index"
+                            :show-select-all="true">
+                            <bk-option v-for="item in group.children"
+                                :key="item.id"
+                                :id="item.id"
+                                :name="item.name">
+                            </bk-option>
+                        </bk-option-group>
+                          
+                    </bk-select>
+                    <bk-select v-else
                         class="project-select"
                         :clearable="false"
                         :searchable="true"
@@ -75,12 +104,23 @@
             confirmCursor: {
                 type: Boolean,
                 default: false
+            },
+            isSetProjectVisible: {
+                type: Boolean,
+                default: false
+            },
+            projectScopeList: {
+                type: Array,
+                default: () => []
             }
         },
         data () {
             return {
                 id: this.project,
-                hasError: false
+                hasError: false,
+                localProjectScopeList: [],
+                isSelectAllProjectScope: false,
+                isOutermostAllProjectScope: false
             }
         },
         computed: {
@@ -116,14 +156,44 @@
                 })
 
                 return projects
+            },
+            allProjectIds () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
             }
         },
         watch: {
             project (val) {
                 this.id = val
+            },
+            projectScopeList (val) {
+                if (val.includes('*')) {
+                    this.localProjectScopeList = this.allProjectIds
+                    this.isOutermostAllProjectScope = true
+                } else {
+                    this.localProjectScopeList = [...val]
+                    this.isOutermostAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
+                }
             }
         },
         methods: {
+            handleProjectVisibleChange (row) {
+                this.localProjectScopeList = [...new Set(row)]
+                this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
+            },
+            handleSelectAllProjectScope (row) {
+                if (row) {
+                    this.localProjectScopeList = this.allProjectIds
+                } else {
+                    this.localProjectScopeList = []
+                }
+                this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: row })
+            },
             handleProjectSelect (id) {
                 this.id = id
                 this.hasError = false
@@ -131,20 +201,28 @@
                 this.$emit('onChange', project)
             },
             handleConfirm () {
-                if (this.confirmLoading) {
-                    return
-                }
-                if (typeof this.id === 'number') {
-                    const project = this.projectList.find(item => item.id === this.id)
-                    this.$emit('onConfirm', project)
+                if (this.isSetProjectVisible) {
+                    this.$emit('onVisibleConfirm', { isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
                 } else {
-                    this.hasError = true
+                    if (this.confirmLoading) {
+                        return
+                    }
+                    if (typeof this.id === 'number') {
+                        const project = this.projectList.find(item => item.id === this.id)
+                        this.$emit('onConfirm', project)
+                    } else {
+                        this.hasError = true
+                    }
                 }
             },
             handleCancel () {
-                this.id = ''
-                this.hasError = false
-                this.$emit('onCancel')
+                if (this.isSetProjectVisible) {
+                    this.$emit('onVisibleCancel')
+                } else {
+                    this.id = ''
+                    this.hasError = false
+                    this.$emit('onCancel')
+                }
             }
         }
     }
@@ -155,5 +233,15 @@
     }
     .project-select {
         width: 260px;
+    }
+    .select-all-project-scope{
+        margin: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #dcdee5;
+    }
+    .select-all-project-scope-checkbox{
+        margin-right: 14px;
     }
 </style>

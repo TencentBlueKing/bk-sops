@@ -201,9 +201,13 @@ const template = {
             subproc_has_update: false
         },
         internalVariable: [],
-        default_flow_type: 'common'
+        default_flow_type: 'common',
+        project_scope: []
     },
     mutations: {
+        setProjectScope (state, project_scope) {
+            state.project_scope = project_scope
+        },
         setTemplateName (state, name) {
             state.name = name
         },
@@ -220,7 +224,8 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels, default_flow_type, notify_type_extra_info } = data
+            const { name, category, notify_type, receiver_group, description, executor_proxy,
+                template_labels, default_flow_type, notify_type_extra_info, project_scope } = data
             state.name = name
             state.category = category
             state.notify_type = notify_type
@@ -230,6 +235,7 @@ const template = {
             state.executor_proxy = executor_proxy
             state.template_labels = template_labels
             state.default_flow_type = default_flow_type
+            state.project_scope = project_scope
         },
         setSubprocessUpdated (state, subflow) {
             if (state.subprocess_info) {
@@ -308,7 +314,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope, project_scope
             } = data
 
             const pipelineData = pipeline_tree ? JSON.parse(pipeline_tree) : undefined
@@ -328,6 +334,7 @@ const template = {
             state.default_flow_type = default_flow_type
             state.project_scope = project_scope
             if (pipeline_tree) {
+                state.project_scope = project_scope
                 this.commit('template/setPipelineTree', pipelineData)
             }
         },
@@ -941,11 +948,11 @@ const template = {
          * 保存模板数据
          * @param {Object} data 模板完整数据
          */
-        saveTemplateData ({ state }, { templateId, projectId, common }) {
+        async saveTemplateData ({ state, commit, dispatch }, { templateId, projectId, common, isSetProjectScope = false }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type,
-                init_executor_proxy
+                init_executor_proxy, project_scope
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => ({
@@ -983,7 +990,7 @@ const template = {
             }
             const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
 
-            if (!validateResult.result) {
+            if (!validateResult.result && !isSetProjectScope) {
                 return new Promise((resolve, reject) => {
                     resolve(validateResult)
                 })
@@ -1022,12 +1029,16 @@ const template = {
             if (templateId && init_executor_proxy === executor_proxy) {
                 delete params.executor_proxy
             }
-
             // 新增用post, 编辑用patch
             const method = templateId === undefined ? 'post' : common ? 'put' : 'patch'
-            return axios[method](url, params, {
+            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: project_scope.length > 0 ? project_scope : ['*'] } : { ...params, project_scope }) : params, {
                 headers
             }).then(response => {
+                if (common && templateId === undefined) {
+                    if (project_scope.length <= 0) {
+                        state.project_scope = ['*']
+                    }
+                }
                 state.init_executor_proxy = state.executor_proxy
                 return response.data
             })

@@ -18,7 +18,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.common_template.models import CommonTemplate
-from gcloud.apigw.views.utils import format_template_data
+from gcloud.apigw.views.utils import format_template_data, process_pipeline_constants
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
@@ -31,6 +31,8 @@ from apigw_manager.apigw.decorators import apigw_require
 @mark_request_whether_is_trust
 @iam_intercept(CommonFlowViewInterceptor())
 def get_common_template_info(request, template_id):
+    include_subprocess = request.GET.get("include_subprocess", None)
+    include_constants = request.GET.get("include_constants", None)
     try:
         tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
     except CommonTemplate.DoesNotExist:
@@ -40,5 +42,8 @@ def get_common_template_info(request, template_id):
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
         return result
+    data = format_template_data(template=tmpl, include_subprocess=include_subprocess)
+    if include_constants:
+        data["template_constants"] = process_pipeline_constants(data["pipeline_tree"])
 
-    return {"result": True, "data": format_template_data(template=tmpl), "code": err_code.SUCCESS.code}
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
