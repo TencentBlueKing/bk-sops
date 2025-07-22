@@ -17,11 +17,13 @@ from django.utils.translation import ugettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django_celery_beat.models import PeriodicTask as CeleryTask
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
+from pipeline.exceptions import PipelineException
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import ValidationError
 
 import env
+from gcloud.utils.pipeline import validate_pipeline_tree_constants
 from gcloud.utils.strings import inspect_time
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
@@ -252,12 +254,8 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
         return attrs
 
     def validate_constants(self, data):
-        validation_errors = []
-        for key, const in data.items():
-            if key == const:
-                validation_errors.append(key)
-        if validation_errors:
-            raise serializers.ValidationError(
-                "constants {} value cannot be the same as key".format(", ".join(validation_errors))
-            )
+        try:
+            validate_pipeline_tree_constants(data)
+        except PipelineException as e:
+            raise serializers.ValidationError(e)
         return data
