@@ -191,7 +191,10 @@
                                                 </li>
                                                 <li class="opt-btn">
                                                     <a
-                                                        class="template-operate-btn"
+                                                        v-cursor="{ active: !hasPermission(['common_flow_edit'], props.row.auth_actions) }"
+                                                        :class="{
+                                                            'text-permission-disable': !hasPermission(['common_flow_edit'], props.row.auth_actions)
+                                                        }"
                                                         @click="onVisibleRangCheck(props.row)">
                                                         {{$t('可见范围')}}
                                                     </a>
@@ -1222,7 +1225,7 @@
              * @param {string} name -类型
              * @param {Number} template_id -模版id(可选)
              */
-            getJumpUrl (name, template_id) {
+            getJumpUrl (name, template_id, row) {
                 const urlMap = {
                     'view': { name: 'commonTemplatePanel', params: { type: 'view' } },
                     'edit': { name: 'commonTemplatePanel', params: { type: 'edit' } },
@@ -1292,15 +1295,19 @@
             },
             // 点击可见范围
             async onVisibleRangCheck (row) {
-                if (row.project_scope[0] !== '*') {
-                    this.projectScopeList = row.project_scope.map(item => typeof item !== 'number' ? Number(item) : item)
+                if (!this.hasPermission(['common_flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissonCheck(['common_flow_edit'], row)
                 } else {
-                    this.projectScopeList = row.project_scope
+                    if (row.project_scope[0] !== '*') {
+                        this.projectScopeList = row.project_scope.map(item => typeof item !== 'number' ? Number(item) : item)
+                    } else {
+                        this.projectScopeList = row.project_scope
+                    }
+                    this.projectScopeSelectList = row.project_scope
+                    this.publicProcessId = row.id
+                    this.isSetVisible = true
+                    this.isProjectVisibleShow = true
                 }
-                this.projectScopeSelectList = row.project_scope
-                this.publicProcessId = row.id
-                this.isSetVisible = true
-                this.isProjectVisibleShow = true
             },
             handleProjectVisibleChange ({ project_scope, isSelectAllProjectScope }) {
                 this.projectScopeSelectList = isSelectAllProjectScope ? ['*'] : project_scope.map(item => typeof item === 'number' ? String(item) : item)
