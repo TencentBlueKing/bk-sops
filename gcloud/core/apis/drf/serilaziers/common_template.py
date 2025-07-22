@@ -154,6 +154,22 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             self._validate_scope_changes(value)
         return value
 
+    def validate(self, attrs):
+        pipeline_tree = json.loads(attrs["pipeline_tree"])
+        project_scope = attrs["extra_info"]["project_scope"]
+
+        for activity in pipeline_tree.get("activities").values():
+            if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
+                continue
+            common_template_id = activity.get("template_id")
+            result = CommonTemplate.objects.get(id=common_template_id)
+            common_project_scope = result.extra_info.get("project_scope")
+            if common_project_scope == ["*"]:
+                continue
+            if not set(project_scope).issubset(set(common_project_scope)):
+                raise serializers.ValidationError(f"保存流程失败，子流程{result.pipeline_template.name}的可见范围与当前流程得可见范围存在冲突")
+        return attrs
+
     class Meta:
         model = CommonTemplate
         fields = [
@@ -183,3 +199,7 @@ class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
     class Meta:
         model = CommonTemplate
         fields = ["project_scope"]
+
+    def validate_project_scope(self, value):
+        self._validate_scope_changes(value)
+        return value
