@@ -198,8 +198,15 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
 class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
     class Meta:
         model = CommonTemplate
-        fields = ["project_scope"]
+        fields = ["project_scope", "pipeline_tree"]
+
+    def validate_pipeline_tree(self, value):
+        return value
 
     def validate_project_scope(self, value):
         self._validate_scope_changes(value)
         return value
+
+    def update(self, instance, validated_data):
+        validated_data.pop("pipeline_tree", None)
+        return super().update(instance, validated_data)

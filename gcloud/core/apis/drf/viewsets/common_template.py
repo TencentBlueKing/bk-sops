@@ -326,8 +326,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     def update_specific_fields(self, request, *args, **kwargs):
         template = self.get_object()
         editor = request.user.username
-
-        serializer = PatchCommonTemplateSerializer(template, data=request.data, context={"request": request})
+        data = request.data
+        data["pipeline_tree"] = json.dumps(template.pipeline_tree)
+        serializer = PatchCommonTemplateSerializer(template, data=data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         # 发送信号
