@@ -73,7 +73,7 @@
                     <search-select
                         ref="searchSelect"
                         id="templateList"
-                        :placeholder="$t('ID/流程名称/标签/更新人/创建人/子流程更新/执行代理人')"
+                        :placeholder="$t('ID/流程名/标签/更新人/创建人/子流程更新/执行代理人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -1841,11 +1841,6 @@
     .bk-table-row.hover-row {
         .icon-favorite {
             display: block;
-        }
-    }
-    ::v-deep .bk-table {
-        td, th {
-            height: 42px;
         }
     }
     .icon-favorite {
