@@ -616,6 +616,7 @@
         }
         &.input-before::before {
             position: absolute;
+            left: 10px;
             content: attr(data-placeholder);
             color: #c4c6cc;
         }
