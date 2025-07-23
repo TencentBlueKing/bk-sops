@@ -18,7 +18,7 @@ from rest_framework import serializers
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
-from gcloud.constants import PROJECT
+from gcloud.constants import COMMON
 from gcloud.core.models import Project
 
 
@@ -135,30 +135,31 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
         if not references:
             return
 
+        scope_set = set(scope_value)
+
         invalid_projects = []
+        invalid_common_templates = []
         for item in references:
-            if item.get("template_type") != PROJECT:
-                continue
-            project_id = str(item["project_id"])
-            if project_id not in scope_value:
-                invalid_projects.append(project_id)
+            if item.get("template_type") != COMMON:
+                project_id = str(item["project_id"])
+                if project_id not in scope_value:
+                    invalid_projects.append(project_id)
+            else:
+                if not set(item.get("project_scope", [])).issubset(scope_set):
+                    invalid_common_templates.append(str(item["name"]))
+
+        if invalid_common_templates:
+            invalid_common_templates = ",".join(invalid_common_templates)
+            raise serializers.ValidationError(f"流程在公共流程 {invalid_common_templates} 中被引用，使用范围存在冲突，请检查配置")
 
         if invalid_projects:
             invalid_projects = ",".join(invalid_projects)
-            raise serializers.ValidationError(f"公共流程在项目 {invalid_projects} 中被引用，请检查使用范围配置或者联系管理员")
+            raise serializers.ValidationError(f"流程在项目 {invalid_projects} 中被引用，请检查使用范围配置")
 
-    def validate_project_scope(self, value):
-        request = self.context.get("request")
-
-        if request.method in ("PUT", "PATCH"):
-            self._validate_scope_changes(value)
-        return value
-
-    def validate(self, attrs):
-        pipeline_tree = json.loads(attrs["pipeline_tree"])
-        project_scope = attrs["extra_info"]["project_scope"]
-
-        for activity in pipeline_tree.get("activities").values():
+    def _validate_child_scope(self, project_scope):
+        pipeline_tree = self.instance.pipeline_tree
+        project_scope_set = set(project_scope)
+        for activity in pipeline_tree.get("activities", {}).values():
             if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
                 continue
             common_template_id = activity.get("template_id")
@@ -166,9 +167,19 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             common_project_scope = result.extra_info.get("project_scope")
             if common_project_scope == ["*"]:
                 continue
-            if not set(project_scope).issubset(set(common_project_scope)):
-                raise serializers.ValidationError(f"保存流程失败，子流程{result.pipeline_template.name}的可见范围与当前流程得可见范围存在冲突")
-        return attrs
+            if not project_scope_set.issubset(set(common_project_scope)):
+                raise serializers.ValidationError(f"保存流程失败，子流程 {result.pipeline_template.name} 的可见范围与当前流程的可见范围存在冲突")
+        return pipeline_tree
+
+    def validate_project_scope(self, value):
+        request = self.context.get("request")
+
+        if request.method in ("PUT", "PATCH"):
+            # 检测其被作为子流程引用的父流程
+            self._validate_scope_changes(value)
+            # 检测其引用的子流程
+            self._validate_child_scope(value)
+        return value
 
     class Meta:
         model = CommonTemplate
@@ -198,15 +209,9 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
 class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
     class Meta:
         model = CommonTemplate
-        fields = ["project_scope", "pipeline_tree"]
-
-    def validate_pipeline_tree(self, value):
-        return value
+        fields = ["project_scope"]
 
     def validate_project_scope(self, value):
         self._validate_scope_changes(value)
+        self._validate_child_scope(value)
         return value
-
-    def update(self, instance, validated_data):
-        validated_data.pop("pipeline_tree", None)
-        return super().update(instance, validated_data)
