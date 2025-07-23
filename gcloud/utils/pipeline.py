@@ -66,12 +66,12 @@ def validate_pipeline_tree_constants(constants):
         raise PipelineException(error_message)
 
     visited = set()
-    recursion_stack = set()
+    recursion_stack = []
 
     def has_cycle(node):
         """深度优先搜索检测环路"""
         visited.add(node)
-        recursion_stack.add(node)
+        recursion_stack.append(node)
 
         # 遍历当前节点的所有依赖项
         for neighbor in graph.get(node, set()):
