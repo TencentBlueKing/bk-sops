@@ -15,7 +15,7 @@ from django.views.decorators.http import require_GET
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.apigw.views.utils import info_data_from_period_task
 from gcloud.iam_auth.intercept import iam_intercept
@@ -31,6 +31,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @timezone_inject
 @iam_intercept(ProjectViewInterceptor())
 def get_periodic_task_list(request, project_id):
