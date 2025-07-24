@@ -72,7 +72,7 @@ def _get_project_scope_from_request(request):
     if request.method == "GET":
         obj_scope = request.GET.get("scope", PROJECT_SCOPE_CMDB_BIZ)
     else:
-        params = json.loads(request.body)
+        params = json.loads(request.body) if request.body else {}
         obj_scope = params.get("scope", PROJECT_SCOPE_CMDB_BIZ)
 
     return obj_scope
