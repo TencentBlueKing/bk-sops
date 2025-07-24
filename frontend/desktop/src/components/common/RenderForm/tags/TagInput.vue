@@ -416,6 +416,23 @@
             },
             // 文本框失焦
             handleInputBlur  (e) {
+                if (this.input.value.includes(this.tagCode)) {
+                    const config = {
+                        message: '参数禁止使用当前变量进行渲染',
+                        theme: 'error',
+                        offsetY: 80,
+                        limitLine: 3,
+                        delay: 3000
+                    }
+                    this.$bkNotify(config)
+                    this.input.value = ''
+                    this.$nextTick(() => {
+                        const divInputDom = this.$el.querySelector('.div-input')
+                        if (divInputDom) {
+                            divInputDom.innerText = this.inputValue
+                        }
+                    })
+                }
                 this.$emit('blur', this.input.value)
                 this.input.focus = false
                 // 更新文本框结构，生成tag标签
