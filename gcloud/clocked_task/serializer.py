@@ -20,6 +20,8 @@ from rest_framework import serializers
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
+from gcloud.utils.pipeline import validate_pipeline_tree_constants
+from pipeline.exceptions import PipelineException
 
 
 class ClockedTaskSerializer(serializers.ModelSerializer):
@@ -50,6 +52,10 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
         )
         if node_appoint_method_num > 1:
             raise serializers.ValidationError("can not use multiple method to appoint execute nodes")
+        try:
+            validate_pipeline_tree_constants(task_parameters.get("constants", {}))
+        except PipelineException as e:
+            raise serializers.ValidationError(e)
         return data
 
     def validate_plan_start_time(self, plan_start_time):
