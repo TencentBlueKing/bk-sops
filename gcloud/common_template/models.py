@@ -17,6 +17,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
+from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.template_base.utils import fill_default_version_to_service_activities
 
@@ -61,6 +62,7 @@ class CommonTemplateManager(BaseTemplateManager):
                 "time_out": template_dict["time_out"],
                 "pipeline_template_id": template_dict["pipeline_template_id"],
                 "is_deleted": False,
+                "tenant_id": get_current_tenant_id(),
             }
 
         return super(CommonTemplateManager, self)._perform_import(
