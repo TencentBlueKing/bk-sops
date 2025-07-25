@@ -136,50 +136,68 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             return
 
         scope_set = set(scope_value)
-
-        invalid_projects = []
-        invalid_common_templates = []
+        conflict_projects = set()
+        conflicts_project_templates = set()
+        conflicts_common_templates = []
         for item in references:
             if item.get("template_type") != COMMON:
                 project_id = str(item["project_id"])
                 if project_id not in scope_value:
-                    invalid_projects.append(project_id)
+                    conflicts_project_templates.add(item["project_name"])
             else:
                 if not set(item.get("project_scope", [])).issubset(scope_set):
-                    invalid_common_templates.append(str(item["name"]))
+                    conflicting_projects = sorted(set(item.get("project_scope")) - scope_set)
+                    project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
+                    conflicts_common_templates.append(item["name"])
+                    conflict_projects.update(project_names)
 
-        if invalid_common_templates:
-            invalid_common_templates = ",".join(invalid_common_templates)
-            raise serializers.ValidationError(f"流程在公共流程 {invalid_common_templates} 中被引用，使用范围存在冲突，请检查配置")
+        if conflicts_common_templates:
+            err_message = (
+                f"当前流程与父流程 {', '.join(conflicts_common_templates)} 的可见范围存在冲突，"
+                f"请遵循父流程的可见范围不能超出子流程的规则，至少包含项目 {', '.join(sorted(conflict_projects))}"
+            )
+            raise serializers.ValidationError(err_message)
 
-        if invalid_projects:
-            invalid_projects = ",".join(invalid_projects)
-            raise serializers.ValidationError(f"流程在项目 {invalid_projects} 中被引用，请检查使用范围配置")
+        if conflicts_project_templates:
+            err_message = f"当前流程在项目 {', '.join(conflicts_project_templates)} 中被引用，请遵循流程可见范围限制"
+            raise serializers.ValidationError(err_message)
 
-    def _validate_child_scope(self, project_scope):
-        pipeline_tree = self.instance.pipeline_tree
+    def _validate_child_scope(self, pipeline_tree, project_scope):
         project_scope_set = set(project_scope)
+        conflict_details = set()
+        subprocess = []
         for activity in pipeline_tree.get("activities", {}).values():
             if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
                 continue
-            common_template_id = activity.get("template_id")
-            result = CommonTemplate.objects.get(id=common_template_id)
-            common_project_scope = result.extra_info.get("project_scope")
-            if common_project_scope == ["*"]:
+            common_template = CommonTemplate.objects.get(id=activity["template_id"])
+            common_scope = set(common_template.extra_info.get("project_scope", []))
+            if common_scope == ["*"]:
                 continue
-            if not project_scope_set.issubset(set(common_project_scope)):
-                raise serializers.ValidationError(f"保存流程失败，子流程 {result.pipeline_template.name} 的可见范围与当前流程的可见范围存在冲突")
+            if not project_scope_set.issubset(common_scope):
+                conflicting_projects = sorted(common_scope - project_scope_set)
+                project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
+                subprocess.append(common_template.pipeline_template.name)
+                conflict_details.update(project_names)
+
+        if subprocess:
+            error_messages = (
+                f"当前流程与子流程 {', '.join(subprocess)} 的可见范围存在冲突，"
+                f"请遵循父流程的可见范围不能超出子流程的规则，至少包含项目 {', '.join(set(conflict_details))}"
+            )
+            raise serializers.ValidationError(error_messages)
         return pipeline_tree
 
-    def validate_project_scope(self, value):
+    def validate(self, attrs):
+        project_scope = attrs.get("extra_info").get("project_scope")
         request = self.context.get("request")
+        # 检测其引用的子流程
+        self._validate_child_scope(json.loads(attrs["pipeline_tree"]), project_scope)
 
         if request.method in ("PUT", "PATCH"):
             # 检测其被作为子流程引用的父流程
-            self._validate_scope_changes(value)
-            # 检测其引用的子流程
-            self._validate_child_scope(value)
-        return value
+            self._validate_scope_changes(project_scope)
+
+        return attrs
 
     class Meta:
         model = CommonTemplate
@@ -213,5 +231,5 @@ class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
 
     def validate_project_scope(self, value):
         self._validate_scope_changes(value)
-        self._validate_child_scope(value)
+        self._validate_child_scope(self.instance.pipeline_tree, value)
         return value
