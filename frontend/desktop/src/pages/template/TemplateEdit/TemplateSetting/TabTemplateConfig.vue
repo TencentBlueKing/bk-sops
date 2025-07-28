@@ -131,6 +131,7 @@
                             :display-tag="true"
                             :auto-height="false"
                             :readonly="isViewMode"
+                            ref="projectSelectRef"
                             :disabled="isOutermostBaseInfoAllProjectScope || isViewMode"
                             @change="handleBaseInfoProjectVisibleChange"
                             v-model="baseInfoProjectScopeList">
@@ -363,7 +364,10 @@
                 proxyPlaceholder: '',
                 isBaseInfoSelectAllProjectScope: false,
                 baseInfoProjectScopeList: [],
-                isOutermostBaseInfoAllProjectScope: false
+                isOutermostBaseInfoAllProjectScope: false,
+                projects: [],
+                isDropdownOpen: false,
+                isFirstOpen: false
             }
         },
         computed: {
@@ -378,7 +382,75 @@
                 'authActions': state => state.authActions,
                 'projectList': state => state.userProjectList
             }),
-            projects () {
+            allProjectIds () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
+            }
+        },
+        watch: {
+            isDropdownOpen: {
+                handler (val) {
+                    if (!val) {
+                        if (this.formData.project_scope.length > 0) {
+                            this.processingProjectsToTop(this.formData.project_scope, this.projects)
+                        }
+                    }
+                }
+            }
+        },
+
+        created () {
+            if (this.common) {
+                this.initProjects()
+                if (this.formData.project_scope.includes('*')) {
+                    this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.isOutermostBaseInfoAllProjectScope = true
+                } else {
+                    this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.isOutermostBaseInfoAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
+                }
+            }
+        },
+      
+        mounted () {
+            // 模板没有设置执行代理人时，默认使用项目下的执行代理人
+            if (!this.formData.executorProxy.length) {
+                this.setExecutorProxy()
+            }
+            this.$refs.nameInput.focus()
+            document.addEventListener('click', this.handleClickOutside)
+        },
+        methods: {
+            ...mapMutations('template/', [
+                'setTplConfig',
+                'setProjectScope'
+            ]),
+            ...mapActions('project', [
+                'getProjectConfig',
+                'createTemplateLabel'
+            ]),
+            processingProjectsToTop (val, projects) {
+                val.forEach((item) => {
+                    item = typeof item === 'number' ? item : Number(item)
+                    projects.map((group) => {
+                        group.children.map((project, index) => {
+                            if (project.id === item) {
+                                const tempItem = group.children.splice(index, 1)[0]
+                                group.children.unshift(tempItem)
+                            }
+                        })
+                    })
+                })
+                return projects
+            },
+            initProjects () {
                 const projects = []
                 const projectsGroup = [
                     {
@@ -404,48 +476,29 @@
                         projects.push(group)
                     }
                 })
-                return projects
-            },
-            allProjectIds () {
-                const allIds = []
-                this.projects.forEach((group) => {
-                    group.children.forEach((item) => {
-                        allIds.push(item.id)
-                    })
-                })
-                return allIds
-            }
-        },
-        created () {
-            if (this.common) {
-                if (this.formData.project_scope.includes('*')) {
-                    this.baseInfoProjectScopeList = this.allProjectIds
-                    this.formData.project_scope = this.baseInfoProjectScopeList
-                    this.isOutermostBaseInfoAllProjectScope = true
+                if (this.formData.project_scope.length > 0 && !this.formData.project_scope.includes('*')) {
+                    this.projects = this.processingProjectsToTop(this.formData.project_scope, projects)
                 } else {
-                    this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
-                    this.formData.project_scope = this.baseInfoProjectScopeList
-                    this.isOutermostBaseInfoAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
+                    this.projects = projects
                 }
-            }
-        },
-      
-        mounted () {
-            // 模板没有设置执行代理人时，默认使用项目下的执行代理人
-            if (!this.formData.executorProxy.length) {
-                this.setExecutorProxy()
-            }
-            this.$refs.nameInput.focus()
-        },
-        methods: {
-            ...mapMutations('template/', [
-                'setTplConfig',
-                'setProjectScope'
-            ]),
-            ...mapActions('project', [
-                'getProjectConfig',
-                'createTemplateLabel'
-            ]),
+            },
+            handleClickOutside (event) {
+                const isHaveSomeClassName = event.target.classList.contains('bk-option-name') || event.target.classList.contains('bk-group-options') || event.target.classList.contains('bk-option-content-default')
+                if (!isHaveSomeClassName) {
+                    if (this.$refs.projectSelectRef && this.$refs.projectSelectRef.$el.contains(event.target)) {
+                        if (this.isFirstOpen) {
+                            this.isDropdownOpen = true
+                            this.isFirstOpen = false
+                        } else {
+                            this.isDropdownOpen = false
+                            this.isFirstOpen = true
+                        }
+                    } else {
+                        this.isDropdownOpen = false
+                        this.isFirstOpen = true
+                    }
+                }
+            },
             handleBaseInfoSelectAllProjectScope (row) {
                 if (row) {
                     this.isOutermostBaseInfoAllProjectScope = true
@@ -662,6 +715,9 @@
                     console.log(e)
                 }
             }
+        },
+        unmounted () {
+            document.removeEventListener('click', this.handleClickOutside)
         }
     }
 </script>
