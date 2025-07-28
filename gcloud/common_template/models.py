@@ -17,6 +17,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
+from gcloud.exceptions import FlowExportError
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.template_base.utils import fill_default_version_to_service_activities
 
@@ -42,6 +43,14 @@ class CommonTemplateManager(BaseTemplateManager):
         return data
 
     def export_templates(self, template_id_list, **kwargs):
+        restricted_templates = [
+            str(t["id"])
+            for t in self.filter(id__in=template_id_list).values("id", "extra_info")
+            if t.get("extra_info", {}).get("project_scope") != ["*"]
+        ]
+
+        if restricted_templates:
+            raise FlowExportError(f"禁止导出设置了可见范围的公共流程: {', '.join(restricted_templates)}")
         if kwargs.get("is_full"):
             template_id_list = list(self.all().values_list("id", flat=True))
         return super().export_templates(template_id_list, **kwargs)
