@@ -30,6 +30,7 @@
                     </bk-checkbox>
                     <bk-select class="project-select"
                         v-if="isSetProjectVisible"
+                        ref="projectSelectRef"
                         :searchable="true"
                         :clearable="true"
                         :multiple="true"
@@ -120,43 +121,16 @@
                 hasError: false,
                 localProjectScopeList: [],
                 isSelectAllProjectScope: false,
-                isOutermostAllProjectScope: false
+                isOutermostAllProjectScope: false,
+                isDropdownOpen: false,
+                isFirstOpen: true,
+                projects: []
             }
         },
         computed: {
             ...mapState('project', {
                 projectList: state => state.userProjectList
             }),
-            projects () {
-                const projects = []
-                const projectsGroup = [
-                    {
-                        name: i18n.t('业务'),
-                        id: 1,
-                        children: []
-                    },
-                    {
-                        id: 2,
-                        name: i18n.t('项目'),
-                        children: []
-                    }
-                ]
-                this.projectList.forEach(item => {
-                    if (item.from_cmdb) {
-                        projectsGroup[0].children.push(item)
-                    } else {
-                        projectsGroup[1].children.push(item)
-                    }
-                })
-
-                projectsGroup.forEach(group => {
-                    if (group.children.length) {
-                        projects.push(group)
-                    }
-                })
-
-                return projects
-            },
             allProjectIds () {
                 const allIds = []
                 this.projects.forEach((group) => {
@@ -171,17 +145,111 @@
             project (val) {
                 this.id = val
             },
-            projectScopeList (val) {
-                if (val.includes('*')) {
-                    this.localProjectScopeList = this.allProjectIds
-                    this.isOutermostAllProjectScope = true
-                } else {
-                    this.localProjectScopeList = [...val]
-                    this.isOutermostAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
-                }
+            projectList: {
+                handler (val) {
+                    if (val && this.projectScopeList) {
+                        this.initProjects()
+                    }
+                },
+                immediate: true
+            },
+            projectScopeList: {
+                handler (val) {
+                    if (val.includes('*')) {
+                        this.localProjectScopeList = this.allProjectIds
+                        this.isOutermostAllProjectScope = true
+                    } else {
+                        this.localProjectScopeList = [...val]
+                        this.isOutermostAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
+                    }
+                    if (this.projectList && this.projectList.length && val) {
+                        this.initProjects()
+                    }
+                },
+                immediate: true
+            },
+            isDropdownOpen: {
+                handler (val) {
+                    if (!val) {
+                        if (this.localProjectScopeList.length > 0) {
+                            this.processingProjectsToTop(this.localProjectScopeList, this.projects)
+                        }
+                    }
+                },
+                immediate: true
             }
+
+        },
+        mounted () {
+            document.addEventListener('click', this.handleClickOutside)
         },
         methods: {
+            processingProjectsToTop (val, projects) {
+                val.forEach((item) => {
+                    projects.map((group) => {
+                        group.children.map((project, index) => {
+                            if (project.id === item) {
+                                const tempItem = group.children.splice(index, 1)[0]
+                                group.children.unshift(tempItem)
+                            }
+                        })
+                    })
+                })
+                return projects
+            },
+            initProjects () {
+                if (!this.projectList || !this.projectScopeList) {
+                    return []
+                }
+                let projects = []
+                const projectsGroup = [
+                    {
+                        name: i18n.t('业务'),
+                        id: 1,
+                        children: []
+                    },
+                    {
+                        id: 2,
+                        name: i18n.t('项目'),
+                        children: []
+                    }
+                ]
+                if (this.projectList) {
+                    this.projectList.forEach(item => {
+                        if (item.from_cmdb) {
+                            projectsGroup[0].children.push(item)
+                        } else {
+                            projectsGroup[1].children.push(item)
+                        }
+                    })
+                    projectsGroup.forEach(group => {
+                        if (group.children.length) {
+                            projects.push(group)
+                        }
+                    })
+                    if (this.projectScopeList.length > 0 && !this.projectScopeList.includes('*')) {
+                        projects = this.processingProjectsToTop(this.projectScopeList, projects)
+                    }
+                }
+                this.projects = projects
+            },
+            handleClickOutside (event) {
+                const isHaveSomeClassName = event.target.classList.contains('bk-option-name') || event.target.classList.contains('bk-group-options') || event.target.classList.contains('bk-option-content-default')
+                if (!isHaveSomeClassName) {
+                    if (this.$refs.projectSelectRef && this.$refs.projectSelectRef.$el.contains(event.target)) {
+                        if (this.isFirstOpen) {
+                            this.isDropdownOpen = true
+                            this.isFirstOpen = false
+                        } else {
+                            this.isDropdownOpen = false
+                            this.isFirstOpen = true
+                        }
+                    } else {
+                        this.isDropdownOpen = false
+                        this.isFirstOpen = true
+                    }
+                }
+            },
             handleProjectVisibleChange (row) {
                 this.localProjectScopeList = [...new Set(row)]
                 this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
@@ -224,6 +292,9 @@
                     this.$emit('onCancel')
                 }
             }
+        },
+        unmounted () {
+            document.removeEventListener('click', this.handleClickOutside)
         }
     }
 </script>
