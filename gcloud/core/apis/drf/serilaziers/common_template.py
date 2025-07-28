@@ -229,7 +229,8 @@ class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
         model = CommonTemplate
         fields = ["project_scope"]
 
-    def validate_project_scope(self, value):
-        self._validate_scope_changes(value)
-        self._validate_child_scope(self.instance.pipeline_tree, value)
-        return value
+    def validate(self, attrs):
+        project_scope = attrs.get("extra_info").get("project_scope", [])
+        self._validate_scope_changes(project_scope)
+        self._validate_child_scope(self.instance.pipeline_tree, project_scope)
+        return attrs
