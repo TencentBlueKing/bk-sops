@@ -791,7 +791,8 @@
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
-                'saveTemplateData'
+                'saveTemplateData',
+                'updateLabelIds'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -987,19 +988,15 @@
                 try {
                     const { id, labelIds: template_labels } = curRow
                     this.setTemplateData({ ...curRow, template_labels })
-                    const resp = await this.saveTemplateData({
-                        templateId: id,
-                        projectId: this.project_id,
-                        common: false
+                    const resp = await this.updateLabelIds({
+                        id: id,
+                        label_ids: template_labels
                     })
-                    if (!resp.result) {
-                        if ('errorId' in resp) {
-                            this.$bkMessage({
-                                message: resp.message,
-                                theme: 'error',
-                                delay: 10000
-                            })
-                        }
+                    if (!resp.data.result) {
+                        this.$bkMessage({
+                            message: resp.data.message,
+                            theme: 'error'
+                        })
                         return
                     }
                     // 前端修改对应模板的labels
