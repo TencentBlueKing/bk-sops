@@ -179,7 +179,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             common_scope = common_template.extra_info.get("project_scope", [])
             if common_scope == ["*"]:
                 continue
-            if project_scope == ["*"] and common_scope != ["*"]:
+            if project_scope == ["*"]:
                 raise serializers.ValidationError(
                     f"当前流程与子流程 {common_template.pipeline_template.name} 的可见范围存在冲突，"
                     f"当前流程允许所有项目可见，请遵循父流程的可见范围不能超出子流程的规则"
@@ -241,7 +241,12 @@ class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
         fields = ["project_scope"]
 
     def validate(self, attrs):
-        project_scope = attrs.get("extra_info").get("project_scope", [])
+        project_scope = attrs.get("extra_info", {}).get("project_scope", [])
         self._validate_scope_changes(project_scope)
         self._validate_child_scope(self.instance.pipeline_tree, project_scope)
         return attrs
+
+    def update(self, instance, validated_data):
+        instance.pipeline_template.editor = self.context["request"].user.username
+        instance.pipeline_template.save()
+        return super().update(instance, validated_data)
