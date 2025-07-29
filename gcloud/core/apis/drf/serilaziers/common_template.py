@@ -145,14 +145,14 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
                 if project_id not in scope_value:
                     conflicts_project_templates.add(item["project_name"])
             else:
-                item_scope = set(item.get("project_scope", []))
+                item_scope = item.get("project_scope", [])
                 if item_scope == ["*"]:
                     raise serializers.ValidationError(
                         f"当前流程与父流程 {item['name']} 的可见范围存在冲突，父流程允许所有项目可见，请遵循父流程的可见范围不能超出子流程的规则"
                     )
 
-                if not item_scope.issubset(scope_set):
-                    conflicting_projects = sorted(item_scope - scope_set)
+                if not set(item_scope).issubset(scope_set):
+                    conflicting_projects = sorted(set(item_scope) - scope_set)
                     project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
                     conflicts_common_templates.append(item["name"])
                     conflict_projects.update(project_names)
