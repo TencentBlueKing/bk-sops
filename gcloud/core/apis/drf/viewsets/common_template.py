@@ -328,7 +328,10 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         editor = request.user.username
         serializer = PatchCommonTemplateSerializer(template, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        with transaction.atomic():
+            template.pipeline_template.editor = editor
+            template.pipeline_template.save()
+            self.perform_update(serializer)
         # 发送信号
         post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
         # 注入权限

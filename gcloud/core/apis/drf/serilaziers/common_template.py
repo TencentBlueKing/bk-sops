@@ -179,6 +179,11 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             common_scope = common_template.extra_info.get("project_scope", [])
             if common_scope == ["*"]:
                 continue
+            if project_scope == ["*"] and common_scope != ["*"]:
+                raise serializers.ValidationError(
+                    f"当前流程与子流程 {common_template.pipeline_template.name} 的可见范围存在冲突，"
+                    f"当前流程允许所有项目可见，请遵循父流程的可见范围不能超出子流程的规则"
+                )
             if not project_scope_set.issubset(set(common_scope)):
                 conflicting_projects = sorted(project_scope_set - set(common_scope))
                 project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
