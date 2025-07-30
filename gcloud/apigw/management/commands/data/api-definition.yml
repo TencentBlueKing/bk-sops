@@ -36,4 +36,24 @@ release:
 
 
 grant_permissions:
-  - bk_app_code: bk_audit
+  - bk_app_code: "bk_bcs_app"
+    grant_dimension: "resource"
+    resource_names:
+      - system_create_task
+      - system_start_task
+      - system_get_tasks_status
+      - system_get_template_list
+      - system_get_user_project_detail
+      - system_get_template_info
+      - system_operate_task
+  - bk_app_code: "bk_monitorv3"
+    grant_dimension: "resource"
+    resource_names:
+      - system_get_user_project_detail
+      - system_get_template_list
+      - system_get_template_info
+      - system_preview_task_tree
+      - system_create_task
+      - system_start_task
+      - system_get_task_status
+      - system_import_project_template
