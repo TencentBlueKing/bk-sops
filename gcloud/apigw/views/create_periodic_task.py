@@ -20,7 +20,7 @@ import env
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
 from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import replace_template_id
@@ -46,6 +46,7 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @request_validate(CreatePriodicTaskValidator)
 @iam_intercept(CreatePeriodicTaskInterceptor())
 def create_periodic_task(request, template_id, project_id):

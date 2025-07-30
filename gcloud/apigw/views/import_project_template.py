@@ -23,6 +23,7 @@ from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     project_inject,
     return_json_response,
+    validate_project_access,
 )
 from gcloud.apigw.views.utils import logger
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -38,6 +39,7 @@ from gcloud.template_base.utils import (
 @apigw_require
 @return_json_response
 @project_inject
+@validate_project_access
 @mark_request_whether_is_trust
 def import_project_template(request, project_id):
     if not request.is_trust:
