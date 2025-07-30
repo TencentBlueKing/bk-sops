@@ -59,6 +59,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
             "retryable": True,
             "skippable": True,
             "stage_name": "",
+            "auto_retry": {
+                "enable": False,
+                "times": 0,
+                "interval": 0,
+            },
         },
         "SubProcess": {
             "error_ignorable": False,
@@ -146,13 +151,21 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 if "id" not in node or "type" not in node:
                     error.append("模版下所有节点都必须包含id和type字段")
                     continue
-                if not set(self.NODE_NECESSARY_FIELDS[node["type"]]).issubset(node.keys()):
-                    error.append(
-                        "节点{}所属的节点类型{}需缺少必须字段：{}".format(
-                            node["id"], node["type"], set(self.NODE_NECESSARY_FIELDS[node["type"]]) - set(node.keys())
-                        )
-                    )
-                    continue
+                missing_fields = set(self.NODE_NECESSARY_FIELDS[node["type"]]) - set(node.keys())
+                if missing_fields:
+                    node_defaults = self.NODE_DEFAULT_FIELD_VALUE.get(node["type"], {})
+                    filled_fields = set()
+
+                    for field in missing_fields:
+                        if field in node_defaults:
+                            node[field] = node_defaults[field]
+                            filled_fields.add(field)
+
+                    missing_fields -= filled_fields
+
+                    if missing_fields:
+                        error.append("节点{}所属的节点类型{}需缺少必须字段：{}".format(node["id"], node["type"], sorted(missing_fields)))
+                        continue
                 if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                     for condition in node["conditions"].keys():
                         if condition not in nodes_set:
