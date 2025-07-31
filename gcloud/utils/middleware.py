@@ -10,10 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import AnonymousUser
+
+logger = logging.getLogger("root")
 
 
 class CustomUserModelBackend(ModelBackend):
@@ -38,7 +41,12 @@ class CustomUserModelBackend(ModelBackend):
     def authenticate(self, request, gateway_name, bk_username, tenant_id, verified, **credentials):
         # if not verified:
         #     return self.make_anonymous_user(bk_username=bk_username)
-
+        logger.info("-------------------------------------")
+        logger.info(f"gateway_name: {gateway_name}")
+        logger.info(f"bk_username: {bk_username}")
+        logger.info(f"tenant_id: {tenant_id}")
+        logger.info(f"verified: {verified}")
+        logger.info("-------------------------------------")
         user = self.user_maker(bk_username)
         user.tenant_id = tenant_id  # type: ignore
         return user
