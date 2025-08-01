@@ -68,15 +68,22 @@ def cmdb_business_sync_task():
         if acquired:
             logger.info("Start sync business from cmdb...")
             try:
-                client = get_client_by_username(
-                    username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME
-                )
-                result = client.api.list_tenant(headers={"X-Bk-Tenant-Id": "system"})
-                for tenant in result["data"]:
-                    if tenant["status"] != "enabled":
-                        continue
+                if settings.ENABLE_MULTI_TENANT_MODE:
+                    client = get_client_by_username(
+                        username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME
+                    )
+                    result = client.api.list_tenant(headers={"X-Bk-Tenant-Id": "system"})
+                    for tenant in result["data"]:
+                        if tenant["status"] != "enabled":
+                            continue
+                        sync_projects_from_cmdb(
+                            username=settings.SYSTEM_USE_API_ACCOUNT, use_cache=False, tenant_id=tenant["id"]
+                        )
+                else:
                     sync_projects_from_cmdb(
-                        username=settings.SYSTEM_USE_API_ACCOUNT, use_cache=False, tenant_id=tenant["id"]
+                        username=settings.SYSTEM_USE_API_ACCOUNT,
+                        tenant_id=getattr(settings, "DEFAULT_TENANT_ID", "default"),
+                        use_cache=False,
                     )
             except exceptions.APIError as e:
                 logger.error(
