@@ -15,6 +15,7 @@ from jsonschema import Draft4Validator
 
 from pipeline.validators import validate_pipeline_tree
 
+from gcloud.utils.pipeline import validate_pipeline_tree_constants
 from pipeline_web import exceptions
 from pipeline_web.parser.schemas import WEB_PIPELINE_SCHEMA, KEY_PATTERN_RE
 
@@ -29,13 +30,13 @@ def validate_web_pipeline_tree(web_pipeline_tree):
         raise exceptions.ParserWebTreeException(",".join(errors))
 
     # constants key pattern validate
+    constants = web_pipeline_tree["constants"]
     key_validation_erros = []
-    for key, const in web_pipeline_tree["constants"].items():
+    for key, const in constants.items():
         key_value = const.get("key")
         if key != key_value:
             key_validation_erros.append("constants {} key property value: {} not matched".format(key, key_value))
             continue
-
         if not KEY_PATTERN_RE.match(key):
             key_validation_erros.append("invalid key: {}".format(key))
 
@@ -46,5 +47,5 @@ def validate_web_pipeline_tree(web_pipeline_tree):
 
     if key_validation_erros:
         raise exceptions.ParserWebTreeException("\n".join(key_validation_erros))
-
+    validate_pipeline_tree_constants(constants)
     validate_pipeline_tree(web_pipeline_tree, cycle_tolerate=True)
