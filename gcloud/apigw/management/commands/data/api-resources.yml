@@ -821,7 +821,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         backend:
@@ -845,7 +845,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -869,7 +869,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         backend:
@@ -893,7 +893,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         backend:
@@ -917,7 +917,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -941,7 +941,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -965,7 +965,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -989,7 +989,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1013,7 +1013,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1037,7 +1037,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1061,7 +1061,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1085,7 +1085,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1109,7 +1109,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1133,7 +1133,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1157,7 +1157,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1181,7 +1181,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1205,7 +1205,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1229,7 +1229,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1253,7 +1253,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1277,7 +1277,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1301,7 +1301,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         backend:
@@ -1325,7 +1325,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1349,7 +1349,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1373,7 +1373,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1397,7 +1397,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1421,7 +1421,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1445,7 +1445,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1469,7 +1469,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         backend:
@@ -1493,7 +1493,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:
@@ -1517,7 +1517,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: true
         matchSubpath: false
         backend:

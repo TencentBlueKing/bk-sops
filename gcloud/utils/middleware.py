@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 import logging
 
 from django.contrib import auth
@@ -75,6 +76,7 @@ class ApiGatewayJWTUserMiddleware:
         jwt_info = getattr(request, "jwt", None)
         logger.info(f"-----jwt_info----- :{jwt_info}")
         logger.info(f"requests.headers: {request.headers}")
+        logger.info(f"jwt_info.payload: {json.dumps(jwt_info.payload, indent=2)}")
         if not jwt_info:
             return self.get_response(request)
 
@@ -86,6 +88,7 @@ class ApiGatewayJWTUserMiddleware:
         logger.info(f"jwt_user :{jwt_user}")
         jwt_user.setdefault("bk_username", jwt_user.pop("username", None))
         tenant_id = request.headers.get("X-Bk-Tenant-Id")
+        jwt_user["tenant_id"] = tenant_id
 
-        request.user = self.get_user(request, gateway_name=jwt_info.gateway_name, tenant_id=tenant_id, **jwt_user)
+        request.user = self.get_user(request, gateway_name=jwt_info.gateway_name, **jwt_user)
         return self.get_response(request)
