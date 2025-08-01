@@ -31,4 +31,3 @@ CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 default.logging_addition_settings(LOGGING, environment="prod")
 
 BK_APIGW_STAGE_NAME = "prod"
-BK_DATA_URL_SUFFIX = "569747"
