@@ -20,7 +20,6 @@ else:
 
 import env
 
-
 # 预发布环境
 RUN_MODE = "STAGING"
 
@@ -33,3 +32,4 @@ CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 default.logging_addition_settings(LOGGING, environment="stag")
 
 BK_APIGW_STAGE_NAME = "stage"
+BK_DATA_URL_SUFFIX = "569035"

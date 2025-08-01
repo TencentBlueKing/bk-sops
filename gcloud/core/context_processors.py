@@ -132,6 +132,7 @@ def mysetting(request):
         "ENABLE_NOTICE_CENTER": enable_notice_center,
         "BK_PAAS_SHARED_RES_URL": env.BKPAAS_SHARED_RES_URL,
         "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
+        "BK_DATA_URL": settings.BK_DATA_URL + f"/{settings.BK_DATA_URL_SUFFIX}/",
     }
 
     # custom context config
