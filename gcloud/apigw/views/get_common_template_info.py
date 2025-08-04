@@ -33,6 +33,7 @@ from apigw_manager.apigw.decorators import apigw_require
 def get_common_template_info(request, template_id):
     include_subprocess = request.GET.get("include_subprocess", None)
     include_constants = request.GET.get("include_constants", None)
+    include_notify = request.GET.get("include_notify", None)
     try:
         tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
     except CommonTemplate.DoesNotExist:
@@ -42,7 +43,7 @@ def get_common_template_info(request, template_id):
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
         return result
-    data = format_template_data(template=tmpl, include_subprocess=include_subprocess)
+    data = format_template_data(template=tmpl, include_subprocess=include_subprocess, include_notify=include_notify)
     if include_constants:
         data["template_constants"] = process_pipeline_constants(data["pipeline_tree"])
 
