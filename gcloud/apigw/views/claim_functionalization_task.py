@@ -19,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.iam_auth.view_interceptors.apigw import FunctionTaskInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger
@@ -34,6 +34,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(FunctionTaskInterceptor())
 def claim_functionalization_task(request, task_id, project_id):
     try:

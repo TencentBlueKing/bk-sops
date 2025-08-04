@@ -20,7 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import project_inject, validate_project_access
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
@@ -36,6 +36,7 @@ logger = logging.getLogger("root")
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@validate_project_access
 @iam_intercept(ProjectViewInterceptor())
 def get_tasks_manual_intervention_state(request, project_id):
     try:
