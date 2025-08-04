@@ -33,9 +33,15 @@ import '@toast-ui/editor/dist/toastui-editor.css'
 import { STRING_LENGTH } from '@/constants/index.js'
 import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
 import tools from './utils/tools'
+import BkTrace from '@blueking/bk-trace-core'
 const config = {
     errorBagName: 'veeErrors',
     fieldsBagName: 'veeFields'
+}
+
+const dateAccessConfig = {
+    url: window.BK_DATA_REPORT_API_URL,
+    appCode: window.APP_CODE
 }
 Vue.use(VeeValidate, config)
 
@@ -67,6 +73,7 @@ Vue.use(Pagination)
 Vue.use(Tooltip)
 Vue.use(Cascader)
 Vue.use(autocomplete)
+Vue.use(BkTrace, dateAccessConfig)
 
 window.reportInfo = function () {}
 
