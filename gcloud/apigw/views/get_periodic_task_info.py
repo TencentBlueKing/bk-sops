@@ -33,8 +33,9 @@ from gcloud.periodictask.models import PeriodicTask
 @iam_intercept(GetPeriodicTaskInfoInterceptor())
 def get_periodic_task_info(request, task_id, project_id):
     project = request.project
+    tenant_id = request.user.tenant_id
     try:
-        task = PeriodicTask.objects.get(id=task_id, project_id=project.id, project__tenant_id=project.tenant_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id, project__tenant_id=tenant_id)
     except PeriodicTask.DoesNotExist:
         return {
             "result": False,
