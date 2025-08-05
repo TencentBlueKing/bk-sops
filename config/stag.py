@@ -20,7 +20,6 @@ else:
 
 import env
 
-
 # 预发布环境
 RUN_MODE = "STAGING"
 
