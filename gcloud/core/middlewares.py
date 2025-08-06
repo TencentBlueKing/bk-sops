@@ -120,6 +120,16 @@ class TenantMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         """请求进入时设置租户ID"""
+        try:
+            header, secure_value = settings.SECURE_PROXY_SSL_HEADER
+            header_value = request.META.get(header)
+            logger.error("+++++++++++{}: {}++++++++++".format(header, header_value))
+        except ValueError:
+            raise Exception(
+                'The SECURE_PROXY_SSL_HEADER setting must be a tuple containing two values.'
+            )
+
+        logger.error("+++++++++++request meta: {}++++++++++".format(request.META))
         # 从request.user获取租户ID（根据你的用户模型调整）
         tenant_id = getattr(request.user, "tenant_id", None)
         set_current_tenant_id(tenant_id)
