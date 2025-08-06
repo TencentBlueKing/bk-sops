@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.core.cache import cache
+
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
 from packages.bkapi.bk_user.shortcuts import get_client_by_username
@@ -54,3 +56,22 @@ def get_all_users(request):
         "data": resp.get("data"),
         "result": resp["result"],
     }
+
+
+def get_user_bk_username(username, tenant_id):
+    cache_key = f"{tenant_id}_username:{username}"
+    bk_username = cache.get(cache_key)
+
+    if bk_username:
+        return bk_username
+
+    client = get_client_by_username(username=username, stage=settings.BK_APIGW_STAGE_NAME)
+    result = client.api.batch_lookup_virtual_user(
+        {"lookups": username, "lookup_field": "login_name"}, headers={"X-Bk-Tenant-Id": tenant_id}
+    )
+    if result["data"]:
+        bk_username = result["data"][0]["bk_username"]
+        cache.set(cache_key, bk_username, 60 * 60 * 24)
+        return bk_username
+
+    return username
