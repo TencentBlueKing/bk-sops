@@ -12,17 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.views.decorators.http import require_GET
-
+from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
-from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.tasktmpl3.models import TaskTemplate
+from django.views.decorators.http import require_GET
 from pipeline.models import TemplateScheme
+
+from gcloud import err_code
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 @login_exempt
@@ -33,7 +32,8 @@ from apigw_manager.apigw.decorators import apigw_require
 @project_inject
 @iam_intercept(FlowViewInterceptor())
 def get_template_schemes(request, project_id, template_id):
-    template = TaskTemplate.objects.get(project_id=request.project.id, id=template_id)
+    tenant_id = request.user.tenant_id
+    template = TaskTemplate.objects.get(project_id=request.project.id, id=template_id, project__tenant_id=tenant_id)
 
     schemes = TemplateScheme.objects.filter(template__id=template.pipeline_template.id)
 

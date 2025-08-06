@@ -13,17 +13,16 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskEditInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
-from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
@@ -36,12 +35,13 @@ from apigw_manager.apigw.decorators import apigw_require
 @iam_intercept(TaskEditInterceptor())
 def modify_constants_for_task(request, task_id, project_id):
     project = request.project
+    tenant_id = request.user.tenant_id
     try:
         params = json.loads(request.body)
     except Exception:
         return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
 
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, project__tenant_id=tenant_id)
 
     if task.is_started:
         return {"result": False, "message": "task is started", "code": err_code.REQUEST_PARAM_INVALID.code}
