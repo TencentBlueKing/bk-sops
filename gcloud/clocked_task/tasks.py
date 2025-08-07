@@ -18,12 +18,9 @@ from django.db import transaction
 from pipeline.models import MAX_LEN_OF_NAME
 
 from gcloud.clocked_task.models import ClockedTask
-from gcloud.constants import (
-    CLOCKED_TASK_START_FAILED,
-    CLOCKED_TASK_STARTED,
-    TaskCreateMethod,
-)
+from gcloud.constants import CLOCKED_TASK_START_FAILED, CLOCKED_TASK_STARTED, TaskCreateMethod
 from gcloud.core.models import EngineConfig, Project
+from gcloud.core.trace import CallFrom, start_trace
 from gcloud.shortcuts.message import send_clocked_task_message
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
@@ -57,73 +54,82 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         # task has been deleted
         logger.warning(f"[clocked_task_start] clocked task {clocked_task_id} not found, may be deleted.")
         return
-    try:
-        timestamp = Project.objects.get_timezone_based_timestamp(project_id=clocked_task.project_id)
-        task_name = f"{clocked_task.task_name}_{timestamp}"[:MAX_LEN_OF_NAME]
-        task_params = json.loads(clocked_task.task_params)
-        pipeline_instance_kwargs = {
-            "name": task_name,
-            "creator": clocked_task.creator,
-            "description": task_params.get("description", ""),
-        }
-        project = Project.objects.get(id=clocked_task.project_id)
-        template = TaskTemplate.objects.select_related("pipeline_template").get(
-            id=clocked_task.template_id, project_id=project.id, is_deleted=False
-        )
-        pipeline_tree = template.pipeline_tree
-        exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params)
-        with transaction.atomic():
-            data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                template,
-                pipeline_instance_kwargs,
-                task_params.get("constants"),
-                exclude_task_nodes_id,
-                task_params.get("simplify_vars"),
-                pipeline_tree,
+
+    with start_trace(
+        span_name="clocked_task_start",
+        propagate=True,
+        project_id=clocked_task.project_id,
+        call_from=CallFrom.BACKEND.value,
+    ):
+        try:
+            timestamp = Project.objects.get_timezone_based_timestamp(project_id=clocked_task.project_id)
+            task_name = f"{clocked_task.task_name}_{timestamp}"[:MAX_LEN_OF_NAME]
+            task_params = json.loads(clocked_task.task_params)
+            pipeline_instance_kwargs = {
+                "name": task_name,
+                "creator": clocked_task.creator,
+                "description": task_params.get("description", ""),
+            }
+            project = Project.objects.get(id=clocked_task.project_id)
+            template = TaskTemplate.objects.select_related("pipeline_template").get(
+                id=clocked_task.template_id, project_id=project.id, is_deleted=False
             )
-            taskflow_instance = TaskFlowInstance.objects.create(
-                project=project,
-                pipeline_instance=data,
-                category=template.category,
-                template_id=clocked_task.template_id,
-                template_source=clocked_task.template_source,
-                create_method=TaskCreateMethod.CLOCKED.value,
-                create_info=clocked_task.id,
-                flow_type="common",
-                current_flow="execute_task",
-                engine_ver=EngineConfig.objects.get_engine_ver(
-                    project_id=project.id,
+            pipeline_tree = template.pipeline_tree
+            exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params)
+            with transaction.atomic():
+                data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
+                    template,
+                    pipeline_instance_kwargs,
+                    task_params.get("constants"),
+                    exclude_task_nodes_id,
+                    task_params.get("simplify_vars"),
+                    pipeline_tree,
+                )
+                taskflow_instance = TaskFlowInstance.objects.create(
+                    project=project,
+                    pipeline_instance=data,
+                    category=template.category,
                     template_id=clocked_task.template_id,
                     template_source=clocked_task.template_source,
-                ),
-            )
-            logger.info(f"[clocked_task_start] clocked task {clocked_task_id} create taskflow {taskflow_instance.id}")
-            ClockedTask.objects.filter(id=clocked_task_id).update(
-                task_id=taskflow_instance.id, state=CLOCKED_TASK_STARTED
-            )
+                    create_method=TaskCreateMethod.CLOCKED.value,
+                    create_info=clocked_task.id,
+                    flow_type="common",
+                    current_flow="execute_task",
+                    engine_ver=EngineConfig.objects.get_engine_ver(
+                        project_id=project.id,
+                        template_id=clocked_task.template_id,
+                        template_source=clocked_task.template_source,
+                    ),
+                )
+                logger.info(
+                    f"[clocked_task_start] clocked task {clocked_task_id} create taskflow {taskflow_instance.id}"
+                )
+                ClockedTask.objects.filter(id=clocked_task_id).update(
+                    task_id=taskflow_instance.id, state=CLOCKED_TASK_STARTED
+                )
 
-            # crete auto retry strategy
-            arn_creator = AutoRetryNodeStrategyCreator(
-                taskflow_id=taskflow_instance.id, root_pipeline_id=taskflow_instance.pipeline_instance.instance_id
-            )
-            arn_creator.batch_create_strategy(taskflow_instance.pipeline_instance.execution_data)
+                # crete auto retry strategy
+                arn_creator = AutoRetryNodeStrategyCreator(
+                    taskflow_id=taskflow_instance.id, root_pipeline_id=taskflow_instance.pipeline_instance.instance_id
+                )
+                arn_creator.batch_create_strategy(taskflow_instance.pipeline_instance.execution_data)
 
-            # create timeout config
-            TimeoutNodeConfig.objects.batch_create_node_timeout_config(
-                taskflow_id=taskflow_instance.id,
-                root_pipeline_id=taskflow_instance.pipeline_instance.instance_id,
-                pipeline_tree=taskflow_instance.pipeline_instance.execution_data,
-            )
+                # create timeout config
+                TimeoutNodeConfig.objects.batch_create_node_timeout_config(
+                    taskflow_id=taskflow_instance.id,
+                    root_pipeline_id=taskflow_instance.pipeline_instance.instance_id,
+                    pipeline_tree=taskflow_instance.pipeline_instance.execution_data,
+                )
 
-        logger.info(
-            f"[clocked_task_start] starting taskflow {taskflow_instance.id} with operator {clocked_task.creator}"
-        )
-        action_result = taskflow_instance.task_action("start", clocked_task.creator)
-        if not action_result.get("result"):
-            raise Exception(action_result.get("message", f"task {taskflow_instance.id} start fail: unknown error"))
-    except Exception as ex:
-        logger.exception("[clocked_task_start] task create error")
-        ClockedTask.objects.filter(id=clocked_task_id).update(state=CLOCKED_TASK_START_FAILED)
-        send_clocked_task_message(clocked_task, str(ex))
-    else:
-        logger.info(f"[clocked_task_start] clocked task {clocked_task_id} start success")
+            logger.info(
+                f"[clocked_task_start] starting taskflow {taskflow_instance.id} with operator {clocked_task.creator}"
+            )
+            action_result = taskflow_instance.task_action("start", clocked_task.creator)
+            if not action_result.get("result"):
+                raise Exception(action_result.get("message", f"task {taskflow_instance.id} start fail: unknown error"))
+        except Exception as ex:
+            logger.exception("[clocked_task_start] task create error")
+            ClockedTask.objects.filter(id=clocked_task_id).update(state=CLOCKED_TASK_START_FAILED)
+            send_clocked_task_message(clocked_task, str(ex))
+        else:
+            logger.info(f"[clocked_task_start] clocked task {clocked_task_id} start success")
