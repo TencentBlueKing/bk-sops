@@ -36,6 +36,7 @@ from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.operate_record.constants import OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
+from gcloud.core.trace import trace_view
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
@@ -252,6 +253,7 @@ def get_job_instance_log(request, biz_cc_id):
 
 @require_POST
 @request_validate(TaskActionValidator)
+@trace_view(attr_keys=["project_id"], call_from="web")
 @iam_intercept(TaskActionInterceptor())
 @record_operation(RecordType.task.name, OperateType.task_action.name)
 def task_action(request, action, project_id):
@@ -280,6 +282,7 @@ def task_action(request, action, project_id):
 
 @swagger_auto_schema(methods=["POST"], auto_schema=AnnotationAutoSchema)
 @request_validate(NodesActionValidator)
+@trace_view(attr_keys=["project_id"], call_from="web")
 @iam_intercept(NodesActionInterceptor())
 @api_view(["POST"])
 @record_operation(RecordType.task.name, OperateType.nodes_action.name)

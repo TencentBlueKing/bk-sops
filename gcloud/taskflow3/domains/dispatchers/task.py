@@ -25,7 +25,6 @@ from bamboo_engine.eri import ContextValue
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from opentelemetry import trace
 from pipeline.core.data.var import Variable
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions as pipeline_exceptions
@@ -39,6 +38,7 @@ from pipeline.service import task_service
 
 from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
+from gcloud.core.trace import start_trace
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_started
@@ -94,12 +94,15 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if command in self.OPERATION_TYPE_COMMANDS and not self.pipeline_instance.is_started:
             return {"result": False, "message": "task not started", "code": err_code.INVALID_OPERATION.code}
 
-        with trace.get_tracer(__name__).start_as_current_span("task_operate") as span:
-            span.set_attribute("bk_sops.task_id", self.taskflow_id)
-            span.set_attribute("bk_sops.pipeline_id", self.pipeline_instance.instance_id)
-            span.set_attribute("bk_sops.engine_ver", self.engine_ver)
-            span.set_attribute("bk_sops.task_command", command)
-
+        with start_trace(
+            span_name="task_operate",
+            propagate=False,
+            task_id=self.taskflow_id,
+            pipeline_id=self.pipeline_instance.instance_id,
+            executor=operator,
+            engine_ver=self.engine_ver,
+            task_command=command,
+        ):
             return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
     def start_v1(self, executor: str) -> dict:
