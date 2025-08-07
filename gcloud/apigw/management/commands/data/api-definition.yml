@@ -28,7 +28,12 @@ stage:
       period: 60
 
 resource_docs:
-  archivefile: {{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}
+  # 资源文档的归档文件，可为 tar.gz，zip 格式文件；创建归档文件可使用指令 `tar czvf xxx.tgz en zh`
+  # archivefile: "{{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}"
+  # 资源文档目录，basedir 与 archivefile 二者至少一个有效，若同时存在，则 archivefile 优先
+  # basedir: "{{ settings.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
+  # archivefile: {{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}
+  basedir: "docs/apidoc"
 
 release:
   version: {{ settings.STATIC_VERSION }}+{{ settings.DEPLOY_DATETIME }}
