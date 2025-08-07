@@ -47,6 +47,13 @@ class Group(OperationGroup):
         path="/api/v3/open/tenant/users/-/display_info/",
     )
 
+    batch_lookup_virtual_user = bind_property(
+        Operation,
+        name="batch_lookup_virtual_user",
+        method="GET",
+        path="/api/v3/open/tenant/virtual-users/-/lookup/",
+    )
+
 
 class Client(APIGatewayClient):
     """Bkapi bk_user client"""

@@ -37,13 +37,15 @@ from gcloud.taskflow3.models import TaskFlowInstance
 def node_callback(request, task_id, project_id):
     try:
         params = json.loads(request.body)
+        tenant_id = request.user.tenant_id
     except Exception:
         return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     project = request.project
+
     logger.info("[apigw][node_callback] receive a node callback request, task_id={}, params={}".format(task_id, params))
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id, project__tenant_id=tenant_id)
     except TaskFlowInstance.DoesNotExist:
         message = (
             "[API] node_callback task[id={task_id}] "

@@ -13,24 +13,23 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 import env
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
-from gcloud.taskflow3.celery.tasks import prepare_and_start_task
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
+from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
+from gcloud.taskflow3.celery.tasks import prepare_and_start_task
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.throttle import check_task_operation_throttle
-from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
@@ -50,7 +49,7 @@ def operate_task(request, task_id, project_id):
     action = params.get("action")
     username = request.user.username
     project = request.project
-
+    tenant_id = request.user.tenant_id
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, action):
         return {
             "result": False,
@@ -76,6 +75,8 @@ def operate_task(request, task_id, project_id):
             "code": err_code.SUCCESS.code,
         }
 
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
+    task = TaskFlowInstance.objects.get(
+        pk=task_id, project_id=project.id, is_deleted=False, project__tenant_id=tenant_id
+    )
     ctx = task.task_action(action, username)
     return ctx

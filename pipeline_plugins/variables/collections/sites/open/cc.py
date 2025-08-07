@@ -21,6 +21,7 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable
 
 from gcloud.constants import Type
+from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex, get_plat_ip_by_regex
@@ -242,8 +243,9 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             ),
         ]
 
-        client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
         tenant_id = kwargs["tenant_id"]
+        bk_username = get_bk_username_by_tenant(tenant_id)
+        client = get_client_by_username(bk_username, stage=settings.BK_APIGW_STAGE_NAME)
         params = {"bk_obj_id": "set"}
         if "bk_biz_id" in kwargs:
             params["bk_biz_id"] = kwargs["bk_biz_id"]

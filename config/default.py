@@ -225,7 +225,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.35.1-alpha.0"
+STATIC_VERSION = "3.35.1-alpha.1"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -526,7 +526,7 @@ CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_A
 BROKER_HEARTBEAT = 60
 BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
 
-SYSTEM_USE_API_ACCOUNT = "admin"
+SYSTEM_USE_API_ACCOUNT = "bk_admin" if env.ENABLE_MULTI_TENANT_MODE else "admin"
 
 # VER settings
 ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER)
