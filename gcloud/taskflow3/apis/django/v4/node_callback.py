@@ -15,18 +15,18 @@ import logging
 import time
 import traceback
 
+from blueapps.account.decorators import login_exempt
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.http import JsonResponse
-from cryptography.fernet import Fernet
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
-
 import env
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.core.trace import CallFrom, start_trace
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
-from django.utils.translation import ugettext_lazy as _
+from gcloud.taskflow3.models import TaskFlowInstance
 
 logger = logging.getLogger("root")
 
@@ -67,29 +67,30 @@ def node_callback(request, token):
         return JsonResponse({"result": False, "message": message}, status=400)
 
     taskflow_id = None
+    project_id = None
     if root_pipeline_id:
-        qs = TaskFlowInstance.objects.filter(pipeline_instance__instance_id=root_pipeline_id).values_list(
-            "id", flat=True
-        )
+        qs = TaskFlowInstance.objects.filter(pipeline_instance__instance_id=root_pipeline_id).values("id", "project_id")
         if qs.exists():
-            taskflow_id = qs[0]
+            taskflow_id = qs[0]["id"]
+            project_id = qs[0]["project_id"]
 
     dispatchers = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=taskflow_id)
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
-    for i in range(env.NODE_CALLBACK_RETRY_TIMES):
-        callback_result = dispatchers.dispatch(
-            command="callback", operator="", version=node_version, data=callback_data
-        )
-        logger.info(
-            "result of callback call(token: {} engine_ver: {} node_id: {}, node_version: {}): {}".format(
-                token, engine_ver, node_id, node_version, callback_result
+    with start_trace("node_callback", propagate=True, project_id=project_id, call_from=CallFrom.WEB.value):
+        for i in range(env.NODE_CALLBACK_RETRY_TIMES):
+            callback_result = dispatchers.dispatch(
+                command="callback", operator="", version=node_version, data=callback_data
             )
-        )
-        if callback_result["result"]:
-            break
-        # 考虑callback时Process状态还没及时修改为sleep的情况
-        time.sleep(0.5)
+            logger.info(
+                "result of callback call(token: {} engine_ver: {} node_id: {}, node_version: {}): {}".format(
+                    token, engine_ver, node_id, node_version, callback_result
+                )
+            )
+            if callback_result["result"]:
+                break
+            # 考虑callback时Process状态还没及时修改为sleep的情况
+            time.sleep(0.5)
 
     return JsonResponse(callback_result)

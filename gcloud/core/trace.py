@@ -11,12 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import copy
+import enum
 from contextlib import contextmanager
 from functools import wraps
 
 from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SpanProcessor
 from opentelemetry.trace import SpanKind
+
+
+class CallFrom(enum.Enum):
+    """调用来源"""
+
+    WEB = "web"
+    APIGW = "apigw"
+    BACKEND = "backend"
 
 
 class AttributeInjectionSpanProcessor(SpanProcessor):
@@ -45,8 +55,13 @@ def propagate_attributes(attributes: dict):
 
     provider = trace.get_tracer_provider()
 
+    if not provider or isinstance(provider, trace.ProxyTracerProvider):
+        provider = TracerProvider()
+
     # Add a span processor that sets attributes on every new span
     provider.add_span_processor(AttributeInjectionSpanProcessor(attributes))
+
+    trace.set_tracer_provider(provider)
 
 
 @contextmanager

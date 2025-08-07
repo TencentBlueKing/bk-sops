@@ -24,6 +24,7 @@ from pipeline.eri.runtime import BambooDjangoRuntime
 
 import metrics
 from gcloud.constants import CallbackStatus
+from gcloud.core.trace import CallFrom, start_trace
 from gcloud.shortcuts.message import send_task_flow_message
 from gcloud.taskflow3.domains.callback import TaskCallBacker
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
@@ -62,12 +63,18 @@ def prepare_and_start_task(task_id, project_id, username):
         )
         return
 
-    result = task.task_action("start", username)
-    logger.info(
-        "[prepare_and_start_task] celery start task (task_id={}, project_id={}) result: {}".format(
-            task_id, project_id, result
+    with start_trace(
+        span_name="prepare_and_start_task",
+        propagate=True,
+        project_id=task.project.id,
+        call_from=CallFrom.BACKEND.value,
+    ):
+        result = task.task_action("start", username)
+        logger.info(
+            "[prepare_and_start_task] celery start task (task_id={}, project_id={}) result: {}".format(
+                task_id, project_id, result
+            )
         )
-    )
 
 
 def _ensure_node_can_retry(node_id, engine_ver):
