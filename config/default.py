@@ -524,7 +524,7 @@ CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_A
 BROKER_HEARTBEAT = 60
 BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
 
-SYSTEM_USE_API_ACCOUNT = "bk_admin"
+SYSTEM_USE_API_ACCOUNT = "bk_admin" if env.ENABLE_MULTI_TENANT_MODE else "admin"
 
 # VER settings
 ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER)

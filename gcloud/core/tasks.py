@@ -33,7 +33,7 @@ from pipeline.engine.core.data.redis_backend import RedisDataBackend
 
 from gcloud import exceptions
 from gcloud.conf import settings
-from gcloud.core.api_adapter.user_info import get_user_bk_username
+from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.core.project import sync_projects_from_cmdb
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.send_msg import send_message
@@ -70,12 +70,13 @@ def cmdb_business_sync_task():
             logger.info("Start sync business from cmdb...")
             try:
                 if settings.ENABLE_MULTI_TENANT_MODE:
-                    bk_username = get_user_bk_username(settings.SYSTEM_USE_API_ACCOUNT, tenant_id="system")
-                    client = get_client_by_username(username=bk_username, stage=settings.BK_APIGW_STAGE_NAME)
+                    username = get_bk_username_by_tenant(tenant_id="system")
+                    client = get_client_by_username(username=username, stage=settings.BK_APIGW_STAGE_NAME)
                     result = client.api.list_tenant(headers={"X-Bk-Tenant-Id": "system"})
                     for tenant in result["data"]:
                         if tenant["status"] != "enabled":
                             continue
+                        bk_username = get_bk_username_by_tenant(tenant_id=tenant["id"])
                         sync_projects_from_cmdb(username=bk_username, use_cache=False, tenant_id=tenant["id"])
                 else:
                     sync_projects_from_cmdb(

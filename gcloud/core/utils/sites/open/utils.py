@@ -18,7 +18,7 @@ from django.core.cache import cache
 from gcloud import exceptions
 from gcloud.conf import settings
 from gcloud.core.api_adapter import get_user_info
-from gcloud.core.api_adapter.user_info import get_user_bk_username
+from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.core.models import EnvironmentVariables
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -34,7 +34,7 @@ def get_all_business_list(
     use_cache=True,
 ):
     username = settings.SYSTEM_USE_API_ACCOUNT
-    bk_username = get_user_bk_username(username, tenant_id)
+    bk_username = get_bk_username_by_tenant(tenant_id)
     cache_key = "%s_get_all_business_list_%s" % (CACHE_PREFIX, username)
     data = cache.get(cache_key)
 

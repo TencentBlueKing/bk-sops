@@ -20,7 +20,7 @@ from pipeline.core.data.var import LazyVariable
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.constants import Type
-from gcloud.core.api_adapter.user_info import get_user_bk_username
+from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
@@ -117,7 +117,7 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         fields = [FieldExplain(key="${KEY}", type=Type.STRING, description="选择的IP列表，以,分隔")]
         tenant_id = kwargs["tenant_id"]
-        bk_username = get_user_bk_username(settings.SYSTEM_USE_API_ACCOUNT, tenant_id)
+        bk_username = get_bk_username_by_tenant(tenant_id)
         client = get_client_by_username(bk_username, stage=settings.BK_APIGW_STAGE_NAME)
         params = {"bk_obj_id": "set"}
         resp = client.api.search_object_attribute(

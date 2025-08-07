@@ -17,7 +17,7 @@ import logging
 
 from gcloud.conf import settings
 from gcloud.core import roles
-from gcloud.core.api_adapter.user_info import get_user_bk_username
+from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.core.models import EnvironmentVariables
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -27,7 +27,7 @@ logger = logging.getLogger("root")
 def get_business_group_members(tenant_id, bk_biz_id, groups):
     if not groups:
         return []
-    bk_username = get_user_bk_username(settings.SYSTEM_USE_API_ACCOUNT, tenant_id)
+    bk_username = get_bk_username_by_tenant(tenant_id)
     client = get_client_by_username(bk_username, stage=settings.BK_APIGW_STAGE_NAME)
 
     group_fileds = [roles.CC_V2_ROLE_MAP.get(group) for group in groups]
@@ -61,7 +61,7 @@ def get_business_group_members(tenant_id, bk_biz_id, groups):
 def get_business_attrinfo(tenant_id, attrs: list) -> list:
     if not attrs:
         return []
-    bk_username = get_user_bk_username(settings.SYSTEM_USE_API_ACCOUNT, tenant_id)
+    bk_username = get_bk_username_by_tenant(tenant_id)
     client = get_client_by_username(bk_username, stage=settings.BK_APIGW_STAGE_NAME)
     supplier_account = EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0)
     kwargs = {
