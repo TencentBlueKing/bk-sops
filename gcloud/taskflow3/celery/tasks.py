@@ -63,9 +63,9 @@ def send_taskflow_message(task_id, msg_type, node_name="", use_root=False):
 
 
 @current_app.task
-def prepare_and_start_task(task_id, project_id, username):
+def prepare_and_start_task(task_id, project_id, username, tenant_id):
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id, project__tenant_id=tenant_id)
     except TaskFlowInstance.DoesNotExist:
         logger.exception(
             "[prepare_and_start_task] celery get task for (task_id={}, project_id={}) fail.".format(task_id, project_id)

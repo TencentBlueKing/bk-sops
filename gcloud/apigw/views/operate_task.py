@@ -58,7 +58,7 @@ def operate_task(request, task_id, project_id):
         }
 
     if action == "start":
-        if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
+        if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id, tenant_id=tenant_id):
             return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
 
         queue, routing_key = PrepareAndStartTaskQueueResolver(
@@ -66,7 +66,9 @@ def operate_task(request, task_id, project_id):
         ).resolve_task_queue_and_routing_key()
 
         prepare_and_start_task.apply_async(
-            kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
+            kwargs=dict(task_id=task_id, project_id=project.id, username=username, tenant_id=tenant_id),
+            queue=queue,
+            routing_key=routing_key,
         )
 
         return {
