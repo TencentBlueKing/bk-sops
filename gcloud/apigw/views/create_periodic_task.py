@@ -56,7 +56,7 @@ def create_periodic_task(request, template_id, project_id):
     if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
         message = "Periodic task number reaches limit: {}".format(periodic_task_limit)
         return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
-
+    tenant_id = request.user.tenant_id
     params = json.loads(request.body)
     template_source = params.get("template_source", PROJECT)
     logger.info(
@@ -69,7 +69,9 @@ def create_periodic_task(request, template_id, project_id):
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         template_source = PROJECT
         try:
-            template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
+            template = TaskTemplate.objects.get(
+                pk=template_id, project_id=project.id, is_deleted=False, project__tenant_id=tenant_id
+            )
         except TaskTemplate.DoesNotExist:
             result = {
                 "result": False,
@@ -81,7 +83,7 @@ def create_periodic_task(request, template_id, project_id):
 
     else:
         try:
-            template = CommonTemplate.objects.get(id=template_id, is_deleted=False, tenant_id=request.user.tenant_id)
+            template = CommonTemplate.objects.get(id=template_id, is_deleted=False, tenant_id=tenant_id)
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,
