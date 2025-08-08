@@ -20,6 +20,7 @@ from iam import Action, Request, Subject
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
+from gcloud.conf import settings
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import format_import_result_to_response_data, read_encoded_template_data
@@ -33,12 +34,13 @@ from gcloud.template_base.utils import format_import_result_to_response_data, re
 @project_inject
 @mark_request_whether_is_trust
 def import_project_template(request, project_id):
-    if not request.is_trust and not request.allow_limited_apis:
-        return {
-            "result": False,
-            "message": "you have no permission to call this api.",
-            "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
-        }
+    if settings.OPEN_VER == "ieod":
+        if not request.is_trust and not request.allow_limited_apis:
+            return {
+                "result": False,
+                "message": "you have no permission to call this api.",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
     tenant_id = request.user.tenant_id
     # 针对非trust请求，校验用户是否有权限
     if not request.is_trust and request.allow_limited_apis:
