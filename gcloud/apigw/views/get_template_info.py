@@ -41,6 +41,7 @@ def get_template_info(request, template_id, project_id):
     include_subprocess = request.GET.get("include_subprocess", None)
     include_constants = request.GET.get("include_constants", None)
     include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    include_notify = request.GET.get("include_notify", None)
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
@@ -69,7 +70,9 @@ def get_template_info(request, template_id, project_id):
             }
             return result
 
-    data = format_template_data(tmpl, project, include_subprocess, include_executor_proxy=include_executor_proxy)
+    data = format_template_data(
+        tmpl, project, include_subprocess, include_executor_proxy=include_executor_proxy, include_notify=include_notify
+    )
     if include_constants:
         data["template_constants"] = process_pipeline_constants(data["pipeline_tree"])
 

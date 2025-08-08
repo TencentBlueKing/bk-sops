@@ -29,11 +29,16 @@ from apigw_manager.apigw.decorators import apigw_require
 @mark_request_whether_is_trust
 @timezone_inject
 def get_common_template_list(request):
+    include_notify = request.GET.get("include_notify", None)
     templates = CommonTemplate.objects.select_related("pipeline_template").filter(is_deleted=False)
-    templates_data, common_templates_id_list = format_template_list_data(templates, return_id_list=True, tz=request.tz)
+    templates_data, common_templates_id_list = format_template_list_data(
+        templates, return_id_list=True, tz=request.tz, include_notify=include_notify
+    )
     # 注入用户有权限的actions
     common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
-        request.user.username, COMMON_FLOW_ACTIONS, common_templates_id_list,
+        request.user.username,
+        COMMON_FLOW_ACTIONS,
+        common_templates_id_list,
     )
     for template in templates_data:
         template_id = template["id"]
