@@ -57,11 +57,10 @@ def propagate_attributes(attributes: dict):
 
     if not provider or isinstance(provider, trace.ProxyTracerProvider):
         provider = TracerProvider()
+        trace.set_tracer_provider(provider)
 
     # Add a span processor that sets attributes on every new span
     provider.add_span_processor(AttributeInjectionSpanProcessor(attributes))
-
-    trace.set_tracer_provider(provider)
 
 
 @contextmanager
