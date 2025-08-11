@@ -70,6 +70,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     pipeline_tree = serializers.CharField()
     project = serializers.IntegerField(write_only=True)
     template_id = serializers.CharField(help_text="模板ID", source="id", read_only=True)
+    webhook_configs = serializers.JSONField(help_text="webhook配置", required=False)
 
     def validate_project(self, value):
         try:
@@ -113,6 +114,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "pipeline_tree",
             "project",
             "template_id",
+            "webhook_configs",
         ]
 
 

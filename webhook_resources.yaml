@@ -1,0 +1,6 @@
+version: 1
+events:
+  - code: task_failed
+    name: 任务失败
+  - code: task_finished
+    name: 任务完成

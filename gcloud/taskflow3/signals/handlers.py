@@ -42,6 +42,8 @@ from gcloud.taskflow3.models import (
     TimeoutNodeConfig,
 )
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
+from gcloud.constants import WebhookScopeType, WebhookEventType
+from webhook.signals import event_broadcast_signal
 
 logger = logging.getLogger("celery")
 
@@ -81,6 +83,22 @@ def _send_node_fail_message(node_id, pipeline_id):
             send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=node_name)
         except Exception as e:
             logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
+
+
+def send_task_message(pipeline_id, msg_type):
+    try:
+        taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=pipeline_id)
+        # broadcast events through webhooks
+        event = WebhookEventType.TASK_FAILED.value if msg_type == ATOM_FAILED else WebhookEventType.TASK_FINISHED.value
+        scopes = [(WebhookScopeType.TEMPLATE.value, str(taskflow.template_id))]
+        event_broadcast_signal.send(
+            sender=event, scopes=scopes, extra_info={"taskflow_id": taskflow.id, "event": event}
+        )
+
+    except Exception as e:
+        logger.exception(f"[send_task_message] task() send message({msg_type}) error: {e}")
+    else:
+        logger.info(f"[send_task_message] task() send message({msg_type}) success")
 
 
 def _check_and_callback(task, *args, **kwargs):
@@ -185,6 +203,7 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
             return
 
         _send_node_fail_message(node_id=node_id, pipeline_id=root_id)
+        send_task_message(pipeline_id=root_id, msg_type=ATOM_FAILED)
 
     elif to_state == bamboo_engine_states.REVOKED and node_id == root_id:
         try:
@@ -198,6 +217,7 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
             pipeline_end.send(sender=Pipeline, root_pipeline_id=root_id)
         except Exception:
             logger.exception("pipeline_end send error")
+        send_task_message(pipeline_id=root_id, msg_type=TASK_FINISHED)
 
     try:
         _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)
