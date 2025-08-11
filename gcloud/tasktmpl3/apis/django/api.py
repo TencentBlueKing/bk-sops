@@ -29,6 +29,7 @@ from gcloud.iam_auth.view_interceptors.template import (
     FormInterceptor,
     ImportInterceptor,
     ParentsInterceptor,
+    FetchPipelineTreeInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.tasktmpl3.domains.constants import (
@@ -357,6 +358,7 @@ def parents(request, project_id):
 
 @require_GET
 @request_validate(FeatPipelineValidator)
+@iam_intercept(FetchPipelineTreeInterceptor())
 def fetch_pipeline_tree(request):
     """
     @summary：获取流程树
