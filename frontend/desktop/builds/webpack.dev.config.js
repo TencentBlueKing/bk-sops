@@ -69,7 +69,6 @@ module.exports = merge(webpackBaseConfig, {
                 use: [
                     'style-loader',
                     'css-loader',
-                    'postcss-loader',
                     {
                         loader: 'sass-loader',
                         options: {
@@ -128,7 +127,7 @@ module.exports = merge(webpackBaseConfig, {
         proxy: proxyRule,
         overlay: true,
         stats: {
-            children: false,
+            children: true,
             chunks: false,
             entrypoints: false,
             modules: false
