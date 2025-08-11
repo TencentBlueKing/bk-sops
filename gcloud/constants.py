@@ -259,5 +259,14 @@ class GseAgentStatus(Enum):
     ONlINE = 1
 
 
-def get_default_scope():
-    return {PROJECT: ["*"]}
+class WebhookScopeType(Enum):
+    """webhook作用域类型"""
+
+    TEMPLATE = "template"
+
+
+class WebhookEventType(Enum):
+    """webhook事件类型"""
+
+    TASK_FAILED = "task_failed"
+    TASK_FINISHED = "task_finished"

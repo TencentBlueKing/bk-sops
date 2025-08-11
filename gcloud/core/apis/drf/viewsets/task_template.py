@@ -51,6 +51,8 @@ from gcloud.taskflow3.models import TaskConfig, TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
+from gcloud.utils.webhook import apply_webhook_configs, get_webhook_configs, clear_scope_webhooks
+from gcloud.constants import WebhookScopeType
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -166,10 +168,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             user_model.objects.get(username=request.user.username).tasktemplate_set.all().values_list("id", flat=True)
         )
         template_ids = [obj["id"] for obj in data]
+        webhook_configs = get_webhook_configs(scope_code=template_ids)
         templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
         for obj in data:
             obj["is_add"] = 1 if obj["id"] in collected_templates else 0
             obj["template_labels"] = templates_labels.get(obj["id"], [])
+            obj["webhook_configs"] = webhook_configs.get(str(obj["id"]), {})
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     @swagger_auto_schema(
@@ -196,11 +200,13 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         template_ids = [obj["id"] for obj in data]
+        webhook_configs = get_webhook_configs(scope_code=template_ids)
         templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
         for obj in data:
             obj["template_labels"] = templates_labels.get(obj["id"], [])
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
             obj["collection_id"] = collection_template_map.get(obj["id"], -1)
+            obj["webhook_configs"] = webhook_configs.get(str(obj["id"]), {})
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def retrieve(self, request, *args, **kwargs):
@@ -209,6 +215,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, instance)
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
+        webhook_configs = get_webhook_configs(scope_code=[str(instance.id)])
+        data["webhook_configs"] = webhook_configs.get(str(instance.id), {})
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.FLOW_VIEW_ACTION,
@@ -224,6 +232,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         creator = request.user.username
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
+        webhook_configs = serializer.validated_data.pop("webhook_configs", {})
         with transaction.atomic():
             result = manager.create_pipeline(
                 name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
@@ -237,6 +246,14 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template_id"] = result["data"].template_id
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
+            if webhook_configs:
+                apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
+                if not apply_result["result"]:
+                    message = apply_result["message"]
+                    logger.error(message)
+                    return Response(
+                        {"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True
+                    )
             self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
         # 发送信号
@@ -277,6 +294,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         editor = request.user.username
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
+        webhook_config = serializer.validated_data.pop("webhook_config", {})
         with transaction.atomic():
             result = manager.update_pipeline(
                 pipeline_template=template.pipeline_template,
@@ -293,6 +311,17 @@ class TaskTemplateViewSet(GcloudModelViewSet):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
+            if webhook_config:
+                apply_result = apply_webhook_configs(webhook_config, str(serializer.instance.id))
+                if not apply_result["result"]:
+                    message = apply_result["message"]
+                    logger.error(message)
+                    return Response(
+                        {"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True
+                    )
+            elif not webhook_config and get_webhook_configs([str(serializer.instance.id)]):
+                clear_scope_webhooks(WebhookScopeType.TEMPLATE.value, [str(serializer.instance.id)])
+
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
         # 发送信号
@@ -332,6 +361,11 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         relation_queryset = TemplateRelationship.objects.filter(ancestor_template_id=pipeline_template_id)
         for relation in relation_queryset:
             relation.templatescheme_set.clear()
+        clear_result = clear_scope_webhooks(WebhookScopeType.TEMPLATE.value, [template.id])
+        if not clear_result["result"]:
+            message = clear_result["message"]
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         # 删除流程模板
         template.is_deleted = True
         template.save()
