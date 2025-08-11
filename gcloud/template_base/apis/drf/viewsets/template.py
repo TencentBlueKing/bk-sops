@@ -24,7 +24,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.apis.drf.permission import CommonTemplatePermission, ProjectTemplatePermission
 from gcloud.template_base.apis.drf.serilaziers.template import BatchDeleteSerialzer, TemplateIdsSerializer
 from gcloud.template_base.domains.template_manager import TemplateManager
-from gcloud.utils.wenhook import clear_scope_webhooks
+from gcloud.utils.webhook import clear_scope_webhooks
 from gcloud.constants import WebhookScopeType
 
 logger = logging.getLogger("root")

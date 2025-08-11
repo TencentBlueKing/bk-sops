@@ -51,7 +51,7 @@ from gcloud.taskflow3.models import TaskConfig, TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
-from gcloud.utils.wenhook import apply_webhook_configs, get_webhook_configs, clear_scope_webhooks
+from gcloud.utils.webhook import apply_webhook_configs, get_webhook_configs, clear_scope_webhooks
 from gcloud.constants import WebhookScopeType
 
 logger = logging.getLogger("root")
@@ -247,9 +247,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
             if webhook_configs:
-                result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
-                if not result["result"]:
-                    message = result["message"]
+                apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
+                if not apply_result["result"]:
+                    message = apply_result["message"]
                     logger.error(message)
                     return Response(
                         {"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True
@@ -312,9 +312,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
             if webhook_config:
-                result = apply_webhook_configs(webhook_config, str(serializer.instance.id))
-                if not result["result"]:
-                    message = result["message"]
+                apply_result = apply_webhook_configs(webhook_config, str(serializer.instance.id))
+                if not apply_result["result"]:
+                    message = apply_result["message"]
                     logger.error(message)
                     return Response(
                         {"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True
