@@ -105,4 +105,4 @@ bk-notice-sdk==1.3.0
 croniter==1.4.1
 
 # bkflow feel
-./dist/bkflow_django_webhook-1.2.0rc0-py2.py3-none-any.whl
+./dist/bkflow_django_webhook-1.2.0rc1-py2.py3-none-any.whl
