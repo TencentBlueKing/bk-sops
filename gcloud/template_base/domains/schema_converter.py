@@ -598,7 +598,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
         converted_node = {}
         for field in self.NODE_NECESSARY_FIELDS.get(node["type"], []):
             converted_field = field if field not in self.NODE_FIELD_MAPPING else self.NODE_FIELD_MAPPING[field]
-            converted_node[converted_field] = node[field]
+            converted_node[converted_field] = (
+                node[field] if field in node else self.NODE_DEFAULT_FIELD_VALUE[node["type"]].get(field, "")
+            )
         if node["type"] == "ServiceActivity":
             # 处理component和outputs
             component_data = converted_node["component"]["data"]
