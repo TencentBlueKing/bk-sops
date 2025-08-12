@@ -294,7 +294,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         editor = request.user.username
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
-        webhook_config = serializer.validated_data.pop("webhook_config", {})
+        webhook_configs = serializer.validated_data.pop("webhook_configs", {})
         with transaction.atomic():
             result = manager.update_pipeline(
                 pipeline_template=template.pipeline_template,
@@ -311,15 +311,15 @@ class TaskTemplateViewSet(GcloudModelViewSet):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
-            if webhook_config:
-                apply_result = apply_webhook_configs(webhook_config, str(serializer.instance.id))
+            if webhook_configs:
+                apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
                     logger.error(message)
                     return Response(
                         {"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True
                     )
-            elif not webhook_config and get_webhook_configs([str(serializer.instance.id)]):
+            elif not webhook_configs and get_webhook_configs([str(serializer.instance.id)]):
                 clear_scope_webhooks(WebhookScopeType.TEMPLATE.value, [str(serializer.instance.id)])
 
             self.perform_update(serializer)
