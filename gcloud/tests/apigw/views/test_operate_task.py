@@ -34,7 +34,10 @@ class OperateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -60,13 +63,19 @@ class OperateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
     def test_operate_task__start_action(self):
         assert_action = "start"
         taskflow_instance = MagicMock()
+        task_mock = MagicMock()
+        taskflow_instance.objects.get.return_value = task_mock
+        task_mock.current_flow = "execute_task"
         taskflow_instance.objects.is_task_started = MagicMock(return_value=False)
         prepare_and_start_task = MagicMock()
 

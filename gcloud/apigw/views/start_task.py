@@ -59,6 +59,18 @@ def start_task(request, task_id, project_id):
         settings.API_TASK_QUEUE_NAME_V2
     ).resolve_task_queue_and_routing_key()
 
+    try:
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id, is_deleted=False)
+    except TaskFlowInstance.DoesNotExist:
+        return {"result": False, "code": err_code.CONTENT_NOT_EXIST.code, "message": "task not found"}
+
+    if task.current_flow != "execute_task":
+        return {
+            "result": False,
+            "message": "task with current_flow:%s cannot be %sed" % (task.current_flow, "start"),
+            "code": err_code.INVALID_OPERATION.code,
+        }
+
     prepare_and_start_task.apply_async(
         kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
     )

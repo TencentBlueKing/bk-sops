@@ -123,6 +123,13 @@ def create_and_start_task(request, template_id, project_id):
         message = "task parmas is invalid: %s" % e
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
+    if params["flow_type"] != COMMON:
+        return {
+            "result": False,
+            "message": "task with current_flow:%s cannot be %sed" % (params["flow_type"], "start"),
+            "code": err_code.INVALID_OPERATION.code,
+        }
+
     # 创建pipeline_instance
     pipeline_instance_kwargs = {
         "name": params["name"],

@@ -85,6 +85,9 @@ class StartTaskAPITest(APITest):
             "code": 0,
         }
         taskflow_instance = MagicMock()
+        task_mock = MagicMock()
+        task_mock.current_flow = "execute_task"
+        taskflow_instance.objects.get.return_value = task_mock
         taskflow_instance.objects.is_task_started = MagicMock(return_value=False)
         taskflow_instance.task_url = MagicMock(return_value=TEST_TASKFLOW_URL)
         prepare_and_start_task = MagicMock()

@@ -58,6 +58,10 @@ def operate_task(request, task_id, project_id):
             "message": "project id: {} reach the limit of starting tasks".format(project.id),
             "code": err_code.INVALID_OPERATION.code,
         }
+    try:
+        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
+    except TaskFlowInstance.DoesNotExist:
+        return {"result": False, "message": "task does not exist", "code": err_code.CONTENT_NOT_EXIST.code}
 
     if action == "start":
         if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
@@ -66,6 +70,13 @@ def operate_task(request, task_id, project_id):
         queue, routing_key = PrepareAndStartTaskQueueResolver(
             settings.API_TASK_QUEUE_NAME_V2
         ).resolve_task_queue_and_routing_key()
+
+        if task.current_flow != "execute_task":
+            return {
+                "result": False,
+                "message": "task with current_flow:%s cannot be %sed" % (task.current_flow, "start"),
+                "code": err_code.INVALID_OPERATION.code,
+            }
 
         prepare_and_start_task.apply_async(
             kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
@@ -77,6 +88,5 @@ def operate_task(request, task_id, project_id):
             "code": err_code.SUCCESS.code,
         }
 
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     ctx = task.task_action(action, username)
     return ctx
