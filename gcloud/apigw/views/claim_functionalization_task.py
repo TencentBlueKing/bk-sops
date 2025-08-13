@@ -13,18 +13,17 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-
+from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.iam_auth.view_interceptors.apigw import FunctionTaskInterceptor
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.iam_auth.view_interceptors.apigw import FunctionTaskInterceptor
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 @login_exempt
@@ -44,12 +43,12 @@ def claim_functionalization_task(request, task_id, project_id):
             "message": "request body is not a valid json",
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
-
+    tenant_id = request.user.tenant_id
     constants = params.get("constants", {})
     name = params.get("name", "")
 
     try:
-        task = TaskFlowInstance.objects.get(pk=task_id, project_id=request.project.id)
+        task = TaskFlowInstance.objects.get(pk=task_id, project_id=request.project.id, project__tenant_id=tenant_id)
         result = task.task_claim(request.user.username, constants, name)
     except Exception as e:
         logger.exception("[API] claim_functionalization_task fail: {}".format(e))

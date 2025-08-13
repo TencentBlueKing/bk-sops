@@ -170,7 +170,9 @@ def create_and_start_task(request, template_id, project_id):
     arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
 
     prepare_and_start_task.apply_async(
-        kwargs=dict(task_id=task.id, project_id=project.id, username=request.user.username),
+        kwargs=dict(
+            task_id=task.id, project_id=project.id, username=request.user.username, tenant_id=request.user.tenant_id
+        ),
         queue=queue,
         routing_key=routing_key,
     )
