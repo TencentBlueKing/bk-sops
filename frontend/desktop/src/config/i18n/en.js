@@ -1876,7 +1876,21 @@ const en = {
     '跳转到流程': 'Jump to Process',
     '代码框自动开启免渲染模式提醒': 'Code box automatically enables no-render mode reminder',
     '检测到【n】代码框没有使用变量，保存该节点代码框将自动改为免渲染模式。届时所有标准运维变量将不会被渲染。请确定是否保存': 'Detected that [{n}] code boxes do not use variables. Saving this node will automatically switch the code box to no-render mode, and all standard operations variables will not be rendered. Please confirm whether to save',
-    '即将废弃': 'About to be deprecated'
+    '即将废弃': 'About to be deprecated',
+    'HTTP回调': 'HTTP Callback',
+    '输入请求URL': 'Enter the request URL',
+    '参数': 'Parameters',
+    '认证': 'Authentication',
+    '头信息': 'Headers',
+    '主体': 'Body',
+    '设置': 'Settings',
+    '无需认证': 'No Authentication',
+    '字段名': 'Field Name',
+    '请求超时': 'Request Timeout',
+    '重试间隔': 'Retry Interval',
+    '用户名': 'Username',
+    '重试次数不能超过5次': 'The number of retries cannot exceed 5 times',
+    '支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口': 'Supports calling back the interface with the task output content and execution result as parameters after the process ends (success or failure)'
 }
 
 export default en
