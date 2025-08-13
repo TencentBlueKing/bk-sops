@@ -53,6 +53,7 @@ from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 from gcloud.utils.webhook import apply_webhook_configs, get_webhook_configs, clear_scope_webhooks
 from gcloud.constants import WebhookScopeType
+from gcloud.core.apis.drf.exceptions import ValidationException
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -251,9 +252,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                 if not apply_result["result"]:
                     message = apply_result["message"]
                     logger.error(message)
-                    return Response(
-                        {"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True
-                    )
+                    raise ValidationException(message)
             self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
         # 发送信号
@@ -316,9 +315,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                 if not apply_result["result"]:
                     message = apply_result["message"]
                     logger.error(message)
-                    return Response(
-                        {"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True
-                    )
+                    raise ValidationException(message)
             elif not webhook_configs and get_webhook_configs([str(serializer.instance.id)]):
                 clear_scope_webhooks(WebhookScopeType.TEMPLATE.value, [str(serializer.instance.id)])
 
