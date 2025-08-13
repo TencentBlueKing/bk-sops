@@ -177,8 +177,8 @@
                         :webhook-data="formData.webhookConfigs"
                         :is-task-setting="false"
                         :is-view-mode="isViewMode"
-                        @change="onHttpCallbackChange"
-                    ></HttpCallback>
+                        @change="onHttpCallbackChange">
+                    </HttpCallback>
                 </section>
                 <section class="form-section">
                     <h4>{{ $t('其他') }}</h4>

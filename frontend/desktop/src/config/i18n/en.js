@@ -1889,6 +1889,7 @@ const en = {
     '请求超时': 'Request Timeout',
     '重试间隔': 'Retry Interval',
     '用户名': 'Username',
+    '重试次数不能超过5次': 'The number of retries cannot exceed 5 times',
     '支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口': 'Supports calling back the interface with the task output content and execution result as parameters after the process ends (success or failure)'
 }
 

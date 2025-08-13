@@ -19,12 +19,14 @@
                 <bk-input behavior="simplicity"
                     :disabled="isViewMode"
                     :clearable="true"
-                    v-model="localWebhookForm.endpoint" :placeholder="$t('输入请求URL')"
-                    @change="onWebhookConfigChange"></bk-input>
+                    v-model="localWebhookForm.endpoint"
+                    :placeholder="$t('输入请求URL')"
+                    @change="onWebhookConfigChange">
+                </bk-input>
             </div>
         </div>
         <div class="http-callback-request-params">
-            <div class="triangle"></div>
+            <bk-icon type="up-shape" class="triangle" />
             <bk-tab
                 :active.sync="activeTab"
                 type="unborder-card"
@@ -43,17 +45,18 @@
                         v-model="localWebhookForm.extra_info.authorization.type"
                         @change="onWebhookConfigChange"
                     >
-                        <bk-radio :value="''" :disabled="isViewMode">{{$t('无需认证')}}</bk-radio>
-                        <bk-radio :value="'bearer'" :disabled="isViewMode">Bearer Token</bk-radio>
-                        <bk-radio :value="'basic'" :disabled="isViewMode">Basic Auth</bk-radio>
+                        <bk-radio value="" :disabled="isViewMode">{{$t('无需认证')}}</bk-radio>
+                        <bk-radio value="bearer" :disabled="isViewMode">Bearer Token</bk-radio>
+                        <bk-radio value="basic" :disabled="isViewMode">Basic Auth</bk-radio>
                     </bk-radio-group>
-                    <div style="margin-bottom: 15px"
+                    <div class="auth-bearer-info"
                         v-if="localWebhookForm.extra_info.authorization.type === 'bearer'">
                         <p class="auth-input">Token</p>
                         <bk-input
                             v-model="localWebhookForm.extra_info.authorization.token"
                             behavior="simplicity"
                             :disabled="isViewMode"
+                            :clearable="true"
                             @change="onWebhookConfigChange"></bk-input>
                     </div>
                     <div class="auth-basic-info"
@@ -63,6 +66,7 @@
                             <bk-input v-model="localWebhookForm.extra_info.authorization.username"
                                 behavior="simplicity"
                                 :disabled="isViewMode"
+                                :clearable="true"
                                 @change="onWebhookConfigChange"></bk-input>
                         </div>
                         <div>
@@ -71,6 +75,7 @@
                                 behavior="simplicity"
                                 :type="'password'"
                                 :disabled="isViewMode"
+                                :clearable="true"
                                 @change="onWebhookConfigChange"></bk-input>
                         </div>
                     </div>
@@ -80,9 +85,17 @@
                         :data="localWebhookForm.extra_info.headers">
                         <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
                             <template slot-scope="{ row }">
-                                <bk-input v-if="item.id === 'fieldName'" v-model="row.key" behavior="simplicity" :disabled="isViewMode" @change="onWebhookConfigChange"></bk-input>
-                                <bk-input v-if="item.id === 'value'" v-model="row.value" behavior="simplicity" :disabled="isViewMode" @change="onWebhookConfigChange"></bk-input>
-                                <bk-input v-if="item.id === 'desc'" v-model="row.desc" behavior="simplicity" :disabled="isViewMode" @change="onWebhookConfigChange"></bk-input>
+                                <bk-input v-model="row[headerFieldConfig[item.id]]"
+                                    behavior="simplicity"
+                                    :disabled="isViewMode"
+                                    :clearable="true"
+                                    @change="onWebhookConfigChange">
+                                </bk-input>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column label="操作" width="80">
+                            <template slot-scope="props">
+                                <bk-button style="margin-right: 12px;" theme="primary" text @click="delItemHeader(props.row,props.$index)">删除</bk-button>
                             </template>
                         </bk-table-column>
                         <template slot="append">
@@ -103,22 +116,15 @@
                 </bk-tab-panel>
                 <bk-tab-panel name="settings" :label="$t('设置')">
                     <bk-form form-type="vertical" :rules="rules" ref="settingForm">
-                        <bk-form-item :label="$t('请求超时')">
+                        <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key === 'retry_times' ? 'retry_times' : ''" :icon-offset="27">
                             <div class="from-item-content">
-                                <bk-input v-model="localWebhookForm.extra_info.timeout" :disabled="isViewMode" @change="onWebhookConfigChange"></bk-input>
-                                <span class="unit">s</span>
-                            </div>
-                        </bk-form-item>
-                        <bk-form-item :label="$t('重试间隔')">
-                            <div class="from-item-content">
-                                <bk-input v-model="localWebhookForm.extra_info.interval" :disabled="isViewMode" @change="onWebhookConfigChange"></bk-input>
-                                <span class="unit">s</span>
-                            </div>
-                        </bk-form-item>
-                        <bk-form-item :label="$t('重试次数')" :property="'retry_times'" :icon-offset="25">
-                            <div class="from-item-content">
-                                <bk-input v-model="localWebhookForm.extra_info.retry_times" :disabled="isViewMode" @change="onWebhookConfigChange"></bk-input>
-                                <span class="unit">{{$t('次')}}</span>
+                                <bk-input v-model="localWebhookForm.extra_info[item.key]"
+                                    :disabled="isViewMode"
+                                    @change="onWebhookConfigChange">
+                                </bk-input>
+                                <span class="unit" v-if="item.key !== 'retry_times'">s</span>
+                                <span class="unit" v-else>{{$t('次')}}</span>
+
                             </div>
                         </bk-form-item>
                     </bk-form>
@@ -206,6 +212,25 @@
                         name: i18n.t('描述')
                     }
                 ],
+                headerFieldConfig: {
+                    fieldName: 'key',
+                    value: 'value',
+                    desc: 'desc'
+                },
+                settingFieldConfig: [
+                    {
+                        label: i18n.t('请求超时'),
+                        key: 'timeout'
+                    },
+                    {
+                        label: i18n.t('重试间隔'),
+                        key: 'interval'
+                    },
+                    {
+                        label: i18n.t('重试次数'),
+                        key: 'retry_times'
+                    }
+                ],
                 activeTab: 'authentication',
                 localWebhookForm,
                 rules: {
@@ -217,11 +242,6 @@
                         }
                     ]
                 }
-            }
-        },
-        watch: {
-            localWebhookForm (val) {
-                this.$emit('change', val)
             }
         },
         methods: {
@@ -239,14 +259,14 @@
                 this.$emit('change', this.localWebhookForm)
             },
             checkInterval () {
-                if (this.localWebhookForm.extra_info.retry_times > 5) {
-                    return false
-                } else {
-                    return true
-                }
+                return this.localWebhookForm.extra_info.retry_times <= 5
             },
             validate () {
                 return this.$refs.settingForm.validate().then(valid => valid)
+            },
+            delItemHeader (row, index) {
+                this.localWebhookForm.extra_info.headers.splice(index, 1)
+                this.onWebhookConfigChange()
             }
         }
     }
@@ -270,18 +290,14 @@
     margin-top: 5px;
     position: relative;
     .triangle{
-      width: 0;
-      height: 0;
-      position: absolute;
-      top: -8px;
-      left: 135px;
-      border-bottom: 8px solid #f5f6fa;
-      border-right: 8px solid transparent;
-      border-left: 8px solid transparent;
+        color: #f5f6fa;
+        position: absolute;
+        top: -13px;
+        left: 135px;
     }
 }
 .disabled-tab-name{
-      color: #63656e;
+    color: #63656e;
 }
 .bk-form-radio{
     margin-right: 40px;
@@ -347,5 +363,8 @@
         flex: 1;
         margin-right: 10px;
     }
+}
+.auth-bearer-info{
+    margin-bottom: 15px;
 }
 </style>
