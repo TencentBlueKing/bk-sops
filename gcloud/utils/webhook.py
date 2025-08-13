@@ -16,6 +16,7 @@ import logging
 from webhook.api import apply_scope_subscriptions, apply_scope_webhooks
 from gcloud.constants import WebhookScopeType, WebhookEventType
 from webhook.api import clear_webhooks, get_scope_webhook_retry_policy
+from django.conf import settings
 
 logger = logging.getLogger("root")
 
@@ -44,6 +45,14 @@ def apply_webhook_configs(webhook_configs, scope_code):
     webhook_code = f"template_{scope_code}_webhook"
     webhook_name = f"template_{scope_code}_webhook"
     webhook_configs.update({"code": webhook_code, "name": webhook_name})
+    retry_times = webhook_configs.get("extra_info", {}).get("retry_times", 2)
+    if retry_times > settings.MAX_WEBHOOK_RETRY_TIMES:
+        return {
+            "result": False,
+            "message": "重试次数不能超过{}次".format(settings.MAX_WEBHOOK_RETRY_TIMES),
+            "data": {},
+            "code": "500",
+        }
     scope_type = WebhookScopeType.TEMPLATE.value
     subscription_configs = {webhook_code: [WebhookEventType.TASK_FAILED.value, WebhookEventType.TASK_FINISHED.value]}
     try:
