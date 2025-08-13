@@ -167,6 +167,19 @@
                         @change="onSelectNotifyConfig">
                     </NotifyTypeConfig>
                 </section>
+                <section class="form-section" v-if="!common">
+                    <h4>
+                        <span>{{ $t('HTTP回调') }}</span>
+                        <span class="tip-desc">{{ $t('支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口') }}</span>
+                    </h4>
+                    <HttpCallback
+                        ref="httpCallback"
+                        :webhook-data="formData.webhookConfigs"
+                        :is-task-setting="false"
+                        :is-view-mode="isViewMode"
+                        @change="onHttpCallbackChange"
+                    ></HttpCallback>
+                </section>
                 <section class="form-section">
                     <h4>{{ $t('其他') }}</h4>
                     <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
@@ -261,13 +274,15 @@
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import HttpCallback from './HttpCallback.vue'
     import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TabTemplateConfig',
         components: {
             MemberSelect,
-            NotifyTypeConfig
+            NotifyTypeConfig,
+            HttpCallback
         },
         mixins: [permission],
         props: {
@@ -281,7 +296,7 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels, default_flow_type, project_scope, template_id
+                executor_proxy, template_labels, default_flow_type, project_scope, template_id, webhook_configs
             } = this.$store.state.template
             const { extra_info: extraInfo = {} } = notify_receivers
 
@@ -297,7 +312,8 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type,
                     project_scope: project_scope,
-                    template_id: template_id
+                    template_id: template_id,
+                    webhookConfigs: tools.deepClone(webhook_configs)
                 },
                 stringLength: STRING_LENGTH,
                 rules: {
@@ -430,7 +446,8 @@
         methods: {
             ...mapMutations('template/', [
                 'setTplConfig',
-                'setProjectScope'
+                'setProjectScope',
+                'setWebhookConfigs'
             ]),
             ...mapActions('project', [
                 'getProjectConfig',
@@ -570,8 +587,11 @@
                 window.open(href, '_blank')
             },
             getTemplateConfig () {
-                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo } = this.formData
+                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo, webhookConfigs } = this.formData
                 const localProjectList = this.baseInfoProjectScopeList.length === this.allProjectIds.length ? ['*'] : this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
+                webhookConfigs.extra_info.interval = typeof webhookConfigs.extra_info.interval !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.interval
+                webhookConfigs.extra_info.retry_times = typeof webhookConfigs.extra_info.retry_times !== 'number' ? parseInt(webhookConfigs.extra_info.retry_times) : webhookConfigs.extra_info.retry_times
+                webhookConfigs.extra_info.timeout = typeof webhookConfigs.extra_info.timeout !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.timeout
                 return {
                     name,
                     category,
@@ -582,7 +602,8 @@
                     notify_type: { success: notifyType[0], fail: notifyType[1] },
                     notify_type_extra_info: notifyTypeExtraInfo,
                     default_flow_type: defaultFlowType,
-                    project_scope: localProjectList
+                    project_scope: localProjectList,
+                    webhookConfigs: webhookConfigs
                 }
             },
             onSelectedExecutorProxy (val) {
@@ -620,7 +641,8 @@
                     }
                     const validations = await Promise.all([
                         this.$refs.configForm.validate(),
-                        this.$refs.notifyTypeConfig.validate()
+                        this.$refs.notifyTypeConfig.validate(),
+                        this.$refs.httpCallback.validate()
                     ])
                     if (validations.includes(false)) return
 
@@ -714,6 +736,9 @@
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            onHttpCallbackChange (val) {
+                this.formData.webhookConfigs = val
             }
         },
         unmounted () {

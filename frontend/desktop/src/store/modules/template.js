@@ -202,9 +202,13 @@ const template = {
         },
         internalVariable: [],
         default_flow_type: 'common',
-        project_scope: []
+        project_scope: [],
+        webhook_configs: {}
     },
     mutations: {
+        setWebhookConfigs (state, webhookConfigs) {
+            state.webhook_configs = webhookConfigs
+        },
         setProjectScope (state, project_scope) {
             state.project_scope = project_scope
         },
@@ -225,7 +229,7 @@ const template = {
         },
         setTplConfig (state, data) {
             const { name, category, notify_type, receiver_group, description, executor_proxy,
-                template_labels, default_flow_type, notify_type_extra_info, project_scope } = data
+                template_labels, default_flow_type, notify_type_extra_info, project_scope, webhookConfigs } = data
             state.name = name
             state.category = category
             state.notify_type = notify_type
@@ -236,6 +240,7 @@ const template = {
             state.template_labels = template_labels
             state.default_flow_type = default_flow_type
             state.project_scope = project_scope
+            state.webhook_configs = webhookConfigs
         },
         setSubprocessUpdated (state, subflow) {
             if (state.subprocess_info) {
@@ -314,7 +319,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope, webhook_configs
             } = data
 
             const pipelineData = pipeline_tree ? JSON.parse(pipeline_tree) : undefined
@@ -333,6 +338,7 @@ const template = {
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
             state.project_scope = project_scope
+            state.webhook_configs = webhook_configs
             if (pipeline_tree) {
                 state.project_scope = project_scope
                 this.commit('template/setPipelineTree', pipelineData)
@@ -372,6 +378,7 @@ const template = {
             state.init_executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
+            state.webhook_configs = {}
         },
         // 重置模板数据
         resetTemplateData (state) {
@@ -952,7 +959,7 @@ const template = {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type,
-                init_executor_proxy, project_scope
+                init_executor_proxy, project_scope, webhook_configs
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => ({
@@ -1031,7 +1038,7 @@ const template = {
             }
             // 新增用post, 编辑用patch
             const method = templateId === undefined ? 'post' : common ? 'put' : 'patch'
-            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: project_scope.length > 0 ? project_scope : ['*'] } : { ...params, project_scope }) : params, {
+            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: project_scope.length > 0 ? project_scope : ['*'] } : { ...params, project_scope }) : { ...params, webhook_configs }, {
                 headers
             }).then(response => {
                 if (common && templateId === undefined) {
