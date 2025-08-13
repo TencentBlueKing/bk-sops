@@ -95,7 +95,7 @@
                         </bk-table-column>
                         <bk-table-column label="操作" width="80">
                             <template slot-scope="props">
-                                <bk-button style="margin-right: 12px;" theme="primary" text @click="delItemHeader(props.row,props.$index)">删除</bk-button>
+                                <bk-button theme="primary" text @click="delItemHeader(props.row,props.$index)" :disabled="isViewMode">删除</bk-button>
                             </template>
                         </bk-table-column>
                         <template slot="append">
