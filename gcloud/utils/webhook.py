@@ -13,27 +13,43 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.db import transaction
 from webhook.api import apply_scope_subscriptions, apply_scope_webhooks
 from gcloud.constants import WebhookScopeType, WebhookEventType
-from webhook.api import clear_webhooks, get_scope_webhook_retry_policy
+from webhook.models import Webhook as WebhookModel
+from webhook.models import Scope as ScopeModel
+from webhook.models import Subscription
 from django.conf import settings
 
 logger = logging.getLogger("root")
 
 
 def get_webhook_configs(scope_code: list):
+    """
+    get webhook retry policy of scope
+    """
     try:
-        webhooks = get_scope_webhook_retry_policy(scope_type=WebhookScopeType.TEMPLATE.value, scope_code=scope_code)
+        webhooks = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_code)
+        result = {}
+        for webhook in webhooks:
+            result[webhook.scope_code] = {
+                "method": webhook.method,
+                "endpoint": webhook.endpoint,
+                "extra_info": webhook.extra_info,
+            }
     except Exception as e:
         logger.exception(f"get_scope_webhooks error: {e}")
         return {"result": False, "message": f"Failed to get webhook configs: {e}", "data": {}, "code": "500"}
 
-    return webhooks
+    return result
 
 
-def clear_scope_webhooks(scope_type: str, scope_code: list):
+def clear_scope_webhooks(scope_code: list):
     try:
-        clear_webhooks(scope_type=scope_type, scope_code=scope_code)
+        with transaction.atomic():
+            WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_code).delete()
+            ScopeModel.objects.filter(type=WebhookScopeType.TEMPLATE.value, code__in=scope_code).delete()
+            Subscription.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_code).delete()
     except Exception as e:
         logger.exception(f"clear_webhooks error: {e}")
         return {"result": False, "message": f"Failed to clear webhooks: {e}", "data": {}, "code": "500"}
