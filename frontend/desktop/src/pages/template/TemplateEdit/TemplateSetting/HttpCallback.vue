@@ -237,7 +237,7 @@
                     retry_times: [
                         {
                             validator: this.checkInterval,
-                            message: '重试次数不能超过5次',
+                            message: i18n.t('重试次数不能超过5次'),
                             trigger: 'blur'
                         }
                     ]
