@@ -12,7 +12,8 @@
                 <bk-option v-for="option in methodList"
                     :key="option.id"
                     :id="option.id"
-                    :name="option.name">
+                    :name="option.name"
+                    :disabled="option.isDisabled">
                 </bk-option>
             </bk-select>
             <div class="http-callback-url">
@@ -190,12 +191,14 @@
                     {
                         id: 'POST',
                         key: 'POST',
-                        name: 'POST'
+                        name: 'POST',
+                        isDisabled: false
                     },
                     {
                         id: 'GET',
                         key: 'GET',
-                        name: 'GET'
+                        name: 'GET',
+                        isDisabled: true
                     }
                 ],
                 headerFields: [
