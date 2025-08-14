@@ -25,7 +25,6 @@ from gcloud.template_base.apis.drf.permission import CommonTemplatePermission, P
 from gcloud.template_base.apis.drf.serilaziers.template import BatchDeleteSerialzer, TemplateIdsSerializer
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.utils.webhook import clear_scope_webhooks
-from gcloud.constants import WebhookScopeType
 
 logger = logging.getLogger("root")
 
@@ -41,7 +40,7 @@ class TemplateViewSet(ApiMixin, viewsets.GenericViewSet):
         body_serializer = self.template_ids_serializer(data=data)
         body_serializer.is_valid(raise_exception=True)
         template_ids = body_serializer.validated_data.get("template_ids")
-        clear_result = clear_scope_webhooks(WebhookScopeType.TEMPLATE.value, template_ids)
+        clear_result = clear_scope_webhooks(template_ids)
         if not clear_result["result"]:
             raise APIException(f'[batch_delete] clear_webhooks False: {clear_result["message"]}')
 

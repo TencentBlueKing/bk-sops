@@ -52,7 +52,6 @@ from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 from gcloud.utils.webhook import apply_webhook_configs, get_webhook_configs, clear_scope_webhooks
-from gcloud.constants import WebhookScopeType
 from gcloud.core.apis.drf.exceptions import ValidationException
 
 logger = logging.getLogger("root")
@@ -317,7 +316,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                     logger.error(message)
                     raise ValidationException(message)
             elif not webhook_configs and get_webhook_configs([str(serializer.instance.id)]):
-                clear_scope_webhooks(WebhookScopeType.TEMPLATE.value, [str(serializer.instance.id)])
+                clear_scope_webhooks([str(serializer.instance.id)])
 
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
@@ -358,7 +357,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         relation_queryset = TemplateRelationship.objects.filter(ancestor_template_id=pipeline_template_id)
         for relation in relation_queryset:
             relation.templatescheme_set.clear()
-        clear_result = clear_scope_webhooks(WebhookScopeType.TEMPLATE.value, [template.id])
+        clear_result = clear_scope_webhooks([template.id])
         if not clear_result["result"]:
             message = clear_result["message"]
             logger.error(message)
