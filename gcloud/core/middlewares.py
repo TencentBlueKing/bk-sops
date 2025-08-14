@@ -125,13 +125,11 @@ class TenantMiddleware(MiddlewareMixin):
             header_value = request.META.get(header)
             logger.error("+++++++++++{}: {}++++++++++".format(header, header_value))
         except ValueError:
-            raise Exception(
-                'The SECURE_PROXY_SSL_HEADER setting must be a tuple containing two values.'
-            )
+            raise Exception("The SECURE_PROXY_SSL_HEADER setting must be a tuple containing two values.")
 
         logger.error("+++++++++++request meta: {}++++++++++".format(request.META))
         # 从request.user获取租户ID（根据你的用户模型调整）
-        tenant_id = getattr(request.user, "tenant_id", None)
+        tenant_id = getattr(request.user, "tenant_id", None) or "default"
         set_current_tenant_id(tenant_id)
 
     def process_response(self, request, response):

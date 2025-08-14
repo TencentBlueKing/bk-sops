@@ -24,6 +24,7 @@ from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSe
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers import ProjectWithFavSerializer
 from gcloud.core.models import Project
+from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.utils import get_user_projects
 
@@ -69,9 +70,8 @@ class UserProjectSetViewSet(GcloudListViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        user_project_ids = list(
-            get_user_projects(request.user.username, request.user.tenant_id).values_list("id", flat=True)
-        )
+        tenant_id = get_current_tenant_id()
+        user_project_ids = list(get_user_projects(request.user.username, tenant_id).values_list("id", flat=True))
         user_fav_project_ids = list(Collection.objects.get_user_favorite_projects(request.user.username))
         self.list_queryset = (
             Project.objects.filter(id__in=user_project_ids)
