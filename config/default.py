@@ -186,7 +186,7 @@ if env.IS_PAAS_V3:
     BK_APIGW_CALLBACK_SERVER_HOST = callback_host.netloc
     BK_APIGW_CALLBACK_SERVER_SUB_PATH = callback_host.path.lstrip("/")
 
-    BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE = os.path.join(BASE_DIR, "gcloud", "apigw", "docs", "apigw-docs.tgz")
+    BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE = os.path.join(BASE_DIR, "gcloud", "apigw", "docs", "apigw-docs.tar.gz")
 
 # 默认数据库AUTO字段类型
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
