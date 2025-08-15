@@ -129,7 +129,10 @@ class TenantMiddleware(MiddlewareMixin):
 
         logger.error("+++++++++++request meta: {}++++++++++".format(request.META))
         # 从request.user获取租户ID（根据你的用户模型调整）
-        tenant_id = getattr(request.user, "tenant_id", None) or "default"
+        tenant_id = getattr(request.user, "tenant_id", None)
+        if not tenant_id:
+            tenant_id = "default"
+            setattr(request.user, "tenant_id", tenant_id)
         set_current_tenant_id(tenant_id)
 
     def process_response(self, request, response):
