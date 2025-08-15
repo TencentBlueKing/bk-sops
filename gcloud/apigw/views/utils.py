@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import json
 import logging
 import traceback
 from copy import deepcopy
@@ -53,7 +54,9 @@ def info_data_from_period_task(task, detail=True, tz=None, include_edit_info=Non
     return info
 
 
-def format_template_data(template, project=None, include_subprocess=None, tz=None, include_executor_proxy=None):
+def format_template_data(
+    template, project=None, include_subprocess=None, tz=None, include_executor_proxy=None, include_notify=None
+):
     pipeline_tree = template.pipeline_tree
     pipeline_tree.pop("line")
     pipeline_tree.pop("location")
@@ -80,6 +83,10 @@ def format_template_data(template, project=None, include_subprocess=None, tz=Non
         )
     if include_executor_proxy and hasattr(template, "executor_proxy"):
         data.update({"executor_proxy": template.executor_proxy})
+    if include_notify:
+        data.update(
+            {"notify_type": json.loads(template.notify_type), "notify_receivers": json.loads(template.notify_receivers)}
+        )
 
     if include_subprocess:
         data.update(
@@ -92,7 +99,9 @@ def format_template_data(template, project=None, include_subprocess=None, tz=Non
     return data
 
 
-def format_template_list_data(templates, project=None, return_id_list=False, tz=None, include_executor_proxy=None):
+def format_template_list_data(
+    templates, project=None, return_id_list=False, tz=None, include_executor_proxy=None, include_notify=None
+):
     data = []
     ids = []
     for tmpl in templates:
@@ -118,6 +127,11 @@ def format_template_list_data(templates, project=None, return_id_list=False, tz=
 
         if return_id_list:
             ids.append(item["id"])
+
+        if include_notify:
+            item.update(
+                {"notify_type": json.loads(tmpl.notify_type), "notify_receivers": json.loads(tmpl.notify_receivers)}
+            )
 
         if include_executor_proxy and hasattr(tmpl, "executor_proxy"):
             item.update({"executor_proxy": tmpl.executor_proxy})
