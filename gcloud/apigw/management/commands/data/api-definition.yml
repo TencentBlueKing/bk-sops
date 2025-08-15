@@ -32,8 +32,7 @@ resource_docs:
   # archivefile: "{{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}"
   # 资源文档目录，basedir 与 archivefile 二者至少一个有效，若同时存在，则 archivefile 优先
   # basedir: "{{ settings.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
-  # archivefile: {{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}
-  basedir: "docs/apidoc"
+  archivefile: {{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}
 
 release:
   version: {{ settings.STATIC_VERSION }}+{{ settings.DEPLOY_DATETIME }}
