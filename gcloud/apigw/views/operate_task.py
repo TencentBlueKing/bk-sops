@@ -40,7 +40,7 @@ from gcloud.utils.throttle import check_task_operation_throttle
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
-@trace_view(attr_keys=["project_id", "task_id"], call_from=CallFrom.APIGW.value)
+@trace_view(attr_keys=["project_id", "task_id", "action"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TaskOperateInterceptor())
 @record_operation(RecordType.task.name, OperateType.task_action.name, OperateSource.api.name)
 def operate_task(request, task_id, project_id):

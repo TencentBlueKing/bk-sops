@@ -35,7 +35,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
-@trace_view(attr_keys=["project_id", "task_id"], call_from=CallFrom.APIGW.value)
+@trace_view(attr_keys=["project_id", "task_id", "action"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TaskOperateInterceptor())
 @record_operation(RecordType.task.name, OperateType.nodes_action.name, OperateSource.api.name)
 def operate_node(request, project_id, task_id):
