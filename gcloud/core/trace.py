@@ -63,6 +63,16 @@ def propagate_attributes(attributes: dict):
     provider.add_span_processor(AttributeInjectionSpanProcessor(attributes))
 
 
+def append_attributes(attributes: dict):
+    """追加属性到span上
+
+    :param attributes: 需要追加的属性
+    """
+    current_span = trace.get_current_span()
+    for key, value in attributes.items():
+        current_span.set_attribute(f"bk_sops.{key}", value)
+
+
 @contextmanager
 def start_trace(span_name: str, propagate: bool = False, **attributes):
     """Start a trace

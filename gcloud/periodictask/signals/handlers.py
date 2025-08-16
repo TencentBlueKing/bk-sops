@@ -22,6 +22,7 @@ from pipeline.contrib.periodic_task.signals import periodic_task_start_failed, p
 
 from gcloud.constants import PROJECT, TaskCreateMethod
 from gcloud.core.models import EngineConfig
+from gcloud.core.trace import CallFrom, append_attributes, propagate_attributes
 from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.shortcuts.message import send_periodic_task_message
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
@@ -44,6 +45,10 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         current_flow="execute_task",
         engine_ver=periodic_task.extra_info.get("engine_ver", EngineConfig.ENGINE_VER_V1),
     )
+
+    # 设置传播到后台所有Span的公共属性
+    propagate_attributes({"project_id": task.project.id, "call_from": CallFrom.BACKEND.value, "task_id": task.id})
+    append_attributes({"executor": task.executor})
 
     task.record_and_get_executor_proxy(task.executor or periodic_task.creator)
 

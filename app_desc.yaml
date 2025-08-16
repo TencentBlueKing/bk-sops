@@ -189,7 +189,7 @@ modules:
                 plan: 4C1G5R
                 replicas: 2
             cworker:
-                command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -P threads -c 6 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -c 6 -l info
                 plan: 4C1G5R
                 replicas: 2
             er-e:
