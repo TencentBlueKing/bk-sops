@@ -20,6 +20,7 @@ paths:
         isPublic: false
         allowApplyPermission: false
         matchSubpath: false
+        descriptionEn: Node callback entry
         backend:
           type: HTTP
           method: post
@@ -50,6 +51,7 @@ paths:
         isPublic: true
         allowApplyPermission: false
         matchSubpath: false
+        descriptionEn: Create periodic task
         backend:
           type: HTTP
           method: post
@@ -74,6 +76,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Create task by template
         backend:
           type: HTTP
           method: post
@@ -98,6 +101,7 @@ paths:
         isPublic: true
         allowApplyPermission: false
         matchSubpath: false
+        descriptionEn: Plugin request forwarding
         backend:
           type: HTTP
           method: post
@@ -122,6 +126,7 @@ paths:
         isPublic: true
         allowApplyPermission: false
         matchSubpath: false
+        descriptionEn: Create one-time task
         backend:
           type: HTTP
           method: post
@@ -146,6 +151,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query the details of a single common process template
         backend:
           type: HTTP
           method: get
@@ -170,6 +176,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query the list of common process templates
         backend:
           type: HTTP
           method: get
@@ -194,6 +201,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query the details of a single periodic task
         backend:
           type: HTTP
           method: get
@@ -218,6 +226,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query the list of all periodic tasks in a business
         backend:
           type: HTTP
           method: get
@@ -242,6 +251,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query the list of plugins in a business
         backend:
           type: HTTP
           method: get
@@ -266,6 +276,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Batch query task status
         backend:
           type: HTTP
           method: post
@@ -290,6 +301,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query task execution details
         backend:
           type: HTTP
           method: get
@@ -314,6 +326,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Get task list
         backend:
           type: HTTP
           method: get
@@ -338,6 +351,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Get actual input and output parameters of task node
         backend:
           type: HTTP
           method: get
@@ -362,6 +376,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query task node execution details
         backend:
           type: HTTP
           method: get
@@ -386,6 +401,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query task execution status
         backend:
           type: HTTP
           method: get
@@ -410,6 +426,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query template details under a business
         backend:
           type: HTTP
           method: get
@@ -434,6 +451,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Query template list under a business
         backend:
           type: HTTP
           method: get
@@ -458,6 +476,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Get execution scheme list of a template
         backend:
           type: HTTP
           method: get
@@ -482,6 +501,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Get project detail
         backend:
           type: HTTP
           method: get
@@ -506,6 +526,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Get user project list
         backend:
           type: HTTP
           method: get
@@ -530,6 +551,7 @@ paths:
         isPublic: true
         allowApplyPermission: false
         matchSubpath: false
+        descriptionEn: Import project template
         backend:
           type: HTTP
           method: post
@@ -554,6 +576,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Modify global parameters of periodic task
         backend:
           type: HTTP
           method: post
@@ -578,6 +601,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Modify scheduling strategy of periodic task
         backend:
           type: HTTP
           method: post
@@ -602,6 +626,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Callback task node
         backend:
           type: HTTP
           method: post
@@ -626,6 +651,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Operate node
         backend:
           type: HTTP
           method: post
@@ -650,6 +676,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Operate task
         backend:
           type: HTTP
           method: post
@@ -674,6 +701,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Preview task tree
         backend:
           type: HTTP
           method: post
@@ -698,6 +726,7 @@ paths:
         isPublic: true
         allowApplyPermission: false
         matchSubpath: false
+        descriptionEn: Register project
         backend:
           type: HTTP
           method: post
@@ -722,6 +751,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Set periodic task enabled
         backend:
           type: HTTP
           method: post
@@ -746,6 +776,7 @@ paths:
         isPublic: true
         allowApplyPermission: true
         matchSubpath: false
+        descriptionEn: Start execute task
         backend:
           type: HTTP
           method: post
@@ -770,6 +801,7 @@ paths:
         isPublic: false
         allowApplyPermission: false
         matchSubpath: false
+        descriptionEn: Copy template across project
         backend:
           type: HTTP
           method: post
