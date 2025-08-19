@@ -44,7 +44,7 @@
                     this.loading = true
                     const { key, custom_type, value } = this.variableData
 
-                    if (window.ENABLE_MULTI_TENANT_MODE && custom_type === 'bk_user_selector') {
+                    if (custom_type === 'bk_user_selector') {
                         await this.fetchUserDisplayInfo(value)
                         return
                     }

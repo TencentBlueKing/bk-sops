@@ -105,7 +105,7 @@
                     this.renderList = children || []
 
                     // 多租户人员选择器特殊处理
-                    if (isUser && window.ENABLE_MULTI_TENANT_MODE && typeof values[0] === 'string') {
+                    if (isUser && typeof values[0] === 'string') {
                         this.getUserDisplayInfo()
                     }
                 },
