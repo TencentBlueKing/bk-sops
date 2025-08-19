@@ -10,22 +10,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
-
 from gcloud import err_code
-from gcloud.core.models import Project
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
 from gcloud.apigw.decorators import (
+    check_job_file_upload_white_apps,
     mark_request_whether_is_trust,
     return_json_response,
-    check_job_file_upload_white_apps,
 )
 from gcloud.apigw.utils import get_project_with
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.core.models import Project
 from pipeline_plugins.components.query.sites.open.file_upload import file_upload
 
 
@@ -57,11 +57,14 @@ def job_file_upload(request, project_id, **kwargs):
     request.META["HTTP_APP_PROJECTID"] = project.id
 
     # 文件大小不能大于 20M
-    if request.FILES["file"].size > 20 * 1024 * 1024:
+    if request.FILES["file"].size > settings.JOB_UPLOAD_FILE_SIZE_LIMIT:
         return JsonResponse(
             {
                 "result": False,
-                "message": "File upload failed: The file size cannot exceed 20M.",
+                "message": (
+                    "File upload failed: The file size cannot exceed"
+                    f"{settings.JOB_UPLOAD_FILE_SIZE_LIMIT / 1024 / 1024}M."
+                ),
                 "code": err_code.VALIDATION_ERROR.code,
             }
         )
