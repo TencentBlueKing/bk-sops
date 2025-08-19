@@ -15,6 +15,7 @@ import enum
 from contextlib import contextmanager
 from functools import wraps
 
+from django.conf import settings
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SpanProcessor
@@ -70,7 +71,7 @@ def append_attributes(attributes: dict):
     """
     current_span = trace.get_current_span()
     for key, value in attributes.items():
-        current_span.set_attribute(f"bk_sops.{key}", value)
+        current_span.set_attribute(f"{settings.APP_CODE}.{key}", value)
 
 
 @contextmanager
@@ -84,7 +85,7 @@ def start_trace(span_name: str, propagate: bool = False, **attributes):
     """
     tracer = trace.get_tracer(__name__)
 
-    span_attributes = {f"bk_sops.{key}": value for key, value in attributes.items()}
+    span_attributes = {f"{settings.APP_CODE}.{key}": value for key, value in attributes.items()}
 
     # 设置需要传播的属性
     if propagate:
@@ -114,10 +115,12 @@ def trace_view(propagate: bool = True, attr_keys=None, **default_attributes):
             attributes = copy.deepcopy(default_attributes)
 
             for attr_key in attr_keys:
-                # 需要的属性只要在kwargs, request.GET, request.POST中就可以
-                for scope in (kwargs, request.GET, request.POST):
+                # 需要的属性只要在kwargs, request.GET, request.query_params(drf), request.POST, request.data(drf)中就可以
+                query_params = getattr(request, "GET", {}) or getattr(request, "query_params", {})
+                query_data = getattr(request, "POST", {}) or getattr(request, "data", {})
+                for scope in (kwargs, query_params, query_data):
                     if attr_key in scope:
-                        attributes[attr_key] = kwargs[attr_key]
+                        attributes[attr_key] = scope[attr_key]
                         break
 
             with start_trace(view_func.__name__, propagate, **attributes):
