@@ -19,12 +19,15 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.utils import get_node_callback_url
 
-if settings.ENABLE_MULTI_TENANT_MODE:
+APPROVE_USE_LEGACY = EnvironmentVariables.objects.get_var("APPROVE_USE_LEGACY", "False").lower() == "true"
+
+if APPROVE_USE_LEGACY:
     from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
 else:
     from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
@@ -79,8 +82,7 @@ class ApproveService(Service):
         approve_content = data.get_one_of_inputs("bk_approve_content")
 
         verifier = verifier.replace(" ", "")
-
-        if settings.ENABLE_MULTI_TENANT_MODE:
+        if APPROVE_USE_LEGACY:
             # TODO 具体形态待确认
             # verifier_list = [
             #     f"({_verifier})" if "(" not in _verifier else _verifier for _verifier in verifier.split(",")
@@ -97,6 +99,9 @@ class ApproveService(Service):
                 "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
                 "options": {},
             }
+            result = client.api.create_ticket(
+                kwargs, headers={"X-Bk-Tenant-Id": tenant_id, "SYSTEM-TOKEN": settings.SECRET_KEY}
+            )
         else:
             kwargs = {
                 "creator": executor,
@@ -110,9 +115,7 @@ class ApproveService(Service):
                     "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
                 },
             }
-        result = client.api.create_ticket(
-            kwargs, headers={"X-Bk-Tenant-Id": tenant_id, "SYSTEM-TOKEN": settings.SECRET_KEY}
-        )
+            result = client.api.create_ticket(kwargs)
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)
@@ -120,8 +123,7 @@ class ApproveService(Service):
             return False
 
         data.outputs.sn = result["data"]["sn"]
-        if settings.ENABLE_MULTI_TENANT_MODE:
-            data.outputs.id = result["data"]["id"]
+        data.outputs.id = result["data"]["id"]
         task_id: int = parent_data.get_one_of_inputs("task_id")
         send_taskflow_message.delay(
             task_id=task_id,
