@@ -16,6 +16,8 @@ import re
 
 from django.utils.translation import gettext_lazy as _
 
+from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
+
 logger = logging.getLogger("root")
 
 INVALID_CHAR_REGEX = re.compile('[\\/:*?"<>|,]')
@@ -49,7 +51,7 @@ def common_process_request(request, manager, *args, **kwargs):
     kwargs = {
         "tenant_id": request.user.tenant_id,
         "project_id": int(project_id),
-        "username": kwargs.get("specific_username") or request.user.username,
+        "username": get_bk_username_by_tenant(tenant_id=request.user.tenant_id),
     }
 
     # 计算文件md5

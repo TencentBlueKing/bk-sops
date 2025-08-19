@@ -180,11 +180,11 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                     "headers": {"X-Bk-Tenant-Id": tenant_id},
                 }
                 if upload_speed_limit:
-                    job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
+                    job_kwargs["data"]["upload_speed_limit"] = int(upload_speed_limit)
                 if download_speed_limit:
-                    job_kwargs["download_speed_limit"] = int(download_speed_limit)
+                    job_kwargs["data"]["download_speed_limit"] = int(download_speed_limit)
                 if job_timeout:
-                    job_kwargs["timeout"] = int(job_timeout)
+                    job_kwargs["data"]["timeout"] = int(job_timeout)
                 params_list.append(job_kwargs)
         task_count = len(params_list)
         # 并发请求接口
