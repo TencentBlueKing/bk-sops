@@ -118,7 +118,7 @@
                                 renderList = children.filter(item => item.name.indexOf(val) > -1)
                             } else if (remoteMethod && typeof remoteMethod === 'function') {
                                 renderList = await remoteMethod(val)
-                            } else if (isUser && window.ENABLE_MULTI_TENANT_MODE) { // 多租户人员选择器特殊处理
+                            } else if (isUser) { // 多租户人员选择器特殊处理
                                 const resp = await fetch(`${window.BK_USER_WEB_APIGW_URL}/api/v3/open-web/tenant/users/-/search/?keyword=${val}`, {
                                     headers: {
                                         'x-bk-tenant-id': window.TENANT_ID
