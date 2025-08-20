@@ -43,6 +43,7 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     TaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
     TemplateLabelQuerySerializer,
+    WebhookConfigQuerySerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, res_factory
@@ -53,6 +54,7 @@ from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 from gcloud.utils.webhook import apply_webhook_configs, get_webhook_configs, clear_scope_webhooks
 from gcloud.core.apis.drf.exceptions import ValidationException
+from webhook.api import verify_webhook_endpoint
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -86,6 +88,9 @@ class TaskTemplatePermission(IamPermission):
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
         "update_template_labels": IamPermissionInfo(
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "verify_webhook_configuration": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
     }
@@ -414,3 +419,21 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         return Response({"name": template.name, "label_ids": label_ids})
+
+    @swagger_auto_schema(method="POST", operation_summary="验证Webhook配置", request_body=WebhookConfigQuerySerializer)
+    @action(methods=["POST"], detail=False)
+    def verify_webhook_configuration(self, request, *args, **kwargs):
+        serializer = WebhookConfigQuerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        webhook_config = serializer.validated_data["webhook_config"]
+        try:
+            verify_result = verify_webhook_endpoint(webhook_config)
+        except Exception as e:
+            message = str(e)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        if not verify_result.ok:
+            message = str(verify_result.json_response())
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        return Response(status=status.HTTP_200_OK)
