@@ -28,10 +28,9 @@ class MessageSender:
     def send(self, executor, tenant_id, notify_type, notify_receivers, receivers, title, content, email_content=None):
         bkchat_receivers = notify_receivers.split(",") if notify_receivers != "" else []
         cmsi_receivers = [notify for notify in notify_type if notify != "bkchat"]
-        if not settings.ENABLE_MULTI_TENANT_MODE:
-            if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
-                logger.info("bkchat send message, receivers: {}".format(bkchat_receivers))
-                BkchatSender().send(bkchat_receivers, content)
+        if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
+            logger.info("bkchat send message, receivers: {}".format(bkchat_receivers))
+            BkchatSender().send(bkchat_receivers, content)
         logger.info("cmsi send message, receivers: {}".format(cmsi_receivers))
         CmsiSender().send(executor, tenant_id, cmsi_receivers, receivers, title, content, email_content)
 
