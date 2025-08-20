@@ -13,17 +13,17 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.shortcuts.message.common import (
     title_and_content_for_atom_failed,
     title_and_content_for_clocked_task_create_fail,
     title_and_content_for_flow_finished,
-    title_and_content_for_pending_processing,
     title_and_content_for_periodic_task_start_fail,
 )
 from gcloud.shortcuts.message.send_msg import CmsiSender, MessageSender
-from gcloud.periodictask.models import PeriodicTask
+from packages.bkapi.bk_user.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -37,20 +37,23 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
     # 获取消息接收人, 形如：
     # {'receiver_group':['Maintainers'],'more_receiver':'username1,username2',extra_info":{"bkchat":{fail:"",success:""}}
     notify_receivers = taskflow.get_notify_receivers()
-    receivers_list = taskflow.get_stakeholders()
-    receivers = ",".join(receivers_list)
+    receivers = taskflow.get_stakeholders()
     executor = taskflow.executor
     tenant_id = taskflow.project.tenant_id
-
+    client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
+    display_info = client.api.display_info({"bk_usernames": executor}, headers={"X-Bk-Tenant-Id": tenant_id})
+    user_list = display_info.get("data") or []
+    display_names = [user.get("display_name") for user in user_list]
+    executor_display_name = ",".join(display_names)
     if msg_type == ATOM_FAILED:
         title, content, email_content = title_and_content_for_atom_failed(
-            taskflow, taskflow.pipeline_instance, node_name, executor
+            taskflow, taskflow.pipeline_instance, node_name, executor_display_name
         )
         notify_type = notify_types.get("fail", [])
         bkchat_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("fail", "")
     elif msg_type == "task_finished":
         title, content, email_content = title_and_content_for_flow_finished(
-            taskflow, taskflow.pipeline_instance, node_name, executor
+            taskflow, taskflow.pipeline_instance, node_name, executor_display_name
         )
         notify_type = notify_types.get("success", [])
         bkchat_receivers = notify_receivers.get("extra_info", {}).get("bkchat", {}).get("success", "")
@@ -66,7 +69,7 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
         )
     )
     MessageSender().send(
-        executor, notify_type, bkchat_receivers, receivers, title, content, email_content=email_content
+        executor, tenant_id, notify_type, bkchat_receivers, receivers, title, content, email_content=email_content
     )
 
     return True
@@ -85,7 +88,7 @@ def send_periodic_task_message(periodic_task, history):
             template_id=gcloud_periodic_task.template.id, notify_type=notify_type, receivers=receivers
         )
     )
-    CmsiSender().send(gcloud_periodic_task.creator, notify_type, receivers, title, content)
+    CmsiSender().send(gcloud_periodic_task.creator, tenant_id, notify_type, receivers, title, content)
 
     return True
 
@@ -103,6 +106,6 @@ def send_clocked_task_message(clocked_task, ex_data):
             task_id=clocked_task.id, msg_type="create fail", notify_type=notify_type, receivers=receivers
         )
     )
-    CmsiSender().send(creator, notify_type, receivers, title, content)
+    CmsiSender().send(creator, tenant_id, notify_type, receivers, title, content)
 
     return True

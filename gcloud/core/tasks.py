@@ -162,7 +162,7 @@ def cmdb_business_sync_shutdown_periodic_task():
 @current_app.task
 def send_periodic_task_notify(executor, tenant_id, notify_type, receivers, title, content):
     try:
-        CmsiSender().send(executor, notify_type, receivers, title, content)
+        CmsiSender().send(executor, tenant_id, notify_type, receivers, title, content)
     except Exception as e:
         logger.exception(f"send periodic task notify error: {e}")
 

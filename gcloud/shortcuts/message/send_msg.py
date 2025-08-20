@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+
 import requests
 import ujson as json
 
@@ -24,47 +25,67 @@ BK_CHAT_API_ENTRY = settings.BK_CHAT_API_ENTRY
 
 
 class MessageSender:
-    def send(self, executor, notify_type, notify_receivers, receivers, title, content, email_content=None):
+    def send(self, executor, tenant_id, notify_type, notify_receivers, receivers, title, content, email_content=None):
         bkchat_receivers = notify_receivers.split(",") if notify_receivers != "" else []
         cmsi_receivers = [notify for notify in notify_type if notify != "bkchat"]
-
-        if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
-            logger.info("bkchat send message, receivers: {}".format(bkchat_receivers))
-            BkchatSender().send(bkchat_receivers, content)
+        if not settings.ENABLE_MULTI_TENANT_MODE:
+            if settings.ENABLE_BK_CHAT_CHANNEL and bkchat_receivers:
+                logger.info("bkchat send message, receivers: {}".format(bkchat_receivers))
+                BkchatSender().send(bkchat_receivers, content)
         logger.info("cmsi send message, receivers: {}".format(cmsi_receivers))
-        CmsiSender().send(executor, cmsi_receivers, receivers, title, content, email_content)
+        CmsiSender().send(executor, tenant_id, cmsi_receivers, receivers, title, content, email_content)
 
 
 class CmsiSender:
-    def send(self, executor, notify_type, receivers, title, content, email_content=None):
+    def send(self, executor, tenant_id, notify_type, receivers, title, content, email_content=None):
         # 兼容旧数据
-        if not email_content:
-            email_content = content
+        if email_content:
+            content = email_content
 
-        if "email" in notify_type:
-            notify_type[notify_type.index("email")] = "mail"
-        client = get_client_by_user(executor)
-        base_kwargs = {
-            "receiver__username": receivers,
-            "title": title,
-            "content": content,
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
+        _send_func = {
+            "weixin": "v1_send_weixin",
+            "mail": "v1_send_mail",
+            "sms": "v1_send_sms",
+            "voice": "v1_send_voice",
+        }
+        _args_gen = {
+            "mail": self._email_args,
+            "weixin": self._weixin_args,
+            "voice": self._voice_args,
+            "sms": self._sms_args,
         }
         for msg_type in notify_type:
-            if msg_type == "voice":
-                kwargs = {"receiver__username": receivers, "auto_read_message": "{},{}".format(title, content)}
-                send_result = client.cmsi.send_voice_msg(kwargs)
-            else:
-                kwargs = {"msg_type": msg_type, **base_kwargs}
-                if msg_type == "mail":
-                    kwargs["content"] = email_content
-                send_result = client.cmsi.send_msg(kwargs)
-            if not send_result["result"]:
-                logger.error(
-                    "taskflow send message failed, kwargs={}, result={}".format(
-                        json.dumps(kwargs),
-                        json.dumps(send_result),
-                    )
-                )
+            kwargs = _args_gen[msg_type](receivers, title, content)
+            try:
+                getattr(client.api, _send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+            except Exception as e:
+                logger.error("taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), str(e)))
+        return True
+
+    def _email_args(self, receivers, title, content):
+        return {
+            "receiver__username": receivers,
+            "title": title,
+            # 保留通知内容中的换行和空格
+            "content": "<pre>%s</pre>" % content,
+        }
+
+    def _weixin_args(self, receivers, title, content):
+        return {"receiver__username": receivers, "message_data": {"heading": title, "message": content}}
+
+    def _voice_args(self, receivers, title, content):
+        return {
+            "auto_read_message": "蓝鲸通知 {}".format("%s: %s" % (title, content)),
+            "receiver__username": receivers,
+        }
+
+    def _sms_args(self, receivers, title, content):
+        return {
+            "receiver__username": receivers,
+            "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
+            "is_content_base64": False,
+        }
 
 
 class BkchatSender:
