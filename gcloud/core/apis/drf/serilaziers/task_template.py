@@ -130,3 +130,12 @@ class TemplateLabelQuerySerializer(serializers.Serializer):
     label_ids = serializers.ListField(
         child=serializers.IntegerField(), allow_empty=True, required=True, help_text="标签ID列表"
     )
+
+
+class WebhookConfigQuerySerializer(serializers.Serializer):
+    webhook_config = serializers.JSONField(help_text="webhook配置", required=True)
+
+    def validate_webhook_config(self, value):
+        if not value.get("url"):
+            raise serializers.ValidationError("缺少请求地址")
+        return value

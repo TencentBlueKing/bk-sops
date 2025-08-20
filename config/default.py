@@ -238,8 +238,7 @@ if IS_USE_CELERY:
     INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
     INSTALLED_APPS += ("django_celery_beat", "django_celery_results")
     CELERY_ENABLE_UTC = False
-    CELERY_TASK_SERIALIZER = "pickle"
-    CELERY_ACCEPT_CONTENT = ["json", "pickle", "msgpack", "yaml"]
+    CELERY_TASK_SERIALIZER = "json"
     CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
 
 TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
