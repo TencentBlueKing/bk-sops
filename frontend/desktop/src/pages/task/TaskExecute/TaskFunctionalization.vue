@@ -366,17 +366,17 @@
 .task-name {
     max-width: 500px;
 }
-/deep/ .bk-dialog-body {
+::v-deep .bk-dialog-body {
     height: 420px;
     background-color: #f4f7fa;
 }
-/deep/ .pipeline-canvas{
+::v-deep .pipeline-canvas{
     .tool-wrapper {
         top: 20px;
         left: 40px;
     }
 }
-/deep/ .render-form {
+::v-deep .render-form {
     .el-input__inner,
     .el-tree,
     .el-date-editor,
@@ -387,10 +387,10 @@
     .el-cascader,
     .el-select,
     .user-selector-layout,
-    /deep/ .ip-search-wrap {
+    ::v-deep .ip-search-wrap {
         max-width: 598px;
     }
-    /deep/.module-form  {
+    ::v-deep .module-form  {
         .bk-form-content,
         .bk-input-number,
         .bk-select {

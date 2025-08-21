@@ -322,10 +322,10 @@
 <style lang="scss" scoped>
     .opt-btns {
         margin-bottom: 10px;
-        /deep/ .bk-button {
+        ::v-deep .bk-button {
             font-size: 12px;
         }
-        /deep/ .upload-btn {
+        ::v-deep .upload-btn {
             display: inline-block;
             font-size: 12px;
         }
@@ -334,20 +334,20 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        /deep/ .bk-link-text {
+        ::v-deep .bk-link-text {
             font-size: 12px;
         }
     }
     .alert-disabled {
         color: #ccc;
         cursor: not-allowed;
-        /deep/ .bk-link-text {
+        ::v-deep .bk-link-text {
             color: #ccc;
             cursor: not-allowed;
         }
     }
     .data-table {
-        /deep/ .bk-table tbody .cell {
+        ::v-deep .bk-table tbody .cell {
             padding-top: 16px;
             padding-bottom: 16px;
         }

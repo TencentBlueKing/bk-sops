@@ -135,7 +135,7 @@
     .local-no-data {
         border: 1px solid #dde4eb;
         border-top: none;
-        /deep/ .no-data {
+        ::v-deep .no-data {
             padding: 20px 0px;
         }
     }

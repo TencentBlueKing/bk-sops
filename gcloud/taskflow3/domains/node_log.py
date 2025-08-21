@@ -31,6 +31,7 @@ class BaseNodeLogDataSource(metaclass=ABCMeta):
 class PaaS3NodeLogDataSource(BaseNodeLogDataSource):
     def __init__(self):
         module_name = settings.NODE_LOG_DATA_SOURCE_CONFIG.get("module_name", "pipeline")
+        self.paas_log_source = settings.NODE_LOG_DATA_SOURCE_CONFIG.get("paas_log_source", "bk_log")
         self.url = settings.NODE_LOG_DATA_SOURCE_CONFIG["url"].format(module_name=module_name, code=settings.APP_CODE)
         self.headers = {
             "X-Bkapi-Authorization": json.dumps(
@@ -50,7 +51,8 @@ class PaaS3NodeLogDataSource(BaseNodeLogDataSource):
             "time_range": "7d",
         }
         url = self.url.rstrip("/") + f"/?{urlencode(url_params)}"
-        payload = {"query": {"query_string": f"json.node_id:{node_id} AND json.version:{version_id}"}}
+        json_prefix = "__ext_json" if self.paas_log_source == "bk_log" else "json"
+        payload = {"query": {"query_string": f"{json_prefix}.node_id:{node_id} AND {json_prefix}.version:{version_id}"}}
         response = requests.get(url, headers=self.headers, data=json.dumps(payload))
         logger.info(
             f"[PaaS3NodeLogDataSource fetch_node_logs] request {url} with payload {payload} and "

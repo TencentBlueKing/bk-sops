@@ -78,10 +78,12 @@
         .query-button {
             padding: 10px;
             min-width: 450px;
+            text-align: center;
+
             @media screen and (max-width: 1420px) {
                 min-width: 390px;
             }
-            text-align: center;
+
             .query-cancel {
                 margin-left: 5px;
             }

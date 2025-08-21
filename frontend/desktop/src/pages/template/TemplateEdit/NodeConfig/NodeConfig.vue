@@ -395,7 +395,8 @@
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 unhookingVarForm: {}, // 正被取消勾选的表单配置
                 isUpdateConstants: false, // 是否更新输入参数配置
-                isDataChange: false // 数据是否改变
+                isDataChange: false, // 数据是否改变
+                automaticSwitchNeedRender: [] // 自动切换need_render的表单项
             }
         },
         computed: {
@@ -761,6 +762,9 @@
                     }
                     formItemConfig.tag_code = key
                     formItemConfig.attrs.name = variable.name
+                    if (formItemConfig.type === 'combine') {
+                        formItemConfig.name = variable.name
+                    }
                     // 自定义输入框变量正则校验添加到插件配置项
                     if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
                         formItemConfig.attrs.validation.push({
@@ -782,6 +786,7 @@
                     }
                     return formItemConfig
                 }))
+
                 this.constantsLoading = false
                 return inputs.filter(item => item)
             },
@@ -1272,8 +1277,14 @@
             },
             // 是否渲染豁免切换
             onRenderConfigChange (data) {
+                if (this.isViewMode) return
+
+                if (data.source === 'automatic') {
+                    this.automaticSwitchNeedRender.push(data)
+                    return
+                }
                 this.isDataChange = true
-                const [key, val] = data
+                const { key, val } = data
                 this.inputsRenderConfig[key] = val
             },
             // 输入、输出参数勾选状态变化
@@ -1590,87 +1601,125 @@
                     return false
                 }
             },
+
             onSaveConfig () {
                 this.validate().then(result => {
-                    if (result) {
-                        ['stageName', 'nodeName'].forEach(item => {
-                            this.basicInfo[item] = this.basicInfo[item].trim()
-                        })
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
-                                desc, nodeName, autoRetry, timeoutConfig, executor_proxy, ignorable
-                        } = this.basicInfo
-                        const nodeData = {
-                            status: '',
-                            skippable,
-                            retryable,
-                            optional,
-                            auto_retry: autoRetry,
-                            timeout_config: timeoutConfig,
-                            isActived: false,
-                            error_ignorable: ignorable
-                        }
-                        if (this.common) {
-                            nodeData['executor_proxy'] = executor_proxy
-                        }
-                        if (!this.isSubflow) {
-                            const phase = this.getAtomPhase()
-                            nodeData.phase = phase
-                        } else {
-                            if (this.subflowUpdated || alwaysUseLatest) {
-                                this.setSubprocessUpdated({
-                                    expired: false,
-                                    subprocess_node_id: this.nodeConfig.id
+                    if (!result) return
+
+                    if (this.automaticSwitchNeedRender.length) {
+                        const names = this.automaticSwitchNeedRender.map(item => item.name).join(',')
+                        const h = this.$createElement
+                        this.$bkInfo({
+                            subHeader: h('div', { class: 'custom-header' }, [
+                                h('div', {
+                                    class: 'custom-header-title',
+                                    directives: [{
+                                        name: 'bk-overflow-tips'
+                                    }]
+                                }, [this.$t('代码框自动开启免渲染模式提醒')]),
+                                h('div', {
+                                    class: 'custom-header-sub-title bk-dialog-header-inner',
+                                    directives: [{
+                                        name: 'bk-overflow-tips'
+                                    }]
+                                }, [this.$t('检测到【n】代码框没有使用变量，保存该节点代码框将自动改为免渲染模式。届时所有标准运维变量将不会被渲染。请确定是否保存', { n: names })])
+                            ]),
+                            extCls: 'dialog-custom-header-title',
+                            maskClose: false,
+                            width: 450,
+                            confirmLoading: true,
+                            cancelText: this.$t('取消'),
+                            confirmFn: () => {
+                                this.automaticSwitchNeedRender.forEach(item => {
+                                    const { key, value } = item
+                                    this.inputsRenderConfig[key] = value
                                 })
-                            }
-                            if (!alwaysUseLatest && latestVersion && latestVersion !== version) {
-                                this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
-                            }
-                            const inputRef = this.$refs.inputParams
-                            // 更新子流程已勾选的变量值
-                            Object.keys(this.localConstants).forEach(key => {
-                                const constantValue = this.localConstants[key]
-                                // 复用变量不去更新变量配置和值
-                                if (constantValue.reuse) {
-                                    delete constantValue.reuse
-                                    return
-                                }
-                                // 根据source_info中获取勾选的表单项code
-                                const [formCode] = constantValue.source_info[this.nodeId] || []
-                                if (!formCode) return
-                                const formValue = this.subflowForms[formCode]
-                                let hook = false
-                                // 获取输入参数的勾选状态
-                                if (inputRef && inputRef.hooked) {
-                                    hook = inputRef.hooked[formCode] || false
-                                }
-                                if (constantValue.is_meta && formValue && hook) {
-                                    const schema = formSchema.getSchema(formValue.key, this.inputs)
-                                    constantValue['form_schema'] = schema
-                                    constantValue.meta = formValue.meta
-                                    // 如果之前选中的下拉项被删除了，则删除对应的值
-                                    const curVal = constantValue.value
-                                    const isMatch = curVal ? schema.attrs.items.find(item => item.value === curVal) : true
-                                    constantValue.value = isMatch ? curVal : ''
-                                }
-                            })
-                        }
-                        this.syncActivity()
-                        // 将第三方插件信息传给父级存起来
-                        if (this.isThirdParty) {
-                            const params = {
-                                desc,
-                                nodeName,
-                                version,
-                                list: tools.deepClone(this.versionList)
-                            }
-                            this.$parent.thirdPartyList[this.nodeId] = params
-                        }
-                        this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
-                        this.$emit('updateNodeInfo', this.nodeId, nodeData)
-                        this.$emit('templateDataChanged')
-                        this.$emit('close')
+                                this.handleSaveConfirm()
+                            },
+                            cancelFn: this.handleSaveConfirm
+                        })
+                        return
                     }
+                    this.handleSaveConfirm()
                 })
+            },
+            handleSaveConfirm () {
+                ['stageName', 'nodeName'].forEach(item => {
+                    this.basicInfo[item] = this.basicInfo[item].trim()
+                })
+                const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
+                        desc, nodeName, autoRetry, timeoutConfig, executor_proxy, ignorable
+                } = this.basicInfo
+                const nodeData = {
+                    status: '',
+                    skippable,
+                    retryable,
+                    optional,
+                    auto_retry: autoRetry,
+                    timeout_config: timeoutConfig,
+                    isActived: false,
+                    error_ignorable: ignorable
+                }
+                if (this.common) {
+                    nodeData['executor_proxy'] = executor_proxy.join(',')
+                }
+                if (!this.isSubflow) {
+                    const phase = this.getAtomPhase()
+                    nodeData.phase = phase
+                } else {
+                    if (this.subflowUpdated || alwaysUseLatest) {
+                        this.setSubprocessUpdated({
+                            expired: false,
+                            subprocess_node_id: this.nodeConfig.id
+                        })
+                    }
+                    if (!alwaysUseLatest && latestVersion && latestVersion !== version) {
+                        this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
+                    }
+                    const inputRef = this.$refs.inputParams
+                    // 更新子流程已勾选的变量值
+                    Object.keys(this.localConstants).forEach(key => {
+                        const constantValue = this.localConstants[key]
+                        // 复用变量不去更新变量配置和值
+                        if (constantValue.reuse) {
+                            delete constantValue.reuse
+                            return
+                        }
+                        // 根据source_info中获取勾选的表单项code
+                        const [formCode] = constantValue.source_info[this.nodeId] || []
+                        if (!formCode) return
+                        const formValue = this.subflowForms[formCode]
+                        let hook = false
+                        // 获取输入参数的勾选状态
+                        if (inputRef && inputRef.hooked) {
+                            hook = inputRef.hooked[formCode] || false
+                        }
+                        if (constantValue.is_meta && formValue && hook) {
+                            const schema = formSchema.getSchema(formValue.key, this.inputs)
+                            constantValue['form_schema'] = schema
+                            constantValue.meta = formValue.meta
+                            // 如果之前选中的下拉项被删除了，则删除对应的值
+                            const curVal = constantValue.value
+                            const isMatch = curVal ? schema.attrs.items.find(item => item.value === curVal) : true
+                            constantValue.value = isMatch ? curVal : ''
+                        }
+                    })
+                }
+                this.syncActivity()
+                // 将第三方插件信息传给父级存起来
+                if (this.isThirdParty) {
+                    const params = {
+                        desc,
+                        nodeName,
+                        version,
+                        list: tools.deepClone(this.versionList)
+                    }
+                    this.$parent.thirdPartyList[this.nodeId] = params
+                }
+                this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
+                this.$emit('updateNodeInfo', this.nodeId, nodeData)
+                this.$emit('templateDataChanged')
+                this.$emit('close')
             },
             onClosePanel (openVariablePanel) {
                 this.$emit('updateNodeInfo', this.nodeId, { isActived: false })
@@ -1877,6 +1926,7 @@
     }
     .exception-wrap {
         height: 280px;
+        margin-top: 200px;
         justify-content: center;
         .bk-exception-img {
             width: 220px;
@@ -1884,6 +1934,7 @@
             margin-bottom: 12px;
         }
         .bk-exception-text {
+            margin-top: 50px;
             font-size: 12px;
             color: #444444;
         }
@@ -1908,7 +1959,7 @@
             background: #ffffff;
             border: 1px solid #dcdee5;
             box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
-            /deep/ .bk-table-body-wrapper {
+            ::v-deep .bk-table-body-wrapper {
                 overflow-y: auto;
             }
             .icon-wrap {

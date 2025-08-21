@@ -268,7 +268,7 @@
     .navigator-head-right {
         display: flex;
         align-items: center;
-        .project-select /deep/ .project-wrapper {
+        .project-select ::v-deep .project-wrapper {
             margin-top: 0;
             margin-right: 18px;
             width: 240px;
@@ -317,7 +317,7 @@
                 }
             }
         }
-        /deep/ .bk-select.is-disabled {
+        ::v-deep .bk-select.is-disabled {
             background: none;
         }
     }

@@ -582,7 +582,7 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-/deep/.app-edit-dialog {
+::v-deep .app-edit-dialog {
     .bk-dialog {
         top: 15%;
     }

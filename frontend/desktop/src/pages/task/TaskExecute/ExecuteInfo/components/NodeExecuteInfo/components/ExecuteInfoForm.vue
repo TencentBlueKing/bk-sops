@@ -318,8 +318,6 @@
                         this.inputsRenderConfig = renderConfig
                         await this.getPluginDetail()
                     }
-                    // 获取输入参数的勾选状态
-                    this.hooked = this.getFormsHookState()
                 } catch (error) {
                     console.warn(error)
                 }
@@ -416,6 +414,9 @@
                     }
                     formItemConfig.tag_code = key
                     formItemConfig.attrs.name = variable.name
+                    if (formItemConfig.type === 'combine') {
+                        formItemConfig.name = variable.name
+                    }
                     // 自定义输入框变量正则校验添加到插件配置项
                     if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
                         formItemConfig.attrs.validation.push({
@@ -553,6 +554,8 @@
                     if (!this.isThirdPartyNode) {
                         this.outputs = this.pluginOutput[plugin][version]
                     }
+                    // 获取输入参数的勾选状态
+                    this.hooked = this.getFormsHookState()
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -697,7 +700,7 @@
     .no-data-wrapper {
         padding-top: 20px;
     }
-    /deep/.render-form {
+    ::v-deep .render-form {
         >.rf-form-item {
             .rf-group-name {
                 display: none;
@@ -722,6 +725,14 @@
             }
         }
         >.rf-form-group {
+            &::after{
+                content: "";
+                display: block;
+                clear: both;
+            }
+            .rf-form-item.show-label>.rf-tag-form {
+                margin-left: 20%;
+            }
             .form-item-group >.rf-form-item {
                 .rf-tag-label {
                     width: 20%;
@@ -744,7 +755,7 @@
             }
         }
     }
-    /deep/.subflow-form {
+    ::v-deep .subflow-form {
         .rf-form-group {
             .rf-group-name {
                 display: block;

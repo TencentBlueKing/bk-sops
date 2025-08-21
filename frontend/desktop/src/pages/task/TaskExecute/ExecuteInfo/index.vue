@@ -575,7 +575,7 @@
                         Object.values(children).forEach(item => {
                             item.state = state === 'SUSPENDED' && item.state === 'READY' ? 'PENDING_TASK_CONTINUE' : item.state
                         })
-                        
+
                         // 是否继续请求子任务
                         let continueRequest = ['CREATED', 'RUNNING', 'PENDING_PROCESSING'].includes(state)
                         // 任务暂停时如果有节点正在执行，需轮询节点状态
@@ -760,11 +760,11 @@
             }
         }
         &.subprocess-scroll {
-            /deep/.scroll-area {
+            ::v-deep .scroll-area {
                 overflow-y: initial;
             }
         }
     }
-    
+
 }
 </style>

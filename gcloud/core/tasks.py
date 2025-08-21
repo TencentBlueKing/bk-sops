@@ -36,7 +36,7 @@ from gcloud.conf import settings
 from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.core.project import sync_projects_from_cmdb
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.shortcuts.message.send_msg import send_message
+from gcloud.shortcuts.message.send_msg import CmsiSender
 from packages.bkapi.bk_user.shortcuts import get_client_by_username
 
 logger = logging.getLogger("celery")
@@ -168,7 +168,7 @@ def cmdb_business_sync_shutdown_periodic_task():
 @current_app.task
 def send_periodic_task_notify(executor, tenant_id, notify_type, receivers, title, content):
     try:
-        send_message(executor, tenant_id, notify_type, [receivers], title, content)
+        CmsiSender().send(executor, tenant_id, notify_type, receivers, title, content)
     except Exception as e:
         logger.exception(f"send periodic task notify error: {e}")
 
