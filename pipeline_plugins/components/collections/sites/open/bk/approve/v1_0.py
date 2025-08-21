@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
-import re
 import traceback
 
 from django.utils.translation import gettext_lazy as _
@@ -20,12 +19,15 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.utils import get_node_callback_url
 
-if settings.ENABLE_MULTI_TENANT_MODE:
+APPROVE_USE_LEGACY = EnvironmentVariables.objects.get_var("APPROVE_USE_LEGACY", "False").lower() == "true"
+
+if APPROVE_USE_LEGACY:
     from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
 else:
     from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
@@ -80,8 +82,7 @@ class ApproveService(Service):
         approve_content = data.get_one_of_inputs("bk_approve_content")
 
         verifier = verifier.replace(" ", "")
-
-        if settings.ENABLE_MULTI_TENANT_MODE:
+        if APPROVE_USE_LEGACY:
             # TODO 具体形态待确认
             # verifier_list = [
             #     f"({_verifier})" if "(" not in _verifier else _verifier for _verifier in verifier.split(",")
@@ -94,9 +95,13 @@ class ApproveService(Service):
                     "textarea_content": approve_content,
                     "multiUser_approver": verifier.split(","),
                 },
+                "system_id": settings.APP_CODE,
                 "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
                 "options": {},
             }
+            result = client.api.create_ticket(
+                kwargs, headers={"X-Bk-Tenant-Id": tenant_id, "SYSTEM-TOKEN": settings.SECRET_KEY}
+            )
         else:
             kwargs = {
                 "creator": executor,
@@ -110,8 +115,7 @@ class ApproveService(Service):
                     "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
                 },
             }
-
-        result = client.api.create_ticket(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+            result = client.api.create_ticket(kwargs)
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)
@@ -119,7 +123,7 @@ class ApproveService(Service):
             return False
 
         data.outputs.sn = result["data"]["sn"]
-
+        data.outputs.id = result["data"]["id"]
         task_id: int = parent_data.get_one_of_inputs("task_id")
         send_taskflow_message.delay(
             task_id=task_id,

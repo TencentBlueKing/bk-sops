@@ -301,7 +301,8 @@ def import_yaml_templates(request: Request):
     if template_type == "project" and project_id:
         template_kwargs.update({"project_id": int(project_id)})
         bk_biz_id = Project.objects.filter(id=project_id).only("bk_biz_id").first().bk_biz_id
-
+    elif template_type == "common":
+        template_kwargs.update({"tenant_id": request.user.tenant_id})
     convertor_handler = YamlSchemaConverterHandler("v1")
     load_yaml_result = convertor_handler.load_yaml_docs(f)
     if not load_yaml_result["result"]:
@@ -419,9 +420,7 @@ def base_template_parents(request: Request, template_model_cls: object, filters:
     qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
 
     if len(qs) != 1:
-        message = _(
-            f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理, 根据过滤条件: {filters}, 找到{len(qs)}条数据 | base_template_parents"
-        )
+        message = _(f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理, 根据过滤条件: {filters}, 找到{len(qs)}条数据 | base_template_parents")
         logger.error(message)
         return JsonResponse(
             {

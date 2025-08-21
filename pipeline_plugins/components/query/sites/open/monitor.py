@@ -27,7 +27,8 @@ def monitor_get_strategy(request, biz_cc_id):
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
     strategy_list = []
-    for strategy in response["data"]:
+    strategys = response["data"].get("strategy_config_list", [])
+    for strategy in strategys:
         strategy_list.append({"value": strategy["id"], "text": strategy["name"]})
     return JsonResponse({"result": True, "data": strategy_list})
 

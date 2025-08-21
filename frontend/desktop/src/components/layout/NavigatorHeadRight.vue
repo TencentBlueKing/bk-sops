@@ -182,11 +182,23 @@
                     { condition: window.BK_USER_WEB_APIGW_URL, url: `${window.BK_USER_WEB_APIGW_URL}/api/v3/open-web/tenant/current-user/language/` },
                     { condition: window.BK_PAAS_ESB_HOST, url: `${window.BK_PAAS_ESB_HOST}/api/c/compapi/v2/usermanage/fe_update_user_language/` }
                 ]
-
+    
                 try {
                     const endpoint = apiEndpoints.find(item => item.condition)
                     if (endpoint) {
-                        await axios.jsonp(endpoint.url, { language: local })
+                        if (window.BK_USER_WEB_APIGW_URL) {
+                            await fetch(endpoint.url, {
+                                method: 'PUT',
+                                headers: {
+                                    'X-Bk-Tenant-Id': window.TENANT_ID,
+                                    'Content-Type': 'application/json'
+                                },
+                                credentials: 'include',
+                                body: JSON.stringify({ language: local })
+                            })
+                        } else {
+                            await axios.jsonp(endpoint.url, { language: local })
+                        }
                     }
                 } catch (error) {
                     console.warn(error)

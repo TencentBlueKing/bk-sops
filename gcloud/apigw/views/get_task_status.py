@@ -50,13 +50,16 @@ def cache_decisioner(key, value):
 )
 def get_task_status(request, task_id, project_id):
     project = request.project
+    tenant_id = request.user.tenant_id
     subprocess_id = request.GET.get("subprocess_id")
     with_ex_data = request.GET.get("with_ex_data")
     with_failed_node_info = request.GET.get("with_failed_node_info")
     with_auto_retry_status = request.GET.get("with_auto_retry_status")
 
     try:
-        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
+        task = TaskFlowInstance.objects.get(
+            pk=task_id, project_id=project.id, is_deleted=False, project__tenant_id=tenant_id
+        )
     except Exception as e:
         message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
         logger.exception(message)

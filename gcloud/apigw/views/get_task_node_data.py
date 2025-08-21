@@ -12,21 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.conf import settings
-
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.core.apis.drf.serilaziers import NodeExecutionRecordResponseSerializer
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 @login_exempt
@@ -39,7 +37,8 @@ from apigw_manager.apigw.decorators import apigw_require
 @iam_intercept(TaskViewInterceptor())
 def get_task_node_data(request, task_id, project_id):
     project = request.project
-    task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
+    tenant_id = request.user.tenant_id
+    task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id, project__tenant_id=tenant_id)
 
     node_id = request.GET.get("node_id")
     component_code = request.GET.get("component_code")

@@ -64,7 +64,7 @@ NODE_LOG_DATA_SOURCE_CONFIG = json.loads(os.getenv("NODE_LOG_DATA_SOURCE_CONFIG"
 PAASV3_APIGW_API_TOKEN = os.getenv("BKAPP_PAASV3_APIGW_API_TOKEN")
 
 # APIGW 访问地址
-BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL") or os.getenv("BKAPP_BK_API_URL_TMPL")
+BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL") or os.getenv("BKAPP_BK_API_URL_TMPL", "")
 
 # 是否允许 celery worker 发送监控事件
 CELERY_SEND_EVENTS = bool(os.getenv("CELERY_SEND_EVENTS", False))
@@ -134,6 +134,7 @@ BKPAAS_BK_CRYPTO_TYPE = (
     or os.getenv("BK_CRYPTO_TYPE")
     or "CLASSIC"
 )
+BKAPP_CSRF_TRUSTED_ORIGINS = os.getenv("BKAPP_CSRF_TRUSTED_ORIGINS", "")
 
 # 任务列表展示时间，默认六个月
 BKAPP_TASK_LIST_STATUS_FILTER_DAYS = int(os.getenv("BKAPP_TASK_LIST_STATUS_FILTER_DAYS", 180))
@@ -193,7 +194,9 @@ TEMPLATE_MARKET_HOST = os.getenv("TEMPLATE_MARKET_HOST", "")
 # 模板市场文档路由
 TEMPLATE_MARKET_DOC_URL = os.getenv("TEMPLATE_MARKET_DOC_URL", "")
 
-ENABLE_MULTI_TENANT_MODE = bool(os.getenv("ENABLE_MULTI_TENANT_MODE", False))
+ENABLE_MULTI_TENANT_MODE = (
+    os.getenv("BKPAAS_MULTI_TENANT_MODE", os.getenv("ENABLE_MULTI_TENANT_MODE", "false")).lower() == "true"
+)
 
 # 统计信息清理配置
 CLEAN_EXPIRED_STATISTICS_CRON = tuple(os.getenv("BKAPP_CLEAN_EXPIRED_STATISTICS_CRON", "30 0 * * *").split())

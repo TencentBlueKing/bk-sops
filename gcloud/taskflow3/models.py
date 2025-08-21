@@ -711,8 +711,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         return qs.first()
 
-    def is_task_started(self, project_id, id):
-        qs = self.filter(project_id=project_id, id=id).only("pipeline_instance")
+    def is_task_started(self, project_id, id, tenant_id):
+        qs = self.filter(project_id=project_id, id=id, project__tenant_id=tenant_id).only("pipeline_instance")
 
         if not qs:
             raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))

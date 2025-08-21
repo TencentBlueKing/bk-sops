@@ -78,7 +78,7 @@ def register_grant_resource_creator_actions(instance, resource_type, with_ancest
     try:
         application = resource_creator_action_params(instance, resource_type, with_ancestors)
 
-        ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
+        ok, message = iam.grant_resource_creator_actions(application)
         if not ok:
             logging.error(
                 "[{resource_type}({resource_id}) created grant] {api} failed".format(
@@ -99,7 +99,7 @@ def register_batch_grant_resource_creator_actions(instance: list, response_type,
     try:
         application = batch_resource_creator_action_params(instance, response_type, creator, with_ancestors)
 
-        ok, message = iam.grant_batch_resource_creator_actions(application, bk_username=creator)
+        ok, message = iam.grant_batch_resource_creator_actions(application)
         if not ok:
             logging.error(
                 "[{resource_type}({resource_id}) batch created grant] {api} failed".format(
@@ -118,13 +118,16 @@ def register_batch_grant_resource_creator_actions(instance: list, response_type,
         )
 
 
-def register_grant_resource_creator_action_attributes(resource_type, creator, attributes):
-    tenant_id = get_current_tenant_id()
+def register_grant_resource_creator_action_attributes(resource_type, creator, tenant_id, attributes):
     iam = get_iam_client(tenant_id)
     try:
         application = resource_creator_action_attribute_params(resource_type, creator, attributes)
 
-        ok, message = iam.grant_resource_creator_action_attributes(application, bk_username=creator)
+        ok, message = iam.grant_resource_creator_action_attributes(application)
+        logging.info("ok: %s" % ok)
+        logging.info("message: %s" % message)
+        logging.info(f"application:{application}")
+        logging.info(f"tenant_id:{tenant_id}")
         if not ok:
             logging.error(
                 "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(

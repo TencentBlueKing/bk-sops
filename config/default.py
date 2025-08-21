@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import datetime
 import importlib
 import sys
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from bamboo_engine.config import Settings as BambooSettings
 from bkcrypto import constants as bkcrypto_constants
@@ -158,10 +158,12 @@ MIDDLEWARE += (
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
     "apigw_manager.apigw.authentication.ApiGatewayJWTGenericMiddleware",  # JWT 认证
     "apigw_manager.apigw.authentication.ApiGatewayJWTAppMiddleware",  # JWT 透传的应用信息
-    "apigw_manager.apigw.authentication.ApiGatewayJWTUserMiddleware",  # JWT 透传的用户信息
+    # "apigw_manager.apigw.authentication.ApiGatewayJWTUserMiddleware",  # JWT 透传的用户信息
+    "gcloud.utils.middleware.ApiGatewayJWTUserMiddleware",
 )
 
-AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
+# AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
+AUTHENTICATION_BACKENDS += ("gcloud.utils.middleware.CustomUserModelBackend",)
 
 ENABLE_IPV6 = env.ENABLE_IPV6
 # paasv3 和 开启了ipv6 才会尝试加载 BK_API_URL_TMPL 这个变量
@@ -184,7 +186,7 @@ if env.IS_PAAS_V3:
     BK_APIGW_CALLBACK_SERVER_HOST = callback_host.netloc
     BK_APIGW_CALLBACK_SERVER_SUB_PATH = callback_host.path.lstrip("/")
 
-    BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE = os.path.join(BASE_DIR, "gcloud", "apigw", "docs", "apigw-docs.tgz")
+    BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE = os.path.join(BASE_DIR, "gcloud", "apigw", "docs", "apigw-docs.tar.gz")
 
 # 默认数据库AUTO字段类型
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -198,7 +200,9 @@ if env.BKAPP_CORS_ALLOW:
 else:
     CORS_ALLOW_CREDENTIALS = False
 
-CSRF_TRUSTED_ORIGINS = CORS_ORIGIN_WHITELIST
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = [origin for origin in env.BKAPP_CSRF_TRUSTED_ORIGINS.split(",") if origin]
 
 if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
@@ -221,7 +225,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.34.1-rc.18"
+STATIC_VERSION = "3.35.1-alpha.1"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -522,7 +526,7 @@ CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_A
 BROKER_HEARTBEAT = 60
 BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
 
-SYSTEM_USE_API_ACCOUNT = "admin"
+SYSTEM_USE_API_ACCOUNT = "bk_admin" if env.ENABLE_MULTI_TENANT_MODE else "admin"
 
 # VER settings
 ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER)
@@ -757,8 +761,9 @@ BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
 PLUGIN_DISTRIBUTOR_NAME = env.PLUGIN_DISTRIBUTOR_NAME or APP_CODE
 
 # IAM APIGW 地址
-BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
-BK_IAM_APIGATEWAY_URL = env.BK_IAM_APIGW_HOST
+BK_IAM_APIGATEWAY_STAGE = os.getenv("BK_IAM_APIGATEWAY_STAGE", "prod")
+BK_IAM_APIGATEWAY_URL = env.BK_APIGW_URL_TMPL.format(api_name="bk-iam").rstrip("/") + "/"
+BK_IAM_APIGATEWAY_URL = urljoin(BK_IAM_APIGATEWAY_URL, BK_IAM_APIGATEWAY_STAGE)
 
 # 节点日志持久化时间
 LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS

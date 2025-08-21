@@ -54,3 +54,32 @@ def get_all_users(request):
         "data": resp.get("data"),
         "result": resp["result"],
     }
+
+
+def get_bk_username_by_tenant(tenant_id):
+    """
+    @summary: 开启多租户: 获取对应租户bk_admin的bk_useranme ,不开启多租户直接返回 settings.SYSTEM_USE_API_ACCOUNT
+    @param tenant_id: 租户ID
+    @return:
+    """
+
+    if settings.ENABLE_MULTI_TENANT_MODE:
+        # 查询环境变量表
+        bk_username = EnvironmentVariables.objects.get_var(tenant_id)
+        if bk_username:
+            return bk_username
+
+        # 调用接口查询
+        client = get_client_by_username(username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
+        result = client.api.batch_lookup_virtual_user(
+            {"lookups": settings.SYSTEM_USE_API_ACCOUNT, "lookup_field": "login_name"},
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
+
+        if result["data"]:
+            bk_username = result["data"][0]["bk_username"]
+            # 写入环境变量表
+            EnvironmentVariables.objects.create(key=tenant_id, value=bk_username)
+            return bk_username
+
+    return settings.SYSTEM_USE_API_ACCOUNT

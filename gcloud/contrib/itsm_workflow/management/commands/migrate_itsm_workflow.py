@@ -36,7 +36,8 @@ class Command(BaseCommand):
         # 注册itsm system
         try:
             client.api.system_create(
-                {"name": settings.APP_CODE, "code": settings.APP_CODE}, headers={"X-Bk-Tenant-Id": tenant_id}
+                {"name": settings.APP_CODE, "code": settings.APP_CODE, "token": settings.SECRET_KEY},
+                headers={"X-Bk-Tenant-Id": tenant_id},
             )
         except Exception as e:
             logger.error(e)

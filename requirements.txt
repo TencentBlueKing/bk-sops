@@ -69,7 +69,7 @@ fakeredis==2.26.1
 django-test-toolkit==1.1.0
 
 # apigw
-apigw-manager[cryptography]==4.0.1
+apigw-manager[cryptography]==4.1.0
 
 # rsa
 pyCryptodome==3.20.0

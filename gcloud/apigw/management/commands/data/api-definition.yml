@@ -28,6 +28,10 @@ stage:
       period: 60
 
 resource_docs:
+  # 资源文档的归档文件，可为 tar.gz，zip 格式文件；创建归档文件可使用指令 `tar czvf xxx.tgz en zh`
+  # archivefile: "{{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}"
+  # 资源文档目录，basedir 与 archivefile 二者至少一个有效，若同时存在，则 archivefile 优先
+  # basedir: "{{ settings.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
   archivefile: {{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}
 
 release:
@@ -36,4 +40,30 @@ release:
 
 
 grant_permissions:
-  - bk_app_code: bk_audit
+  - bk_app_code: "bk_bcs_app"
+    grant_dimension: "resource"
+    resource_names:
+      - system_create_task
+      - system_start_task
+      - system_get_tasks_status
+      - system_get_template_list
+      - system_get_user_project_detail
+      - system_get_template_info
+      - system_operate_task
+  - bk_app_code: "bk_monitorv3"
+    grant_dimension: "resource"
+    resource_names:
+      - system_get_user_project_detail
+      - system_get_template_list
+      - system_get_template_info
+      - system_preview_task_tree
+      - system_create_task
+      - system_start_task
+      - system_get_task_status
+      - system_import_project_template
+  - bk_app_code: "bk_nodeman"
+    grant_dimension: "resource"
+    resource_names:
+      - system_create_task
+      - system_start_task
+      - system_get_task_status

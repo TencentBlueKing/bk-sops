@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from gcloud.conf import settings
+from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.exceptions import APIError
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
@@ -22,7 +23,8 @@ def has_biz_set(tenant_id, bk_scope_id: int):
     :param tenant_id: 租户 ID
     :param bk_scope_id: 业务集 ID
     """
-    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
+    bk_username = get_bk_username_by_tenant(tenant_id)
+    client = get_client_by_username(bk_username, stage=settings.BK_APIGW_STAGE_NAME)
     resp = client.api.list_business_set(
         {
             "bk_biz_set_filter": {

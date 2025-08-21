@@ -22,6 +22,7 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_flow_finished,
     title_and_content_for_periodic_task_start_fail,
 )
+
 from gcloud.shortcuts.message.send_msg import CmsiSender, MessageSender
 from packages.bkapi.bk_user.shortcuts import get_client_by_username
 

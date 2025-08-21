@@ -32,10 +32,10 @@ class BatchTemplateFormWithSchemesPermissions(IAMMixin, permissions.BasePermissi
         iam = get_iam_client(tenant_id)
         if template_source == PROJECT:
             action = Action(IAMMeta.FLOW_VIEW_ACTION)
-            resources_list = res_factory.resources_list_for_flows(flows)
+            resources_list = res_factory.resources_list_for_flows(flows, tenant_id)
         else:
             action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-            resources_list = res_factory.resources_list_for_common_flows(flows)
+            resources_list = res_factory.resources_list_for_common_flows(flows, tenant_id)
 
         if not resources_list:
             return True

@@ -119,7 +119,7 @@ def iam_multi_resource_auth_or_raise(username, action, resource_ids, get_resourc
     iam = get_iam_client(tenant_id)
     action = Action(action)
     subject = Subject("user", username)
-    resource_list = getattr(res_factory, get_resource_func)(resource_ids)
+    resource_list = getattr(res_factory, get_resource_func)(resource_ids, tenant_id)
     if not resource_list:
         return
     resource_map = {resource[0].id: resource for resource in resource_list}
@@ -142,7 +142,7 @@ def iam_resource_auth_or_raise(username, action, tenant_id, resource_id=None, ge
     subject = Subject("user", username)
     resources = None
     if get_resource_func:
-        resources = getattr(res_factory, get_resource_func)(resource_id)
+        resources = getattr(res_factory, get_resource_func)(resource_id, tenant_id)
     request = Request(IAMMeta.SYSTEM_ID, subject, action, resources or [], {})
     if not iam.is_allowed(request):
         raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources or [])
