@@ -1,5 +1,13 @@
 <template>
     <div :class="['http-callback-wrapper', { 'is-task-setting': !isViewMode }]">
+        <div class="http-callaback-switch">
+            <span>{{$t('是否开启')}}</span>
+            <bk-switcher
+                v-model="isEnable"
+                :disabled="isViewMode"
+                @change="onEnableWebhookChange">
+            </bk-switcher>
+        </div>
         <div class="http-callback-address">
             <bk-select
                 :disabled="isViewMode"
@@ -12,7 +20,8 @@
                 <bk-option v-for="option in methodList"
                     :key="option.id"
                     :id="option.id"
-                    :name="option.name">
+                    :name="option.name"
+                    :disabled="option.isDisabled">
                 </bk-option>
             </bk-select>
             <div class="http-callback-url">
@@ -31,10 +40,16 @@
                 :active.sync="activeTab"
                 type="unborder-card"
                 @tab-change="requestTypetabChange">
-                <bk-tab-panel name="params" :disabled="true">
+                <bk-tab-panel name="params">
                     <template slot="label">
-                        <span class="panel-name disabled-tab-name">{{$t('参数')}}</span>
+                        <span class="panel-name disabled-tab-name">{{$t('回调内容示例')}}</span>
                     </template>
+                    <div style="height: 300px">
+                        <full-code-editor
+                            class="scroll-editor"
+                            :value="callbackExample">
+                        </full-code-editor>
+                    </div>
                 </bk-tab-panel>
                 <bk-tab-panel name="authentication">
                     <template slot="label">
@@ -108,12 +123,12 @@
    
                     </bk-table>
                 </bk-tab-panel>
-                <bk-tab-panel name="body" :disabled="true">
+                <!-- <bk-tab-panel name="body" :disabled="true">
                     <template slot="label">
                         <span class="panel-name disabled-tab-name">{{$t('主体')}}</span>
                         <bk-badge dot theme="success"></bk-badge>
                     </template>
-                </bk-tab-panel>
+                </bk-tab-panel> -->
                 <bk-tab-panel name="settings" :label="$t('设置')">
                     <bk-form form-type="vertical" :rules="rules" ref="settingForm">
                         <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key === 'retry_times' ? 'retry_times' : ''" :icon-offset="27">
@@ -131,6 +146,13 @@
                 </bk-tab-panel>
             </bk-tab>
         </div>
+        <div class="debug-btn">
+            <bk-button theme="primary" :outline="true"
+                @click="debugMock"
+                :disabled="isViewMode || !localWebhookForm.method || !localWebhookForm.endpoint">
+                {{$t('调试')}}
+            </bk-button>
+        </div>
     </div>
 
 </template>
@@ -138,7 +160,13 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
+    import { mapActions } from 'vuex'
+
     export default {
+        components: {
+            FullCodeEditor
+        },
         props: {
             webhookData: {
                 type: Object,
@@ -147,11 +175,15 @@
             isViewMode: {
                 type: Boolean,
                 default: false
+            },
+            enableWebhook: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
             const defaultWebhookForm = {
-                method: '',
+                method: 'POST',
                 endpoint: '',
                 extra_info: {
                     authorization: {
@@ -185,17 +217,35 @@
                     interval
                 }
             }
+            const example = {
+                'delivery_id': 'e3badd079fc4430bb47399786296a11d',
+                'description': '蓝鲸应用开发',
+                'event': {
+                    'code': 'task_failed',
+                    'description': '',
+                    'info': {
+                        'taskflow_id': 41
+                    },
+                    'name': '任务失败'
+                }
+            }
+            const callbackExample = JSON.stringify(example, null, 2)
             return {
+                callbackExample,
+                localWebhookForm,
+                isEnable: this.enableWebhook,
                 methodList: [
                     {
                         id: 'POST',
                         key: 'POST',
-                        name: 'POST'
+                        name: 'POST',
+                        isDisabled: false
                     },
                     {
                         id: 'GET',
                         key: 'GET',
-                        name: 'GET'
+                        name: 'GET',
+                        isDisabled: true
                     }
                 ],
                 headerFields: [
@@ -232,7 +282,6 @@
                     }
                 ],
                 activeTab: 'authentication',
-                localWebhookForm,
                 rules: {
                     retry_times: [
                         {
@@ -245,6 +294,9 @@
             }
         },
         methods: {
+            ...mapActions('template', [
+                'debugWebhook'
+            ]),
             requestTypetabChange (tabName) {
                 this.activeTab = tabName
             },
@@ -254,6 +306,9 @@
                     value: '',
                     desc: ''
                 })
+            },
+            onEnableWebhookChange (row) {
+                this.$emit('change', row, true)
             },
             onWebhookConfigChange () {
                 this.$emit('change', this.localWebhookForm)
@@ -267,6 +322,37 @@
             delItemHeader (row, index) {
                 this.localWebhookForm.extra_info.headers.splice(index, 1)
                 this.onWebhookConfigChange()
+            },
+            async debugMock () {
+                const { authorization, headers, timeout, retry_times, interval } = this.localWebhookForm.extra_info
+                const basicAuth = {}
+                if (authorization.type === 'basic') {
+                    const username = authorization.username.trim()
+                    const password = authorization.password.trim()
+                    basicAuth.type = 'basic'
+                    basicAuth.token = {
+                        username,
+                        password
+                    }
+                }
+                const params = {
+                    method: this.localWebhookForm.method,
+                    endpoint: this.localWebhookForm.endpoint,
+                    authorization: authorization.type === 'basic' ? basicAuth : authorization,
+                    headers,
+                    timeout,
+                    retry_times,
+                    interval
+                }
+                const res = await this.debugWebhook(params)
+                if (res.result) {
+                    this.$bkNotify({
+                        type: 'success',
+                        title: i18n.t('调试结果'),
+                        message: i18n.t('请求发送成功'),
+                        theme: 'success'
+                    })
+                }
             }
         }
     }
@@ -366,5 +452,16 @@
 }
 .auth-bearer-info{
     margin-bottom: 15px;
+}
+.debug-btn{
+    margin-top: 10px;
+}
+.http-callaback-switch{
+    span{
+      line-height: 32px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #63656e;
+    }
 }
 </style>
