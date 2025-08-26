@@ -19,18 +19,11 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
-from gcloud.core.models import EnvironmentVariables
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils import get_node_callback_url
-
-APPROVE_USE_LEGACY = EnvironmentVariables.objects.get_var("APPROVE_USE_LEGACY", "False").lower() == "true"
-
-if APPROVE_USE_LEGACY:
-    from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
-else:
-    from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -74,7 +67,6 @@ class ApproveService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         verifier = data.get_one_of_inputs("bk_verifier")
@@ -82,40 +74,20 @@ class ApproveService(Service):
         approve_content = data.get_one_of_inputs("bk_approve_content")
 
         verifier = verifier.replace(" ", "")
-        if not APPROVE_USE_LEGACY:
-            # TODO 具体形态待确认
-            # verifier_list = [
-            #     f"({_verifier})" if "(" not in _verifier else _verifier for _verifier in verifier.split(",")
-            # ]
-            # verifier_matches = re.findall(r"\(([^()]*)\)", verifier_list)
-            kwargs = {
-                "workflow_key": f"{tenant_id}_bk_sops_workflows_key_100001_v1",
-                "form_data": {
-                    "ticket__title": title,
-                    "textarea_content": approve_content,
-                    "multiUser_approver": verifier.split(","),
-                },
-                "system_id": settings.APP_CODE,
-                "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
-                "options": {},
-            }
-            result = client.api.create_ticket(
-                kwargs, headers={"X-Bk-Tenant-Id": tenant_id, "SYSTEM-TOKEN": settings.SECRET_KEY}
-            )
-        else:
-            kwargs = {
-                "creator": executor,
-                "fields": [
-                    {"key": "title", "value": title},
-                    {"key": "APPROVER", "value": verifier},
-                    {"key": "APPROVAL_CONTENT", "value": approve_content},
-                ],
-                "fast_approval": True,
-                "meta": {
-                    "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
-                },
-            }
-            result = client.api.create_ticket(kwargs)
+
+        kwargs = {
+            "creator": executor,
+            "fields": [
+                {"key": "title", "value": title},
+                {"key": "APPROVER", "value": verifier},
+                {"key": "APPROVAL_CONTENT", "value": approve_content},
+            ],
+            "fast_approval": True,
+            "meta": {
+                "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
+            },
+        }
+        result = client.api.create_ticket(kwargs)
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)
