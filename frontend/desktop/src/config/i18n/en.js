@@ -1890,7 +1890,15 @@ const en = {
     '重试间隔': 'Retry Interval',
     '用户名': 'Username',
     '重试次数不能超过5次': 'The number of retries cannot exceed 5 times',
-    '支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口': 'Supports calling back the interface with the task output content and execution result as parameters after the process ends (success or failure)'
+    '回调内容示例': 'Callback Content Example',
+    '支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口': 'Supports calling back the interface with the task output content and execution result as parameters after the process ends (success or failure)',
+    '调试': 'Debug',
+    '是否开启': 'Whether to enable',
+    '请求发送成功': 'Request sent successfully',
+    '请求发送失败': 'Request failed to send',
+    '执行配置': 'Execution Configuration',
+    '流程执行的通用配置': 'General configuration for process execution',
+    '调试结果': 'Debug Result'
 }
 
 export default en
