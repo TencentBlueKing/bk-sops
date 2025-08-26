@@ -200,6 +200,9 @@
                 const compCode = this.nodeDetailConfig.component_code
                 return !!compCode && compCode === 'subprocess_plugin'
             },
+            isLegacySubProcess () { // 是否为旧版子流程
+                return !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
+            },
             thirdPartyNodeCode () {
                 if (!this.isThirdPartyNode) return ''
                 const nodeInfo = this.pipelineTree.activities[this.nodeDetailConfig.node_id]
