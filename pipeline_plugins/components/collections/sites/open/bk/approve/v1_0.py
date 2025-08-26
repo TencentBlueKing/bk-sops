@@ -28,9 +28,9 @@ from pipeline_plugins.components.utils import get_node_callback_url
 APPROVE_USE_LEGACY = EnvironmentVariables.objects.get_var("APPROVE_USE_LEGACY", "False").lower() == "true"
 
 if APPROVE_USE_LEGACY:
-    from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
-else:
     from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
+else:
+    from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class ApproveService(Service):
         approve_content = data.get_one_of_inputs("bk_approve_content")
 
         verifier = verifier.replace(" ", "")
-        if APPROVE_USE_LEGACY:
+        if not APPROVE_USE_LEGACY:
             # TODO 具体形态待确认
             # verifier_list = [
             #     f"({_verifier})" if "(" not in _verifier else _verifier for _verifier in verifier.split(",")

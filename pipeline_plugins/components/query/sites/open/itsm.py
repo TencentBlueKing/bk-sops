@@ -9,14 +9,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from gcloud.core.models import EnvironmentVariables
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.handlers import handle_api_error
 
-if settings.ENABLE_MULTI_TENANT_MODE:
-    from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
-else:
+APPROVE_USE_LEGACY = EnvironmentVariables.objects.get_var("APPROVE_USE_LEGACY", "False").lower() == "true"
+
+if APPROVE_USE_LEGACY:
     from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
+else:
+    from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -93,7 +96,7 @@ class ITSMNodeTransitionView(APIView):
         if not node_outputs:
             return Response({"result": False, "message": "获取该节点输出参数为空"})
 
-        if settings.ENABLE_MULTI_TENANT_MODE:
+        if not APPROVE_USE_LEGACY:
             ticket_id = ""
             task_id = ""
             for node_output in node_outputs:
