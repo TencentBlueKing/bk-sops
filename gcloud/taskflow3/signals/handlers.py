@@ -91,9 +91,7 @@ def send_task_message(pipeline_id, msg_type):
         # broadcast events through webhooks
         event = WebhookEventType.TASK_FAILED.value if msg_type == ATOM_FAILED else WebhookEventType.TASK_FINISHED.value
         scopes = [(WebhookScopeType.TEMPLATE.value, str(taskflow.template_id))]
-        event_broadcast_signal.send(
-            sender=event, scopes=scopes, extra_info={"taskflow_id": taskflow.id, "event": event}
-        )
+        event_broadcast_signal.send(sender=event, scopes=scopes, extra_info={"taskflow_id": taskflow.id})
 
     except Exception as e:
         logger.exception(f"[send_task_message] task() send message({msg_type}) error: {e}")
