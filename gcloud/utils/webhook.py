@@ -19,6 +19,7 @@ from gcloud.constants import WebhookScopeType, WebhookEventType
 from webhook.models import Webhook as WebhookModel
 from webhook.models import Scope as ScopeModel
 from webhook.models import Subscription
+from webhook.contrib.drf.serializers import WebhookSerializer
 from django.conf import settings
 
 logger = logging.getLogger("root")
@@ -61,6 +62,8 @@ def apply_webhook_configs(webhook_configs, scope_code):
     webhook_code = f"template_{scope_code}_webhook"
     webhook_name = f"template_{scope_code}_webhook"
     webhook_configs.update({"code": webhook_code, "name": webhook_name})
+    serializer = WebhookSerializer(data=webhook_configs)
+    serializer.is_valid(raise_exception=True)
     retry_times = webhook_configs.get("extra_info", {}).get("retry_times", 2)
     if retry_times > settings.MAX_WEBHOOK_RETRY_TIMES:
         return {
