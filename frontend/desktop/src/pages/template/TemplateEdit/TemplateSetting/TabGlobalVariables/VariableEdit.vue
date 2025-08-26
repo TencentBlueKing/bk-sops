@@ -822,7 +822,7 @@
                     // renderform表单校验
                     if (this.renderConfig.length > 0) {
                         const tagCode = this.renderConfig[0].tag_code
-    
+
                         if (this.$refs.renderForm) {
                             // 默认值执行校验的逻辑
                             // 1.表单设置为隐藏
@@ -934,7 +934,7 @@
     .form-content {
         margin-left: 140px;
         min-height: 36px;
-        /deep/ {
+        ::v-deep {
             .bk-select {
                 background: #ffffff;
                 &.is-disabled {
@@ -1104,7 +1104,7 @@
             transform: scale(0.8);
         }
     }
-    /deep/ .variable-confirm-dialog-content {
+    ::v-deep .variable-confirm-dialog-content {
         padding: 40px 0;
         text-align: center;
         .leave-tips {

@@ -134,7 +134,7 @@
 
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
-/deep/ .operate-flow-table {
+::v-deep .operate-flow-table {
     .bk-table-body-wrapper {
         max-height: calc(100vh - 145px);
         color: #63656e;

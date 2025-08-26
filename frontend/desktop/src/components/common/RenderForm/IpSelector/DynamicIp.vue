@@ -390,7 +390,7 @@
     position: relative;
     margin-bottom: 10px;
     width: 100%;
-    /deep/ .search-input {
+    ::v-deep .search-input {
         width: 100%;
     }
 }
@@ -409,7 +409,7 @@
     }
 }
 .is-view {
-    /deep/ .bk-big-tree {
+    ::v-deep .bk-big-tree {
         .bk-scroll-item {
             .node-checkbox {
                 border-color: #dcdee5;
@@ -429,11 +429,11 @@
 }
 .el-tree {
     background: inherit;
-    /deep/ .el-tree-node__label {
+    ::v-deep .el-tree-node__label {
         padding-left: 4px;
     }
 }
-/deep/ .bk-big-tree-node .node-content {
+::v-deep .bk-big-tree-node .node-content {
     font-size: 12px;
 }
 .dynamic-ip-empty {

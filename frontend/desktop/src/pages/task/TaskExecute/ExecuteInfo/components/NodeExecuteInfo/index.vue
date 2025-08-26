@@ -493,6 +493,9 @@
                     }
                     formItemConfig.tag_code = key.slice(2, -1)
                     formItemConfig.attrs.name = variable.name
+                    if (formItemConfig.type === 'combine') {
+                        formItemConfig.name = variable.name
+                    }
                     // 自定义输入框变量正则校验添加到插件配置项
                     if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
                         formItemConfig.attrs.validation.push({
@@ -617,15 +620,15 @@
         .code-block-wrap {
             background: #313238;
             padding: 10px;
-            /deep/ .vjs-tree {
+            ::v-deep .vjs-tree {
                 color: #ffffff;
             }
         }
     }
-    /deep/ .vjs-tree {
+    ::v-deep .vjs-tree {
         font-size: 12px;
     }
-    /deep/.execute-info-tab .bk-tab-section{
+    ::v-deep .execute-info-tab .bk-tab-section{
         padding: 0;
     }
     .scroll-area {
@@ -648,7 +651,7 @@
         .time-wrap {
             display: flex;
             align-items: center;
-            /deep/.bk-select {
+            ::v-deep .bk-select {
                 width: 64px;
                 height: 24px;
                 line-height: 22px !important;
@@ -679,7 +682,7 @@
         font-size: 14px;
         font-weight: 600;
     }
-    /deep/.common-section-title {
+    ::v-deep .common-section-title {
         color: #313238;
         font-weight: 600;
         line-height: 18px;
@@ -690,10 +693,10 @@
             top: 0;
         }
     }
-    /deep/ .primary-value.code-editor {
+    ::v-deep .primary-value.code-editor {
         height: 300px;
     }
-    /deep/.log-section {
+    ::v-deep .log-section {
         min-height: 758px;
     }
 }

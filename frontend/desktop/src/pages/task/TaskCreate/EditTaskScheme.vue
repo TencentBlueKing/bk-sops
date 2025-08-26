@@ -189,10 +189,6 @@
                 type: Boolean,
                 default: false
             },
-            isEditProcessPage: {
-                type: Boolean,
-                default: true
-            },
             selectedNodes: {
                 type: Array,
                 default () {
@@ -272,7 +268,13 @@
             // 选择方案并进行切换更新选择的节点
             onCheckChange (scheme) {
                 scheme.isChecked = !scheme.isChecked
-                this.$emit('selectScheme')
+                
+                let selectNodes = []
+                this.schemeList.forEach(scheme => {
+                    scheme.isChecked && selectNodes.push(...JSON.parse(scheme.data))
+                })
+                selectNodes = Array.from(new Set(selectNodes)) || []
+                this.$emit('updateSelectedNodes', selectNodes)
             },
             async initLoad () {
                 try {
@@ -303,7 +305,7 @@
                         }
                     })
                     // 画布按默认方案来勾选节点
-                    this.$emit('setCanvasSelected', [])
+                    this.$emit('updateSelectedNodes', [])
                 } catch (error) {
                     console.error(error)
                 }
@@ -402,10 +404,13 @@
              * 执行方案全选/半选
              */
             onAllCheckChange (val) {
+                let selectNodes = []
                 this.schemeList.forEach(scheme => {
                     scheme.isChecked = val
+                    val && selectNodes.push(...JSON.parse(scheme.data))
                 })
-                this.$emit('selectAllScheme', val)
+                selectNodes = Array.from(new Set(selectNodes)) || []
+                this.$emit('updateSelectedNodes', selectNodes)
             },
             /**
              * 创建任务方案弹窗
@@ -446,7 +451,7 @@
                     this.previousCheckedScheme = []
                 }
                 // 取消编辑后，画布按编辑前选中的方案来勾选节点
-                this.$emit('setCanvasSelected', [...this.previousCheckedNode])
+                this.$emit('updateSelectedNodes', [...this.previousCheckedNode])
                 this.previousCheckedNode = []
             },
             /**
@@ -534,7 +539,7 @@
                     }
                 })
                 // 画布按当前方案勾选节点
-                this.$emit('setCanvasSelected', JSON.parse(scheme.data))
+                this.$emit('updateSelectedNodes', JSON.parse(scheme.data))
                 // 获取焦点
                 this.$nextTick(() => {
                     let refInstance = this.$refs[`scheme-${scheme.id}`]
@@ -603,7 +608,7 @@
                     this.previousCheckedScheme = []
                 }
                 // 取消编辑后，画布按编辑前选中的方案来勾选节点
-                this.$emit('setCanvasSelected', [...this.previousCheckedNode])
+                this.$emit('updateSelectedNodes', [...this.previousCheckedNode])
                 this.previousCheckedNode = []
             },
             /**
@@ -652,7 +657,7 @@
                     const index = this.schemeList.findIndex(item => item.id === scheme.id)
                     this.schemeList.splice(index, 1)
                     // 删除方案后，画布按编辑前选中的方案来勾选节点
-                    this.$emit('setCanvasSelected', [...this.previousCheckedNode])
+                    this.$emit('updateSelectedNodes', [...this.previousCheckedNode])
                     this.previousCheckedNode = []
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),

@@ -592,12 +592,12 @@ $bgBlue: #3a84ff;
                 color: #3a84ff;
                 cursor: pointer;
             }
-            /deep/.bk-form-input {
+            ::v-deep .bk-form-input {
                 color: #333333;
                 cursor: text;
             }
         }
-        /deep/ .tab2-nav-item {
+        ::v-deep .tab2-nav-item {
             width: 20%;
             border-bottom: 1px solid $commonBorderColor;
             line-height: 40px !important;
@@ -605,14 +605,14 @@ $bgBlue: #3a84ff;
                 border-left: 1px solid $commonBorderColor !important;
             }
         }
-        /deep/.bk-tab2-nav .active {
+        ::v-deep .bk-tab2-nav .active {
             border-bottom: none;
             border-right: none !important;
         }
-        /deep/ .bk-tab2 {
+        ::v-deep .bk-tab2 {
             border: 1px solid $commonBorderColor;
         }
-        /deep/ .bk-tab-label-list {
+        ::v-deep .bk-tab-label-list {
             width: 100%;
             .bk-tab-label-item {
                 width: 20.05%;
@@ -655,10 +655,10 @@ $bgBlue: #3a84ff;
         &:hover {
             color: #f4aa1a;
         }
-        /deep/ .bk-tooltip-arrow {
+        ::v-deep .bk-tooltip-arrow {
             display: none;
         }
-        /deep/ .bk-tooltip-inner {
+        ::v-deep .bk-tooltip-inner {
             max-width: 520px;
             padding: 0px;
             border: none;

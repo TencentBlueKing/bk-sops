@@ -173,7 +173,7 @@
                     </p>
                     <div v-bkloading="{ isLoading: isLoading || schemeLoading, opacity: 1, zIndex: 100 }">
                         <NotifyTypeConfig
-                            v-if="formData.template_id"
+                            v-if="formData.template_id && !templateDataLoading"
                             :notify-type-label="$t('通知方式')"
                             :label-width="87"
                             :table-width="570"
@@ -181,6 +181,7 @@
                             :project_id="project_id"
                             :is-view-mode="true"
                             :notify-type-list="[{ text: $t('任务状态') }]"
+                            :notify-type-extra-info="notifyTypeExtraInfo"
                             :receiver-group="receiverGroup">
                         </NotifyTypeConfig>
                         <NoData v-else></NoData>
@@ -348,6 +349,7 @@
                 selectedNodes: [],
                 notifyType: [[], []],
                 receiverGroup: [],
+                notifyTypeExtraInfo: {},
                 totalPage: 1,
                 pagination: {
                     current: 1,
@@ -517,8 +519,9 @@
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
                     this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
-                    const receiverGroup = JSON.parse(notify_receivers).receiver_group
+                    const { receiver_group: receiverGroup, extra_info: extraInfo = {} } = JSON.parse(notify_receivers)
                     this.receiverGroup = receiverGroup && receiverGroup.slice(0)
+                    this.notifyTypeExtraInfo = { ...extraInfo }
                     const pipelineDate = JSON.parse(templateData.pipeline_tree)
                     this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
                     // 获取模板对应的执行方案
@@ -877,19 +880,19 @@
 
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
-/deep/.bk-sideslider-content {
+::v-deep .bk-sideslider-content {
     height: calc(100% - 60px);
     position: relative;
     padding: 18px 31px 48px 28px;
     overflow-y: auto;
     @include scrollbar;
 }
-/deep/.bk-sideslider-title {
+::v-deep .bk-sideslider-title {
     color: #313238;
     font-size: 16px;
     font-weight: normal;
 }
-/deep/.btn-footer {
+::v-deep .btn-footer {
     z-index: 100;
 }
 .config-section {
@@ -912,7 +915,7 @@
             cursor: pointer;
         }
     }
-    /deep/.bk-form {
+    ::v-deep .bk-form {
         .bk-label {
             font-size: 12px;
             color: #63656e;
@@ -954,12 +957,12 @@
         padding: 0 25px;
     }
 }
-/deep/.notify-type-wrapper {
+::v-deep .notify-type-wrapper {
     .bk-form-content {
         margin-left: 90px !important;
     }
 }
-/deep/.template-loading {
+::v-deep .template-loading {
     .bk-loading-wrapper {
         top: 65%;
     }

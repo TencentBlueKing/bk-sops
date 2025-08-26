@@ -398,7 +398,7 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒(1 - 86400)，为空时使用JOB默认值"),
+                placeholder: gettext("单位为秒(1 - 259200)，为空时使用JOB默认值"),
                 hookable: true,
                 validation: [
                     {
@@ -416,9 +416,9 @@
                                 result.result = false;
                                 result.error_message = gettext("超时时间必须为整数")
                             }
-                            if (+value < 1 || +value > 86400) {
+                            if (+value < 1 || +value > 259200) {
                                 result.result = false;
-                                result.error_message = gettext("超时时间必须在 1 - 86400 范围内")
+                                result.error_message = gettext("超时时间必须在 1 - 259200 范围内")
                             }
                             return result
                         }
