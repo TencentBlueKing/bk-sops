@@ -12,11 +12,8 @@ from rest_framework.views import APIView
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.handlers import handle_api_error
-
-if settings.ENABLE_MULTI_TENANT_MODE:
-    from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
-else:
-    from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
+from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username as get_itsm4_client_by_username
+from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
 
@@ -41,14 +38,7 @@ class ITSMViewResponse(serializers.Serializer):
 class ITSMNodeTransitionView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    @swagger_auto_schema(
-        method="POST",
-        operation_summary="提供节点审批功能",
-        request_body=ITSMViewRequestSerializer,
-        responses={200: ITSMViewResponse},
-    )
-    @action(methods=["POST"], detail=False)
-    def post(self, request):
+    def _get_common_data(self, request):
         # 获取请求中的参数并判断
         # 由于序列化器bool字段会默认给值,所以需要提前在序列化器校验之前校验is_passed
         if "is_passed" not in request.data:
@@ -93,48 +83,18 @@ class ITSMNodeTransitionView(APIView):
         if not node_outputs:
             return Response({"result": False, "message": "获取该节点输出参数为空"})
 
-        if settings.ENABLE_MULTI_TENANT_MODE:
-            ticket_id = ""
-            task_id = ""
-            for node_output in node_outputs:
-                if node_output["key"] == "id":
-                    ticket_id = node_output["value"]
-                    break
-            if not ticket_id:
-                return Response({"result": False, "message": "该审批节点输出参数中没有itsm工单id"})
-            client = get_client_by_username(username=operator, stage=settings.BK_APIGW_STAGE_NAME)
-            ticket_info_result = client.api.ticket_detail(
-                {"id": ticket_id}, headers={"X-Bk-Tenant-Id": request.user.tenant_id}
-            )
-            for processor in ticket_info_result["data"]["current_processors"]:
-                task_id = processor["task_id"]
-                break
-            if not ticket_info_result["result"]:
-                message = handle_api_error("bk-itsm4", "ticket_detail", request.data, ticket_info_result)
-                logger.error(message)
-                check_and_raise_raw_auth_fail_exception(ticket_info_result, message)
-                result = {"result": False, "message": message}
-                return Response(result)
-            kwargs = {
-                "ticket_id": ticket_id,
-                "task_id": task_id,
-                "operator": operator,
-                "operator_type": "user",
-                "system_id": ticket_info_result["data"]["system_id"] or "",
-                "action": "approve" if serializer_data["is_passed"] else "refuse",
-                "desc": serializer_data["message"],
-            }
+        return serializer_data, node_outputs
 
-            itsm_result = client.api.handle_approval_node(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
-
-            if not itsm_result["result"]:
-                message = handle_api_error("bk-itsm4", "handle_approval_node", kwargs, itsm_result)
-                logger.error(message)
-                check_and_raise_raw_auth_fail_exception(itsm_result, message)
-                result = {"result": False, "message": message}
-                return Response(result)
-
-            return Response({"result": True, "data": None})
+    @swagger_auto_schema(
+        method="POST",
+        operation_summary="提供旧版节点审批功能",
+        request_body=ITSMViewRequestSerializer,
+        responses={200: ITSMViewResponse},
+    )
+    @action(methods=["POST"], detail=False)
+    def post(self, request):
+        serializer_data, node_outputs = self._get_common_data(request)
+        operator = request.user.username
 
         # 从node_outputs中获取单号
         sn = ""
@@ -195,7 +155,7 @@ class ITSMNodeTransitionView(APIView):
         # 构建请求参数
         kwargs = {"operator": operator, "sn": sn, "state_id": state_id, "action_type": "TRANSITION", "fields": fields}
 
-        itsm_result = client.api.operate_node(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
+        itsm_result = client.api.operate_node(kwargs)
 
         # 判断api请求结果是否成功
         if not itsm_result["result"]:
@@ -208,4 +168,61 @@ class ITSMNodeTransitionView(APIView):
         return Response({"result": True, "data": None})
 
 
-itsm_urlpatterns = [re_path(r"^itsm/node_transition/$", ITSMNodeTransitionView.as_view())]
+class ITSMNodeTransitionNewView(ITSMNodeTransitionView):
+    @swagger_auto_schema(
+        method="POST",
+        operation_summary="提供新版节点审批功能",
+        request_body=ITSMViewRequestSerializer,
+        responses={200: ITSMViewResponse},
+    )
+    @action(methods=["POST"], detail=False)
+    def post(self, request):
+        operator = request.user.username
+        serializer_data, node_outputs = self._get_common_data(request)
+        ticket_id = ""
+        task_id = ""
+        for node_output in node_outputs:
+            if node_output["key"] == "id":
+                ticket_id = node_output["value"]
+                break
+        if not ticket_id:
+            return Response({"result": False, "message": "该审批节点输出参数中没有itsm工单id"})
+        client = get_itsm4_client_by_username(username=operator, stage=settings.BK_APIGW_STAGE_NAME)
+        ticket_info_result = client.api.ticket_detail(
+            {"id": ticket_id}, headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+        )
+        for processor in ticket_info_result["data"]["current_processors"]:
+            task_id = processor["task_id"]
+            break
+        if not ticket_info_result["result"]:
+            message = handle_api_error("bk-itsm4", "ticket_detail", request.data, ticket_info_result)
+            logger.error(message)
+            check_and_raise_raw_auth_fail_exception(ticket_info_result, message)
+            result = {"result": False, "message": message}
+            return Response(result)
+        kwargs = {
+            "ticket_id": ticket_id,
+            "task_id": task_id,
+            "operator": operator,
+            "operator_type": "user",
+            "system_id": ticket_info_result["data"]["system_id"] or "",
+            "action": "approve" if serializer_data["is_passed"] else "refuse",
+            "desc": serializer_data["message"],
+        }
+
+        itsm_result = client.api.handle_approval_node(kwargs, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
+
+        if not itsm_result["result"]:
+            message = handle_api_error("bk-itsm4", "handle_approval_node", kwargs, itsm_result)
+            logger.error(message)
+            check_and_raise_raw_auth_fail_exception(itsm_result, message)
+            result = {"result": False, "message": message}
+            return Response(result)
+
+        return Response({"result": True, "data": None})
+
+
+itsm_urlpatterns = [
+    re_path(r"^itsm/node_transition/$", ITSMNodeTransitionView.as_view()),
+    re_path(r"^itsm/node_transition_new/$", ITSMNodeTransitionNewView.as_view()),
+]

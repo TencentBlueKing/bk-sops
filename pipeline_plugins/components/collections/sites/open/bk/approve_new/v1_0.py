@@ -22,14 +22,14 @@ from gcloud.conf import settings
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
-from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
+from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
 from pipeline_plugins.components.utils import get_node_callback_url
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 
 
-class ApproveService(Service):
+class SpecialApproveService(Service):
     __need_schedule__ = True
 
     def inputs_format(self):
@@ -67,6 +67,7 @@ class ApproveService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         verifier = data.get_one_of_inputs("bk_verifier")
@@ -76,18 +77,20 @@ class ApproveService(Service):
         verifier = verifier.replace(" ", "")
 
         kwargs = {
-            "creator": executor,
-            "fields": [
-                {"key": "title", "value": title},
-                {"key": "APPROVER", "value": verifier},
-                {"key": "APPROVAL_CONTENT", "value": approve_content},
-            ],
-            "fast_approval": True,
-            "meta": {
-                "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
+            "workflow_key": f"{tenant_id}_bk_sops_workflows_key_100001_v1",
+            "form_data": {
+                "ticket__title": title,
+                "textarea_content": approve_content,
+                "multiUser_approver": verifier.split(","),
             },
+            "system_id": settings.APP_CODE,
+            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            "options": {},
         }
-        result = client.api.create_ticket(kwargs)
+        result = client.api.create_ticket(
+            kwargs, headers={"X-Bk-Tenant-Id": tenant_id, "SYSTEM-TOKEN": settings.SECRET_KEY}
+        )
+
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)
@@ -118,15 +121,15 @@ class ApproveService(Service):
                 return True
             return approve_result
         except Exception as e:
-            err_msg = "get Approve Component result failed: {}, err: {}"
+            err_msg = "get Special Approve Component result failed: {}, err: {}"
             self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
             data.outputs.ex_data = err_msg.format(callback_data, e)
             return False
 
 
-class ApproveComponent(Component):
-    name = _("审批-Legacy(废弃请尽快切换)")
-    code = "bk_approve"
-    bound_service = ApproveService
-    form = "%scomponents/atoms/bk/approve/v1_0.js" % settings.STATIC_URL
+class SpecialApproveComponent(Component):
+    name = _("审批")
+    code = "bk_approve_new"
+    bound_service = SpecialApproveService
+    form = "%scomponents/atoms/bk/approve_new/v1_0.js" % settings.STATIC_URL
     version = "v1.0"
