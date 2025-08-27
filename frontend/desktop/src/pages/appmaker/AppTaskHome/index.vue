@@ -511,7 +511,7 @@
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
+                        acc[cur.id] = cur.children ? value.id : value?.replace(/\u00A0/g, ' ')
                     }
                     return acc
                 }, {})

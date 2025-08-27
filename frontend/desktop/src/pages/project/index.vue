@@ -513,7 +513,7 @@
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
                     const value = cur.values[0]
-                    acc[cur.id] = cur.children ? value.id : value
+                    acc[cur.id] = cur.children ? value.id : value?.replace(/\u00A0/g, ' ')
                     return acc
                 }, {})
                 this.requestData = data

@@ -35,7 +35,6 @@ const templateList = {
                 delete data.cancelToken
             }
             delete data.new
-            data.pipeline_template__name__icontains = data.pipeline_template__name__icontains.replace(/\u00A0/g, ' ')
             return axios.get(url, {
                 params: data,
                 ...config

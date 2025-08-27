@@ -306,7 +306,7 @@
             },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    acc[cur.id] = cur.values[0]
+                    acc[cur.id] = cur.values[0]?.replace(/\u00A0/g, ' ')
                     return acc
                 }, {})
                 this.requestData = data
