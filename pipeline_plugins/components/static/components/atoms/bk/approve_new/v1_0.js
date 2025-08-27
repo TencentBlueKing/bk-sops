@@ -10,7 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 (function () {
-    $.atoms.bk_approve = [
+    $.atoms.bk_approve_new = [
         {
             tag_code: "bk_verifier",
             type: "member_selector",
