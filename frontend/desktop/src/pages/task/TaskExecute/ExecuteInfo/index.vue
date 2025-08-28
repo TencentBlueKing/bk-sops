@@ -635,7 +635,7 @@
                 this.$emit('onTaskNodeResumeClick', nodeId, info)
             },
             onApprovalClick (nodeId, info) {
-                this.$emit('onApprovalClick', nodeId, info)
+                this.$emit('onApprovalClick', nodeId, info, this.nodeDetailConfig.component_code)
             },
             onModifyTimeClick (nodeId, info) {
                 this.$emit('onModifyTimeClick', nodeId, info)

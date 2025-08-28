@@ -96,7 +96,7 @@
                     @onModifyTimeClick="$emit('onModifyTimeClick', $event)"
                     @onGatewaySelectionClick="$emit('onGatewaySelectionClick', $event)"
                     @onTaskNodeResumeClick="$emit('onTaskNodeResumeClick', $event)"
-                    @onApprovalClick="$emit('onApprovalClick', $event)"
+                    @onApprovalClick="$emit('onApprovalClick', $event, null, node.code)"
                     @addNodesToDragSelection="addNodeToSelectedList"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </node-template>
