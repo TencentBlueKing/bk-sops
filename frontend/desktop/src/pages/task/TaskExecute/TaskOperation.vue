@@ -358,6 +358,7 @@
                 tabIconState: '',
                 approval: { // 节点审批
                     id: '',
+                    code: '',
                     dialogShow: false,
                     pending: false,
                     is_passed: true, // 是否通过
@@ -1499,10 +1500,11 @@
                     }
                 })
             },
-            onApprovalClick (id, taskId) {
+            onApprovalClick (id, taskId, code) {
                 this.approval.id = id
                 this.subProcessTaskId = taskId
                 this.approval.dialogShow = true
+                this.approval.code = code
             },
             onApprovalConfirm () {
                 if (this.approval.pending) {
@@ -1525,7 +1527,7 @@
                         if (stack.length > 0) {
                             params.subprocess_id = stack.join(',')
                         }
-                        const resp = await this.itsmTransition(params)
+                        const resp = await this.itsmTransition({ params, code: this.approval.code })
                         if (!resp.result) return
                         this.approval.id = ''
                         this.approval.is_passed = true
