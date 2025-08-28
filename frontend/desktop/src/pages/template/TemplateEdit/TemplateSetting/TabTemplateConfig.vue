@@ -168,7 +168,10 @@
                     </NotifyTypeConfig>
                 </section>
                 <section class="form-section">
-                    <h4>{{ $t('其他') }}</h4>
+                    <h4>
+                        <span>{{ $t('执行配置') }}</span>
+                        <span class="tip-desc">{{ $t('流程执行的通用配置') }}</span>
+                    </h4>
                     <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
                         <member-select
                             :multiple="false"
@@ -188,6 +191,42 @@
                             {{ $t('以便统一管理，也可单独配置流程执行代理人覆盖项目的设置') }}
                         </div>
                     </bk-form-item>
+                </section>
+                <section class="form-section" v-if="!common">
+                    <h4>
+                        <span>{{ $t('HTTP回调') }}</span>
+                        <span class="tip-desc">{{ $t('支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口') }}</span>
+                    </h4>
+                    <HttpCallback
+                        ref="httpCallback"
+                        :webhook-data="formData.webhookConfigs"
+                        :is-task-setting="false"
+                        :is-view-mode="isViewMode"
+                        :enable-webhook="enable_webhook"
+                        @change="onHttpCallbackChange">
+                    </HttpCallback>
+                </section>
+                <section class="form-section">
+                    <h4>{{ $t('其他') }}</h4>
+                    <!-- <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
+                        <member-select
+                            :multiple="false"
+                            :disabled="isViewMode"
+                            :placeholder="proxyPlaceholder"
+                            :value="formData.executorProxy"
+                            @change="onSelectedExecutorProxy">
+                        </member-select>
+                        <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
+                        <div class="executor-proxy-desc">
+                            {{ $t('推荐留空使用') }}
+                            <span
+                                :class="{ 'project-management': authActions && authActions.length, 'disabled': isViewMode }"
+                                @click="jumpProjectManagement">
+                                {{ $t('项目执行代理人设置') }}
+                            </span>
+                            {{ $t('以便统一管理，也可单独配置流程执行代理人覆盖项目的设置') }}
+                        </div>
+                    </bk-form-item> -->
                     <bk-form-item property="notifyType" :label="$t('备注')" data-test-id="tabTemplateConfig_form_notifyType">
                         <bk-input type="textarea" :readonly="isViewMode" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
                     </bk-form-item>
@@ -261,13 +300,15 @@
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import HttpCallback from './HttpCallback.vue'
     import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TabTemplateConfig',
         components: {
             MemberSelect,
-            NotifyTypeConfig
+            NotifyTypeConfig,
+            HttpCallback
         },
         mixins: [permission],
         props: {
@@ -281,7 +322,7 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels, default_flow_type, project_scope, template_id
+                executor_proxy, template_labels, default_flow_type, project_scope, template_id, webhook_configs, enable_webhook
             } = this.$store.state.template
             const { extra_info: extraInfo = {} } = notify_receivers
 
@@ -297,8 +338,10 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type,
                     project_scope: project_scope,
-                    template_id: template_id
+                    template_id: template_id,
+                    webhookConfigs: tools.deepClone(webhook_configs)
                 },
+                enable_webhook,
                 stringLength: STRING_LENGTH,
                 rules: {
                     name: [
@@ -430,7 +473,8 @@
         methods: {
             ...mapMutations('template/', [
                 'setTplConfig',
-                'setProjectScope'
+                'setProjectScope',
+                'setWebhookConfigs'
             ]),
             ...mapActions('project', [
                 'getProjectConfig',
@@ -570,8 +614,11 @@
                 window.open(href, '_blank')
             },
             getTemplateConfig () {
-                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo } = this.formData
+                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo, webhookConfigs } = this.formData
                 const localProjectList = this.baseInfoProjectScopeList.length === this.allProjectIds.length ? ['*'] : this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
+                webhookConfigs.extra_info.interval = typeof webhookConfigs.extra_info.interval !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.interval
+                webhookConfigs.extra_info.retry_times = typeof webhookConfigs.extra_info.retry_times !== 'number' ? parseInt(webhookConfigs.extra_info.retry_times) : webhookConfigs.extra_info.retry_times
+                webhookConfigs.extra_info.timeout = typeof webhookConfigs.extra_info.timeout !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.timeout
                 return {
                     name,
                     category,
@@ -582,7 +629,9 @@
                     notify_type: { success: notifyType[0], fail: notifyType[1] },
                     notify_type_extra_info: notifyTypeExtraInfo,
                     default_flow_type: defaultFlowType,
-                    project_scope: localProjectList
+                    project_scope: localProjectList,
+                    webhookConfigs: webhookConfigs,
+                    enable_webhook: this.enable_webhook
                 }
             },
             onSelectedExecutorProxy (val) {
@@ -620,7 +669,8 @@
                     }
                     const validations = await Promise.all([
                         this.$refs.configForm.validate(),
-                        this.$refs.notifyTypeConfig.validate()
+                        this.$refs.notifyTypeConfig.validate(),
+                        this.$refs.httpCallback.validate()
                     ])
                     if (validations.includes(false)) return
 
@@ -713,6 +763,13 @@
                     }
                 } catch (e) {
                     console.log(e)
+                }
+            },
+            onHttpCallbackChange (val, isEnableWebhook = false) {
+                if (isEnableWebhook) {
+                    this.enable_webhook = val
+                } else {
+                    this.formData.webhookConfigs = val
                 }
             }
         },

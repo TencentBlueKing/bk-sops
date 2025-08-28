@@ -117,6 +117,7 @@ INSTALLED_APPS += (
     "apigw_manager.apigw",
     "bk_notice_sdk",
     "bk_audit.contrib.bk_audit",
+    "webhook",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -925,3 +926,5 @@ ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = env.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK
 ALLOWED_HTTP_PLUGIN_DOMAINS = env.ALLOWED_HTTP_PLUGIN_DOMAINS
 
 BK_DATA_REPORT_API_URL = env.BK_DATA_REPORT_API_URL
+
+MAX_WEBHOOK_RETRY_TIMES = env.MAX_WEBHOOK_RETRY_TIMES

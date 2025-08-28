@@ -70,6 +70,8 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     pipeline_tree = serializers.CharField()
     project = serializers.IntegerField(write_only=True)
     template_id = serializers.CharField(help_text="模板ID", source="id", read_only=True)
+    webhook_configs = serializers.JSONField(help_text="webhook配置", required=False)
+    enable_webhook = serializers.BooleanField(help_text="是否启用webhook", required=False)
 
     def validate_project(self, value):
         try:
@@ -113,6 +115,8 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "pipeline_tree",
             "project",
             "template_id",
+            "webhook_configs",
+            "enable_webhook",
         ]
 
 
@@ -128,3 +132,10 @@ class TemplateLabelQuerySerializer(serializers.Serializer):
     label_ids = serializers.ListField(
         child=serializers.IntegerField(), allow_empty=True, required=True, help_text="标签ID列表"
     )
+
+
+class WebhookConfigQuerySerializer(serializers.Serializer):
+    method = serializers.CharField(help_text=_("webhook method"), max_length=255, required=True)
+    endpoint = serializers.URLField(help_text=_("webhook endpoint"), max_length=255, required=True)
+    headers = serializers.JSONField(help_text=_("webhook headers"), required=False)
+    authorization = serializers.JSONField(help_text=_("webhook authorization"), required=False)

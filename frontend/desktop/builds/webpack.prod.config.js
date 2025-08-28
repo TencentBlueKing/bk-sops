@@ -109,7 +109,7 @@ module.exports = merge(webpackBaseConfig, {
         chunks: false,
         entrypoints: false,
         modules: false,
-        children: false,
+        children: true,
         publicPath: true,
         colors: true,
         errors: true,
