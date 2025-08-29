@@ -41,7 +41,7 @@
                                     v-bk-tooltips="veeErrors.first(`chat_group_id_${$index}`)"
                                     class="bk-icon icon-exclamation-circle-shape error-msg" />
                             </template>
-                            <span v-else>{{ props.$index === 0 ? $t('成功') : props.$index === 1 ? $t('失败') : $t('等待处理') }}</span>
+                            <span v-else>{{ $index === 0 ? $t('成功') : $index === 1 ? $t('失败') : $t('等待处理') }}</span>
                         </template>
                         <div class="empty-data" slot="empty">
                             <NoData></NoData>
