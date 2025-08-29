@@ -51,11 +51,7 @@
                         </full-code-editor>
                     </div>
                 </bk-tab-panel>
-                <bk-tab-panel name="authentication">
-                    <template slot="label">
-                        <span class="panel-name">{{$t('认证')}}</span>
-                        <bk-badge dot theme="success"></bk-badge>
-                    </template>
+                <bk-tab-panel name="authentication" :render-label="renderLabel">
                     <bk-radio-group
                         v-model="localWebhookForm.extra_info.authorization.type"
                         @change="onWebhookConfigChange"
@@ -95,7 +91,7 @@
                         </div>
                     </div>
                 </bk-tab-panel>
-                <bk-tab-panel name="headers" :label="$t('头信息')">
+                <bk-tab-panel name="headers" :render-label="renderLabel">
                     <bk-table style="margin-top: 15px;"
                         :data="localWebhookForm.extra_info.headers">
                         <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
@@ -123,13 +119,7 @@
    
                     </bk-table>
                 </bk-tab-panel>
-                <!-- <bk-tab-panel name="body" :disabled="true">
-                    <template slot="label">
-                        <span class="panel-name disabled-tab-name">{{$t('主体')}}</span>
-                        <bk-badge dot theme="success"></bk-badge>
-                    </template>
-                </bk-tab-panel> -->
-                <bk-tab-panel name="settings" :label="$t('设置')">
+                <bk-tab-panel name="settings" :render-label="renderLabel">
                     <bk-form form-type="vertical" :rules="rules" ref="settingForm">
                         <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key === 'retry_times' ? 'retry_times' : ''" :icon-offset="27">
                             <div class="from-item-content">
@@ -293,10 +283,41 @@
                 }
             }
         },
+        computed: {
+            isAccessAuth () {
+                const { authorization } = this.localWebhookForm.extra_info
+                if (authorization.type) {
+                    if (authorization.type === 'basic') {
+                        return authorization.username !== '' && authorization.password !== ''
+                    } else {
+                        return authorization.token !== ''
+                    }
+                }
+                return true
+            },
+            isAccessHeaders () {
+                const { headers } = this.localWebhookForm.extra_info
+                return headers.length > 0 && headers.every(item => item.key && item.value)
+            },
+            isAccessSettings () {
+                const { timeout, retry_times, interval } = this.localWebhookForm.extra_info
+                return /^[0-9]+$/.test(timeout) && /^[0-9]+$/.test(retry_times) && /^[0-9]+$/.test(interval)
+            }
+        },
         methods: {
             ...mapActions('template', [
                 'debugWebhook'
             ]),
+            renderLabel (h, name) {
+                return h('div', { class: 'tab-name-badge' }, [
+                    h('div', { class: 'panel-name' }, [
+                        name === 'headers' ? this.$t('头信息') : (name === 'settings' ? this.$t('设置') : this.$t('认证'))
+                    ]),
+                    h('div', {
+                        class: ['badge', (name === 'headers' ? this.isAccessHeaders : (name === 'settings' ? this.isAccessSettings : this.isAccessAuth)) ? 'badge-success' : 'badge-error']
+                    })
+                ])
+            },
             requestTypetabChange (tabName) {
                 this.activeTab = tabName
             },
@@ -463,5 +484,25 @@
       font-weight: 400;
       color: #63656e;
     }
+}
+::v-deep .tab-name-badge{
+    display: flex;
+    align-items: center;
+}
+::v-deep .badge{
+    border: 2px solid #fff;
+    color: #fff;
+    border-width: 1px;
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    margin-left: 4px;
+    border-radius: 18px;
+}
+::v-deep .badge-success{
+    background-color: #2dcb56;
+}
+::v-deep .badge-error{
+    background-color: #ff5656;
 }
 </style>
