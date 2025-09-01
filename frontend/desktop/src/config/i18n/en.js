@@ -1898,7 +1898,12 @@ const en = {
     '请求发送失败': 'Request failed to send',
     '执行配置': 'Execution Configuration',
     '流程执行的通用配置': 'General configuration for process execution',
-    '调试结果': 'Debug Result'
+    '调试结果': 'Debug Result',
+    '请选择请求方法': 'Please select the request method',
+    '请输入正确的请求URL': 'Please enter valid request URL',
+    '请输入用户名或密码': 'Please enter username or password',
+    '请输入token': 'Please enter token',
+    '请输入完整的设置信息': 'Please enter complete setting information'
 }
 
 export default en

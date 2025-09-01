@@ -120,8 +120,8 @@
                     </bk-table>
                 </bk-tab-panel>
                 <bk-tab-panel name="settings" :render-label="renderLabel">
-                    <bk-form form-type="vertical" :rules="rules" ref="settingForm">
-                        <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key === 'retry_times' ? 'retry_times' : ''" :icon-offset="27">
+                    <bk-form form-type="vertical" :rules="settingFormRules" ref="settingForm" :model="localWebhookForm.extra_info">
+                        <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key" :icon-offset="27">
                             <div class="from-item-content">
                                 <bk-input v-model="localWebhookForm.extra_info[item.key]"
                                     :disabled="isViewMode"
@@ -207,19 +207,30 @@
                     interval
                 }
             }
-            const example = {
-                'delivery_id': 'e3badd079fc4430bb47399786296a11d',
-                'description': '蓝鲸应用开发',
-                'event': {
-                    'code': 'task_failed',
-                    'description': '',
-                    'info': {
-                        'taskflow_id': 41
-                    },
-                    'name': '任务失败'
-                }
+            const successExample = {
+                'executor': 'v_ghluguo',
+                'finish_time': 1756459237,
+                'outputs': {
+                    '${_result}': true,
+                    '${test}': '123'
+                },
+                'start_time': 1756459237,
+                'task_id': 109,
+                'task_name': 'new20250814161131_20250829172031'
             }
-            const callbackExample = JSON.stringify(example, null, 2)
+            const errorExample = {
+                'executor': 'v_ghluguo',
+                'extra_data': {
+                    'failed_message': '仅允许访问域名(.)下的URL',
+                    'failed_node': 'nccda40ad8b1378eba49351a60a48b87',
+                    'failed_node_name': 'HTTP 请求'
+                },
+                'finish_time': '',
+                'start_time': 1756463165,
+                'task_id': 118,
+                'task_name': 'new20250814161131_20250829182603'
+            }
+            const callbackExample = `# 成功\n${JSON.stringify(successExample, null, 2)}\n\n# 失败\n${JSON.stringify(errorExample, null, 2)}`
             return {
                 callbackExample,
                 localWebhookForm,
@@ -272,7 +283,7 @@
                     }
                 ],
                 activeTab: 'authentication',
-                rules: {
+                settingFormRules: {
                     retry_times: [
                         {
                             validator: this.checkInterval,
@@ -338,7 +349,40 @@
                 return this.localWebhookForm.extra_info.retry_times <= 5
             },
             validate () {
-                return this.$refs.settingForm.validate().then(valid => valid)
+                const showError = (message) => {
+                    this.$bkNotify({
+                        theme: 'error',
+                        title: message
+                    })
+                    return false
+                }
+                if (this.isEnable) {
+                    const { method, endpoint, extra_info } = this.localWebhookForm
+                    if (!method) {
+                        return showError(i18n.t('请选择请求方法'))
+                    }
+                    if (!endpoint) {
+                        return showError(i18n.t('请输入正确的请求URL'))
+                    } else {
+                        const regex = /^https?:\/\/.*\.com/i
+                        if (!regex.test(endpoint)) {
+                            return showError(i18n.t('请输入正确的请求URL'))
+                        }
+                    }
+                    const { authorization, retry_times, timeout, interval } = extra_info
+                    if (authorization.type === 'basic') {
+                        if (authorization.username === '' || authorization.password === '') {
+                            return showError(i18n.t('请输入用户名或密码'))
+                        }
+                    } else if (authorization.type === 'bearer' && authorization.token === '') {
+                        return showError(i18n.t('请输入token'))
+                    }
+                    if (!timeout || !retry_times || !interval) {
+                        return showError(i18n.t('请输入完整的设置信息'))
+                    }
+                    return this.$refs.settingForm.validate().then(valid => valid)
+                }
+                return true
             },
             delItemHeader (row, index) {
                 this.localWebhookForm.extra_info.headers.splice(index, 1)
