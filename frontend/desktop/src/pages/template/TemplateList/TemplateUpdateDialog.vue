@@ -30,13 +30,17 @@
             row: {
                 type: Object,
                 default: () => ({})
+            },
+            pipelineTree: {
+                type: Object,
+                default: () => ({})
             }
         },
         computed: {
             subflowShouldUpdated () {
-                const { subprocess_info: subprocessInfo, pipeline_tree: pipelineTree } = this.row
-                if (subprocessInfo?.details) {
-                    const { activities } = JSON.parse(pipelineTree)
+                const { subprocess_info: subprocessInfo } = this.row
+                if (subprocessInfo.details) {
+                    const { activities } = this.pipelineTree
                     return subprocessInfo.details.reduce((acc, cur) => {
                         const nodeId = cur.subprocess_node_id
                         if (!activities[nodeId]) {

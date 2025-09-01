@@ -1121,6 +1121,11 @@ const template = {
         },
         debugWebhook ({ commit }, data) {
             return axios.post('/api/v3/template/verify_webhook_configuration/', data).then(response => response.data)
+        },
+        // 获取流程树
+        getPipelineTree ({ commit }, data) {
+            const { templateId } = data
+            return axios.get(`/template/api/fetch_pipeline_tree/?template_id=${templateId}`).then(response => response.data)
         }
     },
     getters: {
