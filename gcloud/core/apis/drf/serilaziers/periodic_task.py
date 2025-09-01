@@ -178,9 +178,7 @@ class CronFieldSerializer(serializers.Serializer):
 
         result = inspect_time(cron_expression, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
         if not result:
-            raise serializers.ValidationError(
-                "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
-            )
+            raise serializers.ValidationError("任务之间的间隔至少应为 {} 分钟".format(settings.PERIODIC_TASK_SHORTEST_TIME))
 
     def validate_cron(self, data):
         cron_str = self._build_cron_expression(data)
