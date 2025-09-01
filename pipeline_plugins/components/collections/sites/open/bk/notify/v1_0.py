@@ -134,7 +134,11 @@ class NotifyService(Service):
             usernames.insert(0, executor)
         unique_usernames = sorted(set(usernames), key=usernames.index)
 
-        receivers = ",".join(unique_usernames).strip(",")
+        base_kwargs = {
+            "receiver__username": ",".join(unique_usernames).strip(","),
+            "title": title,
+            "content": content,
+        }
 
         error_flag = False
         error = ""

@@ -125,7 +125,7 @@ class ApproveService(Service):
 
 
 class ApproveComponent(Component):
-    name = _("审批-Legacy(废弃请尽快切换)")
+    name = _("审批(已废弃请尽快切换)")
     code = "bk_approve"
     bound_service = ApproveService
     form = "%scomponents/atoms/bk/approve/v1_0.js" % settings.STATIC_URL
