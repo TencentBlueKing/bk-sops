@@ -140,9 +140,6 @@ class NotifyService(Service):
         for msg_type in notify_type:
             kwargs = self._args_gen[msg_type](self, receivers, title, content)
             try:
-                # 保留通知内容中的换行和空格
-                if msg_type == "mail":
-                    kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
                 result = getattr(client.api, self._send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
             except Exception:
                 message = bk_handle_api_error(f"cmsi.{self._send_func[msg_type]}", kwargs, result)
