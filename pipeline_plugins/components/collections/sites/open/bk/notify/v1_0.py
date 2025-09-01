@@ -133,35 +133,19 @@ class NotifyService(Service):
         if notify or executor in usernames:
             usernames.insert(0, executor)
         unique_usernames = sorted(set(usernames), key=usernames.index)
-
-        base_kwargs = {
-            "receiver__username": ",".join(unique_usernames).strip(","),
-            "title": title,
-            "content": content,
-        }
+        receivers = ",".join(unique_usernames).strip(",")
 
         error_flag = False
         error = ""
         for msg_type in notify_type:
-            if msg_type == "voice":
-                kwargs = {
-                    "receiver__username": base_kwargs["receiver__username"],
-                    "auto_read_message": "{},{}".format(title, content),
-                }
-                result = client.cmsi.send_voice_msg(kwargs)
-            else:
-                kwargs = {"msg_type": msg_type, **base_kwargs}
+            kwargs = self._args_gen[msg_type](self, receivers, title, content)
+            try:
                 # 保留通知内容中的换行和空格
                 if msg_type == "mail":
                     kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
-                result = client.cmsi.send_msg(kwargs)
-
-            if not result["result"]:
-                message = bk_handle_api_error(
-                    "cmsi.send_voice_msg" if msg_type == "voice" else "cmsi.send_msg",
-                    kwargs,
-                    result,
-                )
+                result = getattr(client.api, self._send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+            except Exception:
+                message = bk_handle_api_error(f"cmsi.{self._send_func[msg_type]}", kwargs, result)
                 self.logger.error(message)
                 error_flag = True
                 error += "%s;" % message
