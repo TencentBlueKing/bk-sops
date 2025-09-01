@@ -29,6 +29,7 @@ from gcloud.iam_auth.view_interceptors.template import (
     FormInterceptor,
     ImportInterceptor,
     ParentsInterceptor,
+    FetchPipelineTreeInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.tasktmpl3.domains.constants import (
@@ -50,6 +51,7 @@ from gcloud.template_base.apis.django.validators import (
     ExportTemplateApiViewValidator,
     FormValidator,
     TemplateParentsValidator,
+    FetchPipelineValidator,
 )
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import check_and_rename_params
@@ -352,3 +354,24 @@ def parents(request, project_id):
     }
     """
     return base_template_parents(request, TaskTemplate, filters={"project_id": project_id})
+
+
+@require_GET
+@request_validate(FetchPipelineValidator)
+@iam_intercept(FetchPipelineTreeInterceptor())
+def fetch_pipeline_tree(request):
+    """
+    @summary：获取流程树
+    @param request:
+    @return:
+    """
+    template_id = request.GET.get("template_id")
+    template_obj = TaskTemplate.objects.get(id=template_id)
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {"pipeline_tree": template_obj.pipeline_tree},
+            "code": err_code.SUCCESS.code,
+            "message": "",
+        }
+    )
