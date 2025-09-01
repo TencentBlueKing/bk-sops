@@ -1125,7 +1125,7 @@ const template = {
         // 获取流程树
         getPipelineTree ({ commit }, data) {
             const { templateId } = data
-            return axios.get(`/template/api/fetch_pipeline_tree/?template_id=${templateId}`).then(response => response.data)
+            return axios.get('/template/api/fetch_pipeline_tree/', { params: { template_id: templateId } }).then(response => response.data)
         }
     },
     getters: {

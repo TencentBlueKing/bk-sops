@@ -39,7 +39,7 @@
         computed: {
             subflowShouldUpdated () {
                 const { subprocess_info: subprocessInfo } = this.row
-                if (subprocessInfo.details) {
+                if (subprocessInfo?.details) {
                     const { activities } = this.pipelineTree
                     return subprocessInfo.details.reduce((acc, cur) => {
                         const nodeId = cur.subprocess_node_id
