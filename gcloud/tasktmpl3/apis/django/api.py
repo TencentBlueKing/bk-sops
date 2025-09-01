@@ -51,7 +51,7 @@ from gcloud.template_base.apis.django.validators import (
     ExportTemplateApiViewValidator,
     FormValidator,
     TemplateParentsValidator,
-    FeatPipelineValidator,
+    FetchPipelineValidator,
 )
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import check_and_rename_params
@@ -357,7 +357,7 @@ def parents(request, project_id):
 
 
 @require_GET
-@request_validate(FeatPipelineValidator)
+@request_validate(FetchPipelineValidator)
 @iam_intercept(FetchPipelineTreeInterceptor())
 def fetch_pipeline_tree(request):
     """

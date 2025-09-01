@@ -38,7 +38,7 @@ class FormValidator(RequestValidator):
         return True, ""
 
 
-class FeatPipelineValidator(FormValidator):
+class FetchPipelineValidator(FormValidator):
     pass
 
 
