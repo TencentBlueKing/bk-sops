@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
+from croniter import croniter
 from django.utils.translation import ugettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django_celery_beat.models import PeriodicTask as CeleryTask
@@ -162,20 +163,30 @@ def check_cron_params(cron, project):
 class CronFieldSerializer(serializers.Serializer):
     cron = serializers.DictField(write_only=True)
 
-    def inspect_cron(self, cron):
-        minute = cron.get("minute", "*")
-        hour = cron.get("hour", "*")
-        day_of_month = cron.get("day_of_month", "*")
-        month = cron.get("month", "*")
-        day_of_week = cron.get("day_of_week", "*")
+    def _build_cron_expression(self, cron_data):
+        """构建标准cron表达式"""
+        return (
+            f"{cron_data.get('minute', '*')} "
+            f"{cron_data.get('hour', '*')} "
+            f"{cron_data.get('day_of_month', '*')} "
+            f"{cron_data.get('month', '*')} "
+            f"{cron_data.get('day_of_week', '*')}"
+        )
 
-        cron_expression = f"{minute} {hour} {day_of_month} {month} {day_of_week}"
+    def inspect_cron(self, cron):
+        cron_expression = self._build_cron_expression(cron)
 
         result = inspect_time(cron_expression, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
         if not result:
             raise serializers.ValidationError(
                 "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
             )
+
+    def validate_cron(self, data):
+        cron_str = self._build_cron_expression(data)
+        if not croniter.is_valid(cron_str):
+            raise serializers.ValidationError("无效的cron表达式")
+        return data
 
 
 class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
