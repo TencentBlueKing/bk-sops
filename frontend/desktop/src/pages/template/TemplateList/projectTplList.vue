@@ -413,6 +413,7 @@
             :is-show="isBatchUpdateDialogShow"
             :project-id="project_id"
             :row="curSelectedRow"
+            :pipeline-tree="pipelineTree"
             @confirm="handleTplBatchUpdateConfirm"
             @close="closeBatchUpdateDialogShow">
         </TemplateUpdateDialog>
@@ -716,7 +717,8 @@
                 searchSelectValue,
                 templateLabelLoading: false,
                 isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET,
-                isBatchUpdateDialogShow: false
+                isBatchUpdateDialogShow: false,
+                pipelineTree: {}
             }
         },
         computed: {
@@ -792,7 +794,8 @@
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
                 'saveTemplateData',
-                'updateLabelIds'
+                'updateLabelIds',
+                'getPipelineTree'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -810,7 +813,8 @@
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo',
-                'setTemplateData'
+                'setTemplateData',
+                'setPipelineTree'
             ]),
             async initData () {
                 try {
@@ -1686,10 +1690,14 @@
                 }
                 return false
             },
-            openBatchUpdateDialog (row) {
+            async openBatchUpdateDialog (row) {
                 this.curSelectedRow = row
                 const { labelIds: template_labels } = row
+                // 获取子流程树pipelineTree
+                const res = await this.getPipelineTree({ templateId: row.id })
                 this.setTemplateData({ ...row, template_labels })
+                this.setPipelineTree(res.data.pipeline_tree)
+                this.pipelineTree = res.data.pipeline_tree
                 this.isBatchUpdateDialogShow = true
             },
             handleTplBatchUpdateConfirm () {
