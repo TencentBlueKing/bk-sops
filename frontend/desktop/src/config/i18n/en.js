@@ -1903,7 +1903,13 @@ const en = {
     '请输入正确的请求URL': 'Please enter valid request URL',
     '请输入用户名或密码': 'Please enter username or password',
     '请输入token': 'Please enter token',
-    '请输入完整的设置信息': 'Please enter complete setting information'
+    '请输入完整的设置信息': 'Please enter complete setting information',
+    '请输入重试次数': 'Please enter the number of retries',
+    '请输入请求超时时间': 'Please enter request timeout',
+    '请输入重试间隔': 'Please enter retry interval',
+    '请输入请求URL': 'Please enter request URL',
+    '请输入用户名': 'Please enter username',
+    '请输入密码': 'Please enter password'
 }
 
 export default en
