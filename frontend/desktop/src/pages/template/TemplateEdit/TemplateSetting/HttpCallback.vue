@@ -81,7 +81,7 @@
                     <div class="auth-basic-info"
                         v-if="localWebhookForm.extra_info.authorization.type === 'basic'">
                         <bk-form form-type="vertical" :rules="basicFormRules" ref="basicForm" :model="localWebhookForm.extra_info.authorization">
-                            <bk-form-item label="用户名" property="username" :icon-offset="15" :label-width="300">
+                            <bk-form-item :label="$t('用户名')" property="username" :icon-offset="15" :label-width="300">
                                 <div class="from-item-content">
                                     <bk-input v-model="localWebhookForm.extra_info.authorization.username"
                                         behavior="simplicity"
@@ -91,11 +91,11 @@
                                     </bk-input>
                                 </div>
                             </bk-form-item>
-                            <bk-form-item label="密码" property="password" :icon-offset="15" :label-width="300">
+                            <bk-form-item :label="$t('密码')" property="password" :icon-offset="15" :label-width="300">
                                 <div class="from-item-content">
                                     <bk-input v-model="localWebhookForm.extra_info.authorization.password"
                                         behavior="simplicity"
-                                        :type="'password'"
+                                        type="password"
                                         :disabled="isViewMode"
                                         :clearable="true"
                                         @change="onWebhookConfigChange">
@@ -222,7 +222,7 @@
                 }
             }
             const successExample = {
-                'executor': 'v_ghluguo',
+                'executor': 'user',
                 'finish_time': 1756459237,
                 'outputs': {
                     '${_result}': true,
@@ -233,7 +233,7 @@
                 'task_name': 'new20250814161131_20250829172031'
             }
             const errorExample = {
-                'executor': 'v_ghluguo',
+                'executor': 'user',
                 'extra_data': {
                     'failed_message': '仅允许访问域名(.)下的URL',
                     'failed_node': 'nccda40ad8b1378eba49351a60a48b87',
@@ -445,7 +445,6 @@
                 this.$emit('change', row, true)
             },
             onAuthConfigChange (val) {
-                console.log('onAuthConfigChange', val)
                 this.onWebhookConfigChange()
                 this.$nextTick(() => {
                     this.$refs.basicForm.clearError()
