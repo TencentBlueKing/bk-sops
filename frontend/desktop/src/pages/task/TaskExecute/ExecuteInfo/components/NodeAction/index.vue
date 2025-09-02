@@ -23,7 +23,7 @@
                 {{ $t('确认继续') }}
             </bk-button>
             <bk-button
-                v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
+                v-else-if="nodeDetailConfig.component_code === 'bk_approve' || nodeDetailConfig.component_code === 'bk_approve_new'"
                 theme="primary"
                 data-test-id="taskExecute_form_approvalBtn"
                 @click="onApprovalClick">

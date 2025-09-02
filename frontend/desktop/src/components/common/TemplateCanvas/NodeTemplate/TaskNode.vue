@@ -82,7 +82,7 @@
                     <i class="bk-icon icon-play-circle-shape"></i>
                     {{ $t('确认继续') }}
                 </span>
-                <span v-else-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
+                <span v-else-if="node.code === 'bk_approve' || node.code === 'bk_approve_new'" @click.stop="$emit('onApprovalClick', node.id)">
                     <i class="common-icon-dark-pending-approval"></i>
                     {{ $t('审批') }}
                 </span>
