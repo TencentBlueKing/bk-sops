@@ -118,7 +118,8 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
         request_body = self.get_request_body(
             bk_biz_id, begin_time, end_time, strategy, dimension_list, dimension_select_type
         )
-        request_body["description"] = shield_reason
+        if shield_reason:
+            request_body["description"] = shield_reason
 
         if scope_value:
             target = self.get_ip_dimension(scope_value, bk_biz_id, executor)

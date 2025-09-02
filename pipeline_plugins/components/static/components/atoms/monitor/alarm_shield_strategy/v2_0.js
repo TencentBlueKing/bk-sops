@@ -45,7 +45,7 @@
             attrs: {
                 name: gettext("屏蔽原因"),
                 hookable: true,
-                value: "shield by bk_sops"
+                placeholder: gettext("请输入屏蔽原因，默认使用 shield by bk_sops "),
             }
         },
         {

@@ -62,7 +62,8 @@ class MonitorAlarmShieldService(MonitorAlarmShieldServiceBase):
         request_body = self.get_request_body(
             bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
         )
-        request_body["description"] = shield_reason
+        if shield_reason:
+            request_body["description"] = shield_reason
         if "all" not in target:
             request_body["dimension_config"].update({"metric_id": target})
 
