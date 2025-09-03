@@ -429,9 +429,9 @@
             },
             requestTypetabChange (tabName) {
                 // 清除对表单的校验
-                this.$refs.settingForm.clearError()
-                this.$refs.basicForm.clearError()
-                this.$refs.tokenForm.clearError()
+                this.$refs.settingForm && this.$refs.settingForm.clearError()
+                this.$refs.basicForm && this.$refs.basicForm.clearError()
+                this.$refs.tokenForm && this.$refs.tokenForm.clearError()
                 this.activeTab = tabName
             },
             addHeadersRow () {
@@ -447,8 +447,8 @@
             onAuthConfigChange (val) {
                 this.onWebhookConfigChange()
                 this.$nextTick(() => {
-                    this.$refs.basicForm.clearError()
-                    this.$refs.tokenForm.clearError()
+                    this.$refs.basicForm && this.$refs.basicForm.clearError()
+                    this.$refs.tokenForm && this.$refs.tokenForm.clearError()
                 })
             },
             onWebhookConfigChange () {
