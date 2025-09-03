@@ -109,7 +109,7 @@ class ITSMNodeTransitionView(APIView):
         client = get_client_by_username(username=operator, stage=settings.BK_APIGW_STAGE_NAME)
 
         # 获取单据信息查询节点id
-        ticket_info_result = client.api.get_ticket_info(sn, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
+        ticket_info_result = client.api.get_ticket_info({"sn": sn}, headers={"X-Bk-Tenant-Id": request.user.tenant_id})
         if not ticket_info_result["result"]:
             message = handle_api_error("itsm", "get_ticket_info", request.data, ticket_info_result)
             logger.error(message)
