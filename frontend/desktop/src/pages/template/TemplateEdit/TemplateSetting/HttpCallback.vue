@@ -428,10 +428,18 @@
                 ])
             },
             requestTypetabChange (tabName) {
+                console.log('tabName', tabName)
                 // 清除对表单的校验
-                this.$refs.settingForm.clearError()
-                this.$refs.basicForm.clearError()
-                this.$refs.tokenForm.clearError()
+                if (tabName === 'authentication') {
+                    const { type } = this.localWebhookForm.extra_info.authorization
+                    if (type === 'basic') {
+                        this.$refs.basicForm.clearError()
+                    } else if (type === 'bearer') {
+                        this.$refs.tokenForm.clearError()
+                    }
+                } else if (tabName === 'settings') {
+                    this.$refs.settingForm.clearError()
+                }
                 this.activeTab = tabName
             },
             addHeadersRow () {
@@ -447,8 +455,14 @@
             onAuthConfigChange (val) {
                 this.onWebhookConfigChange()
                 this.$nextTick(() => {
-                    this.$refs.basicForm.clearError()
-                    this.$refs.tokenForm.clearError()
+                    if (this.activeTab === 'authentication') {
+                        const { type } = this.localWebhookForm.extra_info.authorization
+                        if (type === 'basic') {
+                            this.$refs.basicForm.clearError()
+                        } else if (type === 'bearer') {
+                            this.$refs.tokenForm.clearError()
+                        }
+                    }
                 })
             },
             onWebhookConfigChange () {
