@@ -406,7 +406,7 @@
             },
             isAccessHeaders () {
                 const { headers } = this.localWebhookForm.extra_info
-                return headers.length > 0 && headers.every(item => item.key && item.value)
+                return headers.length <= 0 ? true : headers.every(item => (item.key === '') === (item.value === ''))
             },
             isAccessSettings () {
                 const { timeout, retry_times, interval } = this.localWebhookForm.extra_info
@@ -475,6 +475,7 @@
                     } else if (type === 'bearer') {
                         validations.push(this.$refs.tokenForm.validate())
                     }
+                    validations.push(this.isAccessHeaders)
                     return Promise.all(validations).then(results => {
                         return results.every(valid => valid)
                     }).catch(() => {
