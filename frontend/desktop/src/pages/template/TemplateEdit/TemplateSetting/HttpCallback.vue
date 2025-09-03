@@ -9,30 +9,35 @@
             </bk-switcher>
         </div>
         <div class="http-callback-address">
-            <bk-select
-                :disabled="isViewMode"
-                v-model="localWebhookForm.method"
-                ext-cls="select-custom"
-                behavior="simplicity"
-                ext-popover-cls="select-popover-custom"
-                class="http-callback-method-select"
-                @change="onWebhookConfigChange">
-                <bk-option v-for="option in methodList"
-                    :key="option.id"
-                    :id="option.id"
-                    :name="option.name"
-                    :disabled="option.isDisabled">
-                </bk-option>
-            </bk-select>
-            <div class="http-callback-url">
-                <bk-input behavior="simplicity"
-                    :disabled="isViewMode"
-                    :clearable="true"
-                    v-model="localWebhookForm.endpoint"
-                    :placeholder="$t('输入请求URL')"
-                    @change="onWebhookConfigChange">
-                </bk-input>
-            </div>
+            <bk-form :rules="addrFormRules" ref="addrForm" :model="localWebhookForm">
+                <bk-form-item property="method" :icon-offset="8" :label-width="0" class="form-item-select">
+                    <bk-select
+                        :disabled="isViewMode"
+                        v-model="localWebhookForm.method"
+                        ext-cls="select-custom"
+                        behavior="simplicity"
+                        ext-popover-cls="select-popover-custom"
+                        class="http-callback-method-select"
+                        @change="onWebhookConfigChange">
+                        <bk-option v-for="option in methodList"
+                            :key="option.id"
+                            :id="option.id"
+                            :name="option.name"
+                            :disabled="option.isDisabled">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
+                <bk-form-item property="endpoint" :icon-offset="8" :label-width="0">
+                    <bk-input behavior="simplicity"
+                        :disabled="isViewMode"
+                        :clearable="true"
+                        v-model="localWebhookForm.endpoint"
+                        :placeholder="$t('输入请求URL')"
+                        class="http-callback-url-input"
+                        @change="onWebhookConfigChange">
+                    </bk-input>
+                </bk-form-item>
+            </bk-form>
         </div>
         <div class="http-callback-request-params">
             <bk-icon type="up-shape" class="triangle" />
@@ -54,7 +59,7 @@
                 <bk-tab-panel name="authentication" :render-label="renderLabel">
                     <bk-radio-group
                         v-model="localWebhookForm.extra_info.authorization.type"
-                        @change="onWebhookConfigChange"
+                        @change="onAuthConfigChange"
                     >
                         <bk-radio value="" :disabled="isViewMode">{{$t('无需认证')}}</bk-radio>
                         <bk-radio value="bearer" :disabled="isViewMode">Bearer Token</bk-radio>
@@ -62,33 +67,42 @@
                     </bk-radio-group>
                     <div class="auth-bearer-info"
                         v-if="localWebhookForm.extra_info.authorization.type === 'bearer'">
-                        <p class="auth-input">Token</p>
-                        <bk-input
-                            v-model="localWebhookForm.extra_info.authorization.token"
-                            behavior="simplicity"
-                            :disabled="isViewMode"
-                            :clearable="true"
-                            @change="onWebhookConfigChange"></bk-input>
+                        <bk-form form-type="vertical" :rules="tokenFormRules" ref="tokenForm" :model="localWebhookForm.extra_info.authorization">
+                            <bk-form-item label="Token" property="token" :icon-offset="15" :label-width="500">
+                                <bk-input v-model="localWebhookForm.extra_info.authorization.token"
+                                    behavior="simplicity"
+                                    :disabled="isViewMode"
+                                    :clearable="true"
+                                    @change="onWebhookConfigChange">
+                                </bk-input>
+                            </bk-form-item>
+                        </bk-form>
                     </div>
                     <div class="auth-basic-info"
                         v-if="localWebhookForm.extra_info.authorization.type === 'basic'">
-                        <div class="basic-username">
-                            <p class="auth-input">{{$t('用户名')}}</p>
-                            <bk-input v-model="localWebhookForm.extra_info.authorization.username"
-                                behavior="simplicity"
-                                :disabled="isViewMode"
-                                :clearable="true"
-                                @change="onWebhookConfigChange"></bk-input>
-                        </div>
-                        <div>
-                            <p class="auth-input">{{$t('密码')}}</p>
-                            <bk-input v-model="localWebhookForm.extra_info.authorization.password"
-                                behavior="simplicity"
-                                :type="'password'"
-                                :disabled="isViewMode"
-                                :clearable="true"
-                                @change="onWebhookConfigChange"></bk-input>
-                        </div>
+                        <bk-form form-type="vertical" :rules="basicFormRules" ref="basicForm" :model="localWebhookForm.extra_info.authorization">
+                            <bk-form-item :label="$t('用户名')" property="username" :icon-offset="15" :label-width="300">
+                                <div class="from-item-content">
+                                    <bk-input v-model="localWebhookForm.extra_info.authorization.username"
+                                        behavior="simplicity"
+                                        :disabled="isViewMode"
+                                        :clearable="true"
+                                        @change="onWebhookConfigChange">
+                                    </bk-input>
+                                </div>
+                            </bk-form-item>
+                            <bk-form-item :label="$t('密码')" property="password" :icon-offset="15" :label-width="300">
+                                <div class="from-item-content">
+                                    <bk-input v-model="localWebhookForm.extra_info.authorization.password"
+                                        behavior="simplicity"
+                                        type="password"
+                                        :disabled="isViewMode"
+                                        :clearable="true"
+                                        @change="onWebhookConfigChange">
+                                    </bk-input>
+                                </div>
+                            </bk-form-item>
+                        </bk-form>
                     </div>
                 </bk-tab-panel>
                 <bk-tab-panel name="headers" :render-label="renderLabel">
@@ -120,8 +134,8 @@
                     </bk-table>
                 </bk-tab-panel>
                 <bk-tab-panel name="settings" :render-label="renderLabel">
-                    <bk-form form-type="vertical" :rules="rules" ref="settingForm">
-                        <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key === 'retry_times' ? 'retry_times' : ''" :icon-offset="27">
+                    <bk-form form-type="vertical" :rules="settingFormRules" ref="settingForm" :model="localWebhookForm.extra_info">
+                        <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key" :icon-offset="27">
                             <div class="from-item-content">
                                 <bk-input v-model="localWebhookForm.extra_info[item.key]"
                                     :disabled="isViewMode"
@@ -207,19 +221,30 @@
                     interval
                 }
             }
-            const example = {
-                'delivery_id': 'e3badd079fc4430bb47399786296a11d',
-                'description': '蓝鲸应用开发',
-                'event': {
-                    'code': 'task_failed',
-                    'description': '',
-                    'info': {
-                        'taskflow_id': 41
-                    },
-                    'name': '任务失败'
-                }
+            const successExample = {
+                'executor': 'user',
+                'finish_time': 1756459237,
+                'outputs': {
+                    '${_result}': true,
+                    '${test}': '123'
+                },
+                'start_time': 1756459237,
+                'task_id': 109,
+                'task_name': 'new20250814161131_20250829172031'
             }
-            const callbackExample = JSON.stringify(example, null, 2)
+            const errorExample = {
+                'executor': 'user',
+                'extra_data': {
+                    'failed_message': '仅允许访问域名(.)下的URL',
+                    'failed_node': 'nccda40ad8b1378eba49351a60a48b87',
+                    'failed_node_name': 'HTTP 请求'
+                },
+                'finish_time': '',
+                'start_time': 1756463165,
+                'task_id': 118,
+                'task_name': 'new20250814161131_20250829182603'
+            }
+            const callbackExample = `# 成功\n${JSON.stringify(successExample, null, 2)}\n\n# 失败\n${JSON.stringify(errorExample, null, 2)}`
             return {
                 callbackExample,
                 localWebhookForm,
@@ -272,11 +297,95 @@
                     }
                 ],
                 activeTab: 'authentication',
-                rules: {
+                settingFormRules: {
                     retry_times: [
                         {
                             validator: this.checkInterval,
                             message: i18n.t('重试次数不能超过5次'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.checkData(val, true)
+                            },
+                            message: i18n.t('请输入重试次数'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    timeout: [
+                        {
+                            validator: (val) => {
+                                return this.checkData(val, true)
+                            },
+                            message: i18n.t('请输入请求超时时间'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    interval: [
+                        {
+                            validator: (val) => {
+                                return this.checkData(val, true)
+                            },
+                            message: i18n.t('请输入重试间隔'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                addrFormRules: {
+                    endpoint: [
+                        {
+                            validator: (val) => {
+                                return this.checkData(val)
+                            },
+                            message: i18n.t('请输入请求URL'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                const regex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w.-]*)*\/?$/i
+                                return regex.test(val)
+                            },
+                            message: i18n.t('请输入正确的请求URL'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    method: [
+                        {
+                            validator: (val) => {
+                                return this.checkData(val)
+                            },
+                            message: i18n.t('请选择请求方法'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                tokenFormRules: {
+                    token: [
+                        {
+                            validator: (val) => {
+                                return this.checkData(val)
+                            },
+                            message: i18n.t('请输入token'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                basicFormRules: {
+                    username: [
+                        {
+                            validator: (val) => {
+                                return this.checkData(val)
+                            },
+                            message: i18n.t('请输入用户名'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    password: [
+                        {
+                            validator: (val) => {
+                                return this.checkData(val)
+                            },
+                            message: i18n.t('请输入密码'),
                             trigger: 'blur'
                         }
                     ]
@@ -319,6 +428,10 @@
                 ])
             },
             requestTypetabChange (tabName) {
+                // 清除对表单的校验
+                this.$refs.settingForm.clearError()
+                this.$refs.basicForm.clearError()
+                this.$refs.tokenForm.clearError()
                 this.activeTab = tabName
             },
             addHeadersRow () {
@@ -331,14 +444,44 @@
             onEnableWebhookChange (row) {
                 this.$emit('change', row, true)
             },
+            onAuthConfigChange (val) {
+                this.onWebhookConfigChange()
+                this.$nextTick(() => {
+                    this.$refs.basicForm.clearError()
+                    this.$refs.tokenForm.clearError()
+                })
+            },
             onWebhookConfigChange () {
                 this.$emit('change', this.localWebhookForm)
             },
             checkInterval () {
                 return this.localWebhookForm.extra_info.retry_times <= 5
             },
+            checkData (val) {
+                if (this.isEnable) {
+                    return val !== ''
+                }
+                return true
+            },
             validate () {
-                return this.$refs.settingForm.validate().then(valid => valid)
+                if (this.isEnable) {
+                    const { type } = this.localWebhookForm.extra_info?.authorization || ''
+                    const validations = [
+                        this.$refs.settingForm.validate(),
+                        this.$refs.addrForm.validate()
+                    ]
+                    if (type === 'basic') {
+                        validations.push(this.$refs.basicForm.validate())
+                    } else if (type === 'bearer') {
+                        validations.push(this.$refs.tokenForm.validate())
+                    }
+                    return Promise.all(validations).then(results => {
+                        return results.every(valid => valid)
+                    }).catch(() => {
+                        return false
+                    })
+                }
+                return true
             },
             delItemHeader (row, index) {
                 this.localWebhookForm.extra_info.headers.splice(index, 1)
@@ -386,9 +529,11 @@
     .http-callback-method-select{
         width: 80px;
     }
-    .http-callback-url{
-        flex: 1;
-        margin-left: 24px;
+    .http-callback-url-input{
+        width: 592px;
+    }
+    .form-item-select{
+        padding-right: 24px !important;
     }
 
 }
@@ -409,11 +554,14 @@
 .bk-form-radio{
     margin-right: 40px;
 }
-.bk-form{
+::v-deep .bk-form{
     display: flex;
     .bk-form-item{
         margin-top: 0 !important;
         padding-right: 40px;
+        .bk-form-content{
+            margin-left: 0px !important;
+        }
         .from-item-content{
             display: flex;
             .unit{
@@ -423,6 +571,12 @@
                 font-weight: 400;
                 color: #63656e;
             }
+        }
+        .bk-label{
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: 400;
+            color: #63656e;
         }
     }
 }
