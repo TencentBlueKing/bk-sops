@@ -4,11 +4,11 @@ from bkapi_client_core.apigateway import APIGatewayClient, Operation, OperationG
 
 class Group(OperationGroup):
     # 创建工单
-    create_ticket = bind_property(Operation, name="create_ticket", method="POST", path="/openapi/v2/tickets/")
+    create_ticket = bind_property(Operation, name="create_ticket", method="POST", path="/v2/itsm/create_ticket/")
 
     # 查询节点信息
-    retrieve_ticket_info = bind_property(
-        Operation, name="retrieve_ticket_info", method="GET", path="/openapi/v2/tickets/{ticket_id}/"
+    get_ticket_info = bind_property(
+        Operation, name="get_ticket_info", method="GET", path="/v2/itsm/get_ticket_info/"
     )
 
     # 处理单据节点

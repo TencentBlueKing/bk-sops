@@ -108,10 +108,7 @@ class ApproveService(Service):
     def schedule(self, data, parent_data, callback_data=None):
         try:
             rejected_block = data.get_one_of_inputs("rejected_block", True)
-            if settings.ENABLE_MULTI_TENANT_MODE:
-                approve_result = callback_data["ticket"]["approve_result"]
-            else:
-                approve_result = callback_data["approve_result"]
+            approve_result = callback_data["approve_result"]
             data.outputs.approve_result = "通过" if approve_result else "拒绝"
             # 审核拒绝不阻塞
             if not approve_result and not rejected_block:
@@ -125,7 +122,7 @@ class ApproveService(Service):
 
 
 class ApproveComponent(Component):
-    name = _("审批(已废弃请尽快切换)")
+    name = _("审批")
     code = "bk_approve"
     bound_service = ApproveService
     form = "%scomponents/atoms/bk/approve/v1_0.js" % settings.STATIC_URL
