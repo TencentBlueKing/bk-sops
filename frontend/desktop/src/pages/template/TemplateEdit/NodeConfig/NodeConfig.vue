@@ -1163,7 +1163,6 @@
                         if (source_type === 'component_inputs') {
                             sourceInfo.forEach(nodeFormItem => {
                                 const newTplVar = this.subflowForms[nodeFormItem]
-
                                 if (!newTplVar || newTplVar.source_tag !== varItem.source_tag) { // 变量被删除或者变量类型有变更
                                     this.setVariableSourceInfo({
                                         key,
@@ -1201,7 +1200,7 @@
                     const { source_type, source_info } = varItem
                     const sourceInfo = source_info[this.nodeId]
                     if (sourceInfo) {
-                        if (source_type === 'component_inputs') {
+                        if (source_type === 'component_inputs' || source_type === 'custom') {
                             inputs.forEach(formItem => {
                                 if (sourceInfo.includes(formItem.tag_code)) {
                                     this.setVariableSourceInfo({
@@ -1213,7 +1212,7 @@
                                 }
                             })
                         }
-                        if (source_type === 'component_outputs') {
+                        if (source_type === 'component_outputs' || source_type === 'custom') {
                             this.outputs.forEach(formItem => {
                                 if (sourceInfo.includes(formItem.key)) {
                                     this.setVariableSourceInfo({
