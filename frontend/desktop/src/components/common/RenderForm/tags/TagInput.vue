@@ -40,6 +40,7 @@
                         @input="handleInputChange">
                     </div>
                 </div>
+                <!-- 联想内容列表 -->
                 <transition>
                     <div
                         class="rf-select-list"
@@ -587,7 +588,6 @@
     }
     .rf-form-wrapper {
         position: relative;
-        overflow: hidden;
         .rf-select-list {
             position: absolute;
             top: 30px;
