@@ -535,14 +535,13 @@
                         password
                     }
                 }
-                const { type, token, username, password } = authorization
-                const isfillAuthorization = type ? (type === 'basic' && username !== '' && password !== '') || (type === 'bearer' && token !== '') : true
+                
+                const authorizationMap = {
+                    basic: () => this.$refs.basicForm.validate(),
+                    bearer: () => this.$refs.tokenForm.validate()
+                }
+                const isfillAuthorization = authorizationMap[authorization.type] ? await authorizationMap[authorization.type]() : true
                 if (!isfillAuthorization) {
-                    this.$bkNotify({
-                        type: 'error',
-                        title: i18n.t('请输入正确的认证信息'),
-                        theme: 'error'
-                    })
                     return
                 }
                 const params = {
