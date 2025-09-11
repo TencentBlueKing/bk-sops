@@ -535,6 +535,15 @@
                         password
                     }
                 }
+                
+                const authorizationMap = {
+                    basic: () => this.$refs.basicForm.validate(),
+                    bearer: () => this.$refs.tokenForm.validate()
+                }
+                const isfillAuthorization = authorizationMap[authorization.type] ? await authorizationMap[authorization.type]() : true
+                if (!isfillAuthorization) {
+                    return
+                }
                 const params = {
                     method: this.localWebhookForm.method,
                     endpoint: this.localWebhookForm.endpoint,

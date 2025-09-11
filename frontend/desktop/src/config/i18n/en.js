@@ -1909,7 +1909,8 @@ const en = {
     '请输入重试间隔': 'Please enter retry interval',
     '请输入请求URL': 'Please enter request URL',
     '请输入用户名': 'Please enter username',
-    '请输入密码': 'Please enter password'
+    '请输入密码': 'Please enter password',
+    '请输入正确的认证信息': 'Please enter valid authentication information'
 }
 
 export default en
