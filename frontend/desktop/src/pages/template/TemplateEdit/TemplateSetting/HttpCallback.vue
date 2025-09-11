@@ -535,6 +535,16 @@
                         password
                     }
                 }
+                const { type, token, username, password } = authorization
+                const isfillAuthorization = type ? (type === 'basic' && username !== '' && password !== '') || (type === 'bearer' && token !== '') : true
+                if (!isfillAuthorization) {
+                    this.$bkNotify({
+                        type: 'error',
+                        title: i18n.t('请输入正确的认证信息'),
+                        theme: 'error'
+                    })
+                    return
+                }
                 const params = {
                     method: this.localWebhookForm.method,
                     endpoint: this.localWebhookForm.endpoint,
