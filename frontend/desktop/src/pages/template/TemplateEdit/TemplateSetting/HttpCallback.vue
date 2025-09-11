@@ -310,6 +310,13 @@
                             },
                             message: i18n.t('请输入重试次数'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return /^[0-9]+$/.test(val)
+                            },
+                            message: i18n.t('请输入数字'),
+                            trigger: 'blur'
                         }
                     ],
                     timeout: [
@@ -319,6 +326,13 @@
                             },
                             message: i18n.t('请输入请求超时时间'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return /^[0-9]+$/.test(val)
+                            },
+                            message: i18n.t('请输入数字'),
+                            trigger: 'blur'
                         }
                     ],
                     interval: [
@@ -327,6 +341,13 @@
                                 return this.checkData(val, true)
                             },
                             message: i18n.t('请输入重试间隔'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return /^[0-9]+$/.test(val)
+                            },
+                            message: i18n.t('请输入数字'),
                             trigger: 'blur'
                         }
                     ]
