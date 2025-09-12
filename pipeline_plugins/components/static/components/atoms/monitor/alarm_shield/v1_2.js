@@ -278,7 +278,7 @@
                         attrs: {
                             name: gettext("IP"),
                             hookable: true,
-                            placeholder: gettext("请输入主机IP，多个用逗号分隔"),
+                            placeholder: gettext("请输入主机IP支持管控区域:IP格式，多个用逗号分隔"),
                             validation: [
                                 {
                                     type: "custom",

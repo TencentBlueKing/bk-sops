@@ -9,6 +9,10 @@ from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.utils import cmdb
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
+from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import cc_get_host_by_innerip_with_ipv6_across_business
+from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
 
 __group_name__ = _("监控平台(Monitor)")
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
@@ -33,66 +37,82 @@ class MonitorBaseService(Service):
             "shield_notice": False,
         }
         return request_body
-
-    def get_ip_dimension_config(self, tenant_id, scope_value, bk_biz_id, username):
-        ip_list = scope_value.split(",")
+    
+    def get_ip_list(self, ip_str):
         if settings.ENABLE_IPV6:
-            # 开启了IPV6 要同时查ipv6和ipv4
-            ipv4_list = []
-            ipv6_list = []
-
-            for ip in ip_list:
-                p_address = ipaddress.ip_address(ip)
-                if p_address.version == 6:
-                    ipv6_list.append(ip)
-                else:
-                    ipv4_list.append(ip)
-
-            ip_v6_hosts = cmdb.get_business_host_ipv6(
-                tenant_id=tenant_id,
-                username=username,
-                bk_biz_id=bk_biz_id,
-                host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip", "bk_host_innerip_v6"],
-                ip_list=ipv6_list,
+            ipv6_list, ipv4_list, *_ = extract_ip_from_ip_str(ip_str)
+            return ipv6_list + ipv4_list
+        return get_ip_by_regex(ip_str)
+    
+    def get_target_server_ipv6_across_business(self, tenant_id, executor, biz_cc_id, ip_str, logger_handle, data):
+        """
+        step 1: 去本业务查这些ip，得到两个列表，本业务查询到的host, 本业务查不到的ip列表
+        step 2: 对于本业务查不到的host, 去全业务查询，查不到的话则报错，将查到的host_id 与 本业务的 host_id 进行合并
+        """
+        logger_handle.info("[get_target_server_ipv6_across_business] start search ip, ip_str={}".format(ip_str))
+        # 去本业务查
+        try:
+            (
+                host_list,
+                ipv4_not_find_list,
+                ipv4_with_cloud_not_find_list,
+                ipv6_not_find_list,
+                ipv6_with_cloud_not_find_list,
+            ) = cc_get_host_by_innerip_with_ipv6_across_business(
+                tenant_id,
+                executor,
+                biz_cc_id,
+                ip_str,
             )
-            # 监控接口不支持 host_id, 进支持 ip
-            host_without_innerip = [host for host in ip_v6_hosts if host["bk_host_innerip"] == ""]
-            if host_without_innerip:
-                raise Exception(
-                    _("主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参").format(
-                        ",".join([str(host["bk_host_id"]) for host in host_without_innerip])
-                    )
-                )
-
-            ip_v4_hosts = cmdb.get_business_host(
-                tenant_id=tenant_id,
-                username=username,
-                bk_biz_id=bk_biz_id,
-                host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
-                ip_list=ipv4_list,
+        except Exception as e:
+            logger_handle.exception(
+                f"[get_target_server_ipv6_across_business] call "
+                f"cc_get_host_by_innerip_with_ipv6_across_business error: {e}"
             )
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确：{}".format(e)
+            return False, {}
 
-            if not ip_v4_hosts:
-                raise Exception(_("当前业务下未查询到ip信息, 请检查ip地址是否填写正确:{}").format(ipv4_list))
-
-            hosts = ip_v4_hosts + ip_v6_hosts
-
-        else:
-            hosts = cmdb.get_business_host(
-                tenant_id=tenant_id,
-                username=username,
-                bk_biz_id=bk_biz_id,
-                host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
-                ip_list=ip_list,
+        ip_not_find_str = ",".join(
+            ipv4_not_find_list + ipv6_not_find_list + ipv4_with_cloud_not_find_list + ipv6_with_cloud_not_find_list
+        )
+        logger_handle.info(
+            "[get_target_server_ipv6_across_business] not find this ip, ip_not_find_str={}".format(ip_not_find_str)
+        )
+        # 剩下的ip去全业务查
+        host_result = cc_get_host_by_innerip_with_ipv6(tenant_id, executor, None, ip_not_find_str, is_biz_set=True)
+        logger_handle.info(
+            "[get_target_server_ipv6_across_business] start search this ip:{}, result:{}".format(
+                ip_not_find_str, host_list
             )
-        if not hosts:
-            raise Exception(_("当前业务下未查询到ip信息, 请检查ip地址是否填写正确:{}").format(scope_value))
+        )
+        if not host_result["result"]:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(host_result.get("message"))
+            return False, {}
+        host_data = host_result["data"] + host_list
+        return True, {"host_id_list": [int(host["bk_host_id"]) for host in host_data]}
+    
+    def get_target_server_hybrid(self, tenant_id, executor, biz_cc_id, data, ip_str, logger_handle):
+        if settings.ENABLE_IPV6:
+            return self.get_target_server_ipv6_across_business(
+                tenant_id, executor, biz_cc_id, ip_str, logger_handle, data
+            )
+        # 获取IP
+        clean_result, ip_list = get_biz_ip_from_frontend_hybrid(tenant_id, executor, ip_str, biz_cc_id, data)
+        if not clean_result:
+            return False, {}
 
-        target = []
-        for host in hosts:
-            target.append({"ip": host["bk_host_innerip"], "bk_cloud_id": host["bk_cloud_id"]})
+        return True, {"ip_list": ip_list}
 
-        return {"scope_type": "ip", "target": target}
+    def get_ip_dimension_config(self, tenant_id, scope_value, bk_biz_id, username, data):
+
+        # 获取 IP
+        _, target_server = self.get_target_server_hybrid(
+            tenant_id, username, bk_biz_id, data, scope_value, logger_handle=self.logger
+        )
+        # if not result:
+        #     raise Exception(_("当前业务下未查询到ip信息, 请检查ip地址是否填写正确:{}").format(scope_value))
+
+        return {"scope_type": "ip", "target": target_server.get("ip_list", [])}
 
     def send_request(self, tenant_id, request_body, data, client):
         response = client.api.add_shield(request_body, headers={"X-Bk-Tenant-Id": tenant_id})

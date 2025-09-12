@@ -12,7 +12,7 @@ paths:
       operationId: callback
       description: 节点回调入口
       tags:
-      - 限制接口
+        - callback
       responses:
         default:
           description: ''
@@ -43,7 +43,7 @@ paths:
       operationId: create_periodic_task
       description: 创建周期任务
       tags:
-      - 限制接口
+        - periodic_task
       responses:
         default:
           description: ''
@@ -68,7 +68,7 @@ paths:
       operationId: create_task
       description: 通过业务流程模板创建任务
       tags:
-      - 通用接口
+        - task
       responses:
         default:
           description: ''
@@ -93,7 +93,7 @@ paths:
       operationId: dispatch_plugin_query
       description: 插件请求转发
       tags:
-      - 限制接口
+      - plugin
       responses:
         default:
           description: ''
@@ -118,7 +118,7 @@ paths:
       operationId: fast_create_task
       description: 创建一次性任务
       tags:
-      - 限制接口
+      - task
       responses:
         default:
           description: ''
@@ -143,7 +143,7 @@ paths:
       operationId: get_common_template_info
       description: 查询单个公共流程模板详情
       tags:
-      - 通用接口
+      - template
       responses:
         default:
           description: ''
@@ -168,7 +168,7 @@ paths:
       operationId: get_common_template_list
       description: 查询公共模板列表
       tags:
-      - 通用接口
+      - template
       responses:
         default:
           description: ''
@@ -193,7 +193,7 @@ paths:
       operationId: get_periodic_task_info
       description: 查询某个周期任务的详情
       tags:
-      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -218,7 +218,7 @@ paths:
       operationId: get_periodic_task_list
       description: 查询某个业务下所有的周期任务
       tags:
-      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -243,7 +243,7 @@ paths:
       operationId: get_plugin_list
       description: 查询某个业务下的插件列表
       tags:
-      - 通用接口
+      - plugin
       responses:
         default:
           description: ''
@@ -268,7 +268,7 @@ paths:
       operationId: get_tasks_status
       description: 批量查询任务状态
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -293,7 +293,7 @@ paths:
       operationId: get_task_detail
       description: 查询任务执行详情
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -318,7 +318,7 @@ paths:
       operationId: get_task_list
       description: 获取任务列表
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -343,7 +343,7 @@ paths:
       operationId: get_task_node_data
       description: 获取节点执行时实际的输入输出参数
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -368,7 +368,7 @@ paths:
       operationId: get_task_node_detail
       description: 查询任务节点执行详情
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -393,7 +393,7 @@ paths:
       operationId: get_task_status
       description: 查询任务执行状态
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -418,7 +418,7 @@ paths:
       operationId: get_template_info
       description: 查询业务下的单个模板详情
       tags:
-      - 通用接口
+      - template
       responses:
         default:
           description: ''
@@ -443,7 +443,7 @@ paths:
       operationId: get_template_list
       description: 查询业务下的模板列表
       tags:
-      - 通用接口
+      - template
       responses:
         default:
           description: ''
@@ -468,7 +468,7 @@ paths:
       operationId: get_template_schemes
       description: 获取模板的执行方案列表
       tags:
-      - 通用接口
+      - template
       responses:
         default:
           description: ''
@@ -493,7 +493,7 @@ paths:
       operationId: get_user_project_detail
       description: 获取项目的详细信息
       tags:
-      - 通用接口
+      - project
       responses:
         default:
           description: ''
@@ -518,7 +518,7 @@ paths:
       operationId: get_user_project_list
       description: 获取用户有权限的项目列表
       tags:
-      - 通用接口
+      - project
       responses:
         default:
           description: ''
@@ -543,7 +543,7 @@ paths:
       operationId: import_project_template
       description: 导入项目模板
       tags:
-      - 限制接口
+      - template
       responses:
         default:
           description: ''
@@ -568,7 +568,7 @@ paths:
       operationId: modify_constants_for_periodic_task
       description: 修改周期任务的全局参数
       tags:
-      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -593,7 +593,7 @@ paths:
       operationId: modify_cron_for_periodic_task
       description: 修改周期任务的调度策略
       tags:
-      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -618,7 +618,7 @@ paths:
       operationId: node_callback
       description: 回调任务的节点
       tags:
-      - 通用接口
+      - callback
       responses:
         default:
           description: ''
@@ -643,7 +643,7 @@ paths:
       operationId: operate_node
       description: 操作节点
       tags:
-      - 通用接口
+      - node
       responses:
         default:
           description: ''
@@ -668,7 +668,7 @@ paths:
       operationId: operate_task
       description: 操作任务，如开始、暂停、继续、终止等
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -693,7 +693,7 @@ paths:
       operationId: preview_task_tree
       description: 预览模板创建后生成的任务树
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -718,7 +718,7 @@ paths:
       operationId: register_project
       description: 项目信息同步注册到标准运维
       tags:
-      - 限制接口
+      - project
       responses:
         default:
           description: ''
@@ -743,7 +743,7 @@ paths:
       operationId: set_periodic_task_enabled
       description: 设置某个周期任务是否激活
       tags:
-      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -768,7 +768,7 @@ paths:
       operationId: start_task
       description: 开始执行任务
       tags:
-      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -793,7 +793,7 @@ paths:
       operationId: copy_template_across_project
       description: 跨业务复制模板
       tags:
-      - 限制接口
+        - template
       responses:
         default:
           description: ''

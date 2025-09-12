@@ -112,7 +112,9 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
         )
 
         if scope_value:
-            target = self.get_ip_dimension(tenant_id, scope_value, bk_biz_id, executor)
+            target = self.get_ip_dimension(tenant_id, scope_value, bk_biz_id, executor, data)
+            if not target["target"]:
+                return False
             request_body["dimension_config"].update(target)
         result_flag = self.send_request(tenant_id, request_body, data, client)
         return result_flag
@@ -120,9 +122,9 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
     def get_dimension_config(self, shied_value):
         return {"id": shied_value}
 
-    def get_ip_dimension(self, tenant_id, scope_value, bk_biz_id, username):
+    def get_ip_dimension(self, tenant_id, scope_value, bk_biz_id, username, data):
         ip_dimension = super(MonitorAlarmShieldStrategyService, self).get_ip_dimension_config(
-            tenant_id, scope_value, bk_biz_id, username
+            tenant_id, scope_value, bk_biz_id, username, data
         )
         return ip_dimension
 

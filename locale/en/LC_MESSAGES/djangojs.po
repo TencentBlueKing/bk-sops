@@ -2455,8 +2455,8 @@ msgstr "Enter username, Multiple username separate with ,"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:39
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:39
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:39
-msgid "请输入主机IP，多个用逗号分隔"
-msgstr "Enter IP, Multiple IP are separate with ,"
+msgid "请输入主机IP支持管控区域:IP格式，多个用逗号分隔"
+msgstr "Enter IP support CLOUD_ID:IP, Multiple IP are separate with ,"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:349
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:349

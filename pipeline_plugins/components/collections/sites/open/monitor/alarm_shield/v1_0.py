@@ -89,16 +89,16 @@ class MonitorAlarmShieldService(MonitorBaseService):
 
         return result_flag
 
-    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, username, tenant_id):
+    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, username, tenant_id, data):
         dimension_map = {
             "business": self.get_biz_dimension,
             "IP": self.get_ip_dimension,
             "node": self.get_node_dimension,
         }
-        return dimension_map[shied_type](shied_value, bk_biz_id, username, tenant_id)
+        return dimension_map[shied_type](shied_value, bk_biz_id, username, tenant_id, data)
 
-    def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, tenant_id):
-        dimension_config = self.get_dimension_config(shied_type, shied_value, bk_biz_id, username, tenant_id)
+    def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, tenant_id, data):
+        dimension_config = self.get_dimension_config(shied_type, shied_value, bk_biz_id, username, tenant_id, data)
         request_body = self.build_request_body(
             begin_time=begin_time,
             bk_biz_id=bk_biz_id,
@@ -108,18 +108,18 @@ class MonitorAlarmShieldService(MonitorBaseService):
         )
         return request_body
 
-    def get_ip_dimension(self, scope_value, bk_biz_id, username, tenant_id):
+    def get_ip_dimension(self, scope_value, bk_biz_id, username, tenant_id, data):
         ip_dimension = super(MonitorAlarmShieldService, self).get_ip_dimension_config(
-            tenant_id, scope_value, bk_biz_id, username
+            tenant_id, scope_value, bk_biz_id, username, data
         )
         return ip_dimension
 
     @staticmethod
-    def get_biz_dimension(scope_value, bk_biz_id, username, tenant_id):
+    def get_biz_dimension(scope_value, bk_biz_id, username, tenant_id, data):
         return {"scope_type": "biz"}
 
     @staticmethod
-    def get_node_dimension(scope_value, bk_biz_id, username, tenant_id):
+    def get_node_dimension(scope_value, bk_biz_id, username, tenant_id, data):
         bk_set_method = scope_value["bk_set_method"]
         if bk_set_method == "select":
             bk_set_value = scope_value["bk_set_select"]
