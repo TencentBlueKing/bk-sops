@@ -71,6 +71,7 @@ from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
+from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_ids
 
 logger = logging.getLogger("root")
 
@@ -325,6 +326,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer = self.get_serializer(page, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
+        task_ids = [obj["id"] for obj in data]
+        task_webhook_history = get_webhook_delivery_history_by_delivery_ids(task_ids)
+        for obj in data:
+            obj["webhook_history"] = task_webhook_history.get(str(obj["id"]), [])
         self._inject_template_related_info(request, data)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
@@ -399,6 +404,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer = self.get_serializer(instance)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, instance)
+        task_webhook_history = get_webhook_delivery_history_by_delivery_ids([instance.id])
+        data["task_webhook_history"] = task_webhook_history.get(str(instance.id), {})
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.TASK_VIEW_ACTION,

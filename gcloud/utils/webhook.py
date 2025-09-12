@@ -21,6 +21,9 @@ from webhook.models import Scope as ScopeModel
 from webhook.models import Subscription
 from webhook.contrib.drf.serializers import WebhookSerializer
 from django.conf import settings
+from webhook.utils import process_sensitive_info
+from webhook.models import History
+from gcloud.utils.dates import format_datetime
 
 logger = logging.getLogger("root")
 
@@ -36,11 +39,31 @@ def get_webhook_configs(scope_code: list):
             result[webhook.scope_code] = {
                 "method": webhook.method,
                 "endpoint": webhook.endpoint,
-                "extra_info": webhook.extra_info,
+                "extra_info": process_sensitive_info(webhook.extra_info, is_decrypt=True),
             }
     except Exception as e:
         logger.exception(f"get_scope_webhooks error: {e}")
         return {"result": False, "message": f"Failed to get webhook configs: {e}", "data": {}, "code": "500"}
+
+    return result
+
+
+def get_webhook_delivery_history_by_delivery_ids(delivery_ids):
+    histories = History.objects.filter(delivery_id__in=delivery_ids)
+    result = {str(delivery_id): [] for delivery_id in delivery_ids}
+
+    for history in histories:
+        delivery_id = str(history.delivery_id)
+        response = history.extra_info.get("response", {})
+        result[delivery_id].append(
+            {
+                "created_at": format_datetime(history.created_at),
+                "event_code": history.event_code,
+                "is_success": history.success,
+                "status_code": history.status_code,
+                "response": response.get("message", None) if isinstance(response, dict) else None,
+            }
+        )
 
     return result
 
