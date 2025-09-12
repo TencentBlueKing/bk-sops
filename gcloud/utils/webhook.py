@@ -28,12 +28,12 @@ from gcloud.utils.dates import format_datetime
 logger = logging.getLogger("root")
 
 
-def get_webhook_configs(scope_code: list):
+def get_webhook_configs(scope_code):
     """
     get webhook retry policy of scope
     """
     try:
-        webhooks = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_code)
+        webhooks = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code=scope_code)
         result = {}
         for webhook in webhooks:
             result[webhook.scope_code] = {
@@ -48,12 +48,11 @@ def get_webhook_configs(scope_code: list):
     return result
 
 
-def get_webhook_delivery_history_by_delivery_ids(delivery_ids):
-    histories = History.objects.filter(delivery_id__in=delivery_ids)
-    result = {str(delivery_id): [] for delivery_id in delivery_ids}
+def get_webhook_delivery_history_by_delivery_ids(delivery_id):
+    histories = History.objects.filter(delivery_id=delivery_id)
+    result = {delivery_id: []}
 
     for history in histories:
-        delivery_id = str(history.delivery_id)
         response = history.extra_info.get("response", {})
         result[delivery_id].append(
             {

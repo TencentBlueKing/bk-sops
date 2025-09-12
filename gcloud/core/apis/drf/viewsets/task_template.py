@@ -173,13 +173,10 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             user_model.objects.get(username=request.user.username).tasktemplate_set.all().values_list("id", flat=True)
         )
         template_ids = [obj["id"] for obj in data]
-        webhook_configs = get_webhook_configs(scope_code=template_ids)
         templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
         for obj in data:
             obj["is_add"] = 1 if obj["id"] in collected_templates else 0
             obj["template_labels"] = templates_labels.get(obj["id"], [])
-            obj["webhook_configs"] = webhook_configs.get(str(obj["id"]), {})
-            obj["enable_webhook"] = True if str(obj["id"]) in webhook_configs else False
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     @swagger_auto_schema(
@@ -206,14 +203,11 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         template_ids = [obj["id"] for obj in data]
-        webhook_configs = get_webhook_configs(scope_code=template_ids)
         templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
         for obj in data:
             obj["template_labels"] = templates_labels.get(obj["id"], [])
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
             obj["collection_id"] = collection_template_map.get(obj["id"], -1)
-            obj["webhook_configs"] = webhook_configs.get(str(obj["id"]), {})
-            obj["enable_webhook"] = True if str(obj["id"]) in webhook_configs else False
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def retrieve(self, request, *args, **kwargs):
@@ -222,7 +216,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, instance)
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
-        webhook_configs = get_webhook_configs(scope_code=[str(instance.id)])
+        webhook_configs = get_webhook_configs(scope_code=str(instance.id))
         data["webhook_configs"] = webhook_configs.get(str(instance.id), {})
         data["enable_webhook"] = True if str(instance.id) in webhook_configs else False
         bk_audit_add_event(
@@ -325,7 +319,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                     message = apply_result["message"]
                     logger.error(message)
                     raise ValidationException(message)
-            elif not enable_webhook and get_webhook_configs([str(serializer.instance.id)]):
+            elif not enable_webhook and get_webhook_configs(str(serializer.instance.id)):
                 clear_scope_webhooks([str(serializer.instance.id)])
 
             self.perform_update(serializer)

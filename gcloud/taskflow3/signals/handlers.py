@@ -93,7 +93,7 @@ def send_task_message(pipeline_id, node_id, msg_type):
 
         scopes = [(WebhookScopeType.TEMPLATE.value, str(taskflow.template_id))]
         extra_info = {
-            "delivery_id": str(taskflow.id),
+            "delivery_id": taskflow.id,
             "task_id": taskflow.id,
             "task_name": taskflow.pipeline_instance.name,
             "executor": taskflow.pipeline_instance.executor,
