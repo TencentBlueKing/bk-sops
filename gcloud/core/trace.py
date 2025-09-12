@@ -47,6 +47,9 @@ class AttributeInjectionSpanProcessor(SpanProcessor):
         # Implement custom logic if needed on span end
         pass
 
+    def set_attributes(self, attributes):
+        self.attributes = attributes
+
 
 def propagate_attributes(attributes: dict):
     """把attributes设置到span上，并继承到后面所有span
@@ -61,7 +64,15 @@ def propagate_attributes(attributes: dict):
         trace.set_tracer_provider(provider)
 
     # Add a span processor that sets attributes on every new span
-    provider.add_span_processor(AttributeInjectionSpanProcessor(attributes))
+    inject_attributes = False
+    for sp in getattr(provider._active_span_processor, "_span_processors", []):
+        if isinstance(sp, AttributeInjectionSpanProcessor):
+            inject_attributes = True
+            sp.set_attributes(attributes)
+            break
+
+    if not inject_attributes:
+        provider.add_span_processor(AttributeInjectionSpanProcessor(attributes))
 
 
 def append_attributes(attributes: dict):
