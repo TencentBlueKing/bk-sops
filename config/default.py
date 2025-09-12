@@ -227,6 +227,7 @@ LOGGING = get_logging_config_dict(locals())
 
 STATIC_VERSION = "3.35.1-alpha.1"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+APIGW_DOCS_VERSION = STATIC_VERSION + "+" + str(DEPLOY_DATETIME)
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
