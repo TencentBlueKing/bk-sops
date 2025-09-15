@@ -90,7 +90,7 @@ def get_user_project_detail(request, project_id):
             }
         )
     if include_staff_groups:
-        staff_groups = StaffGroupSet.objects.filter(project_id=request.project.id)
+        staff_groups = StaffGroupSet.objects.filter(project_id=request.project.id, is_deleted=False)
         staff_data = StaffGroupSetSerializer(staff_groups, many=True).data
         data.update({"staff_groups": staff_data})
 
