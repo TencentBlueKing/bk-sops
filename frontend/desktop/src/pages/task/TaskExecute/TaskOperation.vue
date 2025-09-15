@@ -162,6 +162,12 @@
                     :template-data="templateData"
                     @onshutDown="onshutDown">
                 </TemplateData>
+                <WebhookCallback
+                    v-if="nodeInfoType === 'webhook'"
+                    :webhook-history="webhookHistory"
+                    class="wehhook-callback"
+                    :state="state">
+                </WebhookCallback>
             </div>
         </bk-sideslider>
         <gatewaySelectDialog
@@ -236,6 +242,7 @@
     import TemplateData from './TemplateData'
     import injectVariableDialog from './InjectVariableDialog.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
+    import WebhookCallback from './WebhookCallback.vue'
     import { setShortcutIcon } from '@blueking/platform-config'
 
     const CancelToken = axios.CancelToken
@@ -285,7 +292,8 @@
             gatewaySelectDialog,
             TaskOperationHeader,
             TemplateData,
-            injectVariableDialog
+            injectVariableDialog,
+            WebhookCallback
         },
         mixins: [permission, tplPerspective],
         props: {
@@ -303,6 +311,7 @@
             routerType: String,
             creatorName: String,
             unclaimFuncTask: Boolean
+            // taskWebhookHistory: Array
         },
         data () {
             const $this = this
@@ -398,7 +407,8 @@
                 nodeTargetMaps: {},
                 allCheckoutNodes: {},
                 retryNodeName: '',
-                isSourceDetailSideBar: false // 节点重试侧栏是否从节点详情打开
+                isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
+                webhookHistory: []
             }
         },
         computed: {
@@ -509,6 +519,14 @@
                 })
             }
         },
+        watch: {
+            async state (val) {
+                if (val === 'FINISHED') {
+                    const instanceData = await this.getTaskInstanceData(this.taskId)
+                    this.webhookHistory = instanceData.task_webhook_history
+                }
+            }
+        },
         mounted () {
             this.loadTaskStatus()
             this.getSingleAtomList()
@@ -549,7 +567,8 @@
                 'getNodeActInfo',
                 'instanceRetry',
                 'subflowNodeRetry',
-                'taskFlowConvertCommonTask'
+                'taskFlowConvertCommonTask',
+                'getTaskInstanceData'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -2764,7 +2783,7 @@
 }
 .node-info-panel {
     height: 100%;
-    .operation-flow {
+    .operation-flow, .wehhook-callback{
         padding: 20px 30px;
     }
     >.resize-trigger {
