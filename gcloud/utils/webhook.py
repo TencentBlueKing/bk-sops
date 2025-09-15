@@ -18,7 +18,7 @@ from webhook.api import apply_scope_subscriptions, apply_scope_webhooks
 from gcloud.constants import WebhookScopeType, WebhookEventType
 from webhook.models import Webhook as WebhookModel
 from webhook.models import Scope as ScopeModel
-from webhook.models import Subscription
+from webhook.models import Subscription, Event
 from webhook.contrib.drf.serializers import WebhookSerializer
 from django.conf import settings
 from webhook.utils import process_sensitive_info
@@ -52,10 +52,8 @@ def get_webhook_delivery_history_by_delivery_ids(delivery_id):
     histories = History.objects.filter(delivery_id=delivery_id)
     result = {delivery_id: []}
 
-    event_name_mapping = {
-        "task_failed": "任务失败",
-        "task_finished": "任务完成",
-    }
+    events = Event.objects.all()
+    event_name_mapping = {event.code: event.name for event in events}
 
     for history in histories:
         response = history.extra_info.get("response", {})
