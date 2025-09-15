@@ -28,6 +28,8 @@ from gcloud.iam_auth.conf import IAMMeta, PROJECT_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.core.models import StaffGroupSet
+from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
 
 
 @login_exempt
@@ -40,6 +42,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
     include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    include_staff_groups = request.GET.get("include_staff_groups", None)
     try:
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
     except Exception as e:
@@ -86,6 +89,10 @@ def get_user_project_detail(request, project_id):
                 )
             }
         )
+    if include_staff_groups:
+        staff_groups = StaffGroupSet.objects.filter(project_id=request.project.id, is_deleted=False)
+        staff_data = StaffGroupSetSerializer(staff_groups, many=True).data
+        data.update({"staff_groups": staff_data})
 
     return {
         "result": True,
