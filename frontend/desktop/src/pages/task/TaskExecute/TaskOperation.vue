@@ -162,6 +162,11 @@
                     :template-data="templateData"
                     @onshutDown="onshutDown">
                 </TemplateData>
+                <WebhookCallback
+                    v-if="nodeInfoType === 'webhook'"
+                    :webhook-history="webhookHistory"
+                    class="wehhook-callback">
+                </WebhookCallback>
             </div>
         </bk-sideslider>
         <gatewaySelectDialog
@@ -236,6 +241,7 @@
     import TemplateData from './TemplateData'
     import injectVariableDialog from './InjectVariableDialog.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
+    import WebhookCallback from './WebhookCallback.vue'
     import { setShortcutIcon } from '@blueking/platform-config'
 
     const CancelToken = axios.CancelToken
@@ -285,7 +291,8 @@
             gatewaySelectDialog,
             TaskOperationHeader,
             TemplateData,
-            injectVariableDialog
+            injectVariableDialog,
+            WebhookCallback
         },
         mixins: [permission, tplPerspective],
         props: {
@@ -398,7 +405,8 @@
                 nodeTargetMaps: {},
                 allCheckoutNodes: {},
                 retryNodeName: '',
-                isSourceDetailSideBar: false // 节点重试侧栏是否从节点详情打开
+                isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
+                webhookHistory: []
             }
         },
         computed: {
@@ -549,7 +557,8 @@
                 'getNodeActInfo',
                 'instanceRetry',
                 'subflowNodeRetry',
-                'taskFlowConvertCommonTask'
+                'taskFlowConvertCommonTask',
+                'getTaskInstanceData'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -595,7 +604,11 @@
                         if (this.state === 'FINISHED' && this.hideHeader) {
                             window.parent.postMessage({ eventName: 'executeEvent' }, '*')
                         }
-
+                        // 请求获取回调记录
+                        if (this.state === 'FINISHED') {
+                            const instanceData = await this.getTaskInstanceData(this.taskId)
+                            this.webhookHistory = instanceData.task_webhook_history
+                        }
                         if (this.isTopTask) {
                             this.rootState = this.state
                         }
@@ -2764,7 +2777,7 @@
 }
 .node-info-panel {
     height: 100%;
-    .operation-flow {
+    .operation-flow, .wehhook-callback{
         padding: 20px 30px;
     }
     >.resize-trigger {

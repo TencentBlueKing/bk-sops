@@ -1910,6 +1910,12 @@ const en = {
     '请输入请求URL': 'Please enter request URL',
     '请输入用户名': 'Please enter username',
     '请输入密码': 'Please enter password',
+    '回调时间': 'Callback Time',
+    '回调事件类型': 'Callback Event Type',
+    '回调结果': 'Callback Result',
+    '请求状态码': 'Request Status Code',
+    '请求返回message': 'Request Return Message',
+    '回调记录': 'Callback Record',
     '请输入正确的认证信息': 'Please enter valid authentication information'
 }
 
