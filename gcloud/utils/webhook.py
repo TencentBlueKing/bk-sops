@@ -52,12 +52,18 @@ def get_webhook_delivery_history_by_delivery_ids(delivery_id):
     histories = History.objects.filter(delivery_id=delivery_id)
     result = {delivery_id: []}
 
+    event_name_mapping = {
+        "task_failed": "任务失败",
+        "task_finished": "任务完成",
+    }
+
     for history in histories:
         response = history.extra_info.get("response", {})
         result[delivery_id].append(
             {
                 "created_at": format_datetime(history.created_at),
                 "event_code": history.event_code,
+                "event_code_name": event_name_mapping.get(history.event_code, history.event_code),
                 "is_success": history.success,
                 "status_code": history.status_code,
                 "response": response.get("message", None) if isinstance(response, dict) else None,
