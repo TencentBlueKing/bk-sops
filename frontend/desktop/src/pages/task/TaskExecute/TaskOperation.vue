@@ -165,8 +165,7 @@
                 <WebhookCallback
                     v-if="nodeInfoType === 'webhook'"
                     :webhook-history="webhookHistory"
-                    class="wehhook-callback"
-                    :state="state">
+                    class="wehhook-callback">
                 </WebhookCallback>
             </div>
         </bk-sideslider>
@@ -311,7 +310,6 @@
             routerType: String,
             creatorName: String,
             unclaimFuncTask: Boolean
-            // taskWebhookHistory: Array
         },
         data () {
             const $this = this
