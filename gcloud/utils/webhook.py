@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import threading
 
 from django.db import transaction
 from webhook.api import apply_scope_subscriptions, apply_scope_webhooks
@@ -26,6 +27,15 @@ from webhook.models import History
 from gcloud.utils.dates import format_datetime
 
 logger = logging.getLogger("root")
+
+_thread_local = threading.local()
+
+
+def _get_event_name_mapping():
+    if not hasattr(_thread_local, "event_name_mapping"):
+        events = Event.objects.all()
+        _thread_local.event_name_mapping = {event.code: event.name for event in events}
+    return _thread_local.event_name_mapping
 
 
 def get_webhook_configs(scope_code):
@@ -48,16 +58,16 @@ def get_webhook_configs(scope_code):
     return result
 
 
-def get_webhook_delivery_history_by_delivery_ids(delivery_id):
+def get_webhook_delivery_history_by_delivery_id(delivery_id):
     histories = History.objects.filter(delivery_id=delivery_id)
-    result = {delivery_id: []}
+    result = []
 
     events = Event.objects.all()
     event_name_mapping = {event.code: event.name for event in events}
 
     for history in histories:
         response = history.extra_info.get("response", {})
-        result[delivery_id].append(
+        result.append(
             {
                 "created_at": format_datetime(history.created_at),
                 "event_code": history.event_code,
