@@ -62,7 +62,7 @@
         overflow-y: auto;
         @include scrollbar;
     }
-    .success-icon{
+    .true-icon{
         color: #2dcb56,
     }
     .false-icon{
