@@ -547,7 +547,6 @@
     text-align: left;
     .rf-form-wrapper {
         position: relative;
-        overflow: hidden;
         .rf-select-list {
             position: absolute;
             top: 40px;
