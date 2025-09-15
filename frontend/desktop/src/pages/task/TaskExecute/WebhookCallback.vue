@@ -33,22 +33,6 @@
         },
         data () {
             return {
-                callbackData: [
-                    {
-                        callback_time: '2020-01-01 00:00:00',
-                        callback_type: 'callback',
-                        callback_result: 'success',
-                        callback_code: 200,
-                        callback_message: 'success'
-                    },
-                    {
-                        callback_time: '2020-01-01 00:00:00',
-                        callback_type: 'callback',
-                        callback_result: 'error',
-                        callback_code: 500,
-                        callback_message: 'error'
-                    }
-                ],
                 statusInfo: {
                     'true': {
                         text: '成功',
