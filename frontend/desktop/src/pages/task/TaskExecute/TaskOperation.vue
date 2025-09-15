@@ -517,14 +517,6 @@
                 })
             }
         },
-        watch: {
-            async state (val) {
-                if (val === 'FINISHED') {
-                    const instanceData = await this.getTaskInstanceData(this.taskId)
-                    this.webhookHistory = instanceData.task_webhook_history
-                }
-            }
-        },
         mounted () {
             this.loadTaskStatus()
             this.getSingleAtomList()
@@ -612,7 +604,11 @@
                         if (this.state === 'FINISHED' && this.hideHeader) {
                             window.parent.postMessage({ eventName: 'executeEvent' }, '*')
                         }
-
+                        // 请求获取回调记录
+                        if (this.state === 'FINISHED') {
+                            const instanceData = await this.getTaskInstanceData(this.taskId)
+                            this.webhookHistory = instanceData.task_webhook_history
+                        }
                         if (this.isTopTask) {
                             this.rootState = this.state
                         }
