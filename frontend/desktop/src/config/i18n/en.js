@@ -1915,7 +1915,8 @@ const en = {
     '回调结果': 'Callback Result',
     '请求状态码': 'Request Status Code',
     '请求返回message': 'Request Return Message',
-    '回调记录': 'Callback Record'
+    '回调记录': 'Callback Record',
+    '请输入正确的认证信息': 'Please enter valid authentication information'
 }
 
 export default en
