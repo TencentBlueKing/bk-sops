@@ -89,7 +89,7 @@ class MonitorBaseService(Service):
             data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(host_result.get("message"))
             return False, {}
         host_data = host_result["data"] + host_list
-        return True, {"host_id_list": [int(host["bk_host_id"]) for host in host_data]}
+        return True, {"ip_list": [{"ip": host["bk_host_innerip"], "bk_cloud_id": host["bk_cloud_id"]} for host in host_data]}
     
     def get_target_server_hybrid(self, tenant_id, executor, biz_cc_id, data, ip_str, logger_handle):
         if settings.ENABLE_IPV6:
