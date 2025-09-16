@@ -12,7 +12,7 @@
             <bk-form :rules="addrFormRules" ref="addrForm" :model="localWebhookForm">
                 <bk-form-item property="method" :icon-offset="8" :label-width="0" class="form-item-select">
                     <bk-select
-                        :disabled="isViewMode"
+                        :disabled="isViewMode || !isEnable"
                         v-model="localWebhookForm.method"
                         ext-cls="select-custom"
                         behavior="simplicity"
@@ -29,7 +29,7 @@
                 </bk-form-item>
                 <bk-form-item property="endpoint" :icon-offset="8" :label-width="0">
                     <bk-input behavior="simplicity"
-                        :disabled="isViewMode"
+                        :disabled="isViewMode || !isEnable"
                         :clearable="true"
                         v-model="localWebhookForm.endpoint"
                         :placeholder="$t('输入请求URL')"
@@ -59,11 +59,10 @@
                 <bk-tab-panel name="authentication" :render-label="renderLabel">
                     <bk-radio-group
                         v-model="localWebhookForm.extra_info.authorization.type"
-                        @change="onAuthConfigChange"
-                    >
-                        <bk-radio value="" :disabled="isViewMode">{{$t('无需认证')}}</bk-radio>
-                        <bk-radio value="bearer" :disabled="isViewMode">Bearer Token</bk-radio>
-                        <bk-radio value="basic" :disabled="isViewMode">Basic Auth</bk-radio>
+                        @change="onAuthConfigChange">
+                        <bk-radio value="" :disabled="isViewMode || !isEnable">{{$t('无需认证')}}</bk-radio>
+                        <bk-radio value="bearer" :disabled="isViewMode || !isEnable">Bearer Token</bk-radio>
+                        <bk-radio value="basic" :disabled="isViewMode || !isEnable">Basic Auth</bk-radio>
                     </bk-radio-group>
                     <div class="auth-bearer-info"
                         v-if="localWebhookForm.extra_info.authorization.type === 'bearer'">
@@ -71,7 +70,7 @@
                             <bk-form-item label="Token" property="token" :icon-offset="15" :label-width="500">
                                 <bk-input v-model="localWebhookForm.extra_info.authorization.token"
                                     behavior="simplicity"
-                                    :disabled="isViewMode"
+                                    :disabled="isViewMode || !isEnable"
                                     :clearable="true"
                                     @change="onWebhookConfigChange">
                                 </bk-input>
@@ -85,7 +84,7 @@
                                 <div class="from-item-content">
                                     <bk-input v-model="localWebhookForm.extra_info.authorization.username"
                                         behavior="simplicity"
-                                        :disabled="isViewMode"
+                                        :disabled="isViewMode || !isEnable"
                                         :clearable="true"
                                         @change="onWebhookConfigChange">
                                     </bk-input>
@@ -96,7 +95,7 @@
                                     <bk-input v-model="localWebhookForm.extra_info.authorization.password"
                                         behavior="simplicity"
                                         type="password"
-                                        :disabled="isViewMode"
+                                        :disabled="isViewMode || !isEnable"
                                         :clearable="true"
                                         @change="onWebhookConfigChange">
                                     </bk-input>
@@ -110,9 +109,17 @@
                         :data="localWebhookForm.extra_info.headers">
                         <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
                             <template slot-scope="{ row }">
-                                <bk-input v-model="row[headerFieldConfig[item.id]]"
+                                <bk-popover :content="row[headerFieldConfig[item.id]]" v-if="row[headerFieldConfig[item.id]].length >= 19">
+                                    <bk-input v-model="row[headerFieldConfig[item.id]]"
+                                        behavior="simplicity"
+                                        :disabled="isViewMode || !isEnable"
+                                        :clearable="true"
+                                        @change="onWebhookConfigChange">
+                                    </bk-input>
+                                </bk-popover>
+                                <bk-input v-else v-model="row[headerFieldConfig[item.id]]"
                                     behavior="simplicity"
-                                    :disabled="isViewMode"
+                                    :disabled="isViewMode || !isEnable"
                                     :clearable="true"
                                     @change="onWebhookConfigChange">
                                 </bk-input>
@@ -120,12 +127,12 @@
                         </bk-table-column>
                         <bk-table-column label="操作" width="80">
                             <template slot-scope="props">
-                                <bk-button theme="primary" text @click="delItemHeader(props.row,props.$index)" :disabled="isViewMode">删除</bk-button>
+                                <bk-button theme="primary" text @click="delItemHeader(props.row,props.$index)" :disabled="isViewMode || !isEnable">删除</bk-button>
                             </template>
                         </bk-table-column>
                         <template slot="append">
                             <div class="header-table-bottom">
-                                <div @click="isViewMode ? null : addHeadersRow()" :class="['add-header', { 'add-header-disabled': isViewMode }]">
+                                <div @click="isViewMode || !isEnable ? null : addHeadersRow()" :class="['add-header', { 'add-header-disabled': isViewMode || !isEnable }]">
                                     <bk-icon type="plus" />
                                 </div>
                             </div>
@@ -138,7 +145,7 @@
                         <bk-form-item v-for="item in settingFieldConfig" :key="item.key" :label="item.label" :property="item.key" :icon-offset="27">
                             <div class="from-item-content">
                                 <bk-input v-model="localWebhookForm.extra_info[item.key]"
-                                    :disabled="isViewMode"
+                                    :disabled="isViewMode || !isEnable"
                                     @change="onWebhookConfigChange">
                                 </bk-input>
                                 <span class="unit" v-if="item.key !== 'retry_times'">s</span>
@@ -153,7 +160,7 @@
         <div class="debug-btn">
             <bk-button theme="primary" :outline="true"
                 @click="debugMock"
-                :disabled="isViewMode || !localWebhookForm.method || !localWebhookForm.endpoint">
+                :disabled="isViewMode || !localWebhookForm.method || !localWebhookForm.endpoint || !isEnable">
                 {{$t('调试')}}
             </bk-button>
         </div>
@@ -329,6 +336,13 @@
                         },
                         {
                             validator: (val) => {
+                                return val <= 10
+                            },
+                            message: i18n.t('请求超时时间不能超过10秒'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
                                 return /^[0-9]+$/.test(val)
                             },
                             message: i18n.t('请输入数字'),
@@ -336,6 +350,13 @@
                         }
                     ],
                     interval: [
+                        {
+                            validator: (val) => {
+                                return val <= 600
+                            },
+                            message: i18n.t('重试间隔不能超过600秒'),
+                            trigger: 'blur'
+                        },
                         {
                             validator: (val) => {
                                 return this.checkData(val, true)
@@ -449,7 +470,6 @@
                 ])
             },
             requestTypetabChange (tabName) {
-                console.log('tabName', tabName)
                 // 清除对表单的校验
                 if (tabName === 'authentication') {
                     const { type } = this.localWebhookForm.extra_info.authorization
@@ -470,19 +490,34 @@
                     desc: ''
                 })
             },
+            // 清空认证校验
+            clearAuthVertify () {
+                const { type } = this.localWebhookForm.extra_info.authorization
+                if (type === 'basic') {
+                    this.$refs.basicForm.clearError()
+                } else if (type === 'bearer') {
+                    this.$refs.tokenForm.clearError()
+                }
+            },
             onEnableWebhookChange (row) {
                 this.$emit('change', row, true)
+                // 关闭webhook情况下清空校验
+                if (!row) {
+                    this.$refs.addrForm.clearError()
+                    if (this.activeTab === 'authentication') {
+                        this.clearAuthVertify()
+                    } else if (this.activeTab === 'settings') {
+                        this.$refs.settingForm.clearError()
+                    } else if (this.activeTab === 'headers') {
+                        this.$refs.headersForm.clearError()
+                    }
+                }
             },
             onAuthConfigChange (val) {
                 this.onWebhookConfigChange()
                 this.$nextTick(() => {
                     if (this.activeTab === 'authentication') {
-                        const { type } = this.localWebhookForm.extra_info.authorization
-                        if (type === 'basic') {
-                            this.$refs.basicForm.clearError()
-                        } else if (type === 'bearer') {
-                            this.$refs.tokenForm.clearError()
-                        }
+                        this.clearAuthVertify()
                     }
                 })
             },
