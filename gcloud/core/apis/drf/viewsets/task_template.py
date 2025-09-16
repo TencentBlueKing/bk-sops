@@ -217,8 +217,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
         webhook_configs = get_webhook_configs(scope_code=str(instance.id))
-        data["webhook_configs"] = webhook_configs.get(str(instance.id), {})
-        data["enable_webhook"] = True if str(instance.id) in webhook_configs else False
+        data["webhook_configs"] = webhook_configs
+        data["enable_webhook"] = True if webhook_configs else False
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.FLOW_VIEW_ACTION,

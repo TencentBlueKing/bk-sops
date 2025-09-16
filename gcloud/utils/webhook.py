@@ -37,7 +37,7 @@ def get_webhook_configs(scope_code):
         webhooks = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code=scope_code)
         result = {}
         for webhook in webhooks:
-            result[webhook.scope_code] = {
+            result = {
                 "method": webhook.method,
                 "endpoint": webhook.endpoint,
                 "extra_info": process_sensitive_info(webhook.extra_info, is_decrypt=True),
@@ -93,14 +93,23 @@ def apply_webhook_configs(webhook_configs, scope_code):
     webhook_configs.update({"code": webhook_code, "name": webhook_name})
     serializer = WebhookSerializer(data=webhook_configs)
     serializer.is_valid(raise_exception=True)
-    retry_times = webhook_configs.get("extra_info", {}).get("retry_times", 2)
-    if retry_times > settings.MAX_WEBHOOK_RETRY_TIMES:
-        return {
-            "result": False,
-            "message": "重试次数不能超过{}次".format(settings.MAX_WEBHOOK_RETRY_TIMES),
-            "data": {},
-            "code": "500",
-        }
+    extra_info = webhook_configs.get("extra_info", {})
+    extra_info_mappings = {
+        "retry_times": {"name": "重试次数", "max_value": settings.MAX_WEBHOOK_RETRY_TIMES, "unit": "次"},
+        "interval": {"name": "重试间隔", "max_value": settings.MAX_WEBHOOK_RETRY_INTERVAL, "unit": "秒"},
+        "timeout": {"name": "请求超时", "max_value": settings.MAX_WEBHOOK_TIMEOUT, "unit": "秒"},
+    }
+    for field, rule in extra_info_mappings.items():
+        raw_value = extra_info.get(field)
+        max_val = rule["max_value"]
+        if raw_value and raw_value > max_val:
+            return {
+                "result": False,
+                "message": f"{rule['name']}不能超过 {max_val} {rule['unit']}",
+                "data": {},
+                "code": "500",
+            }
+
     scope_type = WebhookScopeType.TEMPLATE.value
     subscription_configs = {webhook_code: [WebhookEventType.TASK_FAILED.value, WebhookEventType.TASK_FINISHED.value]}
     try:
