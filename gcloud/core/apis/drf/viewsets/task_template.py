@@ -434,9 +434,16 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             message = str(e)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
-        if not verify_result.ok:
-            return Response(
-                {"detail": ErrorDetail("请求发送失败，请检查配置信息", err_code.REQUEST_PARAM_INVALID.code)}, exception=True
-            )
+        if verify_result.exe_data:
+            message = "HTTP请求处理失败：请求URL错误"
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
-        return Response(status=status.HTTP_200_OK)
+        if verify_result.ok:
+            return Response(status=status.HTTP_200_OK)
+        else:
+            verify_response = verify_result.json_response()
+            error_content = (
+                verify_response.get("message") if isinstance(verify_response, dict) else str(verify_response)
+            )
+            message = f"HTTP请求处理失败：status_code={verify_result.response_status_code}, content={error_content}"
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
