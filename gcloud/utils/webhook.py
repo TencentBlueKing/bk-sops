@@ -18,13 +18,13 @@ from webhook.api import apply_scope_subscriptions, apply_scope_webhooks
 from gcloud.constants import WebhookScopeType, WebhookEventType
 from webhook.models import Webhook as WebhookModel
 from webhook.models import Scope as ScopeModel
-from webhook.models import Subscription
+from webhook.models import Subscription, Event
 from webhook.contrib.drf.serializers import WebhookSerializer
 from django.conf import settings
 from webhook.utils import process_sensitive_info
 from webhook.models import History
 from gcloud.utils.dates import format_datetime
-from gcloud.utils.local import get_event_name_mapping
+from gcloud.utils.local import thread_local
 
 logger = logging.getLogger("root")
 
@@ -53,7 +53,11 @@ def get_webhook_delivery_history_by_delivery_id(delivery_id):
     histories = History.objects.filter(delivery_id=delivery_id)
     result = []
 
-    event_name_mapping = get_event_name_mapping()
+    event_name_mapping = thread_local.get("event_name_mapping")
+    if not event_name_mapping:
+        events = Event.objects.values_list("code", "name")
+        event_name_mapping = {code: name for code, name in events}
+        thread_local.set("event_name_mapping", event_name_mapping)
     for history in histories:
         response = history.extra_info.get("response", {})
         result.append(

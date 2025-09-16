@@ -13,13 +13,20 @@ specific language governing permissions and limitations under the License.
 
 import threading
 
-from webhook.models import Event
 
-_thread_local = threading.local()
+class SimpleThreadLocal:
+    def __init__(self):
+        self._thread_local = threading.local()
+
+    def set(self, key: str, value) -> None:
+        if not hasattr(self._thread_local, "vars"):
+            self._thread_local.vars = {}
+        self._thread_local.vars[key] = value
+
+    def get(self, key: str, default=None):
+        if not hasattr(self._thread_local, "vars"):
+            return default
+        return self._thread_local.vars.get(key, default)
 
 
-def get_event_name_mapping():
-    if not hasattr(_thread_local, "event_name_mapping"):
-        events = Event.objects.all()
-        _thread_local.event_name_mapping = {event.code: event.name for event in events}
-    return _thread_local.event_name_mapping
+thread_local = SimpleThreadLocal()
