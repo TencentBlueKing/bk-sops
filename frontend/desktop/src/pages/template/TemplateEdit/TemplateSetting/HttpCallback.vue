@@ -535,13 +535,8 @@
                         password
                     }
                 }
-                
-                const authorizationMap = {
-                    basic: () => this.$refs.basicForm.validate(),
-                    bearer: () => this.$refs.tokenForm.validate()
-                }
-                const isfillAuthorization = authorizationMap[authorization.type] ? await authorizationMap[authorization.type]() : true
-                if (!isfillAuthorization) {
+                const isHaveCorrectInfoParams = await this.validate()
+                if (!isHaveCorrectInfoParams) {
                     return
                 }
                 const params = {
