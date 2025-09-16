@@ -3,17 +3,36 @@
         <bk-table
             ext-cls="wehhook-callback-table"
             :data="webhookHistory">
-            <bk-table-column width="200" show-overflow-tooltip :label="$t('回调时间')" prop="created_at"></bk-table-column>
-            <bk-table-column width="160" show-overflow-tooltip :label="$t('回调事件类型')" prop="event_code"></bk-table-column>
-            <bk-table-column width="160" show-overflow-tooltip :label="$t('回调结果')" prop="is_success">
+            <bk-table-column width="200" show-overflow-tooltip :label="$t('回调时间')" prop="created_at">
                 <template slot-scope="props">
-                    <bk-icon :type="statusInfo[props.row.is_success].icon"
-                        :class="`${props.row.is_success}-icon`" />
-                    <span class="task-status-text">{{$t(statusInfo[props.row.is_success].text)}}</span>
+                    <span>{{ props.row?.created_at || '--' }}</span>
                 </template>
             </bk-table-column>
-            <bk-table-column width="160" show-overflow-tooltip :label="$t('请求状态码')" prop="status_code"></bk-table-column>
-            <bk-table-column show-overflow-tooltip :label="$t('请求返回message')" prop="response"></bk-table-column>
+            <bk-table-column width="160" show-overflow-tooltip :label="$t('回调事件类型')" prop="event_code_name">
+                <template slot-scope="props">
+                    <span>{{ props.row?.event_code_name || '--'}}</span>
+                </template>
+            </bk-table-column>
+            <bk-table-column width="160" show-overflow-tooltip :label="$t('回调结果')" prop="is_success">
+                <template slot-scope="props">
+                    <span v-if="props.row.is_success !== undefined">
+                        <bk-icon :type="statusInfo[props.row.is_success].icon"
+                            :class="`${props.row.is_success}-icon`" />
+                        <span class="task-status-text">{{$t(statusInfo[props.row.is_success].text)}}</span>
+                    </span>
+                    <span v-else>--</span>
+                </template>
+            </bk-table-column>
+            <bk-table-column width="160" show-overflow-tooltip :label="$t('请求状态码')" prop="status_code">
+                <template slot-scope="props">
+                    <span>{{ props.row?.status_code || '--' }}</span>
+                </template>
+            </bk-table-column>
+            <bk-table-column show-overflow-tooltip :label="$t('请求返回message')" prop="response">
+                <template slot-scope="props">
+                    <span>{{ props.row?.response || '--'}}</span>
+                </template>
+            </bk-table-column>
             <div class="empty-data" slot="empty">
                 <NoData></NoData>
             </div>

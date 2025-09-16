@@ -23,6 +23,7 @@ from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_id
 
 
 @login_exempt
@@ -42,6 +43,7 @@ def get_task_detail(request, task_id, project_id):
     @return:
     """
     project = request.project
+    include_webhook_history = request.GET.get("include_webhook_history", None)
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
@@ -55,4 +57,6 @@ def get_task_detail(request, task_id, project_id):
         return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
 
     data = task.get_task_detail()
+    if include_webhook_history:
+        data["task_webhook_history"] = get_webhook_delivery_history_by_delivery_id(str(task_id))
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}
