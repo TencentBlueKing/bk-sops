@@ -310,11 +310,6 @@
                 settingFormRules: {
                     retry_times: [
                         {
-                            validator: this.checkInterval,
-                            message: i18n.t('重试次数不能超过5次'),
-                            trigger: 'blur'
-                        },
-                        {
                             validator: (val) => {
                                 return this.checkData(val, true)
                             },
@@ -326,6 +321,11 @@
                                 return /^[0-9]+$/.test(val)
                             },
                             message: i18n.t('请输入数字'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: this.checkInterval,
+                            message: i18n.t('重试次数不能超过5次'),
                             trigger: 'blur'
                         }
                     ],
@@ -339,27 +339,20 @@
                         },
                         {
                             validator: (val) => {
-                                return val <= 10
-                            },
-                            message: i18n.t('请求超时时间不能超过10秒'),
-                            trigger: 'blur'
-                        },
-                        {
-                            validator: (val) => {
                                 return /^[0-9]+$/.test(val)
                             },
                             message: i18n.t('请输入数字'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return val <= 10
+                            },
+                            message: i18n.t('请求超时时间不能超过10秒'),
+                            trigger: 'blur'
                         }
                     ],
                     interval: [
-                        {
-                            validator: (val) => {
-                                return val <= 600
-                            },
-                            message: i18n.t('重试间隔不能超过600秒'),
-                            trigger: 'blur'
-                        },
                         {
                             validator: (val) => {
                                 return this.checkData(val, true)
@@ -372,6 +365,13 @@
                                 return /^[0-9]+$/.test(val)
                             },
                             message: i18n.t('请输入数字'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return val <= 600
+                            },
+                            message: i18n.t('重试间隔不能超过600秒'),
                             trigger: 'blur'
                         }
                     ]
