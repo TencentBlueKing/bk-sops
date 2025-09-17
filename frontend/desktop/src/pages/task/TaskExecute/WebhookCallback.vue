@@ -30,7 +30,7 @@
             </bk-table-column>
             <bk-table-column show-overflow-tooltip :label="$t('请求返回message')" prop="response">
                 <template slot-scope="props">
-                    <span>{{ props.row?.response || '--'}}</span>
+                    <span>{{JSON.stringify(props.row?.response) || '--'}}</span>
                 </template>
             </bk-table-column>
             <div class="empty-data" slot="empty">

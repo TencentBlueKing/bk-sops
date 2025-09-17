@@ -109,7 +109,10 @@
                         :data="localWebhookForm.extra_info.headers">
                         <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
                             <template slot-scope="{ row }">
-                                <bk-popover :content="row[headerFieldConfig[item.id]]" v-if="row[headerFieldConfig[item.id]].length >= 19">
+                                <bk-popover
+                                    :content="row[headerFieldConfig[item.id]]"
+                                    width="328"
+                                    v-if="row[headerFieldConfig[item.id]].length >= 19">
                                     <bk-input v-model="row[headerFieldConfig[item.id]]"
                                         behavior="simplicity"
                                         :disabled="isViewMode || !isEnable"
@@ -452,7 +455,8 @@
             },
             isAccessSettings () {
                 const { timeout, retry_times, interval } = this.localWebhookForm.extra_info
-                return /^[0-9]+$/.test(timeout) && /^[0-9]+$/.test(retry_times) && /^[0-9]+$/.test(interval)
+                const isNumber = /^[0-9]+$/.test(timeout) && /^[0-9]+$/.test(retry_times) && /^[0-9]+$/.test(interval)
+                return isNumber && timeout <= 10 && retry_times <= 5 && interval <= 600
             }
         },
         methods: {
