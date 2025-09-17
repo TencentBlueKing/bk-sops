@@ -16,7 +16,6 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
-from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
@@ -38,10 +37,5 @@ def get_task_operate_record(request, task_id, project_id):
         filters.update({"node_id": node_id})
 
     queryset = TaskOperateRecord.objects.filter(**filters)
-    if not queryset.exists():
-        message = f"No records found for task {task_id} in project {project_id}"
-        logger.error(message)
-        return {"result": False, "message": "No records found", "code": err_code.REQUEST_FORBIDDEN_INVALID.code}
-
     record_data = TaskOperateRecordSetSerializer(queryset, many=True)
     return {"result": True, "data": record_data.data, "code": err_code.SUCCESS.code}
