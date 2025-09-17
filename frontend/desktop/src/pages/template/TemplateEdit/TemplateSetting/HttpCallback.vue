@@ -474,15 +474,6 @@
                 ])
             },
             requestTypetabChange (tabName) {
-                // 清除对表单的校验
-                if (tabName === 'authentication') {
-                    const { type } = this.localWebhookForm.extra_info.authorization
-                    if (type === 'basic') {
-                        this.$refs.basicForm.clearError()
-                    } else if (type === 'bearer') {
-                        this.$refs.tokenForm.clearError()
-                    }
-                }
                 this.activeTab = tabName
             },
             addHeadersRow () {
