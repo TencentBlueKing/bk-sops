@@ -482,8 +482,6 @@
                     } else if (type === 'bearer') {
                         this.$refs.tokenForm.clearError()
                     }
-                } else if (tabName === 'settings') {
-                    this.$refs.settingForm.clearError()
                 }
                 this.activeTab = tabName
             },
