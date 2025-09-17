@@ -109,7 +109,10 @@
                         :data="localWebhookForm.extra_info.headers">
                         <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
                             <template slot-scope="{ row }">
-                                <bk-popover :content="row[headerFieldConfig[item.id]]" v-if="row[headerFieldConfig[item.id]].length >= 19">
+                                <bk-popover
+                                    :content="row[headerFieldConfig[item.id]]"
+                                    width="328"
+                                    v-if="row[headerFieldConfig[item.id]].length >= 19">
                                     <bk-input v-model="row[headerFieldConfig[item.id]]"
                                         behavior="simplicity"
                                         :disabled="isViewMode || !isEnable"
@@ -307,11 +310,6 @@
                 settingFormRules: {
                     retry_times: [
                         {
-                            validator: this.checkInterval,
-                            message: i18n.t('重试次数不能超过5次'),
-                            trigger: 'blur'
-                        },
-                        {
                             validator: (val) => {
                                 return this.checkData(val, true)
                             },
@@ -323,6 +321,11 @@
                                 return /^[0-9]+$/.test(val)
                             },
                             message: i18n.t('请输入数字'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: this.checkInterval,
+                            message: i18n.t('重试次数不能超过5次'),
                             trigger: 'blur'
                         }
                     ],
@@ -336,27 +339,20 @@
                         },
                         {
                             validator: (val) => {
-                                return val <= 10
-                            },
-                            message: i18n.t('请求超时时间不能超过10秒'),
-                            trigger: 'blur'
-                        },
-                        {
-                            validator: (val) => {
                                 return /^[0-9]+$/.test(val)
                             },
                             message: i18n.t('请输入数字'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return val <= 10
+                            },
+                            message: i18n.t('请求超时时间不能超过10秒'),
+                            trigger: 'blur'
                         }
                     ],
                     interval: [
-                        {
-                            validator: (val) => {
-                                return val <= 600
-                            },
-                            message: i18n.t('重试间隔不能超过600秒'),
-                            trigger: 'blur'
-                        },
                         {
                             validator: (val) => {
                                 return this.checkData(val, true)
@@ -369,6 +365,13 @@
                                 return /^[0-9]+$/.test(val)
                             },
                             message: i18n.t('请输入数字'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return val <= 600
+                            },
+                            message: i18n.t('重试间隔不能超过600秒'),
                             trigger: 'blur'
                         }
                     ]
@@ -452,7 +455,8 @@
             },
             isAccessSettings () {
                 const { timeout, retry_times, interval } = this.localWebhookForm.extra_info
-                return /^[0-9]+$/.test(timeout) && /^[0-9]+$/.test(retry_times) && /^[0-9]+$/.test(interval)
+                const isNumber = /^[0-9]+$/.test(timeout) && /^[0-9]+$/.test(retry_times) && /^[0-9]+$/.test(interval)
+                return isNumber && timeout <= 10 && retry_times <= 5 && interval <= 600
             }
         },
         methods: {
@@ -470,17 +474,6 @@
                 ])
             },
             requestTypetabChange (tabName) {
-                // 清除对表单的校验
-                if (tabName === 'authentication') {
-                    const { type } = this.localWebhookForm.extra_info.authorization
-                    if (type === 'basic') {
-                        this.$refs.basicForm.clearError()
-                    } else if (type === 'bearer') {
-                        this.$refs.tokenForm.clearError()
-                    }
-                } else if (tabName === 'settings') {
-                    this.$refs.settingForm.clearError()
-                }
                 this.activeTab = tabName
             },
             addHeadersRow () {
