@@ -105,7 +105,7 @@ def apply_webhook_configs(webhook_configs, scope_code):
         if raw_value and raw_value > max_val:
             return {
                 "result": False,
-                "message": f"{rule['name']}不能超过 {max_val} {rule['unit']}",
+                "message": f"HTTP回调配置{rule['name']}不能超过 {max_val} {rule['unit']}",
                 "data": {},
                 "code": "500",
             }
