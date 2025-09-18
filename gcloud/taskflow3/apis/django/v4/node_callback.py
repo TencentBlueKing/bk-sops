@@ -24,6 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 import env
+from gcloud.core.trace import CallFrom, start_trace
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -61,36 +62,35 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        message = _(
-            f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | node_callback"
-        )
+        message = _(f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | node_callback")
         logger.error(message)
         return JsonResponse({"result": False, "message": message}, status=400)
 
     taskflow_id = None
+    project_id = None
     if root_pipeline_id:
-        qs = TaskFlowInstance.objects.filter(pipeline_instance__instance_id=root_pipeline_id).values_list(
-            "id", flat=True
-        )
+        qs = TaskFlowInstance.objects.filter(pipeline_instance__instance_id=root_pipeline_id).values("id", "project_id")
         if qs.exists():
-            taskflow_id = qs[0]
+            taskflow_id = qs[0]["id"]
+            project_id = qs[0]["project_id"]
 
     dispatchers = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=taskflow_id)
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
-    for i in range(env.NODE_CALLBACK_RETRY_TIMES):
-        callback_result = dispatchers.dispatch(
-            command="callback", operator="", version=node_version, data=callback_data
-        )
-        logger.info(
-            "result of callback call(token: {} engine_ver: {} node_id: {}, node_version: {}): {}".format(
-                token, engine_ver, node_id, node_version, callback_result
+    with start_trace("node_callback", propagate=True, project_id=project_id, call_from=CallFrom.WEB.value):
+        for i in range(env.NODE_CALLBACK_RETRY_TIMES):
+            callback_result = dispatchers.dispatch(
+                command="callback", operator="", version=node_version, data=callback_data
             )
-        )
-        if callback_result["result"]:
-            break
-        # 考虑callback时Process状态还没及时修改为sleep的情况
-        time.sleep(0.5)
+            logger.info(
+                "result of callback call(token: {} engine_ver: {} node_id: {}, node_version: {}): {}".format(
+                    token, engine_ver, node_id, node_version, callback_result
+                )
+            )
+            if callback_result["result"]:
+                break
+            # 考虑callback时Process状态还没及时修改为sleep的情况
+            time.sleep(0.5)
 
     return JsonResponse(callback_result)

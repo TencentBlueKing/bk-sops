@@ -20,6 +20,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.utils import api_hash_key
+from gcloud.core.models import ProjectConfig
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.utils import get_resources_allowed_actions_for_user
@@ -27,6 +28,8 @@ from gcloud.iam_auth.conf import IAMMeta, PROJECT_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.core.models import StaffGroupSet
+from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
 
 
 @login_exempt
@@ -38,6 +41,8 @@ from apigw_manager.apigw.decorators import apigw_require
 @iam_intercept(ProjectViewInterceptor())
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
+    include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    include_staff_groups = request.GET.get("include_staff_groups", None)
     try:
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
     except Exception as e:
@@ -62,24 +67,35 @@ def get_user_project_detail(request, project_id):
             ]
         ],
     )
+    data = {
+        "project_id": request.project.id,
+        "project_name": request.project.name,
+        "from_cmdb": request.project.from_cmdb,
+        "bk_biz_id": biz_detail["bk_biz_id"],
+        "bk_biz_name": biz_detail["bk_biz_name"],
+        "bk_biz_developer": biz_detail["bk_biz_developer"],
+        "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
+        "bk_biz_tester": biz_detail["bk_biz_tester"],
+        "bk_biz_productor": biz_detail["bk_biz_productor"],
+        "auth_actions": [
+            action for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items() if allowed
+        ],
+    }
+    if include_executor_proxy:
+        data.update(
+            {
+                "executor_proxy": ProjectConfig.objects.task_executor_for_project(
+                    str(request.project.id), request.user.username
+                )
+            }
+        )
+    if include_staff_groups:
+        staff_groups = StaffGroupSet.objects.filter(project_id=request.project.id, is_deleted=False)
+        staff_data = StaffGroupSetSerializer(staff_groups, many=True).data
+        data.update({"staff_groups": staff_data})
 
     return {
         "result": True,
-        "data": {
-            "project_id": request.project.id,
-            "project_name": request.project.name,
-            "from_cmdb": request.project.from_cmdb,
-            "bk_biz_id": biz_detail["bk_biz_id"],
-            "bk_biz_name": biz_detail["bk_biz_name"],
-            "bk_biz_developer": biz_detail["bk_biz_developer"],
-            "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
-            "bk_biz_tester": biz_detail["bk_biz_tester"],
-            "bk_biz_productor": biz_detail["bk_biz_productor"],
-            "auth_actions": [
-                action
-                for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items()
-                if allowed
-            ],
-        },
+        "data": data,
         "code": err_code.SUCCESS.code,
     }

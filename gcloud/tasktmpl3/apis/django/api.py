@@ -26,6 +26,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
     BatchFormInterceptor,
     ExportInterceptor,
+    FetchPipelineTreeInterceptor,
     FormInterceptor,
     ImportInterceptor,
     ParentsInterceptor,
@@ -45,6 +46,7 @@ from gcloud.template_base.apis.django.api import (
 from gcloud.template_base.apis.django.validators import (
     BatchFormValidator,
     ExportTemplateApiViewValidator,
+    FetchPipelineValidator,
     FormValidator,
     TemplateParentsValidator,
 )
@@ -349,3 +351,24 @@ def parents(request, project_id):
     }
     """
     return base_template_parents(request, TaskTemplate, filters={"project_id": project_id})
+
+
+@require_GET
+@request_validate(FetchPipelineValidator)
+@iam_intercept(FetchPipelineTreeInterceptor())
+def fetch_pipeline_tree(request):
+    """
+    @summary：获取流程树
+    @param request:
+    @return:
+    """
+    template_id = request.GET.get("template_id")
+    template_obj = TaskTemplate.objects.get(id=template_id)
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {"pipeline_tree": template_obj.pipeline_tree},
+            "code": err_code.SUCCESS.code,
+            "message": "",
+        }
+    )

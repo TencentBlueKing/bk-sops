@@ -272,3 +272,16 @@ class TaskExtraStatus(Enum):
     PENDING_PROCESSING = "PENDING_PROCESSING"
     # 等待继续
     PENDING_CONTINUE = "PENDING_CONTINUE"
+
+
+class WebhookScopeType(Enum):
+    """webhook作用域类型"""
+
+    TEMPLATE = "template"
+
+
+class WebhookEventType(Enum):
+    """webhook事件类型"""
+
+    TASK_FAILED = "task_failed"
+    TASK_FINISHED = "task_finished"

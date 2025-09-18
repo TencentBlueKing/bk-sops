@@ -119,6 +119,7 @@ INSTALLED_APPS += (
     "apigw_manager.apigw",
     "bk_notice_sdk",
     "bk_audit.contrib.bk_audit",
+    "webhook",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -217,7 +218,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.34.3"
+STATIC_VERSION = "3.34.4"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -952,3 +953,9 @@ SCHEME_HTTPS = "https"
 SCHEME_HTTP = "http"
 BKPAAS_BK_DOMAIN = env.BKPAAS_BK_DOMAIN
 CSRF_TRUSTED_ORIGINS = [f"{SCHEME_HTTPS}://*.{BKPAAS_BK_DOMAIN}", f"{SCHEME_HTTP}://*.{BKPAAS_BK_DOMAIN}"]
+BK_DATA_REPORT_API_URL = env.BK_DATA_REPORT_API_URL
+
+# webhook配置
+MAX_WEBHOOK_RETRY_TIMES = env.MAX_WEBHOOK_RETRY_TIMES
+MAX_WEBHOOK_RETRY_INTERVAL = env.MAX_WEBHOOK_RETRY_INTERVAL
+MAX_WEBHOOK_TIMEOUT = env.MAX_WEBHOOK_TIMEOUT

@@ -42,6 +42,10 @@ from gcloud.taskflow3.models import (
     TimeoutNodeConfig,
 )
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
+from gcloud.constants import WebhookScopeType, WebhookEventType
+from webhook.signals import event_broadcast_signal
+from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
+from gcloud.taskflow3.utils import add_node_name_to_status_tree
 
 logger = logging.getLogger("celery")
 
@@ -81,6 +85,59 @@ def _send_node_fail_message(node_id, pipeline_id):
             send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=node_name)
         except Exception as e:
             logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
+
+
+def send_task_message(pipeline_id, node_id, msg_type):
+    try:
+        taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=pipeline_id)
+
+        scopes = [(WebhookScopeType.TEMPLATE.value, str(taskflow.template_id))]
+        extra_info = {
+            "delivery_id": taskflow.id,
+            "task_id": taskflow.id,
+            "task_name": taskflow.pipeline_instance.name,
+            "executor": taskflow.pipeline_instance.executor,
+            "start_time": int(taskflow.pipeline_instance.start_time.timestamp()),
+            "finish_time": int(taskflow.pipeline_instance.finish_time.timestamp())
+            if taskflow.pipeline_instance.finish_time
+            else "",
+        }
+        if msg_type == ATOM_FAILED:
+            dispatcher = TaskCommandDispatcher(
+                engine_ver=taskflow.engine_ver,
+                taskflow_id=taskflow.id,
+                pipeline_instance=taskflow.pipeline_instance,
+                project_id=taskflow.project.id,
+            )
+            status_result = dispatcher.get_task_status(with_ex_data=True)
+            add_node_name_to_status_tree(
+                taskflow.pipeline_instance.execution_data, status_result["data"].get("children", {})
+            )
+            extra_info.update(
+                {
+                    "extra_data": {
+                        "failed_node": node_id,
+                        "failed_node_name": status_result["data"]["children"].get(node_id, {}).get("name"),
+                        "failed_message": status_result["data"]["ex_data"].get(node_id),
+                    }
+                }
+            )
+            event = WebhookEventType.TASK_FAILED.value
+        else:
+            output_details = taskflow.get_task_detail()
+            data = {item["key"]: item["value"] for item in output_details.get("outputs", [])}
+            extra_info.update(
+                {
+                    "outputs": data,
+                }
+            )
+            event = WebhookEventType.TASK_FINISHED.value
+
+        event_broadcast_signal.send(sender=event, scopes=scopes, extra_info=extra_info)
+    except Exception as e:
+        logger.exception(f"[send_task_message] task() send message({msg_type}) error: {e}")
+    else:
+        logger.info(f"[send_task_message] task() send message({msg_type}) success")
 
 
 def _check_and_callback(task, *args, **kwargs):
@@ -185,6 +242,7 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
             return
 
         _send_node_fail_message(node_id=node_id, pipeline_id=root_id)
+        send_task_message(pipeline_id=root_id, node_id=node_id, msg_type=ATOM_FAILED)
 
     elif to_state == bamboo_engine_states.REVOKED and node_id == root_id:
         try:
@@ -198,6 +256,7 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
             pipeline_end.send(sender=Pipeline, root_pipeline_id=root_id)
         except Exception:
             logger.exception("pipeline_end send error")
+        send_task_message(pipeline_id=root_id, node_id=node_id, msg_type=TASK_FINISHED)
 
     try:
         _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)

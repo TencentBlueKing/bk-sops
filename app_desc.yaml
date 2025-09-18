@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.34.3"
+app_version: "3.34.4"
 app:
   region: default
   bk_app_code: bk_sops
@@ -198,7 +198,7 @@ modules:
         plan: 4C1G5R
         replicas: 2
       cworker:
-        command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -P threads -c 6 -l info
+        command: celery -A blueapps.core.celery worker -P threads -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -c 6 -l info
         plan: 4C1G5R
         replicas: 2
       er-e:

@@ -38,7 +38,8 @@ class GetCommonTemplateInfoAPITest(APITest):
         tmpl = MockCommonTemplate(id=TEST_TEMPLATE_ID, pipeline_template=pt1)
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
             pipeline_tree.pop("line")

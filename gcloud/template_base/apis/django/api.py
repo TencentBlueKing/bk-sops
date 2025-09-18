@@ -337,7 +337,7 @@ def import_yaml_templates(request: Request):
 
     importer = TemplateImporter(TEMPLATE_TYPE_MODEL[template_type])
     try:
-        import_result = importer.import_template(request.user.username, import_data, bk_biz_id)
+        import_result = importer.import_template(request.user.username, import_data, project_id, bk_biz_id)
     except Exception as e:
         logger.exception("[import_yaml_templates] error: {}".format(e))
         return JsonResponse({"result": False, "data": None, "message": e})
@@ -419,9 +419,7 @@ def base_template_parents(request: Request, template_model_cls: object, filters:
     qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
 
     if len(qs) != 1:
-        message = _(
-            f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理, 根据过滤条件: {filters}, 找到{len(qs)}条数据 | base_template_parents"
-        )
+        message = _(f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理, 根据过滤条件: {filters}, 找到{len(qs)}条数据 | base_template_parents")
         logger.error(message)
         return JsonResponse(
             {

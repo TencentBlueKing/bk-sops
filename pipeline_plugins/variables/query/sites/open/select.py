@@ -33,9 +33,14 @@ def variable_select_source_data_proxy(request):
     url = request.GET.get("url")
     valid_url, allowed_domains = DomainValidator.validate(url)
     if not valid_url:
-        return JsonResponse({"result": False, "message": _("仅允许访问域名({allowed_domains})下的URL").format(
-            allowed_domains=",".join(allowed_domains),
-        )})
+        return JsonResponse(
+            {
+                "result": False,
+                "message": _("仅允许访问域名({allowed_domains})下的URL").format(
+                    allowed_domains=",".join(allowed_domains),
+                ),
+            }
+        )
 
     try:
         response = requests.get(url=url, verify=False, timeout=10)

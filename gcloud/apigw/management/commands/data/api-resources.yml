@@ -781,3 +781,27 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
+  /get_task_operate_record/{task_id}/{project_id}/:
+    get:
+      operationId: get_task_operate_record
+      description: 获取任务操作记录
+      tags:
+      - 通用接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []

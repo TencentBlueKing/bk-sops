@@ -77,6 +77,7 @@ from gcloud.taskflow3.models import TaskConfig, TaskFlowInstance, TaskFlowRelati
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils import concurrent
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
+from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_id
 
 logger = logging.getLogger("root")
 
@@ -459,27 +460,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer = self.get_serializer(instance)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, instance)
-
-        template_id__allowed_actions_map = {}
-
-        if data["template_source"] == COMMON:
-            template_id__allowed_actions_map = get_common_flow_allowed_actions_for_user_and_project(
-                request.user.username,
-                [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_ACTION],
-                [data["template_id"]],
-                str(instance.project_id),
-            )
-        elif data["template_source"] == PROJECT:
-            template_id__allowed_actions_map = get_flow_allowed_actions_for_user(
-                request.user.username,
-                [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION],
-                [data["template_id"]],
-            )
-
-        for act, allowed in (template_id__allowed_actions_map.get(str(data["template_id"])) or {}).items():
-            if allowed:
-                data["auth_actions"].append(act)
-
+        data["task_webhook_history"] = get_webhook_delivery_history_by_delivery_id(str(instance.id))
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.TASK_VIEW_ACTION,

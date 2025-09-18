@@ -33,6 +33,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @project_inject
 @iam_intercept(GetPeriodicTaskInfoInterceptor())
 def get_periodic_task_info(request, task_id, project_id):
+    include_edit_info = request.GET.get("include_edit_info", None)
     project = request.project
     try:
         task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
@@ -43,5 +44,5 @@ def get_periodic_task_info(request, task_id, project_id):
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
 
-    data = info_data_from_period_task(task)
+    data = info_data_from_period_task(task, include_edit_info=include_edit_info)
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

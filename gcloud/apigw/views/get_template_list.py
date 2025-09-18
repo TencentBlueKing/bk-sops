@@ -42,6 +42,8 @@ def get_template_list(request, project_id):
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
     include_labels = request.GET.get("include_labels", None)
+    include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    include_notify = request.GET.get("include_notify", None)
 
     if id_in:
         try:
@@ -63,7 +65,14 @@ def get_template_list(request, project_id):
     else:
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
-    template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True, tz=request.tz)
+    template_list, template_id_list = format_template_list_data(
+        templates,
+        project,
+        return_id_list=True,
+        tz=request.tz,
+        include_executor_proxy=include_executor_proxy,
+        include_notify=include_notify,
+    )
     template_labels = {}
     if include_labels:
         template_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
@@ -72,7 +81,7 @@ def get_template_list(request, project_id):
     for template_info in template_list:
         template_id = template_info["id"]
         template_info.setdefault("auth_actions", [])
-        if include_labels:
+        if include_labels and template_source in NON_COMMON_TEMPLATE_TYPES:
             template_info["labels"] = template_labels.get(template_id, [])
         for action, allowed in flow_allowed_actions.get(str(template_id), {}).items():
             if allowed:

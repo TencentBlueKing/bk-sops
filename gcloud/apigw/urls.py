@@ -33,6 +33,7 @@ from gcloud.apigw.views.get_task_detail import get_task_detail
 from gcloud.apigw.views.get_task_list import get_task_list
 from gcloud.apigw.views.get_task_node_data import get_task_node_data
 from gcloud.apigw.views.get_task_node_detail import get_task_node_detail
+from gcloud.apigw.views.get_task_operate_record import get_task_operate_record
 from gcloud.apigw.views.get_task_status import get_task_status
 from gcloud.apigw.views.get_tasks_manual_intervention_state import get_tasks_manual_intervention_state
 from gcloud.apigw.views.get_tasks_status import get_tasks_status
@@ -131,4 +132,5 @@ urlpatterns = [
     re_path(r"^get_mini_app_list/(?P<project_id>\d+)/$", get_mini_app_list),
     re_path(r"^get_task_count/(?P<project_id>\d+)/$", get_task_count),
     re_path(r"^copy_template_across_project/(?P<project_id>\d+)/$", copy_template_across_project),
+    re_path(r"^get_task_operate_record/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_operate_record),
 ]

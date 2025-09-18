@@ -22,7 +22,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.apigw.views.utils import format_template_data
+from gcloud.apigw.views.utils import format_template_data, process_pipeline_constants
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from apigw_manager.apigw.decorators import apigw_require
@@ -38,6 +38,10 @@ from apigw_manager.apigw.decorators import apigw_require
 def get_template_info(request, template_id, project_id):
     project = request.project
     template_source = request.GET.get("template_source", PROJECT)
+    include_subprocess = request.GET.get("include_subprocess", None)
+    include_constants = request.GET.get("include_constants", None)
+    include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    include_notify = request.GET.get("include_notify", None)
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
@@ -66,4 +70,14 @@ def get_template_info(request, template_id, project_id):
             }
             return result
 
-    return {"result": True, "data": format_template_data(tmpl, project), "code": err_code.SUCCESS.code}
+    data = format_template_data(
+        tmpl, project, include_subprocess, include_executor_proxy=include_executor_proxy, include_notify=include_notify
+    )
+    if include_constants:
+        data["template_constants"] = process_pipeline_constants(data["pipeline_tree"])
+
+    return {
+        "result": True,
+        "data": data,
+        "code": err_code.SUCCESS.code,
+    }

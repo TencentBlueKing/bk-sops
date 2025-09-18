@@ -95,3 +95,6 @@ opentelemetry-instrumentation-requests==0.50b0
 
 bk-notice-sdk==1.3.2
 croniter==1.4.1
+
+# bkflow feel
+bkflow-django-webhook==1.2.4
