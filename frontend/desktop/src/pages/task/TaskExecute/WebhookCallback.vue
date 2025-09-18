@@ -28,9 +28,15 @@
                     <span>{{ props.row?.status_code || '--' }}</span>
                 </template>
             </bk-table-column>
-            <bk-table-column show-overflow-tooltip :label="$t('请求返回message')" prop="response">
+            <bk-table-column :label="$t('请求返回message')" prop="response">
                 <template slot-scope="props">
-                    <span>{{JSON.stringify(props.row?.response) || '--'}}</span>
+                    <span v-bk-tooltips="{
+                        width: 240,
+                        placement: 'top',
+                        extCls: JSON.stringify(JSON.parse(props.row.response)).length <= 14 ? 'hidden-tips' : '',
+                        content: JSON.stringify(JSON.parse(props.row?.response)) }">
+                        {{JSON.parse(props.row?.response) || '--'}}
+                    </span>
                 </template>
             </bk-table-column>
             <div class="empty-data" slot="empty">
@@ -43,6 +49,9 @@
 <script>
     import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
+    import Vue from 'vue'
+    import { bkTooltips } from 'bk-magic-vue'
+    Vue.use(bkTooltips)
     export default {
         components: {
             NoData
@@ -88,4 +97,10 @@
         color: #ea3636,
     }
 }
+</style>
+
+<style lang="scss">
+    .hidden-tips{
+        display: none !important;
+    }
 </style>
