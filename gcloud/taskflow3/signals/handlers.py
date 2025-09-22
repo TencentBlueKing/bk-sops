@@ -128,7 +128,7 @@ def send_task_message(pipeline_id, node_id, msg_type):
             data = {item["key"]: item["value"] for item in output_details.get("outputs", [])}
             extra_info.update(
                 {
-                    "outputs": data,
+                    "outputs": str(data),
                 }
             )
             event = WebhookEventType.TASK_FINISHED.value

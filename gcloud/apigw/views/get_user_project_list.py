@@ -21,6 +21,7 @@ from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.utils import get_user_projects
 from apigw_manager.apigw.decorators import apigw_require
 from gcloud.core.models import ProjectConfig
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -29,7 +30,10 @@ from gcloud.core.models import ProjectConfig
 @return_json_response
 @mark_request_whether_is_trust
 def get_user_project_list(request):
-    include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
     try:
         projects = get_user_projects(request.user.username)
     except Exception as e:

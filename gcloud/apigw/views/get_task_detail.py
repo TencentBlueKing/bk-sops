@@ -24,6 +24,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
 from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_id
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -43,7 +44,10 @@ def get_task_detail(request, task_id, project_id):
     @return:
     """
     project = request.project
-    include_webhook_history = request.GET.get("include_webhook_history", None)
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_webhook_history = serializer.validated_data["include_webhook_history"]
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:

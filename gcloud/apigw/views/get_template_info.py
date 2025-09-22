@@ -27,6 +27,8 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from apigw_manager.apigw.decorators import apigw_require
 
+from gcloud.apigw.serializers import IncludeOptionsSerializer
+
 
 @login_exempt
 @require_GET
@@ -37,11 +39,14 @@ from apigw_manager.apigw.decorators import apigw_require
 @iam_intercept(GetTemplateInfoInterceptor())
 def get_template_info(request, template_id, project_id):
     project = request.project
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     template_source = request.GET.get("template_source", PROJECT)
-    include_subprocess = request.GET.get("include_subprocess", None)
-    include_constants = request.GET.get("include_constants", None)
-    include_executor_proxy = request.GET.get("include_executor_proxy", None)
-    include_notify = request.GET.get("include_notify", None)
+    include_subprocess = serializer.validated_data["include_subprocess"]
+    include_constants = serializer.validated_data["include_constants"]
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
+    include_notify = serializer.validated_data["include_notify"]
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(

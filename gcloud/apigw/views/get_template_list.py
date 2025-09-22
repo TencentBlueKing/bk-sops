@@ -27,6 +27,7 @@ from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.label.models import TemplateLabelRelation
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -41,9 +42,12 @@ def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
-    include_labels = request.GET.get("include_labels", None)
-    include_executor_proxy = request.GET.get("include_executor_proxy", None)
-    include_notify = request.GET.get("include_notify", None)
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_labels = serializer.validated_data["include_labels"]
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
+    include_notify = serializer.validated_data["include_notify"]
 
     if id_in:
         try:

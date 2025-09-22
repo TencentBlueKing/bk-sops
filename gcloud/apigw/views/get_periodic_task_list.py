@@ -23,6 +23,7 @@ from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.iam_auth.conf import PERIODIC_TASK_ACTIONS
 from gcloud.iam_auth.utils import get_periodic_task_allowed_actions_for_user
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -34,7 +35,10 @@ from apigw_manager.apigw.decorators import apigw_require
 @timezone_inject
 @iam_intercept(ProjectViewInterceptor())
 def get_periodic_task_list(request, project_id):
-    include_edit_info = request.GET.get("include_edit_info", None)
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_edit_info = serializer.validated_data["include_edit_info"]
     project = request.project
     task_list = PeriodicTask.objects.filter(project_id=project.id)
     data = []

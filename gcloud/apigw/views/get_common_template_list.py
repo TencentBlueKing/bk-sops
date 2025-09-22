@@ -20,6 +20,7 @@ from gcloud.apigw.views.utils import format_template_list_data
 from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -29,7 +30,14 @@ from apigw_manager.apigw.decorators import apigw_require
 @mark_request_whether_is_trust
 @timezone_inject
 def get_common_template_list(request):
-    include_notify = request.GET.get("include_notify", None)
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {
+            "result": False,
+            "message": serializer.errors,
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
+    include_notify = serializer.validated_data["include_notify"]
     templates = CommonTemplate.objects.select_related("pipeline_template").filter(is_deleted=False)
     templates_data, common_templates_id_list = format_template_list_data(
         templates, return_id_list=True, tz=request.tz, include_notify=include_notify
