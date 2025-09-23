@@ -118,7 +118,7 @@ def send_task_message(pipeline_id, node_id, msg_type):
                     "extra_data": {
                         "failed_node": node_id,
                         "failed_node_name": status_result["data"]["children"].get(node_id, {}).get("name"),
-                        "failed_message": status_result["data"]["ex_data"].get(node_id),
+                        "failed_message": str(status_result["data"]["ex_data"].get(node_id, "")),
                     }
                 }
             )
