@@ -75,7 +75,7 @@ class RemotePluginService(Service):
             data.set_outputs("ex_data", message)
             return False
 
-        detail_result = plugin_client.get_detail(plugin_version)
+        detail_result = plugin_client.get_detail(plugin_version, timeout=settings.REMOTE_PLUGIN_DETAIL_TIMEOUT)
         if not detail_result["result"]:
             message = _(f"获取第三方插件详情失败, 错误内容: {detail_result['message']}")
             logger.error(message)
@@ -103,7 +103,11 @@ class RemotePluginService(Service):
                 }
             )
 
-        ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
+        ok, result_data = plugin_client.invoke(
+            plugin_version,
+            {"inputs": data.inputs, "context": plugin_context},
+            timeout=settings.REMOTE_PLUGIN_INVOKE_TIMEOUT,
+        )
         if not ok:
             message = _(f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}")
             logger.error(message)
@@ -148,7 +152,7 @@ class RemotePluginService(Service):
             data.set_outputs("ex_data", message)
             return False
 
-        ok, result_data = plugin_client.get_schedule(trace_id)
+        ok, result_data = plugin_client.get_schedule(trace_id, timeout=settings.REMOTE_PLUGIN_SCHEDULE_TIMEOUT)
 
         if not ok:
             message = (
