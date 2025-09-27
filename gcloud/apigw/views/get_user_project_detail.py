@@ -30,6 +30,7 @@ from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
 from gcloud.core.models import StaffGroupSet
 from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -41,8 +42,11 @@ from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
 @iam_intercept(ProjectViewInterceptor())
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
-    include_executor_proxy = request.GET.get("include_executor_proxy", None)
-    include_staff_groups = request.GET.get("include_staff_groups", None)
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
+    include_staff_groups = serializer.validated_data["include_staff_groups"]
     try:
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
     except Exception as e:

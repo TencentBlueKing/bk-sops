@@ -37,6 +37,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CreatePeriodicTaskIntercepto
 from apigw_manager.apigw.decorators import apigw_require
 
 from pipeline_web.preview_base import PipelineTemplateWebPreviewer
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -61,7 +62,10 @@ def create_periodic_task(request, template_id, project_id):
         return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
 
     params = json.loads(request.body)
-    include_edit_info = params.get("include_edit_info", None)
+    serializer = IncludeOptionsSerializer(data=params)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_edit_info = serializer.validated_data["include_edit_info"]
     template_source = params.get("template_source", PROJECT)
     logger.info(
         "[API] apigw create_periodic_task info, "

@@ -22,6 +22,7 @@ from gcloud.apigw.views.utils import format_template_data, process_pipeline_cons
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.apigw.serializers import IncludeOptionsSerializer
 
 
 @login_exempt
@@ -31,9 +32,12 @@ from apigw_manager.apigw.decorators import apigw_require
 @mark_request_whether_is_trust
 @iam_intercept(CommonFlowViewInterceptor())
 def get_common_template_info(request, template_id):
-    include_subprocess = request.GET.get("include_subprocess", None)
-    include_constants = request.GET.get("include_constants", None)
-    include_notify = request.GET.get("include_notify", None)
+    serializer = IncludeOptionsSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_subprocess = serializer.validated_data["include_subprocess"]
+    include_constants = serializer.validated_data["include_constants"]
+    include_notify = serializer.validated_data["include_notify"]
     try:
         tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
     except CommonTemplate.DoesNotExist:
