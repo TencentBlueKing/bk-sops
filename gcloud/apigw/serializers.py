@@ -16,19 +16,19 @@ from rest_framework import serializers
 
 
 class IncludeProjectSerializer(serializers.Serializer):
-    include_executor_proxy = serializers.BooleanField(required=False, help_text="项目代理信息")
-    include_staff_groups = serializers.BooleanField(required=False, help_text="人员分组信息")
+    include_executor_proxy = serializers.BooleanField(required=False, help_text="项目代理信息", default=False)
+    include_staff_groups = serializers.BooleanField(required=False, help_text="人员分组信息", default=False)
 
 
 class IncludeTemplateSerializer(serializers.Serializer):
-    include_executor_proxy = serializers.BooleanField(required=False, help_text="模板代理信息")
-    include_subprocess = serializers.BooleanField(required=False, help_text="子流程信息")
-    include_constants = serializers.BooleanField(required=False, help_text="全局变量")
-    include_notify = serializers.BooleanField(required=False, help_text="通知信息")
-    include_labels = serializers.BooleanField(required=False, help_text="标签信息")
+    include_executor_proxy = serializers.BooleanField(required=False, help_text="模板代理信息", default=False)
+    include_subprocess = serializers.BooleanField(required=False, help_text="子流程信息", default=False)
+    include_constants = serializers.BooleanField(required=False, help_text="全局变量", default=False)
+    include_notify = serializers.BooleanField(required=False, help_text="通知信息", default=False)
+    include_labels = serializers.BooleanField(required=False, help_text="标签信息", default=False)
 
 
 class IncludeTaskSerializer(serializers.Serializer):
-    include_edit_info = serializers.BooleanField(required=False, help_text="任务更新信息")
-    include_webhook_history = serializers.BooleanField(required=False, help_text="webhook回调信息")
-    include_children_status = serializers.BooleanField(required=False, help_text="任务节点状态")
+    include_edit_info = serializers.BooleanField(required=False, help_text="任务更新信息", default=False)
+    include_webhook_history = serializers.BooleanField(required=False, help_text="webhook回调信息", default=False)
+    include_children_status = serializers.BooleanField(required=False, help_text="任务节点状态", default=False)
