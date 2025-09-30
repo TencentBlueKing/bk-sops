@@ -15,19 +15,20 @@ specific language governing permissions and limitations under the License.
 from rest_framework import serializers
 
 
-class IncludeOptionsSerializer(serializers.Serializer):
-    include_subprocess = serializers.IntegerField(required=False, default=0)
-    include_constants = serializers.IntegerField(required=False, default=0)
-    include_executor_proxy = serializers.IntegerField(required=False, default=0)
-    include_notify = serializers.IntegerField(required=False, default=0)
-    include_edit_info = serializers.IntegerField(required=False, default=0)
-    include_webhook_history = serializers.IntegerField(required=False, default=0)
-    include_staff_groups = serializers.IntegerField(required=False, default=0)
-    include_children_status = serializers.IntegerField(required=False, default=0)
-    include_labels = serializers.IntegerField(required=False, default=0)
+class IncludeProjectSerializer(serializers.Serializer):
+    include_executor_proxy = serializers.BooleanField(required=False, help_text="项目代理信息")
+    include_staff_groups = serializers.BooleanField(required=False, help_text="人员分组信息")
 
-    def validate(self, attrs):
-        for key, value in attrs.items():
-            if value != 1:
-                attrs[key] = 0
-        return attrs
+
+class IncludeTemplateSerializer(serializers.Serializer):
+    include_executor_proxy = serializers.BooleanField(required=False, help_text="模板代理信息")
+    include_subprocess = serializers.BooleanField(required=False, help_text="子流程信息")
+    include_constants = serializers.BooleanField(required=False, help_text="全局变量")
+    include_notify = serializers.BooleanField(required=False, help_text="通知信息")
+    include_labels = serializers.BooleanField(required=False, help_text="标签信息")
+
+
+class IncludeTaskSerializer(serializers.Serializer):
+    include_edit_info = serializers.BooleanField(required=False, help_text="任务更新信息")
+    include_webhook_history = serializers.BooleanField(required=False, help_text="webhook回调信息")
+    include_children_status = serializers.BooleanField(required=False, help_text="任务节点状态")

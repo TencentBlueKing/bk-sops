@@ -27,7 +27,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from apigw_manager.apigw.decorators import apigw_require
 
-from gcloud.apigw.serializers import IncludeOptionsSerializer
+from gcloud.apigw.serializers import IncludeTemplateSerializer
 
 
 @login_exempt
@@ -39,7 +39,7 @@ from gcloud.apigw.serializers import IncludeOptionsSerializer
 @iam_intercept(GetTemplateInfoInterceptor())
 def get_template_info(request, template_id, project_id):
     project = request.project
-    serializer = IncludeOptionsSerializer(data=request.GET)
+    serializer = IncludeTemplateSerializer(data=request.GET)
     if not serializer.is_valid():
         return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     template_source = request.GET.get("template_source", PROJECT)

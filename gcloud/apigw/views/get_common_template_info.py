@@ -22,7 +22,7 @@ from gcloud.apigw.views.utils import format_template_data, process_pipeline_cons
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
-from gcloud.apigw.serializers import IncludeOptionsSerializer
+from gcloud.apigw.serializers import IncludeTemplateSerializer
 
 
 @login_exempt
@@ -32,7 +32,7 @@ from gcloud.apigw.serializers import IncludeOptionsSerializer
 @mark_request_whether_is_trust
 @iam_intercept(CommonFlowViewInterceptor())
 def get_common_template_info(request, template_id):
-    serializer = IncludeOptionsSerializer(data=request.GET)
+    serializer = IncludeTemplateSerializer(data=request.GET)
     if not serializer.is_valid():
         return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     include_subprocess = serializer.validated_data["include_subprocess"]

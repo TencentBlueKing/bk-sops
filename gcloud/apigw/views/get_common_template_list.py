@@ -20,7 +20,7 @@ from gcloud.apigw.views.utils import format_template_list_data
 from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
 from apigw_manager.apigw.decorators import apigw_require
-from gcloud.apigw.serializers import IncludeOptionsSerializer
+from gcloud.apigw.serializers import IncludeTemplateSerializer
 
 
 @login_exempt
@@ -30,7 +30,7 @@ from gcloud.apigw.serializers import IncludeOptionsSerializer
 @mark_request_whether_is_trust
 @timezone_inject
 def get_common_template_list(request):
-    serializer = IncludeOptionsSerializer(data=request.GET)
+    serializer = IncludeTemplateSerializer(data=request.GET)
     if not serializer.is_valid():
         return {
             "result": False,
