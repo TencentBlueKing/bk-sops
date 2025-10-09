@@ -65,11 +65,16 @@ class MockClient(object):
         self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
+INPUT_PARAMS = Call(
+    tenant_id="system", username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False
+)
 # mock path
 # 因为v1.1版本的JobExecuteTaskService类直接继承了JobExecuteTaskServiceBase类,所以mock路径也使用其父类的路径
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_client_by_username"
 )
+GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_node_callback_url"
@@ -254,7 +259,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
         CallAssertion(
             func=EXECUTE_JOB_CALL_FAIL_CLIENT.api.execute_job_plan,
@@ -313,7 +318,6 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": INVALID_CALLBACK_DATA_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -322,7 +326,6 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": INVALID_CALLBACK_DATA_CLIENT,
             "ex_data": "invalid callback_data, " "job_instance_id: None, status: None",
         },
         callback_data={},
@@ -330,7 +333,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
         CallAssertion(
             func=INVALID_CALLBACK_DATA_CLIENT.api.execute_job_plan,
@@ -390,7 +393,6 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": JOB_EXECUTE_NOT_SUCCESS_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -399,7 +401,6 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": JOB_EXECUTE_NOT_SUCCESS_CLIENT,
             "ex_data": {
                 "exception_msg": ("任务执行失败，<a href='%s' target='_blank'>" "前往作业平台(JOB)查看详情</a>") % "instance_url_token",
                 "task_inst_id": 56789,
@@ -411,7 +412,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
         CallAssertion(
             func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.api.execute_job_plan,
@@ -472,7 +473,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -481,7 +481,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
             "job_tagged_ip_dict": {},
             "ex_data": (
                 "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
@@ -497,7 +496,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
         CallAssertion(
             func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.api.execute_job_plan,
@@ -541,6 +540,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
@@ -571,7 +571,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": EXECUTE_SUCCESS_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -580,7 +579,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": EXECUTE_SUCCESS_CLIENT,
             "job_tagged_ip_dict": {"tag": "1.1.1.1,1.1.1.2"},
             "key_1": "new_value_1",
             "key_2": "new_value_2",
@@ -603,7 +601,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
         CallAssertion(
             func=EXECUTE_SUCCESS_CLIENT.api.execute_job_plan,
@@ -656,6 +654,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
@@ -684,7 +683,6 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_VAR_ERROR_SUCCESS_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -693,7 +691,6 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_VAR_ERROR_SUCCESS_CLIENT,
             "job_tagged_ip_dict": {"tag": "1.1.1.1,1.1.1.2"},
             "key_1": "new_value_1",
             "key_2": "new_value_2",
@@ -716,7 +713,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
         CallAssertion(
             func=GET_VAR_ERROR_SUCCESS_CLIENT.api.execute_job_plan,
@@ -760,6 +757,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
@@ -789,7 +787,7 @@ INVALID_IP_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
     ],
     patchers=[
@@ -819,7 +817,7 @@ IP_IS_EXIST_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+            calls=[INPUT_PARAMS],
         ),
     ],
     patchers=[

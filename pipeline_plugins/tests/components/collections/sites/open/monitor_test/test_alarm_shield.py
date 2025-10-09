@@ -22,9 +22,7 @@ from pipeline.component_framework.test import (
     Patcher,
 )
 
-from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_0 import (
-    MonitorAlarmShieldComponent,
-)
+from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_0 import MonitorAlarmShieldComponent
 
 
 class MonitorAlarmShieldComponentTest(TestCase, ComponentTestMixin):
@@ -37,14 +35,17 @@ class MonitorAlarmShieldComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, add_shield_result=None):
-        self.add_shield = MagicMock(return_value=add_shield_result)
+        self.api = MagicMock()
+        self.api.add_shield = MagicMock(return_value=add_shield_result)
 
     def __call__(self, *args, **kwargs):
         return self
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_0.BKMonitorClient"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_0.get_client_by_username"
+)
 GET_MODULE_ID_LIST_BY_NAME = (
     "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_0" ".get_module_id_list_by_name"
 )
@@ -121,7 +122,7 @@ def get_service_template_list_by_names(service_template_names, service_template_
     return service_template_names_list
 
 
-def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list):
+def get_module_id_list_by_name(tenant_id, bk_biz_id, username, set_list, service_template_list):
     module_id = [
         {"default": 0, "bk_module_id": 1},
         {"default": 0, "bk_module_id": 2},
@@ -136,7 +137,7 @@ def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_l
 SHIELD_FAIL_CASE = ComponentTestCase(
     name="create shield fail case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 2},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -164,10 +165,10 @@ SHIELD_FAIL_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=ADD_SHIELD_FAIL_CLIENT.add_shield,
+            func=ADD_SHIELD_FAIL_CLIENT.api.add_shield,
             calls=[
                 Call(
-                    **{
+                    {
                         "begin_time": "2020-09-28 11:18:58",
                         "bk_biz_id": 2,
                         "category": "scope",
@@ -187,7 +188,8 @@ SHIELD_FAIL_CASE = ComponentTestCase(
                         "end_time": "2020-09-28 11:18:58",
                         "notice_config": {},
                         "shield_notice": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         )
@@ -205,15 +207,15 @@ SHIELD_FAIL_CASE = ComponentTestCase(
 SHIELD_SUCCESS_CASE = ComponentTestCase(
     name="create shield success case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 2},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(success=True, outputs={"shield_id": "1", "message": "success"}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=ADD_SHIELD_SUCCESS_CLIENT.add_shield,
+            func=ADD_SHIELD_SUCCESS_CLIENT.api.add_shield,
             calls=[
                 Call(
-                    **{
+                    {
                         "begin_time": "2020-09-28 11:18:58",
                         "bk_biz_id": 2,
                         "category": "scope",
@@ -233,7 +235,8 @@ SHIELD_SUCCESS_CASE = ComponentTestCase(
                         "end_time": "2020-09-28 11:18:58",
                         "notice_config": {},
                         "shield_notice": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         )

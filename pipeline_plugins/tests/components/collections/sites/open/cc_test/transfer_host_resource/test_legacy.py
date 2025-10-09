@@ -12,17 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc import CmdbTransferHostResourceModuleComponent
 
 
@@ -41,12 +40,12 @@ class CmdbTransferHostResourceComponentTest(TestCase, ComponentTestMixin):
 class MockClient(object):
     def __init__(self, transfer_host_return=None):
         self.set_bk_api_ver = MagicMock()
-        self.cc = MagicMock()
-        self.cc.transfer_host_to_resourcemodule = MagicMock(return_value=transfer_host_return)
+        self.api = MagicMock()
+        self.api.transfer_host_to_resourcemodule = MagicMock(return_value=transfer_host_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 
 # mock client
@@ -55,19 +54,21 @@ TRANSFER_SUCCESS_CLIENT = MockClient(transfer_host_return={"result": True, "code
 TRANSFER_FAIL_CLIENT = MockClient(
     transfer_host_return={"result": False, "code": 2, "message": "message token", "data": {}}
 )
-
+COMMON_PARENT = {"tenant_id": "system", "executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0}
 
 TRANSFER_SUCCESS_CASE = ComponentTestCase(
     name="transfer success case",
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
-    parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("executor_token", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
         CallAssertion(
-            func=TRANSFER_SUCCESS_CLIENT.cc.transfer_host_to_resourcemodule,
-            calls=[Call({"bk_supplier_account": 0, "bk_biz_id": 2, "bk_host_id": [2, 3]})],
+            func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]
+        ),
+        CallAssertion(
+            func=TRANSFER_SUCCESS_CLIENT.api.transfer_host_to_resourcemodule,
+            calls=[Call({"bk_biz_id": 2, "bk_host_id": [2, 3]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     # add patch
@@ -81,20 +82,22 @@ TRANSFER_SUCCESS_CASE = ComponentTestCase(
 TRANSFER_FAIL_CASE = ComponentTestCase(
     name="transfer fail case",
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
-    parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
             "ex_data": "调用配置平台(CMDB)接口cc.transfer_host_to_resourcemodule返回失败, error=message token, "
-            'params={"bk_supplier_account":0,"bk_biz_id":2,"bk_host_id":[2,3]}'
+            'params={"bk_biz_id":2,"bk_host_id":[2,3]}'
         },
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("executor_token", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
         CallAssertion(
-            func=TRANSFER_FAIL_CLIENT.cc.transfer_host_to_resourcemodule,
-            calls=[Call({"bk_supplier_account": 0, "bk_biz_id": 2, "bk_host_id": [2, 3]})],
+            func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]
+        ),
+        CallAssertion(
+            func=TRANSFER_FAIL_CLIENT.api.transfer_host_to_resourcemodule,
+            calls=[Call({"bk_biz_id": 2, "bk_host_id": [2, 3]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     # add patch
@@ -108,11 +111,13 @@ TRANSFER_FAIL_CASE = ComponentTestCase(
 INVALID_IP_CASE = ComponentTestCase(
     name="invalid ip case",
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
-    parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0},
+    parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "invalid ip"}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("executor_token", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
+        CallAssertion(
+            func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]
+        ),
     ],
     patchers=[Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": False, "message": "invalid ip"})],
 )

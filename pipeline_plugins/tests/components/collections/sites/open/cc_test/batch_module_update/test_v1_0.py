@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
     ComponentTestCase,
+    ComponentTestMixin,
     ExecuteAssertion,
-    ScheduleAssertion,
     Patcher,
+    ScheduleAssertion,
 )
 
 from pipeline_plugins.components.collections.sites.open.cc.batch_module_update.v1_0 import CCBatchModuleUpdateComponent
@@ -30,10 +29,10 @@ class MockClient(object):
     def __init__(
         self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None, update_module_return=None
     ):
-        self.cc = MagicMock()
-        self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
-        self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
-        self.cc.update_module = MagicMock(return_value=update_module_return)
+        self.api = MagicMock()
+        self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
+        self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
+        self.api.update_module = MagicMock(return_value=update_module_return)
 
 
 COMMON_MAINLINE = {
@@ -154,8 +153,10 @@ UPDATE_MODULE_FAILED_CLIENT = MockClient(
     search_biz_inst_topo_return=COMMON_TOPO,
 )
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.batch_module_update.v1_0.get_client_by_user"
-CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.cc.batch_module_update.v1_0.get_client_by_username"
+)
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 
 UPDATE_MODULE_SUCCESS_BY_CUSTOM = ComponentTestCase(
     name="update module success by custom",
@@ -218,12 +219,12 @@ UPDATE_MODULE_FAILED_BY_CUSTOM = ComponentTestCase(
             "module_update_failed": [
                 "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module', "
                 "'bk_module_name': 'test', 'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, 更新属性: "
-                "{'bk_biz_id': 2, 'bk_set_id': 5, 'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, 错误消息: xxx"
+                "{'bk_module_name': 'test', 'bk_biz_id': 2, 'bk_set_id': 5, 'bk_module_id': 7}, 错误消息: xxx"
             ],
             "ex_data": [
                 "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module', "
                 "'bk_module_name': 'test', 'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, 更新属性: "
-                "{'bk_biz_id': 2, 'bk_set_id': 5, 'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, 错误消息: xxx"
+                "{'bk_module_name': 'test', 'bk_biz_id': 2, 'bk_set_id': 5, 'bk_module_id': 7}, 错误消息: xxx"
             ],
         },
     ),
@@ -241,7 +242,6 @@ UPDATE_MODULE_FAILED_BY_TEMPLATE = ComponentTestCase(
         "cc_module_update_data": [
             {
                 "cc_module_select_text": "set>module,set>module2",
-                "bk_module_name": "test",
                 "bk_module_type": "",
                 "operator": "",
                 "bk_bak_operator": "",
@@ -255,20 +255,20 @@ UPDATE_MODULE_FAILED_BY_TEMPLATE = ComponentTestCase(
         outputs={
             "module_update_success": [],
             "module_update_failed": [
-                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
+                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module', "
                 "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, 更新属性: {'bk_biz_id': 2, "
-                "'bk_set_id': 5, 'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, 错误消息: xxx",
-                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module2', 'bk_module_name': 'test', "
+                "'bk_set_id': 5, 'bk_module_id': 7}, 错误消息: xxx",
+                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module2', "
                 "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, 更新属性: {'bk_biz_id': 2, "
-                "'bk_set_id': 5, 'bk_module_id': 8, 'data': {'bk_module_name': 'test'}}, 错误消息: xxx"
+                "'bk_set_id': 5, 'bk_module_id': 8}, 错误消息: xxx",
             ],
             "ex_data": [
-                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
+                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module', "
                 "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, 更新属性: {'bk_biz_id': 2, "
-                "'bk_set_id': 5, 'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, 错误消息: xxx",
-                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module2', 'bk_module_name': 'test', "
+                "'bk_set_id': 5, 'bk_module_id': 7}, 错误消息: xxx",
+                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module2', "
                 "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, 更新属性: {'bk_biz_id': 2, "
-                "'bk_set_id': 5, 'bk_module_id': 8, 'data': {'bk_module_name': 'test'}}, 错误消息: xxx"
+                "'bk_set_id': 5, 'bk_module_id': 8}, 错误消息: xxx",
             ],
         },
     ),
