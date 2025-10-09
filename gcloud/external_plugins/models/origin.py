@@ -36,7 +36,7 @@ def original_source(cls):
 
 class OriginalPackageSourceManager(PackageSourceManager):
     @transaction.atomic()
-    def add_original_source(self, name, source_type, packages, original_kwargs=None, tenant_id=None, **base_kwargs):
+    def add_original_source(self, name, source_type, packages, original_kwargs=None, tenant_id="", **base_kwargs):
         full_kwargs = {"type": source_type, "name": name, "packages": packages, "tenant_id": tenant_id}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)

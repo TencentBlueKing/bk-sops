@@ -12,13 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
+from pipeline.component_framework.test import ComponentTestCase, ComponentTestMixin, ExecuteAssertion, Patcher
 
-from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    ExecuteAssertion,
-    Patcher,
-)
 from pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0 import (
     CCCreateSetBySetTemplateComponent,
 )
@@ -40,16 +35,16 @@ class CCCreateSetByTemplateComponentTest(TestCase, ComponentTestMixin):
 class MockClient(object):
     def __init__(self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None, create_set_return=None):
         self.set_bk_api_ver = MagicMock()
-        self.cc = MagicMock()
-        self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
-        self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
-        self.cc.create_set = MagicMock(return_value=create_set_return)
+        self.api = MagicMock()
+        self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
+        self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
+        self.api.create_set = MagicMock(return_value=create_set_return)
 
 
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0.get_client_by_username"
 )
-CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 
 # 通用client
 COMMON_CLIENT = MockClient(
@@ -156,13 +151,12 @@ COMMON_CLIENT = MockClient(
 
 # 调用 create_set 的通用参数
 COMMON_CREAT_SET_API_KWARGS = {
-    "bk_supplier_account": 0,
     "bk_biz_id": 2,
     "data": {"bk_parent_id": 3, "bk_set_name": "1", "set_template_id": 1},
 }
 
 # parent_data
-PARENT_DATA = {"executor": "admin", "biz_cc_id": 2}
+PARENT_DATA = {"tenant_id": "system", "executor": "admin", "biz_cc_id": 2}
 
 SELECT_BY_TEXT_SUCCESS_INPUTS = {
     "biz_cc_id": 2,

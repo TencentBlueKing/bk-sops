@@ -12,15 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module.v1_0 import (
     CCBatchTransferHostModuleComponent,
 )
@@ -41,23 +41,29 @@ class MockClient(object):
         search_biz_inst_topo_return=None,
         get_mainline_object_topo_return=None,
     ):
-        self.cc = MagicMock()
-        self.cc.transfer_host_module = MagicMock(return_value=batch_transfer_host_module_return)
-        self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
-        self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
+        self.api = MagicMock()
+        self.api.transfer_host_module = MagicMock(return_value=batch_transfer_host_module_return)
+        self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
+        self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
 
 
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module" ".v1_0.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module" ".v1_0.get_client_by_username"
 )
-CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 CC_LIST_SELECT_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module.v1_0"
     ".cc_list_select_node_inst_id"
 )
 
-COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0, "bk_biz_name": "蓝鲸"}
+COMMON_PARENT = {
+    "tenant_id": "system",
+    "executor": "admin",
+    "biz_cc_id": 2,
+    "biz_supplier_account": 0,
+    "bk_biz_name": "蓝鲸",
+}
 COMMON_TOPO = {
     "result": True,
     "code": 0,
@@ -133,18 +139,18 @@ TRANSFER_HOST_MODULE_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=TRANSFER_MODULE_SUCCESS_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("admin", 2, ["2.5.5.6"], 0)]),
+        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "admin", 2, ["2.5.5.6"])]),
         CallAssertion(
-            func=TRANSFER_MODULE_SUCCESS_CLIENT.cc.transfer_host_module,
+            func=TRANSFER_MODULE_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
                 Call(
                     {
                         "bk_biz_id": 2,
-                        "bk_supplier_account": 0,
                         "bk_host_id": [2],
                         "bk_module_id": [7],
                         "is_increment": True,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -178,18 +184,13 @@ TRANSFER_HOST_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=TRANSFER_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("admin", 2, ["2.5.5.6"], 0)]),
+        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "admin", 2, ["2.5.5.6"])]),
         CallAssertion(
-            func=TRANSFER_MODULE_SUCCESS_CLIENT.cc.transfer_host_module,
+            func=TRANSFER_MODULE_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
                 Call(
-                    {
-                        "bk_biz_id": 2,
-                        "bk_supplier_account": 0,
-                        "bk_host_id": [2],
-                        "bk_module_id": [7],
-                        "is_increment": True,
-                    }
+                    {"bk_biz_id": 2, "bk_host_id": [2], "bk_module_id": [7], "is_increment": True},
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),

@@ -14,18 +14,17 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
+from gcloud.apigw.views.get_task_list import TASK_ACTIONS
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.apigw.views.get_task_list import TASK_ACTIONS
 
-from .utils import APITest, TEST_USERNAME
-
+from .utils import TEST_USERNAME, APITest
 
 MOCK_FORMAT_TASK_LIST_DATA = "gcloud.apigw.views.get_task_list.format_task_list_data"
 MOCK_GET_TASK_ALLOWED_ACTIONS = "gcloud.apigw.views.get_task_list.get_task_allowed_actions_for_user"
 
 TEST_PROJECT_ID = "123"
+TEST_TENANT_ID = "system"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
 SUCCESS_CODE = 0
@@ -69,7 +68,9 @@ class GetTaskListAPITest(APITest):
                 )
 
                 mocked_format_task_list_data.assert_called_once()
-                mocked_get_task_allowed_data.assert_called_once_with(TEST_USERNAME, TASK_ACTIONS, TEST_TASK_ID_LIST)
+                mocked_get_task_allowed_data.assert_called_once_with(
+                    TEST_USERNAME, TASK_ACTIONS, TEST_TASK_ID_LIST, TEST_TENANT_ID
+                )
 
                 assert_data = [
                     {"id": "1", "auth_actions": ["TEST_ACTION"]},
