@@ -162,7 +162,6 @@ MIDDLEWARE += (
     "gcloud.utils.middleware.ApiGatewayJWTUserMiddleware",
 )
 
-
 # AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
 AUTHENTICATION_BACKENDS += ("gcloud.utils.middleware.CustomUserModelBackend",)
 
