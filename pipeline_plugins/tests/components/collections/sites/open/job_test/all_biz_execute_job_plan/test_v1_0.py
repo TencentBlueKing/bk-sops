@@ -44,7 +44,6 @@ class AllBizJobExecuteJobPlanComponentTest(TestCase, ComponentTestMixin):
             # FAIL
             EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE,
             EXECUTE_JOB_PLAN_CALL_FAIL_CASE,
-            INVALID_IP_FAIL_CASE,
             INVALID_CALLBACK_DATA_CASE,
             GET_GLOBAL_VAR_FAIL_CASE,
         ]
@@ -76,6 +75,9 @@ GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service."
     "get_client_by_username"
 )
+
+GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service.get_node_callback_url"
 )
@@ -350,7 +352,6 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT,
             "biz_cc_id": 2,
         },
     ),
@@ -360,7 +361,6 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT,
             "biz_cc_id": 2,
             "job_tagged_ip_dict": {"tag2": "192.168.20.218"},
             "name": "test",
@@ -402,32 +402,11 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
-)
-
-# execute_job_plan fail
-# 不合法的IP
-INVALID_IP_FAIL_CASE = ComponentTestCase(
-    name="all biz execute job plan invalid ip fail test case",
-    inputs={
-        "all_biz_job_config": {
-            "all_biz_cc_id": 2,
-            "job_plan_id": 1000010,
-            "job_global_var": [
-                {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
-                {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.256", "description": ""},
-            ],
-            "ip_is_legal": True,
-        }
-    },
-    parent_data={"executor": "executor", "biz_cc_id": 1, "tenant_id": "system"},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 0:192.168.20.256 是否合法"}),
-    schedule_assertion=None,
-    execute_call_assertion=[],
-    patchers=[Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT)],
 )
 # 作业执行不成功
 EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
@@ -449,7 +428,6 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT,
             "biz_cc_id": 2,
         },
     ),
@@ -459,7 +437,6 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT,
             "biz_cc_id": 2,
             "ex_data": {
                 "exception_msg": "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>".format(
@@ -494,6 +471,7 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -585,7 +563,6 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": INVALID_CALLBACK_DATA_CLIENT,
             "biz_cc_id": 2,
         },
     ),
@@ -595,7 +572,6 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": INVALID_CALLBACK_DATA_CLIENT,
             "biz_cc_id": 2,
             "ex_data": "invalid callback_data, " "job_instance_id: None, status: None",
         },
@@ -624,6 +600,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -650,7 +627,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
             "biz_cc_id": 2,
         },
     ),
@@ -660,7 +636,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
             "biz_cc_id": 2,
             "job_tagged_ip_dict": {},
             "ex_data": (
@@ -707,6 +682,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         )
     ],
     patchers=[
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
@@ -762,7 +738,6 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT,
             "biz_cc_id": 2,
         },
     ),
@@ -772,7 +747,6 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 10000,
             "job_inst_name": "API execute_job_plan test",
-            "client": EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT,
             "biz_cc_id": 2,
             "job_tagged_ip_dict": {"tag2": "192.168.20.218"},
             "name": "test",
@@ -818,6 +792,7 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),

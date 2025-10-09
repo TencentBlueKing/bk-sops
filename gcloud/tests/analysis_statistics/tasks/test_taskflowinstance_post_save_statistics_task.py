@@ -13,13 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from gcloud.tests.mock import *  # noqa
-from gcloud.tests.mock_settings import *  # noqa
+from gcloud.analysis_statistics.models import TaskflowStatistics
 from gcloud.analysis_statistics.tasks import taskflowinstance_post_save_statistics_task
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.analysis_statistics.models import TaskflowStatistics
-
+from gcloud.tests.mock import *  # noqa
+from gcloud.tests.mock_settings import *  # noqa
 
 mock.mock._magics.add("__round__")
 
@@ -66,7 +65,7 @@ class TestTaskflowinstancePostSaveStatistics(TestCase):
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=tasktmpl))
     @mock.patch(CALCULATE_ELAPSED_TIME, MagicMock(return_value=0))
     @mock.patch(MOCK_COUNT_TREE_NODES, MagicMock(return_value=(1, 1, 1)))
-    @mock.patch(TASKFLOW_STATISTICS_UPDATE, MagicMock(return_value=MockQuerySet()))
+    @mock.patch(TASKFLOW_STATISTICS_FILTER, MagicMock(return_value=MockQuerySet()))
     def test_task_success_case_without_created(self):
         kwargs = {
             "instance_id": pipeline.id,
@@ -87,7 +86,6 @@ class TestTaskflowinstancePostSaveStatistics(TestCase):
         result = taskflowinstance_post_save_statistics_task(TEST_TASK_INSTANCE_ID, False)
         TaskFlowInstance.objects.get.assert_called_once_with(id=taskflow.id)
         TaskTemplate.objects.get.assert_called_once_with(id=tasktmpl.id)
-        TaskflowStatistics.objects.update.assert_called_once_with(
-            task_instance_id=TEST_TASK_INSTANCE_ID, defaults=kwargs
-        )
+        TaskflowStatistics.objects.filter.assert_called_once_with(task_instance_id=TEST_TASK_INSTANCE_ID)
+        TaskflowStatistics.objects.filter.return_value.update.assert_called_once_with(**kwargs)
         self.assertTrue(result)

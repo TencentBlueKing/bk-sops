@@ -56,17 +56,20 @@ class MockClient(object):
         get_rsa_public_key_return=None,
     ):
         self.name = "name"
-        self.job_install = MagicMock(return_value=install_return)
-        self.job_operate = MagicMock(return_value=operate_return)
-        self.remove_host = MagicMock(return_value=remove_host)
-        self.job_details = MagicMock(return_value=details_return)
-        self.get_job_log = MagicMock(return_value=get_job_log_return)
-        self.get_rsa_public_key = MagicMock(return_value=get_rsa_public_key_return)
+        self.api = MagicMock()
+        self.api.job_install = MagicMock(return_value=install_return)
+        self.api.job_operate = MagicMock(return_value=operate_return)
+        self.api.remove_host = MagicMock(return_value=remove_host)
+        self.api.job_details = MagicMock(return_value=details_return)
+        self.api.get_job_log = MagicMock(return_value=get_job_log_return)
+        self.api.get_rsa_public_key = MagicMock(return_value=get_rsa_public_key_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v3_0.BKNodeManClient"
-BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v3_0.get_client_by_username"
+)
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_client_by_username"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 
@@ -221,7 +224,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -231,10 +234,10 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "INSTALL_AGENT",
                         "hosts": [
                             {
@@ -254,15 +257,16 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "data_ip": "1.1.1.1",
                             }
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -311,7 +315,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -321,10 +325,10 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "REINSTALL_AGENT",
                         "hosts": [
                             {
@@ -379,15 +383,16 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "bk_host_id": 3,
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -425,14 +430,14 @@ INSTALL_FAIL_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.job_install,
+            func=DETAILS_FAIL_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "REINSTALL_AGENT",
                         "hosts": [
                             {
@@ -453,7 +458,8 @@ INSTALL_FAIL_CASE = ComponentTestCase(
                                 "bk_host_id": 1,
                             }
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -471,12 +477,18 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     ),
     schedule_call_assertion=[
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=DETAILS_FAIL_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.get_job_log,
-            calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
+            func=DETAILS_FAIL_CLIENT.api.get_job_log,
+            calls=[
+                Call(
+                    {"instance_id": "host|instance|host|1.1.1.1-0-0"},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                    path_params={"id": "1"},
+                )
+            ],
         ),
     ],
     patchers=[
@@ -500,7 +512,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
             "nodeman_hosts": [],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -510,14 +522,19 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_operate,
-            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_operate,
+            calls=[
+                Call(
+                    {"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -538,13 +555,18 @@ OPERATE_FAIL_CASE = ComponentTestCase(
             "nodeman_hosts": [],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"job_id": "", "ex_data": "failed"}),
     schedule_assertion=[],
     execute_call_assertion=[
         CallAssertion(
-            func=CASE_FAIL_CLIENT.job_operate,
-            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]})],
+            func=CASE_FAIL_CLIENT.api.job_operate,
+            calls=[
+                Call(
+                    {"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     patchers=[
@@ -565,7 +587,7 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
             "nodeman_hosts": [],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": ""}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -575,8 +597,10 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.remove_host,
-            calls=[Call(**{"bk_biz_id": ["1"], "bk_host_id": [1], "is_proxy": False})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.remove_host,
+            calls=[
+                Call({"bk_biz_id": ["1"], "bk_host_id": [1], "is_proxy": False}, headers={"X-Bk-Tenant-Id": "system"})
+            ],
         ),
     ],
     schedule_call_assertion=[],
@@ -641,14 +665,14 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "REINSTALL_AGENT",
                         "hosts": [
                             {
@@ -718,7 +742,8 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "bk_host_id": 1,
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -766,7 +791,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -776,10 +801,10 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "INSTALL_AGENT",
                         "hosts": [
                             {
@@ -799,15 +824,16 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
                                 "data_ip": "1.1.1.1",
                             }
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -831,7 +857,7 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
             "nodeman_hosts": [],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -841,14 +867,19 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_operate,
-            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1, 2]})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_operate,
+            calls=[
+                Call(
+                    {"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1, 2]},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -897,7 +928,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -907,10 +938,10 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "INSTALL_AGENT",
                         "hosts": [
                             {
@@ -946,15 +977,16 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
                                 "data_ip": "2.2.2.2",
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[

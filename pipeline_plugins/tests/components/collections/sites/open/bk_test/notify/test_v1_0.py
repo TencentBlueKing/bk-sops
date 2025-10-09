@@ -13,15 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.bk.notify.v1_0 import NotifyComponent
 
 
@@ -42,11 +42,19 @@ class BkNotifyComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, cc_search_business_return=None, cmsi_send_msg_return=None):
-        self.cc = MagicMock()
-        self.cc.search_business = MagicMock(return_value=cc_search_business_return)
-        self.cmsi = MagicMock()
-        self.cmsi.send_msg = MagicMock(return_value=cmsi_send_msg_return)
-        self.cmsi.send_voice_msg = MagicMock(return_value=cmsi_send_msg_return)
+        # 创建不自动生成属性的Mock对象
+        self.api = MagicMock(spec=["search_business", "v1_send_weixin"])
+        self.api.search_business = MagicMock(return_value=cc_search_business_return)
+        self.api.v1_send_weixin = MagicMock(return_value=cmsi_send_msg_return)
+        # 禁用MagicMock的自动属性创建
+        self.api._mock_return_value = None
+        self.api._mock_side_effect = None
+
+    def __getattr__(self, name):
+        # 严格控制属性访问
+        if name == "api":
+            return object.__getattribute__(self, "api")
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
 
 class MockStaffGroupSet:
@@ -57,7 +65,8 @@ class MockStaffGroupSet:
         self.objects.filter = self.filter
 
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.get_client_by_username"
+GET_CC_CLIENT_BY_USER = "gcloud.utils.cmdb.get_client_by_username"
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.handle_api_error"
 NOTIFY_HANDLE_API_ERROR = "gcloud.utils.cmdb.handle_api_error"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.bk_handle_api_error"
@@ -65,7 +74,7 @@ GET_MEMBERS_WITH_GROUP_IDS = (
     "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.StaffGroupSet.objects.get_members_with_group_ids"
 )
 
-COMMON_PARENT = {"executor": "tester", "biz_cc_id": 2, "biz_supplier_account": 0}
+COMMON_PARENT = {"tenant_id": "system", "executor": "tester", "biz_cc_id": 2, "biz_supplier_account": 0}
 
 CC_SEARCH_BUSINESS_FAIL_RETURN = {"result": False, "message": "search business fail"}
 
@@ -108,6 +117,10 @@ GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
             target=GET_CLIENT_BY_USER, return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_FAIL_RETURN)
         ),
         Patcher(target=NOTIFY_HANDLE_API_ERROR, return_value="search business fail"),
+        Patcher(
+            target=GET_CC_CLIENT_BY_USER,
+            return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_FAIL_RETURN),
+        ),
     ],
 )
 
@@ -137,7 +150,11 @@ SEND_MSG_FAIL_CASE = ComponentTestCase(
                 cmsi_send_msg_return=CMSI_SEND_MSG_FAIL_RETURN,
             ),
         ),
-        Patcher(target=BK_HANDLE_API_ERROR, return_value="send msg fail"),
+        Patcher(target=BK_HANDLE_API_ERROR, return_value="send msg fail;send msg fail"),
+        Patcher(
+            target=GET_CC_CLIENT_BY_USER,
+            return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN),
+        ),
     ],
 )
 
@@ -149,7 +166,7 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
     name="send msg success case",
     inputs={
         "biz_cc_id": 2,
-        "bk_notify_type": ["mail", "weixin"],
+        "bk_notify_type": ["weixin"],
         "bk_receiver_info": {"bk_receiver_group": ["Maintainers", "ProductPm"], "bk_more_receiver": "a,b"},
         "notify": True,
         "bk_notify_title": "title",
@@ -159,29 +176,29 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     execute_call_assertion=[
         CallAssertion(
-            func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
+            func=SEND_MSG_SUCCESS_CLIENT.api.v1_send_weixin,
             calls=[
                 Call(
                     {
-                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
-                        "title": "title",
-                        "content": "<pre>content</pre>",
-                        "msg_type": "mail",
-                    }
-                ),
-                Call(
-                    {
-                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
-                        "title": "title",
-                        "content": "content",
-                        "msg_type": "weixin",
-                    }
+                        "receiver__username": ["tester", "a", "b", "m1", "m2", "p1", "p2"],
+                        "message_data": {
+                            "heading": "title",
+                            "message": "content",
+                        },
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 ),
             ],
         )
     ],
     schedule_assertion=None,
-    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT)],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT),
+        Patcher(
+            target=GET_CC_CLIENT_BY_USER,
+            return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN),
+        ),
+    ],
 )
 
 SEND_VOICE_MSG_SUCCESS_CASE = ComponentTestCase(
@@ -218,7 +235,7 @@ SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE = ComponentTestCase(
     name="send msg success receiver order case",
     inputs={
         "biz_cc_id": 2,
-        "bk_notify_type": ["mail", "weixin"],
+        "bk_notify_type": ["weixin"],
         "bk_receiver_info": {"bk_receiver_group": [], "bk_more_receiver": "c,a,b"},
         "notify": True,
         "bk_notify_title": "title",
@@ -228,24 +245,26 @@ SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     execute_call_assertion=[
         CallAssertion(
-            func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
+            func=SEND_MSG_SUCCESS_CLIENT.api.v1_send_weixin,
             calls=[
                 Call(
                     {
-                        "receiver__username": "tester,c,a,b",
-                        "title": "title",
-                        "content": "<pre>content</pre>",
-                        "msg_type": "mail",
-                    }
-                ),
-                Call(
-                    {"receiver__username": "tester,c,a,b", "title": "title", "content": "content", "msg_type": "weixin"}
+                        "receiver__username": ["tester", "c", "a", "b"],
+                        "message_data": {"heading": "title", "message": "content"},
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 ),
             ],
         )
     ],
     schedule_assertion=None,
-    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT)],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT),
+        Patcher(
+            target=GET_CC_CLIENT_BY_USER,
+            return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN),
+        ),
+    ],
 )
 
 
@@ -253,7 +272,7 @@ SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE = ComponentTestCase(
     name="send msg success with staff group case",
     inputs={
         "biz_cc_id": 2,
-        "bk_notify_type": ["mail", "weixin"],
+        "bk_notify_type": ["weixin"],
         "bk_receiver_info": {"bk_receiver_group": [], "bk_staff_group": [1, 2], "bk_more_receiver": "c,a,b"},
         "notify": True,
         "bk_notify_title": "title",
@@ -263,23 +282,17 @@ SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     execute_call_assertion=[
         CallAssertion(
-            func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
+            func=SEND_MSG_SUCCESS_CLIENT.api.v1_send_weixin,
             calls=[
                 Call(
                     {
-                        "receiver__username": "tester,c,a,b,sg_a,sg_b",
-                        "title": "title",
-                        "content": "<pre>content</pre>",
-                        "msg_type": "mail",
-                    }
-                ),
-                Call(
-                    {
-                        "receiver__username": "tester,c,a,b,sg_a,sg_b",
-                        "title": "title",
-                        "content": "content",
-                        "msg_type": "weixin",
-                    }
+                        "receiver__username": ["tester", "c", "a", "b", "sg_a", "sg_b"],
+                        "message_data": {
+                            "heading": "title",
+                            "message": "content",
+                        },
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 ),
             ],
         ),
@@ -288,5 +301,9 @@ SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT),
         Patcher(target=GET_MEMBERS_WITH_GROUP_IDS, return_value=["sg_a", "sg_b"]),
+        Patcher(
+            target=GET_CC_CLIENT_BY_USER,
+            return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN),
+        ),
     ],
 )

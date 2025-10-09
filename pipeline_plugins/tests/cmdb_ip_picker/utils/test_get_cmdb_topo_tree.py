@@ -11,19 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import patch
-
 from django.test import TestCase
+from mock import patch
 
 from pipeline_plugins.cmdb_ip_picker.utils import get_cmdb_topo_tree
 
 
-def mock_get_client_by_user(username):
+def mock_get_client_by_user(username, stage):
     class MockCC(object):
         def __init__(self, success):
             self.success = success
 
-        def search_biz_inst_topo(self, kwargs):
+        def search_biz_inst_topo(self, kwargs, path_params=None, headers=None):
             return {
                 "result": self.success,
                 "data": [
@@ -93,7 +92,7 @@ def mock_get_client_by_user(username):
                 "message": "error",
             }
 
-        def get_biz_internal_module(self, kwargs):
+        def get_biz_internal_module(self, kwargs, path_params=None, headers=None):
             return {
                 "result": self.success,
                 "data": {
@@ -121,7 +120,7 @@ def mock_get_client_by_user(username):
 
     class MockClient(object):
         def __init__(self, success):
-            self.cc = MockCC(success)
+            self.api = MockCC(success)
 
     return MockClient(mock_get_client_by_user.success)
 
@@ -214,7 +213,7 @@ class GetCMDBTopoTreeTestCase(TestCase):
             "bk_inst_name": "蓝鲸",
         }
 
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__normal(self):
         mock_get_client_by_user.success = True
         topo_tree = get_cmdb_topo_tree("admin", "2", "")

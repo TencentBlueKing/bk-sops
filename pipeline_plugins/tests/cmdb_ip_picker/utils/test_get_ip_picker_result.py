@@ -11,16 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import patch
-
 from django.test import TestCase
+from mock import patch
 
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.tests.cmdb_ip_picker.utils.common_settings import (
-    MockCMDBReturnEmpty,
-    mock_get_client_by_user,
     MockCMDB,
+    MockCMDBReturnEmpty,
     mock_cc_get_ips_info_by_str,
+    mock_get_client_by_user,
 )
 
 
@@ -31,7 +30,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.bk_supplier_account = 0
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDBReturnEmpty)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__get_business_host_topo_return_empty(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -47,7 +46,7 @@ class GetIPPickerResultTestCase(TestCase):
         )
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cc_get_ips_info_by_str", mock_cc_get_ips_info_by_str)
     def test__manual_selector_ip(self):
         mock_get_client_by_user.success = True
@@ -65,7 +64,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__manual_selector_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -82,7 +81,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__selector_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -122,7 +121,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__manual_selector_group(self):
         mock_get_client_by_user.success = True
         group_kwargs = {
@@ -140,7 +139,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__selector_group(self):
         mock_get_client_by_user.success = True
         group_kwargs = {
@@ -170,7 +169,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filter_ip_in_group(self):
         mock_get_client_by_user.success = True
         group_kwargs = {
@@ -187,7 +186,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["2.2.2.2"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__select_topo_with_diff_layer(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -219,7 +218,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__selector_ip(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -268,7 +267,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filters_topo_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -284,7 +283,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["2.2.2.2"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__excludes_topo_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -300,7 +299,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filters_and_excludes_topo_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -316,7 +315,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["2.2.2.2"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filters_middle_layer_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -332,7 +331,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filters_and_excludes_middle_layer_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -348,7 +347,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filter_ip_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -364,7 +363,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filter_ip_in_hosts(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -384,7 +383,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__exclude_ip_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -400,7 +399,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__exclude_ip_in_hosts(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -420,7 +419,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__exclude_ip_in_group(self):
         mock_get_client_by_user.success = True
         group_kwargs = {
@@ -437,7 +436,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__exclude_empty_ip_str_in_group(self):
         mock_get_client_by_user.success = True
         group_kwargs = {
@@ -454,7 +453,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filter_empty_ip_str_in_group(self):
         mock_get_client_by_user.success = True
         group_kwargs = {
@@ -471,7 +470,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, [])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filters_topo_and_excludes_ip_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -487,7 +486,7 @@ class GetIPPickerResultTestCase(TestCase):
         self.assertEqual(ip, ["3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user)
     def test__filters_ip_and_excludes_topo_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
