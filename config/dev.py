@@ -65,3 +65,5 @@ try:
     from local_settings import *  # noqa
 except ImportError:
     pass
+
+BK_APIGW_STAGE_NAME = "dev"
