@@ -12,18 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.periodictask.models import PeriodicTask
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.views.utils import info_data_from_period_task
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetPeriodicTaskInfoInterceptor
-from apigw_manager.apigw.decorators import apigw_require
-from gcloud.apigw.serializers import IncludeTaskSerializer
+from gcloud.periodictask.models import PeriodicTask
 
 
 @login_exempt

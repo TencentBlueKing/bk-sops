@@ -10,17 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.operate_record.apis.drf.serilaziers.operate_record import TaskOperateRecordSetSerializer
+from gcloud.contrib.operate_record.models import TaskOperateRecord
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
-from gcloud.contrib.operate_record.models import TaskOperateRecord
-from gcloud.contrib.operate_record.apis.drf.serilaziers.operate_record import TaskOperateRecordSetSerializer
 
 
 @login_exempt
