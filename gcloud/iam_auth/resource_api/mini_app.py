@@ -12,14 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 from django.core.cache import cache
 from django.db.models import Q
-
-from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.models import Project
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
+from gcloud.utils.data_handler import deduplicate_keep_order
 
 
 def mini_app_path_value_hook(value):
@@ -133,7 +133,7 @@ class MiniAppResourceProvider(ResourceProvider):
             {
                 "id": str(mini_app.id),
                 "display_name": mini_app.name,
-                "_bk_iam_approver_": [mini_app.creator, mini_app.editor],
+                "_bk_iam_approver_": deduplicate_keep_order([mini_app.creator, mini_app.editor]),
             }
             for mini_app in queryset
         ]

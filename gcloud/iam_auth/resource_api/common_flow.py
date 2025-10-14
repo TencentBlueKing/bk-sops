@@ -12,13 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 from django.core.cache import cache
 from django.db.models import Q
-
-from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import DjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
+from gcloud.utils.data_handler import deduplicate_keep_order
 
 
 class CommonFlowResourceProvider(ResourceProvider):
@@ -110,7 +110,7 @@ class CommonFlowResourceProvider(ResourceProvider):
             {
                 "id": str(common_flow.id),
                 "display_name": common_flow.name,
-                "_bk_iam_approver_": [common_flow.creator, common_flow.editor_name],
+                "_bk_iam_approver_": deduplicate_keep_order([common_flow.creator, common_flow.editor_name]),
             }
             for common_flow in queryset
         ]
