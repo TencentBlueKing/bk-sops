@@ -130,7 +130,8 @@ class FlowResourceProvider(ResourceProvider):
         count = queryset.count()
 
         results = [
-            {"id": str(flow.id), "display_name": flow.name, "_bk_iam_approver_": flow.creator} for flow in queryset
+            {"id": str(flow.id), "display_name": flow.name, "_bk_iam_approver_": [flow.creator, flow.editor_name]}
+            for flow in queryset
         ]
         return ListResult(results=results, count=count)
 

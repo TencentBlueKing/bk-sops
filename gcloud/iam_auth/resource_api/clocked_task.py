@@ -159,7 +159,7 @@ class ClockedTaskResourceProvider(ResourceProvider):
             {
                 "id": str(clocked_task.id),
                 "display_name": clocked_task.task_name,
-                "_bk_iam_approver_": clocked_task.creator,
+                "_bk_iam_approver_": [clocked_task.creator, clocked_task.editor],
             }
             for clocked_task in queryset
         ]

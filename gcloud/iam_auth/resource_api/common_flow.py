@@ -107,7 +107,11 @@ class CommonFlowResourceProvider(ResourceProvider):
         count = queryset.count()
 
         results = [
-            {"id": str(common_flow.id), "display_name": common_flow.name, "_bk_iam_approver_": common_flow.creator}
+            {
+                "id": str(common_flow.id),
+                "display_name": common_flow.name,
+                "_bk_iam_approver_": [common_flow.creator, common_flow.editor_name],
+            }
             for common_flow in queryset
         ]
         return ListResult(results=results, count=count)

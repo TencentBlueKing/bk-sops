@@ -142,7 +142,7 @@ class PeriodicTaskResourceProvider(ResourceProvider):
             {
                 "id": str(periodic_task.id),
                 "display_name": periodic_task.name,
-                "_bk_iam_approver_": periodic_task.creator,
+                "_bk_iam_approver_": [periodic_task.creator, periodic_task.editor],
             }
             for periodic_task in queryset
         ]
