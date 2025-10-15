@@ -84,9 +84,13 @@ def format_template_data(
     if include_executor_proxy and hasattr(template, "executor_proxy"):
         data.update({"executor_proxy": template.executor_proxy})
     if include_notify:
-        data.update(
-            {"notify_type": json.loads(template.notify_type), "notify_receivers": json.loads(template.notify_receivers)}
-        )
+        try:
+            notify_type = json.loads(template.notify_type)
+            if not isinstance(notify_type, dict):
+                notify_type = {"success": notify_type, "fail": notify_type}
+        except Exception:
+            notify_type = {"success": [], "fail": []}
+        data.update({"notify_type": notify_type, "notify_receivers": json.loads(template.notify_receivers)})
 
     if include_subprocess:
         data.update(
