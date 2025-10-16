@@ -133,9 +133,13 @@ def format_template_list_data(
             ids.append(item["id"])
 
         if include_notify:
-            item.update(
-                {"notify_type": json.loads(tmpl.notify_type), "notify_receivers": json.loads(tmpl.notify_receivers)}
-            )
+            try:
+                notify_type = json.loads(tmpl.notify_type)
+                if not isinstance(notify_type, dict):
+                    notify_type = {"success": notify_type, "fail": notify_type}
+            except Exception:
+                notify_type = {"success": [], "fail": []}
+            item.update({"notify_type": notify_type, "notify_receivers": json.loads(tmpl.notify_receivers)})
 
         if include_executor_proxy and hasattr(tmpl, "executor_proxy"):
             item.update({"executor_proxy": tmpl.executor_proxy})
