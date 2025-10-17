@@ -17,18 +17,120 @@ from celery.task import periodic_task
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from pipeline.models import PipelineInstance
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
 from pipeline.contrib.statistics.models import ComponentExecuteData
+from pipeline.models import PipelineInstance
 
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics, TaskflowStatistics
 from gcloud.contrib.cleaner.models import ArchivedTaskInstance
 from gcloud.contrib.cleaner.pipeline.bamboo_engine_tasks import get_clean_pipeline_instance_data
 from gcloud.contrib.cleaner.signals import pre_delete_pipeline_instance_data
+from gcloud.core.models import ProjectConfig
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.decorators import time_record
 
 logger = logging.getLogger("root")
+
+
+def filter_clean_task_instances():
+    """
+    过滤需要清理的任务实例
+    """
+    validity_day = settings.V2_TASK_VALIDITY_DAY
+    expire_time = timezone.now() - timezone.timedelta(days=validity_day)
+
+    batch_num = settings.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
+
+    # 获取所有项目的任务清理配置
+    project_clean_configs = {}
+    for config in ProjectConfig.objects.filter(task_clean_configs__isnull=False).values(
+        "project_id", "task_clean_configs"
+    ):
+        if config["task_clean_configs"] and isinstance(config["task_clean_configs"], dict):
+            project_clean_configs[config["project_id"]] = config["task_clean_configs"]
+
+    if project_clean_configs:
+        logger.info(
+            f"[clean_expired_v2_task_data] Found {len(project_clean_configs)}"
+            f"projects with custom clean configs: {list(project_clean_configs.keys())}"
+        )
+
+    # 构建基础查询条件
+    base_filter = {
+        "pipeline_instance__create_time__lt": expire_time,
+        "engine_ver": 2,
+        "pipeline_instance__is_expired": False,
+    }
+
+    # 如果配置了全局项目范围，先获取需要清理的项目列表
+    target_projects = settings.CLEAN_EXPIRED_V2_TASK_PROJECTS if settings.CLEAN_EXPIRED_V2_TASK_PROJECTS else None
+
+    # 收集所有符合条件的任务ID
+    all_ids = []
+
+    # 处理有特殊配置的项目
+    for project_id, clean_config in project_clean_configs.items():
+        # 如果设置了全局项目范围，且当前项目不在范围内，跳过
+        if target_projects and project_id not in target_projects:
+            continue
+
+        # 获取项目特定的 create_methods 配置
+        project_create_methods = clean_config.get("create_methods", [])
+        if not project_create_methods:
+            continue
+
+        project_filter = base_filter.copy()
+        project_filter["project_id"] = project_id
+        project_filter["create_method__in"] = project_create_methods
+
+        project_qs = TaskFlowInstance.objects.filter(**project_filter)
+        project_ids = list(project_qs.order_by("id").values("id", "pipeline_instance__instance_id")[:batch_num])
+        if project_ids:
+            logger.info(
+                f"[clean_expired_v2_task_data] Project {project_id} with custom config "
+                f"(create_methods={project_create_methods}), "
+                f"found {len(project_ids)} tasks to clean"
+            )
+        all_ids.extend(project_ids)
+
+        # 如果已经收集到足够的任务，退出循环
+        if len(all_ids) >= batch_num:
+            break
+
+    # 处理没有特殊配置的项目（使用全局配置）
+    if len(all_ids) < batch_num:
+        remaining_num = batch_num - len(all_ids)
+
+        # 构建已有特殊配置的项目ID列表
+        configured_project_ids = list(project_clean_configs.keys())
+
+        default_filter = base_filter.copy()
+        default_filter["create_method__in"] = settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS
+
+        # 排除已有特殊配置的项目
+        if configured_project_ids:
+            default_qs = TaskFlowInstance.objects.filter(**default_filter).exclude(
+                project_id__in=configured_project_ids
+            )
+        else:
+            default_qs = TaskFlowInstance.objects.filter(**default_filter)
+
+        # 如果设置了全局项目范围，进一步过滤
+        if target_projects:
+            default_qs = default_qs.filter(project_id__in=target_projects)
+
+        default_ids = list(default_qs.order_by("id").values("id", "pipeline_instance__instance_id")[:remaining_num])
+        if default_ids:
+            logger.info(
+                f"[clean_expired_v2_task_data] Projects with default config "
+                f"(create_methods={settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS}), "
+                f"found {len(default_ids)} tasks to clean"
+            )
+        all_ids.extend(default_ids)
+
+    # 限制最终结果数量
+    ids = all_ids[:batch_num]
+    return ids
 
 
 @periodic_task(run_every=(crontab(*settings.CLEAN_EXPIRED_V2_TASK_CRON)), ignore_result=True, queue="task_data_clean")
@@ -43,22 +145,9 @@ def clean_expired_v2_task_data():
 
     logger.info("Start clean expired task data...")
     try:
-        validity_day = settings.V2_TASK_VALIDITY_DAY
-        expire_time = timezone.now() - timezone.timedelta(days=validity_day)
-
-        batch_num = settings.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
-
-        qs = TaskFlowInstance.objects.filter(
-            pipeline_instance__create_time__lt=expire_time,
-            engine_ver=2,
-            pipeline_instance__is_expired=False,
-            create_method__in=settings.CLEAN_EXPIRED_V2_TASK_CREATE_METHODS,
-        )
-        if settings.CLEAN_EXPIRED_V2_TASK_PROJECTS:
-            qs = qs.filter(project_id__in=settings.CLEAN_EXPIRED_V2_TASK_PROJECTS)
-        ids = qs.order_by("id").values("id", "pipeline_instance__instance_id")[:batch_num]
+        ids = filter_clean_task_instances()
         task_ids = [item["id"] for item in ids]
-        logger.info(f"[clean_expired_v2_task_data] Clean expired task data, task_ids: {task_ids}")
+        logger.info(f"[clean_expired_v2_task_data] Total {len(task_ids)} tasks to clean, task_ids: {task_ids}")
         pipeline_instance_ids = [item["pipeline_instance__instance_id"] for item in ids]
         data_to_clean = get_clean_pipeline_instance_data(pipeline_instance_ids)
         tasks = TaskFlowInstance.objects.filter(id__in=task_ids)
