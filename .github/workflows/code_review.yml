@@ -1,0 +1,60 @@
+name: Cursor 代码评审
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: 安装 Cursor CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+
+      - name: 执行代码审查
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          MODEL: "claude-4.5-sonnet"
+        run: |
+          cursor-agent --force --model "$MODEL" --output-format=text --print "你当前在 GitHub Actions runner 中执行自动化代码审查。gh CLI 可用并已通过 GH_TOKEN 认证。你可以在拉取请求上发表评论。
+
+          上下文：
+          - 仓库：${{ github.repository }}
+          - PR 编号：${{ github.event.pull_request.number }}
+          - PR Head SHA：${{ github.event.pull_request.head.sha }}
+          - PR Base SHA：${{ github.event.pull_request.base.sha }}
+
+          目标：
+          1) 复核已有审查评论，若已处理则回复：已解决
+          2) 审查当前 PR diff，仅标注明确且高严重度的问题
+          3) 只在变更的行留下非常简短的行内评论（1-2 句），并在末尾给出简要总结
+
+          流程：
+          - 获取已有评论：gh pr view --json comments
+          - 获取 diff：gh pr diff
+          - 若先前报告的问题似乎已被附近的更改修复，回复：✅ 此问题似乎已被最近的更改解决
+          - 避免重复：如果同类反馈已在相同行或附近存在，则跳过
+
+          评论规则：
+          - 最多 10 条行内评论；优先处理最关键的问题
+          - 每条评论只包含一个问题；放在准确的变更行
+          - 语气自然，具体且可执行；不要提及自动化或高置信度
+          - 使用表情：🚨 严重 🔒 安全 ⚡ 性能 ⚠️ 逻辑 ✅ 已解决 ✨ 改进
+
+          提交：
+          - 提交一次审查，包含行内评论与简明总结
+          - 仅使用：gh pr review --comment
+          - 不要使用：gh pr review --approve 或 --request-changes"
