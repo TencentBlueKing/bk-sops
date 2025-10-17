@@ -23,12 +23,40 @@ jobs:
           curl https://cursor.com/install -fsS | bash
           echo "$HOME/.cursor/bin" >> $GITHUB_PATH
 
+      - name: 配置 Cursor 认证
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          # 创建 Cursor 配置目录
+          mkdir -p "$HOME/.cursor"
+
+          # 验证 API Key 是否存在
+          if [ -z "$CURSOR_API_KEY" ]; then
+            echo "❌ 错误: CURSOR_API_KEY 未设置"
+            echo "请在 GitHub 仓库的 Settings -> Secrets and variables -> Actions 中添加 CURSOR_API_KEY"
+            exit 1
+          fi
+
+          echo "✅ Cursor API Key 已配置"
+
       - name: 执行代码审查
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GH_TOKEN: ${{ github.token }}
           MODEL: "claude-4.5-sonnet"
+          # 禁用交互式提示
+          CI: true
+          CURSOR_NO_INTERACTIVE: 1
         run: |
+          echo "🚀 开始执行 Cursor 代码审查..."
+          echo "📦 Model: $MODEL"
+
+          # 检查 cursor-agent 是否可用
+          if ! command -v cursor-agent &> /dev/null; then
+            echo "❌ cursor-agent 命令未找到"
+            exit 1
+          fi
+
           cursor-agent --force --model "$MODEL" --output-format=text --print "你当前在 GitHub Actions runner 中执行自动化代码审查。gh CLI 可用并已通过 GH_TOKEN 认证。你可以在拉取请求上发表评论。
 
           上下文：
