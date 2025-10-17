@@ -1,11 +1,43 @@
 name: Cursor 代码评审
 
 on:
-  pull_request:
+  # 使用 pull_request_target 以访问 secrets
+  # 但添加安全检查，只对可信任的贡献者自动运行
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
+  # 第一步：安全检查
+  security-check:
+    name: 安全检查
+    runs-on: ubuntu-latest
+    outputs:
+      is_safe: ${{ steps.check.outputs.is_safe }}
+      author_association: ${{ steps.check.outputs.author_association }}
+    steps:
+      - name: 检查贡献者身份
+        id: check
+        run: |
+          echo "作者关联: ${{ github.event.pull_request.author_association }}"
+
+          # 允许的身份：OWNER（所有者）、MEMBER（成员）、COLLABORATOR（协作者）
+          if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" ]] || \
+             [[ "${{ github.event.pull_request.author_association }}" == "MEMBER" ]] || \
+             [[ "${{ github.event.pull_request.author_association }}" == "COLLABORATOR" ]]; then
+            echo "✅ 可信任的贡献者，允许自动审查"
+            echo "is_safe=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ 外部贡献者，需要手动批准"
+            echo "is_safe=false" >> $GITHUB_OUTPUT
+          fi
+          echo "author_association=${{ github.event.pull_request.author_association }}" >> $GITHUB_OUTPUT
+
+  # 第二步：代码审查（只对可信贡献者自动运行）
   code-review:
+    name: 自动代码审查
+    needs: security-check
+    # 只对可信贡献者自动运行
+    if: needs.security-check.outputs.is_safe == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,6 +48,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # 关键：检出 PR 的代码，而不是默认分支
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: 安装 Cursor CLI
