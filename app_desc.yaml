@@ -171,9 +171,12 @@ modules:
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
+            - key: CELERY_RESTART_INTERVAL
+              value: 604800
+              description: Celery worker 基础重启间隔（秒），7天
         processes:
             v1-engine:
-                command: celery worker -A blueapps.core.celery -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             api-er-e:
@@ -213,7 +216,7 @@ modules:
                 plan: 4C1G5R
                 replicas: 2
             cleaner:
-                command: celery worker -A blueapps.core.celery -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             web:
