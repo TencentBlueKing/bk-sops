@@ -35,10 +35,12 @@ while true; do
     # 使用 timeout 命令限制运行时间
     # --foreground: 前台运行，确保信号传递
     # --kill-after=600: 如果 TERM 信号无效，600秒后强制 KILL
+    # 临时禁用 set -e，以便捕获真实的退出码
+    set +e
     timeout --foreground --kill-after=600 ${ACTUAL_INTERVAL}s \
         celery ${CELERY_ARGS}
-
     EXIT_CODE=$?
+    set -e
 
     if [ $EXIT_CODE -eq 124 ]; then
         # 124 是 timeout 的正常退出码
