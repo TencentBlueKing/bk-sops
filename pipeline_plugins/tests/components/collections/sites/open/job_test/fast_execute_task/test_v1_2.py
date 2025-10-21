@@ -10,8 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import ujson as json
+from django.conf import settings
 from django.test import TestCase
 from mock import MagicMock
 from pipeline.component_framework.test import (
@@ -41,6 +41,14 @@ class JobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
             FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE,
         ]
+
+    def setUp(self):
+        super().setUp()
+        setattr(settings, "ENABLE_IPV6", False)
+
+    def tearDown(self):
+        super().tearDown()
+        setattr(settings, "ENABLE_IPV6", True)
 
 
 class MockClient(object):

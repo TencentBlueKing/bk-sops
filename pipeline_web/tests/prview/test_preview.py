@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import copy
 
-from mock import patch, MagicMock
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from pipeline_web.preview import preview_template_tree, preview_template_tree_with_schemes
 
@@ -121,7 +121,7 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
     @patch("pipeline_web.preview.TaskTemplate", MockTaskTemplate1)
     @patch("pipeline_web.preview.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer1)
     def test_preview_template_tree(self):
-        data = preview_template_tree(1, "project", 2, "v1", ["node1", "node4"])
+        data = preview_template_tree(1, "project", 2, "v1", ["node1", "node4"], "system")
 
         MockTaskTemplate1.objects.get.assert_called_once_with(pk=2, is_deleted=False, project_id=1)
 
@@ -153,7 +153,7 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
         data = preview_template_tree_with_schemes(template, "v1", [1, 2, 3])
 
         MockPipelineTemplateWebPreviewer2.get_template_exclude_task_nodes_with_schemes.assert_called()
-        MockPipelineTemplateWebPreviewer1.preview_pipeline_tree_exclude_task_nodes.assert_called()
+        MockPipelineTemplateWebPreviewer2.preview_pipeline_tree_exclude_task_nodes.assert_called()
         self.assertEqual(
             data,
             {

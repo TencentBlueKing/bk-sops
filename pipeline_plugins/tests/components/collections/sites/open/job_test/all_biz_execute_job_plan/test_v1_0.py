@@ -70,6 +70,14 @@ class CcMockClient(object):
         self.api.list_business_set = MagicMock(return_value=list_business_set_return)
 
 
+class BkUserMockClient(object):
+    def __init__(self, batch_lookup_virtual_user_return=None):
+        self.api = MagicMock()
+        self.api.batch_lookup_virtual_user = MagicMock(return_value=batch_lookup_virtual_user_return)
+
+
+GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_username"
+
 # mock path
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service."
@@ -105,6 +113,16 @@ EXECUTE_JOB_PLAN_FAIL_RESULT = {
     "result": False,
     "request_id": "1e4825b1f0354e509d2bc25eb172f8dc",
 }
+
+BK_USER_CLIENT = BkUserMockClient(
+    batch_lookup_virtual_user_return={
+        "data": [
+            {"bk_username": "7idwx3b7nzk6xigs", "login_name": "zhangsan", "display_name": "zhangsan(张三)"},
+            {"bk_username": "0wngfim3uzhadh1w", "login_name": "lisi", "display_name": "lisi(李四)"},
+        ]
+    },
+)
+
 # mock clients
 INVALID_IP_CLIENT = CcMockClient(list_business_set_return={"result": True, "data": {"info": []}})
 INVALID_IP_CLIENT_BIZ_SET = CcMockClient(list_business_set_return={"result": True, "data": {"info": ["biz_set"]}})
@@ -406,6 +424,7 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )
 # 作业执行不成功
@@ -475,6 +494,7 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )
 # 调用作业平台执行作业失败
@@ -541,6 +561,7 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_FAIL_CLIENT),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )
 # 回调不合法
@@ -604,6 +625,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )
 # 获取全局变量失败
@@ -687,6 +709,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )
 # execute_job_plan_success biz set case
@@ -796,5 +819,6 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )

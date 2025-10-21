@@ -64,6 +64,8 @@ JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service.job_handle_api_error"
 )
 
+GET_BUSINESS_HOST_BY_USER = "gcloud.utils.cmdb.get_client_by_username"
+
 
 def FILE_MANAGER_NOT_CONFIG_CASE():
     return ComponentTestCase(

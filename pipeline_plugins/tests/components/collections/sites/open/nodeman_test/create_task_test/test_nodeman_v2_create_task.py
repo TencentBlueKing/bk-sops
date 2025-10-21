@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.test import TestCase
 from mock import MagicMock
 from pipeline.component_framework.test import (
@@ -41,6 +42,14 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
 
     def component_cls(self):
         return NodemanCreateTaskComponent
+
+    def setUp(self):
+        super().setUp()
+        setattr(settings, "ENABLE_IPV6", False)
+
+    def tearDown(self):
+        super().tearDown()
+        setattr(settings, "ENABLE_IPV6", True)
 
 
 class MockClient(object):

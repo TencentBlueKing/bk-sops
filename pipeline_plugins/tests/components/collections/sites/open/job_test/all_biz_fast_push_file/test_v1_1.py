@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
 from django.test import TestCase
 from mock import MagicMock
 from pipeline.component_framework.test import (
@@ -34,6 +35,14 @@ class AllBizJobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
     def component_cls(self):
         return AllBizJobFastPushFileComponent
 
+    def setUp(self):
+        super().setUp()
+        setattr(settings, "ENABLE_IPV6", False)
+
+    def tearDown(self):
+        super().tearDown()
+        setattr(settings, "ENABLE_IPV6", True)
+
 
 class JOBMockClient(object):
     def __init__(self, fast_push_file_return=None, get_job_instance_status_return=None):
@@ -43,9 +52,16 @@ class JOBMockClient(object):
 
 
 class CcMockClient(object):
-    def __init__(self, list_business_set_return=None):
+    def __init__(self, list_business_set_return=None, list_host_without_biz_return=None):
         self.api = MagicMock()
         self.api.list_business_set = MagicMock(return_value=list_business_set_return)
+        self.api.list_hosts_without_biz = MagicMock(return_value=list_host_without_biz_return)
+
+
+class BkUserMockClient(object):
+    def __init__(self, batch_lookup_virtual_user_return=None):
+        self.api = MagicMock()
+        self.api.batch_lookup_virtual_user = MagicMock(return_value=batch_lookup_virtual_user_return)
 
 
 # mock path
@@ -62,6 +78,8 @@ JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.job_handle_api_error"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+
+VIRTUAL_USER_BY_USER = "gcloud.core.api_adapter.user_info.get_client_by_username"
 
 INPUT = {
     "all_biz_cc_id": "321456",
@@ -110,6 +128,15 @@ FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = JOBMockClient(
         {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
         {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
     ],
+)
+
+BK_USER_CLIENT = BkUserMockClient(
+    batch_lookup_virtual_user_return={
+        "data": [
+            {"bk_username": "7idwx3b7nzk6xigs", "login_name": "zhangsan", "display_name": "zhangsan(张三)"},
+            {"bk_username": "0wngfim3uzhadh1w", "login_name": "lisi", "display_name": "lisi(李四)"},
+        ]
+    },
 )
 
 FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT = JOBMockClient(
@@ -311,6 +338,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
             Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="job.com/api_execute/"),
+            Patcher(target=VIRTUAL_USER_BY_USER, return_value=BK_USER_CLIENT),
         ],
     )
 

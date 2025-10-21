@@ -36,6 +36,14 @@ class NodemanPluginOperateComponentTest(TestCase, ComponentTestMixin):
     def component_cls(self):
         return NodemanPluginOperateComponent
 
+    def setUp(self):
+        super().setUp()
+        setattr(settings, "ENABLE_IPV6", False)
+
+    def tearDown(self):
+        super().tearDown()
+        setattr(settings, "ENABLE_IPV6", True)
+
 
 class MockClient(object):
     def __init__(self, plugin_operate=None, details_return=None, get_job_log_return=None):

@@ -66,6 +66,12 @@ class CcMockClient(object):
         self.api.list_business_set = MagicMock(return_value=list_business_set_return)
 
 
+class BkUserMockClient(object):
+    def __init__(self, batch_lookup_virtual_user_return=None):
+        self.api = MagicMock()
+        self.api.batch_lookup_virtual_user = MagicMock(return_value=batch_lookup_virtual_user_return)
+
+
 # mock path
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service."
@@ -83,6 +89,8 @@ GET_JOB_INSTANCE_URL = (
     "base_service.get_job_instance_url"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+
+GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_username"
 
 # success result
 SUCCESS_RESULT = {
@@ -201,6 +209,15 @@ EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
     "message": "",
     "data": {"ip": "10.0.0.1", "bk_cloud_id": 0, "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"},
 }
+
+BK_USER_CLIENT = BkUserMockClient(
+    batch_lookup_virtual_user_return={
+        "data": [
+            {"bk_username": "7idwx3b7nzk6xigs", "login_name": "zhangsan", "display_name": "zhangsan(张三)"},
+            {"bk_username": "0wngfim3uzhadh1w", "login_name": "lisi", "display_name": "lisi(李四)"},
+        ]
+    },
+)
 
 # mock clients
 FAST_EXECUTE_SCRIPT_FAIL_CLIENT = JobMockClient(
@@ -360,6 +377,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )
 
@@ -385,6 +403,7 @@ BIZ_SET_FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = C
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )
 
@@ -406,5 +425,6 @@ FAST_EXECUTE_SCRIPT_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=GET_BK_USERNAME_BY_TENANT, return_value=BK_USER_CLIENT),
     ],
 )

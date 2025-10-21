@@ -17,7 +17,7 @@ from mock import MagicMock, patch
 
 from pipeline_plugins.variables.collections.sites.open.cmdb.var_cmdb_set_module_ip_selector import SetModuleIpSelector
 
-GET_CLIENT_BY_USERNAME = "pipeline_plugins.variables.utils.get_client_by_username"
+GET_CLIENT_BY_USER = "pipeline_plugins.variables.utils.get_client_by_username"
 CC_GET_IPS_INFO_BY_STR = (
     "pipeline_plugins.variables.collections.sites.open.cmdb." "var_cmdb_set_module_ip_selector.cc_get_ips_info_by_str"
 )
@@ -93,6 +93,11 @@ def cc_get_ips_info_by_str_func(*args, **kwargs):
     return data
 
 
+def list_biz_hosts_topo_return(*args, **kwargs):
+
+    return {"result": True, "code": 0, "message": "success", "data": {}}
+
+
 class VarCmdbSetModuleIpSelectorTestCase(TestCase):
     """
         set-module-ip topo层级构造
@@ -152,7 +157,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
     """
 
     def setUp(self):
-        self.tenant_id = "test"
+        self.supplier_account = "supplier_account_token"
 
         self.project_patcher = patch(
             "pipeline_plugins.variables.collections.sites.open.cmdb.var_cmdb_set_module_ip_selector.Project",
@@ -171,10 +176,10 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         )
         self.cc_get_ips_info_by_str_patcher.start()
 
-        self.pipeline_data = {"executor": "admin", "biz_cc_id": 123, "project_id": 1, "tenant_id": self.tenant_id}
+        self.pipeline_data = {"executor": "admin", "biz_cc_id": 123, "project_id": 1, "tenant_id": "system"}
 
         self.client = patch(
-            GET_CLIENT_BY_USERNAME,
+            GET_CLIENT_BY_USER,
             MagicMock(
                 return_value=MockClient(
                     list_biz_hosts_func=list_biz_hosts_func,
@@ -223,10 +228,99 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             ),
         )
         self.client.start()
+        self.client2 = patch(
+            "gcloud.utils.cmdb.get_client_by_username",
+            MagicMock(
+                return_value=MockClient(
+                    list_biz_hosts_topo_return={
+                        "result": True,
+                        "code": 0,
+                        "message": "success",
+                        "data": {
+                            "count": 2,
+                            "info": [
+                                {
+                                    "host": {
+                                        "bk_cloud_id": 0,
+                                        "bk_host_innerip": "192.168.40.1",
+                                        "bk_host_innerip_v6": "3f2a:7c1d:9e4b:058c:217d:6b3f:895a:4e0c",
+                                    },
+                                    "topo": [
+                                        {
+                                            "bk_set_id": 11,
+                                            "bk_set_name": "集群1",
+                                            "module": [{"bk_module_id": 56, "bk_module_name": "m1"}],
+                                        }
+                                    ],
+                                },
+                                {
+                                    "host": {
+                                        "bk_cloud_id": 0,
+                                        "bk_host_innerip": "192.168.15.4",
+                                        "bk_host_innerip_v6": "3f2a:7c1d:9e4b:058c:217d:6b3f:895a:4e0c",
+                                    },
+                                    "topo": [
+                                        {
+                                            "bk_set_id": 11,
+                                            "bk_set_name": "集群1",
+                                            "module": [{"bk_module_id": 56, "bk_module_name": "m1"}],
+                                        }
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                    list_biz_hosts_func=list_biz_hosts_func,
+                    list_service_template_return={
+                        "result": True,
+                        "code": 0,
+                        "message": "success",
+                        "permission": None,
+                        "data": {"count": 2, "info": [{"id": 62, "name": "test"}, {"id": 61, "name": "db"}]},
+                    },
+                    search_set_return={
+                        "result": True,
+                        "code": 0,
+                        "message": "",
+                        "data": {
+                            "count": 3,
+                            "info": [
+                                {"default": 0, "bk_set_id": 2, "bk_set_name": "空闲机池"},
+                                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                            ],
+                        },
+                    },
+                    find_module_with_relation_func=find_module_with_relation_func,
+                    get_biz_internal_module_return={
+                        "result": True,
+                        "code": 0,
+                        "message": "success",
+                        "data": {
+                            "bk_set_id": 2,
+                            "bk_set_name": "空闲机池",
+                            "module": [
+                                {"bk_module_id": 3, "bk_module_name": "空闲机"},
+                                {"bk_module_id": 4, "bk_module_name": "故障机"},
+                                {"bk_module_id": 5, "bk_module_name": "待回收"},
+                                {"bk_module_id": 6, "bk_module_name": "自定义空闲机"},
+                            ],
+                        },
+                    },
+                    find_module_batch_return={
+                        "result": True,
+                        "message": "find module batch success",
+                        "data": [{"bk_module_id": 1111, "ip": "1.1.1.1"}, {"bk_module_id": 2222, "ip": "2.2.2.2"}],
+                    },
+                )
+            ),
+        )
+        self.client2.start()
         self.project_patcher.start()
 
     def tearDown(self):
         self.client.stop()
+        self.client2.stop()
         self.cc_get_ips_info_by_str_patcher.stop()
         self.project_patcher.stop()
 
@@ -251,26 +345,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -278,24 +372,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -330,24 +424,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -382,24 +476,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -431,26 +525,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61, 3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61, 3],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61, 3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61, 3],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"limit": 500, "start": 0},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -458,24 +552,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -509,15 +603,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [3],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -525,24 +619,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -570,26 +664,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"limit": 500, "start": 0},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -597,24 +691,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -646,26 +740,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61, 3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61, 3],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61, 3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [61, 3],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"limit": 500, "start": 0},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -673,24 +767,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "page": {"start": 0, "limit": 1},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "page": {"limit": 500, "start": 0},
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -747,15 +841,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[31, 32],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [3],
+                                "bk_set_ids": [31, 32],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -806,15 +900,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[32],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [3],
+                                "bk_set_ids": [32],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -822,24 +916,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -867,15 +961,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [3],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -958,26 +1052,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 61, 3, 4, 5, 6],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [62, 61, 3, 4, 5, 6],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 61, 3, 4, 5, 6],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_service_template_ids": [62, 61, 3, 4, 5, 6],
+                                "bk_set_ids": [31],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -985,24 +1079,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1065,6 +1159,21 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         )
 
     def test_custom_method_success_case(self, mock_get_client_by_user_return=None):
+        # set_module_ip_selector = SetModuleIpSelector(
+        #     pipeline_data=self.pipeline_data,
+        #     value={
+        #         "var_ip_method": "manual",
+        #         "var_ip_custom_value": "",
+        #         "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": ""},
+        #         "var_ip_manual_value": {"var_manual_set": "集群1", "var_manual_module": "all", "var_module_name": ""},
+        #         "var_filter_set": "",
+        #         "var_filter_module": "",
+        #     },
+        #     name="test_manual_method_success_case",
+        #     context={},
+        # )
+        # self.assertEqual(set("192.168.40.1".split(",")), set(set_module_ip_selector.get_value().split(",")))
+
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
@@ -1089,24 +1198,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61],
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1159,26 +1268,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 3],
-                                bk_set_ids=[32],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [32],
+                                "bk_service_template_ids": [62, 3],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 3],
-                                bk_set_ids=[32],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [32],
+                                "bk_service_template_ids": [62, 3],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1186,24 +1295,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[62, 3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [62, 3],
+                                "bk_supplier_account": "supplier_account_token",
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[62, 3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [62, 3],
+                                "bk_supplier_account": "supplier_account_token",
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1231,15 +1342,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[31, 32],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31, 32],
+                                "bk_service_template_ids": [3],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -1247,24 +1358,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                # "bk_supplier_account": "supplier_account_token",
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                # "bk_supplier_account": "supplier_account_token",
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1292,15 +1405,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31],
+                                "bk_service_template_ids": [3],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -1330,24 +1443,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1375,15 +1488,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31],
+                                "bk_service_template_ids": [3],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -1391,24 +1504,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [3],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1438,26 +1551,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 61, 3, 4, 5, 6],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31],
+                                "bk_service_template_ids": [62, 61, 3, 4, 5, 6],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 61, 3, 4, 5, 6],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31],
+                                "bk_service_template_ids": [62, 61, 3, 4, 5, 6],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1465,24 +1578,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 3, 4, 5, 6],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 3, 4, 5, 6],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 3, 4, 5, 6],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 3, 4, 5, 6],
+                                "fields": ["bk_host_innerip", "bk_host_innerip_v6"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1510,15 +1623,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[5],
-                                bk_set_ids=[31],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31],
+                                "bk_service_template_ids": [5],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -1569,26 +1682,26 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 61, 3, 4, 5, 6],
-                                bk_set_ids=[31, 32],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31, 32],
+                                "bk_service_template_ids": [62, 61, 3, 4, 5, 6],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[62, 61, 3, 4, 5, 6],
-                                bk_set_ids=[31, 32],
-                                fields=["bk_module_id"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31, 32],
+                                "bk_service_template_ids": [62, 61, 3, 4, 5, 6],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1596,24 +1709,24 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.list_biz_hosts,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 62, 3, 4, 5, 6],
-                                fields=["bk_host_innerip"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 62, 3, 4, 5, 6],
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_module_ids=[61, 62, 3, 4, 5, 6],
-                                fields=["bk_host_innerip"],
-                                page={"limit": 500, "start": 0},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_module_ids": [61, 62, 3, 4, 5, 6],
+                                "fields": ["bk_host_innerip"],
+                                "page": {"start": 0, "limit": 500},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         ),
                     ],
                 },
@@ -1641,15 +1754,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[3],
-                                bk_set_ids=[31, 32],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31, 32],
+                                "bk_service_template_ids": [3],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
@@ -1678,15 +1791,15 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     "func": self.client.new().api.find_module_with_relation,
                     "calls": [
                         call(
-                            dict(
-                                bk_biz_id=1,
-                                bk_service_template_ids=[61],
-                                bk_set_ids=[31, 32],
-                                fields=["bk_module_id"],
-                                page={"start": 0, "limit": 1},
-                            ),
+                            {
+                                "bk_biz_id": 1,
+                                "bk_set_ids": [31, 32],
+                                "bk_service_template_ids": [61],
+                                "fields": ["bk_module_id"],
+                                "page": {"start": 0, "limit": 1},
+                            },
                             path_params={"bk_biz_id": 1},
-                            headers={"X-Bk-Tenant-Id": self.tenant_id},
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
                     ],
                 },
