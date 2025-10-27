@@ -33,9 +33,9 @@
                     <span v-bk-tooltips="{
                         width: 240,
                         placement: 'top',
-                        extCls: JSON.stringify(JSON.parse(props.row.response)).length <= 14 ? 'hidden-tips' : '',
-                        content: JSON.stringify(JSON.parse(props.row?.response)) }">
-                        {{JSON.parse(props.row?.response) || '--'}}
+                        extCls: JSON.stringify(parseResponse(props.row?.response)).length <= 14 ? 'hidden-tips' : '',
+                        content: JSON.stringify(parseResponse(props.row?.response)) }">
+                        {{parseResponse(props.row?.response)}}
                     </span>
                 </template>
             </bk-table-column>
@@ -76,7 +76,15 @@
         methods: {
             ...mapActions('task/', [
                 'getOperationRecordTask'
-            ])
+            ]),
+            parseResponse (response) {
+                if (!response) return '--'
+                try {
+                    return JSON.parse(response)
+                } catch (e) {
+                    return response
+                }
+            }
         }
     }
 </script>
