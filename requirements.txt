@@ -54,7 +54,7 @@ importlib-metadata==6.11.0
 protobuf==5.26.0
 
 # blueapps
-blueapps[opentelemetry,bkcrypto]==4.16.rc1
+blueapps[opentelemetry,bkcrypto]==4.16.rc3
 whitenoise==6.8.2
 raven==6.10.0
 python-json-logger==2.0.7
