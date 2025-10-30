@@ -672,7 +672,7 @@
                     const validations = await Promise.all([
                         this.$refs.configForm.validate(),
                         this.$refs.notifyTypeConfig.validate(),
-                        this.$refs.httpCallback.validate()
+                        this.$refs?.httpCallback ? this.$refs.httpCallback.validate() : Promise.resolve(true)
                     ])
                     if (validations.includes(false)) return
 
