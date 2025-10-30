@@ -34,27 +34,17 @@ from gcloud.utils.decorators import time_record
 logger = logging.getLogger("root")
 
 
-def delete_with_retry(queryset, field_name, max_retries=3, retry_delay=2):
+def delete_records(queryset, field_name):
     """
     带重试机制的删除操作，处理Lock wait timeout
     """
-    for attempt in range(max_retries):
-        try:
-            deleted_count = queryset.delete()[0]
-            logger.info(f"[clean_expired_v2_task_data] Deleted {deleted_count} records from {field_name}")
-            return deleted_count
-        except Exception as e:
-            error_msg = str(e)
-            if "Lock wait timeout exceeded" in error_msg or "Deadlock found" in error_msg:
-                if attempt < max_retries - 1:
-                    logger.warning(
-                        f"[clean_expired_v2_task_data] Lock timeout on {field_name}, "
-                        f"retry {attempt + 1}/{max_retries} after {retry_delay}s"
-                    )
-                    time.sleep(retry_delay)
-                    continue
-            logger.error(f"[clean_expired_v2_task_data] Failed to delete {field_name}: {e}")
-            raise
+    try:
+        deleted_count = queryset.delete()[0]
+        logger.info(f"[clean_expired_v2_task_data] Deleted {deleted_count} records from {field_name}")
+        return deleted_count
+    except Exception as e:
+        error_msg = str(e)
+        logger.exception(f"[clean_expired_v2_task_data] Failed to delete {field_name}: {error_msg}")
     return 0
 
 
@@ -158,10 +148,9 @@ def clean_expired_v2_task_data():
     清除过期的任务数据 - 优化版本
 
     优化点：
-    1. 使用分布式锁，确保同一时间只有一个worker执行
-    2. 按依赖关系顺序删除，避免外键冲突
-    3. 分小批次处理，减少单次锁定的数据量
-    4. 添加重试机制，处理临时锁冲突
+    1. 按依赖关系顺序删除，避免外键冲突
+    2. 分小批次处理，减少单次锁定的数据量
+    3. 添加重试机制，处理临时锁冲突
     """
     if not settings.ENABLE_CLEAN_EXPIRED_V2_TASK:
         logger.info("Skip clean expired task data")
@@ -270,7 +259,7 @@ def _clean_task_batch(pipeline_instance_ids, task_ids):
 
             # 🔧 修复: 使用循环而不是列表推导式，避免内存问题
             for idx, qs in enumerate(qs_or_list):
-                delete_with_retry(qs, f"{field_name}[{idx}]")
+                delete_records(qs, f"{field_name}[{idx}]")
 
         # 处理pipeline_instances - 只标记过期，不删除
         elif field_name == "pipeline_instances":
@@ -280,7 +269,7 @@ def _clean_task_batch(pipeline_instance_ids, task_ids):
         # 处理需要删除的表
         elif field_name not in instance_fields or settings.CLEAN_EXPIRED_V2_TASK_INSTANCE:
             logger.info(f"[clean_expired_v2_task_data] clean field: {field_name}")
-            delete_with_retry(qs_or_list, field_name)
+            delete_records(qs_or_list, field_name)
 
     logger.info(f"[clean_expired_v2_task_data] Successfully cleaned batch: {task_ids}")
 
