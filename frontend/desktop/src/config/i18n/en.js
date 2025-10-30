@@ -1918,7 +1918,9 @@ const en = {
     '回调记录': 'Callback Record',
     '请输入正确的认证信息': 'Please enter valid authentication information',
     '请求超时时间不能超过10秒': 'Request timeout cannot exceed 10 seconds',
-    '重试间隔不能超过600秒': 'Retry interval cannot exceed 600 seconds'
+    '重试间隔不能超过600秒': 'Retry interval cannot exceed 600 seconds',
+    '仅项目可见的': 'Visible only to the project',
+    '可见范围配置': 'Visible Range Configuration'
 }
 
 export default en
