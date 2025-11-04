@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.32.8"
+app_version: "3.32.9"
 app:
     region: default
     bk_app_code: bk_sops
@@ -58,7 +58,7 @@ modules:
                 plan: 4C1G5R
                 replicas: 1
             dworker:
-                command: python manage.py celery worker -Q default -n default@%h -P threads -c 10 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -Q default -n default@%h -P threads -c 20 -l info
                 plan: 4C2G5R
                 replicas: 5
         svc_discovery:
@@ -180,43 +180,43 @@ modules:
                 plan: 4C1G5R
                 replicas: 2
             api-er-e:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 4
             api-er-s:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 4
             api-task:
-                command: celery worker -A blueapps.core.celery -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
                 plan: 4C1G5R
                 replicas: 2
             cworker:
-                command: celery worker -A blueapps.core.celery -P threads -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -c 6 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -c 6 -l info
                 plan: 4C1G5R
                 replicas: 2
             er-e:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_execute -n er_e_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q er_execute -n er_e_worker@%h -c 100 -l info
                 plan: 4C2G5R
                 replicas: 2
             er-s:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule -n er_s_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q er_schedule -n er_s_worker@%h -c 100 -l info
                 plan: 4C2G5R
                 replicas: 2
             peri-er-e:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             peri-er-s:
-                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             stats-worker:
-                command: celery worker -A blueapps.core.celery -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             cleaner:
-                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q task_data_clean -n cleaner_worker@%h -c 3 -l info
                 plan: 4C1G5R
                 replicas: 2
             web:

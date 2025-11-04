@@ -90,7 +90,9 @@ jobs:
             exit 1
           fi
 
-          cursor-agent --force --model "$MODEL" --output-format=text --print "你当前在 GitHub Actions runner 中执行自动化代码审查。gh CLI 可用并已通过 GH_TOKEN 认证。你可以在拉取请求上发表评论。
+          # 执行代码审查，捕获输出和错误
+          set +e  # 允许命令失败，不立即退出
+          REVIEW_OUTPUT=$(cursor-agent --force --model "$MODEL" --output-format=text --print "你当前在 GitHub Actions runner 中执行自动化代码审查。gh CLI 可用并已通过 GH_TOKEN 认证。你可以在拉取请求上发表评论。
 
           上下文：
           - 仓库：${{ github.repository }}
@@ -118,4 +120,33 @@ jobs:
           提交：
           - 提交一次审查，包含行内评论与简明总结
           - 仅使用：gh pr review --comment
-          - 不要使用：gh pr review --approve 或 --request-changes"
+          - 不要使用：gh pr review --approve 或 --request-changes" 2>&1)
+          EXIT_CODE=$?
+          set -e  # 恢复错误处理
+
+          # 检查是否遇到 resource_exhausted 错误
+          if [ $EXIT_CODE -ne 0 ]; then
+            # 检查错误输出中是否包含 resource_exhausted 相关错误
+            if echo "$REVIEW_OUTPUT" | grep -qiE "(ConnectError|Error).*resource_exhausted|resource_exhausted.*(Error|ConnectError)"; then
+              echo "⚠️ 检测到 Cursor API 资源耗尽错误 (resource_exhausted)"
+              echo "📋 错误详情："
+              echo "$REVIEW_OUTPUT" | grep -iE "resource_exhausted|ConnectError" | head -5
+              echo ""
+              echo "⏭️ 跳过本次代码审查，等待后续重试"
+              echo "💡 提示：这通常是由于 API 配额限制或临时服务负载过高导致的"
+              exit 0  # 优雅退出，不标记为失败
+            else
+              # 其他错误，正常报错
+              echo "❌ Cursor 代码审查执行失败"
+              echo "📋 错误输出："
+              echo "$REVIEW_OUTPUT"
+              exit $EXIT_CODE
+            fi
+          else
+            # 执行成功，输出结果
+            echo "✅ Cursor 代码审查执行成功"
+            if [ -n "$REVIEW_OUTPUT" ]; then
+              echo "📋 审查结果："
+              echo "$REVIEW_OUTPUT"
+            fi
+          fi
