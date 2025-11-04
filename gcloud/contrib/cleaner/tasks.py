@@ -116,7 +116,7 @@ def filter_clean_task_instances():
     qs = (
         TaskFlowInstance.objects.filter(base_q & query_conditions)
         .order_by("id")
-        .values("id", "pipeline_instance__instance_id", "project_id", "create_method")[:batch_num]
+        .values("id", "pipeline_instance__instance_id", "project_id")[:batch_num]
     )
 
     ids = list(qs)

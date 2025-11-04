@@ -63,7 +63,7 @@ from gcloud.core.apis.drf.serilaziers import (
 )
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
-from gcloud.core.models import EngineConfig
+from gcloud.core.models import EngineConfig, ProjectConfig
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
@@ -277,19 +277,44 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())
+
+        # 检查项目配置，判断是否需要跳过日期过滤
+        project_id = request.query_params.get("project__id")
+        should_skip_date_filter = False
+        if project_id:
+            try:
+                project_config = ProjectConfig.objects.filter(project_id=int(project_id)).first()
+                if project_config:
+                    custom_display_configs = project_config.custom_display_configs or {}
+                    # 如果 task_list_filter_days 为 False，则跳过日期过滤
+                    if custom_display_configs.get("task_list_filter_days") is False:
+                        should_skip_date_filter = True
+            except (ValueError, TypeError):
+                # 如果 project_id 不是有效的整数，忽略错误，继续使用默认逻辑
+                pass
+
+        # 计算日期过滤参数
         delta_time = (
             settings.MY_DYNAMIC_LIST_FILTER_DAYS
             if "creator_or_executor" in request.query_params
             else settings.TASK_LIST_STATUS_FILTER_DAYS
         )
         start_time = datetime.now() - timedelta(days=delta_time)
-        queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
+
+        # 如果未配置跳过日期过滤，则应用日期过滤
+        if not should_skip_date_filter:
+            queryset = queryset.filter(pipeline_instance__create_time__gte=start_time)
+
         task_instance_status = request.query_params.get("task_instance_status")
         if task_instance_status:
             # 状态查询的范围为最近TASK_LIST_STATUS_FILTER_DAYS天内，已经开始的v2引擎的任务
-            queryset = queryset.filter(
-                pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
-            )
+            if should_skip_date_filter:
+                # 如果跳过了日期过滤，则不按日期过滤，只过滤引擎版本
+                queryset = queryset.filter(engine_ver=EngineConfig.ENGINE_VER_V2)
+            else:
+                queryset = queryset.filter(
+                    pipeline_instance__start_time__gte=start_time, engine_ver=EngineConfig.ENGINE_VER_V2
+                )
             queryset = TaskFLowStatusFilterHandler(status=task_instance_status, queryset=queryset).get_queryset()
         return queryset
 

@@ -143,24 +143,3 @@ def demonstrate_usage():
             print(f"  - 项目 {config.project_id}: create_methods={create_methods}")
 
     print("\n" + "=" * 60)
-
-
-if __name__ == "__main__":
-    """
-    运行演示脚本
-
-    使用方法:
-    python test_project_config_task_clean.py
-
-    或在 Django shell 中:
-    from test_project_config_task_clean import demonstrate_usage
-    demonstrate_usage()
-    """
-    print("这是一个测试示例文件")
-    print("请在 Django 环境中运行测试用例或演示函数")
-    print("\n运行测试:")
-    print("  python manage.py test test_project_config_task_clean")
-    print("\n运行演示:")
-    print("  python manage.py shell")
-    print("  >>> from test_project_config_task_clean import demonstrate_usage")
-    print("  >>> demonstrate_usage()")
