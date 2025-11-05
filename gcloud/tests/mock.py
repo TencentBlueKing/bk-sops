@@ -12,13 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 from __future__ import absolute_import
+
 from datetime import datetime
 
-import ujson as json
 import mock  # noqa
-from mock import MagicMock, patch, call  # noqa
-
+import ujson as json
 from django.utils.timezone import now
+from mock import MagicMock, call, patch  # noqa
 
 from gcloud.tests.test_data import TEST_PIPELINE_TREE
 
@@ -56,6 +56,8 @@ class MockProject(object):
         self.bk_biz_id = kwargs.get("bk_biz_id", "bk_biz_id")
         self.from_cmdb = kwargs.get("from_cmdb", False)
         self.time_zone = kwargs.get("time_zone", "time_zone")
+        self.version = kwargs.get("version", "version")
+        self.tenant_id = kwargs.get("tenant_id", "system")
 
 
 class MockPipelineTemplate(object):
@@ -172,6 +174,7 @@ class MockQuerySet(object):
         self.filter = MagicMock(return_value=filter_result)
         self.exist = MagicMock(return_value=exist_return)
         self.delete = MagicMock(return_value=None)
+        self.update = MagicMock(return_value=None)
 
 
 class MockCache(object):
@@ -257,7 +260,7 @@ class MockPipelineInstance(object):
         self.template = kwargs.get("template", MockPipelineTemplate())
         self.name = kwargs.get("name", "name")
         self.creator = kwargs.get("creator", "creator")
-        self.create_time = kwargs.get("create_time", "create_time")
+        self.create_time = kwargs.get("create_time", "2025-01-01 00:00:00")
         self.executor = kwargs.get("executor", "executor")
         self.start_time = kwargs.get("start_time", datetime.now())
         self.finish_time = kwargs.get("finish_time", datetime.now())

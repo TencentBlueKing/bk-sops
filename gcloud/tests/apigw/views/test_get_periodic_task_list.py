@@ -14,14 +14,12 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
-from gcloud.utils.dates import format_datetime
+from gcloud.apigw.views.get_periodic_task_list import PERIODIC_TASK_ACTIONS
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.apigw.views.get_periodic_task_list import PERIODIC_TASK_ACTIONS
+from gcloud.utils.dates import format_datetime
 
 from .utils import APITest
-
 
 MOCK_GET_PERIODIC_TASK_ALLOWED_ACTIONS = (
     "gcloud.apigw.views.get_periodic_task_list.get_periodic_task_allowed_actions_for_user"
@@ -33,6 +31,7 @@ TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
 TEST_APP_CODE = "app_code"
 TEST_USERNAME = "username"
+TEST_TENANT_ID = "system"
 TEST_PERIODIC_TASK_ALLOWED_ACTIONS = {
     "1": {"TEST_ACTION": True},
     "2": {"TEST_ACTION": True},
@@ -87,7 +86,9 @@ class GetPeriodicTaskListAPITest(APITest):
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
                     HTTP_BK_USERNAME=TEST_USERNAME,
                 )
-                mock_get_actions.assert_called_once_with(TEST_USERNAME, PERIODIC_TASK_ACTIONS, TEST_ID_LIST)
+                mock_get_actions.assert_called_once_with(
+                    TEST_USERNAME, PERIODIC_TASK_ACTIONS, TEST_ID_LIST, TEST_TENANT_ID
+                )
                 data = json.loads(response.content)
 
                 self.assertTrue(data["result"], msg=data)

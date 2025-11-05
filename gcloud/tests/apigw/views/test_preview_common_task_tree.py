@@ -12,19 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 
-import ujson as json
-
-
-from gcloud.tests.mock import *  # noqa
-from gcloud.tests.mock_settings import *  # noqa
 from gcloud import err_code
 from gcloud.apigw.views import preview_common_task_tree
+from gcloud.tests.mock import *  # noqa
+from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
 
 TEST_PROJECT_ID = "1"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "2"
+TEST_TENANT_ID = "system"
 TEST_COMMON_TASK_TEMPLATE_ID = "3"
 PREVIEW_TEMPLATE_TREE_RETURN = "PREVIEW_TEMPLATE_TREE_RETURN"
 
@@ -37,7 +35,10 @@ class PreviewCommonTaskTreeAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -58,7 +59,10 @@ class PreviewCommonTaskTreeAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -79,15 +83,20 @@ class PreviewCommonTaskTreeAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
     @patch(
-        TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate(id=TEST_COMMON_TASK_TEMPLATE_ID)),
+        TASKTEMPLATE_GET,
+        MagicMock(return_value=MockTaskTemplate(id=TEST_COMMON_TASK_TEMPLATE_ID)),
     )
     @patch(
-        APIGW_PREVIEW_COMMON_TASK_TREE_PREVIEW_TEMPLATE_TREE, MagicMock(side_effect=Exception()),
+        APIGW_PREVIEW_COMMON_TASK_TREE_PREVIEW_TEMPLATE_TREE,
+        MagicMock(side_effect=Exception()),
     )
     def test_preview_common_task_tree__preview_template_tree_raise(self):
         response = self.client.post(
@@ -106,15 +115,20 @@ class PreviewCommonTaskTreeAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
     @patch(
-        TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate(id=TEST_COMMON_TASK_TEMPLATE_ID)),
+        TASKTEMPLATE_GET,
+        MagicMock(return_value=MockTaskTemplate(id=TEST_COMMON_TASK_TEMPLATE_ID)),
     )
     @patch(
-        APIGW_PREVIEW_COMMON_TASK_TREE_PREVIEW_TEMPLATE_TREE, MagicMock(return_value=PREVIEW_TEMPLATE_TREE_RETURN),
+        APIGW_PREVIEW_COMMON_TASK_TREE_PREVIEW_TEMPLATE_TREE,
+        MagicMock(return_value=PREVIEW_TEMPLATE_TREE_RETURN),
     )
     def test_preview_common_task_tree__success(self):
         response = self.client.post(
@@ -130,5 +144,5 @@ class PreviewCommonTaskTreeAPITest(APITest):
         self.assertEqual(data["data"], PREVIEW_TEMPLATE_TREE_RETURN)
 
         preview_common_task_tree.preview_template_tree.assert_called_once_with(
-            TEST_PROJECT_ID, preview_common_task_tree.COMMON, TEST_COMMON_TASK_TEMPLATE_ID, None, []
+            TEST_PROJECT_ID, preview_common_task_tree.COMMON, TEST_COMMON_TASK_TEMPLATE_ID, None, [], TEST_TENANT_ID
         )
