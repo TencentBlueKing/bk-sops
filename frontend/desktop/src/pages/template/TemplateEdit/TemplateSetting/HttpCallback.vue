@@ -105,7 +105,8 @@
                     </div>
                 </bk-tab-panel>
                 <bk-tab-panel name="headers" :render-label="renderLabel">
-                    <bk-table style="margin-top: 15px;"
+                    <bk-table
+                        ext-cls="header-table"
                         :data="localWebhookForm.extra_info.headers">
                         <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
                             <template slot-scope="{ row }">
@@ -206,13 +207,7 @@
                         username: '',
                         password: ''
                     },
-                    headers: [
-                        {
-                            key: '',
-                            value: '',
-                            desc: ''
-                        }
-                    ],
+                    headers: [],
                     timeout: 10,
                     retry_times: 2,
                     interval: 5
@@ -571,7 +566,7 @@
                     method: this.localWebhookForm.method,
                     endpoint: this.localWebhookForm.endpoint,
                     authorization: authorization.type === 'basic' ? basicAuth : authorization,
-                    headers,
+                    headers: headers.filter(item => item.key !== ''),
                     timeout,
                     retry_times,
                     interval
@@ -614,6 +609,15 @@
         position: absolute;
         top: -13px;
         left: 135px;
+    }
+}
+::v-deep .header-table{
+    margin-top: 15px;
+    .bk-table-empty-block{
+        height: 150px;
+    }
+    .bk-exception{
+        height: 150px;
     }
 }
 .disabled-tab-name{
@@ -663,6 +667,7 @@
     display: flex;
     justify-content: space-around;
     background-color: #ffffff;
+    cursor: pointer;
     .add-header{
         width: 20px;
         height: 20px;
