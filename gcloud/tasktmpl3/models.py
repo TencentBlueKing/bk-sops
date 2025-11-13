@@ -408,7 +408,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             return False, message, None, None
 
     def export_templates(self, template_id_list, **kwargs):
-        query_params = {"project_id": kwargs["project_id"]}
+        query_params = {"project_id": kwargs["project_id"], "is_deleted": False}
         if kwargs.get("is_full"):
             template_id_list = list(self.filter(**query_params).values_list("id", flat=True))
         else:
