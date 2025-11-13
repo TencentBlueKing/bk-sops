@@ -51,7 +51,7 @@ $.atoms.wechat_work_send_message = [
         "attrs": {
             "name": gettext("提醒人"),
             "hookable": true,
-            "placeholder": gettext("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人")
+            "placeholder": gettext("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人，Markdown_V2不支持此功能")
         },
         "events": [],
         "methods": {},
