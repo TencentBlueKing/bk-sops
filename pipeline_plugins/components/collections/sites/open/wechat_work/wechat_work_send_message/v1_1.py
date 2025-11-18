@@ -30,8 +30,4 @@ class WechatWorkSendMessageComponent(Component):
     bound_service = WechatWorkSendMessageService
     form = "%scomponents/atoms/wechat_work/wechat_work_send_message/v1_1.js" % settings.STATIC_URL
     version = "1.1"
-    desc = _(
-        "1.部署环境与企业微信服务器网络必须联通 "
-        "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770"
-        "3. 支持「会话 ID」脱敏填写"
-    )
+    desc = _("1.部署环境与企业微信服务器网络必须联通 " "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770")
