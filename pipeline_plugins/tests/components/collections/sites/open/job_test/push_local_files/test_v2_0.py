@@ -23,6 +23,7 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0 import JobPushLocalFilesComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
@@ -47,7 +48,19 @@ GET_CLIENT_BY_USER = (
 GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
+
+
+# MockCMDBClient class definition for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
+
+
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 
 ENVIRONMENT_VAR_GET = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service."
@@ -80,7 +93,11 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
             success=False, outputs={"ex_data": "File Manager configuration error, contact administrator please."}
         ),
         schedule_assertion=None,
-        patchers=[Patcher(target=ENVIRONMENT_VAR_GET, return_value=None)],
+        patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=ENVIRONMENT_VAR_GET, return_value=None),
+        ],
     )
 
 
@@ -126,6 +143,26 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
     PUSH_FAIL_MANAGER = MagicMock()
     PUSH_FAIL_MANAGER.push_files_to_ips = MagicMock(return_value=PUSH_FAIL_RESULT)
 
+    # Mock CMDB client with proper api.list_biz_hosts
+    PUSH_FAIL_CMDB_CLIENT = MagicMock()
+    PUSH_FAIL_CMDB_CLIENT.api.list_biz_hosts = MagicMock(
+        return_value={
+            "result": True,
+            "data": {
+                "count": 1,
+                "info": [
+                    {
+                        "bk_host_id": 1,
+                        "bk_host_innerip": "1.1.1.1",
+                        "bk_cloud_id": 0,
+                        "bk_host_innerip_v6": "",
+                        "bk_agent_id": "agent1",
+                    }
+                ],
+            },
+        }
+    )
+
     return ComponentTestCase(
         name="push_local_files v2.0 manager call fail case",
         inputs={
@@ -164,11 +201,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         schedule_assertion=None,
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
-            CallAssertion(
-                func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
-            ),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=PUSH_FAIL_MANAGER.push_files_to_ips,
                 calls=[
@@ -179,17 +212,19 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         target_path="target_path1",
                         ips=None,
                         account="job_target_account",
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=PUSH_FAIL_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=PUSH_FAIL_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=PUSH_FAIL_CMDB_CLIENT),
             Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
         ],
     )
@@ -205,6 +240,26 @@ def SCHEDULE_FAILURE_CASE():
     SCHEDULE_FAILURE_MANAGER = MagicMock()
     SCHEDULE_FAILURE_MANAGER.push_files_to_ips = MagicMock(return_value=SCHEDULE_FAILURE_RESULT)
     SCHEDULE_FAILURE_ESB_CLIENT.api.get_job_instance_status = MagicMock(return_value=SCHEDULE_FAILURE_QUERY_RESULT)
+
+    # Mock CMDB client with proper api.list_biz_hosts
+    SCHEDULE_FAILURE_CMDB_CLIENT = MagicMock()
+    SCHEDULE_FAILURE_CMDB_CLIENT.api.list_biz_hosts = MagicMock(
+        return_value={
+            "result": True,
+            "data": {
+                "count": 1,
+                "info": [
+                    {
+                        "bk_host_id": 1,
+                        "bk_host_innerip": "1.1.1.1",
+                        "bk_cloud_id": 0,
+                        "bk_host_innerip_v6": "",
+                        "bk_agent_id": "agent1",
+                    }
+                ],
+            },
+        }
+    )
     return ComponentTestCase(
         name="push_local_files v2 schedule failure case",
         inputs={
@@ -257,11 +312,7 @@ def SCHEDULE_FAILURE_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
-            CallAssertion(
-                func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
-            ),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=SCHEDULE_FAILURE_MANAGER.push_files_to_ips,
                 calls=[
@@ -272,18 +323,20 @@ def SCHEDULE_FAILURE_CASE():
                         target_path="target_path1",
                         ips=None,
                         account="job_target_account",
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SCHEDULE_FAILURE_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SCHEDULE_FAILURE_ESB_CLIENT),
             Patcher(target=GET_CLIENT_BY_USERNAME, return_value=SCHEDULE_FAILURE_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=SCHEDULE_FAILURE_CMDB_CLIENT),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],
     )
@@ -304,6 +357,26 @@ def SUCCESS_MULTI_CASE():
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
     SUCCESS_ESB_CLIENT.api.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+
+    # Mock CMDB client with proper api.list_biz_hosts
+    SUCCESS_CMDB_CLIENT = MagicMock()
+    SUCCESS_CMDB_CLIENT.api.list_biz_hosts = MagicMock(
+        return_value={
+            "result": True,
+            "data": {
+                "count": 1,
+                "info": [
+                    {
+                        "bk_host_id": 1,
+                        "bk_host_innerip": "1.1.1.1",
+                        "bk_cloud_id": 0,
+                        "bk_host_innerip_v6": "",
+                        "bk_agent_id": "agent1",
+                    }
+                ],
+            },
+        }
+    )
     return ComponentTestCase(
         name="push_local_files multi v2 success case",
         inputs={
@@ -377,19 +450,7 @@ def SUCCESS_MULTI_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
-            CallAssertion(
-                func=CC_GET_IPS_INFO_BY_STR,
-                calls=[
-                    Call(
-                        tenant_id="system",
-                        username="executor",
-                        biz_cc_id="biz_cc_id",
-                        ip_str="1.1.1.1",
-                        use_cache=False,
-                    )
-                ],
-            ),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
                 calls=[
@@ -400,7 +461,7 @@ def SUCCESS_MULTI_CASE():
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id1"}}],
                         ips=None,
                         target_path="target_path1",
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
@@ -410,7 +471,7 @@ def SUCCESS_MULTI_CASE():
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id2"}}],
                         ips=None,
                         target_path="target_path2",
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
@@ -420,18 +481,20 @@ def SUCCESS_MULTI_CASE():
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id3"}}],
                         ips=None,
                         target_path="target_path3",
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SUCCESS_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=SUCCESS_CMDB_CLIENT),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],
     )
@@ -452,6 +515,26 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
     SUCCESS_ESB_CLIENT.api.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+
+    # Mock CMDB client with proper api.list_biz_hosts
+    SUCCESS_TIMEOUT_CMDB_CLIENT = MagicMock()
+    SUCCESS_TIMEOUT_CMDB_CLIENT.api.list_biz_hosts = MagicMock(
+        return_value={
+            "result": True,
+            "data": {
+                "count": 1,
+                "info": [
+                    {
+                        "bk_host_id": 1,
+                        "bk_host_innerip": "1.1.1.1",
+                        "bk_cloud_id": 0,
+                        "bk_host_innerip_v6": "",
+                        "bk_agent_id": "agent1",
+                    }
+                ],
+            },
+        }
+    )
     return ComponentTestCase(
         name="push_local_files multi v2 with timeout parameter success case",
         inputs={
@@ -526,19 +609,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
-            CallAssertion(
-                func=CC_GET_IPS_INFO_BY_STR,
-                calls=[
-                    Call(
-                        tenant_id="system",
-                        username="executor",
-                        biz_cc_id="biz_cc_id",
-                        ip_str="1.1.1.1",
-                        use_cache=False,
-                    )
-                ],
-            ),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
                 calls=[
@@ -550,7 +621,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         ips=None,
                         target_path="target_path1",
                         timeout=1000,
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
@@ -561,7 +632,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         ips=None,
                         target_path="target_path2",
                         timeout=1000,
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                     Call(
@@ -572,18 +643,20 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         ips=None,
                         target_path="target_path3",
                         timeout=1000,
-                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+                        target_server={"host_id_list": [1]},
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SUCCESS_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=SUCCESS_TIMEOUT_CMDB_CLIENT),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],
     )

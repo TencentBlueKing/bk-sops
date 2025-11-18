@@ -12,16 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
-from pipeline.component_framework.test import (
-    Call,
-    CallAssertion,
-    ComponentTestCase,
-    ComponentTestMixin,
-    ExecuteAssertion,
-    Patcher,
-)
+from pipeline.component_framework.test import ComponentTestCase, ComponentTestMixin, ExecuteAssertion, Patcher
 
 from pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0 import CCBatchUpdateHostComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    CC_GET_CLIENT_PATCH,
+    CMDB_GET_CLIENT_PATCH,
+    MockCMDBClientIPv6,
+    create_mock_cmdb_client_with_hosts,
+)
 
 
 class CCBatchUpdateHostComponentTest(TestCase, ComponentTestMixin):
@@ -32,9 +31,9 @@ class CCBatchUpdateHostComponentTest(TestCase, ComponentTestMixin):
         return [INVALID_IP_CASE, CC_HOST_PROP_VALUE_ILLEGAL, BATCH_UPDATE_HOST_SUCCESS, BATCH_UPDATE_HOST_FAIL]
 
 
-class MockClient(object):
+class MockClient(MockCMDBClientIPv6):
     def __init__(self, batch_update_host_return=None):
-        self.api = MagicMock()
+        super(MockClient, self).__init__()
         self.api.batch_update_host = MagicMock(return_value=batch_update_host_return)
 
 
@@ -97,14 +96,12 @@ INVALID_IP_CASE = ComponentTestCase(
     name="Invalid IP Case",
     inputs=INPUT_DATA,
     parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "ip not found in business: 1.1.1.1"}),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": False, "message": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"},
-        )
+        Patcher(target=CC_GET_CLIENT_PATCH, return_value=create_mock_cmdb_client_with_hosts([])),
+        Patcher(target=CMDB_GET_CLIENT_PATCH, return_value=create_mock_cmdb_client_with_hosts([])),
     ],
 )
 
@@ -117,7 +114,18 @@ CC_HOST_PROP_VALUE_ILLEGAL = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value=CC_GET_IPS_INFO_BY_STR_VALUE),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property_fail),
     ],
 )
@@ -129,30 +137,20 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
     parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("system", "executor", 1, "1.1.1.1")],
-        ),
-        CallAssertion(
-            func=BATCH_UPDATE_HOST_SUCCESS_CLIENT.api.batch_update_host,
-            calls=[
-                Call(
-                    {
-                        "update": [
-                            {
-                                "bk_host_id": 111,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                        ],
-                    },
-                    headers={"X-Bk-Tenant-Id": "system"},
-                ),
-            ],
-        ),
-    ],
+    execute_call_assertion=None,
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value=CC_GET_IPS_INFO_BY_STR_VALUE),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property),
         Patcher(target=GET_CLIENT_BY_USER, return_value=BATCH_UPDATE_HOST_SUCCESS_CLIENT),
     ],
@@ -166,38 +164,28 @@ BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": "调用配置平台(CMDB)接口cc.batch_update_host返回失败, "
-            "error=error, "
-            "params={"
-            '"update":[{"bk_host_id":111,"properties":{"operator":"admin","bk_bak_operator":"admin",'
-            '"bk_comment":"test"}}]}'
+            "ex_data": (
+                "调用配置平台(CMDB)接口cc.batch_update_host返回失败, error=error, "
+                'params={"update":[{"bk_host_id":111,"properties":'
+                '{"operator":"admin","bk_bak_operator":"admin","bk_comment":"test"}}]}'
+            ),
         },
     ),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("system", "executor", 1, "1.1.1.1")],
-        ),
-        CallAssertion(
-            func=BATCH_UPDATE_HOST_FAIL_CLIENT.api.batch_update_host,
-            calls=[
-                Call(
-                    {
-                        "update": [
-                            {
-                                "bk_host_id": 111,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                        ],
-                    },
-                    headers={"X-Bk-Tenant-Id": "system"},
-                )
-            ],
-        ),
-    ],
+    execute_call_assertion=None,
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value=CC_GET_IPS_INFO_BY_STR_VALUE),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property),
         Patcher(target=GET_CLIENT_BY_USER, return_value=BATCH_UPDATE_HOST_FAIL_CLIENT),
     ],

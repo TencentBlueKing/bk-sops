@@ -66,8 +66,7 @@ CREATE_SHIELD_FAIL_MONITOR_CLIENT = MockMonitorClient(
     add_shield_result={"result": False, "message": "create shield fail"}
 )
 CREATE_SHIELD_FAIL_GET_BIZ_HOST_RETURN = [
-    {"bk_cloud_id": 0, "bk_host_id": 1, "bk_host_innerip": "127.0.0.1"},
-    {"bk_cloud_id": 1, "bk_host_id": 2, "bk_host_innerip": "127.0.0.2"},
+    {"bk_cloud_id": 0, "bk_host_id": 1, "bk_host_innerip": "10.0.1.11"},
 ]
 CREATE_SHIELD_FAIL_SUPPLIER_RETURN = "sa_token"
 
@@ -77,8 +76,7 @@ CREATE_SHIELD_SUCCESS_MONITOR_CLIENT = MockMonitorClient(
     add_shield_result={"result": True, "data": {"id": "1"}, "message": "success"}
 )
 CREATE_SHIELD_SUCCESS_GET_BIZ_HOST_RETURN = [
-    {"bk_cloud_id": 0, "bk_host_id": 1, "bk_host_innerip": "127.0.0.1"},
-    {"bk_cloud_id": 1, "bk_host_id": 2, "bk_host_innerip": "127.0.0.2"},
+    {"bk_cloud_id": 0, "bk_host_id": 1, "bk_host_innerip": "10.0.1.11"},
 ]
 CREATE_SHIELD_SUCCESS_SUPPLIER_RETURN = "sa_token"
 
@@ -99,15 +97,15 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
             'params={"begin_time":"2019-11-04 00:00:00",'
             '"bk_biz_id":2,"category":"strategy","cycle_config":{"begin_time":"","end_time":"","day_list":'
             '[],"week_list":[],"type":1},"description":"shield by bk_sops","dimension_config":{"id":"123",'
-            '"scope_type":"ip","target":[{"ip":"127.0.0.1","bk_cloud_id":0},{"ip":"127.0.0.2",'
-            '"bk_cloud_id":1}]},"end_time":"2019-11-05 00:00:00","notice_config":{},"shield_notice":false}',
+            '"scope_type":"ip","target":[{"ip":"10.0.1.11","bk_cloud_id":0}]},'
+            '"end_time":"2019-11-05 00:00:00","notice_config":{},"shield_notice":false}',
             "shield_id": "",
             "message": "调用监控平台(Monitor)接口monitor.create_shield返回失败, error=create shield fail, "
             'params={"begin_time":"2019-11-04 00:00:00",'
             '"bk_biz_id":2,"category":"strategy","cycle_config":{"begin_time":"","end_time":"","day_list":'
             '[],"week_list":[],"type":1},"description":"shield by bk_sops","dimension_config":{"id":"123",'
-            '"scope_type":"ip","target":[{"ip":"127.0.0.1","bk_cloud_id":0},{"ip":"127.0.0.2",'
-            '"bk_cloud_id":1}]},"end_time":"2019-11-05 00:00:00","notice_config":{},"shield_notice":false}',
+            '"scope_type":"ip","target":[{"ip":"10.0.1.11","bk_cloud_id":0}]},'
+            '"end_time":"2019-11-05 00:00:00","notice_config":{},"shield_notice":false}',
         },
     ),
     schedule_assertion=None,
@@ -125,7 +123,7 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
                         "dimension_config": {
                             "id": "123",
                             "scope_type": "ip",
-                            "target": [{"ip": "127.0.0.1", "bk_cloud_id": 0}, {"ip": "127.0.0.2", "bk_cloud_id": 1}],
+                            "target": [{"ip": "10.0.1.11", "bk_cloud_id": 0}],
                         },
                         "end_time": "2019-11-05 00:00:00",
                         "notice_config": {},
@@ -167,7 +165,7 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
                         "dimension_config": {
                             "id": "123",
                             "scope_type": "ip",
-                            "target": [{"ip": "127.0.0.1", "bk_cloud_id": 0}, {"ip": "127.0.0.2", "bk_cloud_id": 1}],
+                            "target": [{"ip": "10.0.1.11", "bk_cloud_id": 0}],
                         },
                         "end_time": "2019-11-05 00:00:00",
                         "notice_config": {},

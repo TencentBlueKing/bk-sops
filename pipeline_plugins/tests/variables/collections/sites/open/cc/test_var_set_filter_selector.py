@@ -11,16 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from functools import reduce
-
 from unittest.util import safe_repr
-from mock import MagicMock, patch
+
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from gcloud.exceptions import ApiRequestError
-from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector import VarSetFilterSelector, SetInfo
+from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector import SetInfo, VarSetFilterSelector
 
-GET_CLIENT_BY_USERNAME = ("pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector."
-                          "get_client_by_username")
+GET_CLIENT_BY_USERNAME = (
+    "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector." "get_client_by_username"
+)
 
 
 class MockClient(object):
@@ -35,7 +36,8 @@ INPUT_OUTPUT_SUCCESS_CLIENT = MockClient(
 )
 
 GET_SET_INFO_FAIL_CLIENT = MockClient(
-    search_set_return={"result": False}, search_module_return={"result": False, "data": None},
+    search_set_return={"result": False},
+    search_module_return={"result": False, "data": None},
 )
 
 
@@ -111,12 +113,14 @@ class VarSetFilterSelectorTestCase(TestCase):
         with patch(
             "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector.get_client_by_username",
             MagicMock(return_value=client),
+        ), patch(
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector.get_bk_username_by_tenant",
+            MagicMock(return_value="admin"),
         ):
             explain = VarSetFilterSelector.self_explain(bk_biz_id=1, tenant_id=self.tenant_id)
 
         client.api.search_object_attribute.assert_called_once_with(
-            {"bk_obj_id": "set", "bk_biz_id": 1},
-            headers={"X-Bk-Tenant-Id": self.tenant_id}
+            {"bk_obj_id": "set", "bk_biz_id": 1}, headers={"X-Bk-Tenant-Id": self.tenant_id}
         )
         self.assertEqual(
             explain,
@@ -141,12 +145,14 @@ class VarSetFilterSelectorTestCase(TestCase):
         with patch(
             "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector.get_client_by_username",
             MagicMock(return_value=client),
+        ), patch(
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector.get_bk_username_by_tenant",
+            MagicMock(return_value="admin"),
         ):
             explain = VarSetFilterSelector.self_explain(bk_biz_id=1, tenant_id=self.tenant_id)
 
         client.api.search_object_attribute.assert_called_once_with(
-            {"bk_obj_id": "set", "bk_biz_id": 1},
-            headers={"X-Bk-Tenant-Id": "test"}
+            {"bk_obj_id": "set", "bk_biz_id": 1}, headers={"X-Bk-Tenant-Id": "test"}
         )
         self.assertEqual(
             explain,

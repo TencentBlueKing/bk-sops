@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from files.exceptions import InvalidOperationError
 from files.managers.job_repo import JobRepoManager
@@ -48,9 +48,11 @@ class JobRepoManagerTestCase(TestCase):
             ):
                 with patch("files.managers.job_repo.Project.objects.filter", MagicMock(return_value=qs_filter)):
                     kwargs = {"project_id": 1, "username": "user_name"}
-                    tag = manager.save(name=self.file_name, content=self.content, shims=None, **kwargs)
+                    tag = manager.save(
+                        name=self.file_name, content=self.content, shims=None, tenant_id="system", **kwargs
+                    )
                     manager.storage.generate_temporary_upload_url.assert_called_once_with(
-                        username="user_name", bk_biz_id=self.bk_biz_id, file_names=[self.file_name]
+                        username="user_name", bk_biz_id=self.bk_biz_id, file_names=[self.file_name], tenant_id="system"
                     )
                     manager.storage.save.assert_called_once_with(self.upload_url, self.file_name, self.content)
                     self.assertEqual(

@@ -48,13 +48,16 @@ class MockMonitorClient(object):
 
 
 class MockCMDB(object):
-    def __init__(self):
-        self.get_business_host = MagicMock(
+    def __init__(self, list_biz_hosts_topo_return=None):
+
+        self.api = MagicMock()
+        self.api.get_business_host = MagicMock(
             return_value=[
                 {"bk_cloud_id": 0, "bk_host_id": 1, "bk_host_innerip": "127.0.0.1"},
                 {"bk_cloud_id": 1, "bk_host_id": 2, "bk_host_innerip": "127.0.0.2"},
             ]
         )
+        self.api.list_biz_hosts_topo = list_biz_hosts_topo_return
 
 
 class MockBusiness(object):
@@ -69,6 +72,8 @@ GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_strategy.v1_1" ".get_client_by_username"
 )
 CMDB_GET_BIZ_HOST = "gcloud.utils.cmdb.get_business_host"
+
+LIST_BIZ_HOSTS_TOPO_BY_USER = "gcloud.utils.cmdb.get_client_by_username"
 
 # mock client
 CREATE_SHIELD_FAIL_CLIENT = MockMonitorClient(add_shield_result={"result": False, "message": "create shield fail"})
@@ -87,12 +92,55 @@ CREATE_SHIELD_SUCCESS_GET_BIZ_HOST_RETURN = [
 ]
 CREATE_SHIELD_SUCCESS_SUPPLIER_RETURN = "sa_token"
 
+LIST_BIZ_HOSTS_TOPO_RETURN = MockCMDB(
+    list_biz_hosts_topo_return=MagicMock(
+        return_value={
+            "result": True,
+            "code": 0,
+            "message": "success",
+            "data": {
+                "count": 2,
+                "info": [
+                    {
+                        "host": {
+                            "bk_cloud_id": 0,
+                            "bk_host_innerip": "127.0.0.1",
+                            "bk_host_id": "1",
+                        },
+                        "topo": [
+                            {
+                                "bk_set_id": 11,
+                                "bk_set_name": "集群1",
+                                "module": [{"bk_module_id": 56, "bk_module_name": "m1"}],
+                            }
+                        ],
+                    },
+                    {
+                        "host": {
+                            "bk_cloud_id": 1,
+                            "bk_host_innerip": "127.0.0.2",
+                            "bk_host_id": "2",
+                        },
+                        "topo": [
+                            {
+                                "bk_set_id": 11,
+                                "bk_set_name": "集群1",
+                                "module": [{"bk_module_id": 56, "bk_module_name": "m1"}],
+                            }
+                        ],
+                    },
+                ],
+            },
+        }
+    )
+)
+
 # test case
 CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
     name="create shield fail case",
     inputs={
         "bk_alarm_shield_strategy": "123",
-        "bk_alarm_shield_IP": "10.0.1.11",
+        "bk_alarm_shield_IP": "127.0.0.1,127.0.0.2",
         "bk_alarm_shield_begin_time": "2019-11-04 00:00:00",
         "bk_alarm_shield_end_time": "2019-11-05 00:00:00",
         "bk_alarm_time_type": "0",
@@ -146,6 +194,7 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_SHIELD_FAIL_CLIENT),
         Patcher(target=CMDB_GET_BIZ_HOST, return_value=CREATE_SHIELD_FAIL_GET_BIZ_HOST_RETURN),
+        Patcher(target=LIST_BIZ_HOSTS_TOPO_BY_USER, return_value=LIST_BIZ_HOSTS_TOPO_RETURN),
     ],
 )
 
@@ -153,7 +202,7 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
     name="create shield success case",
     inputs={
         "bk_alarm_shield_strategy": "123",
-        "bk_alarm_shield_IP": "10.0.1.11",
+        "bk_alarm_shield_IP": "127.0.0.1,127.0.0.2",
         "bk_alarm_shield_begin_time": "2019-11-04 00:00:00",
         "bk_alarm_shield_end_time": "2019-11-05 00:00:00",
         "bk_alarm_time_type": "0",
@@ -190,5 +239,6 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_SHIELD_SUCCESS_CLIENT),
         Patcher(target=CMDB_GET_BIZ_HOST, return_value=CREATE_SHIELD_SUCCESS_GET_BIZ_HOST_RETURN),
+        Patcher(target=LIST_BIZ_HOSTS_TOPO_BY_USER, return_value=LIST_BIZ_HOSTS_TOPO_RETURN),
     ],
 )

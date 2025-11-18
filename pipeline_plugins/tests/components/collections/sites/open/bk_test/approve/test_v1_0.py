@@ -54,7 +54,12 @@ COMMON_PARENT = {"tenant_id": "system", "executor": "admin", "biz_cc_id": 2, "bi
 
 CREAT_TICKET_FAIL_RETURN = {"result": False, "message": "create ticket fail"}
 
-CREAT_TICKET_SUCCESS_RETURN = {"message": "success", "code": 0, "data": {"sn": "NO2019090519542603"}, "result": True}
+CREAT_TICKET_SUCCESS_RETURN = {
+    "message": "success",
+    "code": 0,
+    "data": {"sn": "NO2019090519542603", "id": "123456"},
+    "result": True,
+}
 
 CALLBACK_URL_FAIL_RETURN = {"result": False, "message": "approve reject"}
 
@@ -112,12 +117,7 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CREAT_TICKET_FAIL_RETURN_CLIENT.api.create_ticket,
-            calls=[
-                Call(
-                    CREAT_TICKET_CALL,
-                    headers={"X-Bk-Tenant-Id": "system", "SYSTEM-TOKEN": "Onc4a5KWGyzphNXQNXLEJlpN3CIjUI4f0U9D"},
-                )
-            ],
+            calls=[Call(CREAT_TICKET_CALL)],
         ),
     ],
     schedule_assertion=None,
@@ -133,16 +133,11 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     name="create approve ticket success case",
     inputs=INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603", "id": "123456"}),
     execute_call_assertion=[
         CallAssertion(
             func=CREAT_TICKET_SUCCESS_CLIENT.api.create_ticket,
-            calls=[
-                Call(
-                    CREAT_TICKET_CALL,
-                    headers={"X-Bk-Tenant-Id": "system", "SYSTEM-TOKEN": "Onc4a5KWGyzphNXQNXLEJlpN3CIjUI4f0U9D"},
-                )
-            ],
+            calls=[Call(CREAT_TICKET_CALL)],
         ),
         CallAssertion(
             func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,
@@ -151,7 +146,7 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
-        outputs={"approve_result": "通过", "sn": "NO2019090519542603"},
+        outputs={"approve_result": "通过", "sn": "NO2019090519542603", "id": "123456"},
         callback_data=CALLBACK_URL_SUCCESS_RETURN,
     ),
     patchers=[
@@ -173,16 +168,11 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
     name="rejected_block success case",
     inputs=BLOCKED_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603", "id": "123456"}),
     execute_call_assertion=[
         CallAssertion(
             func=CREAT_TICKET_SUCCESS_CLIENT.api.create_ticket,
-            calls=[
-                Call(
-                    CREAT_TICKET_CALL,
-                    headers={"X-Bk-Tenant-Id": "system", "SYSTEM-TOKEN": "Onc4a5KWGyzphNXQNXLEJlpN3CIjUI4f0U9D"},
-                )
-            ],
+            calls=[Call(CREAT_TICKET_CALL)],
         ),
         CallAssertion(
             func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,
@@ -191,7 +181,7 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
-        outputs={"approve_result": "拒绝", "sn": "NO2019090519542603"},
+        outputs={"approve_result": "拒绝", "sn": "NO2019090519542603", "id": "123456"},
         callback_data=CALLBACK_URL_REJECT_RETURN,
     ),
     patchers=[

@@ -27,6 +27,7 @@ from pipeline.component_framework.test import (
 from pipeline_plugins.components.collections.sites.open.job.local_content_upload.v1_1 import (
     JobLocalContentUploadComponent,
 )
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class JobLocalContentUploadComponentTest(TestCase, ComponentTestMixin):
@@ -57,10 +58,21 @@ class MockClient(object):
         self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_log_return)
 
 
+# Mock CMDB Client for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    def __init__(self):
+        super(MockCMDBClient, self).__init__()
+
+
 # mock path
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.get_client_by_username"
 )
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
+
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.get_node_callback_url"
 )
@@ -124,6 +136,43 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT = MockClient(
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
 )
 
+# Mock CMDB client with proper api.list_biz_hosts
+CMDB_CLIENT = MagicMock()
+CMDB_CLIENT.api.list_biz_hosts = MagicMock(
+    return_value={
+        "result": True,
+        "data": {
+            "count": 1,
+            "info": [
+                {
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "1.1.1.1",
+                    "bk_cloud_id": 0,
+                    "bk_host_innerip_v6": "",
+                    "bk_agent_id": "agent1",
+                }
+            ],
+        },
+    }
+)
+CMDB_CLIENT.api.list_hosts_without_biz = MagicMock(
+    return_value={
+        "result": True,
+        "data": {
+            "count": 1,
+            "info": [
+                {
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "1.1.1.1",
+                    "bk_cloud_id": 2,
+                    "bk_host_innerip_v6": "",
+                    "bk_agent_id": "agent1",
+                }
+            ],
+        },
+    }
+)
+
 # parent_data
 PARENT_DATA = {"executor": "executor", "biz_cc_id": 1, "tenant_id": "system"}
 
@@ -151,7 +200,7 @@ KWARGS = {
     "account_alias": "root",
     "file_target_path": "/tmp/bk_sops_test/",
     "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-    "target_server": {"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
+    "target_server": {"host_id_list": [1]},
 }
 
 # 手动输入脚本失败样例输出
@@ -192,8 +241,11 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=CMDB_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
@@ -217,8 +269,11 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=CMDB_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
@@ -237,7 +292,10 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=CMDB_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
     ],
@@ -267,7 +325,7 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
                         "account_alias": "root",
                         "file_target_path": "/tmp/bk_sops_test/",
                         "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-                        "target_server": {"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 2}]},
+                        "target_server": {"host_id_list": [1]},
                     },
                     headers={"X-Bk-Tenant-Id": "system"},
                 )
@@ -275,7 +333,10 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=CMDB_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 2}]}),
     ],

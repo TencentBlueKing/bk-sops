@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.test import TestCase
 from mock import patch
 
@@ -54,28 +55,87 @@ class IPPickerHandlerTestCase(TestCase):
             {"field": "module", "value": ["test1"]},
         ]
         excludes = [{"field": "set", "value": ["set2"]}, {"field": "host", "value": ["3.3.3.3"]}]
-        expected_property_filters = {
-            "host_property_filter": {
-                "condition": "AND",
-                "rules": [
-                    {"field": "bk_host_innerip", "operator": "in", "value": ["1.1.1.1", "2.2.2.2"]},
-                    {"field": "bk_host_innerip", "operator": "not_in", "value": ["3.3.3.3"]},
-                ],
-            },
-            "module_property_filter": {
-                "condition": "AND",
-                "rules": [
-                    {"field": "bk_module_id", "operator": "in", "value": [5, 8]},
-                    {"field": "bk_module_id", "operator": "not_in", "value": [5, 6, 7]},
-                ],
-            },
-            "set_property_filter": {"condition": "AND", "rules": []},
-        }
+
+        # Different expected results based on ENABLE_IPV6 setting
+        if getattr(settings, "ENABLE_IPV6", False):
+            # When IPv6 is enabled, rules are nested with condition structures
+            expected_property_filters = {
+                "host_property_filter": {
+                    "condition": "AND",
+                    "rules": [
+                        {
+                            "condition": "OR",
+                            "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ["1.1.1.1", "2.2.2.2"]}],
+                        },
+                        {
+                            "condition": "AND",
+                            "rules": [{"field": "bk_host_innerip", "operator": "not_in", "value": ["3.3.3.3"]}],
+                        },
+                    ],
+                },
+                "module_property_filter": {
+                    "condition": "AND",
+                    "rules": [
+                        {"field": "bk_module_id", "operator": "in", "value": [5, 8]},
+                        {"field": "bk_module_id", "operator": "not_in", "value": [5, 6, 7]},
+                    ],
+                },
+                "set_property_filter": {"condition": "AND", "rules": []},
+            }
+        else:
+            # When IPv6 is disabled, rules are flat
+            expected_property_filters = {
+                "host_property_filter": {
+                    "condition": "AND",
+                    "rules": [
+                        {"field": "bk_host_innerip", "operator": "in", "value": ["1.1.1.1", "2.2.2.2"]},
+                        {"field": "bk_host_innerip", "operator": "not_in", "value": ["3.3.3.3"]},
+                    ],
+                },
+                "module_property_filter": {
+                    "condition": "AND",
+                    "rules": [
+                        {"field": "bk_module_id", "operator": "in", "value": [5, 8]},
+                        {"field": "bk_module_id", "operator": "not_in", "value": [5, 6, 7]},
+                    ],
+                },
+                "set_property_filter": {"condition": "AND", "rules": []},
+            }
 
         ip_picker_handler = IPPickerHandler(
             self.selector, self.username, self.bk_biz_id, self.bk_supplier_account, filters=filters, excludes=excludes
         )
-        self.assertEqual(ip_picker_handler.property_filters, expected_property_filters)
+
+        self.maxDiff = None
+
+        # Convert list values to sets for comparison since order doesn't matter for 'in' and 'not_in' operators
+        actual_filters = ip_picker_handler.property_filters
+        expected_filters = expected_property_filters
+
+        def normalize_filter_lists(filters):
+            """Convert list values in filter rules to sets for order-independent comparison"""
+            import copy
+
+            normalized = copy.deepcopy(filters)
+
+            def normalize_rules(rules):
+                for rule in rules:
+                    if isinstance(rule, dict):
+                        if "rules" in rule:
+                            normalize_rules(rule["rules"])
+                        elif "value" in rule and isinstance(rule["value"], list):
+                            rule["value"] = set(rule["value"])
+
+            for filter_type in normalized:
+                if "rules" in normalized[filter_type]:
+                    normalize_rules(normalized[filter_type]["rules"])
+
+            return normalized
+
+        normalized_actual = normalize_filter_lists(actual_filters)
+        normalized_expected = normalize_filter_lists(expected_filters)
+
+        self.assertEqual(normalized_actual, normalized_expected)
 
     def test__inject_host_params(self):
         inputted_ips = [

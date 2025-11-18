@@ -19,6 +19,7 @@ from mock import MagicMock
 from pipeline.core.data.base import DataObject
 
 from pipeline_plugins.components.collections.sites.open.job.base import GetJobHistoryResultMixin
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 TEST_INPUTS = {"job_success_id": 12345, "biz_cc_id": 11111, "executor": "executor", "tenant_id": "system"}
 TEST_DATA = DataObject(TEST_INPUTS)
@@ -27,6 +28,10 @@ TEST_PARENT_DATA = DataObject(TEST_INPUTS)
 logger = logging.getLogger("component")
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.base.get_job_instance_status"
 GET_JOB_STATUS_RETURN = {
     "result": True,
@@ -111,6 +116,11 @@ class MockClient(object):
         self.api = MagicMock()
         self.api.get_job_instance_ip_log = MagicMock(return_value=EXECUTE_SUCCESS_GET_IP_LOG_RETURN)
         self.api.get_job_instance_status = MagicMock(return_value=GET_JOB_STATUS_RETURN)
+
+
+# Mock CMDB Client for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
 
 
 class TestGetJobHistoryResultMixin(TestCase):
