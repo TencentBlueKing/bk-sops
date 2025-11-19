@@ -23,6 +23,10 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.cc import CmdbDeleteHostLockComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    CMDB_GET_CLIENT_PATCH,
+    create_mock_cmdb_client_with_hosts,
+)
 
 
 class CmdbTransferFaultHostComponentTest(TestCase, ComponentTestMixin):
@@ -35,24 +39,44 @@ class CmdbTransferFaultHostComponentTest(TestCase, ComponentTestMixin):
         return CmdbDeleteHostLockComponent
 
 
-class MockClient(object):
-    def __init__(self, delete_host_lock_return=None):
-        self.set_bk_api_ver = MagicMock()
-        self.api = MagicMock()
-        self.api.delete_host_lock = MagicMock(return_value=delete_host_lock_return)
-
-
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.host_lock.base.get_client_by_username"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
+CC_GET_HOST_BY_INNERIP_WITH_IPV6 = (
+    "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_by_innerip_with_ipv6"
+)
+CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 
-# mock client
-DELETE_HOST_LOCK_SUCCESS_CLIENT = MockClient(
-    delete_host_lock_return={"result": True, "code": 0, "message": "success", "data": {}}
+# IPv6 场景的 mock 返回值
+IPV6_HOST_RESULT = {
+    "result": True,
+    "data": [
+        {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+        {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+    ],
+}
+
+# 非 IPv6 场景的 mock 返回值
+NON_IPV6_HOST_RESULT = {"result": True, "data": ["1", "2"]}
+
+# 使用IPv6适配的CMDB客户端mock
+MOCK_CMDB_CLIENT_SUCCESS = create_mock_cmdb_client_with_hosts(
+    [
+        {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+        {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+    ]
+)
+MOCK_CMDB_CLIENT_SUCCESS.api.delete_host_lock = MagicMock(
+    return_value={"result": True, "code": 0, "message": "success", "data": {}}
 )
 
-DELETE_HOST_LOCK_FAIL_CLIENT = MockClient(
-    delete_host_lock_return={"result": False, "code": 1, "message": "fail", "data": {}}
+MOCK_CMDB_CLIENT_FAIL = create_mock_cmdb_client_with_hosts(
+    [
+        {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+        {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+    ]
+)
+MOCK_CMDB_CLIENT_FAIL.api.delete_host_lock = MagicMock(
+    return_value={"result": False, "code": 1, "message": "fail", "data": {}}
 )
 
 DELETE_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
@@ -68,19 +92,17 @@ DELETE_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]),
         CallAssertion(
-            func=DELETE_HOST_LOCK_SUCCESS_CLIENT.api.delete_host_lock,
+            func=MOCK_CMDB_CLIENT_SUCCESS.api.delete_host_lock,
             calls=[Call({"id_list": [1, 2]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     # delete patch
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=DELETE_HOST_LOCK_SUCCESS_CLIENT),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
-        ),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=MOCK_CMDB_CLIENT_SUCCESS),
+        Patcher(target=CMDB_GET_CLIENT_PATCH, return_value=MOCK_CMDB_CLIENT_SUCCESS),
+        Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=IPV6_HOST_RESULT),
+        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value=NON_IPV6_HOST_RESULT),
     ],
 )
 
@@ -100,18 +122,16 @@ DELETE_HOST_LOCK_FAIL_CASE = ComponentTestCase(
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]),
         CallAssertion(
-            func=DELETE_HOST_LOCK_FAIL_CLIENT.api.delete_host_lock,
+            func=MOCK_CMDB_CLIENT_FAIL.api.delete_host_lock,
             calls=[Call({"id_list": [1, 2]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     # delete patch
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=DELETE_HOST_LOCK_FAIL_CLIENT),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
-        ),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=MOCK_CMDB_CLIENT_FAIL),
+        Patcher(target=CMDB_GET_CLIENT_PATCH, return_value=MOCK_CMDB_CLIENT_FAIL),
+        Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=IPV6_HOST_RESULT),
+        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value=NON_IPV6_HOST_RESULT),
     ],
 )

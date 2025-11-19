@@ -11,18 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch
-
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector import (
-    VarSetGroupSelector,
     SetGroupInfo,
+    VarSetGroupSelector,
 )
 
-GET_CLIENT_BY_USERNAME = ("pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector."
-                          "get_client_by_username")
+GET_CLIENT_BY_USERNAME = (
+    "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector." "get_client_by_username"
+)
 
 
 class MockClient(object):
@@ -261,6 +261,9 @@ class VarSetGroupSelectorTestCase(TestCase):
         with patch(
             "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_client_by_username",
             MagicMock(return_value=client),
+        ), patch(
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_bk_username_by_tenant",
+            MagicMock(return_value="admin"),
         ):
             explain = VarSetGroupSelector.self_explain(tenant_id=self.tenant_id)
 
@@ -291,6 +294,9 @@ class VarSetGroupSelectorTestCase(TestCase):
         with patch(
             "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_client_by_username",
             MagicMock(return_value=client),
+        ), patch(
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector.get_bk_username_by_tenant",
+            MagicMock(return_value="admin"),
         ):
             explain = VarSetGroupSelector.self_explain(tenant_id=self.tenant_id)
 

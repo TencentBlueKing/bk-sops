@@ -24,6 +24,7 @@ from pipeline.component_framework.test import (
 from pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module.v1_0 import (
     CCBatchTransferHostModuleComponent,
 )
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class CCBatchTransferHostModuleComponentTest(TestCase, ComponentTestMixin):
@@ -34,14 +35,15 @@ class CCBatchTransferHostModuleComponentTest(TestCase, ComponentTestMixin):
         return [TRANSFER_HOST_MODULE_SUCCESS_CASE, TRANSFER_HOST_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_CASE]
 
 
-class MockClient(object):
+class MockClient(MockCMDBClientIPv6):
     def __init__(
         self,
         batch_transfer_host_module_return=None,
         search_biz_inst_topo_return=None,
         get_mainline_object_topo_return=None,
     ):
-        self.api = MagicMock()
+        super(MockClient, self).__init__()
+        # 原有接口的mock
         self.api.transfer_host_module = MagicMock(return_value=batch_transfer_host_module_return)
         self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
         self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
@@ -52,6 +54,9 @@ GET_CLIENT_BY_USER = (
 )
 CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
+CC_GET_HOST_BY_INNERIP_WITH_IPV6 = (
+    "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_by_innerip_with_ipv6"
+)
 CC_LIST_SELECT_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_transfer_host_module.v1_0"
     ".cc_list_select_node_inst_id"
@@ -139,7 +144,6 @@ TRANSFER_HOST_MODULE_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=TRANSFER_MODULE_SUCCESS_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "admin", 2, ["2.5.5.6"])]),
         CallAssertion(
             func=TRANSFER_MODULE_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
@@ -159,6 +163,7 @@ TRANSFER_HOST_MODULE_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_MODULE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=TRANSFER_MODULE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2"]}),
+        Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value={"result": True, "data": [{"bk_host_id": 2}]}),
         Patcher(target=CC_LIST_SELECT_NODE_INST_ID, return_value={"result": True, "data": ["7"]}),
     ],
 )
@@ -184,7 +189,6 @@ TRANSFER_HOST_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=TRANSFER_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "admin", 2, ["2.5.5.6"])]),
         CallAssertion(
             func=TRANSFER_MODULE_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
@@ -199,6 +203,7 @@ TRANSFER_HOST_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_MODULE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=TRANSFER_MODULE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2"]}),
+        Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value={"result": True, "data": [{"bk_host_id": 2}]}),
         Patcher(target=CC_LIST_SELECT_NODE_INST_ID, return_value={"result": True, "data": ["7"]}),
     ],
 )

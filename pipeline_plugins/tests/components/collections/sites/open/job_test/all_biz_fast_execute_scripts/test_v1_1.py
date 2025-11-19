@@ -27,6 +27,12 @@ from pipeline.component_framework.test import (
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1 import (
     AllBizJobFastExecuteScriptComponent,
 )
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
+
+
+# MockCMDBClient class definition for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
 
 
 class AllBizJobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
@@ -77,6 +83,14 @@ GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service."
     "get_client_by_username"
 )
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
+GET_TARGET_SERVER_BIZ_SET = (
+    "pipeline_plugins.components.collections.sites.open.job"
+    ".all_biz_fast_execute_script.v1_1.AllBizJobFastExecuteScriptService.get_target_server_biz_set"
+)
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1.get_node_callback_url"
 )
@@ -89,6 +103,11 @@ GET_JOB_INSTANCE_URL = (
     "base_service.get_job_instance_url"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 
 GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_username"
 
@@ -373,6 +392,24 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(
+                True,
+                {
+                    "ip_list": [
+                        {"ip": "127.0.0.1", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.2", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                        {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                    ]
+                },
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
@@ -399,6 +436,24 @@ BIZ_SET_FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = C
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(
+                True,
+                {
+                    "ip_list": [
+                        {"ip": "127.0.0.1", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.2", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                        {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                    ]
+                },
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
@@ -421,6 +476,24 @@ FAST_EXECUTE_SCRIPT_FAIL_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(
+                True,
+                {
+                    "ip_list": [
+                        {"ip": "127.0.0.1", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.2", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                        {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                    ]
+                },
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),

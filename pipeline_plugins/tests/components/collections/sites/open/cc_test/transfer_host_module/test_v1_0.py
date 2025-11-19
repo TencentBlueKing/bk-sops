@@ -25,6 +25,14 @@ from pipeline.component_framework.test import (
 from pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0 import (
     CCTransferHostModuleComponent,
 )
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    CC_GET_CLIENT_PATCH,
+    CMDB_GET_CLIENT_PATCH,
+    GET_IP_INFO_LIST_PATCH,
+    MockCMDBClientIPv6,
+    create_mock_cmdb_client_with_hosts,
+    mock_get_ip_info_list_for_transfer_module,
+)
 
 
 class CCTransferHostModuleComponentTest(TestCase, ComponentTestMixin):
@@ -40,11 +48,11 @@ class CCTransferHostModuleComponentTest(TestCase, ComponentTestMixin):
         ]
 
 
-class MockClient(object):
+class MockClient(MockCMDBClientIPv6):
     def __init__(
         self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None, transfer_host_module_return=None
     ):
-        self.api = MagicMock()
+        super(MockClient, self).__init__()
         self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
         self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
         self.api.transfer_host_module = MagicMock(return_value=transfer_host_module_return)
@@ -54,6 +62,7 @@ GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".get_client_by_username"
 )
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_ips_info_by_str"
+CC_GET_IPS_INFO_BY_STR_IPV6 = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str_ipv6"
 CC_LIST_MATCH_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".cc_list_match_node_inst_id"
 )
@@ -184,7 +193,6 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
             func=SELECT_BY_TEXT_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
@@ -204,7 +212,31 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(
-            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+            target=GET_IP_INFO_LIST_PATCH,
+            side_effect=mock_get_ip_info_list_for_transfer_module(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
         ),
     ],
 )
@@ -233,7 +265,6 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
             func=SELECT_BY_TOPO_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
@@ -253,7 +284,31 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
         Patcher(
-            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+            target=GET_IP_INFO_LIST_PATCH,
+            side_effect=mock_get_ip_info_list_for_transfer_module(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
         ),
     ],
 )
@@ -283,14 +338,36 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
         outputs={"ex_data": "拓扑路径 [蓝鲸>Yun>set>module] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"},
     ),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
-    ],
+    execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
         Patcher(
-            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+            target=GET_IP_INFO_LIST_PATCH,
+            side_effect=mock_get_ip_info_list_for_transfer_module(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
         ),
     ],
 )
@@ -317,14 +394,27 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "输入文本路径[蓝鲸>Yun>module]与业务拓扑层级不匹配"}),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
-    ],
+    execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
         Patcher(
-            target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": [{"HostID": 2}, {"HostID": 3}]}
+            target=GET_IP_INFO_LIST_PATCH,
+            side_effect=mock_get_ip_info_list_for_transfer_module(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [
+                    {"bk_host_id": 2, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"bk_host_id": 3, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+                ]
+            ),
         ),
     ],
 )

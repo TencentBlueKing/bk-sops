@@ -22,6 +22,7 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job.fetch_task_log.v1_0 import JobFetchTaskLogComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class JobFetchTaskLogComponentTest(TestCase, ComponentTestMixin):
@@ -43,9 +44,23 @@ class MockClient(object):
         self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
+# Mock CMDB Client for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    def __init__(self):
+        super(MockCMDBClient, self).__init__()
+
+
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.fetch_task_log.v1_0.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
     "result": True,
     "code": 0,
@@ -140,6 +155,8 @@ FETCH_TASK_LOG_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_assertion=None,
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FETCH_TASK_LOG_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FETCH_TASK_LOG_CLIENT),
     ],
@@ -161,6 +178,8 @@ FETCH_TASK_LOG_WITH_TARGET_IP_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_assertion=None,
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FETCH_TASK_LOG_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FETCH_TASK_LOG_CLIENT),
     ],
@@ -177,6 +196,8 @@ FETCH_TASK_LOG_WITH_NOT_EXISTING_TARGET_IP_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[],
     schedule_assertion=None,
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FETCH_TASK_LOG_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FETCH_TASK_LOG_CLIENT),
     ],
