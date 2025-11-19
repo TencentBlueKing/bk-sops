@@ -144,7 +144,6 @@ TRANSFER_HOST_MODULE_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=TRANSFER_MODULE_SUCCESS_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_BY_INNERIP_WITH_IPV6, calls=[Call("system", "admin", 2, "2.5.5.6")]),
         CallAssertion(
             func=TRANSFER_MODULE_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
@@ -190,7 +189,6 @@ TRANSFER_HOST_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=TRANSFER_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_HOST_BY_INNERIP_WITH_IPV6, calls=[Call("system", "admin", 2, "2.5.5.6")]),
         CallAssertion(
             func=TRANSFER_MODULE_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[

@@ -24,7 +24,23 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job import JobLocalContentUploadComponent
-from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    MockCMDBClientIPv6,
+    build_job_target_server,
+)
+
+
+# Helper function to check if IPv6 is enabled
+def is_ipv6_enabled():
+    from gcloud.conf import settings
+
+    return getattr(settings, "ENABLE_IPV6", False)
+
+
+# Helper function to get expected target_server based on IPv6 setting
+def get_expected_target_server(host_ids, ips_with_cloud):
+    """根据当前 ENABLE_IPV6 设置返回期望的 target_server 格式"""
+    return build_job_target_server(host_ids=host_ids, ips_with_cloud=ips_with_cloud)
 
 
 class JobLocalContentUploadComponentTest(TestCase, ComponentTestMixin):
@@ -190,21 +206,34 @@ ACROSS_BIZ_INPUTS = {
     "job_across_biz": True,
 }
 
-KWARGS = {
-    "bk_scope_type": "biz",
-    "bk_scope_id": "1",
-    "bk_biz_id": 1,
-    "account_alias": "root",
-    "file_target_path": "/tmp/bk_sops_test/",
-    "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-    "target_server": {"host_id_list": [1]},
-}
+
+# 动态生成 KWARGS，根据 IPv6 设置使用不同的 target_server 格式
+def get_kwargs():
+    return {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "1",
+        "bk_biz_id": 1,
+        "account_alias": "root",
+        "file_target_path": "/tmp/bk_sops_test/",
+        "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
+        "target_server": get_expected_target_server(host_ids=[1], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 0}]),
+    }
+
+
+KWARGS = get_kwargs()
+
 
 # 手动输入脚本失败样例输出
-MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口jobv3.push_config_file返回失败, error={error}, params={params}, "
-    "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(KWARGS), error=FAIL_RESULT["message"])
-}
+def get_manual_fail_outputs():
+    return {
+        "ex_data": "调用作业平台(JOB)接口jobv3.push_config_file返回失败, error={error}, params={params}, "
+        "request_id=aac7755b09944e4296b2848d81bd9411".format(
+            params=json.dumps(get_kwargs()), error=FAIL_RESULT["message"]
+        )
+    }
+
+
+MANUAL_FAIL_OUTPUTS = get_manual_fail_outputs()
 
 IP_IS_EXIST_FAIL_OUTPUTS = {"ex_data": "IP 校验失败，请确认输入的 IP 127.0.0.2 是否合法"}
 
@@ -234,7 +263,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     execute_call_assertion=[
         CallAssertion(
             func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.api.push_config_file,
-            calls=[Call(KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+            calls=[Call(get_kwargs(), headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     patchers=[
@@ -266,7 +295,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.api.push_config_file,
-            calls=[Call(KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+            calls=[Call(get_kwargs(), headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     patchers=[
@@ -285,12 +314,12 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
     name="fast execute manual script fail test case",
     inputs=INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs=MANUAL_FAIL_OUTPUTS),
+    execute_assertion=ExecuteAssertion(success=False, outputs=get_manual_fail_outputs()),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
             func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.api.push_config_file,
-            calls=[Call(KWARGS, headers={"X-Bk-Tenant-Id": "system"})],
+            calls=[Call(get_kwargs(), headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     patchers=[
@@ -331,7 +360,9 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
                         "account_alias": "root",
                         "file_target_path": "/tmp/bk_sops_test/",
                         "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-                        "target_server": {"host_id_list": [1]},
+                        "target_server": get_expected_target_server(
+                            host_ids=[1], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": "2"}]
+                        ),
                     },
                     headers={"X-Bk-Tenant-Id": "system"},
                 )

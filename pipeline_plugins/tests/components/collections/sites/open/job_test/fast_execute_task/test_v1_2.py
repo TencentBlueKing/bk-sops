@@ -45,11 +45,14 @@ class JobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
 
     def setUp(self):
         super().setUp()
+        # Save the original ENABLE_IPV6 value
+        self._original_enable_ipv6 = getattr(settings, "ENABLE_IPV6", False)
         setattr(settings, "ENABLE_IPV6", False)
 
     def tearDown(self):
         super().tearDown()
-        setattr(settings, "ENABLE_IPV6", True)
+        # Restore the original ENABLE_IPV6 value
+        setattr(settings, "ENABLE_IPV6", self._original_enable_ipv6)
 
 
 class MockClient(object):

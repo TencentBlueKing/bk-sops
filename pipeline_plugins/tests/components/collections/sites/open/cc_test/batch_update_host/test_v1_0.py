@@ -51,6 +51,9 @@ GET_CLIENT_BY_USER = (
 CC_GET_IPS_INFO_BY_STR = (
     "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip_and_cloudid"
 )
+CC_GET_HOST_BY_INNERIP_WITH_IPV6 = (
+    "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_by_innerip_with_ipv6"
+)
 VERIFY_HOST_PROPERTY = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.verify_host_property"
 )
@@ -96,12 +99,23 @@ INVALID_IP_CASE = ComponentTestCase(
     name="Invalid IP Case",
     inputs=INPUT_DATA,
     parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "ip not found in business: 1.1.1.1"}),
+    execute_assertion=ExecuteAssertion(
+        success=False,
+        outputs={"ex_data": "ip not found in business: 1.1.1.1"},
+    ),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
         Patcher(target=CC_GET_CLIENT_PATCH, return_value=create_mock_cmdb_client_with_hosts([])),
         Patcher(target=CMDB_GET_CLIENT_PATCH, return_value=create_mock_cmdb_client_with_hosts([])),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": False, "message": "ip not found in business: 1.1.1.1"},
+        ),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"result": False, "message": "ip not found in business: 1.1.1.1"},
+        ),
     ],
 )
 
@@ -127,6 +141,10 @@ CC_HOST_PROP_VALUE_ILLEGAL = ComponentTestCase(
             ),
         ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property_fail),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]},
+        ),
     ],
 )
 
@@ -153,6 +171,13 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
         ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property),
         Patcher(target=GET_CLIENT_BY_USER, return_value=BATCH_UPDATE_HOST_SUCCESS_CLIENT),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={
+                "result": True,
+                "data": [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}],
+            },
+        ),
     ],
 )
 
@@ -188,5 +213,12 @@ BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
         ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property),
         Patcher(target=GET_CLIENT_BY_USER, return_value=BATCH_UPDATE_HOST_FAIL_CLIENT),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={
+                "result": True,
+                "data": [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}],
+            },
+        ),
     ],
 )

@@ -26,7 +26,14 @@ from pipeline.component_framework.test import (
 
 from pipeline_plugins.components.collections.sites.open.job import base
 from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_1 import JobExecuteTaskComponent
-from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    MockCMDBClientIPv6,
+    build_job_target_server,
+    mock_batch_request_result_empty,
+    mock_batch_request_with_hosts,
+    mock_get_business_host_topo_empty,
+    mock_get_business_host_topo_with_hosts,
+)
 
 base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
 
@@ -110,6 +117,10 @@ GET_NODE_CALLBACK_URL = (
 GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_job_instance_url"
 )
+
+# 添加 batch_request 和 get_business_host_topo 的 mock 路径
+BATCH_REQUEST = "api.utils.request.batch_request"
+GET_BUSINESS_HOST_TOPO = "gcloud.utils.cmdb.get_business_host_topo"
 
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
 
@@ -350,6 +361,24 @@ MOCK_CMDB_CLIENT_EMPTY = MockCmdbClient(
     list_hosts_without_biz_return=CMDB_LIST_BIZ_HOSTS_EMPTY_RETURN,
 )
 
+
+# 辅助函数：根据 ENABLE_IPV6 动态生成 Job global_var 的 server 值
+def _build_server_for_global_var(host_ids, ips_with_cloud):
+    """根据当前 ENABLE_IPV6 设置生成 Job global_var 中 server 字段的正确格式"""
+    return build_job_target_server(host_ids=host_ids, ips_with_cloud=ips_with_cloud)
+
+
+# 预定义动态生成的 server 值，用于测试用例
+SERVER_1_2 = _build_server_for_global_var(
+    host_ids=[1, 2], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]
+)
+SERVER_4_3 = _build_server_for_global_var(
+    host_ids=[4, 3], ips_with_cloud=[{"ip": "4.4.4.4", "bk_cloud_id": 0}, {"ip": "3.3.3.3", "bk_cloud_id": 0}]
+)
+SERVER_3_4 = _build_server_for_global_var(
+    host_ids=[3, 4], ips_with_cloud=[{"ip": "4.4.4.4", "bk_cloud_id": "0"}, {"ip": "3.3.3.3", "bk_cloud_id": "0"}]
+)
+
 # test cases
 EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     name="v1.1 execute_job call failed case",
@@ -378,9 +407,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -405,9 +432,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -423,6 +448,24 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_CALL_FAIL_CLIENT),
         Patcher(target=GET_CMDB_CLIENT_BY_USERNAME, return_value=MOCK_CMDB_CLIENT),
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_SUCCESS_RETURN),
+        Patcher(
+            target=BATCH_REQUEST,
+            side_effect=mock_batch_request_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=GET_BUSINESS_HOST_TOPO,
+            side_effect=mock_get_business_host_topo_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
     ],
 )
@@ -472,9 +515,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -490,6 +531,24 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=GET_CMDB_CLIENT_BY_USERNAME, return_value=MOCK_CMDB_CLIENT),
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_SUCCESS_RETURN),
+        Patcher(
+            target=BATCH_REQUEST,
+            side_effect=mock_batch_request_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=GET_BUSINESS_HOST_TOPO,
+            side_effect=mock_get_business_host_topo_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -544,9 +603,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -562,6 +619,24 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=JOB_EXECUTE_NOT_SUCCESS_CLIENT),
         Patcher(target=GET_CMDB_CLIENT_BY_USERNAME, return_value=MOCK_CMDB_CLIENT),
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_SUCCESS_RETURN),
+        Patcher(
+            target=BATCH_REQUEST,
+            side_effect=mock_batch_request_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=GET_BUSINESS_HOST_TOPO,
+            side_effect=mock_get_business_host_topo_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -621,9 +696,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -653,6 +726,24 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_SUCCESS_RETURN),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(
+            target=BATCH_REQUEST,
+            side_effect=mock_batch_request_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=GET_BUSINESS_HOST_TOPO,
+            side_effect=mock_get_business_host_topo_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
     ],
 )
 
@@ -718,9 +809,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -748,6 +837,24 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=GET_CMDB_CLIENT_BY_USERNAME, return_value=MOCK_CMDB_CLIENT),
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_SUCCESS_RETURN),
+        Patcher(
+            target=BATCH_REQUEST,
+            side_effect=mock_batch_request_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=GET_BUSINESS_HOST_TOPO,
+            side_effect=mock_get_business_host_topo_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -814,9 +921,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -844,6 +949,24 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
         Patcher(target=GET_CMDB_CLIENT_BY_USERNAME, return_value=MOCK_CMDB_CLIENT),
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_SUCCESS_RETURN),
+        Patcher(
+            target=BATCH_REQUEST,
+            side_effect=mock_batch_request_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=GET_BUSINESS_HOST_TOPO,
+            side_effect=mock_get_business_host_topo_with_hosts(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -874,6 +997,8 @@ INVALID_IP_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=GET_CMDB_CLIENT_BY_USERNAME, return_value=MOCK_CMDB_CLIENT_EMPTY),
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_FAILED_RETURN),
+        Patcher(target=BATCH_REQUEST, side_effect=mock_batch_request_result_empty),
+        Patcher(target=GET_BUSINESS_HOST_TOPO, side_effect=mock_get_business_host_topo_empty),
     ],
 )
 
@@ -903,5 +1028,7 @@ IP_IS_EXIST_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=GET_CMDB_CLIENT_BY_USERNAME, return_value=MOCK_CMDB_CLIENT_EMPTY),
         Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value=HOST_LOOKUP_FAILED_RETURN),
+        Patcher(target=BATCH_REQUEST, side_effect=mock_batch_request_result_empty),
+        Patcher(target=GET_BUSINESS_HOST_TOPO, side_effect=mock_get_business_host_topo_empty),
     ],
 )

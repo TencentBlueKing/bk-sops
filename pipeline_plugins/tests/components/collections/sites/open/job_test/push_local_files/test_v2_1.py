@@ -44,13 +44,16 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
         super().setUp()
         from django.conf import settings
 
+        # Save the original ENABLE_IPV6 value
+        self._original_enable_ipv6 = getattr(settings, "ENABLE_IPV6", False)
         setattr(settings, "ENABLE_IPV6", False)
 
     def tearDown(self):
         super().tearDown()
         from django.conf import settings
 
-        setattr(settings, "ENABLE_IPV6", True)
+        # Restore the original ENABLE_IPV6 value
+        setattr(settings, "ENABLE_IPV6", self._original_enable_ipv6)
 
 
 # mock path

@@ -26,7 +26,10 @@ from pipeline.component_framework.test import (
 
 from pipeline_plugins.components.collections.sites.open.job import base
 from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_2 import JobExecuteTaskComponent
-from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    MockCMDBClientIPv6,
+    build_job_target_server,
+)
 
 base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
 
@@ -538,6 +541,31 @@ def mock_get_business_set_host(tenant_id, username, host_fields, ip_list=None):
     return hosts
 
 
+# 辅助函数：根据 ENABLE_IPV6 动态生成 Job global_var 的 server 值
+def _build_server_for_global_var(host_ids, ips_with_cloud):
+    """
+    根据当前 ENABLE_IPV6 设置生成 Job global_var 中 server 字段的正确格式
+
+    Args:
+        host_ids: 主机ID列表，例如 [1, 2]
+        ips_with_cloud: IP和云区域列表，例如 [{"ip": "1.1.1.1", "bk_cloud_id": 1}, ...]
+
+    Returns:
+        dict: 根据 ENABLE_IPV6 返回相应格式的 server
+    """
+    return build_job_target_server(host_ids=host_ids, ips_with_cloud=ips_with_cloud)
+
+
+# 预定义动态生成的 server 值，用于测试用例
+# 这些值会根据当前 ENABLE_IPV6 设置自动适配格式
+SERVER_1_2 = _build_server_for_global_var(
+    host_ids=[1, 2], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]
+)
+SERVER_4_3 = _build_server_for_global_var(
+    host_ids=[4, 3], ips_with_cloud=[{"ip": "4.4.4.4", "bk_cloud_id": 0}, {"ip": "3.3.3.3", "bk_cloud_id": 0}]
+)
+
+
 # test cases
 EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     name="v1.2 execute_job call failed case",
@@ -566,9 +594,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -593,9 +619,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -671,9 +695,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -761,9 +783,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -857,9 +877,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -975,15 +993,11 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [4, 3],
-                                },
+                                "server": SERVER_4_3,
                             },
                         ],
                         "callback_url": "url_token",
@@ -1097,9 +1111,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -1217,9 +1229,7 @@ IP_IS_EXIST_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "host_id_list": [1, 2],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",

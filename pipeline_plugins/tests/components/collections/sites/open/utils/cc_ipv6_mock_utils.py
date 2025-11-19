@@ -25,6 +25,36 @@ ENABLE_IPV6_PATCH = "pipeline_plugins.components.collections.sites.open.cc.base.
 GET_IP_INFO_LIST_PATCH = "pipeline_plugins.components.collections.sites.open.cc.base.CCPluginIPMixin.get_ip_info_list"
 
 
+def build_job_target_server(host_ids=None, ips_with_cloud=None):
+    """
+    根据 settings.ENABLE_IPV6 的值动态构建 Job target_server 格式
+
+    当 ENABLE_IPV6=True 时，返回 {"host_id_list": [...]}
+    当 ENABLE_IPV6=False 时，返回 {"ip_list": [{"ip": "...", "bk_cloud_id": ...}, ...]}
+
+    Args:
+        host_ids: 主机ID列表，例如 [1, 2]
+        ips_with_cloud: IP和云区域列表，例如 [{"ip": "1.1.1.1", "bk_cloud_id": 1}, ...]
+
+    Returns:
+        dict: 根据 ENABLE_IPV6 返回相应格式的 target_server
+    """
+    from gcloud.conf import settings
+
+    enable_ipv6 = getattr(settings, "ENABLE_IPV6", False)
+
+    if enable_ipv6:
+        # IPv6场景使用 host_id_list
+        if host_ids is None:
+            host_ids = []
+        return {"host_id_list": host_ids}
+    else:
+        # 非IPv6场景使用 ip_list
+        if ips_with_cloud is None:
+            ips_with_cloud = []
+        return {"ip_list": ips_with_cloud}
+
+
 class MockCMDBClientIPv6(object):
     """
     支持IPv6的CMDB客户端mock

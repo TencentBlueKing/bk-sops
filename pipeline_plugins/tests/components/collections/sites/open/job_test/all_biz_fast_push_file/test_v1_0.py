@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
 from django.test import TestCase
 from mock import MagicMock
 from pipeline.component_framework.test import (
@@ -34,6 +35,27 @@ from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock
 # MockCMDBClient class definition for IPv6 support
 class MockCMDBClient(MockCMDBClientIPv6):
     pass
+
+
+# Helper function to check if IPv6 is enabled
+def is_ipv6_enabled():
+    """检查是否启用 IPv6 模式"""
+    return getattr(settings, "ENABLE_IPV6", False)
+
+
+# Helper function to create environment-aware target_server
+def get_expected_target_server(hosts):
+    """
+    获取期望的 target_server 格式
+    Args:
+        hosts: list of dicts with keys: bk_host_id, bk_cloud_id, and optionally ip
+    Returns:
+        dict with either host_id_list or ip_list based on environment
+    """
+    if is_ipv6_enabled():
+        return {"host_id_list": [host["bk_host_id"] for host in hosts]}
+    else:
+        return {"ip_list": [{"ip": host.get("ip", "1.1.1.1"), "bk_cloud_id": host["bk_cloud_id"]} for host in hosts]}
 
 
 # Helper function to create get_business_host return value
@@ -504,8 +526,125 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         execute_call_assertion=[
             CallAssertion(
                 func=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT.api.fast_transfer_file,
-                calls=[Call(**CLL_INFO()), Call(**CLL_INFO()), Call(**CLL_INFO()), Call(**CLL_INFO())],
-            ),
+                calls=[
+                    Call(
+                        data={
+                            "bk_scope_type": "biz",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 1, "bk_cloud_id": 0, "ip": "127.0.0.1"}]
+                                    ),
+                                    "account": {"alias": "root"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 3, "bk_cloud_id": 0, "ip": "127.0.0.3"},
+                                    {"bk_host_id": 4, "bk_cloud_id": 0, "ip": "127.0.0.4"},
+                                    {"bk_host_id": 5, "bk_cloud_id": 0, "ip": "127.0.0.5"},
+                                ]
+                            ),
+                            "account_alias": "root",
+                            "file_target_path": "/tmp/ee/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
+                    Call(
+                        data={
+                            "bk_scope_type": "biz",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 1, "bk_cloud_id": 0, "ip": "127.0.0.1"}]
+                                    ),
+                                    "account": {"alias": "root"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 6, "bk_cloud_id": 1, "ip": "200.0.0.1"},
+                                    {"bk_host_id": 7, "bk_cloud_id": 1, "ip": "200.0.0.2"},
+                                    {"bk_host_id": 8, "bk_cloud_id": 1, "ip": "200.0.0.3"},
+                                ]
+                            ),
+                            "account_alias": "user01",
+                            "file_target_path": "/tmp/200/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
+                    Call(
+                        data={
+                            "bk_scope_type": "biz",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 2, "bk_cloud_id": 1, "ip": "127.0.0.2"}]
+                                    ),
+                                    "account": {"alias": "user00"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 3, "bk_cloud_id": 0, "ip": "127.0.0.3"},
+                                    {"bk_host_id": 4, "bk_cloud_id": 0, "ip": "127.0.0.4"},
+                                    {"bk_host_id": 5, "bk_cloud_id": 0, "ip": "127.0.0.5"},
+                                ]
+                            ),
+                            "account_alias": "root",
+                            "file_target_path": "/tmp/ee/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
+                    Call(
+                        data={
+                            "bk_scope_type": "biz",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 2, "bk_cloud_id": 1, "ip": "127.0.0.2"}]
+                                    ),
+                                    "account": {"alias": "user00"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 6, "bk_cloud_id": 1, "ip": "200.0.0.1"},
+                                    {"bk_host_id": 7, "bk_cloud_id": 1, "ip": "200.0.0.2"},
+                                    {"bk_host_id": 8, "bk_cloud_id": 1, "ip": "200.0.0.3"},
+                                ]
+                            ),
+                            "account_alias": "user01",
+                            "file_target_path": "/tmp/200/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
+                ],
+            )
         ],
         schedule_assertion=ScheduleAssertion(
             success=False,
@@ -587,12 +726,124 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
             CallAssertion(
                 func=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT.api.fast_transfer_file,
                 calls=[
-                    Call(**BIZ_SET_CLL_INFO()),
-                    Call(**BIZ_SET_CLL_INFO()),
-                    Call(**BIZ_SET_CLL_INFO()),
-                    Call(**BIZ_SET_CLL_INFO()),
+                    Call(
+                        data={
+                            "bk_scope_type": "biz_set",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 1, "bk_cloud_id": 0, "ip": "127.0.0.1"}]
+                                    ),
+                                    "account": {"alias": "root"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 3, "bk_cloud_id": 0, "ip": "127.0.0.3"},
+                                    {"bk_host_id": 4, "bk_cloud_id": 0, "ip": "127.0.0.4"},
+                                    {"bk_host_id": 5, "bk_cloud_id": 0, "ip": "127.0.0.5"},
+                                ]
+                            ),
+                            "account_alias": "root",
+                            "file_target_path": "/tmp/ee/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
+                    Call(
+                        data={
+                            "bk_scope_type": "biz_set",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 1, "bk_cloud_id": 0, "ip": "127.0.0.1"}]
+                                    ),
+                                    "account": {"alias": "root"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 6, "bk_cloud_id": 1, "ip": "200.0.0.1"},
+                                    {"bk_host_id": 7, "bk_cloud_id": 1, "ip": "200.0.0.2"},
+                                    {"bk_host_id": 8, "bk_cloud_id": 1, "ip": "200.0.0.3"},
+                                ]
+                            ),
+                            "account_alias": "user01",
+                            "file_target_path": "/tmp/200/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
+                    Call(
+                        data={
+                            "bk_scope_type": "biz_set",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 2, "bk_cloud_id": 1, "ip": "127.0.0.2"}]
+                                    ),
+                                    "account": {"alias": "user00"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 3, "bk_cloud_id": 0, "ip": "127.0.0.3"},
+                                    {"bk_host_id": 4, "bk_cloud_id": 0, "ip": "127.0.0.4"},
+                                    {"bk_host_id": 5, "bk_cloud_id": 0, "ip": "127.0.0.5"},
+                                ]
+                            ),
+                            "account_alias": "root",
+                            "file_target_path": "/tmp/ee/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
+                    Call(
+                        data={
+                            "bk_scope_type": "biz_set",
+                            "bk_scope_id": "321456",
+                            "bk_biz_id": 321456,
+                            "file_source_list": [
+                                {
+                                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                                    "server": get_expected_target_server(
+                                        [{"bk_host_id": 2, "bk_cloud_id": 1, "ip": "127.0.0.2"}]
+                                    ),
+                                    "account": {"alias": "user00"},
+                                }
+                            ],
+                            "target_server": get_expected_target_server(
+                                [
+                                    {"bk_host_id": 6, "bk_cloud_id": 1, "ip": "200.0.0.1"},
+                                    {"bk_host_id": 7, "bk_cloud_id": 1, "ip": "200.0.0.2"},
+                                    {"bk_host_id": 8, "bk_cloud_id": 1, "ip": "200.0.0.3"},
+                                ]
+                            ),
+                            "account_alias": "user01",
+                            "file_target_path": "/tmp/200/",
+                        },
+                        headers={"X-Bk-Tenant-Id": "system"},
+                        upload_speed_limit=100,
+                        download_speed_limit=100,
+                        timeout=100,
+                    ),
                 ],
-            ),
+            )
         ],
         schedule_assertion=ScheduleAssertion(
             success=False,

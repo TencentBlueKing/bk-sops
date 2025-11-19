@@ -24,7 +24,16 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job import JobPushLocalFilesComponent
-from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    MockCMDBClientIPv6,
+    build_job_target_server,
+)
+
+
+# Helper function to get expected target_server based on IPv6 setting
+def get_expected_target_server(host_ids, ips_with_cloud):
+    """根据当前 ENABLE_IPV6 设置返回期望的 target_server 格式"""
+    return build_job_target_server(host_ids=host_ids, ips_with_cloud=ips_with_cloud)
 
 
 class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
@@ -193,7 +202,9 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
-                        target_server={"host_id_list": [1]},
+                        target_server=get_expected_target_server(
+                            host_ids=[1], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 0}]
+                        ),
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
@@ -290,7 +301,10 @@ def CALLBACK_INVALID_CASE():
                         ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
-                        target_server={"host_id_list": [1, 2]},
+                        target_server=get_expected_target_server(
+                            host_ids=[1, 2],
+                            ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 0}, {"ip": "2.2.2.2", "bk_cloud_id": 0}],
+                        ),
                         headers={"X-Bk-Tenant-Id": "system"},
                     ),
                 ],
@@ -380,7 +394,9 @@ def CALLBACK_STRUCT_ERR_CASE():
                         ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
-                        target_server={"host_id_list": [1]},
+                        target_server=get_expected_target_server(
+                            host_ids=[1], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 0}]
+                        ),
                         headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
@@ -470,7 +486,9 @@ def CALLBACK_FAIL_CASE():
                         ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
-                        target_server={"host_id_list": [1]},
+                        target_server=get_expected_target_server(
+                            host_ids=[1], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 0}]
+                        ),
                         headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
@@ -552,7 +570,9 @@ def SUCCESS_CASE():
                         ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
-                        target_server={"host_id_list": [1]},
+                        target_server=get_expected_target_server(
+                            host_ids=[1], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 0}]
+                        ),
                         headers={"X-Bk-Tenant-Id": "system"},
                     )
                 ],
