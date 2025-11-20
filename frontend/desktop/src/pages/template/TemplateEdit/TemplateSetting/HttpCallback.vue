@@ -379,14 +379,6 @@
                             },
                             message: i18n.t('请输入请求URL'),
                             trigger: 'blur'
-                        },
-                        {
-                            validator: (val) => {
-                                const regex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w.-]*)*\/?$/i
-                                return regex.test(val)
-                            },
-                            message: i18n.t('请输入正确的请求URL'),
-                            trigger: 'blur'
                         }
                     ],
                     method: [
