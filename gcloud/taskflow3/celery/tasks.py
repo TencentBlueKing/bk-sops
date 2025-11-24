@@ -22,6 +22,7 @@ from pipeline.engine.models import PipelineProcess
 from pipeline.eri.models import Process, State
 from pipeline.eri.runtime import BambooDjangoRuntime
 
+import env
 import metrics
 from gcloud.constants import CallbackStatus
 from gcloud.core.trace import CallFrom, start_trace
@@ -211,3 +212,98 @@ def task_callback(task_id, retry_times=0, *args, **kwargs):
         status=CallbackStatus.SUCCESS.value if result else CallbackStatus.FAIL.value,
         callback_time=timezone.now(),
     )
+
+
+def is_sleep_process_error(callback_result):
+    """
+    检查 callback_result 的 message 中是否包含 sleep process 相关的错误信息
+    :param callback_result: 回调结果字典
+    :return: bool
+    """
+    message = callback_result.get("message", "")
+    if not message:
+        return False
+    message_lower = message.lower()
+    # 检查是否包含 "can not find sleep process with current node id" 类似的子串
+    return "can not find sleep process" in message_lower and "current node" in message_lower
+
+
+@task
+def async_node_callback_retry(
+    engine_ver, node_id, node_version, callback_data, taskflow_id=None, project_id=None, retry_times=0
+):
+    """
+    异步重试 node_callback，用于处理 sleep process 相关错误的情况
+    :param engine_ver: 引擎版本
+    :param node_id: 节点ID
+    :param node_version: 节点版本
+    :param callback_data: 回调数据
+    :param taskflow_id: 任务流ID（可选）
+    :param project_id: 项目ID（可选）
+    :param retry_times: 当前重试次数，最多重试3次
+    """
+    MAX_ASYNC_RETRY_TIMES = 3
+
+    logger.info(
+        "[async_node_callback_retry] retry_times: {}, engine_ver: {}, node_id: {}, node_version: {}".format(
+            retry_times, engine_ver, node_id, node_version
+        )
+    )
+
+    dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=taskflow_id)
+
+    with start_trace(
+        "async_node_callback_retry", propagate=True, project_id=project_id, call_from=CallFrom.BACKEND.value
+    ):
+        callback_result = dispatcher.dispatch(command="callback", operator="", version=node_version, data=callback_data)
+
+        logger.info(
+            "[async_node_callback_retry] result of callback call(engine_ver: {} node_id: {}, "
+            "node_version: {}, retry_times: {}): {}".format(
+                engine_ver, node_id, node_version, retry_times, callback_result
+            )
+        )
+
+        # 如果成功，直接返回
+        if callback_result.get("result"):
+            logger.info(
+                "[async_node_callback_retry] callback success after async retry, "
+                "engine_ver: {}, node_id: {}, retry_times: {}".format(engine_ver, node_id, retry_times)
+            )
+            return callback_result
+
+        # 如果失败且错误信息中包含 sleep process 相关错误，且未达到最大重试次数，继续异步重试
+        if is_sleep_process_error(callback_result) and retry_times < MAX_ASYNC_RETRY_TIMES:
+            logger.warning(
+                "[async_node_callback_retry] Sleep process error detected, scheduling next async retry. "
+                "engine_ver: {}, node_id: {}, node_version: {}, retry_times: {}, message: {}. ".format(
+                    engine_ver,
+                    node_id,
+                    node_version,
+                    retry_times,
+                    callback_result.get("message", ""),
+                )
+            )
+            async_node_callback_retry.apply_async(
+                kwargs=dict(
+                    engine_ver=engine_ver,
+                    node_id=node_id,
+                    node_version=node_version,
+                    callback_data=callback_data,
+                    taskflow_id=taskflow_id,
+                    project_id=project_id,
+                    retry_times=retry_times + 1,
+                ),
+                queue="task_callback",
+                routing_key="task_callback",
+                countdown=env.ASYNC_NODE_CALLBACK_RETRY_INTERVAL,
+            )
+        else:
+            logger.error(
+                "[async_node_callback_retry] callback failed after async retry, "
+                "engine_ver: {}, node_id: {}, retry_times: {}, result: {}".format(
+                    engine_ver, node_id, retry_times, callback_result
+                )
+            )
+
+        return callback_result
