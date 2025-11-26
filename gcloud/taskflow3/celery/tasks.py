@@ -259,8 +259,8 @@ def async_node_callback_retry(
 
         logger.info(
             "[async_node_callback_retry] result of callback call(engine_ver: {} node_id: {}, "
-            "node_version: {}, retry_times: {}): {}".format(
-                engine_ver, node_id, node_version, retry_times, callback_result
+            "taskflow_id: {}, node_version: {}, retry_times: {}): {}".format(
+                engine_ver, node_id, taskflow_id, node_version, retry_times, callback_result
             )
         )
 
@@ -268,7 +268,9 @@ def async_node_callback_retry(
         if callback_result.get("result"):
             logger.info(
                 "[async_node_callback_retry] callback success after async retry, "
-                "engine_ver: {}, node_id: {}, retry_times: {}".format(engine_ver, node_id, retry_times)
+                "engine_ver: {}, node_id: {}, taskflow_id: {}, retry_times: {}".format(
+                    engine_ver, node_id, taskflow_id, retry_times
+                )
             )
             return callback_result
 
@@ -276,9 +278,10 @@ def async_node_callback_retry(
         if is_sleep_process_error(callback_result) and retry_times < MAX_ASYNC_RETRY_TIMES:
             logger.warning(
                 "[async_node_callback_retry] Sleep process error detected, scheduling next async retry. "
-                "engine_ver: {}, node_id: {}, node_version: {}, retry_times: {}, message: {}. ".format(
+                "engine_ver: {}, node_id: {}, taskflow_id: {}, node_version: {}, retry_times: {}, message: {}. ".format(
                     engine_ver,
                     node_id,
+                    taskflow_id,
                     node_version,
                     retry_times,
                     callback_result.get("message", ""),
@@ -301,8 +304,8 @@ def async_node_callback_retry(
         else:
             logger.error(
                 "[async_node_callback_retry] callback failed after async retry, "
-                "engine_ver: {}, node_id: {}, retry_times: {}, result: {}".format(
-                    engine_ver, node_id, retry_times, callback_result
+                "engine_ver: {}, node_id: {}, taskflow_id: {},retry_times: {}, result: {}".format(
+                    engine_ver, node_id, taskflow_id, retry_times, callback_result
                 )
             )
 
