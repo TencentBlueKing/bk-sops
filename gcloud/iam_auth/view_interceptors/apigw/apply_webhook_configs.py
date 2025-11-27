@@ -34,7 +34,7 @@ class ApplyWebhookConfigs(ViewInterceptor):
         existing_templates = TaskTemplate.objects.filter(
             project_id=request.project.id, id__in=template_ids, is_deleted=False
         ).values_list("id", flat=True)
-        missing_template_ids = set(template_ids) - set(existing_templates)
+        missing_template_ids = set(template_ids) - set(list(existing_templates))
         if missing_template_ids:
             error_message = f"The templates already not exist {missing_template_ids}"
             logging.error(error_message)

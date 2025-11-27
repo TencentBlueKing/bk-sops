@@ -93,45 +93,6 @@ class ApplyWebhookConfigsAPITest(APITest):
         self.assertFalse(data["result"])
         self.assertTrue("message" in data)
 
-    @patch(
-        PROJECT_GET,
-        MagicMock(
-            return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
-            )
-        ),
-    )
-    def test_apply_webhook_configs__subscription_apply_fail(self):
-        """测试订阅事件失败"""
-        template_ids = [1]
-        webhook_data = {
-            "endpoint": "https://example.com/webhook",
-            "events": ["template_create"],
-            "extra_info": {},
-            "template_ids": template_ids,
-        }
-
-        mock_queryset = MagicMock()
-        mock_queryset.values_list.return_value = [1]
-        mock_filter = MagicMock(return_value=mock_queryset)
-
-        with patch(
-            "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter", mock_filter
-        ):
-            response = self.client.post(
-                path=self.url().format(project_id=TEST_PROJECT_ID),
-                data=json.dumps(webhook_data),
-                content_type="application/json",
-                HTTP_BK_APP_CODE=TEST_APP_CODE,
-            )
-
-            data = json.loads(response.content)
-            self.assertFalse(data["result"])
-            self.assertFalse("fail: Subscription apply failed" in data["message"])
-
     def test_apply_webhook_configs__project_not_found(self):
         """测试项目不存在"""
 

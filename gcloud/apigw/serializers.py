@@ -40,8 +40,8 @@ class WebhookSerializer(serializers.Serializer):
     endpoint = serializers.URLField(help_text="webhook endpoint", max_length=255, required=True)
     method = serializers.CharField(help_text="webhook method", max_length=255, required=False)
     extra_info = serializers.JSONField(help_text="额外扩展信息", required=False)
-    events = serializers.ListField(help_text="webhook事件列表", required=True)
-    template_ids = serializers.ListField(help_text="模板ID列表", required=True)
+    events = serializers.ListField(child=serializers.CharField(), help_text="webhook事件列表", required=True)
+    template_ids = serializers.ListField(child=serializers.IntegerField(), help_text="模板ID列表", required=True)
 
     def validate_events(self, events: list):
         not_support_events = set(events) - set(Event.objects.all_events() + [webhook_settings.ALL_EVENTS_KEY])
