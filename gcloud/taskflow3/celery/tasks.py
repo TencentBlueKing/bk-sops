@@ -228,6 +228,22 @@ def is_sleep_process_error(callback_result):
     return "can not find sleep process" in message_lower and "current node" in message_lower
 
 
+def is_schedule_not_found_error(callback_result):
+    """
+    检查 callback_result 的 message 中是否包含 Schedule 不存在的错误信息
+    :param callback_result: 回调结果字典
+    :return: bool
+    """
+    message = callback_result.get("message", "")
+    if not message:
+        return False
+    message_lower = message.lower()
+    # 检查是否包含 "Schedule matching query does not exist" 或 "schedule" 和 "does not exist" 类似的子串
+    return "schedule matching query does not exist" in message_lower or (
+        "schedule" in message_lower and "does not exist" in message_lower
+    )
+
+
 @task
 def async_node_callback_retry(
     engine_ver, node_id, node_version, callback_data, taskflow_id=None, project_id=None, retry_times=0
