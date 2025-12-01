@@ -25,7 +25,7 @@ from django.views.decorators.http import require_POST
 
 import env
 from gcloud.core.trace import CallFrom, start_trace
-from gcloud.taskflow3.celery.tasks import async_node_callback_retry, is_sleep_process_error
+from gcloud.taskflow3.celery.tasks import async_node_callback_retry, is_schedule_not_found_error, is_sleep_process_error
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -92,14 +92,18 @@ def node_callback(request, token):
             if callback_result["result"]:
                 break
             # 考虑callback时Process状态还没及时修改为sleep的情况
-            time.sleep(0.5)
+            time.sleep(1)
 
-    # 如果本地重试后仍然失败，且错误信息中包含 sleep process 相关错误，则通过 celery 进行异步重试
-    if not callback_result.get("result") and is_sleep_process_error(callback_result):
+    # 如果本地重试后仍然失败，且错误信息中包含 sleep process 或 Schedule 不存在相关错误，则通过 celery 进行异步重试
+    should_async_retry = not callback_result.get("result") and (
+        is_sleep_process_error(callback_result) or is_schedule_not_found_error(callback_result)
+    )
+    if should_async_retry:
+        error_type = "sleep process" if is_sleep_process_error(callback_result) else "schedule not found"
         logger.warning(
-            "[node_callback] Local retry failed with sleep process error, triggering async retry. "
+            "[node_callback] Local retry failed with {} error, triggering async retry. "
             "token: {}, engine_ver: {}, node_id: {}, node_version: {}, message: {}".format(
-                token, engine_ver, node_id, node_version, callback_result.get("message", "")
+                error_type, token, engine_ver, node_id, node_version, callback_result.get("message", "")
             )
         )
         try:
