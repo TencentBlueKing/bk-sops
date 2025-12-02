@@ -73,7 +73,6 @@ BK_GSE_KIT_PAGE_URL_TEMPLATE = os.getenv(
 
 # 用户管理配置
 BK_USER_MANAGE_HOST = get_app_host("bk_user_manage")
-BKPAAS_USER_URL = os.getenv("BKPAAS_USER_URL")
 
 # 文档中心
 BK_DOC_CENTER_HOST = os.getenv("BK_DOC_CENTER_HOST", os.getenv("BK_DOCS_URL_PREFIX"))
