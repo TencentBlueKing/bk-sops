@@ -139,6 +139,8 @@ class PeriodicTaskManager(models.Manager):
         queue = settings.PERIODIC_TASK_QUEUE_NAME_V2
         trigger_task = BAMBOO_ENGINE_TRIGGER_TASK
 
+        timezone = cron.pop("timezone", project.time_zone)
+
         if is_create:
             return PipelinePeriodicTask.objects.create_task(
                 name=name,
@@ -146,7 +148,7 @@ class PeriodicTaskManager(models.Manager):
                 cron=cron,
                 data=pipeline_tree,
                 creator=creator,
-                timezone=project.time_zone,
+                timezone=timezone,
                 extra_info=extra_info,
                 spread=True,
                 queue=queue,
@@ -158,7 +160,7 @@ class PeriodicTaskManager(models.Manager):
         instance.template = template.pipeline_template
         instance.snapshot = snapshot
         instance.extra_info = extra_info
-        instance.modify_cron(cron, project.time_zone, must_disabled=False)
+        instance.modify_cron(cron, timezone, must_disabled=False)
         instance.queue = queue
         instance.celery_task.task = trigger_task
         instance.save()
@@ -275,7 +277,8 @@ class PeriodicTask(models.Model):
 
         if self.project.from_cmdb:
             cc_group_members = get_business_group_members(
-                self.project.tenant_id, self.project.bk_biz_id, receiver_group)
+                self.project.tenant_id, self.project.bk_biz_id, receiver_group
+            )
             receivers.extend(cc_group_members)
 
         members = list(

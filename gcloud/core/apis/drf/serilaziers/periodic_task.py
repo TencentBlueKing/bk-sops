@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django_celery_beat.models import PeriodicTask as CeleryTask
@@ -25,11 +26,10 @@ import env
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
-from gcloud.core.models import Project, ProjectConfig
+from gcloud.core.models import EnvironmentVariables, Project, ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 from gcloud.utils.strings import inspect_time
-from gcloud.core.models import EnvironmentVariables
 
 logger = logging.getLogger("root")
 
@@ -134,10 +134,10 @@ class PeriodicTaskListReadOnlySerializer(PeriodicTaskReadOnlySerializer):
         ]
 
 
-def check_cron_params(cron, project):
+def check_cron_params(cron):
     # DB cron 属性最大允许字符长度数量
     max_length = 128
-    project_id = project.id if isinstance(project, Project) else project
+    cron["timezone"] = timezone.get_current_timezone_name()
     # 计算周期任务拼接字符串长度
     schedule_length = len(
         str(
@@ -147,10 +147,11 @@ def check_cron_params(cron, project):
                 day_of_week=cron.get("day_of_week", "*"),
                 day_of_month=cron.get("day_of_month", "*"),
                 month_of_year=cron.get("month_of_year", "*"),
-                timezone=Project.objects.filter(id=project_id).first().time_zone,
+                timezone=cron["timezone"],
             )
         )
     )
+
     if schedule_length > max_length:
         raise ValidationError("周期任务时间格式过长")
 
@@ -164,7 +165,6 @@ class CronFieldSerializer(serializers.Serializer):
         day_of_month = cron.get("day_of_month", "*")
         month = cron.get("month", "*")
         day_of_week = cron.get("day_of_week", "*")
-
         cron_expression = f"{minute} {hour} {day_of_month} {month} {day_of_week}"
 
         result = inspect_time(cron_expression, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
@@ -213,7 +213,7 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
             raise serializers.ValidationError(_("project不存在"))
 
     def validate(self, attrs):
-        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        check_cron_params(attrs.get("cron"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
@@ -242,7 +242,7 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
     name = serializers.CharField(help_text="任务名", required=False)
 
     def validate(self, attrs):
-        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        check_cron_params(attrs.get("cron"))
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
