@@ -57,6 +57,7 @@ from gcloud.apigw.views.set_periodic_task_enabled import set_periodic_task_enabl
 from gcloud.apigw.views.start_task import start_task
 from gcloud.apigw.views.copy_template_across_project import copy_template_across_project
 from gcloud.apigw.views.get_task_operate_record import get_task_operate_record
+from gcloud.apigw.views.apply_webhook_configs import apply_webhook_configs
 
 urlpatterns = [
     url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
@@ -133,4 +134,5 @@ urlpatterns = [
     url(r"^get_task_count/(?P<project_id>\d+)/$", get_task_count),
     url(r"^copy_template_across_project/(?P<project_id>\d+)/$", copy_template_across_project),
     url(r"^get_task_operate_record/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_operate_record),
+    url(r"^apply_webhook_configs/(?P<project_id>\d+)/$", apply_webhook_configs),
 ]

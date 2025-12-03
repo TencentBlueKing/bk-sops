@@ -805,3 +805,27 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
+  /apply_webhook_configs/{project_id}/:
+    post:
+      operationId: apply_webhook_configs
+      description: 应用模板的webhook配置
+      tags:
+        - 限制接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/apply_webhook_configs/{project_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
