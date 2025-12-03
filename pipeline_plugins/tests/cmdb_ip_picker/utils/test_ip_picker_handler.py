@@ -15,18 +15,21 @@ from django.test import TestCase
 from mock import patch
 
 from pipeline_plugins.cmdb_ip_picker.utils import IPPickerHandler
-from pipeline_plugins.tests.cmdb_ip_picker.utils.common_settings import mock_get_client_by_user, MockCMDB
+from pipeline_plugins.tests.cmdb_ip_picker.utils.common_settings import MockCMDB, mock_get_client_by_user
 
 
 class IPPickerHandlerTestCase(TestCase):
     def setUp(self):
+        self.tenant_id = "system"
         self.selector = "ip"
         self.username = "username"
         self.bk_biz_id = "bk_biz_id"
         self.bk_supplier_account = "bk_supplier_account"
 
         mock_get_client_by_user.success = True
-        self.patch_client = patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+        self.patch_client = patch(
+            "pipeline_plugins.cmdb_ip_picker.utils.get_client_by_username", mock_get_client_by_user
+        )
         self.patch_client.start()
         self.addCleanup(self.patch_client.stop)
         self.patch_cmdb = patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
@@ -138,7 +141,9 @@ class IPPickerHandlerTestCase(TestCase):
             "set_property_filter": {"condition": "AND", "rules": []},
         }
 
-        ip_picker_handler = IPPickerHandler(self.selector, self.username, self.bk_biz_id, self.bk_supplier_account)
+        ip_picker_handler = IPPickerHandler(
+            self.tenant_id, self.selector, self.username, self.bk_biz_id, self.bk_supplier_account
+        )
         ip_picker_handler._inject_topo_params(topo_list)
         self.assertEqual(ip_picker_handler.property_filters, expected_property_filters)
 
@@ -253,7 +258,9 @@ class IPPickerHandlerTestCase(TestCase):
             ],
             "message": "",
         }
-        ip_picker_handler = IPPickerHandler(self.selector, self.username, self.bk_biz_id, self.bk_supplier_account)
+        ip_picker_handler = IPPickerHandler(
+            self.tenant_id, self.selector, self.username, self.bk_biz_id, self.bk_supplier_account
+        )
         result = ip_picker_handler.dispatch(params)
         self.assertEqual(result, expected_result)
 
@@ -283,7 +290,9 @@ class IPPickerHandlerTestCase(TestCase):
             ],
             "message": "",
         }
-        ip_picker_handler = IPPickerHandler(self.selector, self.username, self.bk_biz_id, self.bk_supplier_account)
+        ip_picker_handler = IPPickerHandler(
+            self.tenant_id, self.selector, self.username, self.bk_biz_id, self.bk_supplier_account
+        )
         result = ip_picker_handler.dispatch(params)
         self.assertEqual(result, expected_result)
 
@@ -308,6 +317,7 @@ class IPPickerHandlerTestCase(TestCase):
             "message": "",
         }
         ip_picker_handler = IPPickerHandler(
+            self.tenant_id,
             self.selector,
             self.username,
             self.bk_biz_id,

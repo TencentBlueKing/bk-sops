@@ -26,33 +26,36 @@ class CaseData(object):
             "biz_list": [
                 {
                     "bk_biz_name": "name_1",
-                    "bk_supplier_account": "supplier_account",
+                    "bk_supplier_account": 0,
                     "bk_supplier_id": 0,
                     "time_zone": "time_zone",
                     "life_cycle": "life_cycle",
                     "bk_data_status": "enable",
                     "bk_biz_id": 1,
                     "bk_biz_maintainer": "m1,m2,m3",
+                    "tenant_id": "system",
                 },
                 {
                     "bk_biz_name": "name_4",
-                    "bk_supplier_account": "supplier_account",
+                    "bk_supplier_account": 0,
                     "bk_supplier_id": 0,
                     "time_zone": "time_zone",
                     "life_cycle": "life_cycle",
                     "bk_data_status": "enable",
                     "bk_biz_id": 4,
                     "bk_biz_maintainer": "m2,m3",
+                    "tenant_id": "system",
                 },
                 {
                     "bk_biz_name": "name_5",
-                    "bk_supplier_account": "supplier_account",
+                    "bk_supplier_account": 0,
                     "bk_supplier_id": 0,
                     "time_zone": "time_zone",
                     "life_cycle": "life_cycle",
                     "bk_data_status": "enable",
                     "bk_biz_id": 5,
                     "bk_biz_maintainer": "m3",
+                    "tenant_id": "system",
                 },
             ]
         }
@@ -75,6 +78,7 @@ class ProjectModelTestCase(TestCase):
                     "time_zone": biz["time_zone"],
                     "life_cycle": biz["life_cycle"],
                     "status": biz["bk_data_status"],
+                    "tenant_id": biz["tenant_id"],
                 },
             )
             for biz in biz_list
@@ -91,7 +95,7 @@ class ProjectModelTestCase(TestCase):
     @patch(CORE_MODEL_PROJECT_SYNC_PROJECT, MagicMock(return_value=[]))
     @patch(CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT, MagicMock())
     def test_sync_projects_from_cmdb__empty_business_list(self):
-        project.sync_projects_from_cmdb("user")
+        project.sync_projects_from_cmdb("user", tenant_id="system")
 
         Project.objects.sync_project_from_cmdb_business.assert_called_once_with({})
 
@@ -105,12 +109,12 @@ class ProjectModelTestCase(TestCase):
     def test_sync_projects_from_cmdb__project_exist(self):
         Business.objects.create(cc_id=5, cc_name="name_5", cc_owner="owner", cc_company="company")
         with patch(CORE_MODEL_PROJECT_SYNC_PROJECT, MagicMock(side_effect=IntegrityError)):
-            project.sync_projects_from_cmdb("user")
+            project.sync_projects_from_cmdb("user", tenant_id="system")
             Project.objects.update_business_project_status.assert_called_once_with(
                 archived_cc_ids=set(), active_cc_ids={1, 4, 5}
             )
             self.assertEqual(len(Project.objects.all()), 0)
-        project.sync_projects_from_cmdb("user")
+        project.sync_projects_from_cmdb("user", tenant_id="system")
         self.assertEqual(len(Project.objects.all()), 3)
 
     @patch(
@@ -122,7 +126,7 @@ class ProjectModelTestCase(TestCase):
     @patch(CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT, MagicMock())
     def test_sync_projects_from_cmdb(self):
         Business.objects.create(cc_id=5, cc_name="name_5", cc_owner="owner", cc_company="company")
-        project.sync_projects_from_cmdb("user")
+        project.sync_projects_from_cmdb("user", tenant_id="system")
 
         Business.objects.update_or_create.assert_has_calls(
             self.generate_business_update_or_create_calls(CaseData.sync_projects_from_cmdb_business_data()["biz_list"])
@@ -130,9 +134,9 @@ class ProjectModelTestCase(TestCase):
 
         Project.objects.sync_project_from_cmdb_business.assert_called_once_with(
             {
-                1: {"cc_name": "name_1", "time_zone": "time_zone", "creator": "user"},
-                4: {"cc_name": "name_4", "time_zone": "time_zone", "creator": "user"},
-                5: {"cc_name": "name_5", "time_zone": "time_zone", "creator": "user"},
+                1: {"cc_name": "name_1", "time_zone": "time_zone", "creator": "user", "tenant_id": "system"},
+                4: {"cc_name": "name_4", "time_zone": "time_zone", "creator": "user", "tenant_id": "system"},
+                5: {"cc_name": "name_5", "time_zone": "time_zone", "creator": "user", "tenant_id": "system"},
             }
         )
 
@@ -151,12 +155,12 @@ class ProjectModelTestCase(TestCase):
         biz_list = CaseData.sync_projects_from_cmdb_business_data()["biz_list"]
         with patch(CORE_PROJECT_GET_USER_BUSINESS_LIST, MagicMock(return_value=biz_list)):
             with patch(PROJECT_FILTER, MagicMock(return_value=project_values_list_qs)):
-                project.sync_projects_from_cmdb("user")
+                project.sync_projects_from_cmdb("user", tenant_id="system")
 
         # 模拟从 CC 删除最后一个业务
         with patch(CORE_PROJECT_GET_USER_BUSINESS_LIST, MagicMock(return_value=biz_list[:-1])):
             with patch(PROJECT_FILTER, MagicMock(return_value=project_values_list_qs)):
-                project.sync_projects_from_cmdb("user")
+                project.sync_projects_from_cmdb("user", tenant_id="system")
 
         Business.objects.update_or_create.assert_has_calls(
             self.generate_business_update_or_create_calls(biz_list + biz_list[:-1])
