@@ -67,6 +67,8 @@
     import CronExpression from 'cron-parser-custom'
     import Translate from '@/utils/cron.js'
     import tools from '@/utils/tools.js'
+    import moment from 'moment-timezone'
+    import { mapState } from 'vuex'
     const labelIndexMap = {
         minute: 0,
         hour: 1,
@@ -109,6 +111,11 @@
                 shortestTime: window.PERIODIC_TASK_SHORTEST_TIME
             }
         },
+        computed: {
+            ...mapState('project', {
+                'timeZone': state => state.timezone
+            })
+        },
         watch: {
             nativeValue (val) {
                 // 长度超过100个字符
@@ -136,7 +143,15 @@
                 let i = 5
                 this.nextTime = []
                 while (i > 0) {
-                    this.nextTime.push(tools.prettyDateTimeFormat(interval.next().toString()))
+                    const nextDate = interval.next()
+                    // 根据时区转换时间显示
+                    let formattedTime
+                    if (this.timeZone) {
+                        formattedTime = moment(nextDate.toDate()).tz(this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                    } else {
+                        formattedTime = tools.prettyDateTimeFormat(nextDate.toString())
+                    }
+                    this.nextTime.push(formattedTime)
                     i -= 1
                 }
                 this.errorField = ''

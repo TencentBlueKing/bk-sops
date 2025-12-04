@@ -74,6 +74,8 @@
             <i class="bk-icon icon-down-shape"></i>
         </div>
         <div id="logout-html">
+            <div class="operate-item" data-test-id="navHeader_list_permissionCenter" @click="handleJumpToCenter('permission')">{{ $t('权限中心') }}</div>
+            <div class="operate-item" data-test-id="navHeader_list_personalCenter" @click="handleJumpToCenter('personal')">{{ $t('个人中心') }}</div>
             <div class="operate-item" data-test-id="navHeader_list_logout" @click="handleLogout">{{ $t('退出登录') }}</div>
         </div>
         <!-- 日志组件 -->
@@ -259,6 +261,13 @@
                     let loginUrl = window.LOGIN_URL
                     loginUrl = /\/$/.test(loginUrl) ? loginUrl : `${loginUrl}/`
                     window.location.replace(`${loginUrl}?is_from_logout=1&c_url=${window.location.href}`)
+                }
+            },
+            handleJumpToCenter (name) {
+                if (name === 'permission') {
+                    window.open(window.BK_IAM_SAAS_HOST, '_blank')
+                } else {
+                    window.open(window.BKPAAS_USER_URL + '/personal-center', '_blank')
                 }
             }
         }
