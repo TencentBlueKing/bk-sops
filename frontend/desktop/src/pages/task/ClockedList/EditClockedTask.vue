@@ -222,6 +222,7 @@
     import NodePreview from '@/pages/task/NodePreview.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import { formatCanvasData } from '@/utils/checkDataType'
+    import moment from 'moment-timezone'
     export default {
         components: {
             TaskParamEdit,
@@ -356,7 +357,6 @@
                     count: 0,
                     limit: 15
                 },
-                locTimeZone: '', // 本地时区
                 flowName: '',
                 isTplDeleted: false, // 旧数据模板是否被删除
                 hasDeleteScheme: false // 是否存在执行方案被删除
@@ -364,7 +364,8 @@
         },
         computed: {
             ...mapState('project', {
-                'projectName': state => state.projectName
+                'projectName': state => state.projectName,
+                'timeZone': state => state.timezone
             }),
             ...mapState({
                 'infoBasicConfig': state => state.infoBasicConfig
@@ -420,10 +421,22 @@
             },
             canvasData () {
                 return formatCanvasData('preview', this.previewData)
+            },
+            locTimeZone () {
+                // 使用全局变量 window.TIMEZONE，如果没有则使用浏览器本地时区
+                if (this.timeZone) {
+                    try {
+                        const offset = moment().tz(this.timeZone).format('ZZ')
+                        return offset
+                    } catch (e) {
+                        console.warn(e)
+                        return new Date().toTimeString().slice(12, 17)
+                    }
+                }
+                return new Date().toTimeString().slice(12, 17)
             }
         },
         created () {
-            this.locTimeZone = new Date().toTimeString().slice(12, 17)
             this.initFormData = tools.deepClone(this.formData)
             if (this.type !== 'create') {
                 const id = this.curRow.template_id
