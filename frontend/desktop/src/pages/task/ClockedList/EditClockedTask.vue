@@ -424,9 +424,9 @@
             },
             locTimeZone () {
                 // 使用全局变量 window.TIMEZONE，如果没有则使用浏览器本地时区
-                if (this.timeZone) {
+                if (window.TIMEZONE) {
                     try {
-                        const offset = moment().tz(this.timeZone).format('ZZ')
+                        const offset = moment().tz(window.TIMEZONE).format('ZZ')
                         return offset
                     } catch (e) {
                         console.warn(e)

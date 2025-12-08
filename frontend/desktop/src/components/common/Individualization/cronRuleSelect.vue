@@ -146,8 +146,8 @@
                     const nextDate = interval.next()
                     // 根据时区转换时间显示
                     let formattedTime
-                    if (this.timeZone) {
-                        formattedTime = moment(nextDate.toDate()).tz(this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                    if (window.TIMEZONE) {
+                        formattedTime = moment(nextDate.toDate()).tz(window.TIMEZONE).format('YYYY-MM-DD HH:mm:ss')
                     } else {
                         formattedTime = tools.prettyDateTimeFormat(nextDate.toString())
                     }
