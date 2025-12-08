@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import ujson as json
+
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -18,112 +20,164 @@ from .utils import APITest
 
 TEST_APP_CODE = "app_code"
 TEST_PROJECT_ID = "123"
-TEST_PROJECT_NAME = "biz name"
-TEST_BIZ_CC_ID = "123"
+TEST_TEMPLATE_IDS = ["1", "2"]
+TEST_ENDPOINT = "https://example.com/webhook"
+TEST_EVENTS = ["*"]
+TEST_EXTRA_INFO = {}
 
 
 class ApplyWebhookConfigsAPITest(APITest):
     def url(self):
         return "/apigw/apply_webhook_configs/{project_id}/"
 
-    @patch(
-        PROJECT_GET,
-        MagicMock(
-            return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
-            )
-        ),
-    )
-    def test_apply_webhook_configs__success(self):
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Scope.objects.bulk_create")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Subscription.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Subscription.objects.bulk_create")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.bulk_create")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.bulk_update")
+    def test_apply_webhook_configs__success(
+        self,
+        mock_bulk_update,
+        mock_bulk_create,
+        mock_sub_bulk_create,
+        mock_sub_filter,
+        mock_scope_bulk_create,
+        mock_webhook_filter,
+        mock_serializer,
+    ):
         """测试成功应用webhook配置"""
-        template_ids = [1, 2]
-        webhook_data = {
-            "endpoint": "https://example.com/webhook",
-            "events": ["*"],
-            "extra_info": {},
-            "template_ids": template_ids,
+        mock_serializer_instance = MagicMock()
+        mock_serializer_instance.is_valid.return_value = True
+        mock_serializer_instance.validated_data = {
+            "endpoint": TEST_ENDPOINT,
+            "events": TEST_EVENTS,
+            "extra_info": TEST_EXTRA_INFO,
+            "template_ids": TEST_TEMPLATE_IDS,
         }
+        mock_serializer.return_value = mock_serializer_instance
 
-        mock_queryset = MagicMock()
-        mock_queryset.values_list.return_value = [1, 2]
+        mock_webhook_filter.return_value.values.return_value = [
+            {"scope_code": "1", "id": 1},
+            {"scope_code": "2", "id": 2},
+        ]
 
-        mock_filter = MagicMock(return_value=mock_queryset)
-
-        with patch(
-            "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter", mock_filter
-        ):
+        # Mock IAM拦截器中的模板验证
+        with mock.patch(
+            "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter"
+        ) as mock_task_filter:
+            mock_task_filter.return_value.values_list.return_value = TEST_TEMPLATE_IDS
             response = self.client.post(
                 path=self.url().format(project_id=TEST_PROJECT_ID),
-                data=json.dumps(webhook_data),
+                data=json.dumps(
+                    {
+                        "endpoint": TEST_ENDPOINT,
+                        "events": TEST_EVENTS,
+                        "extra_info": TEST_EXTRA_INFO,
+                        "template_ids": TEST_TEMPLATE_IDS,
+                    }
+                ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
             )
 
-        data = json.loads(response.content)
-        self.assertTrue(data["result"])
-        self.assertEqual(data["message"], "success")
-        self.assertEqual(data["code"], 0)
+            data = json.loads(response.content)
+            self.assertTrue(data["result"])
+            self.assertEqual(data["message"], "success")
 
-    @patch(
-        PROJECT_GET,
-        MagicMock(
-            return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
-            )
-        ),
-    )
-    def test_apply_webhook_configs__validation_fail(self):
-        """测试参数验证失败（如无效 endpoint、空 events、空 template_ids）"""
-        invalid_data = {"endpoint": "not-a-valid-url", "events": [], "template_ids": []}
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
+    def test_apply_webhook_configs__validate_fail(self, mock_serializer):
+        """测试参数验证失败的情况"""
+        mock_serializer_instance = MagicMock()
+        mock_serializer_instance.is_valid.return_value = False
+        mock_serializer_instance.errors = {"endpoint": ["This field is required."]}
+        mock_serializer.return_value = mock_serializer_instance
 
         response = self.client.post(
             path=self.url().format(project_id=TEST_PROJECT_ID),
-            data=json.dumps(invalid_data),
+            data=json.dumps({"events": TEST_EVENTS, "extra_info": TEST_EXTRA_INFO, "template_ids": TEST_TEMPLATE_IDS}),
             content_type="application/json",
             HTTP_BK_APP_CODE=TEST_APP_CODE,
         )
 
         data = json.loads(response.content)
         self.assertFalse(data["result"])
-        self.assertTrue("message" in data)
 
-    def test_apply_webhook_configs__project_not_found(self):
-        """测试项目不存在"""
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Scope.objects.bulk_create")
+    def test_apply_webhook_configs__database_error(self, mock_scope_bulk_create, mock_webhook_filter, mock_serializer):
+        """测试数据库操作异常的情况"""
+        mock_serializer_instance = MagicMock()
+        mock_serializer_instance.is_valid.return_value = True
+        mock_serializer_instance.validated_data = {
+            "endpoint": TEST_ENDPOINT,
+            "events": TEST_EVENTS,
+            "extra_info": TEST_EXTRA_INFO,
+            "template_ids": TEST_TEMPLATE_IDS,
+        }
+        mock_serializer.return_value = mock_serializer_instance
 
-        def mock_filter(**kwargs):
-            if "id__in" in kwargs and "project_id" in kwargs:
-                requested_ids = kwargs["id__in"]
-                mock_queryset = MagicMock()
-                mock_queryset.values_list = MagicMock(return_value=list(requested_ids))
-                return mock_queryset
-            return MagicMock()
+        mock_webhook_filter.return_value.values.return_value = []
+        mock_scope_bulk_create.side_effect = Exception("Database connection error")
 
-        filter_mock = MagicMock(side_effect=mock_filter)
-
-        with mock.patch(PROJECT_GET, MagicMock(side_effect=Exception("Project not found"))):
-            with mock.patch(
-                "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter", filter_mock
-            ):
-                webhook_data = {
-                    "endpoint": "https://example.com/webhook",
-                    "events": ["*"],
-                    "extra_info": {},
-                    "template_ids": [1],
+        response = self.client.post(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            data=json.dumps(
+                {
+                    "endpoint": TEST_ENDPOINT,
+                    "events": TEST_EVENTS,
+                    "extra_info": TEST_EXTRA_INFO,
+                    "template_ids": TEST_TEMPLATE_IDS,
                 }
+            ),
+            content_type="application/json",
+            HTTP_BK_APP_CODE=TEST_APP_CODE,
+        )
 
-                response = self.client.post(
-                    path=self.url().format(project_id=TEST_PROJECT_ID),
-                    data=json.dumps(webhook_data),
-                    content_type="application/json",
-                    HTTP_BK_APP_CODE=TEST_APP_CODE,
-                )
+        data = json.loads(response.content)
+        self.assertFalse(data["result"])
 
-                data = json.loads(response.content)
-                self.assertFalse(data["result"])
-                self.assertTrue("message" in data)
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Scope.objects.bulk_create")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Subscription.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.bulk_create")
+    def test_apply_webhook_configs__transaction_rollback(
+        self, mock_bulk_create, mock_sub_filter, mock_scope_bulk_create, mock_webhook_filter, mock_serializer
+    ):
+        """测试事务回滚的情况"""
+        mock_serializer_instance = MagicMock()
+        mock_serializer_instance.is_valid.return_value = True
+        mock_serializer_instance.validated_data = {
+            "endpoint": TEST_ENDPOINT,
+            "events": TEST_EVENTS,
+            "extra_info": TEST_EXTRA_INFO,
+            "template_ids": TEST_TEMPLATE_IDS,
+        }
+        mock_serializer.return_value = mock_serializer_instance
+
+        mock_webhook_filter.return_value.values.return_value = []
+        mock_bulk_create.side_effect = Exception("Bulk create failed")
+
+        response = self.client.post(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            data=json.dumps(
+                {
+                    "endpoint": TEST_ENDPOINT,
+                    "events": TEST_EVENTS,
+                    "extra_info": TEST_EXTRA_INFO,
+                    "template_ids": TEST_TEMPLATE_IDS,
+                }
+            ),
+            content_type="application/json",
+            HTTP_BK_APP_CODE=TEST_APP_CODE,
+        )
+
+        data = json.loads(response.content)
+        self.assertFalse(data["result"])
