@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 
+from django.conf import settings
 from rest_framework import serializers
 from webhook.config import webhook_settings
 from webhook.models import Event
@@ -48,3 +49,16 @@ class WebhookSerializer(serializers.Serializer):
         if not_support_events:
             raise serializers.ValidationError(f"校验失败，events中包含不支持的事件类型, 不支持事件类型: {not_support_events}")
         return events
+
+    def validate_extra_info(self, extra_info: dict):
+        extra_info_mappings = {
+            "retry_times": {"name": "重试次数", "max_value": settings.MAX_WEBHOOK_RETRY_TIMES, "unit": "次"},
+            "interval": {"name": "重试间隔", "max_value": settings.MAX_WEBHOOK_RETRY_INTERVAL, "unit": "秒"},
+            "timeout": {"name": "请求超时", "max_value": settings.MAX_WEBHOOK_TIMEOUT, "unit": "秒"},
+        }
+        for field, rule in extra_info_mappings.items():
+            raw_value = extra_info.get(field)
+            max_val = rule["max_value"]
+            if raw_value > max_val:
+                raise serializers.ValidationError(f"HTTP回调配置 {rule['name']} 不能超过 {max_val} {rule['unit']}")
+        return extra_info

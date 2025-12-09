@@ -53,7 +53,8 @@ def apply_webhook_configs(request, project_id):
     """
     data = json.loads(request.body)
     ser = WebhookSerializer(data=data)
-    ser.is_valid(raise_exception=True)
+    if not ser.is_valid():
+        return {"result": False, "message": ser.errors, "code": err_code.VALIDATION_ERROR.code}
 
     webhook_configs = ser.validated_data
     events = webhook_configs.pop("events")
