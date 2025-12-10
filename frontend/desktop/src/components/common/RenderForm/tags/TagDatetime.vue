@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-datetime">
-        <div v-if="formMode">
+        <div v-if="formMode" class="tag-datetime-select-form">
             <el-date-picker
                 v-model="dateValue"
                 popper-class="tag-component-popper"
@@ -21,6 +21,7 @@
                 :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </el-date-picker>
+            <span class="time-zone">{{ locTimeZone }}</span>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
@@ -29,6 +30,7 @@
 <script>
     import '@/utils/i18n.js'
     import i18n from '@/config/i18n/index.js'
+    import moment from 'moment-timezone'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -71,8 +73,22 @@
                     return this.value
                 },
                 set (val) {
-                    this.updateForm(val)
+                    const formatTime = moment(val).tz(window.TIMEZONE || moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss ZZ')
+                    this.updateForm(formatTime)
                 }
+            },
+            locTimeZone () {
+                // 使用全局变量 window.TIMEZONE，如果没有则使用浏览器本地时区
+                if (window.TIMEZONE) {
+                    try {
+                        const offset = moment().tz(window.TIMEZONE).format('ZZ')
+                        return offset
+                    } catch (e) {
+                        console.warn(e)
+                        return new Date().toTimeString().slice(12, 17)
+                    }
+                }
+                return new Date().toTimeString().slice(12, 17)
             }
         }
     }
@@ -85,6 +101,14 @@
             .el-input__inner {
                 padding: 0 30px;
             }
+        }
+    }
+    .tag-datetime-select-form{
+        .time-zone {
+            position: relative;
+            font-size: 12px;
+            margin: 0 8px 0 -68px;
+            color: #979ba5;
         }
     }
 }
