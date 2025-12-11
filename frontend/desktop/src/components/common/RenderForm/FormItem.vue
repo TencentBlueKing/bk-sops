@@ -121,6 +121,7 @@
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
                 :value="formValue"
+                :cur-scheme-type="curSchemeType"
                 :parent-value="parentValue"
                 @init="$emit('init', $event)"
                 @blur="$emit('blur', $event)"
@@ -239,6 +240,10 @@
                 default () {
                     return {}
                 }
+            },
+            curSchemeType: {
+                type: String,
+                default: ''
             }
         },
         data () {

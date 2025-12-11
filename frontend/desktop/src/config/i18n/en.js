@@ -413,7 +413,7 @@ const en = {
     '并行网关：': 'Parallel Gateway: ',
     '有多个流出分支，并且多个流出分支都默认执行。': 'All branch will be executed',
     '分支网关：': 'Exclusive Gateway: ',
-    '执行符合条件的流出分支。多个条件符合时，会中断流程并报错提示满足条件的多个流出分支': 'Execute the branch points that meet the conditions. When the conditions are met, multiple processes will be interrupted and errors will be reported',
+    '执行符合条件的流出分支。多个条件符合时，会中断流程并报错提示满足条件的多个流出分支。': 'Execute the branch points that meet the conditions. When the conditions are met, multiple processes will be interrupted and errors will be reported',
     '汇聚网关：': 'Converge Gateway: ',
     '当汇聚网关用于汇聚并行网关时，所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。': 'Convergence gateway used to converge parallel gateways, Converge gateway will be executed only when all incoming branch have executed to it',
     '复位': 'Reset',

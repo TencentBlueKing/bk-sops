@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-time">
-        <div v-if="formMode">
+        <div v-if="formMode" class="tag-datetime-select-form">
             <el-time-picker
                 v-model="timeValue"
                 popper-class="tag-component-popper"
@@ -22,6 +22,7 @@
                 :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </el-time-picker>
+            <!-- <span class="time-zone">{{ locTimeZone }}</span> -->
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
@@ -29,7 +30,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-
+    import moment from 'moment-timezone'
     import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
 
@@ -97,6 +98,19 @@
                 } else { // 单选
                     return this.timeValue || '--'
                 }
+            },
+            locTimeZone () {
+                // 使用全局变量 window.TIMEZONE，如果没有则使用浏览器本地时区
+                if (window.TIMEZONE) {
+                    try {
+                        const offset = moment().tz(window.TIMEZONE).format('ZZ')
+                        return offset
+                    } catch (e) {
+                        console.warn(e)
+                        return new Date().toTimeString().slice(12, 17)
+                    }
+                }
+                return new Date().toTimeString().slice(12, 17)
             }
         }
     }
@@ -122,6 +136,14 @@
             .el-input__prefix .el-input__icon {
                 line-height: 32px;
             }
+        }
+    }
+    .tag-datetime-select-form{
+        .time-zone {
+            position: relative;
+            font-size: 12px;
+            margin: 0 8px 0 -68px;
+            color: #979ba5;
         }
     }
 }

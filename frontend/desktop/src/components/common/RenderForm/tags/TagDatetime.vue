@@ -21,7 +21,7 @@
                 :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </el-date-picker>
-            <span class="time-zone">{{ locTimeZone }}</span>
+            <span class="time-zone" v-if="type !== 'date'">{{ locTimeZone }}</span>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
@@ -67,14 +67,24 @@
     export default {
         name: 'TagDatetime',
         mixins: [getFormMixins(attrs)],
+        props: {
+            curSchemeType: {
+                type: String,
+                default: 'datetime'
+            }
+        },
         computed: {
             dateValue: {
                 get () {
                     return this.value
                 },
                 set (val) {
-                    const formatTime = moment(val).tz(window.TIMEZONE || moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss ZZ')
-                    this.updateForm(formatTime)
+                    if (this.curSchemeType === 'format_support_datetime') {
+                        const formatTime = moment(val).tz(window.TIMEZONE || moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss ZZ')
+                        this.updateForm(formatTime)
+                    } else {
+                        this.updateForm(val)
+                    }
                 }
             },
             locTimeZone () {
