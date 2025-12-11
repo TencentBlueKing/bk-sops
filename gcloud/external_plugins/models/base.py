@@ -60,9 +60,7 @@ class PackageSourceManager(models.Manager):
     @transaction.atomic()
     def add_base_source(self, name, source_type, packages, tenant_id, **kwargs):
         base_source_cls = self.get_base_source_cls(source_type)
-        base_source = base_source_cls.objects.create_source(
-            name=name, packages=packages, from_config=False, tenant_id=tenant_id, **kwargs
-        )
+        base_source = base_source_cls.objects.create_source(name=name, packages=packages, from_config=False, **kwargs)
         return base_source
 
     def delete_base_source(self, package_source_id, source_type):
@@ -124,6 +122,8 @@ class PackageSource(models.Model):
                 self.save()
         else:
             base_source_cls = base_source_cls_factory[self.type]
-            base_source_cls.objects.filter(id=self.base_source_id).update(packages=packages, **kwargs)
+            valid_fields = {f.name for f in base_source_cls._meta.get_fields()}
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
+            base_source_cls.objects.filter(id=self.base_source_id).update(packages=packages, **filtered_kwargs)
             if hasattr(self, self._base_source_attr):
                 self.base_source.refresh_from_db()

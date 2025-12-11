@@ -12,36 +12,52 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-
 from pipeline.contrib.external_plugins.models import GIT, S3
 
+from gcloud.external_plugins.tasks import sync_task
 from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
-from gcloud.external_plugins.tasks import sync_task
 
 
 class TestSyncTask(TestCase):
-
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_SYNC_TASK_GET, MockSyncTaskModel)
-    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL,
-           MagicMock(return_value=[MockWriterAndReader(name='git', id=1, type=GIT)]))
-    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_S3_ORIGINAL_PACKAGE_SOURCE_ALL,
-           MagicMock(return_value=[MockWriterAndReader(name='s3', id=1, type=S3)]))
+    @patch(
+        GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL,
+        MagicMock(return_value=[MockWriterAndReader(name="git", id=1, type=GIT)]),
+    )
+    @patch(
+        GCLOUD_EXTERNAL_PLUGINS_MODELS_S3_ORIGINAL_PACKAGE_SOURCE_ALL,
+        MagicMock(return_value=[MockWriterAndReader(name="s3", id=1, type=S3)]),
+    )
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_FS_ORIGINAL_PACKAGE_SOURCE_ALL, MagicMock(return_val=[]))
     def test_sync_task__git_and_s3_normal(self):
-        with patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_PACKAGE_SOURCE_ALL,
-                   MagicMock(return_value=[MockWriterAndReader(name='cache', id=1, type=GIT)])):
+        with patch(
+            GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_PACKAGE_SOURCE_ALL,
+            MagicMock(return_value=[MockWriterAndReader(name="cache", id=1, type=GIT, tenant_id="system")]),
+        ):
             self.assertTrue(sync_task(1))
-        with patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_PACKAGE_SOURCE_ALL,
-                   MagicMock(return_value=[MockWriterAndReader(name='cache', id=1, type=GIT, raise_exception=True)])):
+        with patch(
+            GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_PACKAGE_SOURCE_ALL,
+            MagicMock(
+                return_value=[
+                    MockWriterAndReader(name="cache", id=1, type=GIT, raise_exception=True, tenant_id="system")
+                ]
+            ),
+        ):
             self.assertFalse(sync_task(1))
 
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_SYNC_TASK_GET, MockSyncTaskModel)
-    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL,
-           MagicMock(return_value=[MockWriterAndReader(name='git', id=1, type=GIT)]))
-    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_S3_ORIGINAL_PACKAGE_SOURCE_ALL,
-           MagicMock(return_value=[MockWriterAndReader(name='s3', id=1, type=S3, raise_exception=True)]))
-    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_FS_ORIGINAL_PACKAGE_SOURCE_ALL, MagicMock(return_val=[]))
-    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL, MagicMock(return_val=[]))
+    @patch(
+        GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL,
+        MagicMock(return_value=[MockWriterAndReader(name="git", id=1, type=GIT, tenant_id="system")]),
+    )
+    @patch(
+        GCLOUD_EXTERNAL_PLUGINS_MODELS_S3_ORIGINAL_PACKAGE_SOURCE_ALL,
+        MagicMock(
+            return_value=[MockWriterAndReader(name="s3", id=1, type=S3, raise_exception=True, tenant_id="system")]
+        ),
+    )
+    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_FS_ORIGINAL_PACKAGE_SOURCE_ALL, MagicMock(return_val=[], tenant_id="system"))
+    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL, MagicMock(return_val=[], tenant_id="system"))
     def test_sync_task__git_normal_and_s3_abnormal(self):
         self.assertFalse(sync_task(1))

@@ -12,15 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc.empty_set_hosts.v1_0 import CCEmptySetHostsComponent
 
 
@@ -44,14 +44,14 @@ class MockClient(object):
         search_biz_inst_topo_return=None,
         transfer_sethost_to_idle_module_return=None,
     ):
-        self.cc = MagicMock()
-        self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
-        self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
-        self.cc.transfer_sethost_to_idle_module = MagicMock(return_value=transfer_sethost_to_idle_module_return)
+        self.api = MagicMock()
+        self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
+        self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
+        self.api.transfer_sethost_to_idle_module = MagicMock(return_value=transfer_sethost_to_idle_module_return)
 
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.empty_set_hosts.v1_0.get_client_by_user"
-CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.empty_set_hosts.v1_0.get_client_by_username"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 
 COMMON_MAINLINE = {
     "result": True,
@@ -153,7 +153,7 @@ COMMON_TOPO = {
     ],
 }
 
-COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
+COMMON_PARENT = {"tenant_id": "system", "executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
 
 SELECT_BY_TEXT_SUCCESS_CLIENT = MockClient(
     get_mainline_object_topo_return=COMMON_MAINLINE,
@@ -177,8 +177,13 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.transfer_sethost_to_idle_module,
-            calls=[Call({"bk_biz_id": 2, "bk_supplier_account": 0, "bk_set_id": 5})],
+            func=SELECT_BY_TEXT_SUCCESS_CLIENT.api.transfer_sethost_to_idle_module,
+            calls=[
+                Call(
+                    {"bk_biz_id": 2, "bk_set_id": 5},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
@@ -210,8 +215,13 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=SELECT_BY_TOPO_SUCCESS_CLIENT.cc.transfer_sethost_to_idle_module,
-            calls=[Call({"bk_biz_id": 2, "bk_supplier_account": 0, "bk_set_id": 5})],
+            func=SELECT_BY_TOPO_SUCCESS_CLIENT.api.transfer_sethost_to_idle_module,
+            calls=[
+                Call(
+                    {"bk_biz_id": 2, "bk_set_id": 5},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         )
     ],
     patchers=[
