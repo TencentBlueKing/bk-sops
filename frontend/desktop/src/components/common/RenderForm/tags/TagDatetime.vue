@@ -62,17 +62,16 @@
             type: String,
             required: false,
             default: i18n.t('选中的时间')
+        },
+        curSchemeType: {
+            type: String,
+            default: 'datetime',
+            desc: 'tagSchemeType'
         }
     }
     export default {
         name: 'TagDatetime',
         mixins: [getFormMixins(attrs)],
-        props: {
-            curSchemeType: {
-                type: String,
-                default: 'datetime'
-            }
-        },
         computed: {
             dateValue: {
                 get () {

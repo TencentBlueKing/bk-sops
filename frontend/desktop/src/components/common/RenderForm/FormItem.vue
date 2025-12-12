@@ -121,7 +121,6 @@
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
                 :value="formValue"
-                :cur-scheme-type="curSchemeType"
                 :parent-value="parentValue"
                 @init="$emit('init', $event)"
                 @blur="$emit('blur', $event)"
@@ -376,7 +375,9 @@
                 // if ('editable' in this.option) {
                 //     attrs.editable = this.option.editable
                 // }
-
+                if (this.curSchemeType === 'format_support_datetime') {
+                    attrs.curSchemeType = 'format_support_datetime'
+                }
                 return { ...attrs }
             },
             getFormValue (val) {
