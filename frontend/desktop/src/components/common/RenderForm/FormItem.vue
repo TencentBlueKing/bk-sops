@@ -239,10 +239,6 @@
                 default () {
                     return {}
                 }
-            },
-            curSchemeType: {
-                type: String,
-                default: ''
             }
         },
         data () {
@@ -375,9 +371,6 @@
                 // if ('editable' in this.option) {
                 //     attrs.editable = this.option.editable
                 // }
-                if (this.curSchemeType === 'format_support_datetime') {
-                    attrs.curSchemeType = 'format_support_datetime'
-                }
                 return { ...attrs }
             },
             getFormValue (val) {

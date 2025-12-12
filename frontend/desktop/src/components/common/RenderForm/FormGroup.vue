@@ -92,7 +92,6 @@
                 :constants="constants"
                 :scheme="form"
                 :option="groupOption"
-                :cur-scheme-type="scheme.tag_code"
                 :value="value[form.tag_code]"
                 :parent-value="value"
                 @init="$emit('init', $event)"

@@ -24,6 +24,7 @@
                         attrs: {
                             name: gettext("时间"),
                             placeholder: gettext("请选择时间"),
+                            isNeedTimeZone: true,
                             validation: [
                                 {
                                     type: "required"
@@ -37,8 +38,8 @@
                         attrs: {
                             name: gettext("时间格式"),
                             hookable: true,
-                            placeholder: gettext("自定义时间格式，默认为`%Y-%m-%d %H:%M:%S`"),
-                            default: "%Y-%m-%d %H:%M:%S",
+                            placeholder: gettext("自定义时间格式，默认为`%Y-%m-%d %H:%M:%S %z`"),
+                            default: "%Y-%m-%d %H:%M:%S %z",
                             validation: [
                                 {
                                     type: "required"

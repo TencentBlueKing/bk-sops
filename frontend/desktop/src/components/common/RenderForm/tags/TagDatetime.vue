@@ -63,10 +63,10 @@
             required: false,
             default: i18n.t('选中的时间')
         },
-        curSchemeType: {
-            type: String,
-            default: 'datetime',
-            desc: 'tagSchemeType'
+        isNeedTimeZone: {
+            type: Boolean,
+            default: false,
+            desc: i18n.t('是否需要时区')
         }
     }
     export default {
@@ -78,7 +78,7 @@
                     return this.value
                 },
                 set (val) {
-                    if (this.curSchemeType === 'format_support_datetime') {
+                    if (this.isNeedTimeZone) {
                         const formatTime = moment(val).tz(window.TIMEZONE || moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss ZZ')
                         this.updateForm(formatTime)
                     } else {
