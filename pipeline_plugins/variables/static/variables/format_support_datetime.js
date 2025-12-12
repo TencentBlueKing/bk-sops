@@ -38,8 +38,8 @@
                         attrs: {
                             name: gettext("时间格式"),
                             hookable: true,
-                            placeholder: gettext("自定义时间格式，默认为`%Y-%m-%d %H:%M:%S %z`"),
-                            default: "%Y-%m-%d %H:%M:%S %z",
+                            placeholder: gettext("自定义时间格式，默认为`%Y-%m-%d %H:%M:%S%z`"),
+                            default: "%Y-%m-%d %H:%M:%S%z",
                             validation: [
                                 {
                                     type: "required"

@@ -137,7 +137,7 @@ class PeriodicTaskListReadOnlySerializer(PeriodicTaskReadOnlySerializer):
 def check_cron_params(cron):
     # DB cron 属性最大允许字符长度数量
     max_length = 128
-    cron["timezone"] = timezone.get_current_timezone_name()
+    cron["timezone"] = cron.get("timezone") or timezone.get_current_timezone_name()
     # 计算周期任务拼接字符串长度
     schedule_length = len(
         str(

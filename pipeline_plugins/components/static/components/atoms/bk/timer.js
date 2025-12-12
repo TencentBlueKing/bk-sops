@@ -16,7 +16,7 @@
             type: "input",
             attrs: {
                 name: gettext("定时时间"),
-                placeholder: gettext("秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"),
+                placeholder: gettext("秒(s) 或 时间(%Y-%m-%d %H:%M:%S[%z]) 无时区时使用业务时区"),
                 hookable: true,
                 validation: [
                     {

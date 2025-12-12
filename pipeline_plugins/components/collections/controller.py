@@ -80,9 +80,7 @@ class PauseComponent(Component):
     code = "pause_node"
     bound_service = PauseService
     form = settings.STATIC_URL + "components/atoms/bk/pause.js"
-    desc = _(
-        "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
-    )
+    desc = _("该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据")
 
 
 class SleepTimerService(Service):
@@ -91,6 +89,9 @@ class SleepTimerService(Service):
     BK_TIMEMING_TICK_INTERVAL = int(os.getenv("BK_TIMEMING_TICK_INTERVAL", 60 * 60 * 24))
     #  匹配年月日 时分秒 正则 yyyy-MM-dd HH:mm:ss
     date_regex = re.compile(r"%s %s" % (r"^\d{4}-\d{2}-\d{2}", r"((0|[1])\d|2[0-3]):(0|[1-5])\d:(0|[1-5])\d$"))
+    data_tz_regex = re.compile(
+        r"%s %s" % (r"^\d{4}-\d{2}-\d{2}", r"((0|[1])\d|2[0-3]):(0|[1-5])\d:(0|[1-5])\d(\+\d{4})$")
+    )
 
     seconds_regex = re.compile(r"^\d+$")
 
@@ -100,15 +101,13 @@ class SleepTimerService(Service):
                 name=_("定时时间"),
                 key="bk_timing",
                 type="string",
-                schema=StringItemSchema(description=_("定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)")),
+                schema=StringItemSchema(description=_("定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)[%%z]，无时区时使用业务时区")),
             ),
             self.InputItem(
                 name=_("是否强制晚于当前时间"),
                 key="force_check",
                 type="bool",
-                schema=StringItemSchema(
-                    description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")
-                ),
+                schema=StringItemSchema(description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")),
             ),
         ]
 
@@ -123,9 +122,7 @@ class SleepTimerService(Service):
         force_check = data.get_one_of_inputs("force_check", True)
         # 项目时区获取
         project = Project.objects.get(id=parent_data.inputs.project_id)
-
         project_tz = pytz.timezone(project.time_zone)
-        data.outputs.business_tz = project_tz
 
         now = datetime.datetime.now(tz=project_tz)
         if self.date_regex.match(str(timing)):
@@ -135,14 +132,23 @@ class SleepTimerService(Service):
                 LOGGER.error(message)
                 data.set_outputs("ex_data", message)
                 return False
+
+            data.outputs.business_tz = project_tz
+        elif self.data_tz_regex.match(str(timing)):
+            eta = datetime.datetime.strptime(timing, "%Y-%m-%d %H:%M:%S%z")
+            now = datetime.datetime.now(tz=eta.tzinfo)
+            if force_check and now > eta:
+                message = _("[定时]节点执行失败: 定时时间需晚于当前时间, 请检查节点配置")
+                LOGGER.error(message)
+                data.set_outputs("ex_data", message)
+                return False
+            data.outputs.business_tz = eta.tzinfo
         elif self.seconds_regex.match(str(timing)):
             #  如果写成+号 可以输入无限长，或考虑前端修改
             eta = now + datetime.timedelta(seconds=int(timing))
+            data.outputs.business_tz = project_tz
         else:
-            message = (
-                _("[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置")
-                % timing
-            )
+            message = _("[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S[%%z]」格式，请检查节点配置") % timing
             LOGGER.error(message)
             data.set_outputs("ex_data", message)
             return False

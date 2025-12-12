@@ -68,7 +68,7 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
     tag = "datetime.datetime"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("日期时间变量"))
-    desc = _("输出格式: 2000-04-19 14:45:16")
+    desc = _("输出格式: 2000-04-19 14:45:16+0800")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -300,16 +300,24 @@ class FormatSupportDateTime(LazyVariable, SelfExplainVariable):
     type = "general"
     tag = "format_support_datetime.format_support_datetime"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
-    desc = _("默认输出格式: 2020-10-10 14:45:00, 可自行配置显示格式")
+    desc = _("默认输出格式: 2020-10-10 14:45:00+0800, 可自行配置显示格式")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [FieldExplain(key="${KEY}", type=Type.STRING, description=_("用户选择的自定义格式的日期时间"))]
 
     def get_value(self):
-        time_format = self.value.get("datetime_format", "%Y-%m-%d %H:%M:%S").strip()
-        time = datetime.datetime.strptime(self.value.get("datetime"), "%Y-%m-%d %H:%M:%S")
-        return time.strftime(time_format)
+        datetime_format = self.value.get("datetime_format", "%Y-%m-%d %H:%M:%S").strip()
+        input_time_str = self.value.get("datetime")
+        input_format = "%Y-%m-%d %H:%M:%S%z"
+
+        try:
+            aware_time = datetime.datetime.strptime(input_time_str, input_format)
+        except ValueError:
+            naive_input_format = "%Y-%m-%d %H:%M:%S"
+            aware_time = datetime.datetime.strptime(input_time_str, naive_input_format)
+            
+        return aware_time.strftime(datetime_format)
 
 
 class StaffGroupSelector(LazyVariable, SelfExplainVariable):
