@@ -413,7 +413,7 @@ const en = {
     '并行网关：': 'Parallel Gateway: ',
     '有多个流出分支，并且多个流出分支都默认执行。': 'All branch will be executed',
     '分支网关：': 'Exclusive Gateway: ',
-    '执行符合条件的流出分支。多个条件符合时，会中断流程并报错提示满足条件的多个流出分支': 'Execute the branch points that meet the conditions. When the conditions are met, multiple processes will be interrupted and errors will be reported',
+    '执行符合条件的流出分支。多个条件符合时，会中断流程并报错提示满足条件的多个流出分支。': 'Execute the branch points that meet the conditions. When the conditions are met, multiple processes will be interrupted and errors will be reported',
     '汇聚网关：': 'Converge Gateway: ',
     '当汇聚网关用于汇聚并行网关时，所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。': 'Convergence gateway used to converge parallel gateways, Converge gateway will be executed only when all incoming branch have executed to it',
     '复位': 'Reset',
@@ -1910,7 +1910,8 @@ const en = {
     '代码框自动开启免渲染模式提醒': 'Code box automatically enables no-render mode reminder',
     '检测到【n】代码框没有使用变量，保存该节点代码框将自动改为免渲染模式。届时所有标准运维变量将不会被渲染。请确定是否保存': 'Detected that [{n}] code boxes do not use variables. Saving this node will automatically switch the code box to no-render mode, and all standard operations variables will not be rendered. Please confirm whether to save',
     '即将废弃': 'About to be deprecated',
-    '个人中心': 'Personal Center'
+    '个人中心': 'Personal Center',
+    '是否需要时区': 'Whether to need timezone'
 }
 
 export default en

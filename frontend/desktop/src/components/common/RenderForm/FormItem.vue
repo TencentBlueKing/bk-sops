@@ -371,7 +371,6 @@
                 // if ('editable' in this.option) {
                 //     attrs.editable = this.option.editable
                 // }
-
                 return { ...attrs }
             },
             getFormValue (val) {
