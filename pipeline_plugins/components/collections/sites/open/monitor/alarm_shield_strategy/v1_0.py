@@ -83,7 +83,7 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
         )
         return ip_dimension
 
-    def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username):
+    def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, data=None):
         dimension_config = self.get_dimension_config(shied_type, shied_value, bk_biz_id, username)
         request_body = self.build_request_body(
             begin_time=begin_time,

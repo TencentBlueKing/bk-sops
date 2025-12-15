@@ -23,6 +23,10 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.cc import CmdbAddHostLockComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    CMDB_GET_CLIENT_PATCH,
+    create_mock_cmdb_client_with_hosts,
+)
 
 
 class CmdbTransferFaultHostComponentTest(TestCase, ComponentTestMixin):
@@ -40,18 +44,41 @@ class MockClient(object):
         self.set_bk_api_ver = MagicMock()
         self.api = MagicMock()
         self.api.add_host_lock = MagicMock(return_value=add_host_lock_return)
+        # IPv6相关接口
+        self.api.list_biz_hosts = MagicMock(
+            return_value={"result": True, "data": {"count": 0, "info": []}, "message": ""}
+        )
+        self.api.list_biz_hosts_topo = MagicMock(
+            return_value={"result": True, "data": {"count": 0, "info": []}, "message": ""}
+        )
+        self.api.list_hosts_without_biz = MagicMock(
+            return_value={"result": True, "data": {"count": 0, "info": []}, "message": ""}
+        )
 
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.host_lock.base.get_client_by_username"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 
-# mock client
-ADD_HOST_LOCK_SUCCESS_CLIENT = MockClient(
-    add_host_lock_return={"result": True, "code": 0, "message": "success", "data": {}}
+# 使用IPv6适配的CMDB客户端mock
+MOCK_CMDB_CLIENT_SUCCESS = create_mock_cmdb_client_with_hosts(
+    [
+        {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+        {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+    ]
+)
+MOCK_CMDB_CLIENT_SUCCESS.api.add_host_lock = MagicMock(
+    return_value={"result": True, "code": 0, "message": "success", "data": {}}
 )
 
-ADD_HOST_LOCK_FAIL_CLIENT = MockClient(add_host_lock_return={"result": False, "code": 1, "message": "fail", "data": {}})
+MOCK_CMDB_CLIENT_FAIL = create_mock_cmdb_client_with_hosts(
+    [
+        {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0},
+        {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 0},
+    ]
+)
+MOCK_CMDB_CLIENT_FAIL.api.add_host_lock = MagicMock(
+    return_value={"result": False, "code": 1, "message": "fail", "data": {}}
+)
 
 ADD_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
     name="add host lock success case",
@@ -66,19 +93,15 @@ ADD_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]),
         CallAssertion(
-            func=ADD_HOST_LOCK_SUCCESS_CLIENT.api.add_host_lock,
+            func=MOCK_CMDB_CLIENT_SUCCESS.api.add_host_lock,
             calls=[Call({"id_list": [1, 2]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     # add patch
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_SUCCESS_CLIENT),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
-        ),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=MOCK_CMDB_CLIENT_SUCCESS),
+        Patcher(target=CMDB_GET_CLIENT_PATCH, return_value=MOCK_CMDB_CLIENT_SUCCESS),
     ],
 )
 
@@ -98,18 +121,14 @@ ADD_HOST_LOCK_FAIL_CASE = ComponentTestCase(
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]),
         CallAssertion(
-            func=ADD_HOST_LOCK_FAIL_CLIENT.api.add_host_lock,
+            func=MOCK_CMDB_CLIENT_FAIL.api.add_host_lock,
             calls=[Call({"id_list": [1, 2]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     # add patch
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_FAIL_CLIENT),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
-        ),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=MOCK_CMDB_CLIENT_FAIL),
+        Patcher(target=CMDB_GET_CLIENT_PATCH, return_value=MOCK_CMDB_CLIENT_FAIL),
     ],
 )

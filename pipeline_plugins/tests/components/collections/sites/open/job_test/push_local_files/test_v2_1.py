@@ -23,6 +23,7 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_1 import JobPushLocalFilesComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
@@ -39,6 +40,21 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
     def component_cls(self):
         return JobPushLocalFilesComponent
 
+    def setUp(self):
+        super().setUp()
+        from django.conf import settings
+
+        # Save the original ENABLE_IPV6 value
+        self._original_enable_ipv6 = getattr(settings, "ENABLE_IPV6", False)
+        setattr(settings, "ENABLE_IPV6", False)
+
+    def tearDown(self):
+        super().tearDown()
+        from django.conf import settings
+
+        # Restore the original ENABLE_IPV6 value
+        setattr(settings, "ENABLE_IPV6", self._original_enable_ipv6)
+
 
 # mock path
 GET_CLIENT_BY_USER = (
@@ -47,6 +63,18 @@ GET_CLIENT_BY_USER = (
 GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
+
+
+# MockCMDBClient class definition for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
+
+
+# 原有变量定义
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 
 ENVIRONMENT_VAR_GET = (
@@ -63,6 +91,8 @@ GET_JOB_INSTANCE_URL = (
 JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service.job_handle_api_error"
 )
+
+GET_BUSINESS_HOST_BY_USER = "gcloud.utils.cmdb.get_client_by_username"
 
 
 def FILE_MANAGER_NOT_CONFIG_CASE():
@@ -85,7 +115,11 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
             success=False, outputs={"ex_data": "File Manager configuration error, contact administrator please."}
         ),
         schedule_assertion=None,
-        patchers=[Patcher(target=ENVIRONMENT_VAR_GET, return_value=None)],
+        patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=ENVIRONMENT_VAR_GET, return_value=None),
+        ],
     )
 
 
@@ -179,7 +213,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         schedule_assertion=None,
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
@@ -202,10 +236,15 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=PUSH_FAIL_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=PUSH_FAIL_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(
+                target=CC_GET_IPS_INFO_BY_STR,
+                return_value={"result": True, "ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]},
+            ),
             Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
         ],
     )
@@ -278,7 +317,7 @@ def SCHEDULE_FAILURE_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
@@ -301,11 +340,16 @@ def SCHEDULE_FAILURE_CASE():
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SCHEDULE_FAILURE_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SCHEDULE_FAILURE_ESB_CLIENT),
             Patcher(target=GET_CLIENT_BY_USERNAME, return_value=SCHEDULE_FAILURE_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(
+                target=CC_GET_IPS_INFO_BY_STR,
+                return_value={"result": True, "ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]},
+            ),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],
     )
@@ -404,7 +448,7 @@ def SUCCESS_MULTI_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[
@@ -457,11 +501,16 @@ def SUCCESS_MULTI_CASE():
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SUCCESS_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(
+                target=CC_GET_IPS_INFO_BY_STR,
+                return_value={"result": True, "ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]},
+            ),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],
     )
@@ -561,7 +610,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[
@@ -617,11 +666,16 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             ),
         ],
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SUCCESS_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
+            Patcher(
+                target=CC_GET_IPS_INFO_BY_STR,
+                return_value={"result": True, "ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]},
+            ),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],
     )

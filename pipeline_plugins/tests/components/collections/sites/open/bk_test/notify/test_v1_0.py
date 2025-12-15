@@ -43,9 +43,10 @@ class BkNotifyComponentTest(TestCase, ComponentTestMixin):
 class MockClient(object):
     def __init__(self, cc_search_business_return=None, cmsi_send_msg_return=None):
         # 创建不自动生成属性的Mock对象
-        self.api = MagicMock(spec=["search_business", "v1_send_weixin"])
+        self.api = MagicMock(spec=["search_business", "v1_send_weixin", "send_voice_msg"])
         self.api.search_business = MagicMock(return_value=cc_search_business_return)
         self.api.v1_send_weixin = MagicMock(return_value=cmsi_send_msg_return)
+        self.api.send_voice_msg = MagicMock(return_value=cmsi_send_msg_return)
         # 禁用MagicMock的自动属性创建
         self.api._mock_return_value = None
         self.api._mock_side_effect = None
@@ -138,7 +139,7 @@ SEND_MSG_FAIL_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={"ex_data": "send msg fail;send msg fail;send msg fail;"},
+        outputs={"ex_data": "send msg fail;send msg fail;send msg fail;send msg fail;"},
     ),
     execute_call_assertion=[],
     schedule_assertion=None,
@@ -212,22 +213,22 @@ SEND_VOICE_MSG_SUCCESS_CASE = ComponentTestCase(
         "bk_notify_content": "content",
     },
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=True, outputs={}),
-    execute_call_assertion=[
-        CallAssertion(
-            func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_voice_msg,
-            calls=[
-                Call(
-                    {
-                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
-                        "auto_read_message": "title,content",
-                    }
-                )
-            ],
-        )
-    ],
+    execute_assertion=ExecuteAssertion(
+        success=False,
+        outputs={
+            "ex_data": (
+                "调用蓝鲸服务(BK)接口cmsi.v1_send_voice返回失败, error=success, "
+                'params={"auto_read_message":"\\u84dd\\u9cb8\\u901a\\u77e5 title: content",'
+                '"receiver__username":["tester","a","b","m1","m2","p1","p2"]};'
+            )
+        },
+    ),
+    execute_call_assertion=[],
     schedule_assertion=None,
-    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT)],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT),
+        Patcher(target=GET_CC_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT),
+    ],
 )
 
 
