@@ -136,11 +136,6 @@ def list_biz_hosts_topo_return(*args, **kwargs):
     return {"result": True, "code": 0, "message": "success", "data": {}}
 
 
-def list_biz_hosts_topo_return(*args, **kwargs):
-
-    return {"result": True, "code": 0, "message": "success", "data": {}}
-
-
 class VarCmdbSetModuleIpSelectorTestCase(TestCase):
     """
         set-module-ip topo层级构造
