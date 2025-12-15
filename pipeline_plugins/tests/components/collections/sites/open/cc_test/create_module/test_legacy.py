@@ -12,15 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc.create_module.legacy import CCCreateModuleComponent
 
 
@@ -43,14 +43,14 @@ class MockClient(object):
     def __init__(
         self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None, create_module_return=None
     ):
-        self.cc = MagicMock()
-        self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
-        self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
-        self.cc.create_module = MagicMock(return_value=create_module_return)
+        self.api = MagicMock()
+        self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
+        self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
+        self.api.create_module = MagicMock(return_value=create_module_return)
 
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.create_module.legacy.get_client_by_user"
-CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.create_module.legacy.get_client_by_username"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 CC_FORMAT_PROP_DATA = "pipeline_plugins.components.collections.sites.open.cc.create_module.legacy.cc_format_prop_data"
 
 CC_FORMAT_PROP_DATA_RETURN = {"result": True, "data": {"普通": "1", "数据库": "2"}}
@@ -155,7 +155,7 @@ COMMON_TOPO = {
     ],
 }
 
-COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
+COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "tenant_id": "system"}
 
 SELECT_BY_TEXT_SUCCESS_CLIENT = MockClient(
     get_mainline_object_topo_return=COMMON_MAINLINE,
@@ -172,7 +172,7 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
     "cc_module_infos_category": [
         {
             "bk_module_name": "1",
-            "bk_module_type": "普通",
+            "bk_module_type": "1",
             "operator": "1",
             "bk_bak_operator": "1",
             "cc_service_category": [1, 2],
@@ -190,13 +190,13 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.create_module,
+            func=SELECT_BY_TEXT_SUCCESS_CLIENT.api.create_module,
             calls=[
                 Call(
                     {
                         "bk_biz_id": 2,
                         "bk_set_id": 5,
-                        "data": {
+                        **{
                             "bk_parent_id": 5,
                             "bk_module_name": "1",
                             "bk_module_type": "1",
@@ -204,7 +204,9 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
                             "bk_bak_operator": "1",
                             "service_category_id": 2,
                         },
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
+                    path_params={"bk_biz_id": 2, "bk_set_id": 5},
                 )
             ],
         )
@@ -232,7 +234,7 @@ SELECT_BY_TOPO_SUCCESS_INPUTS = {
     "cc_module_infos_category": [
         {
             "bk_module_name": "1",
-            "bk_module_type": "普通",
+            "bk_module_type": "1",
             "operator": "1",
             "bk_bak_operator": "1",
             "cc_service_category": [1, 2],
@@ -250,13 +252,13 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=SELECT_BY_TOPO_SUCCESS_CLIENT.cc.create_module,
+            func=SELECT_BY_TOPO_SUCCESS_CLIENT.api.create_module,
             calls=[
                 Call(
                     {
                         "bk_biz_id": 2,
                         "bk_set_id": 5,
-                        "data": {
+                        **{
                             "bk_parent_id": 5,
                             "bk_module_name": "1",
                             "bk_module_type": "1",
@@ -264,7 +266,9 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
                             "bk_bak_operator": "1",
                             "service_category_id": 2,
                         },
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
+                    path_params={"bk_biz_id": 2, "bk_set_id": 5},
                 )
             ],
         )
@@ -291,7 +295,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
     "cc_module_infos_category": [
         {
             "bk_module_name": "1",
-            "bk_module_type": "普通",
+            "bk_module_type": "1",
             "operator": "1",
             "bk_bak_operator": "1",
             "cc_service_category": [1, 2],
@@ -332,7 +336,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
     "cc_module_infos_category": [
         {
             "bk_module_name": "1",
-            "bk_module_type": "普通",
+            "bk_module_type": "1",
             "operator": "1",
             "bk_bak_operator": "1",
             "cc_service_category": [1, 2],
@@ -382,14 +386,16 @@ CREATE_BY_TEMPLATE_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.create_module,
+            func=SELECT_BY_TEXT_SUCCESS_CLIENT.api.create_module,
             calls=[
                 Call(
                     {
                         "bk_biz_id": 2,
                         "bk_set_id": 5,
-                        "data": {"bk_parent_id": 5, "bk_module_name": "cxx", "service_template_id": 100},
-                    }
+                        **{"bk_parent_id": 5, "bk_module_name": "cxx", "service_template_id": 100},
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
+                    path_params={"bk_biz_id": 2, "bk_set_id": 5},
                 )
             ],
         )

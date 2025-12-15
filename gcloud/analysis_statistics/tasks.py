@@ -379,7 +379,7 @@ def backfill_template_variable_statistics_task():
 
     # process task template
     # 分页拉取，防止内存溢出
-    paginator = Paginator(TaskTemplate.objects.all(), 500)
+    paginator = Paginator(list(TaskTemplate.objects.all()), 500)
     processed_count = 0
     task_templates_counts = TaskTemplate.objects.all().count()
     for page_number in paginator.page_range:

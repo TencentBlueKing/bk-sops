@@ -28,7 +28,12 @@ class ProjectTestCase(TestCase):
     @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_sync_project_from_cmdb_business__full_sync(self):
         businesses = {
-            i: {"cc_name": "biz_%s" % i, "time_zone": "time_zone_%s" % i, "creator": "creator_%s" % i}
+            i: {
+                "cc_name": "biz_%s" % i,
+                "time_zone": "time_zone_%s" % i,
+                "creator": "creator_%s" % i,
+                "tenant_id": "system",
+            }
             for i in range(1, 10)
         }
 
@@ -55,10 +60,16 @@ class ProjectTestCase(TestCase):
                 desc="",
                 from_cmdb=True,
                 bk_biz_id=i,
+                tenant_id="system",
             )
 
         businesses = {
-            i: {"cc_name": "biz_%s" % i, "time_zone": "time_zone_%s" % i, "creator": "creator_%s" % i}
+            i: {
+                "cc_name": "biz_%s" % i,
+                "time_zone": "time_zone_%s" % i,
+                "creator": "creator_%s" % i,
+                "tenant_id": "system",
+            }
             for i in range(1, 10)
         }
 

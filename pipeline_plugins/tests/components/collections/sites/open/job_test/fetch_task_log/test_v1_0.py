@@ -45,7 +45,7 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.fetch_task_log.v1_0.get_client_by_username"
-BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
     "result": True,
     "code": 0,

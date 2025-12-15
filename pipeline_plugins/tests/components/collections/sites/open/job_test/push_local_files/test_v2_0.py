@@ -44,6 +44,8 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.base_service.get_client_by_username"
 )
+GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 
@@ -165,7 +167,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
+                calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
             ),
             CallAssertion(
                 func=PUSH_FAIL_MANAGER.push_files_to_ips,
@@ -202,7 +204,7 @@ def SCHEDULE_FAILURE_CASE():
     SCHEDULE_FAILURE_ESB_CLIENT = MagicMock()
     SCHEDULE_FAILURE_MANAGER = MagicMock()
     SCHEDULE_FAILURE_MANAGER.push_files_to_ips = MagicMock(return_value=SCHEDULE_FAILURE_RESULT)
-    SCHEDULE_FAILURE_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(return_value=SCHEDULE_FAILURE_QUERY_RESULT)
+    SCHEDULE_FAILURE_ESB_CLIENT.api.get_job_instance_status = MagicMock(return_value=SCHEDULE_FAILURE_QUERY_RESULT)
     return ComponentTestCase(
         name="push_local_files v2 schedule failure case",
         inputs={
@@ -258,7 +260,7 @@ def SCHEDULE_FAILURE_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
+                calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
             ),
             CallAssertion(
                 func=SCHEDULE_FAILURE_MANAGER.push_files_to_ips,
@@ -280,6 +282,7 @@ def SCHEDULE_FAILURE_CASE():
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SCHEDULE_FAILURE_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SCHEDULE_FAILURE_ESB_CLIENT),
+            Patcher(target=GET_CLIENT_BY_USERNAME, return_value=SCHEDULE_FAILURE_ESB_CLIENT),
             Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],
@@ -300,7 +303,7 @@ def SUCCESS_MULTI_CASE():
     SUCCESS_ESB_CLIENT = MagicMock()
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
-    SUCCESS_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+    SUCCESS_ESB_CLIENT.api.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
     return ComponentTestCase(
         name="push_local_files multi v2 success case",
         inputs={
@@ -377,7 +380,15 @@ def SUCCESS_MULTI_CASE():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+                calls=[
+                    Call(
+                        tenant_id="system",
+                        username="executor",
+                        biz_cc_id="biz_cc_id",
+                        ip_str="1.1.1.1",
+                        use_cache=False,
+                    )
+                ],
             ),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
@@ -440,7 +451,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
     SUCCESS_ESB_CLIENT = MagicMock()
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
-    SUCCESS_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+    SUCCESS_ESB_CLIENT.api.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
     return ComponentTestCase(
         name="push_local_files multi v2 with timeout parameter success case",
         inputs={
@@ -518,7 +529,15 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="prod")]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
-                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+                calls=[
+                    Call(
+                        tenant_id="system",
+                        username="executor",
+                        biz_cc_id="biz_cc_id",
+                        ip_str="1.1.1.1",
+                        use_cache=False,
+                    )
+                ],
             ),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
