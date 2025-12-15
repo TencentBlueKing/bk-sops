@@ -75,7 +75,9 @@ MONITOR_CLIENT = (
 CMDB_GET_BIZ_HOST = "gcloud.utils.cmdb.get_business_host"
 
 LIST_BIZ_HOSTS_TOPO_BY_USER = "gcloud.utils.cmdb.get_client_by_username"
+
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
+
 
 # mock client
 CREATE_SHIELD_FAIL_CLIENT = MockMonitorClient(add_shield_result={"result": False, "message": "create shield fail"})

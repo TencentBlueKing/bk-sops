@@ -114,6 +114,9 @@ GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_use
 GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_username"
 
 
+GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_username"
+
+
 # success result
 SUCCESS_RESULT = {
     "result": True,

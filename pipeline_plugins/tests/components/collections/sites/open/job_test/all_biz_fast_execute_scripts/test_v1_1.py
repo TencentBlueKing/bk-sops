@@ -104,7 +104,6 @@ GET_JOB_INSTANCE_URL = (
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
 
-
 # 添加 CC client mock 路径，用于 IPv6 支持
 CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"

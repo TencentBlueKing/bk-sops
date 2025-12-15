@@ -51,8 +51,6 @@ class AllBizJobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
         super().tearDown()
         # Restore the original ENABLE_IPV6 value
         setattr(settings, "ENABLE_IPV6", self._original_enable_ipv6)
-
-
 class JOBMockClient(object):
     def __init__(self, fast_push_file_return=None, get_job_instance_status_return=None):
         self.api = MagicMock()
