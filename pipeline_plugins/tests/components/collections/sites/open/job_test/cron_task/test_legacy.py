@@ -24,6 +24,7 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job import JobCronTaskComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class JobCronComponentTest(TestCase, ComponentTestMixin):
@@ -42,8 +43,18 @@ class MockClient(object):
         self.api.update_cron_status = MagicMock(return_value=update_cron_status_return)
 
 
+# Mock CMDB Client for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    def __init__(self):
+        super(MockCMDBClient, self).__init__()
+
+
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.cron_task.legacy.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 
 # mock clients
 SAVE_CRON_CALL_FAIL_CLIENT = MockClient(
@@ -107,7 +118,11 @@ SAVE_CRON_FAIL_CASE = ComponentTestCase(
             ],
         ),
     ],
-    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SAVE_CRON_CALL_FAIL_CLIENT)],
+    patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SAVE_CRON_CALL_FAIL_CLIENT),
+    ],
 )
 SAVE_CRON_SUCCESS_CASE = ComponentTestCase(
     name="save cron call success case",
@@ -138,7 +153,11 @@ SAVE_CRON_SUCCESS_CASE = ComponentTestCase(
             ],
         ),
     ],
-    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SAVE_CRON_CALL_SUCCESS_CLIENT)],
+    patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SAVE_CRON_CALL_SUCCESS_CLIENT),
+    ],
 )
 UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
     name="update cron status call failed case",
@@ -187,7 +206,11 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
             ],
         ),
     ],
-    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=UPDATE_CRON_STATUS_CALL_FAIL_CLIENT)],
+    patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=UPDATE_CRON_STATUS_CALL_FAIL_CLIENT),
+    ],
 )
 JOB_CRON_SUCCESS_CASE = ComponentTestCase(
     name="save cron and update cron status call success case",

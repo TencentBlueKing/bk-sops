@@ -47,11 +47,13 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_client_by_username"
-GET_CLIENT_BY_USER_BASE = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_client_by_username"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_HOST_ID_BY_INNER_IP = (
     "pipeline_plugins.components.collections.sites.open.nodeman.ip_v6_base.get_host_id_by_inner_ip"
+)
+CC_GET_HOST_BY_INNERIP_WITH_IPV6 = (
+    "pipeline_plugins.components.collections.sites.open.nodeman.ip_v6_base.cc_get_host_by_innerip_with_ipv6"
 )
 
 # mock clients
@@ -182,8 +184,11 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=GET_CLIENT_BY_USER_BASE, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1"}]},
+        ),
     ],
 )
 
@@ -224,8 +229,11 @@ OPERATE_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CASE_FAIL_CLIENT),
-        Patcher(target=GET_CLIENT_BY_USER_BASE, return_value=CASE_FAIL_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1"}]},
+        ),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
     ],
 )

@@ -23,6 +23,12 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1 import JobFastPushFileComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
+
+
+# MockCMDBClient class definition for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
 
 
 class JobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
@@ -33,6 +39,21 @@ class JobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
 
     def component_cls(self):
         return JobFastPushFileComponent
+
+    def setUp(self):
+        super().setUp()
+        from django.conf import settings
+
+        # Save the original ENABLE_IPV6 value
+        self._original_enable_ipv6 = getattr(settings, "ENABLE_IPV6", False)
+        setattr(settings, "ENABLE_IPV6", False)
+
+    def tearDown(self):
+        super().tearDown()
+        from django.conf import settings
+
+        # Restore the original ENABLE_IPV6 value
+        setattr(settings, "ENABLE_IPV6", self._original_enable_ipv6)
 
 
 class JobMockClient(object):
@@ -50,13 +71,25 @@ class CcMockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1.get_job_instance_url"
 
 JOB_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1.job_handle_api_error"
 
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 
 INPUT = {
     "biz_cc_id": 1,
@@ -151,11 +184,11 @@ CLL_INFO = MagicMock(
                 },
                 "account_alias": "root",
                 "file_target_path": "/tmp/ee/",
+                "upload_speed_limit": 100,
+                "download_speed_limit": 100,
+                "timeout": 100,
+                "rolling_config": {"expression": "10%", "mode": "1"},
             },
-            "upload_speed_limit": 100,
-            "download_speed_limit": 100,
-            "timeout": 100,
-            "rolling_config": {"expression": "10%", "mode": "1"},
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
@@ -179,11 +212,11 @@ CLL_INFO = MagicMock(
                 },
                 "account_alias": "user01",
                 "file_target_path": "/tmp/200/",
+                "upload_speed_limit": 100,
+                "download_speed_limit": 100,
+                "timeout": 100,
+                "rolling_config": {"expression": "10%", "mode": "1"},
             },
-            "upload_speed_limit": 100,
-            "download_speed_limit": 100,
-            "timeout": 100,
-            "rolling_config": {"expression": "10%", "mode": "1"},
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
     ]
@@ -231,6 +264,8 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             schedule_finished=True,
         ),
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
             Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),

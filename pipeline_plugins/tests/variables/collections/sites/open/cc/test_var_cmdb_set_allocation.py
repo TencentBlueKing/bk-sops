@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbSetAllocation
 
@@ -88,8 +88,11 @@ class VarCmdbSetAllocationTestCase(TestCase):
         )
 
         with patch(
-                "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_username",
-                MagicMock(return_value=client)
+            "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_username",
+            MagicMock(return_value=client),
+        ), patch(
+            "pipeline_plugins.variables.collections.sites.open.cc.get_bk_username_by_tenant",
+            MagicMock(return_value="admin"),
         ):
             explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1, tenant_id=self.tenant_id)
 
@@ -129,8 +132,11 @@ class VarCmdbSetAllocationTestCase(TestCase):
         client.api.search_object_attribute = MagicMock(return_value={"result": False, "message": "fail", "data": []})
 
         with patch(
-                "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_username",
-                MagicMock(return_value=client)
+            "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_username",
+            MagicMock(return_value=client),
+        ), patch(
+            "pipeline_plugins.variables.collections.sites.open.cc.get_bk_username_by_tenant",
+            MagicMock(return_value="admin"),
         ):
             explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1, tenant_id=self.tenant_id)
 
