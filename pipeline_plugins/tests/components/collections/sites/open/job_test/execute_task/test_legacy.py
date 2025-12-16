@@ -25,6 +25,10 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.job import JobExecuteTaskComponent, base
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    MockCMDBClientIPv6,
+    build_job_target_server,
+)
 
 base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
 
@@ -64,6 +68,28 @@ class MockClient(object):
         self.api.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
+# Mock CMDB Client for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    def __init__(self):
+        super(MockCMDBClient, self).__init__()
+
+
+# Helper function to create get_business_host return value
+def create_get_business_host_return(hosts):
+    """
+    Create mock return value for get_business_host
+    hosts: list of dict with keys: bk_host_id, bk_host_innerip, bk_cloud_id
+    """
+    return [
+        {
+            "bk_host_id": host["bk_host_id"],
+            "bk_host_innerip": host["bk_host_innerip"],
+            "bk_cloud_id": host["bk_cloud_id"],
+        }
+        for host in hosts
+    ]
+
+
 # mock path
 # 因为legacy版本的JobExecuteTaskService类直接继承了JobExecuteTaskServiceBase类,所以mock路径也使用其父类的路径
 GET_CLIENT_BY_USER = (
@@ -71,7 +97,14 @@ GET_CLIENT_BY_USER = (
 )
 GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
+
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
+CC_GET_IPS_INFO_BY_STR_IPV6 = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str_ipv6"
+CMDB_GET_BUSINESS_HOST = "gcloud.utils.cmdb.get_business_host"
+CMDB_GET_BUSINESS_SET_HOST = "gcloud.utils.cmdb.get_business_set_host"
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_node_callback_url"
 )
@@ -209,6 +242,24 @@ GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
 )
 
+
+# 辅助函数：根据 ENABLE_IPV6 动态生成 Job global_var 的 server 值
+def _build_server_for_global_var(host_ids, ips_with_cloud):
+    """根据当前 ENABLE_IPV6 设置生成 Job global_var 中 server 字段的正确格式"""
+    return build_job_target_server(host_ids=host_ids, ips_with_cloud=ips_with_cloud)
+
+
+# 预定义动态生成的 server 值，用于测试用例
+SERVER_1_2 = _build_server_for_global_var(
+    host_ids=[1, 2], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]
+)
+SERVER_4_3 = _build_server_for_global_var(
+    host_ids=[4, 3], ips_with_cloud=[{"ip": "4.4.4.4", "bk_cloud_id": 0}, {"ip": "3.3.3.3", "bk_cloud_id": 0}]
+)
+SERVER_3_4 = _build_server_for_global_var(
+    host_ids=[3, 4], ips_with_cloud=[{"ip": "4.4.4.4", "bk_cloud_id": "0"}, {"ip": "3.3.3.3", "bk_cloud_id": "0"}]
+)
+
 # test cases
 EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     name="execute_job call failed case",
@@ -237,12 +288,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -253,18 +299,6 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
         CallAssertion(
             func=EXECUTE_JOB_CALL_FAIL_CLIENT.api.execute_job_plan,
             calls=[
@@ -279,12 +313,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -295,10 +324,33 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_CALL_FAIL_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={
+                "result": True,
+                "ip_result": [
+                    {"HostID": "1", "InnerIP": "1.1.1.1", "Source": 1},
+                    {"HostID": "2", "InnerIP": "2.2.2.2", "Source": 1},
+                ],
+                "ip_count": 2,
+                "invalid_ip": [],
+            },
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
     ],
@@ -336,18 +388,6 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
-        CallAssertion(
             func=INVALID_CALLBACK_DATA_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
@@ -361,12 +401,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -377,10 +412,33 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={
+                "result": True,
+                "ip_result": [
+                    {"HostID": "1", "InnerIP": "1.1.1.1", "Source": 1},
+                    {"HostID": "2", "InnerIP": "2.2.2.2", "Source": 1},
+                ],
+                "ip_count": 2,
+                "invalid_ip": [],
+            },
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -423,18 +481,6 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
-        CallAssertion(
             func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
@@ -448,12 +494,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -464,10 +505,33 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=JOB_EXECUTE_NOT_SUCCESS_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={
+                "result": True,
+                "ip_result": [
+                    {"HostID": "1", "InnerIP": "1.1.1.1", "Source": 1},
+                    {"HostID": "2", "InnerIP": "2.2.2.2", "Source": 1},
+                ],
+                "ip_count": 2,
+                "invalid_ip": [],
+            },
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -513,18 +577,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
-        CallAssertion(
             func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
@@ -538,12 +590,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -565,11 +612,34 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         )
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={
+                "result": True,
+                "ip_result": [
+                    {"HostID": "1", "InnerIP": "1.1.1.1", "Source": 1},
+                    {"HostID": "2", "InnerIP": "2.2.2.2", "Source": 1},
+                ],
+                "ip_count": 2,
+                "invalid_ip": [],
+            },
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -624,18 +694,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
-        CallAssertion(
             func=EXECUTE_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
@@ -649,21 +707,11 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "4.4.4.4", "bk_cloud_id": "0"},
-                                        {"ip": "3.3.3.3", "bk_cloud_id": "0"},
-                                    ],
-                                },
+                                "server": SERVER_3_4,
                             },
                         ],
                         "callback_url": "url_token",
@@ -685,11 +733,43 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
         )
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={
+                "result": True,
+                "ip_result": [
+                    {"HostID": "1", "InnerIP": "1.1.1.1", "Source": 1},
+                    {"HostID": "2", "InnerIP": "2.2.2.2", "Source": 1},
+                ],
+                "ip_count": 2,
+                "invalid_ip": [],
+            },
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_SET_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 3, "bk_host_innerip": "3.3.3.3", "bk_cloud_id": 0},
+                    {"bk_host_id": 4, "bk_host_innerip": "4.4.4.4", "bk_cloud_id": 0},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -742,18 +822,6 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
-        CallAssertion(
             func=GET_VAR_ERROR_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
@@ -767,12 +835,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -794,10 +857,33 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
         )
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={
+                "result": True,
+                "ip_result": [
+                    {"HostID": "1", "InnerIP": "1.1.1.1", "Source": 1},
+                    {"HostID": "2", "InnerIP": "2.2.2.2", "Source": 1},
+                ],
+                "ip_count": 2,
+                "invalid_ip": [],
+            },
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
@@ -822,23 +908,20 @@ INVALID_IP_CASE = ComponentTestCase(
         outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"},
     ),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
-    ],
+    execute_call_assertion=[],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ["1.1.1.1", "2.2.2.2"]},
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return([]),
+        ),
     ],
 )
 
@@ -860,22 +943,28 @@ IP_IS_EXIST_CASE = ComponentTestCase(
         outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"},
     ),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[
-                Call(
-                    tenant_id="system",
-                    username="executor_token",
-                    biz_cc_id=1,
-                    ip_str="1.1.1.1,2.2.2.2",
-                    use_cache=False,
-                )
-            ],
-        ),
-    ],
+    execute_call_assertion=[],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}]}),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR_IPV6,
+            return_value={
+                "result": True,
+                "ip_result": [{"HostID": "1", "InnerIP": "1.1.1.1", "Source": 1}],
+                "ip_count": 1,
+                "invalid_ip": [],
+            },
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
     ],
 )

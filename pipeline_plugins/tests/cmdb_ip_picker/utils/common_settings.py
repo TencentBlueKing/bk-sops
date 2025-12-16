@@ -55,6 +55,21 @@ class MockCMDB(object):
         ]
 
         def match_single_rule(filter_type, data, rule):
+            # Handle nested conditions structure (for IPv6 support)
+            if "condition" in rule and "rules" in rule:
+                condition = rule["condition"]
+                sub_rules = rule["rules"]
+                if condition == "OR":
+                    return any(match_single_rule(filter_type, data, sub_rule) for sub_rule in sub_rules)
+                elif condition == "AND":
+                    return all(match_single_rule(filter_type, data, sub_rule) for sub_rule in sub_rules)
+                else:
+                    return False
+
+            # Handle simple rule structure
+            if "field" not in rule:
+                return True  # Skip rules without field
+
             match_data = None
             if filter_type == "host":
                 match_data = data[filter_type]

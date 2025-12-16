@@ -26,6 +26,12 @@ from pipeline.component_framework.test import (
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_1 import (
     AllBizJobFastPushFileComponent,
 )
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
+
+
+# MockCMDBClient class definition for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
 
 
 class AllBizJobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
@@ -37,11 +43,14 @@ class AllBizJobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
 
     def setUp(self):
         super().setUp()
+        # Save the original ENABLE_IPV6 value
+        self._original_enable_ipv6 = getattr(settings, "ENABLE_IPV6", False)
         setattr(settings, "ENABLE_IPV6", False)
 
     def tearDown(self):
         super().tearDown()
-        setattr(settings, "ENABLE_IPV6", True)
+        # Restore the original ENABLE_IPV6 value
+        setattr(settings, "ENABLE_IPV6", self._original_enable_ipv6)
 
 
 class JOBMockClient(object):
@@ -70,6 +79,10 @@ GET_CLIENT_BY_USER = (
 )
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
 
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
+
 GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.get_job_instance_url"
 )
@@ -78,6 +91,10 @@ JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.job_handle_api_error"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 
 VIRTUAL_USER_BY_USER = "gcloud.core.api_adapter.user_info.get_client_by_username"
 
@@ -333,6 +350,8 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             schedule_finished=True,
         ),
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
             Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
@@ -387,6 +406,8 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
             schedule_finished=True,
         ),
         patchers=[
+            Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+            Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
             Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT),
             Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT),
