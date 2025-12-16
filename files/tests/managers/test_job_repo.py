@@ -74,7 +74,7 @@ class JobRepoManagerTestCase(TestCase):
         account = "account_token"
 
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(
+        esb_client.api.fast_transfer_file = MagicMock(
             return_value={"result": True, "data": {"job_instance_id": "job_id"}}
         )
 
@@ -98,7 +98,9 @@ class JobRepoManagerTestCase(TestCase):
             "target_server": {"ip_list": ips},
         }
 
-        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
+        esb_client.api.fast_transfer_file.assert_called_once()
+        call_args = esb_client.api.fast_transfer_file.call_args
+        self.assertEqual(call_args[0][0], job_kwargs)
 
         self.assertEqual(result, {"result": True, "data": {"job_id": "job_id"}})
 
@@ -132,7 +134,7 @@ class JobRepoManagerTestCase(TestCase):
 
         job_response = {"result": False, "data": {}, "message": "fast_transfer_file failed"}
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(return_value=job_response)
+        esb_client.api.fast_transfer_file = MagicMock(return_value=job_response)
 
         manager = JobRepoManager()
         result = manager.push_files_to_ips(
@@ -154,7 +156,9 @@ class JobRepoManagerTestCase(TestCase):
             "target_server": {"ip_list": ips},
         }
 
-        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
+        esb_client.api.fast_transfer_file.assert_called_once()
+        call_args = esb_client.api.fast_transfer_file.call_args
+        self.assertEqual(call_args[0][0], job_kwargs)
 
         self.assertEqual(
             result,
