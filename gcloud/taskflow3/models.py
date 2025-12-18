@@ -1168,7 +1168,7 @@ class TaskFlowInstance(models.Model):
             "create_time": format_datetime(self.create_time),
             "creator": self.creator,
             "create_method": self.create_method,
-            "template_id": int(self.template_id),
+            "template_id": int(self.template_id) if self.template_id else self.template_id,
             "start_time": format_datetime(self.start_time),
             "finish_time": format_datetime(self.finish_time),
             "executor": self.executor,

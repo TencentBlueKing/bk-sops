@@ -132,7 +132,9 @@ def mysetting(request):
         "ENABLE_NOTICE_CENTER": enable_notice_center,
         "BK_PAAS_SHARED_RES_URL": env.BKPAAS_SHARED_RES_URL,
         "TASK_LIST_STATUS_FILTER_DAYS": settings.TASK_LIST_STATUS_FILTER_DAYS,
-        "BK_DATA_REPORT_API_URL": settings.BK_DATA_REPORT_API_URL
+        "BK_DATA_REPORT_API_URL": settings.BK_DATA_REPORT_API_URL,
+        # agent配置
+        "AI_SOPS_AGENT_URL": env.AI_SOPS_AGENT_URL,
     }
 
     # custom context config

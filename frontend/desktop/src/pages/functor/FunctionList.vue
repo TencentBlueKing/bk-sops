@@ -799,7 +799,7 @@
                     if (project_id) {
                         const { id, name, children } = form
                         const values = children.filter(item => String(project_id) === String(item.id))
-                        this.searchSelectValue.push({ id, name, values })
+                        this.searchSelectValue.push({ id, name, values, children })
                     }
                 } catch (error) {
                     console.warn(error)

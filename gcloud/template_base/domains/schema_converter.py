@@ -598,7 +598,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
         converted_node = {}
         for field in self.NODE_NECESSARY_FIELDS.get(node["type"], []):
             converted_field = field if field not in self.NODE_FIELD_MAPPING else self.NODE_FIELD_MAPPING[field]
-            converted_node[converted_field] = node[field]
+            converted_node[converted_field] = (
+                node[field] if field in node else self.NODE_DEFAULT_FIELD_VALUE[node["type"]].get(field, "")
+            )
         if node["type"] == "ServiceActivity":
             # 处理component和outputs
             component_data = converted_node["component"]["data"]
@@ -727,4 +729,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 # 去除下一个节点的入度
                 nodes[next_node_id]["last"].remove(cur_node_id)
                 cur_node_id = next_node_id
+            elif multi_next_node_stack:
+                cur_node_id = multi_next_node_stack.pop()
         return ordered_node_ids

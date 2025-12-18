@@ -31,12 +31,19 @@ urlpatterns = [
 ``` text
 # 必配项
 BKAPP_USE_PLUGIN_SERVICE=1  # 开启插件服务
-BKAPP_PAASV3_APIGW_API_TOKEN=token  # 在PaaS平台申请的token
-BKAPP_APIGW_URL_SUFFIX=xxx  # 对应环境APIGW的域名后缀(除了调用系统后面统一的部分)
+BKAPP_PAASV3_APIGW_API_HOST=xxx  #  开发者中心请求地址域名
+BKAPP_PLUGIN_APIGW_API_HOST_FORMAT=https://{}.apigw.example.com  # 对应环境插件APIGW的访问地址模板
 
 # 选配项
 BKAPP_APIGW_ENVIRONMENT=prod  # 调用APIGW接口的环境，默认值为settings.ENVIRONMENT
-BKAPP_APIGW_NETWORK_PROTOCAL=http  # 对应环境APIGW的网络协议，默认值为http
+```
+
+5. 需要申请开发者平台对应权限：
+```text
+retrieve_bk_plugin          # 查询单个蓝鲸插件详细信息
+list_detailed_bk_plugins    # 查询平台上所有蓝鲸插件信息（带详细部署信息）
+list_bk_plugin_logs         # 查询单个蓝鲸插件的日志
+list_bk_plugin_tags         # 查询蓝鲸插件的分类列表
 ```
 
 至此，sdk已完成接入。

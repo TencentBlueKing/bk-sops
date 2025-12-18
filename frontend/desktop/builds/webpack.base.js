@@ -69,6 +69,29 @@ module.exports = {
                 ]
             },
             {
+                test: /\.mjs$/,
+                include: [
+                    path.join(__dirname, '../node_modules/@blueking/ai-blueking')
+                ],
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            [
+                                '@babel/preset-env',
+                                {
+                                    modules: false
+                                }
+                            ]
+                        ],
+                        plugins: [
+                            '@babel/plugin-proposal-nullish-coalescing-operator',
+                            '@babel/plugin-proposal-optional-chaining'
+                        ]
+                    }
+                }
+            },
+            {
                 test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
                 loader: 'url-loader',
                 options: {
@@ -157,7 +180,8 @@ module.exports = {
     resolve: {
         alias: {
             '@': path.resolve(__dirname, '../src/'),
-            'vue': 'vue/dist/vue.esm.js'
+            'vue': 'vue/dist/vue.esm.js',
+            '@blueking/ai-blueking/vue2': path.resolve(__dirname, '../node_modules/@blueking/ai-blueking/dist/vue2/index.es.min.js')
         },
         extensions: ['*', '.js', '.vue', '.json']
     },

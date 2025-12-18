@@ -10,24 +10,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from cachetools import cached, TTLCache
-from django.views.decorators.http import require_GET
-
-from iam import Resource
+from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
+from cachetools import TTLCache, cached
+from django.views.decorators.http import require_GET
+from iam import Resource
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.serializers import IncludeProjectSerializer
 from gcloud.apigw.utils import api_hash_key
-from gcloud.core.models import ProjectConfig
-from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.apigw.views.utils import logger
-from gcloud.iam_auth.utils import get_resources_allowed_actions_for_user
-from gcloud.iam_auth.conf import IAMMeta, PROJECT_ACTIONS
+from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
+from gcloud.core.models import ProjectConfig, StaffGroupSet
+from gcloud.core.utils import get_user_business_detail as get_business_detail
+from gcloud.iam_auth.conf import PROJECT_ACTIONS, IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.utils import get_resources_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
@@ -39,7 +39,11 @@ from apigw_manager.apigw.decorators import apigw_require
 @iam_intercept(ProjectViewInterceptor())
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
-    include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    serializer = IncludeProjectSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
+    include_staff_groups = serializer.validated_data["include_staff_groups"]
     try:
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
     except Exception as e:
@@ -86,6 +90,10 @@ def get_user_project_detail(request, project_id):
                 )
             }
         )
+    if include_staff_groups:
+        staff_groups = StaffGroupSet.objects.filter(project_id=request.project.id, is_deleted=False)
+        staff_data = StaffGroupSetSerializer(staff_groups, many=True).data
+        data.update({"staff_groups": staff_data})
 
     return {
         "result": True,

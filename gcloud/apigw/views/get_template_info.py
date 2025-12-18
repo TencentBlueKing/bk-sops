@@ -12,20 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import PROJECT
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_data, process_pipeline_constants
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 @login_exempt
@@ -37,10 +36,14 @@ from apigw_manager.apigw.decorators import apigw_require
 @iam_intercept(GetTemplateInfoInterceptor())
 def get_template_info(request, template_id, project_id):
     project = request.project
+    serializer = IncludeTemplateSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     template_source = request.GET.get("template_source", PROJECT)
-    include_subprocess = request.GET.get("include_subprocess", None)
-    include_constants = request.GET.get("include_constants", None)
-    include_executor_proxy = request.GET.get("include_executor_proxy", None)
+    include_subprocess = serializer.validated_data["include_subprocess"]
+    include_constants = serializer.validated_data["include_constants"]
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
+    include_notify = serializer.validated_data["include_notify"]
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
@@ -69,7 +72,9 @@ def get_template_info(request, template_id, project_id):
             }
             return result
 
-    data = format_template_data(tmpl, project, include_subprocess, include_executor_proxy=include_executor_proxy)
+    data = format_template_data(
+        tmpl, project, include_subprocess, include_executor_proxy=include_executor_proxy, include_notify=include_notify
+    )
     if include_constants:
         data["template_constants"] = process_pipeline_constants(data["pipeline_tree"])
 

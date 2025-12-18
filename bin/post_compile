@@ -9,6 +9,7 @@ if [ "$BKPAAS_APP_MODULE_NAME" == "default" ]; then
     python manage.py update_variable_models
     python manage.py sync_saas_apigw
     python manage.py register_bksops_notice
+    python manage.py sync_webhook_events ./config webhook_resources.yaml
 else
     echo "current module is not 'default', skip post_compile"
 fi

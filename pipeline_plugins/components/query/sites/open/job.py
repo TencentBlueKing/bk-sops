@@ -442,9 +442,9 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
-    result_data = job_result["data"]["data"]
-    if not result_data:
+    if not job_result["data"]["total"]:
         return JsonResponse({"result": True, "data": []})
+    result_data = job_result["data"]["data"]
     data = [{"text": job["name"], "value": job["job_instance_id"]} for job in result_data]
     return JsonResponse({"result": True, "data": data})
 
@@ -478,7 +478,10 @@ job_urlpatterns = [
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_script_by_script_version/(?P<biz_cc_id>\d+)/$", job_get_script_by_script_version),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
+    url(
+        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
+        job_get_job_task_detail,
+    ),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),

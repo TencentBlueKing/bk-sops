@@ -131,12 +131,10 @@ class IPPickerDataGenerator:
         """
         processed_path_list = []
         sorted_path_list = sorted(path_list, key=lambda x: len(x))
-        path_record = {}
-        for topo in sorted_path_list:
-            if any([obj in path_record.get(level, set()) for level, obj in enumerate(topo)]):
-                continue
-            path_record.setdefault(len(topo) - 1, set()).add(topo[-1])
-            processed_path_list.append(topo)
+
+        for path in sorted_path_list:
+            if not any(path[: len(existing)] == existing for existing in processed_path_list):
+                processed_path_list.append(path)
         return processed_path_list
 
     def _build_topo_info(self, topo_tree, topo_info):
