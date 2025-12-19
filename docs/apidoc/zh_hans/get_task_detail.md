@@ -10,6 +10,9 @@
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string   |   是   |  所属业务ID   |
 |   task_id     |   string   |   是   |  任务ID     |
+| include_edit_info | bool | 否 | 是否包含任务更新信息，默认 false |
+| include_webhook_history | bool | 否 | 是否包含 webhook 回调信息，默认 false |
+| include_children_status | bool | 否 | 是否包含任务节点状态，默认 false |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例

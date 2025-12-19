@@ -10,6 +10,9 @@ Query a task execution details
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string   |   YES   |  the business ID             |
 |   task_id     |   string   |   YES   |  the task ID   |
+| include_edit_info | bool | NO | whether to include task update information, default false |
+| include_webhook_history | bool | NO | whether to include webhook callback information, default false |
+| include_children_status | bool | NO | whether to include task node status, default false |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
@@ -317,7 +320,7 @@ KEY, the format is like ${key}
 |  source_info | dict    |        source info about task node ID  |
 
 
-#### data.outputs[] 
+#### data.outputs[]
 | Field      | Type      | Description      |
 | ------------  | ---------- | ------------------------------ |
 |  name         | string     | name of output variable                   |

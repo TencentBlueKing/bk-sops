@@ -54,6 +54,11 @@ def get_task_list(request, project_id):
         if param in request.GET:
             filter_kwargs[filter_key] = params_validator.cleaned_data[param]
 
+    if "create_time_start" in request.GET and params_validator.cleaned_data.get("create_time_start"):
+        filter_kwargs["pipeline_instance__create_time__gte"] = params_validator.cleaned_data["create_time_start"]
+    if "create_time_end" in request.GET and params_validator.cleaned_data.get("create_time_end"):
+        filter_kwargs["pipeline_instance__create_time__lte"] = params_validator.cleaned_data["create_time_end"]
+
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 
     try:

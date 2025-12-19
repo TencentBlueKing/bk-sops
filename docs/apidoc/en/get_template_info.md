@@ -10,7 +10,11 @@ Query individual flow template details of the business
 |---------------|------------|---------|--------------------|
 | bk_biz_id     | string     |   YES   |  the business ID   |
 | template_id   | string     |   YES   |  the template ID       |
-| template_source | string   |   NO    | source of flow，default value is business. business: from business, common: from common flow |
+| template_source | string   |   NO    | source of flow template, optional values: business (business flow, default), project (project flow), common (common flow) |
+| include_executor_proxy | bool | NO | whether to include executor proxy information, default false |
+| include_subprocess | bool | NO | whether to include subprocess information, default false |
+| include_constants | bool | NO | whether to include constants information, default false |
+| include_notify | bool | NO | whether to include notify information, default false |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
