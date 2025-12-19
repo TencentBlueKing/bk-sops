@@ -158,3 +158,9 @@ Query flow templates list of the business
 | EnterpriseIT | enterprise IT   |
 | OfficeApp    | official APPs  |
 | Other        | other     |
+
+### MCP Request Notice
+
+When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
+
+- `data.executor_proxy` - Executor proxy information

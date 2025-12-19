@@ -280,6 +280,15 @@ Query a task execution details
 |  message  |    string  |      error message returned when result is false                     |
 |  trace_id     |    string  | open telemetry trace_id       |
 
+### MCP Request Notice
+
+When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
+
+- `data.constants` - Input global variables
+- `data.outputs` - Task output parameters
+- `data.pipeline_tree.constants` - Global variables in the pipeline tree
+- `data.task_webhook_history` - Webhook callback history
+
 
 #### data
 

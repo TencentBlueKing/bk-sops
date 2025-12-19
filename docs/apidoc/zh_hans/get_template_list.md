@@ -158,3 +158,9 @@
 | EnterpriseIT | 企业IT   |
 | OfficeApp    | 办公应用  |
 | Other        | 其它     |
+
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.executor_proxy` - 执行人代理信息

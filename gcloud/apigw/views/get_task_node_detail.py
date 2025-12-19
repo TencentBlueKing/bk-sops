@@ -13,22 +13,22 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 @login_exempt
 @require_GET
 @apigw_require
+@mcp_apigw(exclude_responses=["data.inputs", "data.outputs", "data.histories.inputs", "data.histories.outputs"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

@@ -280,6 +280,15 @@
 |  message  |    string  |      result=false 时错误信息     |
 |  trace_id     |    string  |      open telemetry trace_id     |
 
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.constants` - 输入的全局变量
+- `data.outputs` - 任务输出参数
+- `data.pipeline_tree.constants` - 流程树中的全局变量
+- `data.task_webhook_history` - Webhook 回调历史记录
+
 #### data
 
 | 字段      | 类型      | 描述              |

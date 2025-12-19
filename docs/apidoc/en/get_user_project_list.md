@@ -51,3 +51,9 @@ Get user project list
 |  project_id | int        | proejct ID       |
 |  bk_biz_id | int        | bound cmdb business id       |
 |  name  | string     | project name           |
+
+### MCP Request Notice
+
+When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
+
+- `data.executor_proxy` - Executor proxy information

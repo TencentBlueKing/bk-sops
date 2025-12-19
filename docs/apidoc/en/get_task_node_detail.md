@@ -11,7 +11,7 @@ Query a task node execution details
 | node_id          | string | YES      | the node ID of task                                                                   |
 | component_code   | string | NO       | the code of Standard Plugin, this field is required when query a Standard Plugin node |
 | subprocess_stack | string | NO       | stack of SubProcess, format is json                                                   |
-| loop             | int    | NO       | the loop count of node                                                                | 
+| loop             | int    | NO       | the loop count of node                                                                |
 
 ### Request Parameters Example
 
@@ -134,3 +134,12 @@ Query a task node execution details
 |  outputs      | list       | outputs info of this node，details are described below    |
 |  ex_data      | string     | failure detail of this node，format is json or HTML、string |
 |  histories    | list       | retry records, details are described below   |
+
+### MCP Request Notice
+
+When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
+
+- `data.inputs` - Node input data
+- `data.outputs` - Node output data
+- `data.histories.inputs` - Input data in history records
+- `data.histories.outputs` - Output data in history records
