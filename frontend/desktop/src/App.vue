@@ -40,6 +40,10 @@
         </template>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
+        <AIBlueking
+            ref="aiBlueking"
+            :url="aiAgentUrl" />
+
     </div>
 </template>
 <script>
@@ -55,6 +59,8 @@
     import permissionApply from '@/components/layout/permissionApply.vue'
     import NoticeComponent from '@blueking/notice-component-vue2'
     import '@blueking/notice-component-vue2/dist/style.css'
+    import AIBlueking from '@blueking/ai-blueking/vue2'
+    import '@blueking/ai-blueking/dist/vue2/style.css'
 
     export default {
         name: 'App',
@@ -63,7 +69,8 @@
             ErrorCodeModal,
             permissionApply,
             PermissionModal,
-            NoticeComponent
+            NoticeComponent,
+            AIBlueking
         },
         mixins: [permission],
         provide () {
@@ -75,6 +82,7 @@
             return {
                 enableNoticeCenter: window.ENABLE_NOTICE_CENTER,
                 apiUrl: `${window.SITE_URL}notice/announcements/`,
+                aiAgentUrl: window.AI_SOPS_AGENT_URL,
                 hasAlertNotice: false,
                 footerLoading: false,
                 permissinApplyShow: false,
