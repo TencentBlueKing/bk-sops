@@ -17,7 +17,7 @@ from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, return_json_response
 from gcloud.apigw.serializers import IncludeProjectSerializer
 from gcloud.apigw.views.utils import logger
 from gcloud.core.models import ProjectConfig
@@ -27,6 +27,7 @@ from gcloud.iam_auth.utils import get_user_projects
 @login_exempt
 @require_GET
 @apigw_require
+@mcp_apigw(exclude_responses=["data.executor_proxy"])
 @return_json_response
 @mark_request_whether_is_trust
 def get_user_project_list(request):

@@ -23,7 +23,7 @@ from pipeline.core.constants import PE
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
@@ -63,6 +63,7 @@ def get_exclude_nodes_by_execute_nodes(execute_nodes, pipline_tree):
 @csrf_exempt
 @require_POST
 @apigw_require
+@mcp_apigw(exclude_responses=["data.pipeline_tree.constants"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

@@ -15,7 +15,13 @@ from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response, timezone_inject
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    mcp_apigw,
+    project_inject,
+    return_json_response,
+    timezone_inject,
+)
 from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_list_data, logger
 from gcloud.common_template.models import CommonTemplate
@@ -31,6 +37,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 @login_exempt
 @require_GET
 @apigw_require
+@mcp_apigw(exclude_responses=["data.executor_proxy"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

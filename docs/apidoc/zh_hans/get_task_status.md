@@ -99,6 +99,13 @@
 |  message  |    string  |      result=false 时错误信息     |
 |  trace_id     |    string  |      open telemetry trace_id     |
 
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.children` - 子节点状态树
+- `data.failed_node_info` - 失败节点详细信息
+
 #### data
 
 | 字段      | 类型      | 描述      |

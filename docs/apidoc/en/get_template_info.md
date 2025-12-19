@@ -253,3 +253,10 @@ KEY, the format is like ${key}
 |  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
 |  source_tag   | string   |      source tag and standard plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
 |  source_info | dict    |        source info about task node ID  |
+
+### MCP Request Notice
+
+When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
+
+- `data.pipeline_tree.constants` - Global variables in the pipeline tree
+- `data.template_constants` - Template constants
