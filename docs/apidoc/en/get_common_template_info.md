@@ -9,6 +9,10 @@ Query common flow template details
 | Field         |   Type     | Required   |  Description    |
 |---------------|------------|---------|--------------------|
 | template_id   | string     |   YES   |  the template ID       |
+| include_executor_proxy | bool | NO | whether to include executor proxy information, default false |
+| include_subprocess | bool | NO | whether to include subprocess information, default false |
+| include_constants | bool | NO | whether to include constants information, default false |
+| include_notify | bool | NO | whether to include notify information, default false |
 
 ### Request Parameters Example
 
