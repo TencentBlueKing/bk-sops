@@ -116,7 +116,11 @@
                             }">
                         </i>
                     </bk-form-item>
-                    <bk-form-item v-if="common" property="project_scope" :label="$t('可见范围')" :required="true"
+                    <bk-form-item v-if="common"
+                        property="project_scope"
+                        :label="$t('可见范围')"
+                        :required="true"
+                        ext-cls="project-scope-item"
                         data-test-id="tabTemplateConfig_form_projectScope">
                         <bk-checkbox
                             v-model="isOutermostBaseInfoAllProjectScope"
@@ -147,6 +151,12 @@
                                 </bk-option>
                             </bk-option-group>
                         </bk-select>
+                        <ScopeCopyPaste
+                            :show-copy-paste="!isOutermostBaseInfoAllProjectScope"
+                            :is-view-mode="isViewMode"
+                            :scope-data="currentScopeData"
+                            :all-project-ids="allProjectIds"
+                            @paste="onPasteSuccess" />
                     </bk-form-item>
                 </section>
                 <section class="form-section">
@@ -296,6 +306,7 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
+    import ScopeCopyPaste from '@/components/common/ScopeCopyPaste.vue'
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
@@ -307,6 +318,7 @@
         name: 'TabTemplateConfig',
         components: {
             MemberSelect,
+            ScopeCopyPaste,
             NotifyTypeConfig,
             HttpCallback
         },
@@ -433,6 +445,12 @@
                     })
                 })
                 return allIds
+            },
+            currentScopeData () {
+                return {
+                    isAllScope: this.isOutermostBaseInfoAllProjectScope,
+                    projectIds: this.baseInfoProjectScopeList.slice()
+                }
             }
         },
         watch: {
@@ -774,6 +792,16 @@
                 } else {
                     this.formData.webhookConfigs = val
                 }
+            },
+            onPasteSuccess (result) {
+                if (result.isAllScope) {
+                    this.handleBaseInfoSelectAllProjectScope(true)
+                } else {
+                    this.isOutermostBaseInfoAllProjectScope = false
+                    this.baseInfoProjectScopeList = result.projectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.setProjectScope(this.baseInfoProjectScopeList.map(item => String(item)))
+                }
             }
         },
         unmounted () {
@@ -855,14 +883,25 @@
         display: block;
     }
 }
-    .select-all-project-scope{
-        margin: 0 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid #dcdee5;
+.select-all-project-scope{
+    margin: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #dcdee5;
+}
+.select-all-project-scope-checkbox{
+    margin-right: 14px;
+}
+::v-deep .project-scope-item{
+    position: relative;
+    .project-select{
+        .bk-select-dropdown{
+            .bk-tooltip-ref{
+                width: calc(100% - 50px);
+            }
+        }
     }
-    .select-all-project-scope-checkbox{
-        margin-right: 14px;
-    }
+}
+
 </style>
