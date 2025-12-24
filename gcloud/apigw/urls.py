@@ -13,7 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
+from gcloud.apigw.views.apply_webhook_configs import apply_webhook_configs
 from gcloud.apigw.views.claim_functionalization_task import claim_functionalization_task
+from gcloud.apigw.views.copy_template_across_project import copy_template_across_project
 from gcloud.apigw.views.create_and_start_task import create_and_start_task
 from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
@@ -29,9 +31,11 @@ from gcloud.apigw.views.get_plugin_detail import get_plugin_detail
 from gcloud.apigw.views.get_plugin_list import get_plugin_list
 from gcloud.apigw.views.get_task_count import get_task_count
 from gcloud.apigw.views.get_task_detail import get_task_detail
+from gcloud.apigw.views.get_task_effective_time import get_task_effective_time
 from gcloud.apigw.views.get_task_list import get_task_list
 from gcloud.apigw.views.get_task_node_data import get_task_node_data
 from gcloud.apigw.views.get_task_node_detail import get_task_node_detail
+from gcloud.apigw.views.get_task_operate_record import get_task_operate_record
 from gcloud.apigw.views.get_task_status import get_task_status
 from gcloud.apigw.views.get_tasks_manual_intervention_state import get_tasks_manual_intervention_state
 from gcloud.apigw.views.get_tasks_status import get_tasks_status
@@ -55,9 +59,6 @@ from gcloud.apigw.views.query_task_count import query_task_count
 from gcloud.apigw.views.register_project import register_project
 from gcloud.apigw.views.set_periodic_task_enabled import set_periodic_task_enabled
 from gcloud.apigw.views.start_task import start_task
-from gcloud.apigw.views.copy_template_across_project import copy_template_across_project
-from gcloud.apigw.views.get_task_operate_record import get_task_operate_record
-from gcloud.apigw.views.apply_webhook_configs import apply_webhook_configs
 
 urlpatterns = [
     url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
@@ -135,4 +136,5 @@ urlpatterns = [
     url(r"^copy_template_across_project/(?P<project_id>\d+)/$", copy_template_across_project),
     url(r"^get_task_operate_record/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_operate_record),
     url(r"^apply_webhook_configs/(?P<project_id>\d+)/$", apply_webhook_configs),
+    url(r"^get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time),
 ]
