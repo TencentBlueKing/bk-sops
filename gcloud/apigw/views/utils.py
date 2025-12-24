@@ -71,6 +71,7 @@ def format_template_data(
         "edit_time": format_datetime(template.pipeline_template.edit_time, tz),
         "category": template.category,
         "pipeline_tree": pipeline_tree,
+        "description": template.pipeline_template.description,
     }
     if project:
         data.update(
@@ -117,6 +118,7 @@ def format_template_list_data(
             "editor": tmpl.pipeline_template.editor,
             "edit_time": format_datetime(tmpl.pipeline_template.edit_time, tz),
             "category": tmpl.category,
+            "description": tmpl.pipeline_template.description,
         }
 
         if project:
