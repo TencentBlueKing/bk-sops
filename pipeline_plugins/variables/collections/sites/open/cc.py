@@ -61,7 +61,7 @@ class VarIpPickerVariable(LazyVariable):
         produce_method = var_ip_picker["var_ip_method"]
         if produce_method == "custom":
             custom_value = var_ip_picker["var_ip_custom_value"]
-            data = cc_get_ips_info_by_str(username, bk_biz_id, custom_value)
+            data = cc_get_ips_info_by_str(tenant_id, username, bk_biz_id, custom_value)
             ip_list = data["ip_result"]
             data = ",".join([ip["InnerIP"] for ip in ip_list])
         else:
@@ -85,7 +85,7 @@ class VarIpPickerVariable(LazyVariable):
             host_list = cc_get_inner_ip_by_module_id(
                 tenant_id, username, bk_biz_id, module_inst_id_list, ["host_id", "bk_host_innerip"]
             )
-            cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
+            cc_ip_list = cc_get_ips_info_by_str(tenant_id, username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
             select_ip = set()
 
             for host_info in host_list:

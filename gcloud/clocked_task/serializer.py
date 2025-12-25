@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 import pytz
-from django.conf import settings
+from django.utils import timezone
 from rest_framework import serializers
 
 from gcloud.clocked_task.models import ClockedTask
@@ -53,7 +53,7 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
         return data
 
     def validate_plan_start_time(self, plan_start_time):
-        now = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
+        now = datetime.now(tz=pytz.timezone(timezone.get_current_timezone_name()))
         if now > plan_start_time:
             raise serializers.ValidationError("Plan start time should be later than the time to create the plan")
         return plan_start_time

@@ -23,8 +23,9 @@ class VariableViewSet(GcloudReadOnlyViewSet):
     queryset = VariableModel.objects.filter(status=True)
     lookup_field = "code"
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        if settings.ENABLE_MULTI_TENANT_MODE:
-            queryset = queryset.exclude(code="ip")
-        return queryset
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     # 变量列表不展示IP选择器(已废弃)类型
+    #     if settings.ENABLE_MULTI_TENANT_MODE and self.action == "list":
+    #         queryset = queryset.exclude(code="ip")
+    #     return queryset
