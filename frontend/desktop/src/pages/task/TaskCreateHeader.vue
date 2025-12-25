@@ -99,7 +99,7 @@
                         query: { template_id: this.template_id }
                     },
                     'templateView': {
-                        name: fromName,
+                        name: fromName || (this.common ? 'commonTemplatePanel' : 'templatePanel'),
                         params: { type: 'view', project_id: this.common ? undefined : this.project_id },
                         query: { template_id: this.template_id, common: this.common ? '1' : undefined }
                     },
