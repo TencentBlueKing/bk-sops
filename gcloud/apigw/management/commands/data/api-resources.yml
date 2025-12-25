@@ -832,10 +832,121 @@ paths:
   /get_task_effective_time/{task_id}/{bk_biz_id}/:
     get:
       operationId: get_task_effective_time
-      description: 统计任务的有效执行时间
+      description: 统计任务的有效执行时间（排除人工节点）
       tags:
         - 通用接口
+      parameters:
+      - in: path
+        name: task_id
+        type: string
+        required: true
+        description: 任务实例ID
+      - in: path
+        name: bk_biz_id
+        type: string
+        required: true
+        description: 模板所属业务ID
+      - in: query
+        name: scope
+        type: string
+        default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      - in: query
+        name: debug
+        type: string
+        default: '0'
+        required: false
+        description: 是否启用调试模式，1 表示启用，0 表示不启用，默认 0
       responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              result:
+                type: boolean
+                description: true/false 查询成功与否
+              data:
+                type: object
+                properties:
+                  task_instance_id:
+                    type: integer
+                    description: 任务实例ID
+                  instance_id:
+                    type: integer
+                    description: Pipeline实例ID
+                  template_id:
+                    type: string
+                    description: Pipeline模板ID
+                  task_template_id:
+                    type: string
+                    description: 任务模板ID
+                  project_id:
+                    type: integer
+                    description: 项目ID
+                  creator:
+                    type: string
+                    description: 创建者
+                  create_method:
+                    type: string
+                    description: 任务创建方式（app/api/app_maker/periodic/clocked/mobile）
+                  create_time:
+                    type: string
+                    description: 创建时间，格式：YYYY-MM-DD HH:MM:SS
+                  start_time:
+                    type: string
+                    description: 启动时间，格式：YYYY-MM-DD HH:MM:SS
+                  finish_time:
+                    type: string
+                    description: 结束时间，格式：YYYY-MM-DD HH:MM:SS
+                  total_elapsed_time:
+                    type: integer
+                    description: 总执行时间（秒）
+                  effective_time:
+                    type: integer
+                    description: 有效执行时间（秒），排除人工节点后的耗时
+                  excluded_node_count:
+                    type: integer
+                    description: 排除节点数量（人工节点数量）
+                  total_node_count:
+                    type: integer
+                    description: 总节点数量
+                  excluded_component_codes:
+                    type: array
+                    items:
+                      type: string
+                    description: 排除的节点组件代码列表，从环境变量 MANUAL_WAITING_COMPONENT_CODES 中获取，如果未配置则使用默认值：["bk_approve", "pause_node", "sleep_timer", "bot-approval"]
+                  category:
+                    type: string
+                    description: 任务分类
+                  debug:
+                    type: object
+                    description: 调试信息，仅在 debug=1 时返回
+                    properties:
+                      node_details:
+                        type: array
+                        items:
+                          type: object
+                        description: 节点明细信息
+                      parallel_gateways:
+                        type: array
+                        items:
+                          type: object
+                        description: 并行网关明细
+                      raw_data:
+                        type: object
+                        description: 原始数据
+                description: result=true 时返回数据，详细信息见下面说明
+              message:
+                type: string
+                description: result=false 时错误信息
+              code:
+                type: integer
+                description: 错误码，0表示成功
+              trace_id:
+                type: string
+                description: open telemetry trace_id
         default:
           description: ''
       x-bk-apigateway-resource:
