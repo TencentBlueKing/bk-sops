@@ -108,12 +108,14 @@
                     <bk-table
                         ext-cls="header-table"
                         :data="localWebhookForm.extra_info.headers">
-                        <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
+                        <bk-table-column v-for="item in headerFields"
+                            :key="item.id"
+                            :label="item.name">
                             <template slot-scope="{ row }">
                                 <bk-popover
                                     :content="row[headerFieldConfig[item.id]]"
-                                    width="328"
-                                    v-if="row[headerFieldConfig[item.id]].length >= 19">
+                                    max-width="328"
+                                    :disabled="!row[headerFieldConfig[item.id]] || row[headerFieldConfig[item.id]].trim() === ''">
                                     <bk-input v-model="row[headerFieldConfig[item.id]]"
                                         behavior="simplicity"
                                         :disabled="isViewMode || !isEnable"
@@ -121,12 +123,6 @@
                                         @change="onWebhookConfigChange">
                                     </bk-input>
                                 </bk-popover>
-                                <bk-input v-else v-model="row[headerFieldConfig[item.id]]"
-                                    behavior="simplicity"
-                                    :disabled="isViewMode || !isEnable"
-                                    :clearable="true"
-                                    @change="onWebhookConfigChange">
-                                </bk-input>
                             </template>
                         </bk-table-column>
                         <bk-table-column label="操作" width="80">
