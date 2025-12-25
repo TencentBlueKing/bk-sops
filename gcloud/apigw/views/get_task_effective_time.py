@@ -11,12 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from collections import defaultdict
-from datetime import datetime
 
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.db.models import Sum
-from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
@@ -31,6 +29,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.utils.dates import format_datetime
 
 
 def _get_excluded_component_codes():
@@ -55,354 +54,807 @@ def _check_revoke_operation(task_instance_id):
     return TaskOperateRecord.objects.filter(instance_id=task_instance_id, operate_type="revoke").exists()
 
 
-def _calculate_retry_node_time_adjustment(node_stats):
-    """
-    计算重试节点的耗时调整值
-    对于is_retry=True的节点，忽略掉这个节点执行结束到下一个相同node_id节点（重试执行的新节点）开始之间这段时间的耗时
-    """
+def _get_node_stat(node_id, node_stats_dict):
+    """获取节点的统计信息"""
+    return node_stats_dict.get(node_id)
+
+
+def _get_all_node_stats_by_id(node_stats):
+    """获取所有节点统计，按node_id分组"""
     nodes_by_id = defaultdict(list)
     for node in node_stats:
         nodes_by_id[node.node_id].append(node)
-
-    total_ignored_time = 0
-    for node_id, nodes in nodes_by_id.items():
-        if len(nodes) <= 1:
-            continue
-
-        nodes_sorted = sorted(
-            nodes, key=lambda x: x.started_time if x.started_time else datetime.min.replace(tzinfo=timezone.utc)
-        )
-
-        for idx, current_node in enumerate(nodes_sorted):
-            if not current_node.is_retry:
-                continue
-
-            if not current_node.archived_time:
-                continue
-
-            next_node = None
-            for next_idx in range(idx + 1, len(nodes_sorted)):
-                next_candidate = nodes_sorted[next_idx]
-                if next_candidate.started_time:
-                    next_node = next_candidate
-                    break
-
-            if next_node and next_node.started_time:
-                retry_interval = (next_node.started_time - current_node.archived_time).total_seconds()
-                if retry_interval > 0:
-                    total_ignored_time += retry_interval
-
-    return total_ignored_time
+    return nodes_by_id
 
 
-def _calculate_failure_wait_time(task_instance_id, instance_id, node_stats):
+def _is_excluded_node(node_id, execution_data, node_stats_dict, excluded_component_codes):
+    """判断节点是否是人工节点（需要排除的节点）"""
+    if node_id not in execution_data.get("activities", {}):
+        return False
+
+    node_stat = _get_node_stat(node_id, node_stats_dict)
+    if not node_stat:
+        return False
+
+    activity = execution_data["activities"][node_id]
+    component_code = activity.get("component", {}).get("code", "")
+    return component_code in excluded_component_codes
+
+
+def _get_node_elapsed_time(node_id, node_stats_dict, nodes_by_id=None):
     """
-    计算失败后等待时间：计算所有失败节点到用户操作（终止/跳过节点）之间的等待时间总和
+    获取节点的耗时
+    如果同一个node_id有多个执行记录，累加所有记录的耗时
     """
-    failed_nodes = node_stats.filter(is_skip=True, archived_time__isnull=False).order_by("archived_time")
-
-    if not failed_nodes.exists():
-        return 0
-
-    failed_nodes_list = list(failed_nodes)
-    user_operations = TaskOperateRecord.objects.filter(
-        instance_id=task_instance_id, operate_type__in=["revoke", "skip", "skip_exg", "skip_cpg", "retry"]
-    ).order_by("operate_date")
-
-    if not user_operations.exists():
-        return 0
-
-    user_operations_list = list(user_operations)
-    total_wait_time = 0
-
-    for failed_node in failed_nodes_list:
-        failure_time = failed_node.archived_time
-        if not failure_time:
-            continue
-
-        subsequent_operations = [op for op in user_operations_list if op.operate_date >= failure_time]
-        if subsequent_operations:
-            first_operation_after_failure = subsequent_operations[0]
-            wait_time = (first_operation_after_failure.operate_date - failure_time).total_seconds()
-            total_wait_time += max(0, int(wait_time))
-
-    return max(0, int(total_wait_time))
+    total_time = 0
+    if nodes_by_id and node_id in nodes_by_id:
+        # 累加同一个node_id的所有节点的耗时
+        for node_stat in nodes_by_id[node_id]:
+            total_time += node_stat.elapsed_time or 0
+    else:
+        # 如果没有nodes_by_id，使用node_stats_dict（向后兼容）
+        node_stat = _get_node_stat(node_id, node_stats_dict)
+        if node_stat:
+            total_time = node_stat.elapsed_time or 0
+    return total_time
 
 
-def _find_parallel_gateway_branches(execution_data, status_tree, parallel_gateway_id, converge_gateway_id):
+def _calculate_failure_wait_time_for_node(node_id, node_stat, user_operations_list):
     """
-    找出并行网关的所有分支节点ID集合
+    计算单个失败节点的等待时间
 
     Args:
-        execution_data: 流程执行数据
-        status_tree: 状态树
-        parallel_gateway_id: 并行网关节点ID
-        converge_gateway_id: 对应的汇聚网关节点ID
+        node_id: 节点ID
+        node_stat: 节点统计对象
+        user_operations_list: 用户操作记录列表（已按operate_date排序）
 
     Returns:
-        list: 每个分支的节点ID列表
+        int: 等待时间（秒），如果没有等待则返回0
     """
-    if parallel_gateway_id not in execution_data.get("gateways", {}):
-        return []
+    if not node_stat.is_skip or not node_stat.archived_time:
+        return 0
 
-    parallel_gateway = execution_data["gateways"][parallel_gateway_id]
-    outgoing_flows = parallel_gateway.get("outgoing", [])
+    failure_time = node_stat.archived_time
+    subsequent_operations = [op for op in user_operations_list if op.operate_date >= failure_time]
 
-    if not isinstance(outgoing_flows, list):
-        return []
-
-    branches = []
-    flows = execution_data.get("flows", {})
-
-    for flow_id in outgoing_flows:
-        if flow_id not in flows:
-            continue
-
-        flow = flows[flow_id]
-        branch_start_node_id = flow.get("target")
-
-        if not branch_start_node_id:
-            continue
-
-        # 从分支起始节点开始，沿着流程找到汇聚网关之前的所有节点
-        branch_nodes = set()
-        visited = set()
-        queue = [branch_start_node_id]
-
-        while queue:
-            node_id = queue.pop(0)
-            if node_id in visited or node_id == converge_gateway_id:
-                continue
-
-            visited.add(node_id)
-            branch_nodes.add(node_id)
-
-            # 如果是活动节点，添加到分支
-            if node_id in execution_data.get("activities", {}):
-                act = execution_data["activities"][node_id]
-                outgoing = act.get("outgoing")
-                if outgoing:
-                    if isinstance(outgoing, list):
-                        for out_flow_id in outgoing:
-                            if out_flow_id in flows:
-                                next_node = flows[out_flow_id].get("target")
-                                if next_node and next_node != converge_gateway_id:
-                                    queue.append(next_node)
-                    else:
-                        if outgoing in flows:
-                            next_node = flows[outgoing].get("target")
-                            if next_node and next_node != converge_gateway_id:
-                                queue.append(next_node)
-
-            # 如果是网关节点，继续遍历
-            if node_id in execution_data.get("gateways", {}):
-                gateway = execution_data["gateways"][node_id]
-                gateway_outgoing = gateway.get("outgoing", [])
-                if isinstance(gateway_outgoing, list):
-                    for out_flow_id in gateway_outgoing:
-                        if out_flow_id in flows:
-                            next_node = flows[out_flow_id].get("target")
-                            if next_node and next_node != converge_gateway_id:
-                                queue.append(next_node)
-                elif gateway_outgoing:
-                    if gateway_outgoing in flows:
-                        next_node = flows[gateway_outgoing].get("target")
-                        if next_node and next_node != converge_gateway_id:
-                            queue.append(next_node)
-
-        if branch_nodes:
-            branches.append(list(branch_nodes))
-
-    return branches
-
-
-def _calculate_branch_time(branch_node_ids, node_stats_dict):
-    """
-    计算分支的总耗时
-
-    Args:
-        branch_node_ids: 分支的节点ID列表
-        node_stats_dict: 节点统计字典，key为node_id，value为节点统计对象
-
-    Returns:
-        int: 分支总耗时（秒）
-    """
-    branch_start_time = None
-    branch_end_time = None
-
-    for node_id in branch_node_ids:
-        if node_id not in node_stats_dict:
-            continue
-
-        node_stat = node_stats_dict[node_id]
-        if node_stat.started_time:
-            if branch_start_time is None or node_stat.started_time < branch_start_time:
-                branch_start_time = node_stat.started_time
-
-        if node_stat.archived_time:
-            if branch_end_time is None or node_stat.archived_time > branch_end_time:
-                branch_end_time = node_stat.archived_time
-
-    if branch_start_time and branch_end_time:
-        return int((branch_end_time - branch_start_time).total_seconds())
+    if subsequent_operations:
+        first_operation_after_failure = subsequent_operations[0]
+        wait_time = (first_operation_after_failure.operate_date - failure_time).total_seconds()
+        return max(0, int(wait_time))
 
     return 0
 
 
-def _calculate_parallel_gateway_excluded_time_adjustment(
-    task, execution_data, status_tree, node_stats, excluded_component_codes
-):
+def _find_converge_gateway(execution_data, start_node_id, visited=None):
     """
-    计算并行网关场景下需要调整的排除时间
-
-    对于并行网关中的非关键路径分支，如果分支中有人工节点，且该分支不是最慢的分支，
-    则只排除超出关键路径的部分
+    从起始节点开始，沿着流程找到第一个汇聚网关
 
     Returns:
-        int: 需要调整的排除时间（秒），正数表示需要减少排除时间
+        str: 汇聚网关ID，如果没找到返回None
     """
-    if not execution_data or not status_tree:
-        return 0
+    if visited is None:
+        visited = set()
+
+    if start_node_id in visited:
+        return None
+
+    visited.add(start_node_id)
 
     gateways = execution_data.get("gateways", {})
     flows = execution_data.get("flows", {})
+    activities = execution_data.get("activities", {})
 
-    # 找出所有并行网关及其对应的汇聚网关
-    parallel_gateways = []
-    for gateway_id, gateway in gateways.items():
-        if gateway.get("type") != "ParallelGateway":
-            continue
+    # 检查当前节点是否是汇聚网关
+    if start_node_id in gateways:
+        gateway = gateways[start_node_id]
+        if gateway.get("type") == "ConvergeGateway":
+            return start_node_id
 
-        # 收集并行网关的所有分支起始节点
+    # 获取当前节点的outgoing flows
+    outgoing_flows = []
+
+    if start_node_id in gateways:
+        gateway = gateways[start_node_id]
         outgoing = gateway.get("outgoing", [])
-        if not isinstance(outgoing, list):
+        if isinstance(outgoing, list):
+            outgoing_flows = outgoing
+        elif outgoing:
+            outgoing_flows = [outgoing]
+    elif start_node_id in activities:
+        activity = activities[start_node_id]
+        outgoing = activity.get("outgoing")
+        if isinstance(outgoing, list):
+            outgoing_flows = outgoing
+        elif outgoing:
+            outgoing_flows = [outgoing]
+
+    # 递归查找每个outgoing flow的目标节点
+    for flow_id in outgoing_flows:
+        if flow_id not in flows:
             continue
 
-        branch_start_nodes = []
-        for flow_id in outgoing:
-            if flow_id in flows:
-                target_node = flows[flow_id].get("target")
-                if target_node:
-                    branch_start_nodes.append(target_node)
-
-        if len(branch_start_nodes) < 2:
+        target_node_id = flows[flow_id].get("target")
+        if not target_node_id:
             continue
 
-        # 沿着每个分支找到汇聚网关
-        # 方法：从每个分支起始节点开始，沿着流程找到第一个ConvergeGateway
-        converge_gateways_found = []
-        for start_node in branch_start_nodes:
-            visited = set()
-            queue = [start_node]
-            found_converge = None
+        converge_gateway_id = _find_converge_gateway(execution_data, target_node_id, visited)
+        if converge_gateway_id:
+            return converge_gateway_id
 
-            while queue and not found_converge:
-                node_id = queue.pop(0)
-                if node_id in visited:
-                    continue
-                visited.add(node_id)
+    return None
 
-                # 检查是否是汇聚网关
-                if node_id in gateways:
-                    target_gateway = gateways[node_id]
-                    if target_gateway.get("type") == "ConvergeGateway":
-                        found_converge = node_id
-                        break
-                    else:
-                        # 如果是其他类型的网关节点，继续查找它的outgoing
-                        gateway_outgoing = target_gateway.get("outgoing", [])
-                        if isinstance(gateway_outgoing, list):
-                            for out_flow_id in gateway_outgoing:
-                                if out_flow_id in flows:
-                                    next_node = flows[out_flow_id].get("target")
-                                    if next_node:
-                                        queue.append(next_node)
-                        elif gateway_outgoing:
-                            if gateway_outgoing in flows:
-                                next_node = flows[gateway_outgoing].get("target")
-                                if next_node:
-                                    queue.append(next_node)
-                    continue
 
-                # 如果是活动节点，继续查找它的outgoing
-                if node_id in execution_data.get("activities", {}):
-                    act = execution_data["activities"][node_id]
-                    act_outgoing = act.get("outgoing")
-                    if act_outgoing:
-                        if isinstance(act_outgoing, list):
-                            for out_flow_id in act_outgoing:
-                                if out_flow_id in flows:
-                                    next_node = flows[out_flow_id].get("target")
-                                    if next_node:
-                                        queue.append(next_node)
-                        else:
-                            if act_outgoing in flows:
-                                next_node = flows[act_outgoing].get("target")
-                                if next_node:
-                                    queue.append(next_node)
+def _dfs_calculate_effective_time(
+    node_id,
+    execution_data,
+    node_stats_dict,
+    excluded_component_codes,
+    nodes_by_id=None,
+    user_operations_list=None,
+    visited=None,
+    debug_info=None,
+):
+    """
+    使用深度优先搜索计算从指定节点开始的有效耗时
 
-            if found_converge:
-                converge_gateways_found.append(found_converge)
+    Args:
+        node_id: 起始节点ID
+        execution_data: 流程执行数据
+        node_stats_dict: 节点统计字典
+        excluded_component_codes: 需要排除的组件代码列表
+        nodes_by_id: 按node_id分组的节点统计字典（用于计算重试间隔）
+        user_operations_list: 用户操作记录列表（用于计算失败等待时间）
+        visited: 已访问的节点集合（用于防止循环）
+        debug_info: 调试信息字典（可选）
 
-        # 如果所有分支都指向同一个汇聚网关，则是对应的汇聚网关
-        if converge_gateways_found and len(set(converge_gateways_found)) == 1:
-            converge_gateway_id = converge_gateways_found[0]
-            parallel_gateways.append((gateway_id, converge_gateway_id))
+    Returns:
+        int: 有效耗时（秒）
+    """
+    if visited is None:
+        visited = set()
 
-    if not parallel_gateways:
+    if nodes_by_id is None:
+        nodes_by_id = {}
+    if user_operations_list is None:
+        user_operations_list = []
+    if debug_info is None:
+        debug_info = {}
+
+    if node_id in visited:
         return 0
+
+    visited.add(node_id)
+
+    gateways = execution_data.get("gateways", {})
+    flows = execution_data.get("flows", {})
+    activities = execution_data.get("activities", {})
+    start_event = execution_data.get("start_event", {})
+    end_event = execution_data.get("end_event", {})
+
+    # 如果是结束节点，返回0
+    if node_id == end_event.get("id"):
+        return 0
+
+    # 如果是汇聚网关，返回0（因为已经在并行网关处理过了）
+    if node_id in gateways:
+        gateway = gateways[node_id]
+        if gateway.get("type") == "ConvergeGateway":
+            return 0
+
+        # 如果是活动节点（ServiceActivity）
+    if node_id in activities:
+        activity = activities[node_id]
+        node_stat = _get_node_stat(node_id, node_stats_dict)
+
+        # 记录调试信息
+        if node_stat and debug_info is not None:
+            # 计算该node_id所有节点的总耗时
+            total_elapsed_time = _get_node_elapsed_time(node_id, node_stats_dict, nodes_by_id)
+            node_info = {
+                "node_id": node_id,
+                "component_code": node_stat.component_code if node_stat else None,
+                "elapsed_time": total_elapsed_time,
+                "effective_time": 0,  # 将在后面设置
+                "is_excluded": False,
+            }
+            if node_id not in debug_info.get("nodes", {}):
+                debug_info.setdefault("nodes", {})[node_id] = node_info
+            else:
+                # 更新已存在的节点信息
+                existing_info = debug_info["nodes"][node_id]
+                existing_info["elapsed_time"] = total_elapsed_time
+
+        # 如果是人工节点，排除其耗时
+        is_excluded = _is_excluded_node(node_id, execution_data, node_stats_dict, excluded_component_codes)
+        if is_excluded:
+            # 记录调试信息
+            if debug_info is not None and node_id in debug_info.get("nodes", {}):
+                debug_info["nodes"][node_id]["is_excluded"] = True
+                debug_info["nodes"][node_id]["effective_time"] = 0
+
+            # 继续遍历后续节点
+            outgoing = activity.get("outgoing")
+            if outgoing:
+                if isinstance(outgoing, list):
+                    next_node_ids = [flows.get(fid, {}).get("target") for fid in outgoing if fid in flows]
+                else:
+                    next_node_id = flows.get(outgoing, {}).get("target")
+                    next_node_ids = [next_node_id] if next_node_id else []
+
+                total_result = 0
+                for next_node_id in next_node_ids:
+                    if next_node_id:
+                        next_result = _dfs_calculate_effective_time(
+                            next_node_id,
+                            execution_data,
+                            node_stats_dict,
+                            excluded_component_codes,
+                            nodes_by_id,
+                            user_operations_list,
+                            visited.copy(),
+                            debug_info,
+                        )
+                        total_result += next_result
+
+                return total_result
+
+            return 0
+        else:
+            # 非人工节点，累加其耗时，然后继续遍历后续节点
+            node_time = _get_node_elapsed_time(node_id, node_stats_dict, nodes_by_id)
+
+            outgoing = activity.get("outgoing")
+            if outgoing:
+                if isinstance(outgoing, list):
+                    next_node_ids = [flows.get(fid, {}).get("target") for fid in outgoing if fid in flows]
+                else:
+                    next_node_id = flows.get(outgoing, {}).get("target")
+                    next_node_ids = [next_node_id] if next_node_id else []
+
+                max_result = 0
+                for next_node_id in next_node_ids:
+                    if next_node_id:
+                        next_result = _dfs_calculate_effective_time(
+                            next_node_id,
+                            execution_data,
+                            node_stats_dict,
+                            excluded_component_codes,
+                            nodes_by_id,
+                            user_operations_list,
+                            visited.copy(),
+                            debug_info,
+                        )
+                        if next_result > max_result:
+                            max_result = next_result
+
+                result_effective_time = node_time + max_result
+                # 记录调试信息（有效时间只记录节点自身的耗时）
+                if debug_info is not None and node_id in debug_info.get("nodes", {}):
+                    debug_info["nodes"][node_id]["effective_time"] = node_time
+                    debug_info["nodes"][node_id]["is_excluded"] = False
+
+                return result_effective_time
+
+            # 记录调试信息
+            if debug_info is not None and node_id in debug_info.get("nodes", {}):
+                debug_info["nodes"][node_id]["effective_time"] = node_time
+                debug_info["nodes"][node_id]["is_excluded"] = False
+
+            return node_time
+
+    # 如果是并行网关或条件并行网关
+    if node_id in gateways:
+        gateway = gateways[node_id]
+        gateway_type = gateway.get("type")
+
+        if gateway_type in ["ParallelGateway", "ConditionalParallelGateway"]:
+            # 找到对应的汇聚网关
+            converge_gateway_id = None
+
+            # 先尝试从gateway的converge_gateway_id属性获取
+            if "converge_gateway_id" in gateway:
+                converge_gateway_id = gateway["converge_gateway_id"]
+            else:
+                # 从第一个分支开始查找汇聚网关
+                outgoing = gateway.get("outgoing", [])
+                if isinstance(outgoing, list) and outgoing:
+                    first_flow_id = outgoing[0]
+                    if first_flow_id in flows:
+                        first_target = flows[first_flow_id].get("target")
+                        if first_target:
+                            converge_gateway_id = _find_converge_gateway(execution_data, first_target)
+
+            if not converge_gateway_id:
+                # 如果找不到汇聚网关，按普通节点处理
+                outgoing = gateway.get("outgoing", [])
+                if isinstance(outgoing, list):
+                    next_node_ids = [flows.get(fid, {}).get("target") for fid in outgoing if fid in flows]
+                else:
+                    next_node_id = flows.get(outgoing, {}).get("target") if outgoing else None
+                    next_node_ids = [next_node_id] if next_node_id else []
+
+                branch_results = []
+                for next_node_id in next_node_ids:
+                    if next_node_id:
+                        branch_result = _dfs_calculate_effective_time(
+                            next_node_id,
+                            execution_data,
+                            node_stats_dict,
+                            excluded_component_codes,
+                            nodes_by_id,
+                            user_operations_list,
+                            visited.copy(),
+                            debug_info,
+                        )
+                        branch_results.append(branch_result)
+
+                if branch_results:
+                    return max(branch_results)
+
+                return 0
+
+            # 计算每个分支的有效耗时
+            outgoing = gateway.get("outgoing", [])
+            if not isinstance(outgoing, list):
+                outgoing = [outgoing] if outgoing else []
+
+            branch_results = []
+            branch_details = []
+            for flow_id in outgoing:
+
+                if flow_id not in flows:
+                    continue
+
+                branch_start_node_id = flows[flow_id].get("target")
+                if not branch_start_node_id:
+                    continue
+
+                # 计算从分支起始节点到汇聚网关的有效耗时
+                branch_result = _dfs_calculate_effective_time_until_converge(
+                    branch_start_node_id,
+                    converge_gateway_id,
+                    execution_data,
+                    node_stats_dict,
+                    excluded_component_codes,
+                    nodes_by_id,
+                    user_operations_list,
+                    visited.copy(),
+                    debug_info,
+                )
+                branch_results.append(branch_result)
+                branch_details.append(
+                    {
+                        "branch_start_node_id": branch_start_node_id,
+                        "branch_end_node_id": converge_gateway_id,
+                        "effective_time": branch_result,
+                    }
+                )
+
+            # 返回最大分支耗时（并行网关取各分支的最大值）
+            if branch_results:
+                max_branch = max(branch_results)
+                # 记录并行网关调试信息
+                if debug_info is not None:
+                    parallel_gateway_info = {
+                        "parallel_gateway_id": node_id,
+                        "converge_gateway_id": converge_gateway_id,
+                        "branches": branch_details,
+                        "selected_branch_effective_time": max_branch,
+                    }
+                    debug_info.setdefault("parallel_gateways", []).append(parallel_gateway_info)
+                return max_branch
+
+            return 0
+
+        elif gateway_type == "ExclusiveGateway":
+            # 分支网关（条件网关），需要找到实际执行的分支
+            # 这里简化处理：取所有分支的最大值（因为无法确定实际执行的分支）
+            outgoing = gateway.get("outgoing", [])
+            if not isinstance(outgoing, list):
+                outgoing = [outgoing] if outgoing else []
+
+            branch_results = []
+            for flow_id in outgoing:
+                if flow_id not in flows:
+                    continue
+
+                next_node_id = flows[flow_id].get("target")
+                if next_node_id:
+                    branch_result = _dfs_calculate_effective_time(
+                        next_node_id,
+                        execution_data,
+                        node_stats_dict,
+                        excluded_component_codes,
+                        nodes_by_id,
+                        user_operations_list,
+                        visited.copy(),
+                        debug_info,
+                    )
+                    branch_results.append(branch_result)
+
+            if branch_results:
+                max_branch = max(branch_results)
+                return max_branch
+
+            return 0
+
+    # 如果是开始节点
+    if node_id == start_event.get("id"):
+        outgoing = start_event.get("outgoing")
+        if outgoing:
+            if isinstance(outgoing, list):
+                next_node_ids = [flows.get(fid, {}).get("target") for fid in outgoing if fid in flows]
+            else:
+                next_node_id = flows.get(outgoing, {}).get("target")
+                next_node_ids = [next_node_id] if next_node_id else []
+
+            total_result = 0
+            for next_node_id in next_node_ids:
+                if next_node_id:
+                    next_result = _dfs_calculate_effective_time(
+                        next_node_id,
+                        execution_data,
+                        node_stats_dict,
+                        excluded_component_codes,
+                        nodes_by_id,
+                        user_operations_list,
+                        visited.copy(),
+                        debug_info,
+                    )
+                    total_result += next_result
+            return total_result
+
+    return 0
+
+
+def _dfs_calculate_effective_time_until_converge(
+    node_id,
+    converge_gateway_id,
+    execution_data,
+    node_stats_dict,
+    excluded_component_codes,
+    nodes_by_id=None,
+    user_operations_list=None,
+    visited=None,
+    debug_info=None,
+):
+    """
+    计算从指定节点到汇聚网关的有效耗时
+
+    Args:
+        node_id: 起始节点ID
+        converge_gateway_id: 汇聚网关ID
+        execution_data: 流程执行数据
+        node_stats_dict: 节点统计字典
+        excluded_component_codes: 需要排除的组件代码列表
+        nodes_by_id: 按node_id分组的节点统计字典（用于计算重试间隔）
+        user_operations_list: 用户操作记录列表（用于计算失败等待时间）
+        visited: 已访问的节点集合
+        debug_info: 调试信息字典（可选）
+
+    Returns:
+        int: 有效耗时（秒）
+    """
+    if visited is None:
+        visited = set()
+
+    if nodes_by_id is None:
+        nodes_by_id = {}
+    if user_operations_list is None:
+        user_operations_list = []
+    if debug_info is None:
+        debug_info = {}
+
+    if node_id in visited:
+        return 0
+
+    if node_id == converge_gateway_id:
+        return 0
+
+    visited.add(node_id)
+
+    gateways = execution_data.get("gateways", {})
+    flows = execution_data.get("flows", {})
+    activities = execution_data.get("activities", {})
+    # 如果是汇聚网关，返回0
+    if node_id in gateways:
+        gateway = gateways[node_id]
+        if gateway.get("type") == "ConvergeGateway":
+            return 0
+
+    # 如果是活动节点
+    if node_id in activities:
+        activity = activities[node_id]
+        node_stat = _get_node_stat(node_id, node_stats_dict)
+
+        # 记录调试信息
+        if node_stat and debug_info is not None:
+            # 计算该node_id所有节点的总耗时
+            total_elapsed_time = _get_node_elapsed_time(node_id, node_stats_dict, nodes_by_id)
+            node_info = {
+                "node_id": node_id,
+                "component_code": node_stat.component_code if node_stat else None,
+                "elapsed_time": total_elapsed_time,
+                "effective_time": 0,  # 将在后面设置
+                "is_excluded": False,
+            }
+            if node_id not in debug_info.get("nodes", {}):
+                debug_info.setdefault("nodes", {})[node_id] = node_info
+            else:
+                # 更新已存在的节点信息
+                existing_info = debug_info["nodes"][node_id]
+                existing_info["elapsed_time"] = total_elapsed_time
+
+        # 如果是人工节点，排除其耗时
+        is_excluded = _is_excluded_node(node_id, execution_data, node_stats_dict, excluded_component_codes)
+        if is_excluded:
+            # 记录调试信息
+            if debug_info is not None and node_id in debug_info.get("nodes", {}):
+                debug_info["nodes"][node_id]["is_excluded"] = True
+                debug_info["nodes"][node_id]["effective_time"] = 0
+
+            # 继续遍历后续节点
+            outgoing = activity.get("outgoing")
+            if outgoing:
+                if isinstance(outgoing, list):
+                    next_node_ids = [flows.get(fid, {}).get("target") for fid in outgoing if fid in flows]
+                else:
+                    next_node_id = flows.get(outgoing, {}).get("target")
+                    next_node_ids = [next_node_id] if next_node_id else []
+
+                total_result = 0
+                for next_node_id in next_node_ids:
+                    if next_node_id:
+                        next_result = _dfs_calculate_effective_time_until_converge(
+                            next_node_id,
+                            converge_gateway_id,
+                            execution_data,
+                            node_stats_dict,
+                            excluded_component_codes,
+                            nodes_by_id,
+                            user_operations_list,
+                            visited.copy(),
+                            debug_info,
+                        )
+                        total_result += next_result
+
+                return total_result
+
+            return 0
+        else:
+            # 非人工节点，累加其耗时
+            node_time = _get_node_elapsed_time(node_id, node_stats_dict, nodes_by_id)
+
+            outgoing = activity.get("outgoing")
+            if outgoing:
+                if isinstance(outgoing, list):
+                    next_node_ids = [flows.get(fid, {}).get("target") for fid in outgoing if fid in flows]
+                else:
+                    next_node_id = flows.get(outgoing, {}).get("target")
+                    next_node_ids = [next_node_id] if next_node_id else []
+
+                max_result = 0
+                for next_node_id in next_node_ids:
+                    if next_node_id:
+                        next_result = _dfs_calculate_effective_time_until_converge(
+                            next_node_id,
+                            converge_gateway_id,
+                            execution_data,
+                            node_stats_dict,
+                            excluded_component_codes,
+                            nodes_by_id,
+                            user_operations_list,
+                            visited.copy(),
+                            debug_info,
+                        )
+                        if next_result > max_result:
+                            max_result = next_result
+
+                result_effective_time = node_time + max_result
+                # 记录调试信息（有效时间只记录节点自身的耗时）
+                if debug_info is not None and node_id in debug_info.get("nodes", {}):
+                    debug_info["nodes"][node_id]["effective_time"] = node_time
+                    debug_info["nodes"][node_id]["is_excluded"] = False
+
+                return result_effective_time
+
+            # 记录调试信息
+            if debug_info is not None and node_id in debug_info.get("nodes", {}):
+                debug_info["nodes"][node_id]["effective_time"] = node_time
+                debug_info["nodes"][node_id]["is_excluded"] = False
+
+            return node_time
+
+    # 如果是网关节点（非汇聚网关）
+    if node_id in gateways:
+        gateway = gateways[node_id]
+        gateway_type = gateway.get("type")
+
+        if gateway_type in ["ParallelGateway", "ConditionalParallelGateway"]:
+            # 嵌套的并行网关，递归处理
+            converge_gateway_id_nested = None
+            if "converge_gateway_id" in gateway:
+                converge_gateway_id_nested = gateway["converge_gateway_id"]
+            else:
+                outgoing = gateway.get("outgoing", [])
+                if isinstance(outgoing, list) and outgoing:
+                    first_flow_id = outgoing[0]
+                    if first_flow_id in flows:
+                        first_target = flows[first_flow_id].get("target")
+                        if first_target:
+                            converge_gateway_id_nested = _find_converge_gateway(execution_data, first_target)
+
+            if converge_gateway_id_nested:
+                outgoing = gateway.get("outgoing", [])
+                if not isinstance(outgoing, list):
+                    outgoing = [outgoing] if outgoing else []
+
+                branch_results = []
+                branch_details = []
+                for flow_id in outgoing:
+                    if flow_id not in flows:
+                        continue
+
+                    branch_start_node_id = flows[flow_id].get("target")
+                    if not branch_start_node_id:
+                        continue
+
+                    branch_result = _dfs_calculate_effective_time_until_converge(
+                        branch_start_node_id,
+                        converge_gateway_id_nested,
+                        execution_data,
+                        node_stats_dict,
+                        excluded_component_codes,
+                        nodes_by_id,
+                        user_operations_list,
+                        visited.copy(),
+                        debug_info,
+                    )
+                    branch_results.append(branch_result)
+                    branch_details.append(
+                        {
+                            "branch_start_node_id": branch_start_node_id,
+                            "branch_end_node_id": converge_gateway_id_nested,
+                            "effective_time": branch_result,
+                        }
+                    )
+
+                # 记录嵌套并行网关调试信息
+                if debug_info is not None and branch_results:
+                    max_branch_nested = max(branch_results)
+                    parallel_gateway_info = {
+                        "parallel_gateway_id": node_id,
+                        "converge_gateway_id": converge_gateway_id_nested,
+                        "branches": branch_details,
+                        "selected_branch_effective_time": max_branch_nested,
+                    }
+                    debug_info.setdefault("parallel_gateways", []).append(parallel_gateway_info)
+
+                # 继续遍历到外层汇聚网关
+                if converge_gateway_id_nested != converge_gateway_id:
+                    gateway_outgoing = gateways[converge_gateway_id_nested].get("outgoing")
+                    if gateway_outgoing:
+                        next_node_id = flows.get(gateway_outgoing, {}).get("target")
+                        if next_node_id:
+                            next_result = _dfs_calculate_effective_time_until_converge(
+                                next_node_id,
+                                converge_gateway_id,
+                                execution_data,
+                                node_stats_dict,
+                                excluded_component_codes,
+                                nodes_by_id,
+                                user_operations_list,
+                                visited.copy(),
+                                debug_info,
+                            )
+                            if branch_results:
+                                max_branch = max(branch_results)
+                                return max_branch + next_result
+                            return next_result
+
+                if branch_results:
+                    return max(branch_results)
+
+                return 0
+
+        elif gateway_type == "ExclusiveGateway":
+            # 分支网关
+            outgoing = gateway.get("outgoing", [])
+            if not isinstance(outgoing, list):
+                outgoing = [outgoing] if outgoing else []
+
+            branch_results = []
+            for flow_id in outgoing:
+                if flow_id not in flows:
+                    continue
+
+                next_node_id = flows[flow_id].get("target")
+                if next_node_id:
+                    branch_result = _dfs_calculate_effective_time_until_converge(
+                        next_node_id,
+                        converge_gateway_id,
+                        execution_data,
+                        node_stats_dict,
+                        excluded_component_codes,
+                        nodes_by_id,
+                        user_operations_list,
+                        visited.copy(),
+                        debug_info,
+                    )
+                    branch_results.append(branch_result)
+
+            if branch_results:
+                return max(branch_results)
+
+            return 0
+
+    return 0
+
+
+def _calculate_effective_time_by_dfs(
+    execution_data, node_stats, excluded_component_codes, task_instance_id=None, debug_info=None
+):
+    """
+    使用深度优先搜索计算整个流程的有效耗时
+
+    Args:
+        execution_data: 流程执行数据
+        node_stats: 节点统计查询集
+        excluded_component_codes: 需要排除的组件代码列表
+        task_instance_id: 任务实例ID（用于查询用户操作记录）
+        debug_info: 调试信息字典（可选）
+
+    Returns:
+        dict: {
+            'effective_time': int,  # 有效耗时（秒）
+            'debug_info': dict,  # 调试信息（仅在debug模式下）
+        }
+    """
+    if not execution_data:
+        return {"effective_time": 0, "debug_info": debug_info if debug_info else None}
 
     # 构建节点统计字典
     node_stats_dict = {node.node_id: node for node in node_stats}
 
-    total_adjustment = 0
+    # 构建按node_id分组的节点统计字典（用于计算重试间隔）
+    nodes_by_id = _get_all_node_stats_by_id(node_stats)
 
-    for parallel_gateway_id, converge_gateway_id in parallel_gateways:
-        # 找出所有分支
-        branches = _find_parallel_gateway_branches(
-            execution_data, status_tree, parallel_gateway_id, converge_gateway_id
-        )
+    # 获取用户操作记录（用于计算失败等待时间）
+    user_operations_list = []
+    if task_instance_id:
+        user_operations = TaskOperateRecord.objects.filter(
+            instance_id=task_instance_id,
+            operate_type__in=["revoke", "skip", "skip_exg", "skip_cpg", "retry"],
+        ).order_by("operate_date")
+        user_operations_list = list(user_operations)
 
-        if len(branches) < 2:
-            continue
+    # 获取开始节点
+    start_event = execution_data.get("start_event", {})
+    start_node_id = start_event.get("id")
 
-        # 计算每个分支的总耗时
-        branch_times = []
-        for branch_node_ids in branches:
-            branch_time = _calculate_branch_time(branch_node_ids, node_stats_dict)
-            branch_times.append((branch_node_ids, branch_time))
+    if not start_node_id:
+        return 0
 
-        if not branch_times:
-            continue
+    # 初始化调试信息
+    if debug_info is None:
+        debug_info = {}
 
-        # 找出关键路径（最慢的分支）
-        branch_times.sort(key=lambda x: x[1], reverse=True)
-        critical_path_time = branch_times[0][1]
+    # 从开始节点开始DFS遍历
+    result = _dfs_calculate_effective_time(
+        start_node_id,
+        execution_data,
+        node_stats_dict,
+        excluded_component_codes,
+        nodes_by_id,
+        user_operations_list,
+        None,
+        debug_info,
+    )
 
-        if critical_path_time == 0:
-            continue
-
-        # 对于非关键路径分支，计算需要调整的排除时间
-        for branch_node_ids, branch_time in branch_times[1:]:
-            if branch_time >= critical_path_time:
-                # 如果分支时间大于等于关键路径，不需要调整
-                continue
-
-            # 计算该分支中人工节点的总耗时
-            branch_excluded_time = 0
-            for node_id in branch_node_ids:
-                if node_id in node_stats_dict:
-                    node_stat = node_stats_dict[node_id]
-                    if node_stat.component_code in excluded_component_codes:
-                        branch_excluded_time += node_stat.elapsed_time or 0
-
-            # 如果分支中有人工节点，且分支时间小于关键路径时间
-            # 说明该分支不是关键路径，分支中的人工节点不影响总执行时间
-            # 调整值 = 分支中人工节点耗时（完全排除，因为不影响总时间）
-            if branch_excluded_time > 0:
-                total_adjustment += branch_excluded_time
-
-    return total_adjustment
+    return {
+        "effective_time": max(0, int(result)),
+        "debug_info": debug_info if debug_info else None,
+    }
 
 
 @login_exempt
@@ -454,6 +906,9 @@ def get_task_effective_time(request, task_id, bk_biz_id):
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 
+    # 检查是否启用调试模式
+    debug_mode = request.GET.get("debug", "0") == "1"
+
     # 获取需要排除的节点组件代码列表
     excluded_component_codes = _get_excluded_component_codes()
 
@@ -470,22 +925,15 @@ def get_task_effective_time(request, task_id, bk_biz_id):
     # 获取该任务的所有节点执行记录
     node_stats = TaskflowExecutedNodeStatistics.objects.filter(instance_id=task_stat.instance_id)
 
-    # 计算需要排除的节点总耗时（人工节点）
+    # 计算需要排除的节点总耗时（人工节点）- 用于统计展示
     excluded_nodes = node_stats.filter(component_code__in=excluded_component_codes)
     excluded_time = excluded_nodes.aggregate(total_time=Sum("elapsed_time"))["total_time"] or 0
-
-    # 计算重试节点的耗时调整
-    retry_node_time_adjustment = _calculate_retry_node_time_adjustment(node_stats)
 
     # 总执行时间
     total_elapsed_time = task_stat.elapsed_time or 0
 
-    # 计算失败后等待时间
-    failure_wait_time = _calculate_failure_wait_time(task_id, task_stat.instance_id, node_stats)
-
-    # 获取执行树结构，用于处理并行网关场景
+    # 获取执行树结构，用于DFS遍历计算有效时间
     execution_data = None
-    status_tree = None
     try:
         dispatcher = TaskCommandDispatcher(
             engine_ver=task.engine_ver,
@@ -495,28 +943,34 @@ def get_task_effective_time(request, task_id, bk_biz_id):
         )
         status_result = dispatcher.get_task_status()
         if status_result.get("result"):
-            status_tree = status_result.get("data", {})
             execution_data = task.pipeline_instance.execution_data
     except Exception as e:
-        logger.warning("Failed to get execution tree for parallel gateway analysis: {}".format(e))
+        logger.warning("Failed to get execution tree for effective time calculation: {}".format(e))
 
-    # 计算并行网关场景下的排除时间调整
-    parallel_gateway_adjustment = 0
-    if execution_data and status_tree and excluded_component_codes:
-        parallel_gateway_adjustment = _calculate_parallel_gateway_excluded_time_adjustment(
-            task, execution_data, status_tree, node_stats, excluded_component_codes
+    # 使用DFS方法计算有效执行时间（只排除人工节点）
+    # DFS方法会遍历整个流程，在遍历过程中统计：
+    # 1. 排除人工节点的耗时
+    # 2. 并行网关场景（取各分支最大有效耗时）
+    # 注意：不再排除失败等待时间和重试间隔时间
+    debug_info = {} if debug_mode else None
+
+    if execution_data:
+        dfs_result = _calculate_effective_time_by_dfs(
+            execution_data, node_stats, excluded_component_codes, task_id, debug_info
         )
+        effective_time_by_dfs = dfs_result["effective_time"]
+        dfs_debug_info = dfs_result.get("debug_info")
+    elif not excluded_component_codes:
+        # 如果没有需要排除的组件，且无法获取执行数据，使用总时间
+        effective_time_by_dfs = total_elapsed_time
+        dfs_debug_info = None
+    else:
+        # 如果无法获取执行数据，使用旧方法计算（仅排除人工节点）
+        effective_time_by_dfs = max(0, total_elapsed_time - excluded_time)
+        dfs_debug_info = None
 
-    # 计算有效执行时间 = 总执行时间 - 排除节点时间 - 失败后等待时间 - 重试节点耗时调整 + 并行网关调整
-    # 并行网关调整为正数，表示需要减少排除时间（因为非关键路径分支中的人工节点不影响总时间）
-    effective_time = max(
-        0,
-        total_elapsed_time
-        - excluded_time
-        - failure_wait_time
-        - retry_node_time_adjustment
-        + parallel_gateway_adjustment,
-    )
+    # 最终有效时间 = DFS计算的有效时间（只排除人工节点，不再排除失败等待和重试间隔）
+    effective_time = max(0, effective_time_by_dfs)
 
     # 统计排除的节点数量
     excluded_node_count = excluded_nodes.count()
@@ -524,9 +978,68 @@ def get_task_effective_time(request, task_id, bk_biz_id):
     # 统计总节点数量
     total_node_count = node_stats.count()
 
-    return {
-        "result": True,
-        "data": {
+    # 构建返回数据
+    response_data = {
+        "task_instance_id": task_stat.task_instance_id,
+        "instance_id": task_stat.instance_id,
+        "template_id": task_stat.template_id,
+        "task_template_id": task_stat.task_template_id,
+        "project_id": task_stat.project_id,
+        "creator": task_stat.creator,
+        "create_method": task_stat.create_method,
+        "create_time": format_datetime(task_stat.create_time) if task_stat.create_time else None,
+        "start_time": format_datetime(task_stat.start_time) if task_stat.start_time else None,
+        "finish_time": format_datetime(task_stat.finish_time) if task_stat.finish_time else None,
+        "total_elapsed_time": total_elapsed_time,
+        "effective_time": effective_time,
+        "excluded_node_count": excluded_node_count,
+        "total_node_count": total_node_count,
+        "excluded_component_codes": excluded_component_codes,
+        "category": task_stat.category,
+    }
+
+    # 如果启用调试模式，添加调试信息
+    if debug_mode and dfs_debug_info:
+        # 整理节点明细
+        node_details = []
+        if "nodes" in dfs_debug_info:
+            for node_id, node_info in dfs_debug_info["nodes"].items():
+                node_details.append(
+                    {
+                        "node_id": node_id,
+                        "component_code": node_info.get("component_code"),
+                        "elapsed_time": node_info.get("elapsed_time", 0),
+                        "effective_time": node_info.get("effective_time", 0),
+                        "is_excluded": node_info.get("is_excluded", False),
+                    }
+                )
+
+        # 并行网关明细
+        parallel_gateway_details = dfs_debug_info.get("parallel_gateways", [])
+
+        # 收集原始数据
+        raw_data = {}
+
+        # 节点统计数据
+        node_stats_list = []
+        for node_stat in node_stats:
+            node_stats_list.append(
+                {
+                    "node_id": node_stat.node_id,
+                    "component_code": node_stat.component_code,
+                    "elapsed_time": node_stat.elapsed_time,
+                    "started_time": format_datetime(node_stat.started_time) if node_stat.started_time else None,
+                    "archived_time": format_datetime(node_stat.archived_time) if node_stat.archived_time else None,
+                    "is_retry": node_stat.is_retry,
+                    "is_skip": node_stat.is_skip,
+                    "status": node_stat.status,
+                    "template_node_id": getattr(node_stat, "template_node_id", None),
+                }
+            )
+        raw_data["node_statistics"] = node_stats_list
+
+        # 任务统计数据
+        raw_data["task_statistics"] = {
             "task_instance_id": task_stat.task_instance_id,
             "instance_id": task_stat.instance_id,
             "template_id": task_stat.template_id,
@@ -534,20 +1047,39 @@ def get_task_effective_time(request, task_id, bk_biz_id):
             "project_id": task_stat.project_id,
             "creator": task_stat.creator,
             "create_method": task_stat.create_method,
-            "create_time": task_stat.create_time.strftime("%Y-%m-%d %H:%M:%S") if task_stat.create_time else None,
-            "start_time": task_stat.start_time.strftime("%Y-%m-%d %H:%M:%S") if task_stat.start_time else None,
-            "finish_time": task_stat.finish_time.strftime("%Y-%m-%d %H:%M:%S") if task_stat.finish_time else None,
-            "total_elapsed_time": total_elapsed_time,
-            "excluded_time": excluded_time,
-            "failure_wait_time": failure_wait_time,
-            "retry_node_time_adjustment": retry_node_time_adjustment,
-            "parallel_gateway_adjustment": parallel_gateway_adjustment,
-            "effective_time": effective_time,
-            "excluded_node_count": excluded_node_count,
-            "total_node_count": total_node_count,
-            "has_excluded_nodes": excluded_node_count > 0,
-            "excluded_component_codes": excluded_component_codes,
+            "create_time": format_datetime(task_stat.create_time) if task_stat.create_time else None,
+            "start_time": format_datetime(task_stat.start_time) if task_stat.start_time else None,
+            "finish_time": format_datetime(task_stat.finish_time) if task_stat.finish_time else None,
+            "elapsed_time": task_stat.elapsed_time,
             "category": task_stat.category,
-        },
+        }
+
+        # 用户操作记录
+        user_operations_raw = []
+        if task_id:
+            user_operations = TaskOperateRecord.objects.filter(
+                instance_id=task_id,
+                operate_type__in=["revoke", "skip", "skip_exg", "skip_cpg", "retry"],
+            ).order_by("operate_date")
+            for op in user_operations:
+                user_operations_raw.append(
+                    {
+                        "instance_id": op.instance_id,
+                        "operate_type": op.operate_type,
+                        "operate_date": format_datetime(op.operate_date) if op.operate_date else None,
+                        "operator": getattr(op, "operator", None),
+                    }
+                )
+        raw_data["user_operations"] = user_operations_raw
+
+        response_data["debug"] = {
+            "node_details": node_details,
+            "parallel_gateways": parallel_gateway_details,
+            "raw_data": raw_data,
+        }
+
+    return {
+        "result": True,
+        "data": response_data,
         "code": err_code.SUCCESS.code,
     }
