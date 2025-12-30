@@ -1661,7 +1661,7 @@
                     error_ignorable: ignorable
                 }
                 if (this.common) {
-                    nodeData['executor_proxy'] = executor_proxy.join(',')
+                    nodeData['executor_proxy'] = executor_proxy?.join(',') ?? ''
                 }
                 if (!this.isSubflow) {
                     const phase = this.getAtomPhase()
