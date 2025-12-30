@@ -47,6 +47,7 @@ class CreateTaskAPITest(APITest):
         TASKINSTANCE_CREATE,
         MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
     )
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__success(self):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
