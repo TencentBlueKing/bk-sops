@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 
 from bamboo_engine import states
 from django.conf import settings
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.models import Q, Value
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
@@ -361,7 +361,16 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     @action(methods=["GET"], detail=False)
     def task_count(self, request, *args, **kwargs):
         queryset = self._get_queryset(request)
-        return Response({"count": queryset.count()})
+        original_query, params = queryset.query.sql_with_params()
+
+        count_query = re.sub(r"SELECT.*?FROM", "SELECT COUNT(*) FROM", original_query, flags=re.IGNORECASE | re.DOTALL)
+        count_query = re.sub(r"ORDER BY.*?(?=LIMIT|OFFSET|$)", "", count_query, flags=re.IGNORECASE | re.DOTALL)
+
+        with connection.cursor() as cursor:
+            cursor.execute(count_query, params)
+            count = cursor.fetchone()[0]
+
+        return Response({"count": count})
 
     @staticmethod
     def _inject_template_related_info(request, data):
