@@ -284,9 +284,7 @@
 
 当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
 
-- `data.constants` - 输入的全局变量
-- `data.outputs` - 任务输出参数
-- `data.pipeline_tree.constants` - 流程树中的全局变量
+- `data.pipeline_tree` - 流程树信息
 - `data.task_webhook_history` - Webhook 回调历史记录
 
 #### data

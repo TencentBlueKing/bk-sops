@@ -29,9 +29,7 @@ from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_id
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(
-    exclude_responses=["data.constants", "data.outputs", "data.pipeline_tree.constants", "data.task_webhook_history"]
-)
+@mcp_apigw(exclude_responses=["data.pipeline_tree", "data.task_webhook_history"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

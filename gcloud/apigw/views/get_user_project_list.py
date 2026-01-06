@@ -27,7 +27,7 @@ from gcloud.iam_auth.utils import get_user_projects
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.executor_proxy"])
+@mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
 def get_user_project_list(request):

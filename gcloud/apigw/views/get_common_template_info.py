@@ -28,7 +28,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.pipeline_tree.constants", "data.template_constants"])
+@mcp_apigw(exclude_responses=["data.pipeline_tree", "data.template_constants"])
 @return_json_response
 @mark_request_whether_is_trust
 @iam_intercept(CommonFlowViewInterceptor())

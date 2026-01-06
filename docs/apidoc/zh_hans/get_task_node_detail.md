@@ -139,7 +139,4 @@
 
 当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
 
-- `data.inputs` - 节点输入数据
-- `data.outputs` - 节点输出数据
-- `data.histories.inputs` - 历史记录中的输入数据
-- `data.histories.outputs` - 历史记录中的输出数据
+- `data.histories` - 节点重试历史记录

@@ -258,5 +258,4 @@ KEY, the format is like ${key}
 
 When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
 
-- `data.pipeline_tree.constants` - Global variables in the pipeline tree
-- `data.template_constants` - Template constants
+- `data.pipeline_tree` - Pipeline tree information
