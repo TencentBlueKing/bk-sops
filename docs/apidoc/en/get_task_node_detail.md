@@ -139,7 +139,4 @@ Query a task node execution details
 
 When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
 
-- `data.inputs` - Node input data
-- `data.outputs` - Node output data
-- `data.histories.inputs` - Input data in history records
-- `data.histories.outputs` - Output data in history records
+- `data.histories` - Node retry history records

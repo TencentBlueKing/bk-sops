@@ -63,7 +63,7 @@ def get_exclude_nodes_by_execute_nodes(execute_nodes, pipline_tree):
 @csrf_exempt
 @require_POST
 @apigw_require
-@mcp_apigw(exclude_responses=["data.pipeline_tree.constants"])
+@mcp_apigw(exclude_responses=["data.pipeline_tree"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

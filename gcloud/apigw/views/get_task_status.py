@@ -39,7 +39,7 @@ def cache_decisioner(key, value):
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.children", "data.failed_node_info"])
+@mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

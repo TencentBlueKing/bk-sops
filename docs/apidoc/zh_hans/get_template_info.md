@@ -262,5 +262,4 @@
 
 当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
 
-- `data.pipeline_tree.constants` - 流程树中的全局变量
-- `data.template_constants` - 模板常量
+- `data.pipeline_tree` - 流程树信息

@@ -30,7 +30,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.pipeline_tree.constants", "data.template_constants"])
+@mcp_apigw(exclude_responses=["data.pipeline_tree"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

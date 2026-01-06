@@ -28,7 +28,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.inputs", "data.outputs", "data.histories.inputs", "data.histories.outputs"])
+@mcp_apigw(exclude_responses=["data.histories"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

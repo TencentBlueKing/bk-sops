@@ -132,7 +132,4 @@ the detail of a task node, the format is same with data
 
 ### MCP Request Notice
 
-When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
-
-- `data.children` - Child node status tree
-- `data.failed_node_info` - Failed node detailed information
+When the request comes from gateway MCP, no fields will be filtered from the response.

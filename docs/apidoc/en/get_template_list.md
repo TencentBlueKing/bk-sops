@@ -163,4 +163,4 @@ Query flow templates list of the business
 
 When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
 
-- `data.executor_proxy` - Executor proxy information
+- `data.[].auth_actions` - Permission actions list for each template item in the array

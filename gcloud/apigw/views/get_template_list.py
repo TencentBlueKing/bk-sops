@@ -37,7 +37,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.executor_proxy"])
+@mcp_apigw(exclude_responses=["data.[].auth_actions"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

@@ -54,6 +54,4 @@ Get user project list
 
 ### MCP Request Notice
 
-When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
-
-- `data.executor_proxy` - Executor proxy information
+When the request comes from gateway MCP, no fields will be filtered from the response.

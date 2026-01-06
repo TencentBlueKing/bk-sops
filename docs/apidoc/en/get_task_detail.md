@@ -284,9 +284,7 @@ Query a task execution details
 
 When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
 
-- `data.constants` - Input global variables
-- `data.outputs` - Task output parameters
-- `data.pipeline_tree.constants` - Global variables in the pipeline tree
+- `data.pipeline_tree` - Pipeline tree information
 - `data.task_webhook_history` - Webhook callback history
 
 
