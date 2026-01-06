@@ -294,7 +294,14 @@ def mcp_apigw(exclude_responses=None):
                     # 从 settings 获取 v_mcp 前缀
                     v_mcp_prefix = getattr(settings, "APIGW_MCP_APP_CODE_PREFIX", "v_mcp")
                     # 检查 app_code 是否以指定前缀开头
-                    if app_code.startswith(v_mcp_prefix):
+                    app_code_check = app_code.startswith(v_mcp_prefix)
+                    # 从 settings 获取 MCP Server ID HTTP Header 名称
+                    mcp_server_id_header = getattr(settings, "APIGW_MCP_SERVER_ID_HEADER", "HTTP_X_BKAPI_MCP_SERVER_ID")
+                    # 检查 request.META 中是否有指定的 header 且值不为空
+                    mcp_server_id = request.META.get(mcp_server_id_header, "")
+                    mcp_server_id_check = bool(mcp_server_id and mcp_server_id.strip())
+                    # 两个条件都需要满足
+                    if app_code_check and mcp_server_id_check:
                         should_exclude = True
 
             # 如果需要排除且返回的是字典或JsonResponse，则进行过滤
