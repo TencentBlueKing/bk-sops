@@ -300,8 +300,8 @@ def mcp_apigw(exclude_responses=None):
                     # 检查 request.META 中是否有指定的 header 且值不为空
                     mcp_server_id = request.META.get(mcp_server_id_header, "")
                     mcp_server_id_check = bool(mcp_server_id and mcp_server_id.strip())
-                    # 两个条件都需要满足
-                    if app_code_check and mcp_server_id_check:
+                    # 任意一个条件满足即可
+                    if app_code_check or mcp_server_id_check:
                         should_exclude = True
 
             # 如果需要排除且返回的是字典或JsonResponse，则进行过滤
