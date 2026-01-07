@@ -72,7 +72,11 @@
                                                 {{item.id}}
                                             </td>
                                             <td class="conflict-name">
-                                                <span :title="item.name">{{item.name}}</span>
+                                                <div class="name-input-wrapper">
+                                                    <bk-input v-model="importNameMap[item.id]" :maxlength="maxLen"></bk-input>
+                                                    <span v-if="!importNameMap[item.id]" class="common-error-tip error-msg">{{ $t('必填项') }}</span>
+                                                    <span v-else-if="!nameReg.test(importNameMap[item.id])" class="common-error-tip error-msg">{{ $t('名字不合法') }}</span>
+                                                </div>
                                             </td>
                                         </tr>
                                     </template>
@@ -145,9 +149,11 @@
 
 <script>
     import i18n from '@/config/i18n/index.js'
+    import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'ImportDatTplDialog',
@@ -164,6 +170,7 @@
                 checkResult: true,
                 exportList: [],
                 overrideList: [],
+                importNameMap: {},
                 isChecked: false,
                 overrideFormDisabled: true,
                 uploaded: false,
@@ -175,7 +182,9 @@
                 templateFileError: false,
                 templateFileErrorExt: false,
                 dataConflict: false,
-                commonErrorMsg: ''
+                commonErrorMsg: '',
+                nameReg: NAME_REG,
+                maxLen: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH
             }
         },
         computed: {
@@ -221,6 +230,7 @@
                 this.dataConflict = true
                 this.exportList = []
                 this.overrideList = []
+                this.importNameMap = {}
                 this.overrideFormDisabled = true
                 this.templateFileError = false
                 try {
@@ -235,6 +245,10 @@
                         const checkResult = resp.data
                         this.exportList = checkResult.new_template
                         this.overrideList = checkResult.override_template
+                        this.exportList.forEach(item => {
+                            const newName = item.name + '_' + moment().format('YYYYMMDDHHmmss')
+                            this.$set(this.importNameMap, item.id, newName)
+                        })
                         this.templateFileError = false
                     } else {
                         this.commonErrorMsg = resp.message
@@ -254,6 +268,7 @@
                 const formData = new FormData()
                 formData.append('data_file', this.file)
                 formData.append('override', isOverride)
+                formData.append('name_mappings', JSON.stringify(this.importNameMap))
                 const data = {
                     formData: formData,
                     common: this.common || undefined
@@ -304,6 +319,13 @@
                     this.templateFileErrorExt = false
                     return
                 }
+                const isNameValid = this.exportList.every(item => {
+                    const name = this.importNameMap[item.id]
+                    return name && this.nameReg.test(name)
+                })
+                if (!isNameValid) {
+                    return
+                }
                 if (!isOverride) {
                     const hasCreatePerm = this.common ? this.hasCreateCommonTplPerm : this.hasPermission(['flow_create'], this.authActions)
                     if (!hasCreatePerm) {
@@ -343,6 +365,7 @@
                 this.filename = ''
                 this.exportList = []
                 this.overrideList = []
+                this.importNameMap = {}
                 this.isChecked = false
                 this.uploaded = false
                 this.overrideFormDisabled = true
@@ -504,11 +527,16 @@
                 overflow: hidden;
             }
             .conflict-name {
-                max-width: 470px;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
+                width: 470px;
                 border-bottom: 1px solid #c3cdd7;
+                padding: 10px;
+                .name-input-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    .common-error-tip {
+                        margin-top: 5px;
+                    }
+                }
             }
             .template-table-conflict {
                 .conflict-id {
