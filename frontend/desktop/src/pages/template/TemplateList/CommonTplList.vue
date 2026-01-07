@@ -23,7 +23,7 @@
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
-                        :placeholder="$t('ID/流程名/创建人/更新人')"
+                        :placeholder="$t('ID/流程名称/创建人/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -151,7 +151,7 @@
         },
         {
             id: 'flowName',
-            name: i18n.t('流程名'),
+            name: i18n.t('流程名称'),
             isDefaultOption: true
         },
         {
