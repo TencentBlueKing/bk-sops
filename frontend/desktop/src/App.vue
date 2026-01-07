@@ -42,7 +42,8 @@
         <PermissionModal ref="permissionModal"></PermissionModal>
         <AIBlueking
             ref="aiBlueking"
-            :url="aiAgentUrl" />
+            :url="aiAgentUrl"
+            :request-options="requestOptions" />
 
     </div>
 </template>
@@ -93,7 +94,8 @@
                 isRouterAlive: false,
                 projectDetailLoading: false, // 项目详情加载
                 appmakerDataLoading: false, // 轻应用加载 app 详情,
-                isUseSnapshot: false // 登录成功时是否使用快照
+                isUseSnapshot: false, // 登录成功时是否使用快照
+                requestOptions: null
             }
         },
         computed: {
@@ -111,10 +113,18 @@
             }
         },
         watch: {
-            '$route' (val, oldVal) {
-                const prevRouterProjectId = oldVal.params.project_id
-                const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
-                this.handleRouteChange(id)
+            '$route': {
+                handler (val, oldVal) {
+                    const prevRouterProjectId = oldVal.params.project_id
+                    const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
+                    this.handleRouteChange(id)
+                    const query = this.$route.query
+                    const params = this.$route.params
+                    const context = Object.assign({}, query, params)
+                    this.requestOptions = { context }
+                },
+                immediate: true,
+                deep: true
             }
         },
         async created () {
