@@ -14,14 +14,12 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
-from gcloud.utils.dates import format_datetime
+from gcloud.apigw.views.get_common_template_list import COMMON_FLOW_ACTIONS
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.apigw.views.get_common_template_list import COMMON_FLOW_ACTIONS
+from gcloud.utils.dates import format_datetime
 
 from .utils import APITest
-
 
 MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS = (
     "gcloud.apigw.views.get_common_template_list.get_common_flow_allowed_actions_for_user"
@@ -75,11 +73,10 @@ class GetCommontemplateListAPITest(APITest):
                     path=self.url(),
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
                     HTTP_BK_USERNAME=TEST_USERNAME,
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
                 mock_get_actions.assert_called_once_with(
-                    TEST_USERNAME,
-                    COMMON_FLOW_ACTIONS,
-                    TEST_ID_LIST,
+                    TEST_USERNAME, COMMON_FLOW_ACTIONS, TEST_ID_LIST, tenant_id="system"
                 )
                 self.assertEqual(response.status_code, 200)
 

@@ -138,7 +138,7 @@ class MockCMDB(object):
         return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-1]]}
 
 
-def mock_cc_get_ips_info_by_str(username, bk_biz_id, ip_str):
+def mock_cc_get_ips_info_by_str(tenant_id, username, bk_biz_id, ip_str):
     return {
         "result": True,
         "ip_count": 2,
@@ -166,12 +166,12 @@ def mock_cc_get_ips_info_by_str(username, bk_biz_id, ip_str):
     }
 
 
-def mock_get_client_by_user(username):
+def mock_get_client_by_user(username, stage):
     class MockCC(object):
         def __init__(self, success):
             self.success = success
 
-        def search_biz_inst_topo(self, kwargs):
+        def search_biz_inst_topo(self, kwargs, path_params=None, headers=None):
             return {
                 "result": self.success,
                 "data": [
@@ -249,7 +249,7 @@ def mock_get_client_by_user(username):
                 "message": "error",
             }
 
-        def search_dynamic_group(self, page, **kwargs):
+        def search_dynamic_group(self, page, path_params=None, headers=None, limit=None):
             return {
                 "result": True,
                 "data": {
@@ -261,7 +261,7 @@ def mock_get_client_by_user(username):
                 },
             }
 
-        def get_biz_internal_module(self, kwargs):
+        def get_biz_internal_module(self, kwargs, path_params=None, headers=None):
             return {
                 "result": self.success,
                 "data": {
@@ -289,6 +289,6 @@ def mock_get_client_by_user(username):
 
     class MockClient(object):
         def __init__(self, success):
-            self.cc = MockCC(success)
+            self.api = MockCC(success)
 
     return MockClient(mock_get_client_by_user.success)

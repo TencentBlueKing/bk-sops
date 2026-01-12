@@ -327,14 +327,12 @@ MANUAL_SUCCESS_OUTPUTS = {
     "job_inst_id": SUCCESS_RESULT["data"]["job_instance_id"],
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
-    "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
 }
 
 BIZ_SET_MANUAL_SUCCESS_OUTPUTS = {
     "job_inst_id": SUCCESS_RESULT["data"]["job_instance_id"],
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
-    "client": FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT,
 }
 
 # 异步回调函数参数错误返回

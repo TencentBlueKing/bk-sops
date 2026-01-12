@@ -173,116 +173,124 @@ INVALID_IP_CLIENT_BIZ_SET = CcMockClient(
 CLL_INFO = MagicMock(
     side_effect=[
         {
-            "bk_scope_type": "biz",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
+            "data": {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/aa", "/tmp/bb"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
+                        },
+                        "account": {
+                            "alias": "root",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.4", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.5", "bk_cloud_id": 0},
+                    ],
+                },
+                "account_alias": "root",
+                "file_target_path": "/tmp/ee/",
             },
-            "account_alias": "root",
-            "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
-            "bk_scope_type": "biz",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
+            "data": {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/aa", "/tmp/bb"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
+                        },
+                        "account": {
+                            "alias": "root",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                    ],
+                },
+                "account_alias": "user01",
+                "file_target_path": "/tmp/200/",
             },
-            "account_alias": "user01",
-            "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
-            "bk_scope_type": "biz",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
+            "data": {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/cc", "/tmp/dd"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
+                        },
+                        "account": {
+                            "alias": "user00",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.4", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.5", "bk_cloud_id": 0},
+                    ],
+                },
+                "account_alias": "root",
+                "file_target_path": "/tmp/ee/",
             },
-            "account_alias": "root",
-            "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
-            "bk_scope_type": "biz",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
+            "data": {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/cc", "/tmp/dd"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
+                        },
+                        "account": {
+                            "alias": "user00",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                    ],
+                },
+                "account_alias": "user01",
+                "file_target_path": "/tmp/200/",
             },
-            "account_alias": "user01",
-            "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
@@ -294,116 +302,124 @@ CLL_INFO = MagicMock(
 BIZ_SET_CLL_INFO = MagicMock(
     side_effect=[
         {
-            "bk_scope_type": "biz_set",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
+            "data": {
+                "bk_scope_type": "biz_set",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/aa", "/tmp/bb"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
+                        },
+                        "account": {
+                            "alias": "root",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.4", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.5", "bk_cloud_id": 0},
+                    ],
+                },
+                "account_alias": "root",
+                "file_target_path": "/tmp/ee/",
             },
-            "account_alias": "root",
-            "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
-            "bk_scope_type": "biz_set",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
+            "data": {
+                "bk_scope_type": "biz_set",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/aa", "/tmp/bb"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
+                        },
+                        "account": {
+                            "alias": "root",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                    ],
+                },
+                "account_alias": "user01",
+                "file_target_path": "/tmp/200/",
             },
-            "account_alias": "user01",
-            "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
-            "bk_scope_type": "biz_set",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
+            "data": {
+                "bk_scope_type": "biz_set",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/cc", "/tmp/dd"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
+                        },
+                        "account": {
+                            "alias": "user00",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.4", "bk_cloud_id": 0},
+                        {"ip": "127.0.0.5", "bk_cloud_id": 0},
+                    ],
+                },
+                "account_alias": "root",
+                "file_target_path": "/tmp/ee/",
             },
-            "account_alias": "root",
-            "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
             "headers": {"X-Bk-Tenant-Id": "system"},
         },
         {
-            "bk_scope_type": "biz_set",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
+            "data": {
+                "bk_scope_type": "biz_set",
+                "bk_scope_id": "321456",
+                "bk_biz_id": 321456,
+                "file_source_list": [
+                    {
+                        "file_list": ["/tmp/cc", "/tmp/dd"],
+                        "server": {
+                            "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
+                        },
+                        "account": {
+                            "alias": "user00",
+                        },
+                    }
                 ],
+                "target_server": {
+                    "ip_list": [
+                        {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                        {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                    ],
+                },
+                "account_alias": "user01",
+                "file_target_path": "/tmp/200/",
             },
-            "account_alias": "user01",
-            "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,

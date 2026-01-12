@@ -12,38 +12,47 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.test.utils import override_settings
-from django.conf import settings
 from fakeredis import FakeRedis
+from mock import patch
 
 from gcloud.taskflow3.management.commands.node_timeout_process import Command
 from gcloud.taskflow3.models import TimeoutNodesRecord
 
 
-class NodeTimeoutProcessCommandTestCase(TestCase):
+class NodeTimeoutProcessCommandTestCase(TransactionTestCase):
     def setUp(self):
         self.node_pool = "test_node_pool"
         self.command = Command()
+        self.redis_inst = FakeRedis()
 
-    @override_settings(redis_inst=FakeRedis())
     @override_settings(EXECUTING_NODE_POOL="test_node_pool")
     def test_command_simple(self):
         now = datetime.datetime.now().timestamp()
-        settings.redis_inst.zadd(self.node_pool, mapping={"test": now})
-        self.assertEqual(settings.redis_inst.zcard(self.node_pool), 1)
-        self.command._pop_timeout_nodes(settings.redis_inst, self.node_pool)
-        self.assertEqual(settings.redis_inst.zcard(self.node_pool), 0)
-        self.assertEqual(len(TimeoutNodesRecord.objects.all()), 1)
+        self.redis_inst.zadd(self.node_pool, mapping={"test": now})
+        self.assertEqual(self.redis_inst.zcard(self.node_pool), 1)
 
-    @override_settings(redis_inst=FakeRedis())
+        # 使用mock避免实际数据库操作
+        with patch.object(TimeoutNodesRecord.objects, "create") as mock_create:
+            mock_create.return_value.id = 1  # 模拟返回的record id
+            self.command._pop_timeout_nodes(self.redis_inst, self.node_pool)
+
+        self.assertEqual(self.redis_inst.zcard(self.node_pool), 0)
+        mock_create.assert_called_once()
+
     @override_settings(EXECUTING_NODE_POOL="test_node_pool")
     def test_command_complicated(self):
         now = datetime.datetime.now()
         time1 = now.timestamp()
         time2 = (now + datetime.timedelta(minutes=5)).timestamp()
-        settings.redis_inst.zadd(self.node_pool, mapping={"time1": time1, "time2": time2})
-        self.assertEqual(settings.redis_inst.zcard(self.node_pool), 2)
-        self.command._pop_timeout_nodes(settings.redis_inst, self.node_pool)
-        self.assertEqual(settings.redis_inst.zcard(self.node_pool), 1)
-        self.assertEqual(len(TimeoutNodesRecord.objects.all()), 1)
+        self.redis_inst.zadd(self.node_pool, mapping={"time1": time1, "time2": time2})
+        self.assertEqual(self.redis_inst.zcard(self.node_pool), 2)
+
+        # 使用mock避免实际数据库操作
+        with patch.object(TimeoutNodesRecord.objects, "create") as mock_create:
+            mock_create.return_value.id = 1  # 模拟返回的record id
+            self.command._pop_timeout_nodes(self.redis_inst, self.node_pool)
+
+        self.assertEqual(self.redis_inst.zcard(self.node_pool), 1)
+        mock_create.assert_called_once()
