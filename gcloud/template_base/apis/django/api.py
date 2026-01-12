@@ -172,6 +172,19 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
     r = read_template_data_file(f)
     templates_data = r["data"]["template_data"]
 
+    name_mappings = request.POST.get("name_mappings")
+    if name_mappings:
+        try:
+            name_map = json.loads(name_mappings)
+            for tid, t_info in templates_data["template"].items():
+                if str(tid) in name_map:
+                    new_name = name_map[str(tid)]
+                    str_id = t_info["pipeline_template_str_id"]
+                    if str_id in templates_data["pipeline_template_data"]["template"]:
+                        templates_data["pipeline_template_data"]["template"][str_id]["name"] = new_name
+        except Exception as e:
+            logger.warning("apply name_mappings failed: %s", e)
+
     try:
         import_result = template_model_cls.objects.import_templates(
             template_data=templates_data, override=override, operator=request.user.username, **import_kwargs
@@ -297,6 +310,13 @@ def import_yaml_templates(request: Request):
     project_id = request.data.get("project_id")
     template_kwargs = request.data.get("template_kwargs") or {}
 
+    name_mappings = request.data.get("name_mappings") or {}
+    if isinstance(name_mappings, str):
+        try:
+            name_mappings = json.loads(name_mappings)
+        except Exception:
+            name_mappings = {}
+
     bk_biz_id = None
     if template_type == "project" and project_id:
         template_kwargs.update({"project_id": int(project_id)})
@@ -325,7 +345,7 @@ def import_yaml_templates(request: Request):
     for template_id in template_order:
         import_data.append(
             {
-                "name": templates[template_id]["name"],
+                "name": name_mappings.get(template_id) or templates[template_id]["name"],
                 "description": templates[template_id]["description"],
                 "pipeline_tree": templates[template_id]["tree"],
                 "override_template_id": override_mappings.get(template_id),
