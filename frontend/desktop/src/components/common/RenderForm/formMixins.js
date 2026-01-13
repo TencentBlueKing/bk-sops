@@ -248,9 +248,17 @@ export const getFormMixins = (attrs = {}) => {
                             break
                         }
                         case 'regex':
+                            let regexPattern = config.args
+                            // 转换转义的正则表达式特殊字符
+                            regexPattern = regexPattern
+                                .replace(/\\\+/g, '+') // \+ -> +
+                                .replace(/\\\(/g, '(') // \( -> (
+                                .replace(/\\\)/g, ')') // \) -> )
+
                             if (!/^\${[^${}]+}$/.test(value)) {
-                                const reg = new RegExp(config.args)
-                                if (!reg.test(value)) {
+                                const reg = new RegExp(regexPattern)
+                                const testResult = reg.test(value)
+                                if (!testResult) {
                                     valid = false
                                     message = config.error_message
                                 }
