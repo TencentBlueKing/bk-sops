@@ -139,9 +139,6 @@ urlpatterns = [
     url(r"^get_task_operate_record/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_operate_record),
     url(r"^apply_webhook_configs/(?P<project_id>\d+)/$", apply_webhook_configs),
     url(r"^get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time),
-    url(
-        r"^get_task_node_log/(?P<project_id>\d+)/(?P<task_id>\d+)/(?P<node_id>\w+)/(?P<version>\w+)/$",
-        get_task_node_log,
-    ),
+    url(r"^get_task_node_log/$", get_task_node_log),
     url(r"^get_task_plugin_log/$", get_task_plugin_log),
 ]
