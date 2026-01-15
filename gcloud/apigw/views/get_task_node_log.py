@@ -18,9 +18,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
+from gcloud.apigw.decorators import return_json_response
 from gcloud.taskflow3.domains.node_log import NodeLogDataSourceFactory
 from gcloud.utils.handlers import handle_plain_log
 
@@ -32,12 +30,15 @@ DEFAULT_PAGE_SIZE = 30
 @api_view(["GET"])
 @apigw_require
 @return_json_response
-@mark_request_whether_is_trust
-@project_inject
-@iam_intercept(TaskViewInterceptor())
-def get_task_node_log(request, project_id, task_id, node_id, version):
+def get_task_node_log(request):
+    """
+    内部接口，仅限于内部使用
+    免去用户登录、iam鉴权等操作
+    """
     page = request.query_params.get("page", DEFAULT_PAGE)
     page_size = request.query_params.get("page_size", DEFAULT_PAGE_SIZE)
+    node_id = request.query_params.get("node_id")
+    version = request.query_params.get("version")
     data_source = NodeLogDataSourceFactory(settings.NODE_LOG_DATA_SOURCE).data_source
     result = data_source.fetch_node_logs(node_id, version, page=page, page_size=page_size)
     if not result["result"]:
