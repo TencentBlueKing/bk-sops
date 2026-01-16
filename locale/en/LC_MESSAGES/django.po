@@ -5396,58 +5396,6 @@ msgstr "Component Code"
 msgid "插件类型"
 msgstr "Component Type"
 
-#: weixin/core/accounts.py:126
-#, python-format
-msgid "验证请求weixin code的 state参数出错： %s"
-msgstr "Validate weixin code state of request raised error: %s"
-
-#: weixin/core/accounts.py:159
-msgid "非微信访问，或应用未启动微信访问"
-msgstr "Access is not from weixin, or SaaS does not open mobile"
-
-#: weixin/core/accounts.py:163
-msgid "State验证失败"
-msgstr "Valid state failed"
-
-#: weixin/core/accounts.py:168
-msgid "登录失败"
-msgstr "Login failed"
-
-#: weixin/core/models.py:51
-msgid "微信用户在应用里的唯一标识(公众号openid/企业微信userid)"
-msgstr "Unique identify of Wechat user in SaaS(Official account openid/WeChat Work userid)"
-
-#: weixin/core/models.py:52
-msgid "名称"
-msgstr "Name"
-
-#: weixin/core/models.py:53
-msgid "性别"
-msgstr "Sexy"
-
-#: weixin/core/models.py:54
-msgid "头像"
-msgstr "Avatar"
-
-#: weixin/core/models.py:55
-msgid "加入时间"
-msgstr "Date Joined"
-
-#: weixin/core/models.py:59
-msgid "国家"
-msgstr "Country"
-
-#: weixin/core/models.py:60
-msgid "省份"
-msgstr "Province"
-
-#: weixin/core/models.py:61
-msgid "城市"
-msgstr "City"
-
-#: weixin/core/models.py:68 weixin/core/models.py:69
-msgid "微信用户"
-msgstr "Wechat User"
 
 #~ msgid "安装"
 #~ msgstr "install"

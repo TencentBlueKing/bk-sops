@@ -100,8 +100,6 @@ INSTALLED_APPS += (
     "pipeline_web.label",
     "pipeline_web.plugin_management",
     "data_migration",
-    "weixin.core",
-    "weixin",
     "version_log",
     "files",
     "corsheaders",
@@ -146,8 +144,6 @@ INSTALLED_APPS += (
 
 # 自定义中间件
 MIDDLEWARE += (
-    "weixin.core.middlewares.WeixinAuthenticationMiddleware",
-    "weixin.core.middlewares.WeixinLoginMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "gcloud.core.middlewares.TimezoneMiddleware",
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
@@ -201,7 +197,6 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
 MIDDLEWARE = (
     "gcloud.core.middlewares.HttpRedirectMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
-    "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
