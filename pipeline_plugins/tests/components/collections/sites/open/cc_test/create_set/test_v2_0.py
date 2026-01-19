@@ -34,6 +34,11 @@ class CCCreateSetComponentTest(TestCase, ComponentTestMixin):
             SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CAST,
             SELECT_BY_TEXT_ERROR_PATH_FAIL_CAST,
             SELECT_BY_TOPO_SUCCESS_CASE,
+            SELECT_METHOD_INVALID_CASE,
+            BK_SET_ENV_INVALID_CASE,
+            BK_SERVICE_STATUS_INVALID_CASE,
+            CAPACITY_CAST_FAIL_CASE,
+            API_FAIL_CASE,
         ]
 
 
@@ -225,6 +230,25 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     ],
 )
 
+
+class ChunkTableDataTestCase(TestCase):
+    def test_error_for_non_str_non_int(self):
+        from pipeline_plugins.components.collections.sites.open.cc.create_set.v2_0 import chunk_table_data
+
+        column = {"bk_set_name": ["bad"], "bk_capacity": 1}
+        result = chunk_table_data(column)
+        self.assertFalse(result["result"])
+        self.assertIn("格式错误", result["message"])
+
+    def test_expand_multi_lines(self):
+        from pipeline_plugins.components.collections.sites.open.cc.create_set.v2_0 import chunk_table_data
+
+        column = {"bk_set_name": "a\nb", "bk_set_desc": "x", "bk_capacity": 1}
+        result = chunk_table_data(column)
+        self.assertTrue(result["result"])
+        self.assertEqual(len(result["data"]), 2)
+
+
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
     "biz_cc_id": 2,
     "cc_select_set_parent_method": "text",
@@ -330,5 +354,186 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
         Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+    ],
+)
+
+SELECT_METHOD_INVALID_INPUTS = {
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "",
+    "cc_set_parent_select_topo": [],
+    "cc_set_parent_select_text": "",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
+}
+
+SELECT_METHOD_INVALID_CASE = ComponentTestCase(
+    name="fail case: invalid select method",
+    inputs=SELECT_METHOD_INVALID_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "请选择填参方式"}),
+    schedule_assertion=[],
+    execute_call_assertion=[],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+    ],
+)
+
+BK_SET_ENV_INVALID_INPUTS = {
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "topo",
+    "cc_set_parent_select_topo": ["Tun_3"],
+    "cc_set_parent_select_text": "",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "bad",
+            "bk_service_status": "2",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
+}
+
+BK_SET_ENV_INVALID_CASE = ComponentTestCase(
+    name="fail case: bk_set_env invalid",
+    inputs=BK_SET_ENV_INVALID_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "环境类型校验失败，请重试并修改为正确的环境类型"}),
+    schedule_assertion=[],
+    execute_call_assertion=[],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+    ],
+)
+
+BK_SERVICE_STATUS_INVALID_INPUTS = {
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "topo",
+    "cc_set_parent_select_topo": ["Tun_3"],
+    "cc_set_parent_select_text": "",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "1",
+            "bk_service_status": "bad",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
+}
+
+BK_SERVICE_STATUS_INVALID_CASE = ComponentTestCase(
+    name="fail case: bk_service_status invalid",
+    inputs=BK_SERVICE_STATUS_INVALID_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "服务状态校验失败，请重试并修改为正确的服务状态"}),
+    schedule_assertion=[],
+    execute_call_assertion=[],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+    ],
+)
+
+CAPACITY_CAST_FAIL_INPUTS = {
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "topo",
+    "cc_set_parent_select_topo": ["Tun_3"],
+    "cc_set_parent_select_text": "",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
+            "description": "1",
+            "bk_capacity": "notint",
+        }
+    ],
+    "_loop": 1,
+}
+
+CAPACITY_CAST_FAIL_CASE = ComponentTestCase(
+    name="fail case: capacity cast fail",
+    inputs=CAPACITY_CAST_FAIL_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "集群容量必须为整数"}),
+    schedule_assertion=[],
+    execute_call_assertion=[],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+    ],
+)
+
+API_FAIL_CLIENT = MockClient(
+    get_mainline_object_topo_return=COMMON_CLIENT.api.get_mainline_object_topo.return_value,
+    search_biz_inst_topo_return=COMMON_CLIENT.api.search_biz_inst_topo.return_value,
+    create_set_return={"result": False, "code": 0, "message": "failed", "data": {}},
+)
+
+API_FAIL_INPUTS = {
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "topo",
+    "cc_set_parent_select_topo": ["Tun_3"],
+    "cc_set_parent_select_text": "",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "1",
+            "bk_service_status": "2",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
+}
+
+API_FAIL_CASE = ComponentTestCase(
+    name="fail case: create_set api fail",
+    inputs=API_FAIL_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "failed"}),
+    schedule_assertion=[],
+    execute_call_assertion=[
+        CallAssertion(
+            func=API_FAIL_CLIENT.api.create_set,
+            calls=[
+                Call(
+                    COMMON_CREAT_SET_API_KWARGS,
+                    headers={"X-Bk-Tenant-Id": "system"},
+                    path_params={"bk_biz_id": 2},
+                )
+            ],
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=API_FAIL_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=API_FAIL_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+        Patcher(
+            target="pipeline_plugins.components.collections.sites.open.cc.create_set.v2_0.cc_handle_api_error",
+            return_value="failed",
+        ),
     ],
 )

@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -26,6 +25,7 @@ TEST_BIZ_CC_ID = "123"
 TEST_APP_CODE = "app_code"
 TEST_TASKFLOW_ID = "2"
 TEST_TASKFLOW_URL = "url"
+TEST_TENANT_ID = "system"
 
 
 class StartTaskAPITest(APITest):
@@ -56,7 +56,7 @@ class StartTaskAPITest(APITest):
             )
 
             taskflow_instance.objects.is_task_started.assert_called_once_with(
-                project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID
+                project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID, tenant_id=TEST_TENANT_ID
             )
 
             data = json.loads(response.content)
@@ -99,10 +99,12 @@ class StartTaskAPITest(APITest):
                 )
 
                 taskflow_instance.objects.is_task_started.assert_called_once_with(
-                    project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID
+                    project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID, tenant_id=TEST_TENANT_ID
                 )
                 prepare_and_start_task.apply_async.assert_called_once_with(
-                    kwargs=dict(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID, username=""),
+                    kwargs=dict(
+                        task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID, username="", tenant_id=TEST_TENANT_ID
+                    ),
                     queue="task_prepare_api",
                     routing_key="task_prepare_api",
                 )

@@ -11,13 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import patch, MagicMock
-
 from django.test import TestCase
+from mock import MagicMock, patch
 
-from gcloud.tests.mock_settings import *  # noqa
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tests.mock_settings import *  # noqa
 
 
 class PrepareAndStartTaskTestCase(TestCase):
@@ -26,9 +25,9 @@ class PrepareAndStartTaskTestCase(TestCase):
         taskflow_instance.DoesNotExist = TaskFlowInstance.DoesNotExist
         taskflow_instance.objects.get = MagicMock(side_effect=TaskFlowInstance.DoesNotExist)
         with patch(TASKFLOW_TASKS_TASKFLOW_INSTANCE, taskflow_instance):
-            prepare_and_start_task(task_id=1, project_id=2, username="3")
+            prepare_and_start_task(task_id=1, project_id=2, username="3", tenant_id="system")
 
-        taskflow_instance.objects.get.assert_called_once_with(id=1, project_id=2)
+        taskflow_instance.objects.get.assert_called_once_with(id=1, project_id=2, project__tenant_id="system")
 
     def test_success(self):
         taskflow_instance = MagicMock()
@@ -36,7 +35,7 @@ class PrepareAndStartTaskTestCase(TestCase):
         taskflow_instance.objects.get = MagicMock(return_value=task)
 
         with patch(TASKFLOW_TASKS_TASKFLOW_INSTANCE, taskflow_instance):
-            prepare_and_start_task(task_id=1, project_id=2, username="3")
+            prepare_and_start_task(task_id=1, project_id=2, username="3", tenant_id="system")
 
-        taskflow_instance.objects.get.assert_called_once_with(id=1, project_id=2)
+        taskflow_instance.objects.get.assert_called_once_with(id=1, project_id=2, project__tenant_id="system")
         task.task_action.assert_called_once_with("start", "3")

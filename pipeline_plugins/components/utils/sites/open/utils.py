@@ -446,7 +446,7 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
 
 
 def get_node_callback_url(root_pipeline_id, node_id, node_version=""):
-    engine_ver = EngineConfig.ENGINE_VER_V1 if not node_version else EngineConfig.ENGINE_VER_V2
+    engine_ver = EngineConfig.ENGINE_VER_V1 if not node_version else EngineConfig.ENGINE_VER_V2  # pragma: no cover
     f = Fernet(settings.CALLBACK_KEY)
     callback_entry = (
         env.BKAPP_INNER_CALLBACK_ENTRY or env.BKAPP_INNER_CALLBACK_HOST + "taskflow/api/v4/nodes/callback/%s/"

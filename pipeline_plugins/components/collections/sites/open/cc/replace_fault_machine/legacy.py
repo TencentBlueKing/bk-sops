@@ -44,7 +44,7 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
             self.InputItem(
                 name=_("主机替换信息"),
                 key="cc_host_replace_detail",
-                type="object",
+                type="array",
                 schema=ArrayItemSchema(
                     description=_("主机替换信息"),
                     item_schema=ObjectItemSchema(
@@ -59,7 +59,7 @@ class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
             self.InputItem(
                 name=_("复制故障机属性"),
                 key="copy_attributes",
-                type="bool",
+                type="boolean",
                 schema=BooleanItemSchema(description=_("复制故障机属性")),
             ),
         ]

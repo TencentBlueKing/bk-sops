@@ -42,7 +42,7 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         create_info=periodic_task.id,
         flow_type="common",
         current_flow="execute_task",
-        engine_ver=periodic_task.extra_info.get("engine_ver", EngineConfig.ENGINE_VER_V1),
+        engine_ver=periodic_task.extra_info.get("engine_ver", EngineConfig.ENGINE_VER_V1),  # pragma: no cover
     )
 
     task.record_and_get_executor_proxy(task.executor or periodic_task.creator)

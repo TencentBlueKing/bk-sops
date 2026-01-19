@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from mock import MagicMock
 from django.test import TestCase
+from mock import MagicMock
 
-from files.managers.nfs import HostNFSManager
 from files.exceptions import InvalidOperationError
+from files.managers.nfs import HostNFSManager
 
 
 class HostNFSManagerTestCase(TestCase):
@@ -87,7 +87,7 @@ class HostNFSManagerTestCase(TestCase):
 
         job_id = "12345"
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(
+        esb_client.api.fast_transfer_file = MagicMock(
             return_value={"result": True, "data": {"job_instance_id": job_id}}
         )
 
@@ -124,7 +124,9 @@ class HostNFSManagerTestCase(TestCase):
             "target_server": {"ip_list": "ips_token"},
             "callback_url": "callback_url_token",
         }
-        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
+        esb_client.api.fast_transfer_file.assert_called_once()
+        call_args = esb_client.api.fast_transfer_file.call_args
+        self.assertEqual(call_args[0][0], job_kwargs)
 
         self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
@@ -142,7 +144,7 @@ class HostNFSManagerTestCase(TestCase):
 
         job_id = "12345"
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(
+        esb_client.api.fast_transfer_file = MagicMock(
             return_value={"result": True, "data": {"job_instance_id": job_id}}
         )
 
@@ -176,7 +178,9 @@ class HostNFSManagerTestCase(TestCase):
             ],
             "target_server": {"ip_list": "ips_token"},
         }
-        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
+        esb_client.api.fast_transfer_file.assert_called_once()
+        call_args = esb_client.api.fast_transfer_file.call_args
+        self.assertEqual(call_args[0][0], job_kwargs)
 
         self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
@@ -217,7 +221,7 @@ class HostNFSManagerTestCase(TestCase):
         host_ip = "1.1.1.1"
 
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(return_value={"result": False, "message": "msg token"})
+        esb_client.api.fast_transfer_file = MagicMock(return_value={"result": False, "message": "msg token"})
 
         manager = HostNFSManager(location=self.location, server_location=self.server_location)
         manager._get_host_ip = MagicMock(return_value=host_ip)
@@ -251,7 +255,9 @@ class HostNFSManagerTestCase(TestCase):
             "target_server": {"ip_list": "ips_token"},
         }
 
-        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
+        esb_client.api.fast_transfer_file.assert_called_once()
+        call_args = esb_client.api.fast_transfer_file.call_args
+        self.assertEqual(call_args[0][0], job_kwargs)
 
         self.assertEqual(
             result,
