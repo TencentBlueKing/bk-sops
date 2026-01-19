@@ -12,6 +12,32 @@
 <template>
     <div class="full-code-editor" :class="{ 'full-status': isFullScreen }">
         <div class="tool-area">
+            <bk-dropdown-menu>
+                <template slot="dropdown-trigger">
+                    <img
+                        src="@/assets/images/assistant-small.svg"
+                        class="assistant-icon mr20"
+                        alt="assistant"
+                    />
+                </template>
+                <ul class="bk-dropdown-list" slot="dropdown-content">
+                    <li class="operate-item">
+                        <bk-button
+                            ext-cls="ai-script-button"
+                            :disabled="options.readOnly"
+                            @click="onWriteScript">
+                            {{ $t('编写脚本') }}
+                        </bk-button>
+                    </li>
+                    <li class="operate-item">
+                        <bk-button
+                            ext-cls="ai-script-button"
+                            @click="onCheckScript">
+                            {{ $t('脚本检查') }}
+                        </bk-button>
+                    </li>
+                </ul>
+            </bk-dropdown-menu>
             <i
                 class="bk-icon icon-copy mr20"
                 v-bk-tooltips="{
@@ -42,6 +68,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import CodeEditor from './CodeEditor.vue'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'FullCodeEditor',
@@ -61,7 +88,8 @@
         data () {
             return {
                 copyText: '',
-                isFullScreen: false
+                isFullScreen: false,
+                inputData: this.value || ''
             }
         },
         watch: {
@@ -114,7 +142,16 @@
                 }
             },
             onDataChange (val) {
+                this.inputData = val
                 this.$emit('input', val)
+            },
+            // 编写脚本-打开对话框
+            onWriteScript () {
+                bus.$emit('writeScript')
+            },
+            // 脚本检查-生成标准化提示词,智能体检查
+            onCheckScript () {
+                bus.$emit('checkScript', this.inputData)
             }
         }
     }
@@ -139,6 +176,54 @@
             line-height: 38px;
             text-align: right;
             background: #202024;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            ::v-deep .bk-dropdown-trigger{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            ::v-deep .bk-dropdown-content{
+                position: absolute;
+                left: -25px !important;
+                .operate-item {
+                    font-size: 12px !important;
+                    cursor: pointer;
+                    display: block;
+                    height: 32px;
+                    line-height: 33px;
+                    padding: 0 6px;
+                    text-decoration: none;
+                    white-space: nowrap;
+                    color: #63656e;
+                    &:hover {
+                        background-color: #eaf3ff;
+                        color: #3a84ff !important;
+                    }
+                    .ai-script-button{
+                        border: none;
+                        background: none;
+                        font-size: 12px;
+                        text-decoration: none;
+                        outline: none;
+                        height: 22px;
+                        line-height: 22px;
+                        padding: 0;
+                        &:hover {
+                            color: #3a84ff;
+                        }
+                        &.bk-button.bk-default.is-disabled,
+                        &.bk-button.bk-default[disabled] {
+                            color: #c4c6cc !important;
+                        }
+                    }
+                }
+            }
+            .assistant-icon {
+                width: 18px;
+                height: 18px;
+            }
             .zoom-icon {
                 font-size: 14px;
                 color: #ffffff;
