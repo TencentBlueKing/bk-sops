@@ -287,7 +287,7 @@
         },
         {
             id: 'flowName',
-            name: i18n.t('流程名'),
+            name: i18n.t('流程名称'),
             isDefaultOption: true
         },
         {

@@ -48,9 +48,11 @@
                 </div>
                 <p class="tpl-type-title">{{ $t('顶层流程（n）', { n: topFlowList.length }) }}</p>
                 <bk-table :data="topFlowTableList" :key="Math.random()">
-                    <bk-table-column :label="$t('流程名称')" :render-header="renderTableHeader">
-                        <div slot-scope="props" v-bk-overflow-tips>
-                            {{ props.row.meta.name }}
+                    <bk-table-column :label="$t('流程名称')" :render-header="renderTableHeader" min-width="350">
+                        <div slot-scope="props" class="name-input-wrapper">
+                            <bk-input v-model="importNameMap[props.row.meta.id]" :maxlength="maxLen"></bk-input>
+                            <span v-if="!importNameMap[props.row.meta.id]" class="common-error-tip error-msg">{{ $t('必填项') }}</span>
+                            <span v-else-if="!nameReg.test(importNameMap[props.row.meta.id])" class="common-error-tip error-msg">{{ $t('名字不合法') }}</span>
                         </div>
                     </bk-table-column>
                     <bk-table-column :label="$t('是否覆盖已有流程')" :width="400" :render-header="renderTableHeader">
@@ -112,9 +114,16 @@
                 <template v-if="subFlowList.length > 0">
                     <p class="tpl-type-title">{{ $t('子流程（n）', { n: subFlowList.length }) }}</p>
                     <bk-table :data="subFlowTableList" :key="Math.random()">
-                        <bk-table-column :label="$t('流程名称')" :render-header="renderTableHeader">
-                            <div slot-scope="props" v-bk-overflow-tips>
-                                {{ props.row.meta.name }}
+                        <bk-table-column :label="$t('流程名称')" :render-header="renderTableHeader" min-width="350">
+                            <div slot-scope="props">
+                                <div v-if="['useExisting', 'useCommonExisting'].includes(props.row.refer)" v-bk-overflow-tips>
+                                    {{ props.row.meta.name }}
+                                </div>
+                                <div v-else class="name-input-wrapper">
+                                    <bk-input v-model="importNameMap[props.row.meta.id]" :maxlength="maxLen"></bk-input>
+                                    <span v-if="!importNameMap[props.row.meta.id]" class="common-error-tip error-msg">{{ $t('必填项') }}</span>
+                                    <span v-else-if="!nameReg.test(importNameMap[props.row.meta.id])" class="common-error-tip error-msg">{{ $t('名字不合法') }}</span>
+                                </div>
                             </div>
                         </bk-table-column>
                         <bk-table-column :label="$t('父流程')" :render-header="renderTableHeader">
@@ -216,10 +225,12 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import moment from 'moment'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'ImportYamlTplDialog',
@@ -247,6 +258,7 @@
                 commonTemplateList: [],
                 overriders: {}, // 配置覆盖的流程
                 reference: {}, // 配置引用的流程
+                importNameMap: {},
                 errorMsg: null,
                 checkPending: false,
                 importPending: false,
@@ -273,7 +285,9 @@
                     current: 1,
                     count: 0,
                     limit: 15
-                }
+                },
+                nameReg: NAME_REG,
+                maxLen: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH
             }
         },
         computed: {
@@ -319,6 +333,8 @@
                         this.topFlowList = res.data.yaml_docs.filter(item => !(item.meta.id in res.data.relations))
                         this.topFlowList.forEach(item => {
                             item.refer = 'noOverrider'
+                            const newName = item.meta.name + '_' + moment().format('YYYYMMDDHHmmss')
+                            this.$set(this.importNameMap, item.meta.id, newName)
                         })
                         this.overriders = {}
                         this.topFlowPagination = {
@@ -328,6 +344,8 @@
                         this.subFlowList = res.data.yaml_docs.filter(item => item.meta.id in res.data.relations)
                         this.subFlowList.forEach(item => {
                             item.refer = 'noOverrider'
+                            const newName = item.meta.name + '_' + moment().format('YYYYMMDDHHmmss')
+                            this.$set(this.importNameMap, item.meta.id, newName)
                         })
                         this.subFlowPagination = {
                             current: 1,
@@ -572,6 +590,19 @@
                 }
             },
             async onConfirm () {
+                const allList = this.topFlowList.concat(this.subFlowList)
+                const isNameValid = allList.every(item => {
+                    if (['useExisting', 'useCommonExisting'].includes(item.refer)) {
+                        return true
+                    }
+                    const name = this.importNameMap[item.meta.id]
+                    return name && this.nameReg.test(name)
+                })
+                if (!isNameValid) {
+                    this.$bkMessage({ message: i18n.t('流程名称不合法'), theme: 'error' })
+                    return
+                }
+
                 const overriderKeys = Object.keys(this.overriders)
                 const overrideTpl = []
                 // 校验是否存在覆盖流程未选择或者重复选择的情况
@@ -634,6 +665,7 @@
                     data.append('data_file', this.file)
                     data.append('override_mappings', JSON.stringify(this.overriders))
                     data.append('refer_mappings', JSON.stringify(this.reference))
+                    data.append('name_mappings', JSON.stringify(this.importNameMap))
                     if (this.common) {
                         data.append('template_type', 'common')
                     } else {
@@ -661,6 +693,7 @@
                 this.checkResult = false
                 this.overriders = {}
                 this.reference = {}
+                this.importNameMap = {}
                 if (this.$refs.tplFile) {
                     this.$refs.tplFile.value = null
                 }
@@ -728,6 +761,17 @@
         font-size: 12px;
         color: #696a72;
     }
+    .name-input-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 42px;
+        .common-error-tip {
+            margin-top: 4px;
+            font-size: 12px;
+            line-height: 1;
+        }
+    }
 </style>
 <style lang="scss">
     .import-yaml-dialog {
@@ -740,6 +784,11 @@
                 padding-left: 24px;
                 border-bottom: none;
             }
+        }
+        .bk-table .bk-table-body-wrapper .cell {
+            /* 覆盖 element ui 默认样式，允许单元格高度随内容撑开 */
+            height: auto !important;
+            line-height: normal;
         }
         .footer-wrap {
             display: flex;

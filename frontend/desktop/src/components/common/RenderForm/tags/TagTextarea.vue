@@ -544,6 +544,7 @@
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 .tag-textarea {
+    position: relative;
     .rf-form-wrapper {
         position: relative;
         .rf-select-list {
@@ -592,6 +593,7 @@
         }
     }
     .rf-form-wrap {
+        position: relative;
         padding: 5px 10px;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
@@ -618,6 +620,7 @@
         max-height: 300px;
         line-height: 18px;
         color: #63656e;
+        text-align: left;
         outline: 0;
         word-wrap: break-word;
         overflow-x: hidden;
@@ -638,10 +641,17 @@
             word-break: break-all;
         }
         &.input-before::before {
-            position: absolute;
             content: attr(data-placeholder);
             color: #c4c6cc;
+            pointer-events: none;
         }
+    }
+    .common-error-tip {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        line-height: 1;
+        padding-top: 4px;
     }
     ::v-deep .div-input {
         >div {
