@@ -43,7 +43,9 @@
         <AIBlueking
             ref="aiBlueking"
             :url="aiAgentUrl"
-            :request-options="requestOptions" />
+            :request-options="requestOptions"
+            @stop="handleStop"
+            @receive-end="handleStop" />
         <!-- :prompts="customPrompts"  -->
 
     </div>
@@ -429,6 +431,10 @@
                     }
                     this.initData()
                 }
+            },
+            // ai小鲸会话响应结束or手动停止
+            handleStop () {
+                this.scriptCode = ''
             }
         }
     }
