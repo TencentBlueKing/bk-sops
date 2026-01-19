@@ -40,10 +40,7 @@
         </template>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
-        <AIBlueking
-            ref="aiBlueking"
-            :url="aiAgentUrl"
-            :request-options="requestOptions" />
+        <AiBluekingComp ref="aiBluekingComp"></AiBluekingComp>
 
     </div>
 </template>
@@ -60,8 +57,7 @@
     import permissionApply from '@/components/layout/permissionApply.vue'
     import NoticeComponent from '@blueking/notice-component-vue2'
     import '@blueking/notice-component-vue2/dist/style.css'
-    import AIBlueking from '@blueking/ai-blueking/vue2'
-    import '@blueking/ai-blueking/dist/vue2/style.css'
+    import AiBluekingComp from '@/components/common/aiBluekingComp/index.vue'
 
     export default {
         name: 'App',
@@ -71,7 +67,7 @@
             permissionApply,
             PermissionModal,
             NoticeComponent,
-            AIBlueking
+            AiBluekingComp
         },
         mixins: [permission],
         provide () {
@@ -83,7 +79,6 @@
             return {
                 enableNoticeCenter: window.ENABLE_NOTICE_CENTER,
                 apiUrl: `${window.SITE_URL}notice/announcements/`,
-                aiAgentUrl: window.AI_SOPS_AGENT_URL,
                 hasAlertNotice: false,
                 footerLoading: false,
                 permissinApplyShow: false,
@@ -94,8 +89,7 @@
                 isRouterAlive: false,
                 projectDetailLoading: false, // 项目详情加载
                 appmakerDataLoading: false, // 轻应用加载 app 详情,
-                isUseSnapshot: false, // 登录成功时是否使用快照
-                requestOptions: null
+                isUseSnapshot: false // 登录成功时是否使用快照
             }
         },
         computed: {
@@ -118,10 +112,6 @@
                     const prevRouterProjectId = oldVal.params.project_id
                     const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
                     this.handleRouteChange(id)
-                    const query = this.$route.query
-                    const params = this.$route.params
-                    const context = Object.assign({}, query, params)
-                    this.requestOptions = { context }
                 },
                 immediate: true,
                 deep: true
@@ -159,6 +149,14 @@
             // 登录成功后使用快照
             bus.$on('useSnapshot', data => {
                 this.isUseSnapshot = true
+            })
+            // 编写脚本打开Ai小鲸对话框
+            bus.$on('writeScript', data => {
+                this.$refs.aiBluekingComp.showAi()
+            })
+            // 脚本检查
+            bus.$on('checkScript', data => {
+                this.$refs.aiBluekingComp.sendDefaultcommand(data)
             })
 
             /**

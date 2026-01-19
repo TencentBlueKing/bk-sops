@@ -1928,7 +1928,9 @@ const en = {
     '粘贴数据与当前数据相同': 'Pasted data is the same as current data',
     '粘贴成功': 'Paste successful',
     '粘贴成功，部分项目因权限问题被过滤': 'Paste successful, some projects were filtered due to permission issues',
-    '粘贴失败': 'Paste failed'
+    '粘贴失败': 'Paste failed',
+    '编写脚本': 'Write Script',
+    '脚本检查': 'Script Check'
 }
 
 export default en
