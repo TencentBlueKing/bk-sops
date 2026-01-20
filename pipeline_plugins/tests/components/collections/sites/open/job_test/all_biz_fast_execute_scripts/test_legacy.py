@@ -111,6 +111,9 @@ CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_username"
 
 
+GET_BK_USERNAME_BY_TENANT = "gcloud.core.api_adapter.user_info.get_client_by_username"
+
+
 # success result
 SUCCESS_RESULT = {
     "result": True,
