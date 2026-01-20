@@ -28,6 +28,7 @@ from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_
     AllBizJobExecuteJobPlanComponent,
 )
 from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_PASSWORD
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class AllBizJobExecuteJobPlanComponentTest(TestCase, ComponentTestMixin):
@@ -84,7 +85,21 @@ GET_CLIENT_BY_USER = (
     "get_client_by_username"
 )
 
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
+GET_TARGET_SERVER_BIZ_SET = (
+    "pipeline_plugins.components.collections.sites.open.job"
+    ".all_biz_execute_job_plan.base_service.BaseAllBizJobExecuteJobPlanService.get_target_server_biz_set"
+)
+
 GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
+
+# MockCMDBClient class definition for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
+
 
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service.get_node_callback_url"
@@ -96,6 +111,10 @@ GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service.get_job_instance_url"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 
 # success result
 EXECUTE_JOB_PLAN_SUCCESS_RESULT = {
@@ -419,6 +438,12 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
         )
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(True, {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}),
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
@@ -489,6 +514,12 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(True, {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}),
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
@@ -558,6 +589,12 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(True, {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}),
+        ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_FAIL_CLIENT),
@@ -620,6 +657,12 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(True, {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}),
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
@@ -704,6 +747,12 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         )
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(True, {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}),
+        ),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
@@ -814,6 +863,12 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
         )
     ],
     patchers=[
+        Patcher(target=CC_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(target=CMDB_GET_CLIENT_BY_USERNAME, return_value=MockCMDBClient()),
+        Patcher(
+            target=GET_TARGET_SERVER_BIZ_SET,
+            return_value=(True, {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": 0}]}),
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),

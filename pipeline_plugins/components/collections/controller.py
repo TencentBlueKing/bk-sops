@@ -80,9 +80,7 @@ class PauseComponent(Component):
     code = "pause_node"
     bound_service = PauseService
     form = settings.STATIC_URL + "components/atoms/bk/pause.js"
-    desc = _(
-        "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
-    )
+    desc = _("该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据")
 
 
 class SleepTimerService(Service):
@@ -106,9 +104,7 @@ class SleepTimerService(Service):
                 name=_("是否强制晚于当前时间"),
                 key="force_check",
                 type="bool",
-                schema=StringItemSchema(
-                    description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")
-                ),
+                schema=StringItemSchema(description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")),
             ),
         ]
 
@@ -139,10 +135,7 @@ class SleepTimerService(Service):
             #  如果写成+号 可以输入无限长，或考虑前端修改
             eta = now + datetime.timedelta(seconds=int(timing))
         else:
-            message = (
-                _("[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置")
-                % timing
-            )
+            message = _("[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S」格式，请检查节点配置")
             LOGGER.error(message)
             data.set_outputs("ex_data", message)
             return False

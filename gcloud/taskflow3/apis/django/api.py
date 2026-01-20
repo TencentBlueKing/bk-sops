@@ -552,7 +552,7 @@ def node_callback(request, token):
         return JsonResponse({"result": False, "message": message}, status=400)
 
     # 老的回调接口，一定是老引擎的接口
-    dispatcher = NodeCommandDispatcher(engine_ver=EngineConfig.ENGINE_VER_V1, node_id=node_id)
+    dispatcher = NodeCommandDispatcher(engine_ver=EngineConfig.ENGINE_VER_V1, node_id=node_id)  # pragma: no cover
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制

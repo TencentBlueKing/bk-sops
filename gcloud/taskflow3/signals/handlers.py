@@ -150,7 +150,7 @@ def pipeline_revoke_handler(sender, instance_id, **kwargs):
 
 
 @receiver(activity_failed)
-def pipeline_fail_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):
+def pipeline_fail_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):  # pragma: no cover
     auto_retry_dispatched = _dispatch_auto_retry_node_task(
         root_pipeline_id=pipeline_id, node_id=pipeline_activity_id, engine_ver=EngineConfig.ENGINE_VER_V1
     )

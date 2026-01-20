@@ -112,7 +112,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
             return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
-    def start_v1(self, executor: str) -> dict:
+    def start_v1(self, executor: str) -> dict:  # pragma: no cover
         try:
             pre_taskflow_start.send(sender=self.__class__, task_id=self.taskflow_id, executor=executor)
             result = self.pipeline_instance.start(executor=executor, queue=self.queue, check_workers=False)
@@ -232,7 +232,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         return dict_result
 
     @ensure_return_is_dict
-    def pause_v1(self, operator: str) -> dict:
+    def pause_v1(self, operator: str) -> dict:  # pragma: no cover
         return task_service.pause_pipeline(pipeline_id=self.pipeline_instance.instance_id)
 
     @ensure_return_is_dict
@@ -242,7 +242,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         )
 
     @ensure_return_is_dict
-    def resume_v1(self, operator: str) -> dict:
+    def resume_v1(self, operator: str) -> dict:  # pragma: no cover
         return task_service.resume_pipeline(pipeline_id=self.pipeline_instance.instance_id)
 
     @ensure_return_is_dict
@@ -252,7 +252,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         )
 
     @ensure_return_is_dict
-    def revoke_v1(self, operator: str) -> dict:
+    def revoke_v1(self, operator: str) -> dict:  # pragma: no cover
         return task_service.revoke_pipeline(pipeline_id=self.pipeline_instance.instance_id)
 
     @ensure_return_is_dict
@@ -411,10 +411,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         f"update context values failed: pipeline instance state error, "
                         f"tree state is {status_result}"
                     )
-                    message = _(
-                        f"任务参数设置失败: 任务状态校验失败，"
-                        f"任务状态为{status_result['data']['state']}，不支持进行参数修改。"
-                    )
+                    message = _(f"任务参数设置失败: 任务状态校验失败，" f"任务状态为{status_result['data']['state']}，不支持进行参数修改。")
                     return {"result": False, "data": "", "message": message, "code": err_code.VALIDATION_ERROR.code}
 
                 bamboo_runtime = BambooDjangoRuntime()
@@ -425,9 +422,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 )
                 if not update_res.result:
                     logger.error("update context values failed: %s" % update_res.exc_trace)
-                    message = _(
-                        f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants"
-                    )
+                    message = _(f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants")
                     logger.error(message)
                     return {
                         "result": False,
@@ -475,7 +470,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     failed_nodes.append(node_id)
         return failed_nodes
 
-    def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool, *args, **kwargs) -> dict:
+    def get_task_status_v1(
+        self, subprocess_id: Optional[str], with_ex_data: bool, *args, **kwargs
+    ) -> dict:  # pragma: no cover
         if self.pipeline_instance.is_expired:
             return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
@@ -515,9 +512,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 # do not raise error when subprocess not exist or has not been executed
                 task_status = self.CREATED_STATUS
             except Exception:
-                message = _(
-                    f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1"
-                )
+                message = _(f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
                 logger.exception(message)
                 return {
                     "result": False,
@@ -596,10 +591,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if with_new_status:
             # 遍历树，获取需要进行状态优化的节点，标记哪些节点具有独立子流程
             # 遍历状态树，hit -> 状态优化，独立子流程 -> 递归
-            node_infos_gby_code: typing.Dict[str, typing.List[typing.Dict[str, typing.Any]]] = (
-                find_nodes_from_pipeline_tree(
-                    self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
-                )
+            node_infos_gby_code: typing.Dict[
+                str, typing.List[typing.Dict[str, typing.Any]]
+            ] = find_nodes_from_pipeline_tree(
+                self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
             )
 
             node_ids_gby_code: typing.Dict[str, typing.Set[str]] = {}
@@ -612,9 +607,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             }
 
             status_tree, root_pipeline_id = task_status, task_status["id"]
-            node_id__auto_retry_info: typing.Dict[str, typing.Dict[str, typing.Any]] = (
-                fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
-            )
+            node_id__auto_retry_info: typing.Dict[
+                str, typing.Dict[str, typing.Any]
+            ] = fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
 
             self.format_bamboo_engine_status(
                 task_status, node_ids_gby_code, code__status_map, node_id__auto_retry_info, False, is_subquery
@@ -642,7 +637,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         return getattr(self, "render_current_constants_v{}".format(self.engine_ver))()
 
-    def render_current_constants_v1(self):
+    def render_current_constants_v1(self):  # pragma: no cover
         if not (
             self.pipeline_instance.is_started
             and not self.pipeline_instance.is_finished

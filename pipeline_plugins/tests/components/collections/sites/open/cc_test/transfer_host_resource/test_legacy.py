@@ -23,6 +23,7 @@ from pipeline.component_framework.test import (
 )
 
 from pipeline_plugins.components.collections.sites.open.cc import CmdbTransferHostResourceModuleComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 
 class CmdbTransferHostResourceComponentTest(TestCase, ComponentTestMixin):
@@ -37,16 +38,18 @@ class CmdbTransferHostResourceComponentTest(TestCase, ComponentTestMixin):
         return CmdbTransferHostResourceModuleComponent
 
 
-class MockClient(object):
+class MockClient(MockCMDBClientIPv6):
     def __init__(self, transfer_host_return=None):
-        self.set_bk_api_ver = MagicMock()
-        self.api = MagicMock()
+        super(MockClient, self).__init__()
         self.api.transfer_host_to_resourcemodule = MagicMock(return_value=transfer_host_return)
 
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
+CC_GET_HOST_BY_INNERIP_WITH_IPV6 = (
+    "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_by_innerip_with_ipv6"
+)
 
 # mock client
 TRANSFER_SUCCESS_CLIENT = MockClient(transfer_host_return={"result": True, "code": 0, "message": "", "data": {}})
@@ -64,9 +67,6 @@ TRANSFER_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]
-        ),
-        CallAssertion(
             func=TRANSFER_SUCCESS_CLIENT.api.transfer_host_to_resourcemodule,
             calls=[Call({"bk_biz_id": 2, "bk_host_id": [2, 3]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
@@ -76,6 +76,10 @@ TRANSFER_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_SUCCESS_CLIENT),
         # Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": [2, 3]}),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 2}, {"bk_host_id": 3}]},
+        ),
     ],
 )
 
@@ -93,9 +97,6 @@ TRANSFER_FAIL_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]
-        ),
-        CallAssertion(
             func=TRANSFER_FAIL_CLIENT.api.transfer_host_to_resourcemodule,
             calls=[Call({"bk_biz_id": 2, "bk_host_id": [2, 3]}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
@@ -105,6 +106,10 @@ TRANSFER_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_FAIL_CLIENT),
         # Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": [2, 3]}),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 2}, {"bk_host_id": 3}]},
+        ),
     ],
 )
 
@@ -114,10 +119,9 @@ INVALID_IP_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "invalid ip"}),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]
-        ),
+    execute_call_assertion=[],
+    patchers=[
+        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": False, "message": "invalid ip"}),
+        Patcher(target=CC_GET_HOST_BY_INNERIP_WITH_IPV6, return_value={"result": False, "message": "invalid ip"}),
     ],
-    patchers=[Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": False, "message": "invalid ip"})],
 )

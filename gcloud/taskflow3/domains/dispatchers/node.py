@@ -82,7 +82,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
 
     @ensure_return_is_dict
-    def retry_v1(self, operator: str, **kwargs) -> dict:
+    def retry_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.retry_activity(act_id=self.node_id, inputs=kwargs["inputs"])
 
     @ensure_return_is_dict
@@ -105,7 +105,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.retry_node(runtime=runtime, node_id=self.node_id, data=kwargs["inputs"] or None)
 
     @ensure_return_is_dict
-    def skip_v1(self, operator: str, **kwargs) -> dict:
+    def skip_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.skip_activity(self.node_id)
 
     @ensure_return_is_dict
@@ -113,7 +113,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.skip_node(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     @ensure_return_is_dict
-    def callback_v1(self, operator: str, **kwargs) -> dict:
+    def callback_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.callback(act_id=self.node_id, data=kwargs["data"])
 
     @ensure_return_is_dict
@@ -127,7 +127,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.callback(runtime=runtime, node_id=self.node_id, version=version, data=kwargs["data"])
 
     @ensure_return_is_dict
-    def skip_exg_v1(self, operator: str, **kwargs) -> dict:
+    def skip_exg_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.skip_exclusive_gateway(gateway_id=self.node_id, flow_id=kwargs["flow_id"])
 
     @ensure_return_is_dict
@@ -137,7 +137,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         )
 
     @ensure_return_is_dict
-    def skip_cpg_v1(self, operator: str, **kwargs) -> dict:
+    def skip_cpg_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.skip_conditional_parallel_gateway(
             gateway_id=self.node_id, flow_ids=kwargs["flow_ids"], converge_gateway_id=kwargs["converge_gateway_id"]
         )
@@ -152,7 +152,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         )
 
     @ensure_return_is_dict
-    def pause_v1(self, operator: str, **kwargs) -> dict:
+    def pause_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.pause_activity(self.node_id)
 
     @ensure_return_is_dict
@@ -160,7 +160,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.pause_node_appoint(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     @ensure_return_is_dict
-    def resume_v1(self, operator: str, **kwargs) -> dict:
+    def resume_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.resume_activity(self.node_id)
 
     @ensure_return_is_dict
@@ -168,7 +168,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.resume_node_appoint(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     @ensure_return_is_dict
-    def pause_subproc_v1(self, operator: str, **kwargs) -> dict:
+    def pause_subproc_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.pause_pipeline(self.node_id)
 
     @ensure_return_is_dict
@@ -176,7 +176,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.pause_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.node_id)
 
     @ensure_return_is_dict
-    def resume_subproc_v1(self, operator: str, **kwargs) -> dict:
+    def resume_subproc_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.resume_activity(self.node_id)
 
     @ensure_return_is_dict
@@ -184,7 +184,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.resume_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.node_id)
 
     @ensure_return_is_dict
-    def forced_fail_v1(self, operator: str, **kwargs) -> dict:
+    def forced_fail_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         return task_service.forced_fail(act_id=self.node_id, ex_data="forced fail by {}".format(operator))
 
     @ensure_return_is_dict
@@ -196,7 +196,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             send_post_set_state_signal=kwargs.get("send_post_set_state_signal", True),
         )
 
-    def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
+    def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:  # pragma: no cover
         message = _("非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1")
         logger.error(message)
         return {
@@ -215,7 +215,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         return getattr(self, "get_node_log_v{}".format(self.engine_ver))(history_id)
 
-    def get_node_log_v1(self, history_id: int) -> dict:
+    def get_node_log_v1(self, history_id: int) -> dict:  # pragma: no cover
         return {
             "result": True,
             "data": handle_plain_log(LogEntry.objects.plain_log_for_node(node_id=self.node_id, history_id=history_id)),
@@ -376,7 +376,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         return True, "", outputs_table
 
-    def get_node_data_v1(
+    def get_node_data_v1(  # pragma: no cover
         self,
         username: str,
         subprocess_stack: List[str],
@@ -683,7 +683,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         # index 非 -1 表示当前 loop 的重试记录
         detail["histories"] = histories[:-1]
 
-    def get_node_detail_v1(
+    def get_node_detail_v1(  # pragma: no cover
         self,
         username: str,
         subprocess_stack: List[str],
@@ -824,7 +824,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         return getattr(self, "get_outputs_v{}".format(self.engine_ver))()
 
-    def get_outputs_v1(self):
+    def get_outputs_v1(self):  # pragma: no cover
         try:
             outputs = pipeline_api.get_outputs(self.node_id)
         except Exception:

@@ -45,6 +45,41 @@ class VarCmdbIpSelectorTestCase(TestCase):
         client = MagicMock()
         client.api.ipchooser_host_details = MagicMock(return_value=get_agent_status_result)
 
+        # Mock cc_get_host_by_innerip_with_ipv6 to return host information
+        mock_host_result = {
+            "result": True,
+            "data": [
+                {
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "1.1.1.1",
+                    "bk_host_innerip_v6": "",
+                    "bk_cloud_id": 0,
+                    "bk_agent_id": "0:1.1.1.1",
+                },
+                {
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "2.2.2.2",
+                    "bk_host_innerip_v6": "",
+                    "bk_cloud_id": 0,
+                    "bk_agent_id": "0:2.2.2.2",
+                },
+                {
+                    "bk_host_id": 3,
+                    "bk_host_innerip": "3.3.3.3",
+                    "bk_host_innerip_v6": "",
+                    "bk_cloud_id": 1,
+                    "bk_agent_id": "1:3.3.3.3",
+                },
+                {
+                    "bk_host_id": 4,
+                    "bk_host_innerip": "4.4.4.4",
+                    "bk_host_innerip_v6": "",
+                    "bk_cloud_id": 2,
+                    "bk_agent_id": "2:4.4.4.4",
+                },
+            ],
+        }
+
         self.project_patcher = patch(
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.Project", mock_project
         )
@@ -52,13 +87,33 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_client_by_username",
             MagicMock(return_value=client),
         )
+        self.cc_get_host_patcher = patch(
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.cc_get_host_by_innerip_with_ipv6",
+            MagicMock(return_value=mock_host_result),
+        )
+
+        # Mock get_gse_agent_status_ipv6 to return agent status information
+        mock_agent_status = {
+            "0:1.1.1.1": 1,  # online
+            "0:2.2.2.2": 0,  # offline
+            "1:3.3.3.3": 1,  # online
+            "2:4.4.4.4": 0,  # offline
+        }
+        self.gse_agent_status_patcher = patch(
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_gse_agent_status_ipv6",
+            MagicMock(return_value=mock_agent_status),
+        )
 
         self.project_patcher.start()
         self.client.start()
+        self.cc_get_host_patcher.start()
+        self.gse_agent_status_patcher.start()
 
     def tearDown(self):
         self.project_patcher.stop()
         self.client.stop()
+        self.cc_get_host_patcher.stop()
+        self.gse_agent_status_patcher.stop()
 
     def test_get_value_with_gse_agent_online(self):
         ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
@@ -73,3 +128,42 @@ class VarCmdbIpSelectorTestCase(TestCase):
         ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
         match_ip = ip_filters.get_value()
         self.assertEqual(match_ip, "0:2.2.2.2,2:4.4.4.4")
+
+    def test_get_value_ipv6(self):
+        with patch("pipeline_plugins.variables.collections.sites.open.cc.settings.ENABLE_IPV6", True):
+            # Mock GseAgentStatusIpV6Filter
+            with patch("pipeline_plugins.variables.collections.sites.open.cc.GseAgentStatusIpV6Filter") as mock_filter:
+                mock_inst = mock_filter.return_value
+                mock_inst.get_match_ip.return_value = [
+                    {"ip": "1.1.1.1", "bk_cloud_id": 0},
+                    {"ip": "::1", "bk_cloud_id": 0},
+                ]
+
+                # Case 1: ip_cloud=True (default)
+                ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
+                match_ip = ip_filters.get_value()
+                # 1.1.1.1 is ipv4, ::1 is ipv6
+                # Code says: if ipv6, {cloud}:[{ip}]. if ipv4 {cloud}:{ip}
+                self.assertTrue("0:1.1.1.1" in match_ip)
+                self.assertTrue("0:[::1]" in match_ip)
+
+                # Case 2: ip_cloud=False
+                self.value["ip_cloud"] = False
+                ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
+                match_ip = ip_filters.get_value()
+                self.assertTrue("1.1.1.1" in match_ip)
+                self.assertTrue("::1" in match_ip)
+
+    def test_get_value_ipv4_no_cloud(self):
+        self.value["ip_cloud"] = False
+        ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
+        match_ip = ip_filters.get_value()
+        # default value has 1.1.1.1 (online) and 3.3.3.3 (online)
+        self.assertTrue("1.1.1.1" in match_ip)
+        self.assertTrue("3.3.3.3" in match_ip)
+        self.assertFalse("0:" in match_ip)
+
+    def test_missing_params(self):
+        ip_filters = VarCmdbIpFilter(self.name, self.value, {}, {})
+        with self.assertRaises(Exception):
+            ip_filters.get_value()

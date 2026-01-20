@@ -19,6 +19,7 @@ from mock import MagicMock
 from pipeline.core.data.base import DataObject
 
 from pipeline_plugins.components.collections.sites.open.job.base import GetJobHistoryResultMixin
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
 TEST_INPUTS = {"job_success_id": 12345, "biz_cc_id": 11111, "executor": "executor", "tenant_id": "system"}
 TEST_DATA = DataObject(TEST_INPUTS)
@@ -27,6 +28,10 @@ TEST_PARENT_DATA = DataObject(TEST_INPUTS)
 logger = logging.getLogger("component")
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
+# 添加 CC client mock 路径，用于 IPv6 支持
+CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
+CMDB_GET_CLIENT_BY_USERNAME = "gcloud.utils.cmdb.get_client_by_username"
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.base.get_job_instance_status"
 GET_JOB_STATUS_RETURN = {
     "result": True,
@@ -113,6 +118,11 @@ class MockClient(object):
         self.api.get_job_instance_status = MagicMock(return_value=GET_JOB_STATUS_RETURN)
 
 
+# Mock CMDB Client for IPv6 support
+class MockCMDBClient(MockCMDBClientIPv6):
+    pass
+
+
 class TestGetJobHistoryResultMixin(TestCase):
     def setUp(self):
         self.mixin = GetJobHistoryResultMixin()
@@ -124,3 +134,38 @@ class TestGetJobHistoryResultMixin(TestCase):
         with mock.patch(GET_CLIENT_BY_USER, return_value=MockClient()):
             result = self.get_job_result(TEST_DATA, TEST_PARENT_DATA)
             self.assertTrue(result)
+
+    def test_status_api_fail(self):
+        client = MockClient()
+        client.api.get_job_instance_status.return_value = {"result": False, "message": "error"}
+        with mock.patch(GET_CLIENT_BY_USER, return_value=client):
+            result = self.get_job_result(TEST_DATA, TEST_PARENT_DATA)
+            self.assertFalse(result)
+            self.assertIn("调用作业平台(JOB)接口", TEST_DATA.outputs.ex_data)
+
+    def test_status_not_success(self):
+        client = MockClient()
+        bad = dict(GET_JOB_STATUS_RETURN)
+        bad["data"]["job_instance"]["status"] = 4
+        client.api.get_job_instance_status.return_value = bad
+        with mock.patch(GET_CLIENT_BY_USER, return_value=client):
+            result = self.get_job_result(TEST_DATA, TEST_PARENT_DATA)
+            self.assertFalse(result)
+            self.assertIn("执行历史请求失败", TEST_DATA.outputs.ex_data)
+
+    def test_no_need_get_sops_var(self):
+        self.mixin.need_get_sops_var = False
+        with mock.patch(GET_CLIENT_BY_USER, return_value=MockClient()):
+            result = self.get_job_result(TEST_DATA, TEST_PARENT_DATA)
+            self.assertTrue(result)
+
+    def test_extract_log_fail(self):
+        client = MockClient()
+        with mock.patch(GET_CLIENT_BY_USER, return_value=client):
+            with mock.patch(
+                "pipeline_plugins.components.collections.sites.open.job.base.get_job_sops_var_dict",
+                return_value={"result": False, "message": "error"},
+            ):
+                result = self.get_job_result(TEST_DATA, TEST_PARENT_DATA)
+                self.assertFalse(result)
+                self.assertEqual(TEST_DATA.outputs["log_outputs"], {})

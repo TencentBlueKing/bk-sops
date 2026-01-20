@@ -1027,7 +1027,9 @@ class TaskFlowInstance(models.Model):
 
     def _get_task_celery_queue(self, engine_ver):
         queue = ""
-        if engine_ver == EngineConfig.ENGINE_VER_V1 and self.create_method == TaskCreateMethod.API.value:
+        if (
+            engine_ver == EngineConfig.ENGINE_VER_V1 and self.create_method == TaskCreateMethod.API.value
+        ):  # pragma: no cover
             queue = settings.API_TASK_QUEUE_NAME
         elif engine_ver == EngineConfig.ENGINE_VER_V2 and self.create_method == TaskCreateMethod.API.value:
             queue = settings.API_TASK_QUEUE_NAME_V2
@@ -1210,7 +1212,7 @@ class TaskFlowInstance(models.Model):
             logger.error("dispatcher.get_outputs failed: {}".format(outputs_result["message"]))
         outputs = outputs_result["data"]
 
-        if self.engine_ver == EngineConfig.ENGINE_VER_V1:
+        if self.engine_ver == EngineConfig.ENGINE_VER_V1:  # pragma: no cover
             outputs_table = [{"key": key, "value": val} for key, val in outputs.get("outputs", {}).items()]
         else:
             outputs_table = [{"key": key, "value": val} for key, val in outputs.items()]

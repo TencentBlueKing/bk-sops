@@ -38,7 +38,6 @@ def meta_info(request):
 @require_POST
 def apply_perms_url(request):
     application = json.loads(request.body)
-    username = request.user.username
     tenant_id = request.user.tenant_id
     iam = get_iam_client(tenant_id)
 

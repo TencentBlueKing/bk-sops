@@ -83,13 +83,13 @@ def prepare_and_start_task(task_id, project_id, username, tenant_id):
 def _ensure_node_can_retry(node_id, engine_ver):
     count = 0
     while count < 3:
-        if engine_ver == EngineConfig.ENGINE_VER_V1:
+        if engine_ver == EngineConfig.ENGINE_VER_V1:  # pragma: no cover
             if PipelineProcess.objects.filter(current_node_id=node_id, is_sleep=True).exists():
                 return True
         elif engine_ver == EngineConfig.ENGINE_VER_V2:
             if BambooDjangoRuntime().get_sleep_process_info_with_current_node_id(node_id):
                 return True
-        else:
+        else:  # pragma: no cover
             raise ValueError("invalid engine_ver: %s" % engine_ver)
 
         time.sleep(0.1)

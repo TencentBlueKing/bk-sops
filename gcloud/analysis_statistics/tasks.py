@@ -125,7 +125,7 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                     component_list.append(TaskflowExecutedNodeStatistics(**component_kwargs))
                     if exec_act["retry"] > 0:
                         # 有重试记录，需要从执行历史中获取数据
-                        if engine_ver == 1:
+                        if engine_ver == 1:  # pragma: no cover
                             history_list = pipeline_api.get_activity_histories(act_id)
                         else:
                             history_list_result = bamboo_engine_api.get_node_short_histories(

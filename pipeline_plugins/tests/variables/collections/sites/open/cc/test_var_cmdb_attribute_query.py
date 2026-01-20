@@ -42,16 +42,38 @@ class VarCmdbAttributeQueryTestCase(TestCase):
         mock_project.objects.get = MagicMock(return_value=mock_project_obj)
         self.project_patcher = patch("pipeline_plugins.variables.collections.sites.open.cc.Project", mock_project)
 
+        # Mock cc_get_host_by_innerip_with_ipv6 to return success result
+        mock_host_result = {
+            "result": True,
+            "data": [
+                {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1"},
+                {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2"},
+                {"bk_host_id": 3, "bk_host_innerip": "3.3.3.3"},
+                {"bk_host_id": 4, "bk_host_innerip": "4.4.4.4"},
+            ],
+        }
+        self.cc_get_host_patcher = patch(
+            "pipeline_plugins.variables.collections.sites.open.cc.cc_get_host_by_innerip_with_ipv6",
+            MagicMock(return_value=mock_host_result),
+        )
+
         self.project_patcher.start()
+        self.cc_get_host_patcher.start()
 
     def tearDown(self):
         self.project_patcher.stop()
+        self.cc_get_host_patcher.stop()
 
     def test_get_value(self):
         mock_get_business_host = MagicMock(return_value=self.get_business_host_return)
+        mock_get_business_host_by_hosts_ids = MagicMock(return_value=self.get_business_host_return)
         host_attrs_query = VarCmdbAttributeQuery(self.name, self.value, self.context, self.pipeline_data)
         with patch("pipeline_plugins.variables.collections.sites.open.cc.get_business_host", mock_get_business_host):
-            value = host_attrs_query.get_value()
+            with patch(
+                "pipeline_plugins.variables.collections.sites.open.cc.get_business_host_by_hosts_ids",
+                mock_get_business_host_by_hosts_ids,
+            ):
+                value = host_attrs_query.get_value()
 
         self.assertEqual(
             value,
@@ -61,7 +83,7 @@ class VarCmdbAttributeQueryTestCase(TestCase):
                 "1.1.1.3": {"bk_host_innerip": "1.1.1.3", "bk_attr": 3},
             },
         )
-        mock_get_business_host.assert_called_once_with(
+        mock_get_business_host_by_hosts_ids.assert_called_once_with(
             self.tenant_id,
             self.executer,
             self.bk_biz_id,
@@ -93,6 +115,45 @@ class VarCmdbAttributeQueryTestCase(TestCase):
                 "bk_supplier_account",
                 "bk_sn",
                 "bk_cpu_module",
+                "bk_host_innerip_v6",
             ],
-            ["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
+            [1, 2, 3, 4],  # host_ids from our mock data
         )
+
+    def test_get_value_ipv6_error(self):
+        """Test _handle_value_with_ipv4_and_ipv6 error handling"""
+        # Set ENABLE_IPV6 to True via patch if needed, or assume it's checked
+        # The code checks settings.ENABLE_IPV6. We should patch settings.
+        with patch("pipeline_plugins.variables.collections.sites.open.cc.settings.ENABLE_IPV6", True):
+            # Mock failure
+            self.cc_get_host_patcher.stop()  # stop the default success mock
+            with patch(
+                "pipeline_plugins.variables.collections.sites.open.cc.cc_get_host_by_innerip_with_ipv6",
+                MagicMock(return_value={"result": False, "message": "fail"}),
+            ):
+                host_attrs_query = VarCmdbAttributeQuery(self.name, self.value, self.context, self.pipeline_data)
+                with self.assertRaises(Exception):
+                    host_attrs_query.get_value()
+            self.cc_get_host_patcher.start()  # restart for tearDown
+
+    def test_get_value_ipv6_empty(self):
+        """Test empty result from ipv6 query"""
+        with patch("pipeline_plugins.variables.collections.sites.open.cc.settings.ENABLE_IPV6", True):
+            self.cc_get_host_patcher.stop()
+            with patch(
+                "pipeline_plugins.variables.collections.sites.open.cc.cc_get_host_by_innerip_with_ipv6",
+                MagicMock(return_value={"result": True, "data": []}),
+            ):
+                host_attrs_query = VarCmdbAttributeQuery(self.name, self.value, self.context, self.pipeline_data)
+                value = host_attrs_query.get_value()
+                self.assertEqual(value, {})
+            self.cc_get_host_patcher.start()
+
+    def test_get_value_missing_context(self):
+        host_attrs_query = VarCmdbAttributeQuery(self.name, self.value, {}, {})
+        with self.assertRaises(Exception):
+            host_attrs_query.get_value()
+
+    def test_self_explain(self):
+        ex = VarCmdbAttributeQuery._self_explain()
+        self.assertTrue(len(ex) > 0)

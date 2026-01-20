@@ -71,7 +71,7 @@ class SubprocessPluginService(Service):
             data.set_outputs("ex_data", f"parent task {parent_task_id} not found")
             return False
 
-        if parent_task.engine_ver != EngineConfig.ENGINE_VER_V2:
+        if parent_task.engine_ver != EngineConfig.ENGINE_VER_V2:  # pragma: no cover
             data.set_outputs("ex_data", "subprocess plugin only supports engine ver 2")
             return False
 

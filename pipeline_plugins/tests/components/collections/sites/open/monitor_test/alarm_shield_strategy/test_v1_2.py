@@ -76,6 +76,9 @@ CMDB_GET_BIZ_HOST = "gcloud.utils.cmdb.get_business_host"
 
 LIST_BIZ_HOSTS_TOPO_BY_USER = "gcloud.utils.cmdb.get_client_by_username"
 
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
+
+
 # mock client
 CREATE_SHIELD_FAIL_CLIENT = MockMonitorClient(add_shield_result={"result": False, "message": "create shield fail"})
 CREATE_SHIELD_FAIL_GET_BIZ_HOST_RETURN = [
@@ -212,6 +215,10 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
         Patcher(target=MONITOR_CLIENT, return_value=CREATE_SHIELD_FAIL_CLIENT),
         Patcher(target=CMDB_GET_BIZ_HOST, return_value=CREATE_SHIELD_FAIL_GET_BIZ_HOST_RETURN),
         Patcher(target=LIST_BIZ_HOSTS_TOPO_BY_USER, return_value=LIST_BIZ_HOSTS_TOPO_RETURN),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 0}, {"InnerIP": "127.0.0.2", "Source": 1}]},
+        ),
     ],
 )
 
@@ -268,5 +275,9 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=MONITOR_CLIENT, return_value=CREATE_SHIELD_SUCCESS_CLIENT),
         Patcher(target=CMDB_GET_BIZ_HOST, return_value=CREATE_SHIELD_SUCCESS_GET_BIZ_HOST_RETURN),
         Patcher(target=LIST_BIZ_HOSTS_TOPO_BY_USER, return_value=LIST_BIZ_HOSTS_TOPO_RETURN),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 0}, {"InnerIP": "127.0.0.2", "Source": 1}]},
+        ),
     ],
 )
