@@ -154,7 +154,7 @@
                 }
             },
             isDisabled () {
-                return !this.editable || this.disable
+                return !this.editable || this.disabled
             }
         },
         watch: {

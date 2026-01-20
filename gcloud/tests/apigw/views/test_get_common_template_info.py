@@ -53,6 +53,7 @@ class GetCommonTemplateInfoAPITest(APITest):
                 "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
                 "category": tmpl.category,
                 "pipeline_tree": pipeline_tree,
+                "description": tmpl.pipeline_template.description,
             }
 
             response = self.client.get(path=self.url().format(template_id=TEST_TEMPLATE_ID))

@@ -71,6 +71,7 @@ def format_template_data(
         "edit_time": format_datetime(template.pipeline_template.edit_time, tz),
         "category": template.category,
         "pipeline_tree": pipeline_tree,
+        "description": template.pipeline_template.description,
     }
     if project:
         data.update(
@@ -84,9 +85,13 @@ def format_template_data(
     if include_executor_proxy and hasattr(template, "executor_proxy"):
         data.update({"executor_proxy": template.executor_proxy})
     if include_notify:
-        data.update(
-            {"notify_type": json.loads(template.notify_type), "notify_receivers": json.loads(template.notify_receivers)}
-        )
+        try:
+            notify_type = json.loads(template.notify_type)
+            if not isinstance(notify_type, dict):
+                notify_type = {"success": notify_type, "fail": notify_type}
+        except Exception:
+            notify_type = {"success": [], "fail": []}
+        data.update({"notify_type": notify_type, "notify_receivers": json.loads(template.notify_receivers)})
 
     if include_subprocess:
         data.update(
@@ -113,6 +118,7 @@ def format_template_list_data(
             "editor": tmpl.pipeline_template.editor,
             "edit_time": format_datetime(tmpl.pipeline_template.edit_time, tz),
             "category": tmpl.category,
+            "description": tmpl.pipeline_template.description,
         }
 
         if project:
@@ -129,9 +135,13 @@ def format_template_list_data(
             ids.append(item["id"])
 
         if include_notify:
-            item.update(
-                {"notify_type": json.loads(tmpl.notify_type), "notify_receivers": json.loads(tmpl.notify_receivers)}
-            )
+            try:
+                notify_type = json.loads(tmpl.notify_type)
+                if not isinstance(notify_type, dict):
+                    notify_type = {"success": notify_type, "fail": notify_type}
+            except Exception:
+                notify_type = {"success": [], "fail": []}
+            item.update({"notify_type": notify_type, "notify_receivers": json.loads(tmpl.notify_receivers)})
 
         if include_executor_proxy and hasattr(tmpl, "executor_proxy"):
             item.update({"executor_proxy": tmpl.executor_proxy})

@@ -9,6 +9,7 @@ Query periodic task for business
 | Field          |  Type       | Required   |  Description             |
 |---------------|------------|--------|------------------|
 |   bk_biz_id    |   string     |   YES   |  business ID |
+| include_edit_info | bool | NO | whether to include edit information, default false |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 | expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
 

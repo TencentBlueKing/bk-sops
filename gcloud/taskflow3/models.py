@@ -652,7 +652,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         # change constants
         for key, constant in pipeline_tree[PE.constants].items():
             # set meta field for meta var, so frontend can render meta form
-            if constant.get("is_meta"):
+            if constant.get("is_meta") and "meta" not in constant:
                 constant["meta"] = deepcopy(constant)
                 # 下拉框类型默认值字段为default，表格类型为default_text, 父流程勾选时类型为str
                 if isinstance(constant["value"], dict):
@@ -1186,7 +1186,7 @@ class TaskFlowInstance(models.Model):
             "create_time": format_datetime(self.create_time),
             "creator": self.creator,
             "create_method": self.create_method,
-            "template_id": int(self.template_id),
+            "template_id": int(self.template_id) if self.template_id else self.template_id,
             "start_time": format_datetime(self.start_time),
             "finish_time": format_datetime(self.finish_time),
             "executor": self.executor,

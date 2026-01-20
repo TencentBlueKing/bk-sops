@@ -13,29 +13,27 @@ specific language governing permissions and limitations under the License.
 
 import jsonschema
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 import env
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
-from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import replace_template_id
-from gcloud.constants import PROJECT
-from gcloud.core.models import ProjectConfig
-from gcloud.periodictask.models import PeriodicTask
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.apigw.views.utils import logger, info_data_from_period_task
+from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.validators import CreatePriodicTaskValidator
-from gcloud.utils.decorators import request_validate
+from gcloud.apigw.views.utils import info_data_from_period_task, logger
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.core.models import ProjectConfig
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreatePeriodicTaskInterceptor
-from apigw_manager.apigw.decorators import apigw_require
-
+from gcloud.periodictask.models import PeriodicTask
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.template_base.utils import replace_template_id
+from gcloud.utils.decorators import request_validate
 from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 
@@ -61,7 +59,10 @@ def create_periodic_task(request, template_id, project_id):
         return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
 
     params = json.loads(request.body)
-    include_edit_info = params.get("include_edit_info", None)
+    serializer = IncludeTaskSerializer(data=params)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_edit_info = serializer.validated_data["include_edit_info"]
     template_source = params.get("template_source", PROJECT)
     logger.info(
         "[API] apigw create_periodic_task info, "

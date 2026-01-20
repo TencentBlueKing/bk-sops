@@ -70,6 +70,7 @@ class GetTemplateInfoAPITest(APITest):
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_PROJECT_NAME,
                 "pipeline_tree": pipeline_tree,
+                "description": tmpl.pipeline_template.description,
             }
 
             response = self.client.get(path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID))
@@ -138,6 +139,7 @@ class GetTemplateInfoAPITest(APITest):
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_PROJECT_NAME,
                 "pipeline_tree": pipeline_tree,
+                "description": tmpl.pipeline_template.description,
             }
 
             response = self.client.get(

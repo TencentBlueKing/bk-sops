@@ -28,30 +28,36 @@
                         @change="handleSelectAllProjectScope">
                         {{ $t('全选') }}
                     </bk-checkbox>
-                    <bk-select class="project-select"
-                        v-if="isSetProjectVisible"
-                        ref="projectSelectRef"
-                        :searchable="true"
-                        :clearable="true"
-                        :multiple="true"
-                        :display-tag="true"
-                        :auto-height="false"
-                        :disabled="isOutermostAllProjectScope"
-                        @change="handleProjectVisibleChange"
-                        v-model="localProjectScopeList">
-                        <bk-option-group
-                            v-for="(group, index) in projects"
-                            :name="group.name"
-                            :key="index"
-                            :show-select-all="true">
-                            <bk-option v-for="item in group.children"
-                                :key="item.id"
-                                :id="item.id"
-                                :name="item.name">
-                            </bk-option>
-                        </bk-option-group>
-                          
-                    </bk-select>
+                    <template v-if="isSetProjectVisible">
+                        <bk-select class="project-select common-scope-select"
+                            ref="projectSelectRef"
+                            :searchable="true"
+                            :clearable="true"
+                            :multiple="true"
+                            :display-tag="true"
+                            :auto-height="false"
+                            :disabled="isOutermostAllProjectScope"
+                            @change="handleProjectVisibleChange"
+                            v-model="localProjectScopeList">
+                            <bk-option-group
+                                v-for="(group, index) in projects"
+                                :name="group.name"
+                                :key="index"
+                                :show-select-all="true">
+                                <bk-option v-for="item in group.children"
+                                    :key="item.id"
+                                    :id="item.id"
+                                    :name="item.name">
+                                </bk-option>
+                            </bk-option-group>
+                        </bk-select>
+                        <ScopeCopyPaste
+                            :show-copy-paste="!isOutermostAllProjectScope"
+                            :scope-data="currentScopeData"
+                            :all-project-ids="allProjectIds"
+                            :is-in-common-list="true"
+                            @paste="onPasteSuccess" />
+                    </template>
                     <bk-select v-else
                         class="project-select"
                         :clearable="false"
@@ -91,9 +97,13 @@
 <script>
     import { mapState } from 'vuex'
     import i18n from '@/config/i18n/index.js'
+    import ScopeCopyPaste from '../ScopeCopyPaste.vue'
 
     export default {
         name: 'SelectProjectModal',
+        components: {
+            ScopeCopyPaste
+        },
         props: {
             title: String,
             show: Boolean,
@@ -139,6 +149,12 @@
                     })
                 })
                 return allIds
+            },
+            currentScopeData () {
+                return {
+                    isAllScope: this.isOutermostAllProjectScope,
+                    projectIds: this.localProjectScopeList.slice()
+                }
             }
         },
         watch: {
@@ -196,6 +212,15 @@
                     })
                 })
                 return projects
+            },
+            onPasteSuccess (result) {
+                if (result.isAllScope) {
+                    this.handleSelectAllProjectScope(true)
+                } else {
+                    this.isOutermostAllProjectScope = false
+                    this.localProjectScopeList = [...new Set(result.projectIds)]
+                    this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
+                }
             },
             initProjects () {
                 if (!this.projectList || !this.projectScopeList) {
@@ -303,7 +328,14 @@
         padding: 30px;
     }
     .project-select {
-        width: 260px;
+        width: 300px;
+    }
+    ::v-deep .common-scope-select{
+        .bk-select-dropdown{
+            .bk-tooltip-ref{
+                width: 250px !important;
+            }
+        }
     }
     .select-all-project-scope{
         margin: 0 16px;

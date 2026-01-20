@@ -23,7 +23,7 @@ from pipeline.core.constants import PE
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
@@ -63,6 +63,7 @@ def get_exclude_nodes_by_execute_nodes(execute_nodes, pipline_tree):
 @csrf_exempt
 @require_POST
 @apigw_require
+@mcp_apigw(exclude_responses=["data.pipeline_tree"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
@@ -148,10 +149,11 @@ def create_task(request, template_id, project_id):
             pipeline_tree = params["pipeline_tree"]
             for key, value in params["constants"].items():
                 if key in pipeline_tree["constants"]:
-                    if pipeline_tree["constants"][key].get("is_meta", False):
-                        meta = copy.deepcopy(pipeline_tree["constants"][key])
-                        pipeline_tree["constants"][key]["meta"] = meta
-                    pipeline_tree["constants"][key]["value"] = value
+                    constant = pipeline_tree["constants"][key]
+                    if constant.get("is_meta", False) and "meta" not in constant:
+                        meta = copy.deepcopy(constant)
+                        constant["meta"] = meta
+                    constant["value"] = value
             standardize_pipeline_node_name(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
         except Exception as e:
@@ -170,6 +172,7 @@ def create_task(request, template_id, project_id):
     else:
         # tmpl.pipeline_tree不能重复执行
         pipeline_tree = tmpl.pipeline_tree
+        validate_web_pipeline_tree(pipeline_tree)
 
         # 如果请求参数中含有非空的execute_task_nodes_id(要执行的节点)，就将其转换为exclude_task_nodes_id(要排除的节点)
         if not params["execute_task_nodes_id"]:

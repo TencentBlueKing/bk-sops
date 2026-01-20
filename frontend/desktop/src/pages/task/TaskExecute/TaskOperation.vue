@@ -652,7 +652,7 @@
                             window.parent.postMessage({ eventName: 'executeEvent' }, '*')
                         }
                         // 请求获取回调记录
-                        if (this.state === 'FINISHED') {
+                        if (['FINISHED', 'FAILED'].includes(this.state)) {
                             const instanceData = await this.getTaskInstanceData(this.taskId)
                             this.webhookHistory = instanceData.task_webhook_history
                         }

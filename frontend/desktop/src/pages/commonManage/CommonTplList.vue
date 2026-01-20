@@ -586,6 +586,14 @@
             await this.getTemplateList()
             this.firstLoading = false
         },
+        destroyed () {
+            // 组件销毁时清空剪贴板数据
+            try {
+                localStorage.removeItem('project_scope_clipboard')
+            } catch (error) {
+                console.error(error)
+            }
+        },
         methods: {
             ...mapMutations('project', [
                 'setCommonConfig'

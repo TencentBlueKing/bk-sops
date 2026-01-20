@@ -1953,7 +1953,19 @@ const en = {
     '回调记录': 'Callback Record',
     '请输入正确的认证信息': 'Please enter valid authentication information',
     '请求超时时间不能超过10秒': 'Request timeout cannot exceed 10 seconds',
-    '重试间隔不能超过600秒': 'Retry interval cannot exceed 600 seconds'
+    '重试间隔不能超过600秒': 'Retry interval cannot exceed 600 seconds',
+    '仅项目可见的': 'Visible only to the project',
+    '可见范围配置': 'Visible Range Configuration',
+    '粘贴': 'Paste',
+    '复制失败': 'Copy failed',
+    '没有找到匹配的项目': 'No matching project found',
+    '剪贴板中没有数据': 'No data in clipboard',
+    '粘贴数据与当前数据相同': 'Pasted data is the same as current data',
+    '粘贴成功': 'Paste successful',
+    '粘贴成功，部分项目因权限问题被过滤': 'Paste successful, some projects were filtered due to permission issues',
+    '粘贴失败': 'Paste failed',
+    '编写脚本': 'Write Script',
+    '脚本检查': 'Script Check'
 }
 
 export default en

@@ -105,14 +105,17 @@
                     </div>
                 </bk-tab-panel>
                 <bk-tab-panel name="headers" :render-label="renderLabel">
-                    <bk-table style="margin-top: 15px;"
+                    <bk-table
+                        ext-cls="header-table"
                         :data="localWebhookForm.extra_info.headers">
-                        <bk-table-column v-for="item in headerFields" :key="item.id" :label="item.name">
+                        <bk-table-column v-for="item in headerFields"
+                            :key="item.id"
+                            :label="item.name">
                             <template slot-scope="{ row }">
                                 <bk-popover
                                     :content="row[headerFieldConfig[item.id]]"
-                                    width="328"
-                                    v-if="row[headerFieldConfig[item.id]].length >= 19">
+                                    max-width="328"
+                                    :disabled="!row[headerFieldConfig[item.id]] || row[headerFieldConfig[item.id]].trim() === ''">
                                     <bk-input v-model="row[headerFieldConfig[item.id]]"
                                         behavior="simplicity"
                                         :disabled="isViewMode || !isEnable"
@@ -120,12 +123,6 @@
                                         @change="onWebhookConfigChange">
                                     </bk-input>
                                 </bk-popover>
-                                <bk-input v-else v-model="row[headerFieldConfig[item.id]]"
-                                    behavior="simplicity"
-                                    :disabled="isViewMode || !isEnable"
-                                    :clearable="true"
-                                    @change="onWebhookConfigChange">
-                                </bk-input>
                             </template>
                         </bk-table-column>
                         <bk-table-column label="操作" width="80">
@@ -206,13 +203,7 @@
                         username: '',
                         password: ''
                     },
-                    headers: [
-                        {
-                            key: '',
-                            value: '',
-                            desc: ''
-                        }
-                    ],
+                    headers: [],
                     timeout: 10,
                     retry_times: 2,
                     interval: 5
@@ -383,14 +374,6 @@
                                 return this.checkData(val)
                             },
                             message: i18n.t('请输入请求URL'),
-                            trigger: 'blur'
-                        },
-                        {
-                            validator: (val) => {
-                                const regex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w.-]*)*\/?$/i
-                                return regex.test(val)
-                            },
-                            message: i18n.t('请输入正确的请求URL'),
                             trigger: 'blur'
                         }
                     ],
@@ -571,7 +554,7 @@
                     method: this.localWebhookForm.method,
                     endpoint: this.localWebhookForm.endpoint,
                     authorization: authorization.type === 'basic' ? basicAuth : authorization,
-                    headers,
+                    headers: headers.filter(item => item.key !== ''),
                     timeout,
                     retry_times,
                     interval
@@ -614,6 +597,15 @@
         position: absolute;
         top: -13px;
         left: 135px;
+    }
+}
+::v-deep .header-table{
+    margin-top: 15px;
+    .bk-table-empty-block{
+        height: 150px;
+    }
+    .bk-exception{
+        height: 150px;
     }
 }
 .disabled-tab-name{
@@ -663,6 +655,7 @@
     display: flex;
     justify-content: space-around;
     background-color: #ffffff;
+    cursor: pointer;
     .add-header{
         width: 20px;
         height: 20px;

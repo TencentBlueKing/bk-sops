@@ -90,12 +90,20 @@ def _send_node_fail_message(node_id, pipeline_id):
 def send_task_message(pipeline_id, node_id, msg_type):
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=pipeline_id)
+        resp_data = TaskCommandDispatcher(
+            engine_ver=taskflow.engine_ver,
+            taskflow_id=taskflow.id,
+            pipeline_instance=taskflow.pipeline_instance,
+            project_id=taskflow.project_id,
+        ).render_current_constants()
 
         scopes = [(WebhookScopeType.TEMPLATE.value, str(taskflow.template_id))]
         extra_info = {
             "delivery_id": taskflow.id,
+            "project_id": taskflow.project.id,
             "task_id": taskflow.id,
             "task_name": taskflow.pipeline_instance.name,
+            "input_data": resp_data["data"],
             "executor": taskflow.pipeline_instance.executor,
             "start_time": int(taskflow.pipeline_instance.start_time.timestamp()),
             "finish_time": int(taskflow.pipeline_instance.finish_time.timestamp())
@@ -118,7 +126,7 @@ def send_task_message(pipeline_id, node_id, msg_type):
                     "extra_data": {
                         "failed_node": node_id,
                         "failed_node_name": status_result["data"]["children"].get(node_id, {}).get("name"),
-                        "failed_message": status_result["data"]["ex_data"].get(node_id),
+                        "failed_message": str(status_result["data"]["ex_data"].get(node_id, "")),
                     }
                 }
             )

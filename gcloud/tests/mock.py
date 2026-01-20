@@ -67,6 +67,7 @@ class MockPipelineTemplate(object):
         self.editor = kwargs.get("editor", "editor")
         self.create_time = kwargs.get("create_time", now())
         self.data = kwargs.get("data", TEST_PIPELINE_TREE)
+        self.description = kwargs.get("description", "description")
 
 
 class MockBaseTemplate(object):

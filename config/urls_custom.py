@@ -34,8 +34,6 @@ urlpatterns_custom = [
     re_path(r"^pipeline/", include("pipeline_plugins.variables.urls")),
     re_path(r"^analysis/", include("gcloud.contrib.analysis.urls")),
     re_path(r"^periodictask/", include("gcloud.periodictask.urls")),
-    re_path(r"^weixin/", include("weixin.urls")),
-    re_path(r"^weixin/login/", include("weixin.core.urls")),
     re_path(r"^admin/", include("gcloud.contrib.admin.urls")),
     re_path(r"^plugin_service/", include("plugin_service.urls")),
     re_path(r"^mako_operations/", include("gcloud.mako_template_helper.urls")),
