@@ -5596,58 +5596,6 @@ msgstr "组件编码"
 msgid "插件类型"
 msgstr "插件类型"
 
-#: weixin/core/accounts.py:126
-#, python-format
-msgid "验证请求weixin code的 state参数出错： %s"
-msgstr "验证请求weixin code的 state参数出错： %s"
-
-#: weixin/core/accounts.py:159
-msgid "非微信访问，或应用未启动微信访问"
-msgstr "非微信访问，或应用未启动微信访问"
-
-#: weixin/core/accounts.py:163
-msgid "State验证失败"
-msgstr "State验证失败"
-
-#: weixin/core/accounts.py:168
-msgid "登录失败"
-msgstr "登录失败"
-
-#: weixin/core/models.py:51
-msgid "微信用户在应用里的唯一标识(公众号openid/企业微信userid)"
-msgstr "微信用户在应用里的唯一标识(公众号openid/企业微信userid)"
-
-#: weixin/core/models.py:52
-msgid "名称"
-msgstr "名称"
-
-#: weixin/core/models.py:53
-msgid "性别"
-msgstr "性别"
-
-#: weixin/core/models.py:54
-msgid "头像"
-msgstr "头像"
-
-#: weixin/core/models.py:55
-msgid "加入时间"
-msgstr "加入时间"
-
-#: weixin/core/models.py:59
-msgid "国家"
-msgstr "国家"
-
-#: weixin/core/models.py:60
-msgid "省份"
-msgstr "省份"
-
-#: weixin/core/models.py:61
-msgid "城市"
-msgstr "城市"
-
-#: weixin/core/models.py:68 weixin/core/models.py:69
-msgid "微信用户"
-msgstr "微信用户"
 
 #~ msgid "安装"
 #~ msgstr "安装"

@@ -271,7 +271,7 @@ paths:
           method: post
           path: /{env.api_sub_path}apigw/get_tasks_status/{bk_biz_id}/
           matchSubpath: false
-          timeout: 0
+          timeout: 60
           upstreams: {}
           transformHeaders: {}
         authConfig:
@@ -391,7 +391,7 @@ paths:
           method: get
           path: /{env.api_sub_path}apigw/get_task_status/{task_id}/{bk_biz_id}/
           matchSubpath: false
-          timeout: 0
+          timeout: 60
           upstreams: {}
           transformHeaders: {}
         authConfig:
@@ -757,7 +757,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /copy_template_across_project/{project_id}/:
+  /copy_template_across_project/{bk_biz_id}/:
     post:
       operationId: copy_template_across_project
       description: 跨业务复制模板
@@ -773,7 +773,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/copy_template_across_project/{project_id}/
+          path: /{env.api_sub_path}apigw/copy_template_across_project/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -963,4 +963,248 @@ paths:
           transformHeaders: {}
         authConfig:
           userVerifiedRequired: true
+        disabledStages: []
+  /get_mini_app_list/{bk_biz_id}/:
+    get:
+      operationId: get_mini_app_list
+      description: 获取轻应用列表
+      tags:
+      - 通用接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_mini_app_list/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /get_functionalization_task_list/:
+    get:
+      operationId: get_functionalization_task_list
+      description: 获取职能化任务列表
+      tags:
+      - 通用接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_functionalization_task_list/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /create_clocked_task/{template_id}/{bk_biz_id}/:
+    post:
+      operationId: create_clocked_task
+      description: 创建计划任务
+      tags:
+      - 限制接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/create_clocked_task/{template_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /apply_job_file_upload_ticket/:
+    get:
+      operationId: apply_job_file_upload_ticket
+      description: ''
+      tags:
+      - 限制接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/apply_job_file_upload_ticket/
+          matchSubpath: false
+          timeout: 10
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /job_file_upload/{bk_biz_id}/:
+    post:
+      operationId: job_file_upload
+      description: ''
+      tags:
+      - 限制接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/job_file_upload/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /get_task_node_log/:
+    get:
+      operationId: get_task_node_log
+      description: 获取某个节点的执行日志
+      tags: []
+      parameters:
+      - in: query
+        name: node_id
+        type: string
+        required: true
+        description: 任务中节点ID
+      - in: query
+        name: version
+        type: string
+        required: true
+        description: 版本
+      - in: query
+        name: page
+        type: number
+        description: 页码
+      - in: query
+        name: page_size
+        type: number
+        description: 每页条目数
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              data:
+                type: string
+                description: 日志内容
+              page:
+                type: object
+                description: 分页信息
+              result:
+                type: boolean
+                description: true/false查询成功与否
+              message:
+                type: string
+                description: result=false时错误信息
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_node_log/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /get_task_plugin_log/:
+    get:
+      operationId: get_task_plugin_log
+      description: 查询插件日志
+      tags: []
+      parameters:
+      - in: query
+        name: plugin_code
+        type: string
+        required: true
+        description: 插件服务编码
+      - in: query
+        name: trace_id
+        type: string
+        required: true
+        description: Trace ID
+      - in: query
+        name: scroll_id
+        type: string
+        description: 翻页标识字段
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  logs:
+                    type: string
+                    description: 日志内容
+                  total:
+                    type: number
+                    description: 日志总数
+                  scroll_id:
+                    type: string
+                    description: 翻页标识符，获取下一页时传入该值
+              result:
+                type: boolean
+                description: true/false查询成功与否
+              message:
+                type: string
+                description: result=false时错误信息
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_plugin_log/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
         disabledStages: []
