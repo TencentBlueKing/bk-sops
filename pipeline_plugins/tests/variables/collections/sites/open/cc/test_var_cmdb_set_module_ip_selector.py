@@ -1318,21 +1318,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         )
 
     def test_custom_method_success_case(self, mock_get_client_by_user_return=None):
-        # set_module_ip_selector = SetModuleIpSelector(
-        #     pipeline_data=self.pipeline_data,
-        #     value={
-        #         "var_ip_method": "manual",
-        #         "var_ip_custom_value": "",
-        #         "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": ""},
-        #         "var_ip_manual_value": {"var_manual_set": "集群1", "var_manual_module": "all", "var_module_name": ""},
-        #         "var_filter_set": "",
-        #         "var_filter_module": "",
-        #     },
-        #     name="test_manual_method_success_case",
-        #     context={},
-        # )
-        # self.assertEqual(set("192.168.40.1".split(",")), set(set_module_ip_selector.get_value().split(",")))
-
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
