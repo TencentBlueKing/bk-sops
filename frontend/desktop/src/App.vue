@@ -158,6 +158,10 @@
             bus.$on('checkScript', data => {
                 this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkScript' })
             })
+            // 排查流程执行失败的原因
+            bus.$on('checkExecutedFailed', data => {
+                this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkExecutedFailed' })
+            })
 
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示

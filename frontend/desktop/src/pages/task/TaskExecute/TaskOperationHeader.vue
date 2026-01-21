@@ -39,6 +39,16 @@
                 :to="getTplURL()">
             </router-link>
             <span v-if="stateStr" :class="['task-state', state]">{{ stateStr }}</span>
+            <div v-if="state === 'FAILED' "
+                class="operation-assistant-icon"
+                @click="handleAssistantClick">
+                <img
+                    :title="$t('排查失败的原因')"
+                    src="@/assets/images/assistant-small.svg"
+                    class="assistant-icon"
+                    alt="assistant"
+                />
+            </div>
         </div>
         <div class="operation-container" slot="expand">
             <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
@@ -134,6 +144,7 @@
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
     import { mapState } from 'vuex'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'TaskOperationHeader',
@@ -233,6 +244,9 @@
                     name: 'taskList',
                     params: { project_id: this.project_id }
                 })
+            },
+            handleAssistantClick () {
+                bus.$emit('checkExecutedFailed')
             }
         }
     }
@@ -251,6 +265,9 @@
             font-size: 28px;
             color: #3a84ff;
             cursor: pointer;
+        }
+        .operation-assistant-icon{
+            margin-left: 8px;
         }
     }
     .operation-title {

@@ -166,7 +166,8 @@
                 border-color: $color;
             }
             .state-icon {
-                display: block;
+                display: flex;
+                align-items: center;
             }
         }
         .node-status-block {
@@ -507,6 +508,13 @@
                         i {
                             color: #3a84ff;
                         }
+                    }
+                    .state-assistant-icon {
+                        width: 16px;
+                        height: 16px;
+                        display: block;
+                        margin: 0 auto;
+                        cursor: pointer;
                     }
                 }
             }
