@@ -156,7 +156,7 @@
             })
             // 脚本检查
             bus.$on('checkScript', data => {
-                this.$refs.aiBluekingComp.sendDefaultcommand(data)
+                this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkScript' })
             })
 
             /**
