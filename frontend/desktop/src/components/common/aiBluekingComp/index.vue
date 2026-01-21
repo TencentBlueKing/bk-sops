@@ -1,15 +1,15 @@
 <template>
-    <AIBlueking
-        ref="aiBlueking"
-        :url="aiAgentUrl"
-        :request-options="requestOptions"
-        @stop="handleStop"
-        @receive-end="handleStop" />
-    <!-- :prompts="customPrompts"  -->
+    <div>
+        <AIBlueking
+            ref="aiBlueking"
+            :url="aiAgentUrl"
+            :request-options="requestOptions" />
+    </div>
 </template>
 <script>
     import AIBlueking from '@blueking/ai-blueking/vue2'
     import '@blueking/ai-blueking/dist/vue2/style.css'
+    import tools from '@/utils/tools.js'
 
     export default {
         name: 'aiBulekingComp',
@@ -19,21 +19,12 @@
         data () {
             return {
                 aiAgentUrl: window.AI_SOPS_AGENT_URL,
-                requestOptions: null,
-                scriptCode: ''
-            }
-        },
-        computed: {
-            customPrompts () {
-                const prompt = `
-                使用脚本审计工具优化以下脚本
-                检查代码如下: ${this.scriptCode}`
-                return [prompt]
+                requestOptions: null
             }
         },
         watch: {
             '$route': {
-                handler (val, oldVal) {
+                handler () {
                     const query = this.$route.query
                     const params = this.$route.params
                     const context = Object.assign({}, query, params)
@@ -44,17 +35,22 @@
             }
         },
         methods: {
-            // ai小鲸会话响应结束or手动停止
-            handleStop () {
-                this.scriptCode = ''
-            },
             showAi () {
                 this.$refs.aiBlueking.handleShow()
             },
-            sendDefaultcommand (data) {
-                this.scriptCode = data
-                this.$refs.aiBlueking.handleShow()
-                this.$refs.aiBlueking.handleSendMessage(this.customPrompts[0])
+            async sendDefaultcommand ({ data, operationName }) {
+                const shortcutsCommand = this.$refs.aiBlueking.agentInfo?.conversationSettings?.commands
+                if (operationName === 'checkScript') {
+                    try {
+                        const curPrompt = `使用脚本审计工具优化以下脚本\n检查代码如下:\n${data}`
+                        const curCommond = tools.deepClone(shortcutsCommand.find(item => item.id === 'ai-scripting'))
+                        curCommond.components[0].default = curPrompt
+                        await this.$refs.aiBlueking.handleShow(undefined, { isTemporary: true })
+                        this.$refs.aiBlueking.handleShortcutClick({ shortcut: curCommond, source: 'popup' }, true)
+                    } catch (error) {
+                        console.error(error)
+                    }
+                }
             }
 
         }
