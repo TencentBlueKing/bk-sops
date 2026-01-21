@@ -54,6 +54,13 @@
                         <i class="common-icon-skip"></i>
                         {{ $t('跳过子流程') }}
                     </span>
+                    <img
+                        @click.stop="handleAssistantClick"
+                        :title="$t('排查失败的原因')"
+                        src="@/assets/images/assistant-small.svg"
+                        class="assistant-icon"
+                        alt="assistant"
+                    />
                 </template>
                 <template v-if="!isSubProcessNode && node.status === 'RUNNING'">
                     <span @click.stop="onSubflowPauseResumeClick('pause')">
@@ -75,6 +82,8 @@
 </template>
 <script>
     import NodeRightIconStatus from './NodeRightIconStatus.vue'
+    import bus from '@/utils/bus.js'
+
     export default {
         name: 'Subflow',
         components: {
@@ -127,6 +136,9 @@
                     return
                 }
                 this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
+            },
+            handleAssistantClick () {
+                bus.$emit('checkExecutedFailed')
             }
         }
     }
