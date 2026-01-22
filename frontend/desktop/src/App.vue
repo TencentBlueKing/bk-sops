@@ -122,33 +122,26 @@
             }
         },
         watch: {
-<<<<<<< HEAD
-            '$route' (val, oldVal) {
-                const prevRouterProjectId = oldVal.params.project_id
-                const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
-                this.handleRouteChange(id)
-                if (this.isProjectDisabled && !val.meta.project) {
-                    this.isProjectDisabled = false
-                    // 重新设置默认项目
-                    this.setProjectId(this.userProjectList[0].id)
-                }
-                // 路由发生变化时清空失败message列表
-                if (val.name !== oldVal.name && this.errorMsgList.length) {
-                    this.errorMsgList.forEach(msgInstance => {
-                        msgInstance.close()
-                    })
-                    this.errorMsgList = []
-                }
-=======
             '$route': {
                 handler (val, oldVal) {
                     const prevRouterProjectId = oldVal.params.project_id
                     const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
                     this.handleRouteChange(id)
+                    if (this.isProjectDisabled && !val.meta.project) {
+                        this.isProjectDisabled = false
+                        // 重新设置默认项目
+                        this.setProjectId(this.userProjectList[0].id)
+                    }
+                    // 路由发生变化时清空失败message列表
+                    if (val.name !== oldVal.name && this.errorMsgList.length) {
+                        this.errorMsgList.forEach(msgInstance => {
+                            msgInstance.close()
+                        })
+                        this.errorMsgList = []
+                    }
                 },
                 immediate: true,
                 deep: true
->>>>>>> master
             }
         },
         async created () {

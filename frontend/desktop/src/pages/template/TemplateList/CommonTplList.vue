@@ -296,11 +296,8 @@
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-<<<<<<< HEAD
-                tableMaxHeight: window.innerHeight - 186
-=======
+                tableMaxHeight: window.innerHeight - 186,
                 isClickOnlyProjectVisible: false
->>>>>>> 581b2e0cceac090e615d2f88d0d076a007114a63
             }
         },
         computed: {

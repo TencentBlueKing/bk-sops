@@ -59,71 +59,11 @@
                     </bk-button>
                 </div>
             </div>
-<<<<<<< HEAD
         </div>
         <div class="operation-container" slot="expand">
             <div class="tab-operate" @click="onViewFlow">
                 <i class="common-icon-jump-link"></i>
                 {{$t('查看流程')}}
-=======
-            <div class="task-params-btns">
-                <i
-                    :class="[
-                        'params-btn',
-                        'common-icon-enter-config',
-                        {
-                            actived: nodeInfoType === 'modifyParams'
-                        }
-                    ]"
-                    v-bk-tooltips="{
-                        content: $t('任务入参'),
-                        placements: ['top'],
-                        hideOnClick: false
-                    }"
-                    @click="onTaskParamsClick('modifyParams', $t('任务入参'))">
-                </i>
-                <i
-                    :class="[
-                        'params-btn',
-                        'solid-eye',
-                        'common-icon-solid-eye',
-                        {
-                            actived: nodeInfoType === 'viewNodeDetails'
-                        }
-                    ]"
-                    v-bk-tooltips="{
-                        content: $t('查看节点详情'),
-                        placements: ['top']
-                    }"
-                    @click="onTaskParamsClick('viewNodeDetails', $t('节点详情'))">
-                </i>
-                <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
-                    <i class="bk-icon icon-more drop-icon-ellipsis"></i>
-                    <template slot="content">
-                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('操作记录'))">
-                            {{ $t('操作记录') }}
-                        </p>
-                        <p
-                            v-if="state !== 'CREATED'"
-                            class="operate-item"
-                            @click="onTaskParamsClick('globalVariable', $t('全局变量'))">
-                            {{ $t('全局变量') }}
-                        </p>
-                        <p class="operate-item" @click="onTaskParamsClick('templateData', 'Code')">
-                            {{ 'Code' }}
-                        </p>
-                        <p class="operate-item" @click="onTaskParamsClick('webhook', $t('回调记录'))">
-                            {{ $t('回调记录') }}
-                        </p>
-                        <p v-if="adminView && engineVer === 1" class="operate-item" @click="onTaskParamsClick('taskExecuteInfo')">
-                            {{ $t('流程信息') }}
-                        </p>
-                        <p v-if="adminView && engineVer === 2" class="operate-item" @click="$emit('onInjectGlobalVariable')">
-                            {{ $t('注入全局变量') }}
-                        </p>
-                    </template>
-                </bk-popover>
->>>>>>> 581b2e0cceac090e615d2f88d0d076a007114a63
             </div>
             <div class="tab-operate" @click="onTaskParamsClick('modifyParams', $t('任务入参'))">
                 <i class="common-icon-enter-config"></i>
@@ -141,6 +81,9 @@
                     </p>
                     <p class="operate-item" @click="onTaskParamsClick('templateData', 'Code')">
                         {{ 'Code' }}
+                    </p>
+                    <p class="operate-item" @click="onTaskParamsClick('webhook', $t('回调记录'))">
+                        {{ $t('回调记录') }}
                     </p>
                     <p v-if="adminView && engineVer === 1" class="operate-item" @click="onTaskParamsClick('taskExecuteInfo')">
                         {{ $t('流程信息') }}

@@ -391,10 +391,6 @@
                 conditionOutgoing: [],
                 unrenderedCoverNode: [],
                 subProcessTaskId: null,
-<<<<<<< HEAD
-                isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
-                retryNodeName: ''
-=======
                 nodeData: [],
                 convergeInfo: {},
                 nodeSourceMaps: {},
@@ -403,7 +399,6 @@
                 retryNodeName: '',
                 isSourceDetailSideBar: false, // 节点重试侧栏是否从节点详情打开
                 webhookHistory: []
->>>>>>> 581b2e0cceac090e615d2f88d0d076a007114a63
             }
         },
         computed: {
