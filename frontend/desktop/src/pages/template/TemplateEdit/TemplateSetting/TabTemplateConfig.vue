@@ -116,6 +116,48 @@
                             }">
                         </i>
                     </bk-form-item>
+                    <bk-form-item v-if="common"
+                        property="project_scope"
+                        :label="$t('可见范围')"
+                        :required="true"
+                        ext-cls="project-scope-item"
+                        data-test-id="tabTemplateConfig_form_projectScope">
+                        <bk-checkbox
+                            v-model="isOutermostBaseInfoAllProjectScope"
+                            :disabled="isViewMode"
+                            @change="handleBaseInfoSelectAllProjectScope">
+                            {{ $t('全选') }}
+                        </bk-checkbox>
+                        <bk-select class="project-select"
+                            :searchable="true"
+                            :clearable="true"
+                            :multiple="true"
+                            :display-tag="true"
+                            :auto-height="false"
+                            :readonly="isViewMode"
+                            ref="projectSelectRef"
+                            :disabled="isOutermostBaseInfoAllProjectScope || isViewMode"
+                            @change="handleBaseInfoProjectVisibleChange"
+                            v-model="baseInfoProjectScopeList">
+                            <bk-option-group
+                                v-for="(group, index) in projects"
+                                :name="group.name"
+                                :key="index"
+                                :show-select-all="true">
+                                <bk-option v-for="item in group.children"
+                                    :key="item.id"
+                                    :id="item.id"
+                                    :name="item.name">
+                                </bk-option>
+                            </bk-option-group>
+                        </bk-select>
+                        <ScopeCopyPaste
+                            :show-copy-paste="!isOutermostBaseInfoAllProjectScope"
+                            :is-view-mode="isViewMode"
+                            :scope-data="currentScopeData"
+                            :all-project-ids="allProjectIds"
+                            @paste="onPasteSuccess" />
+                    </bk-form-item>
                 </section>
                 <section class="form-section">
                     <h4>
@@ -136,7 +178,10 @@
                     </NotifyTypeConfig>
                 </section>
                 <section class="form-section">
-                    <h4>{{ $t('其他') }}</h4>
+                    <h4>
+                        <span>{{ $t('执行配置') }}</span>
+                        <span class="tip-desc">{{ $t('流程执行的通用配置') }}</span>
+                    </h4>
                     <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
                         <member-select
                             :multiple="false"
@@ -156,6 +201,42 @@
                             {{ $t('以便统一管理，也可单独配置流程执行代理人覆盖项目的设置') }}
                         </div>
                     </bk-form-item>
+                </section>
+                <section class="form-section" v-if="!common">
+                    <h4>
+                        <span>{{ $t('HTTP回调') }}</span>
+                        <span class="tip-desc">{{ $t('支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口') }}</span>
+                    </h4>
+                    <HttpCallback
+                        ref="httpCallback"
+                        :webhook-data="formData.webhookConfigs"
+                        :is-task-setting="false"
+                        :is-view-mode="isViewMode"
+                        :enable-webhook="enable_webhook"
+                        @change="onHttpCallbackChange">
+                    </HttpCallback>
+                </section>
+                <section class="form-section">
+                    <h4>{{ $t('其他') }}</h4>
+                    <!-- <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
+                        <member-select
+                            :multiple="false"
+                            :disabled="isViewMode"
+                            :placeholder="proxyPlaceholder"
+                            :value="formData.executorProxy"
+                            @change="onSelectedExecutorProxy">
+                        </member-select>
+                        <p v-if="isProxyValidateError" class="form-error-tip">{{ $t('代理人仅可设置为本人') }}</p>
+                        <div class="executor-proxy-desc">
+                            {{ $t('推荐留空使用') }}
+                            <span
+                                :class="{ 'project-management': authActions && authActions.length, 'disabled': isViewMode }"
+                                @click="jumpProjectManagement">
+                                {{ $t('项目执行代理人设置') }}
+                            </span>
+                            {{ $t('以便统一管理，也可单独配置流程执行代理人覆盖项目的设置') }}
+                        </div>
+                    </bk-form-item> -->
                     <bk-form-item property="notifyType" :label="$t('备注')" data-test-id="tabTemplateConfig_form_notifyType">
                         <bk-input type="textarea" :readonly="isViewMode" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
                     </bk-form-item>
@@ -225,17 +306,21 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
+    import ScopeCopyPaste from '@/components/common/ScopeCopyPaste.vue'
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import HttpCallback from './HttpCallback.vue'
     import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TabTemplateConfig',
         components: {
             MemberSelect,
-            NotifyTypeConfig
+            ScopeCopyPaste,
+            NotifyTypeConfig,
+            HttpCallback
         },
         mixins: [permission],
         props: {
@@ -249,7 +334,7 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels, default_flow_type
+                executor_proxy, template_labels, default_flow_type, project_scope, template_id, webhook_configs, enable_webhook
             } = this.$store.state.template
             const { success, fail, pending_processing = [] } = notify_type
             const { extra_info: extraInfo = {} } = notify_receivers
@@ -265,8 +350,12 @@
                     notifyType,
                     notifyTypeExtraInfo: { ...extraInfo },
                     labels: template_labels,
-                    defaultFlowType: default_flow_type
+                    defaultFlowType: default_flow_type,
+                    project_scope: project_scope,
+                    template_id: template_id,
+                    webhookConfigs: tools.deepClone(webhook_configs)
                 },
+                enable_webhook,
                 stringLength: STRING_LENGTH,
                 rules: {
                     name: [
@@ -283,6 +372,13 @@
                         {
                             regex: NAME_REG,
                             message: i18n.t('流程名称不能包含') + '\'‘"”$&<>' + i18n.t('非法字符'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    project_scope: [
+                        {
+                            required: true,
+                            message: i18n.t('请选择可见范围'),
                             trigger: 'blur'
                         }
                     ]
@@ -322,7 +418,13 @@
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
                 labelLoading: false,
-                proxyPlaceholder: ''
+                proxyPlaceholder: '',
+                isBaseInfoSelectAllProjectScope: false,
+                baseInfoProjectScopeList: [],
+                isOutermostBaseInfoAllProjectScope: false,
+                projects: [],
+                isDropdownOpen: false,
+                isFirstOpen: false
             }
         },
         computed: {
@@ -334,24 +436,152 @@
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName,
-                'authActions': state => state.authActions
-            })
+                'authActions': state => state.authActions,
+                'projectList': state => state.userProjectList
+            }),
+            allProjectIds () {
+                const allIds = []
+                this.projects.forEach((group) => {
+                    group.children.forEach((item) => {
+                        allIds.push(item.id)
+                    })
+                })
+                return allIds
+            },
+            currentScopeData () {
+                return {
+                    isAllScope: this.isOutermostBaseInfoAllProjectScope,
+                    projectIds: this.baseInfoProjectScopeList.slice()
+                }
+            }
         },
+        watch: {
+            isDropdownOpen: {
+                handler (val) {
+                    if (!val) {
+                        if (this.formData.project_scope.length > 0) {
+                            this.processingProjectsToTop(this.formData.project_scope, this.projects)
+                        }
+                    }
+                }
+            }
+        },
+
+        created () {
+            if (this.common) {
+                this.initProjects()
+                if (this.formData.project_scope.includes('*')) {
+                    this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.isOutermostBaseInfoAllProjectScope = true
+                } else {
+                    this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.isOutermostBaseInfoAllProjectScope = this.baseInfoProjectScopeList.length === this.allProjectIds.length
+                }
+            }
+        },
+      
         mounted () {
             // 模板没有设置执行代理人时，默认使用项目下的执行代理人
             if (!this.formData.executorProxy.length) {
                 this.setExecutorProxy()
             }
             this.$refs.nameInput.focus()
+            document.addEventListener('click', this.handleClickOutside)
         },
         methods: {
             ...mapMutations('template/', [
-                'setTplConfig'
+                'setTplConfig',
+                'setProjectScope',
+                'setWebhookConfigs'
             ]),
             ...mapActions('project', [
                 'getProjectConfig',
                 'createTemplateLabel'
             ]),
+            processingProjectsToTop (val, projects) {
+                val.forEach((item) => {
+                    item = typeof item === 'number' ? item : Number(item)
+                    projects.map((group) => {
+                        group.children.map((project, index) => {
+                            if (project.id === item) {
+                                const tempItem = group.children.splice(index, 1)[0]
+                                group.children.unshift(tempItem)
+                            }
+                        })
+                    })
+                })
+                return projects
+            },
+            initProjects () {
+                const projects = []
+                const projectsGroup = [
+                    {
+                        name: i18n.t('业务'),
+                        id: 1,
+                        children: []
+                    },
+                    {
+                        id: 2,
+                        name: i18n.t('项目'),
+                        children: []
+                    }
+                ]
+                this.projectList.forEach(item => {
+                    if (item.from_cmdb) {
+                        projectsGroup[0].children.push(item)
+                    } else {
+                        projectsGroup[1].children.push(item)
+                    }
+                })
+                projectsGroup.forEach(group => {
+                    if (group.children.length) {
+                        projects.push(group)
+                    }
+                })
+                if (this.formData.project_scope.length > 0 && !this.formData.project_scope.includes('*')) {
+                    this.projects = this.processingProjectsToTop(this.formData.project_scope, projects)
+                } else {
+                    this.projects = projects
+                }
+            },
+            handleClickOutside (event) {
+                const isHaveSomeClassName = event.target.classList.contains('bk-option-name') || event.target.classList.contains('bk-group-options') || event.target.classList.contains('bk-option-content-default')
+                if (!isHaveSomeClassName) {
+                    if (this.$refs.projectSelectRef && this.$refs.projectSelectRef.$el.contains(event.target)) {
+                        if (this.isFirstOpen) {
+                            this.isDropdownOpen = true
+                            this.isFirstOpen = false
+                        } else {
+                            this.isDropdownOpen = false
+                            this.isFirstOpen = true
+                        }
+                    } else {
+                        this.isDropdownOpen = false
+                        this.isFirstOpen = true
+                    }
+                }
+            },
+            handleBaseInfoSelectAllProjectScope (row) {
+                if (row) {
+                    this.isOutermostBaseInfoAllProjectScope = true
+                    this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                } else {
+                    this.isOutermostBaseInfoAllProjectScope = false
+                    this.baseInfoProjectScopeList = []
+                    this.formData.project_scope = []
+                }
+                this.setProjectScope(row ? ['*'] : this.baseInfoProjectScopeList)
+            },
+            handleBaseInfoProjectVisibleChange (row) {
+                const filterList = [...new Set(row)]
+                this.baseInfoProjectScopeList = filterList
+                const changeAllProjectScope = filterList.length === this.allProjectIds.length
+                this.formData.project_scope = filterList
+                this.setProjectScope(changeAllProjectScope ? ['*'] : filterList.map(item => typeof item === 'number' ? String(item) : item))
+            },
             onSelectCategory (val) {
                 if (val) {
                     window.reportInfo({
@@ -404,7 +634,14 @@
                 window.open(href, '_blank')
             },
             getTemplateConfig () {
-                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo } = this.formData
+                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo, webhookConfigs } = this.formData
+                const localProjectList = this.baseInfoProjectScopeList.length === this.allProjectIds.length ? ['*'] : this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
+                if (webhookConfigs?.extra_info) {
+                    webhookConfigs.extra_info.interval = typeof webhookConfigs.extra_info.interval !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.interval
+                    webhookConfigs.extra_info.retry_times = typeof webhookConfigs.extra_info.retry_times !== 'number' ? parseInt(webhookConfigs.extra_info.retry_times) : webhookConfigs.extra_info.retry_times
+                    webhookConfigs.extra_info.timeout = typeof webhookConfigs.extra_info.timeout !== 'number' ? parseInt(webhookConfigs.extra_info.timeout) : webhookConfigs.extra_info.timeout
+                    webhookConfigs.extra_info.headers = webhookConfigs.extra_info.headers.filter(item => item.key !== '')
+                }
                 return {
                     name,
                     category,
@@ -414,7 +651,10 @@
                     receiver_group: receiverGroup,
                     notify_type: { success: notifyType[0], fail: notifyType[1], pending_processing: notifyType[2] },
                     notify_type_extra_info: notifyTypeExtraInfo,
-                    default_flow_type: defaultFlowType
+                    default_flow_type: defaultFlowType,
+                    project_scope: localProjectList,
+                    webhookConfigs: webhookConfigs,
+                    enable_webhook: this.enable_webhook
                 }
             },
             onSelectedExecutorProxy (val) {
@@ -452,7 +692,8 @@
                     }
                     const validations = await Promise.all([
                         this.$refs.configForm.validate(),
-                        this.$refs.notifyTypeConfig.validate()
+                        this.$refs.notifyTypeConfig.validate(),
+                        this.$refs?.httpCallback ? this.$refs.httpCallback.validate() : Promise.resolve(true)
                     ])
                     if (validations.includes(false)) return
 
@@ -546,7 +787,27 @@
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            onHttpCallbackChange (val, isEnableWebhook = false) {
+                if (isEnableWebhook) {
+                    this.enable_webhook = val
+                } else {
+                    this.formData.webhookConfigs = val
+                }
+            },
+            onPasteSuccess (result) {
+                if (result.isAllScope) {
+                    this.handleBaseInfoSelectAllProjectScope(true)
+                } else {
+                    this.isOutermostBaseInfoAllProjectScope = false
+                    this.baseInfoProjectScopeList = result.projectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
+                    this.setProjectScope(this.baseInfoProjectScopeList.map(item => String(item)))
+                }
             }
+        },
+        unmounted () {
+            document.removeEventListener('click', this.handleClickOutside)
         }
     }
 </script>
@@ -624,4 +885,25 @@
         display: block;
     }
 }
+.select-all-project-scope{
+    margin: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #dcdee5;
+}
+.select-all-project-scope-checkbox{
+    margin-right: 14px;
+}
+::v-deep .project-scope-item{
+    position: relative;
+    .project-select{
+        .bk-select-dropdown{
+            .bk-tooltip-ref{
+                width: calc(100% - 50px);
+            }
+        }
+    }
+}
+
 </style>

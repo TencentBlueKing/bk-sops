@@ -189,9 +189,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var = []
     steps = []
     if not task_detail:
-        message = _(
-            f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail"
-        )
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -221,9 +219,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                     ]
                 )
         else:
-            message = _(
-                f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | job_get_job_task_detail"
-            )
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | job_get_job_task_detail")
             logger.warning(message)
             continue
 
@@ -375,9 +371,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     plan_detail = jobv3_result["data"]
     global_var = []
     if not plan_detail:
-        message = _(
-            f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {jobv3_result}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_job_plan_detail"
-        )
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {jobv3_result}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_job_plan_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -404,9 +398,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
                     ]
                 )
         else:
-            message = _(
-                f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | jobv3_get_job_plan_detail"
-            )
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | jobv3_get_job_plan_detail")
             logger.error(message)
             result = {"result": False, "message": message}
             return JsonResponse(result)
@@ -434,8 +426,7 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
         "bk_scope_id": str(biz_cc_id),
         "bk_biz_id": biz_cc_id,
         "create_time_end": int(round(time.time() * 1000)) + TEN_MINUTES_MILLISECONDS * 1,
-        "create_time_start": int(round(time.time() * 1000))
-        - TEN_MINUTES_MILLISECONDS * 1,  # 取一天前到一天后这段时间的历史
+        "create_time_start": int(round(time.time() * 1000)) - TEN_MINUTES_MILLISECONDS * 1,  # 取一天前到一天后这段时间的历史
         "operator": username,
         "status": int(status),
         "type": int(type),
@@ -450,9 +441,9 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
-    result_data = job_result["data"]["data"]
-    if not result_data:
+    if not job_result["data"]["total"]:
         return JsonResponse({"result": True, "data": []})
+    result_data = job_result["data"]["data"]
     data = [{"text": job["name"], "value": job["job_instance_id"]} for job in result_data]
     return JsonResponse({"result": True, "data": data})
 

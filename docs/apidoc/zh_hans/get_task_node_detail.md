@@ -11,7 +11,7 @@
 | node_id          | string | 是   | 节点 ID               |
 | component_code   | string | 否   | 标准插件编码，请求标准插件执行详情必填 |
 | subprocess_stack | string | 否   | 子流程堆栈，json 格式的列表    |
-| loop             | int    | 否   | 节点循环次数              | 
+| loop             | int    | 否   | 节点循环次数              |
 
 ### 请求参数示例
 
@@ -134,3 +134,9 @@
 |  inputs       | dict       | 输入参数，key：value格式       |
 |  outputs      | dict       | 输出参数，key：value格式       |
 |  ex_data      | string     | 节点执行失败详情，json字符串或者HTML字符串、普通字符串 |
+
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.histories` - 节点重试历史记录

@@ -58,6 +58,7 @@ class ObjectJsonBodyValidator(RequestValidator):
 
 class DomainValidator(object):
     """域名校验."""
+
     @staticmethod
     def validate(url):
         """

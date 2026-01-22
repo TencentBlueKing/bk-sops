@@ -893,7 +893,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "key": "encrypt_auth_key",
+                                "key": "123",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",

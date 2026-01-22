@@ -49,6 +49,10 @@ class ParentsInterceptor(TaskTemplateViewInterceptor):
     pass
 
 
+class FetchPipelineTreeInterceptor(TaskTemplateViewInterceptor):
+    pass
+
+
 class BatchFormInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         data = request.data

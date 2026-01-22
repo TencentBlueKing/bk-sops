@@ -1,0 +1,157 @@
+name: CodeBuddy 代码评审
+
+on:
+  # 使用 pull_request_target 以访问 secrets
+  # 但添加安全检查，只对可信任的贡献者自动运行
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  # 第一步：安全检查
+  security-check:
+    name: 安全检查
+    runs-on: ubuntu-latest
+    outputs:
+      is_safe: ${{ steps.check.outputs.is_safe }}
+      author_association: ${{ steps.check.outputs.author_association }}
+    steps:
+      - name: 检查贡献者身份
+        id: check
+        run: |
+          echo "作者关联: ${{ github.event.pull_request.author_association }}"
+          # 允许的身份：OWNER（所有者）、MEMBER（成员）、COLLABORATOR（协作者）
+          if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" ]] || \
+             [[ "${{ github.event.pull_request.author_association }}" == "MEMBER" ]] || \
+             [[ "${{ github.event.pull_request.author_association }}" == "COLLABORATOR" ]]; then
+            echo "✅ 可信任的贡献者，允许自动审查"
+            echo "is_safe=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ 外部贡献者，需要手动批准"
+            echo "is_safe=false" >> $GITHUB_OUTPUT
+          fi
+          echo "author_association=${{ github.event.pull_request.author_association }}" >> $GITHUB_OUTPUT
+  # 第二步：代码审查（只对可信贡献者自动运行）
+  code-review:
+    name: 自动代码审查
+    needs: security-check
+    # 只对可信贡献者自动运行
+    if: needs.security-check.outputs.is_safe == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # 关键：检出 PR 的代码，而不是默认分支
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 安装 CodeBuddy CLI
+        run: |
+          npm install -g @tencent-ai/codebuddy-code
+          echo "✅ CodeBuddy CLI 安装完成"
+      - name: 配置 CodeBuddy CLI
+        env:
+          CODEBUDDY_API_KEY: ${{ secrets.CODEBUDDY_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 验证 API Key 是否存在
+          if [ -z "$CODEBUDDY_API_KEY" ]; then
+            echo "⚠️ 警告: CODEBUDDY_API_KEY 未设置，CodeBuddy 可能无法正常工作"
+            echo "请在 GitHub 仓库的 Settings -> Secrets and variables -> Actions 中添加 CODEBUDDY_API_KEY"
+            echo "如果使用公开 API，可以跳过此步骤"
+          else
+            echo "✅ CodeBuddy API Key 已配置"
+            # 设置环境变量供 CodeBuddy CLI 使用
+            export CODEBUDDY_API_KEY="$CODEBUDDY_API_KEY"
+          fi
+          # 配置 GitHub MCP Server（用于 CodeBuddy 访问 GitHub API）
+          echo "🔧 配置 GitHub MCP Server..."
+          # 创建 CodeBuddy 配置目录
+          CODEBUDDY_CONFIG_DIR="$HOME/.config/codebuddy"
+          mkdir -p "$CODEBUDDY_CONFIG_DIR"
+          # 创建 MCP 配置文件
+          MCP_CONFIG_FILE="$CODEBUDDY_CONFIG_DIR/mcp.json"
+          # 使用 Node.js 创建配置文件（Node.js 在 GitHub Actions 中可用）
+          node -e "
+            const fs = require('fs');
+            const config = {
+              mcpServers: {
+                github: {
+                  command: 'npx',
+                  args: ['-y', '@modelcontextprotocol/server-github'],
+                  env: {
+                    GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GH_TOKEN || ''
+                  }
+                }
+              }
+            };
+            fs.writeFileSync('$MCP_CONFIG_FILE', JSON.stringify(config, null, 2));
+            console.log('✅ GitHub MCP Server 配置已创建');
+          "
+          echo "📋 MCP 配置文件位置: $MCP_CONFIG_FILE"
+          echo "📋 配置文件内容:"
+          cat "$MCP_CONFIG_FILE"
+      - name: 执行代码审查
+        env:
+          CODEBUDDY_API_KEY: ${{ secrets.CODEBUDDY_API_KEY }}
+          CODEBUDDY_INTERNET_ENVIRONMENT: iOA
+          GH_TOKEN: ${{ github.token }}
+          CI: true
+        run: |
+          echo "🚀 开始执行 CodeBuddy 代码审查..."
+          # 检查 codebuddy 是否可用
+          if ! command -v codebuddy &> /dev/null && ! command -v cbc &> /dev/null; then
+            echo "❌ codebuddy 命令未找到"
+            exit 1
+          fi
+          # 使用 codebuddy 或 cbc 命令（两者等价）
+          CODEBUDDY_CMD="codebuddy -p --dangerously-skip-permissions"
+          if ! command -v codebuddy &> /dev/null; then
+            CODEBUDDY_CMD="cbc"
+          fi
+          # 获取 PR 信息
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          echo "📦 仓库: $REPO"
+          echo "📦 PR 编号: $PR_NUMBER"
+          echo "📦 Head SHA: $HEAD_SHA"
+          echo "📦 Base SHA: $BASE_SHA"
+          # 构建审查提示词（使用 printf 避免 YAML 解析问题）
+          REVIEW_PROMPT=$(printf '%s\n\n%s\n- %s：%s\n- %s：%s\n- %s：%s\n- %s：%s\n\n%s\n%s\n%s\n%s\n\n%s\n- %s：gh pr view %s --json comments\n- %s：gh pr diff %s\n- %s\n- %s\n\n%s\n- %s\n- %s\n- %s\n- %s\n\n%s\n- %s\n- %s：gh pr review %s --comment\n- %s' \
+            "你当前在 GitHub Actions runner 中执行自动化代码审查。gh CLI 可用并已通过 GH_TOKEN 认证。你可以在拉取请求上发表评论。" \
+            "上下文：" \
+            "仓库" "$REPO" \
+            "PR 编号" "$PR_NUMBER" \
+            "PR Head SHA" "$HEAD_SHA" \
+            "PR Base SHA" "$BASE_SHA" \
+            "目标：" \
+            "1) 复核已有审查评论，若已处理则回复：已解决" \
+            "2) 审查当前 PR diff，仅标注明确且高严重度的问题" \
+            "3) 只在变更的行留下非常简短的行内评论（1-2 句），并在末尾给出简要总结" \
+            "流程：" \
+            "获取已有评论" "$PR_NUMBER" \
+            "获取 diff" "$PR_NUMBER" \
+            "若先前报告的问题似乎已被附近的更改修复，回复：✅ 此问题似乎已被最近的更改解决" \
+            "避免重复：如果同类反馈已在相同行或附近存在，则跳过" \
+            "评论规则：" \
+            "最多 10 条行内评论；优先处理最关键的问题" \
+            "每条评论只包含一个问题；放在准确的变更行" \
+            "语气自然，具体且可执行；不要提及自动化或高置信度" \
+            "使用表情：🚨 严重 🔒 安全 ⚡ 性能 ⚠️ 逻辑 ✅ 已解决 ✨ 改进" \
+            "提交：" \
+            "提交一次审查，包含行内评论与简明总结" \
+            "仅使用" "$PR_NUMBER" \
+            "不要使用：gh pr review --approve 或 --request-changes")
+          # 执行 CodeBuddy 审查
+          $CODEBUDDY_CMD "$REVIEW_PROMPT"

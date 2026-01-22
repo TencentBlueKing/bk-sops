@@ -82,6 +82,9 @@
                     <p class="operate-item" @click="onTaskParamsClick('templateData', 'Code')">
                         {{ 'Code' }}
                     </p>
+                    <p class="operate-item" @click="onTaskParamsClick('webhook', $t('回调记录'))">
+                        {{ $t('回调记录') }}
+                    </p>
                     <p v-if="adminView && engineVer === 1" class="operate-item" @click="onTaskParamsClick('taskExecuteInfo')">
                         {{ $t('流程信息') }}
                     </p>

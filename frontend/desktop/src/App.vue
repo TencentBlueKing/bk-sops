@@ -52,6 +52,8 @@
         </template>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
+        <AiBluekingComp ref="aiBluekingComp"></AiBluekingComp>
+
     </div>
 </template>
 <script>
@@ -67,6 +69,7 @@
     import permissionApply from '@/components/layout/permissionApply.vue'
     import NoticeComponent from '@blueking/notice-component-vue2'
     import '@blueking/notice-component-vue2/dist/style.css'
+    import AiBluekingComp from '@/components/common/aiBluekingComp/index.vue'
 
     export default {
         name: 'App',
@@ -75,7 +78,8 @@
             ErrorCodeModal,
             permissionApply,
             PermissionModal,
-            NoticeComponent
+            NoticeComponent,
+            AiBluekingComp
         },
         mixins: [permission],
         provide () {
@@ -118,22 +122,26 @@
             }
         },
         watch: {
-            '$route' (val, oldVal) {
-                const prevRouterProjectId = oldVal.params.project_id
-                const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
-                this.handleRouteChange(id)
-                if (this.isProjectDisabled && !val.meta.project) {
-                    this.isProjectDisabled = false
-                    // 重新设置默认项目
-                    this.setProjectId(this.userProjectList[0].id)
-                }
-                // 路由发生变化时清空失败message列表
-                if (val.name !== oldVal.name && this.errorMsgList.length) {
-                    this.errorMsgList.forEach(msgInstance => {
-                        msgInstance.close()
-                    })
-                    this.errorMsgList = []
-                }
+            '$route': {
+                handler (val, oldVal) {
+                    const prevRouterProjectId = oldVal.params.project_id
+                    const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
+                    this.handleRouteChange(id)
+                    if (this.isProjectDisabled && !val.meta.project) {
+                        this.isProjectDisabled = false
+                        // 重新设置默认项目
+                        this.setProjectId(this.userProjectList[0].id)
+                    }
+                    // 路由发生变化时清空失败message列表
+                    if (val.name !== oldVal.name && this.errorMsgList.length) {
+                        this.errorMsgList.forEach(msgInstance => {
+                            msgInstance.close()
+                        })
+                        this.errorMsgList = []
+                    }
+                },
+                immediate: true,
+                deep: true
             }
         },
         async created () {
@@ -168,6 +176,14 @@
             // 登录成功后使用快照
             bus.$on('useSnapshot', data => {
                 this.isUseSnapshot = true
+            })
+            // 编写脚本打开Ai小鲸对话框
+            bus.$on('writeScript', data => {
+                this.$refs.aiBluekingComp.showAi()
+            })
+            // 脚本检查
+            bus.$on('checkScript', data => {
+                this.$refs.aiBluekingComp.sendDefaultcommand(data)
             })
 
             /**

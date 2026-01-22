@@ -11,16 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import json
 import logging
 import traceback
+from copy import deepcopy
+
+from pipeline.variable_framework.models import VariableModel
 
 from gcloud.tasktmpl3.domains import varschema
+from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.utils.dates import format_datetime
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 logger = logging.getLogger("root")  # noqa
 
 
-def info_data_from_period_task(task, detail=True, tz=None):
+def info_data_from_period_task(task, detail=True, tz=None, include_edit_info=None):
     info = {
         "id": task.id,
         "name": task.name,
@@ -32,6 +38,14 @@ def info_data_from_period_task(task, detail=True, tz=None):
         "last_run_at": format_datetime(task.last_run_at, tz),
         "total_run_count": task.total_run_count,
     }
+    if include_edit_info:
+        info.update(
+            {
+                "editor": task.editor,
+                "edit_time": format_datetime(task.edit_time, tz),
+                "is_latest": task.template_version == task.template.version if task.template_version else None,
+            }
+        )
 
     if detail:
         info["form"] = task.form
@@ -40,7 +54,9 @@ def info_data_from_period_task(task, detail=True, tz=None):
     return info
 
 
-def format_template_data(template, project=None, tz=None):
+def format_template_data(
+    template, project=None, include_subprocess=None, tz=None, include_executor_proxy=None, include_notify=None
+):
     pipeline_tree = template.pipeline_tree
     pipeline_tree.pop("line")
     pipeline_tree.pop("location")
@@ -55,6 +71,7 @@ def format_template_data(template, project=None, tz=None):
         "edit_time": format_datetime(template.pipeline_template.edit_time, tz),
         "category": template.category,
         "pipeline_tree": pipeline_tree,
+        "description": template.pipeline_template.description,
     }
     if project:
         data.update(
@@ -65,11 +82,31 @@ def format_template_data(template, project=None, tz=None):
                 "bk_biz_name": project.name if project.from_cmdb else None,
             }
         )
+    if include_executor_proxy and hasattr(template, "executor_proxy"):
+        data.update({"executor_proxy": template.executor_proxy})
+    if include_notify:
+        try:
+            notify_type = json.loads(template.notify_type)
+            if not isinstance(notify_type, dict):
+                notify_type = {"success": notify_type, "fail": notify_type}
+        except Exception:
+            notify_type = {"success": [], "fail": []}
+        data.update({"notify_type": notify_type, "notify_receivers": json.loads(template.notify_receivers)})
+
+    if include_subprocess:
+        data.update(
+            {
+                "has_subprocess": template.pipeline_template.has_subprocess,
+                "subprocess_has_update": template.subprocess_has_update,
+            }
+        )
 
     return data
 
 
-def format_template_list_data(templates, project=None, return_id_list=False, tz=None):
+def format_template_list_data(
+    templates, project=None, return_id_list=False, tz=None, include_executor_proxy=None, include_notify=None
+):
     data = []
     ids = []
     for tmpl in templates:
@@ -81,6 +118,7 @@ def format_template_list_data(templates, project=None, return_id_list=False, tz=
             "editor": tmpl.pipeline_template.editor,
             "edit_time": format_datetime(tmpl.pipeline_template.edit_time, tz),
             "category": tmpl.category,
+            "description": tmpl.pipeline_template.description,
         }
 
         if project:
@@ -95,6 +133,18 @@ def format_template_list_data(templates, project=None, return_id_list=False, tz=
 
         if return_id_list:
             ids.append(item["id"])
+
+        if include_notify:
+            try:
+                notify_type = json.loads(tmpl.notify_type)
+                if not isinstance(notify_type, dict):
+                    notify_type = {"success": notify_type, "fail": notify_type}
+            except Exception:
+                notify_type = {"success": [], "fail": []}
+            item.update({"notify_type": notify_type, "notify_receivers": json.loads(tmpl.notify_receivers)})
+
+        if include_executor_proxy and hasattr(tmpl, "executor_proxy"):
+            item.update({"executor_proxy": tmpl.executor_proxy})
 
         data.append(item)
     if not return_id_list:
@@ -192,3 +242,38 @@ def paginate_list_data(request, queryset, without_count: bool = False):
         message = "[API] pagination error: {}".format(e)
         logger.error(message + "\n traceback: {}".format(traceback.format_exc()))
         raise Exception(message)
+
+
+def process_pipeline_constants(pipeline_tree):
+    template_pipeline = deepcopy(pipeline_tree)
+    # 去除未被引用的变量
+    PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(template_pipeline)
+
+    result = []
+    constant = template_pipeline["constants"]
+    # 获取变量的引用数据
+    constant_refs = analysis_pipeline_constants_ref(template_pipeline)
+
+    for const_key, const_value in constant.items():
+        if const_value.get("source_type") == "component_outputs":
+            continue
+
+        if const_value["source_type"] == "component_inputs":
+            constant_type = "节点输入"
+        else:
+            constant_type = VariableModel.objects.get(code=const_value["custom_type"]).name
+
+        ref_data = constant_refs.get(const_key, {})
+        activity_count = len(ref_data.get("activities", []))
+
+        result.append(
+            {
+                "name": const_value["name"],
+                "key": const_value["key"],
+                "show_type": const_value["show_type"],
+                "constant_type": constant_type,
+                "activity_count": activity_count,
+            }
+        )
+
+    return result

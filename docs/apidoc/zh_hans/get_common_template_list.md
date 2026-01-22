@@ -8,6 +8,11 @@
 
 | 字段          |  类型       | 必选   |  描述             |
 |---------------|------------|--------|-------------------|
+| include_executor_proxy | bool | 否 | 是否包含执行人代理信息，默认 false |
+| include_subprocess | bool | 否 | 是否包含子流程信息，默认 false |
+| include_constants | bool | 否 | 是否包含全局变量信息，默认 false |
+| include_notify | bool | 否 | 是否包含通知信息，默认 false |
+| include_labels | bool | 否 | 是否包含标签信息，默认 false |
 | expected_timezone | string |   否   |  任务时间相关字段期望返回的时区，形如Asia/Shanghai |
 
 ### 请求参数示例

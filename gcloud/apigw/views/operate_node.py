@@ -13,19 +13,19 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
-from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.models import TaskFlowInstance
 
 
 @login_exempt
@@ -35,6 +35,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@trace_view(attr_keys=["project_id", "task_id", "action"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TaskOperateInterceptor())
 @record_operation(RecordType.task.name, OperateType.nodes_action.name, OperateSource.api.name)
 def operate_node(request, project_id, task_id):

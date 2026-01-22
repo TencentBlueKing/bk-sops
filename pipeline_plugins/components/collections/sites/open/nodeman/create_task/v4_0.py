@@ -112,10 +112,12 @@ class NodemanCreateTaskService(NodeManNewBaseService):
 
                     # 处理表格中每行的key/psw
                     auth_key: str = crypto.decrypt(parse_passwd_value(host["auth_key"]))
-                    try:
-                        auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
-                    except ValueError:
-                        return False
+                    if not auth_params["auth_type"] == "TJJ_PASSWORD":
+                        # TJJ类型不需要转换
+                        try:
+                            auth_key: str = self.parse2nodeman_ciphertext(data, executor, auth_key)
+                        except ValueError:
+                            return False
 
                     if auth_params["auth_type"] == "PASSWORD":
                         auth_params["password"] = auth_key
@@ -178,9 +180,7 @@ class NodemanCreateTaskService(NodeManNewBaseService):
                         try:
                             row_host_info["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
-                            data.set_outputs(
-                                "ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip))
-                            )
+                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认管控区域是否正确".format(inner_ip)))
                             return False
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
@@ -224,8 +224,4 @@ class NodemanCreateTaskComponent(Component):
     bound_service = NodemanCreateTaskService
     form = "%scomponents/atoms/nodeman/create_task/v4_0.js" % settings.STATIC_URL
     version = VERSION
-    desc = _(
-        "v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n"
-        "卸载AGENT操作参数和重装AGENT保持一致 \n"
-        "移除操作下线"
-    )
+    desc = _("v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n" "卸载AGENT操作参数和重装AGENT保持一致 \n" "移除操作下线")

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
     cc_get_host_by_innerip_with_ipv6_across_business,
+    get_hosts_by_hosts_ids,
 )
 from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend, get_biz_ip_from_frontend_hybrid
 
@@ -108,6 +109,73 @@ class GetJobTargetServerMixin(object):
             return False, {}
 
         return True, {"ip_list": ip_list}
+
+    def get_target_server_hybrid_with_host_id(self, executor, biz_cc_id, data, ip_str, logger_handle):
+        """
+        支持传入IP或host_id（二选一，不支持混合）
+        用户可以传入IP地址或host_id，插件会自动识别并构造相应的target_server参数
+        - 如果传入的是host_id：构造 host_id_list 参数
+        - 如果传入的是IP：构造 ip_list 或 host_id_list 参数（取决于是否开启IPV6）
+        """
+        logger_handle.info("[get_target_server_hybrid_with_host_id] start processing ip_str: {}".format(ip_str))
+
+        # 使用extract_ip_from_ip_str提取不同类型的输入
+        ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id = extract_ip_from_ip_str(
+            ip_str
+        )
+
+        logger_handle.info(
+            "[get_target_server_hybrid_with_host_id] extracted: ipv6={}, ipv4={}"
+            ", ipv4_cloud={}, ipv6_cloud={}, host_id={}".format(
+                len(ipv6_list),
+                len(ipv4_list),
+                len(ipv4_list_with_cloud_id),
+                len(ipv6_list_with_cloud_id),
+                len(host_id_list),
+            )
+        )
+
+        # 检测是否有host_id
+        has_host_id = len(host_id_list) > 0
+        # 检测是否有IP（任何形式）
+        has_ip = (
+            len(ipv6_list) > 0
+            or len(ipv4_list) > 0
+            or len(ipv4_list_with_cloud_id) > 0
+            or len(ipv6_list_with_cloud_id) > 0
+        )
+
+        # 如果同时有IP和host_id，报错（不支持混合）
+        if has_host_id and has_ip:
+            data.outputs.ex_data = "目标服务器参数不支持同时传入IP和host_id，请只使用其中一种"
+            logger_handle.error("[get_target_server_hybrid_with_host_id] IP and host_id cannot be mixed")
+            return False, {}
+
+        # 情况1: 用户传入的是host_id
+        if has_host_id:
+            logger_handle.info("[get_target_server_hybrid_with_host_id] detected host_id input, will use host_id_list")
+            # 校验host_id是否有效
+            supplier_account = supplier_account_for_business(biz_cc_id)
+            host_result = get_hosts_by_hosts_ids(executor, biz_cc_id, supplier_account, host_id_list)
+            if not host_result["result"]:
+                data.outputs.ex_data = "host_id查询失败: {}".format(host_result.get("message"))
+                return False, {}
+
+            # 直接返回host_id_list（无论是否开启IPV6）
+            return True, {"host_id_list": host_id_list}
+
+        # 情况2: 用户传入的是IP
+        else:
+            logger_handle.info("[get_target_server_hybrid_with_host_id] detected IP input")
+            if settings.ENABLE_IPV6:
+                # IPV6模式，使用原有逻辑（会转换为host_id_list）
+                return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle, data)
+            else:
+                # 非IPV6模式，使用原有逻辑（返回ip_list）
+                clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data)
+                if not clean_result:
+                    return False, {}
+                return True, {"ip_list": ip_list}
 
     def get_target_server_biz_set(
         self, executor, ip_table, supplier_account, logger_handle, ip_key="ip", need_build_ip=True

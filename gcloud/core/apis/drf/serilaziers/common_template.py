@@ -16,8 +16,9 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
+from gcloud.constants import COMMON, DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
+from gcloud.core.models import Project
 
 
 class CommonTemplateListSerializer(BaseTemplateSerializer):
@@ -34,10 +35,23 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
     template_id = serializers.IntegerField(help_text="流程ID")
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
+    project_scope = serializers.SerializerMethodField(help_text="流程使用范围")
+    project_scope_name = serializers.SerializerMethodField(help_text="流程范围项目名称")
 
     class Meta:
         model = CommonTemplate
-        fields = "__all__"
+        exclude = ["extra_info"]
+
+    def get_project_scope(self, obj):
+        return obj.extra_info.get("project_scope")
+
+    def get_project_scope_name(self, obj):
+        project_scope = obj.extra_info.get("project_scope")
+        if project_scope == ["*"]:
+            return project_scope
+        else:
+            project_list = Project.objects.filter(id__in=project_scope).values_list("name", flat=True)
+            return project_list
 
 
 class CommonTemplateSerializer(CommonTemplateListSerializer):
@@ -70,6 +84,9 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     version = serializers.CharField(help_text="流程版本", read_only=True)
     pipeline_template = serializers.IntegerField(
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
+    )
+    project_scope = serializers.ListSerializer(
+        child=serializers.CharField(), help_text="流程使用范围", allow_empty=False, source="extra_info.project_scope"
     )
 
     def _calculate_new_executor_proxies(self, old_pipeline_tree: dict, pipeline_tree: dict):
@@ -109,6 +126,89 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
 
+    def _validate_scope_changes(self, scope_value):
+        if scope_value == ["*"]:
+            return
+
+        references = self.instance.referencer()
+        if not references:
+            return
+
+        scope_set = set(scope_value)
+        conflict_projects = set()
+        conflicts_project_templates = set()
+        conflicts_common_templates = []
+        for item in references:
+            if item.get("template_type") != COMMON:
+                project_id = str(item["project_id"])
+                if project_id not in scope_value:
+                    conflicts_project_templates.add(item["project_name"])
+            else:
+                item_scope = item.get("project_scope", [])
+                if item_scope == ["*"]:
+                    raise serializers.ValidationError(
+                        f"当前流程与父流程 {item['name']} 的可见范围存在冲突，父流程允许所有项目可见，请遵循父流程的可见范围不能超出子流程的规则"
+                    )
+
+                if not set(item_scope).issubset(scope_set):
+                    conflicting_projects = sorted(set(item_scope) - scope_set)
+                    project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
+                    conflicts_common_templates.append(item["name"])
+                    conflict_projects.update(project_names)
+
+        if conflicts_common_templates:
+            err_message = (
+                f"当前流程与父流程 {', '.join(conflicts_common_templates)} 的可见范围存在冲突，"
+                f"请遵循父流程的可见范围不能超出子流程的规则，至少包含项目 {', '.join(sorted(conflict_projects))}"
+            )
+            raise serializers.ValidationError(err_message)
+
+        if conflicts_project_templates:
+            err_message = f"当前流程在项目 {', '.join(conflicts_project_templates)} 中被引用，请遵循流程可见范围限制"
+            raise serializers.ValidationError(err_message)
+
+    def _validate_child_scope(self, pipeline_tree, project_scope):
+        project_scope_set = set(project_scope)
+        conflict_details = set()
+        subprocess = []
+        for activity in pipeline_tree.get("activities", {}).values():
+            if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
+                continue
+            common_template = CommonTemplate.objects.get(id=activity["template_id"])
+            common_scope = common_template.extra_info.get("project_scope", [])
+            if common_scope == ["*"]:
+                continue
+            if project_scope == ["*"]:
+                raise serializers.ValidationError(
+                    f"当前流程与子流程 {common_template.pipeline_template.name} 的可见范围存在冲突，"
+                    f"当前流程允许所有项目可见，请遵循父流程的可见范围不能超出子流程的规则"
+                )
+            if not project_scope_set.issubset(set(common_scope)):
+                conflicting_projects = sorted(project_scope_set - set(common_scope))
+                project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
+                subprocess.append(common_template.pipeline_template.name)
+                conflict_details.update(project_names)
+
+        if subprocess:
+            error_messages = (
+                f"当前流程与子流程 {', '.join(subprocess)} 的可见范围存在冲突，"
+                f"请遵循父流程的可见范围不能超出子流程的规则，需要移除项目 {', '.join(set(conflict_details))}"
+            )
+            raise serializers.ValidationError(error_messages)
+        return pipeline_tree
+
+    def validate(self, attrs):
+        project_scope = attrs.get("extra_info").get("project_scope")
+        request = self.context.get("request")
+        # 检测其引用的子流程
+        self._validate_child_scope(json.loads(attrs["pipeline_tree"]), project_scope)
+
+        if request.method in ("PUT", "PATCH"):
+            # 检测其被作为子流程引用的父流程
+            self._validate_scope_changes(project_scope)
+
+        return attrs
+
     class Meta:
         model = CommonTemplate
         fields = [
@@ -130,4 +230,22 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "template_id",
             "version",
             "pipeline_template",
+            "project_scope",
         ]
+
+
+class PatchCommonTemplateSerializer(CreateCommonTemplateSerializer):
+    class Meta:
+        model = CommonTemplate
+        fields = ["project_scope"]
+
+    def validate(self, attrs):
+        project_scope = attrs.get("extra_info", {}).get("project_scope", [])
+        self._validate_scope_changes(project_scope)
+        self._validate_child_scope(self.instance.pipeline_tree, project_scope)
+        return attrs
+
+    def update(self, instance, validated_data):
+        instance.pipeline_template.editor = self.context["request"].user.username
+        instance.pipeline_template.save()
+        return super().update(instance, validated_data)

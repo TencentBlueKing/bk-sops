@@ -145,6 +145,11 @@ def preview_node_inputs(
         # 获取子流程的参数
         hydrated_param_data = Template(param_data).render(parent_hydrated_context)
         formatted_param_data = {key: {"value": value, "type": "plain"} for key, value in hydrated_param_data.items()}
+        existing_context_values = {
+            context_value.key: {"type": "plain", "value": context_value.value}
+            for context_value in runtime.get_context(subprocess)
+        }
+        formatted_param_data.update(existing_context_values)
 
         return preview_node_inputs(
             runtime=runtime,

@@ -67,13 +67,16 @@ DISABLE_SHIELD_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "data": {
-                "result": "调用监控平台(Monitor)接口monitor.disable_shield返回失败, error=disable shield fail, " 'params={"id":"1"}'
+                "result": "调用监控平台(Monitor)接口monitor.disable_shield返回失败, error=disable shield fail, "
+                'params={"id":["1"]}'
             },
             "status_code": 500,
         },
     ),
     schedule_assertion=None,
-    execute_call_assertion=[CallAssertion(func=DISABLE_SHIELD_FAIL_CLIENT.disable_shield, calls=[Call(**{"id": "1"})])],
+    execute_call_assertion=[
+        CallAssertion(func=DISABLE_SHIELD_FAIL_CLIENT.disable_shield, calls=[Call(**{"id": ["1"]})])
+    ],
     patchers=[Patcher(target=MONITOR_CLIENT, return_value=DISABLE_SHIELD_FAIL_CLIENT)],
 )
 
@@ -84,7 +87,7 @@ DISABLE_SHIELD_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={"data": {"result": {"id": "1"}}, "status_code": 200}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=DISABLE_SHIELD_SUCCESS_CLIENT.disable_shield, calls=[Call(**{"id": "1"})])
+        CallAssertion(func=DISABLE_SHIELD_SUCCESS_CLIENT.disable_shield, calls=[Call(**{"id": ["1"]})])
     ],
     patchers=[Patcher(target=MONITOR_CLIENT, return_value=DISABLE_SHIELD_SUCCESS_CLIENT)],
 )
