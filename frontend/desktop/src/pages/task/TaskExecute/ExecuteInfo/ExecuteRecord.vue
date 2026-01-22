@@ -4,7 +4,16 @@
             <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="executeInfo.state === 'FAILED'">
                 <template v-if="executeInfo.ex_data">
                     <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
-                    <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
+                    <div class="show-html-text" :class="{ 'is-fold': !isExpand }">
+                        <span v-html="executeInfo.failInfo"></span>
+                        <img
+                            @click="handleAssistantClick"
+                            :title="$t('排查失败的原因')"
+                            src="@/assets/images/assistant-small.svg"
+                            class="execute-assistant-icon"
+                            alt="assistant"
+                        />
+                    </div>
                     <span class="expand-btn" v-if="isExpandTextShow" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('显示全部') }}</span>
                 </template>
                 <i18n v-else tag="div" path="exFailedText" class="show-html-text">
@@ -59,6 +68,8 @@
     import OutputParams from './OutputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import { TASK_STATE_DICT } from '@/constants/index.js'
+    import bus from '@/utils/bus.js'
+    
     export default {
         name: 'executeRecord',
         components: {
@@ -134,6 +145,9 @@
                 if (taskInfo) {
                     window.open(taskInfo.value, '_blank')
                 }
+            },
+            handleAssistantClick () {
+                bus.$emit('checkExecutedFailed')
             }
         }
     }
@@ -173,6 +187,14 @@
             padding-left: 5px;
             color: #3a84ff;
             background: #fff3e1;
+            cursor: pointer;
+        }
+        .execute-assistant-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 8px;
+            vertical-align: text-top;
             cursor: pointer;
         }
         a {
