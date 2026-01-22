@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from functools import partial
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import StringItemSchema
 
