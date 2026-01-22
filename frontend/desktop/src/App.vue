@@ -52,6 +52,8 @@
         </template>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
+        <AiBluekingComp ref="aiBluekingComp"></AiBluekingComp>
+
     </div>
 </template>
 <script>
@@ -67,6 +69,7 @@
     import permissionApply from '@/components/layout/permissionApply.vue'
     import NoticeComponent from '@blueking/notice-component-vue2'
     import '@blueking/notice-component-vue2/dist/style.css'
+    import AiBluekingComp from '@/components/common/aiBluekingComp/index.vue'
 
     export default {
         name: 'App',
@@ -75,7 +78,8 @@
             ErrorCodeModal,
             permissionApply,
             PermissionModal,
-            NoticeComponent
+            NoticeComponent,
+            AiBluekingComp
         },
         mixins: [permission],
         provide () {
@@ -118,6 +122,7 @@
             }
         },
         watch: {
+<<<<<<< HEAD
             '$route' (val, oldVal) {
                 const prevRouterProjectId = oldVal.params.project_id
                 const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
@@ -134,6 +139,16 @@
                     })
                     this.errorMsgList = []
                 }
+=======
+            '$route': {
+                handler (val, oldVal) {
+                    const prevRouterProjectId = oldVal.params.project_id
+                    const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
+                    this.handleRouteChange(id)
+                },
+                immediate: true,
+                deep: true
+>>>>>>> master
             }
         },
         async created () {
@@ -168,6 +183,14 @@
             // 登录成功后使用快照
             bus.$on('useSnapshot', data => {
                 this.isUseSnapshot = true
+            })
+            // 编写脚本打开Ai小鲸对话框
+            bus.$on('writeScript', data => {
+                this.$refs.aiBluekingComp.showAi()
+            })
+            // 脚本检查
+            bus.$on('checkScript', data => {
+                this.$refs.aiBluekingComp.sendDefaultcommand(data)
             })
 
             /**

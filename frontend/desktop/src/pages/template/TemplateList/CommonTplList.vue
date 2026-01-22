@@ -15,6 +15,13 @@
             <div class="list-wrapper">
                 <div class="search-wrapper mb20">
                     <bk-button
+                        class="only-project-visible-btn"
+                        data-test-id="process_form_onlyProjectVisible"
+                        :theme="isClickOnlyProjectVisible ? 'primary' : 'default'"
+                        @click="handeleOnlyProjectVisible">
+                        {{$t('仅项目可见的')}}
+                    </bk-button>
+                    <bk-button
                         class="my-create-btn"
                         data-test-id="process_form_myCreateProcess"
                         @click="handleMyCreateFilter">
@@ -289,7 +296,11 @@
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
+<<<<<<< HEAD
                 tableMaxHeight: window.innerHeight - 186
+=======
+                isClickOnlyProjectVisible: false
+>>>>>>> 581b2e0cceac090e615d2f88d0d076a007114a63
             }
         },
         computed: {
@@ -367,7 +378,7 @@
                     const data = this.getQueryData()
                     const source = new CancelRequest()
                     data.cancelToken = source.token
-                    const templateListData = await this.loadTemplateList(data)
+                    const templateListData = await this.loadTemplateList(this.isClickOnlyProjectVisible ? { ...data, exclude_wildcard: 1 } : data)
                     this.templateList = templateListData.results
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
@@ -393,9 +404,9 @@
                     pipeline_template__name__icontains: flowName || undefined,
                     pipeline_template__creator: creator || undefined,
                     pipeline_template__editor: editor || undefined,
-                    project__id: this.project_id,
                     new: true,
-                    id__in: tplIds
+                    id__in: tplIds,
+                    project_id: this.project_id
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -715,6 +726,11 @@
                     query: { template_id: tpl.id, common: '1' },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 })
+            },
+            // 点击仅项目可见的
+            async handeleOnlyProjectVisible () {
+                this.isClickOnlyProjectVisible = !this.isClickOnlyProjectVisible
+                await this.getTemplateList()
             }
         }
     }
@@ -736,6 +752,10 @@
     .my-create-btn {
         position: relative;
         right: 495px;
+    }
+    .only-project-visible-btn{
+        position: relative;
+        right: 510px;
     }
 }
 a {

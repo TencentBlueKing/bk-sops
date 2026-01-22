@@ -12,23 +12,22 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-from cachetools import cached, TTLCache
-
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-
+from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
+from cachetools import TTLCache, cached
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
 from gcloud import err_code
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.utils import api_hash_key
-from gcloud.utils.dates import format_datetime
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
-from gcloud.taskflow3.utils import add_node_name_to_status_tree
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.utils import add_node_name_to_status_tree
+from gcloud.utils.dates import format_datetime
 
 
 @csrf_exempt
@@ -60,8 +59,10 @@ def get_tasks_status(request, project_id):
             "message": "task_id_list is too long, maximum length is 50",
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
-
-    include_children_status = params.get("include_children_status", False)
+    serializer = IncludeTaskSerializer(data=params)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_children_status = serializer.validated_data["include_children_status"]
 
     tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project__id=request.project.id)
 

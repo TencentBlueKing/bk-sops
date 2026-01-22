@@ -9,9 +9,14 @@ Query flow templates list of the business
 | Field          |  Type       | Required   |  Description             |
 |---------------|------------|--------|-------------------|
 | bk_biz_id     |  string    | YES     | the business ID     |
-| template_source | string   | NO    | source of flow，default value is business. business: from business, common: from common flow |
+| template_source | string   | NO    | source of flow template, optional values: business (business flow, default), project (project flow), common (common flow) |
 | id_in         |  string    | NO     | source id list of template, separated by `,` |
 | name_keyword  |  string    | NO     | keyword of template name, ignore case |
+| include_executor_proxy | bool | NO | whether to include executor proxy information, default false |
+| include_subprocess | bool | NO | whether to include subprocess information, default false |
+| include_constants | bool | NO | whether to include constants information, default false |
+| include_notify | bool | NO | whether to include notify information, default false |
+| include_labels | bool | NO | whether to include labels information (only valid for business flow and project flow), default false |
 | expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
@@ -153,3 +158,9 @@ Query flow templates list of the business
 | EnterpriseIT | enterprise IT   |
 | OfficeApp    | official APPs  |
 | Other        | other     |
+
+### MCP Request Notice
+
+When the request comes from gateway MCP, the following fields will be filtered from the response and will not be returned:
+
+- `data.[].auth_actions` - Permission actions list for each template item in the array

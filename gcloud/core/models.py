@@ -385,6 +385,27 @@ class ProjectConfigManager(models.Manager):
 
         return executor_proxy
 
+    def batch_get_task_executor_for_projects(self, project_ids, executor):
+        """获取所有项目下的执行者"""
+        if not project_ids:
+            return {}
+
+        result = {pid: executor for pid in project_ids}
+
+        configs = self.filter(project_id__in=project_ids).values(
+            "project_id", "executor_proxy", "executor_proxy_exempts"
+        )
+
+        for config in configs:
+            project_id = config["project_id"]
+            executor_proxy = config["executor_proxy"].strip()
+            exempts = set(config["executor_proxy_exempts"].split(","))
+
+            if executor_proxy and executor not in exempts:
+                result[project_id] = executor_proxy
+
+        return result
+
 
 class StaffGroupSetManager(models.Manager):
     def get_members_with_group_ids(self, group_ids):
@@ -425,6 +446,8 @@ class ProjectConfig(models.Model):
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
     max_periodic_task_num = models.IntegerField(_("项目下最大周期任务数"), default=-1, blank=True)
+    custom_display_configs = models.JSONField(_("自定义显示配置"), default=dict, blank=True)
+    task_clean_configs = models.JSONField(_("任务清理扩展配置"), default=dict, blank=True)
 
     objects = ProjectConfigManager()
 

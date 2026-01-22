@@ -12,6 +12,7 @@
 |   task_id     |   string   |   是   |  任务或节点ID     |
 |   subprocess_id |   string   |   否   |  任务中的子流程节点 ID   |
 |   with_ex_data     |   bool   |   否   |  是否返回错误节点异常数据 |
+|   with_failed_node_info | bool | 否 | 是否返回失败节点详细信息，默认 false |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
@@ -98,6 +99,10 @@
 |  message  |    string  |      result=false 时错误信息     |
 |  trace_id     |    string  |      open telemetry trace_id     |
 
+### MCP 请求说明
+
+当请求来源于网关MCP时，响应中不会过滤任何字段。
+
 #### data
 
 | 字段      | 类型      | 描述      |
@@ -116,12 +121,12 @@
 
 | 返回值    | 描述      |
 |----------|-----------|
-| CREATED   | 未执行   |  
+| CREATED   | 未执行   |
 | RUNNING   | 执行中   |
 | FAILED    | 失败     |
 | SUSPENDED | 暂停     |
 | REVOKED   | 已终止   |
-| FINISHED  | 已完成   |  
+| FINISHED  | 已完成   |
 
 #### data.children KEY
 

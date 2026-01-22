@@ -19,7 +19,6 @@ from copy import deepcopy
 
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
-from gcloud.utils.validate import DomainValidator
 from pipeline.component_framework.component import Component
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
@@ -27,6 +26,7 @@ from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSche
 from pipeline.utils.boolrule import BoolRule
 from requests import request
 
+from gcloud.utils.validate import DomainValidator
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -83,10 +83,7 @@ class HttpRequestService(Service):
                 key="bk_http_success_exp",
                 type="string",
                 schema=StringItemSchema(
-                    description=_(
-                        "根据返回的 JSON 的数据来控制节点的成功或失败, "
-                        "使用 resp 引用返回的 JSON 对象，例 resp.result==True"
-                    )
+                    description=_("根据返回的 JSON 的数据来控制节点的成功或失败, " "使用 resp 引用返回的 JSON 对象，例 resp.result==True")
                 ),
             ),
         ]
@@ -192,10 +189,7 @@ class HttpRequestService(Service):
 
 class HttpComponent(Component):
     name = _("HTTP 请求")
-    desc = _(
-        "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 "
-        "2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功"
-    )
+    desc = _("提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 " "2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功")
     code = "bk_http_request"
     bound_service = HttpRequestService
     version = "v1.0"

@@ -8,6 +8,11 @@ Query common flow templates list
 
 |   Field         |  Type       | Required | Description                                                             |
 |-----------------|-------------|----|-------------------------------------------------------------------------|
+| include_executor_proxy | bool | NO | whether to include executor proxy information, default false |
+| include_subprocess | bool | NO | whether to include subprocess information, default false |
+| include_constants | bool | NO | whether to include constants information, default false |
+| include_notify | bool | NO | whether to include notify information, default false |
+| include_labels | bool | NO | whether to include labels information, default false |
 | expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
 
 ### Request Parameters Example

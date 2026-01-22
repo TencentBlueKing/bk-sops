@@ -349,8 +349,11 @@ def pipeline_archive_statistics_task(instance_id):
 
 
 @current_app.task
-@periodic_task(run_every=crontab(hour="0"))
+@periodic_task(run_every=crontab(minute="0", hour="1"))
 def backfill_template_variable_statistics_task():
+    """
+    补充流程模板变量统计数据（每天凌晨1点业务低峰期执行）
+    """
     custom_variables_records = {}
 
     # process common template

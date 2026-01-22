@@ -17,7 +17,7 @@
             type: "input",
             attrs: {
                 name: gettext("屏蔽id"),
-                placeholder: gettext("请输入屏蔽id"),
+                placeholder: gettext("请输入屏蔽id，多个用逗号分隔"),
                 hookable: true,
                 validation: [
                     {

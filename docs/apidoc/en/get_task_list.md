@@ -12,7 +12,13 @@ Get tasks list for a business, support task name keyword searching
 |   is_started  |   bool       | NO |  task status to filter the task list based on the start status. default is no filter |
 |   is_finished |   bool       | NO |  task status to filter the task list based on the finish status. default is no filter |
 | executor    | string | NO | task executor to filter the task list. default is no filter |
+| create_method | string | NO | filter task list by task creation method, optional values: app (manual), api (API gateway), app_maker (mini app), periodic (periodic task), clocked (clocked task), mobile (mobile), default is no filter |
+| template_id | string | NO | filter task list by template ID (single template), default is no filter |
+| template_ids | string | NO | filter task list by template ID list (multiple templates, comma-separated, e.g. 1,2,3), default is no filter |
+| is_child_taskflow | bool | NO | filter task list by whether it is a child task, default is no filter |
 | expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
+| create_time_start | string | NO | filter task list by task creation time start, supported formats: YYYY-MM-DD HH:MM:SS, YYYY-MM-DD HH:MM:SS +HHMM, YYYY-MM-DD HH:MM:SS+HHMM, YYYY-MM-DDTHH:MM:SSZ or YYYY-MM-DD, default is no filter |
+| create_time_end | string | NO | filter task list by task creation time end, supported formats: YYYY-MM-DD HH:MM:SS, YYYY-MM-DD HH:MM:SS +HHMM, YYYY-MM-DD HH:MM:SS+HHMM, YYYY-MM-DDTHH:MM:SSZ or YYYY-MM-DD, default is no filter |
 |   limit       |   int        | NO | pagination, the number of tasks in the task list in each result. default is 100 |
 |   offset      |   int        | NO |  pagination, the start index of task in the task list in each result. default is 0 |
 | without_count  | bool |   NO   |  without count，default count is returned |
@@ -34,6 +40,29 @@ Get tasks list for a business, support task name keyword searching
     "scope":"cmdb_biz"
 }
 ```
+
+#### Time Range Filter Example
+
+```
+{
+    "bk_app_code": "esb_test",
+    "bk_app_secret": "xxx",
+    "bk_token": "xxx",
+    "bk_username": "xxx",
+    "bk_biz_id": "2",
+    "create_time_start": "2024-01-01 00:00:00",
+    "create_time_end": "2024-01-31 23:59:59",
+    "limit": 10,
+    "offset": 0
+}
+```
+
+Supported time formats:
+- `2024-01-01 12:00:00` - Standard format (uses system default timezone)
+- `2024-01-01 12:00:00 +0800` - With timezone offset (with space)
+- `2024-01-01 12:00:00+0800` - With timezone offset (without space)
+- `2024-01-01T12:00:00Z` - ISO 8601 UTC format
+- `2024-01-01` - Date only (start time automatically set to 00:00:00, end time automatically set to 23:59:59)
 
 ### 返回结果示例
 

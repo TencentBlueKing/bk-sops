@@ -51,3 +51,7 @@ Get user project list
 |  project_id | int        | proejct ID       |
 |  bk_biz_id | int        | bound cmdb business id       |
 |  name  | string     | project name           |
+
+### MCP Request Notice
+
+When the request comes from gateway MCP, no fields will be filtered from the response.

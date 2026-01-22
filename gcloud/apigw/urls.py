@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.urls import re_path
 
+from gcloud.apigw.views.apply_webhook_configs import apply_webhook_configs
 from gcloud.apigw.views.claim_functionalization_task import claim_functionalization_task
 from gcloud.apigw.views.copy_template_across_project import copy_template_across_project
 from gcloud.apigw.views.create_and_start_task import create_and_start_task
@@ -30,9 +31,13 @@ from gcloud.apigw.views.get_plugin_detail import get_plugin_detail
 from gcloud.apigw.views.get_plugin_list import get_plugin_list
 from gcloud.apigw.views.get_task_count import get_task_count
 from gcloud.apigw.views.get_task_detail import get_task_detail
+from gcloud.apigw.views.get_task_effective_time import get_task_effective_time
 from gcloud.apigw.views.get_task_list import get_task_list
 from gcloud.apigw.views.get_task_node_data import get_task_node_data
 from gcloud.apigw.views.get_task_node_detail import get_task_node_detail
+from gcloud.apigw.views.get_task_node_log import get_task_node_log
+from gcloud.apigw.views.get_task_operate_record import get_task_operate_record
+from gcloud.apigw.views.get_task_plugin_log import get_task_plugin_log
 from gcloud.apigw.views.get_task_status import get_task_status
 from gcloud.apigw.views.get_tasks_manual_intervention_state import get_tasks_manual_intervention_state
 from gcloud.apigw.views.get_tasks_status import get_tasks_status
@@ -131,4 +136,9 @@ urlpatterns = [
     re_path(r"^get_mini_app_list/(?P<project_id>\d+)/$", get_mini_app_list),
     re_path(r"^get_task_count/(?P<project_id>\d+)/$", get_task_count),
     re_path(r"^copy_template_across_project/(?P<project_id>\d+)/$", copy_template_across_project),
+    re_path(r"^get_task_operate_record/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_operate_record),
+    re_path(r"^apply_webhook_configs/(?P<project_id>\d+)/$", apply_webhook_configs),
+    re_path(r"^get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time),
+    re_path(r"^get_task_node_log/$", get_task_node_log),
+    re_path(r"^get_task_plugin_log/$", get_task_plugin_log),
 ]

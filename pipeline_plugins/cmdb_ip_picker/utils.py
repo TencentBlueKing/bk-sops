@@ -85,9 +85,7 @@ class IPPickerDataGenerator:
         else:
             result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         if result["invalid_ip"]:
-            message = _(
-                f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data"
-            )
+            message = _(f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data")
             logger.error(message)
             return {"result": False, "data": [], "message": message}
         ips = [
@@ -133,12 +131,10 @@ class IPPickerDataGenerator:
         """
         processed_path_list = []
         sorted_path_list = sorted(path_list, key=lambda x: len(x))
-        path_record = {}
-        for topo in sorted_path_list:
-            if any([obj in path_record.get(level, set()) for level, obj in enumerate(topo)]):
-                continue
-            path_record.setdefault(len(topo) - 1, set()).add(topo[-1])
-            processed_path_list.append(topo)
+
+        for path in sorted_path_list:
+            if not any(path[: len(existing)] == existing for existing in processed_path_list):
+                processed_path_list.append(path)
         return processed_path_list
 
     def _build_topo_info(self, topo_tree, topo_info):
@@ -736,9 +732,7 @@ def get_gse_agent_status_ipv6(bk_agent_id_list):
         resp = requests.post(url=get_agent_status_url, json=params)
 
         if resp.status_code != 200:
-            raise Exception(
-                "[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content)
-            )
+            raise Exception("[get_gse_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
         try:
             resp_data = resp.json()
         except Exception as e:

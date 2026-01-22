@@ -10,6 +10,9 @@
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string   |   是   |  所属业务ID   |
 |   task_id     |   string   |   是   |  任务ID     |
+| include_edit_info | bool | 否 | 是否包含任务更新信息，默认 false |
+| include_webhook_history | bool | 否 | 是否包含 webhook 回调信息，默认 false |
+| include_children_status | bool | 否 | 是否包含任务节点状态，默认 false |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
@@ -276,6 +279,13 @@
 |  data     |    dict    |      result=true 时返回数据，详细信息见下面说明     |
 |  message  |    string  |      result=false 时错误信息     |
 |  trace_id     |    string  |      open telemetry trace_id     |
+
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.pipeline_tree` - 流程树信息
+- `data.task_webhook_history` - Webhook 回调历史记录
 
 #### data
 

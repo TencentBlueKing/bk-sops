@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
 from functools import wraps
 
 import pytz
@@ -80,7 +81,7 @@ def _get_project_scope_from_request(request):
     if request.method == "GET":
         obj_scope = request.GET.get("scope", PROJECT_SCOPE_CMDB_BIZ)
     else:
-        params = json.loads(request.body)
+        params = json.loads(request.body) if request.body else {}
         obj_scope = params.get("scope", PROJECT_SCOPE_CMDB_BIZ)
 
     return obj_scope
@@ -163,3 +164,167 @@ def timezone_inject(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+
+def _remove_keys_from_dict(data, keys_to_remove):
+    """
+    递归地从字典中移除指定的键
+    @param data: 要处理的数据（字典或列表）
+    @param keys_to_remove: 要移除的键的列表，支持 "xx.yy.zz" 格式
+    @return: 处理后的数据
+    """
+    if not isinstance(data, (dict, list)):
+        return data
+
+    # 构建路径映射，将 "xx.yy.zz" 转换为 [("xx", "yy", "zz"), ...]
+    path_mappings = []
+    for key in keys_to_remove:
+        if "." in key:
+            path_mappings.append(tuple(key.split(".")))
+        else:
+            path_mappings.append((key,))
+
+    if isinstance(data, list):
+        return [_remove_keys_from_dict(item, keys_to_remove) for item in data]
+
+    # 深拷贝避免修改原数据
+    result = copy.deepcopy(data)
+
+    # 处理直接键
+    direct_keys = [key for key in keys_to_remove if "." not in key]
+    for key in direct_keys:
+        if key in result:
+            del result[key]
+
+    # 处理路径键（如 "xx.yy.zz"）
+    for path_tuple in path_mappings:
+        if len(path_tuple) == 1:
+            # 已经在上面处理了
+            continue
+
+        # 递归查找并删除
+        _remove_nested_key(result, path_tuple)
+
+    return result
+
+
+def _remove_nested_key(data, path_tuple):
+    """
+    递归地从嵌套字典/列表中移除指定路径的键
+    支持中间层是列表的情况，会对列表中每一项递归处理
+
+    例如：路径 "data.items.secret"
+    - 如果 data.items 是列表，会对列表中每一项删除 secret 键
+    - 如果 data.items 是字典，会删除字典中的 secret 键
+
+    @param data: 要处理的数据（字典或列表）
+    @param path_tuple: 路径元组，如 ("data", "items", "secret")
+    """
+    if not path_tuple:
+        return
+
+    if len(path_tuple) == 1:
+        # 到达目标键，删除它
+        key = path_tuple[0]
+        if isinstance(data, dict) and key in data:
+            del data[key]
+        elif isinstance(data, list):
+            # 如果是列表，对每个元素递归处理
+            for item in data:
+                if isinstance(item, dict) and key in item:
+                    del item[key]
+                elif isinstance(item, list):
+                    # 如果列表中的项也是列表，继续递归
+                    _remove_nested_key(item, path_tuple)
+        return
+
+    # 继续递归
+    current_key = path_tuple[0]
+    remaining_path = path_tuple[1:]
+
+    if isinstance(data, dict):
+        if current_key in data:
+            next_data = data[current_key]
+            if isinstance(next_data, dict):
+                # 下一层是字典，继续递归
+                _remove_nested_key(next_data, remaining_path)
+            elif isinstance(next_data, list):
+                # 下一层是列表，对列表中每一项递归处理剩余路径
+                for item in next_data:
+                    _remove_nested_key(item, remaining_path)
+    elif isinstance(data, list):
+        # 当前数据是列表，对列表中每一项递归处理完整路径
+        # 因为列表中的每一项应该都有完整的路径结构
+        for item in data:
+            _remove_nested_key(item, path_tuple)
+
+
+def mcp_apigw(exclude_responses=None):
+    """
+    装饰器：根据app_code前缀决定是否从响应中排除指定的键
+    只有当request.app存在且app_code以settings.APIGW_MCP_APP_CODE_PREFIX配置的值开头时，才启用排除逻辑
+
+    @param exclude_responses: 要排除的键列表，支持 "xx.yy.zz" 格式的嵌套路径
+    @return: 装饰器函数
+
+    使用示例:
+        @mcp_apigw(exclude_responses=["sensitive_key", "data.items.secret"])
+        @return_json_response
+        def my_view(request):
+            return {
+                "result": True,
+                "data": {
+                    "items": [{"name": "item1", "secret": "value1"}],
+                    "sensitive_key": "value"
+                }
+            }
+
+        如果app_code以settings.APIGW_MCP_APP_CODE_PREFIX配置的值开头（默认"v_mcp"），
+        则返回的响应中会排除"sensitive_key"和"data.items.secret"字段。
+    """
+    if exclude_responses is None:
+        exclude_responses = []
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            # 执行原始视图函数
+            result = view_func(request, *args, **kwargs)
+
+            # 检查是否需要启用排除逻辑
+            should_exclude = False
+
+            # 检查 request.app 是否存在
+            if hasattr(request, "app") and request.app:
+                # 获取 app_code
+                app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY, None)
+                if app_code:
+                    # 从 settings 获取 v_mcp 前缀
+                    v_mcp_prefix = getattr(settings, "APIGW_MCP_APP_CODE_PREFIX", "v_mcp")
+                    # 检查 app_code 是否以指定前缀开头
+                    app_code_check = app_code.startswith(v_mcp_prefix)
+                    # 从 settings 获取 MCP Server ID HTTP Header 名称
+                    mcp_server_id_header = getattr(settings, "APIGW_MCP_SERVER_ID_HEADER", "HTTP_X_BKAPI_MCP_SERVER_ID")
+                    # 检查 request.META 中是否有指定的 header 且值不为空
+                    mcp_server_id = request.META.get(mcp_server_id_header, "")
+                    mcp_server_id_check = bool(mcp_server_id and mcp_server_id.strip())
+                    # 任意一个条件满足即可
+                    if app_code_check or mcp_server_id_check:
+                        should_exclude = True
+
+            # 如果需要排除且返回的是字典或JsonResponse，则进行过滤
+            if should_exclude and exclude_responses:
+                if isinstance(result, JsonResponse):
+                    # JsonResponse 的内容需要提取、处理、然后重新创建
+                    result_data = json.loads(result.content.decode("utf-8"))
+                    result_data = _remove_keys_from_dict(result_data, exclude_responses)
+                    result = JsonResponse(result_data)
+                elif isinstance(result, dict):
+                    # 直接处理字典
+                    result = _remove_keys_from_dict(result, exclude_responses)
+
+            return result
+
+        return wrapper
+
+    return decorator

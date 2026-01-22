@@ -20,7 +20,6 @@ from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.eri import ContextValueType
 from django.utils.translation import gettext_lazy as _
-from opentelemetry import trace
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions as pipeline_exceptions
@@ -34,6 +33,7 @@ from pipeline.service import task_service
 
 from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
+from gcloud.core.trace import start_trace
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.utils import format_pipeline_status
 from gcloud.tasktmpl3.domains.constants import preview_node_inputs
@@ -73,12 +73,14 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         if command not in self.NODE_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
 
-        with trace.get_tracer(__name__).start_as_current_span("node_operate") as span:
-            span.set_attribute("bk_sops.task_id", self.taskflow_id)
-            span.set_attribute("bk_sops.node_id", self.node_id)
-            span.set_attribute("bk_sops.engine_ver", self.engine_ver)
-            span.set_attribute("bk_sops.node_command", command)
-
+        with start_trace(
+            span_name="node_operate",
+            propagate=False,
+            task_id=self.taskflow_id,
+            node_id=self.node_id,
+            engine_ver=self.engine_ver,
+            node_command=command,
+        ):
             return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
 
     @ensure_return_is_dict

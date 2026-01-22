@@ -38,6 +38,10 @@ class FormValidator(RequestValidator):
         return True, ""
 
 
+class FetchPipelineValidator(FormValidator):
+    pass
+
+
 class ExportTemplateApiViewValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
 

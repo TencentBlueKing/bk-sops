@@ -13,10 +13,12 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+import django_filters
 import ujson as json
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
 from drf_yasg.utils import swagger_auto_schema
+from iam import Action, Request, Resource, Subject
 from pipeline.models import TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -39,13 +41,13 @@ from gcloud.core.apis.drf.serilaziers.common_template import (
     CommonTemplateListSerializer,
     CommonTemplateSerializer,
     CreateCommonTemplateSerializer,
+    PatchCommonTemplateSerializer,
     TopCollectionCommonTemplateSerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
-from iam import Action, Request, Resource, Subject
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -65,6 +67,12 @@ class CommonTemplatePermission(IamPermission):
         "update": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        "partial_update": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "update_specific_fields": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
         "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
         "enable_independent_subprocess": IamPermissionInfo(pass_all=True),
         "common_info": IamPermissionInfo(pass_all=True),
@@ -72,6 +80,8 @@ class CommonTemplatePermission(IamPermission):
 
 
 class CommonTemplateFilter(PropertyFilterSet):
+    project_id = django_filters.CharFilter(method="filter_by_project_id")
+
     class Meta:
         model = CommonTemplate
         fields = {
@@ -85,6 +95,18 @@ class CommonTemplateFilter(PropertyFilterSet):
             "pipeline_template__create_time": ["gte", "lte"],
         }
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
+
+    def filter_by_project_id(self, queryset, name, value):
+        if not value:
+            return queryset
+        exclude_wildcard = self.request.query_params.get("exclude_wildcard") == "1"
+        templates = queryset.values("id", "extra_info")
+        matched_ids = []
+        for item in templates:
+            exemption_project = item["extra_info"].get("project_scope", [])
+            if (not exclude_wildcard and "*" in exemption_project) or value in exemption_project:
+                matched_ids.append(item["id"])
+        return queryset.filter(id__in=matched_ids)
 
 
 class CommonTemplateViewSet(GcloudModelViewSet):
@@ -166,7 +188,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
     @staticmethod
     def _inject_project_based_task_create_action(request, common_template_ids, common_flow_action):
-        project_id = request.query_params.get("project__id")
+        project_id = request.query_params.get("project_id")
         if not project_id:
             return []
         iam = get_iam_client()
@@ -286,6 +308,35 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.common_template,
+            operator=editor,
+            operate_type=OperateType.update.name,
+            operate_source=OperateSource.common.name,
+            instance_id=serializer.instance.id,
+        )
+        bk_audit_add_event(
+            username=request.user.username,
+            action_id=IAMMeta.COMMON_FLOW_EDIT_ACTION,
+            resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
+            instance=template,
+        )
+        return Response(data)
+
+    @swagger_auto_schema(method="POST", operation_summary="更新模板数据")
+    @action(detail=True, methods=["POST"])
+    def update_specific_fields(self, request, *args, **kwargs):
+        template = self.get_object()
+        editor = request.user.username
+        serializer = PatchCommonTemplateSerializer(template, data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        # 发送信号
+        post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, template)
+
+        # 记录操作流水
+        operate_record_signal.send(
+            sender=RecordType.common_template.name,
             operator=editor,
             operate_type=OperateType.update.name,
             operate_source=OperateSource.common.name,

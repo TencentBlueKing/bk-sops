@@ -276,3 +276,9 @@
 |  custom_type      |    string    |      source_type=custom 时有效，自定义变量类型， 取值范围 input: 输入框，textarea: 文本框，datetime: 日期时间，int: 整数|
 |  source_tag      |    string    |      source_type=component_inputs/component_outputs 时有效，变量的来源标准插件   |
 |  source_info   |   dict  |  source_type=component_inputs/component_outputs 时有效，变量的来源节点信息 |
+
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.pipeline_tree` - 流程树信息
