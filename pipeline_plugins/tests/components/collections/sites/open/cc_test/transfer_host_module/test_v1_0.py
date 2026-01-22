@@ -44,20 +44,20 @@ class MockClient(object):
     def __init__(
         self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None, transfer_host_module_return=None
     ):
-        self.cc = MagicMock()
-        self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
-        self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
-        self.cc.transfer_host_module = MagicMock(return_value=transfer_host_module_return)
+        self.api = MagicMock()
+        self.api.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
+        self.api.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
+        self.api.transfer_host_module = MagicMock(return_value=transfer_host_module_return)
 
 
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".get_client_by_username"
 )
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_ips_info_by_str"
 CC_LIST_MATCH_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".cc_list_match_node_inst_id"
 )
-CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 
 COMMON_MAINLINE = {
     "result": True,
@@ -159,7 +159,7 @@ COMMON_TOPO = {
     ],
 }
 
-COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
+COMMON_PARENT = {"tenant_id": "system", "executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
 
 SELECT_BY_TEXT_SUCCESS_CLIENT = MockClient(
     get_mainline_object_topo_return=COMMON_MAINLINE,
@@ -184,18 +184,18 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
-            func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.transfer_host_module,
+            func=SELECT_BY_TEXT_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
                 Call(
                     {
                         "bk_biz_id": 2,
-                        "bk_supplier_account": 0,
                         "bk_host_id": [2, 3],
                         "bk_module_id": [7],
                         "is_increment": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -233,18 +233,18 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
-            func=SELECT_BY_TOPO_SUCCESS_CLIENT.cc.transfer_host_module,
+            func=SELECT_BY_TOPO_SUCCESS_CLIENT.api.transfer_host_module,
             calls=[
                 Call(
                     {
                         "bk_biz_id": 2,
-                        "bk_supplier_account": 0,
                         "bk_host_id": [2, 3],
                         "bk_module_id": [7],
                         "is_increment": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -284,7 +284,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
@@ -318,7 +318,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "输入文本路径[蓝鲸>Yun>module]与业务拓扑层级不匹配"}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("admin", 2, "1.1.1.1;2.2.2.2", 0)]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "admin", 2, "1.1.1.1;2.2.2.2")]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),

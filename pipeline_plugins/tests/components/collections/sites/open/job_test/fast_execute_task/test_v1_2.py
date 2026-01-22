@@ -64,6 +64,8 @@ class MockClient(object):
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.v1_2.get_client_by_username"
 )
+GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.v1_2.get_node_callback_url"
 )
@@ -275,13 +277,11 @@ MANUAL_SUCCESS_OUTPUTS = {
     "job_inst_id": SUCCESS_RESULT["data"]["job_instance_id"],
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
-    "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
 }
 MANUAL_SUCCESS_OUTPUTS2 = {
     "job_inst_id": SUCCESS_RESULT["data"]["job_instance_id"],
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
-    "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
     "job_tagged_ip_dict": {
         "name": "JOB执行IP分组",
         "key": "job_tagged_ip_dict",
@@ -352,6 +352,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
             return_value={"ip_result": []},
         ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,

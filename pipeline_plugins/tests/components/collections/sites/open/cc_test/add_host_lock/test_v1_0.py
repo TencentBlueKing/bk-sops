@@ -12,17 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc import CmdbAddHostLockComponent
 
 
@@ -39,12 +38,12 @@ class CmdbTransferFaultHostComponentTest(TestCase, ComponentTestMixin):
 class MockClient(object):
     def __init__(self, add_host_lock_return=None):
         self.set_bk_api_ver = MagicMock()
-        self.cc = MagicMock()
-        self.cc.add_host_lock = MagicMock(return_value=add_host_lock_return)
+        self.api = MagicMock()
+        self.api.add_host_lock = MagicMock(return_value=add_host_lock_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.host_lock.base.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.host_lock.base.get_client_by_username"
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 
 # mock client
@@ -57,35 +56,60 @@ ADD_HOST_LOCK_FAIL_CLIENT = MockClient(add_host_lock_return={"result": False, "c
 ADD_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
     name="add host lock success case",
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
-    parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0, "language": "中文"},
+    parent_data={
+        "tenant_id": "system",
+        "executor": "executor_token",
+        "biz_cc_id": 2,
+        "biz_supplier_account": 0,
+        "language": "中文",
+    },
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor_token", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
-        CallAssertion(func=ADD_HOST_LOCK_SUCCESS_CLIENT.cc.add_host_lock, calls=[Call({"id_list": [1, 2]})]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]),
+        CallAssertion(
+            func=ADD_HOST_LOCK_SUCCESS_CLIENT.api.add_host_lock,
+            calls=[Call({"id_list": [1, 2]}, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_SUCCESS_CLIENT),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
+        ),
     ],
 )
 
 ADD_HOST_LOCK_FAIL_CASE = ComponentTestCase(
     name="add host lock fail case",
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
-    parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0, "language": "中文"},
+    parent_data={
+        "tenant_id": "system",
+        "executor": "executor_token",
+        "biz_cc_id": 2,
+        "biz_supplier_account": 0,
+        "language": "中文",
+    },
     execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": '调用配置平台(CMDB)接口cc.add_host_lock返回失败, error=fail, params={"id_list":[1,2]}'},
+        success=False,
+        outputs={"ex_data": '调用配置平台(CMDB)接口cc.add_host_lock返回失败, error=fail, params={"id_list":[1,2]}'},
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor_token", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
-        CallAssertion(func=ADD_HOST_LOCK_FAIL_CLIENT.cc.add_host_lock, calls=[Call({"id_list": [1, 2]})]),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("system", "executor_token", 2, ["1.1.1.1", "2.2.2.2"])]),
+        CallAssertion(
+            func=ADD_HOST_LOCK_FAIL_CLIENT.api.add_host_lock,
+            calls=[Call({"id_list": [1, 2]}, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
     ],
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_FAIL_CLIENT),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
+        ),
     ],
 )

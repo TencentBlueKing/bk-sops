@@ -36,13 +36,14 @@ class MonitorAlarmShieldStrategyComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, search_host=None):
-        self.cc = MagicMock()
-        self.cc.search_host = MagicMock(return_value=search_host)
+        self.api = MagicMock()
+        self.api.search_host = MagicMock(return_value=search_host)
 
 
 class MockMonitorClient(object):
     def __init__(self, add_shield_result=None):
-        self.add_shield = MagicMock(return_value=add_shield_result)
+        self.api = MagicMock()
+        self.api.add_shield = MagicMock(return_value=add_shield_result)
 
     def __call__(self, *args, **kwargs):
         return self
@@ -134,10 +135,10 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_SHIELD_FAIL_CLIENT.add_shield,
+            func=CREATE_SHIELD_FAIL_CLIENT.api.add_shield,
             calls=[
                 Call(
-                    **{
+                    {
                         "begin_time": "2019-11-04 00:00:00",
                         "bk_biz_id": 2,
                         "category": "strategy",
@@ -160,7 +161,8 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
                         "end_time": "2019-11-05 00:00:00",
                         "notice_config": {},
                         "shield_notice": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         )
@@ -189,10 +191,10 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_SHIELD_SUCCESS_CLIENT.add_shield,
+            func=CREATE_SHIELD_SUCCESS_CLIENT.api.add_shield,
             calls=[
                 Call(
-                    **{
+                    {
                         "begin_time": "2019-11-04 00:00:00",
                         "bk_biz_id": 2,
                         "category": "strategy",
@@ -215,7 +217,8 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
                         "end_time": "2019-11-05 00:00:00",
                         "notice_config": {},
                         "shield_notice": False,
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         )

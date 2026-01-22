@@ -13,15 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
-    ComponentTestMixin,
-    ComponentTestCase,
-    CallAssertion,
-    ExecuteAssertion,
     Call,
+    CallAssertion,
+    ComponentTestCase,
+    ComponentTestMixin,
+    ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_disable.v1_0 import (
     MonitorAlarmShieldDisableComponent,
 )
@@ -40,14 +40,17 @@ class MonitorAlarmShieldDisableComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, disable_shield_result=None):
-        self.disable_shield = MagicMock(return_value=disable_shield_result)
+        self.api = MagicMock()
+        self.api.disable_shield = MagicMock(return_value=disable_shield_result)
 
     def __call__(self, *args, **kwargs):
         return self
 
 
 # mock path
-MONITOR_CLIENT = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_disable.v1_0.BKMonitorClient"
+MONITOR_CLIENT = (
+    "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_disable.v1_0.get_client_by_username"
+)
 
 # mock client
 DISABLE_SHIELD_FAIL_CLIENT = MockClient(
@@ -62,7 +65,7 @@ DISABLE_SHIELD_SUCCESS_CLIENT = MockClient(
 DISABLE_SHIELD_FAIL_CASE = ComponentTestCase(
     name="disable shield fail case",
     inputs={"bk_alarm_shield_id_input": "1"},
-    parent_data={"executor": "executor", "biz_cc_id": 2},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
@@ -73,18 +76,26 @@ DISABLE_SHIELD_FAIL_CASE = ComponentTestCase(
         },
     ),
     schedule_assertion=None,
-    execute_call_assertion=[CallAssertion(func=DISABLE_SHIELD_FAIL_CLIENT.disable_shield, calls=[Call(**{"id": "1"})])],
+    execute_call_assertion=[
+        CallAssertion(
+            func=DISABLE_SHIELD_FAIL_CLIENT.api.disable_shield,
+            calls=[Call({"id": "1"}, headers={"X-Bk-Tenant-Id": "system"})],
+        )
+    ],
     patchers=[Patcher(target=MONITOR_CLIENT, return_value=DISABLE_SHIELD_FAIL_CLIENT)],
 )
 
 DISABLE_SHIELD_SUCCESS_CASE = ComponentTestCase(
     name="disable shield success case",
     inputs={"bk_alarm_shield_id_input": "1"},
-    parent_data={"executor": "executor", "biz_cc_id": 2},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(success=True, outputs={"data": {"result": {"id": "1"}}, "status_code": 200}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=DISABLE_SHIELD_SUCCESS_CLIENT.disable_shield, calls=[Call(**{"id": "1"})])
+        CallAssertion(
+            func=DISABLE_SHIELD_SUCCESS_CLIENT.api.disable_shield,
+            calls=[Call({"id": "1"}, headers={"X-Bk-Tenant-Id": "system"})],
+        )
     ],
     patchers=[Patcher(target=MONITOR_CLIENT, return_value=DISABLE_SHIELD_SUCCESS_CLIENT)],
 )
