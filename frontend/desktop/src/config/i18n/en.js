@@ -1965,7 +1965,8 @@ const en = {
     '粘贴成功，部分项目因权限问题被过滤': 'Paste successful, some projects were filtered due to permission issues',
     '粘贴失败': 'Paste failed',
     '编写脚本': 'Write Script',
-    '脚本检查': 'Script Check'
+    '脚本检查': 'Script Check',
+    '排查失败的原因': 'Find out the reason for the failure'
 }
 
 export default en

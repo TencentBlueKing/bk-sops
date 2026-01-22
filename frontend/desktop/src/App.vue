@@ -183,7 +183,11 @@
             })
             // 脚本检查
             bus.$on('checkScript', data => {
-                this.$refs.aiBluekingComp.sendDefaultcommand(data)
+                this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkScript' })
+            })
+            // 排查流程执行失败的原因
+            bus.$on('checkExecutedFailed', data => {
+                this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkExecutedFailed' })
             })
 
             /**
