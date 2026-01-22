@@ -61,9 +61,12 @@ grant_permissions:
       - system_start_task
       - system_get_task_status
       - system_import_project_template
+      - system_get_common_template_list
+      - system_get_common_template_info
   - bk_app_code: "bk_nodeman"
     grant_dimension: "resource"
     resource_names:
       - system_create_task
       - system_start_task
       - system_get_task_status
+  
