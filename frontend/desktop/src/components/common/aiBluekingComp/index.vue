@@ -3,6 +3,7 @@
         <AIBlueking
             ref="aiBlueking"
             :url="aiAgentUrl"
+            ext-cls="ai-spops-blueking-wrapper"
             :request-options="requestOptions" />
     </div>
 </template>
@@ -75,5 +76,55 @@
         }
     }
 </script>
-<style lang="scss" scoped>
+
+<style lang="scss">
+.ai-spops-blueking-wrapper {
+    %popper-base {
+        border-radius: 4px !important;
+        font-size: 12px !important;
+        color: #fff !important;
+        padding: 5px 10px !important;
+        background-color: rgba(0, 0, 0, 0.8) !important;
+    }
+    
+    %popper-arrow-base {
+        border-right: 8px solid transparent !important;
+        border-left: 8px solid transparent !important;
+        margin: 0 5px !important;
+        -webkit-transform-origin: 50% 100% !important;
+        transform-origin: 50% 100% !important;
+    }
+
+    .ai-blueking-container {
+        .header {
+            .right-section {
+                .ai-blueking-popper {
+                    @extend %popper-base;
+                    margin-top: 2px !important;
+                }
+                .ai-blueking-popper-arrow {
+                    @extend %popper-arrow-base;
+                    border-bottom: 8px solid #333 !important;
+                    top: -7px !important;
+                }
+            }
+        }
+    }
+    
+    .chat-input-container {
+        .chat-input-wrapper {
+            .ai-blueking-form-content {
+                .ai-blueking-popper {
+                    @extend %popper-base;
+                }
+                .ai-blueking-popper-arrow {
+                    @extend %popper-arrow-base;
+                    border-top: 8px solid #333 !important;
+                    bottom: -5px !important;
+                    left: -5px !important;
+                }
+            }
+        }
+    }
+}
 </style>
