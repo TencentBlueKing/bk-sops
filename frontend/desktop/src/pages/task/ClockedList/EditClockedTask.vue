@@ -267,11 +267,6 @@
                     schemeId
                 },
                 initFormData: {},
-                pickerOptions: {
-                    disabledDate: (date) => {
-                        return this.isDateBeforeToday(date)
-                    }
-                },
                 stringLength: STRING_LENGTH,
                 taskNameRule: {
                     required: true,
@@ -433,6 +428,13 @@
                     }
                 }
                 return new Date().toTimeString().slice(12, 17)
+            },
+            pickerOptions () {
+                return {
+                    disabledDate: (date) => {
+                        return this.isDateBeforeToday(date)
+                    }
+                }
             }
         },
         created () {
@@ -892,6 +894,9 @@
              * @returns {boolean} - 如果日期在今天之前返回 true，否则返回 false
              */
             isDateBeforeToday (date) {
+                if (!date) {
+                    return false
+                }
                 const timezone = window.TIMEZONE || moment.tz.guess()
                 const nowInTimezone = moment().tz(timezone)
                 // 获取时区当前日期的开始时间（00:00:00）
