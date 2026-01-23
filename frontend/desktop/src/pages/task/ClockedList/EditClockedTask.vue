@@ -139,10 +139,10 @@
                             <bk-date-picker
                                 :value="formData.plan_start_time"
                                 :placeholder="`${$t('请选择启动时间')}`"
-                                :options="pickerOptions"
                                 :clearable="false"
                                 data-test-id="clockedList_form_startTime"
                                 :type="'datetime'"
+                                :options="pickerOptions"
                                 @change="onPickerChange">
                             </bk-date-picker>
                             <span class="time-zone">{{ locTimeZone }}</span>
@@ -268,8 +268,8 @@
                 },
                 initFormData: {},
                 pickerOptions: {
-                    disabledDate (date) {
-                        return date.getTime() + 86400000 < Date.now()
+                    disabledDate: (date) => {
+                        return this.isDateBeforeToday(date)
                     }
                 },
                 stringLength: STRING_LENGTH,
@@ -320,9 +320,8 @@
                             trigger: 'blur'
                         },
                         {
-                            validator: (val) => {
-                                const timeStamp = new Date(this.formData.plan_start_time).getTime()
-                                return timeStamp > new Date().getTime()
+                            validator: () => {
+                                return !this.isDateBeforeToday(this.formData.plan_start_time)
                             },
                             message: i18n.t('启动时间不能小于当前时间'),
                             trigger: 'blur'
@@ -886,6 +885,20 @@
             onCancelSave () {
                 this.constants = {}
                 this.$emit('onCloseConfig')
+            },
+            /**
+             * 检查日期是否在项目时区的今天之前
+             * @param {Date|string} date - 要检查的日期
+             * @returns {boolean} - 如果日期在今天之前返回 true，否则返回 false
+             */
+            isDateBeforeToday (date) {
+                const timezone = window.TIMEZONE || moment.tz.guess()
+                const nowInTimezone = moment().tz(timezone)
+                // 获取时区当前日期的开始时间（00:00:00）
+                const todayStart = nowInTimezone.clone().startOf('day')
+                // 将传入的日期也转换到相同时区进行比较
+                const testDate = moment(date).tz(timezone).startOf('day')
+                return testDate.isBefore(todayStart)
             }
         }
     }
