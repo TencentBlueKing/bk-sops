@@ -249,7 +249,7 @@ def scan_periodic_task(is_send_notify: bool = True):
     return data
 
 
-@periodic_task(run_every=(crontab(minute=settings.SYNC_INCREMENTAL_DATA_CRON)))
+@periodic_task(run_every=(crontab(*settings.SYNC_INCREMENTAL_DATA_CRON)))
 def sync_task():
     """
     定时同步数据库数据
