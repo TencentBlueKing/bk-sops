@@ -7,14 +7,10 @@ import json
 import os
 
 import pymysql
+from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
-from pipeline.models import TemplateCurrentVersion
-
-from gcloud.common_template.models import CommonTemplate
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.models import TaskTemplate
 
 
 class Command(BaseCommand):
@@ -24,60 +20,6 @@ class Command(BaseCommand):
         super().__init__()
         # 同步状态文件路径
         self.status_file = "sync_status.json"
-
-        self.sync_tables = [
-            "core_project",
-            "core_business",
-            "core_staffgroupset",
-            "project_constants_projectconstant",
-            "django_celery_beat_crontabschedule",
-            "django_celery_beat_intervalschedule",
-            "django_celery_beat_clockedschedule",
-            "django_celery_beat_periodictask",
-            "label_label",
-            "label_templatelabelrelation",
-            "pipeline_pipelinetemplate",
-            "pipeline_pipelineinstance",
-            "pipeline_snapshot",
-            "pipeline_templateversion",
-            "pipeline_templatecurrentversion",
-            "pipeline_templaterelationship",
-            "pipeline_templatescheme",
-            "pipeline_treeinfo",
-            "taskflow3_taskflowrelation",
-            "taskflow3_taskflowinstance",
-            "tasktmpl3_tasktemplate",
-            "template_commontemplate",
-            "eri_callbackdata",
-            "eri_contextoutputs",
-            "eri_contextvalue",
-            "eri_data",
-            "eri_executiondata",
-            "eri_executionhistory",
-            "eri_logentry",
-            "eri_node",
-            "eri_process",
-            "eri_schedule",
-            "eri_state",
-            "appmaker_appmaker",
-            "clocked_task_clockedtask",
-            "collection_collection",
-            "function_functiontask",
-            "periodictask_periodictask",
-            "periodic_task_periodictask",
-            "files_fileuploadrecord",
-            "files_uploadmodulefiletag",
-            "files_uploadticket",
-            "operate_record_taskoperaterecord",
-            "operate_record_templateoperaterecord",
-            "pipeline_web_core_nodeininstance",
-            "pipeline_web_core_nodeintemplate",
-            "taskflow3_taskcallbackrecord",
-            "taskflow3_autoretrynodestrategy",
-            "taskflow3_timeoutnodeconfig",
-            "periodictask_periodictaskhistory",
-            "periodic_task_periodictaskhistory",
-        ]
 
     def add_arguments(self, parser):
         parser.add_argument("--skip-binary", action="store_true", default=False, help="跳过包含二进制数据的记录，默认不跳过")
@@ -128,8 +70,15 @@ class Command(BaseCommand):
         # 加载同步状态
         sync_status = self.load_sync_status()
 
+        # 从同步状态中获取要同步的表列表
+        sync_tables = list(sync_status.keys())
+        if not sync_tables:
+            self.stdout.write("没有配置要同步的表，请检查sync_status.json文件")
+            source_conn.close()
+            return
+
         # 同步每个表
-        for table_name in self.sync_tables:
+        for table_name in sync_tables:
             self.sync_table(source_conn, table_name, batch_size, sync_status, dry_run)
 
         # 关闭数据库连接
@@ -254,104 +203,60 @@ class Command(BaseCommand):
 
     def get_model_class(self, table_name):
         """根据表名获取对应的Django模型类"""
-        from django_celery_beat.models import ClockedSchedule, CrontabSchedule, IntervalSchedule
-        from django_celery_beat.models import PeriodicTask as DjangoPeriodicTask
-        from pipeline.contrib.periodic_task.models import PeriodicTask, PeriodicTaskHistory
-        from pipeline.eri.models import (
-            CallbackData,
-            ContextOutputs,
-            ContextValue,
-            Data,
-            ExecutionData,
-            ExecutionHistory,
-            LogEntry,
-            Node,
-            Process,
-            Schedule,
-            State,
-        )
-        from pipeline.models import (
-            PipelineInstance,
-            PipelineTemplate,
-            Snapshot,
-            TemplateRelationship,
-            TemplateScheme,
-            TemplateVersion,
-            TreeInfo,
-        )
-
-        from files.models import FileUploadRecord, UploadModuleFileTag, UploadTicket
-        from gcloud.clocked_task.models import ClockedTask
-        from gcloud.contrib.appmaker.models import AppMaker
-        from gcloud.contrib.collection.models import Collection
-        from gcloud.contrib.function.models import FunctionTask
-        from gcloud.contrib.operate_record.models import TaskOperateRecord, TemplateOperateRecord
-        from gcloud.core.models import Business, Project, StaffGroupSet
-        from gcloud.label.models import Label, TemplateLabelRelation
-        from gcloud.periodictask.models import PeriodicTask as SopsPeriodicTask
-        from gcloud.periodictask.models import PeriodicTaskHistory as SopsPeriodicTaskHistory
-        from gcloud.project_constants.models import ProjectConstant
-        from gcloud.taskflow3.models import (
-            AutoRetryNodeStrategy,
-            TaskCallBackRecord,
-            TaskFlowRelation,
-            TimeoutNodeConfig,
-        )
-        from pipeline_web.core.models import NodeInInstance, NodeInTemplate
 
         # 基础模型映射
         table_model_mapping = {
-            "core_project": Project,
-            "core_business": Business,
-            "core_staffgroupset": StaffGroupSet,
-            "taskflow3_taskflowinstance": TaskFlowInstance,
-            "tasktmpl3_tasktemplate": TaskTemplate,
-            "django_celery_beat_clockedschedule": ClockedSchedule,
-            "django_celery_beat_periodictask": DjangoPeriodicTask,
-            "django_celery_beat_intervalschedule": IntervalSchedule,
-            "django_celery_beat_crontabschedule": CrontabSchedule,
-            "eri_callbackdata": CallbackData,
-            "eri_contextoutputs": ContextOutputs,
-            "eri_contextvalue": ContextValue,
-            "eri_data": Data,
-            "eri_executiondata": ExecutionData,
-            "eri_executionhistory": ExecutionHistory,
-            "eri_logentry": LogEntry,
-            "eri_node": Node,
-            "eri_process": Process,
-            "eri_schedule": Schedule,
-            "eri_state": State,
-            "appmaker_appmaker": AppMaker,
-            "clocked_task_clockedtask": ClockedTask,
-            "collection_collection": Collection,
-            "function_functiontask": FunctionTask,
-            "periodictask_periodictask": SopsPeriodicTask,
-            "periodictask_periodictaskhistory": SopsPeriodicTaskHistory,
-            "periodic_task_periodictask": PeriodicTask,
-            "periodic_task_periodictaskhistory": PeriodicTaskHistory,
-            "label_label": Label,
-            "label_templatelabelrelation": TemplateLabelRelation,
-            "operate_record_taskoperaterecord": TaskOperateRecord,
-            "operate_record_templateoperaterecord": TemplateOperateRecord,
-            "pipeline_pipelinetemplate": PipelineTemplate,
-            "pipeline_snapshot": Snapshot,
-            "pipeline_treeinfo": TreeInfo,
-            "pipeline_pipelineinstance": PipelineInstance,
-            "pipeline_templatecurrentversion": TemplateCurrentVersion,
-            "pipeline_templaterelationship": TemplateRelationship,
-            "pipeline_templatescheme": TemplateScheme,
-            "pipeline_templateversion": TemplateVersion,
-            "pipeline_web_core_nodeininstance": NodeInInstance,
-            "pipeline_web_core_nodeintemplate": NodeInTemplate,
-            "project_constants_projectconstant": ProjectConstant,
-            "taskflow3_autoretrynodestrategy": AutoRetryNodeStrategy,
-            "taskflow3_taskcallbackrecord": TaskCallBackRecord,
-            "taskflow3_taskflowrelation": TaskFlowRelation,
-            "taskflow3_timeoutnodeconfig": TimeoutNodeConfig,
-            "files_fileuploadrecord": FileUploadRecord,
-            "files_uploadmodulefiletag": UploadModuleFileTag,
-            "files_uploadticket": UploadTicket,
-            "template_commontemplate": CommonTemplate,
+            "core_project": apps.get_model("core", "Project"),
+            "core_business": apps.get_model("core", "Business"),
+            "core_staffgroupset": apps.get_model("core", "StaffGroupSet"),
+            "taskflow3_taskflowinstance": apps.get_model("taskflow3", "TaskFlowInstance"),
+            "tasktmpl3_tasktemplate": apps.get_model("tasktmpl3", "TaskTemplate"),
+            "django_celery_beat_clockedschedule": apps.get_model("django_celery_beat", "ClockedSchedule"),
+            "django_celery_beat_periodictask": apps.get_model("django_celery_beat", "PeriodicTask"),
+            "django_celery_beat_intervalschedule": apps.get_model("django_celery_beat", "IntervalSchedule"),
+            "django_celery_beat_crontabschedule": apps.get_model("django_celery_beat", "CrontabSchedule"),
+            "eri_callbackdata": apps.get_model("eri", "CallbackData"),
+            "eri_contextoutputs": apps.get_model("eri", "ContextOutputs"),
+            "eri_contextvalue": apps.get_model("eri", "ContextValue"),
+            "eri_data": apps.get_model("eri", "Data"),
+            "eri_executiondata": apps.get_model("eri", "ExecutionData"),
+            "eri_executionhistory": apps.get_model("eri", "ExecutionHistory"),
+            "eri_logentry": apps.get_model("eri", "LogEntry"),
+            "eri_node": apps.get_model("eri", "Node"),
+            "eri_process": apps.get_model("eri", "Process"),
+            "eri_schedule": apps.get_model("eri", "Schedule"),
+            "eri_state": apps.get_model("eri", "State"),
+            "appmaker_appmaker": apps.get_model("appmaker", "AppMaker"),
+            "clocked_task_clockedtask": apps.get_model("clocked_task", "ClockedTask"),
+            "collection_collection": apps.get_model("collection", "Collection"),
+            "function_functiontask": apps.get_model("function", "FunctionTask"),
+            "periodictask_periodictask": apps.get_model("periodictask", "PeriodicTask"),
+            "periodictask_periodictaskhistory": apps.get_model("periodictask", "PeriodicTaskHistory"),
+            "periodic_task_periodictask": apps.get_model("periodic_task", "PeriodicTask"),
+            "periodic_task_periodictaskhistory": apps.get_model("periodic_task", "PeriodicTaskHistory"),
+            "label_label": apps.get_model("label", "Label"),
+            "label_templatelabelrelation": apps.get_model("label", "TemplateLabelRelation"),
+            "operate_record_taskoperaterecord": apps.get_model("operate_record", "TaskOperateRecord"),
+            "operate_record_templateoperaterecord": apps.get_model("operate_record", "TemplateOperateRecord"),
+            "pipeline_pipelinetemplate": apps.get_model("pipeline", "PipelineTemplate"),
+            "pipeline_snapshot": apps.get_model("pipeline", "Snapshot"),
+            "pipeline_treeinfo": apps.get_model("pipeline", "TreeInfo"),
+            "pipeline_pipelineinstance": apps.get_model("pipeline", "PipelineInstance"),
+            "pipeline_templatecurrentversion": apps.get_model("pipeline", "TemplateCurrentVersion"),
+            "pipeline_templaterelationship": apps.get_model("pipeline", "TemplateRelationship"),
+            "pipeline_templatescheme": apps.get_model("pipeline", "TemplateScheme"),
+            "pipeline_templateversion": apps.get_model("pipeline", "TemplateVersion"),
+            "pipeline_web_core_nodeininstance": apps.get_model("pipeline_web_core", "NodeInInstance"),
+            "pipeline_web_core_nodeintemplate": apps.get_model("pipeline_web_core", "NodeInTemplate"),
+            "project_constants_projectconstant": apps.get_model("project_constants", "ProjectConstant"),
+            "taskflow3_autoretrynodestrategy": apps.get_model("taskflow3", "AutoRetryNodeStrategy"),
+            "taskflow3_taskcallbackrecord": apps.get_model("taskflow3", "TaskCallBackRecord"),
+            "taskflow3_taskflowrelation": apps.get_model("taskflow3", "TaskFlowRelation"),
+            "taskflow3_timeoutnodeconfig": apps.get_model("taskflow3", "TimeoutNodeConfig"),
+            "files_fileuploadrecord": apps.get_model("files", "FileUploadRecord"),
+            "files_uploadmodulefiletag": apps.get_model("files", "UploadModuleFileTag"),
+            "files_uploadticket": apps.get_model("files", "UploadTicket"),
+            "template_commontemplate": apps.get_model("template", "CommonTemplate"),
         }
 
         return table_model_mapping.get(table_name)
