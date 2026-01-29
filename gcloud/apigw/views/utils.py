@@ -16,12 +16,12 @@ import logging
 import traceback
 from copy import deepcopy
 
-from gcloud.tasktmpl3.domains import varschema
-from gcloud.utils.dates import format_datetime
-from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
-from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 from pipeline.variable_framework.models import VariableModel
 
+from gcloud.tasktmpl3.domains import varschema
+from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
+from gcloud.utils.dates import format_datetime
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 logger = logging.getLogger("root")  # noqa
 

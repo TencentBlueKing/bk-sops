@@ -32,6 +32,7 @@ from gcloud.apigw.views.get_plugin_list import get_plugin_list
 from gcloud.apigw.views.get_task_count import get_task_count
 from gcloud.apigw.views.get_task_detail import get_task_detail
 from gcloud.apigw.views.get_task_effective_time import get_task_effective_time
+from gcloud.apigw.views.get_task_effective_time_for_inner import get_task_effective_time_for_inner
 from gcloud.apigw.views.get_task_list import get_task_list
 from gcloud.apigw.views.get_task_node_data import get_task_node_data
 from gcloud.apigw.views.get_task_node_detail import get_task_node_detail
@@ -141,4 +142,5 @@ urlpatterns = [
     url(r"^get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time),
     url(r"^get_task_node_log/$", get_task_node_log),
     url(r"^get_task_plugin_log/$", get_task_plugin_log),
+    url(r"^get_task_effective_time_for_inner/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time_for_inner),
 ]
