@@ -34,8 +34,8 @@ TEST_INSTANCE_ID = 100
 TEST_TEMPLATE_ID = "template_123"
 TEST_TASK_TEMPLATE_ID = "task_template_123"
 
-GET_TASK_EFFECTIVE_TIME_TASK_COMMAND_DISPATCHER = "gcloud.apigw.views.get_task_effective_time.TaskCommandDispatcher"
-GET_TASK_EFFECTIVE_TIME_GET_PROJECT_WITH = "gcloud.apigw.views.get_task_effective_time.get_project_with"
+GET_TASK_EFFECTIVE_TIME_TASK_COMMAND_DISPATCHER = "gcloud.apigw.views.utils.TaskCommandDispatcher"
+GET_TASK_EFFECTIVE_TIME_GET_PROJECT_WITH = "gcloud.apigw.views.utils.get_project_with"
 
 
 class GetTaskEffectiveTimeAPITest(APITest):
