@@ -23,7 +23,6 @@ from pipeline.variable_framework.models import VariableModel
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics, TaskflowStatistics
 from gcloud.apigw.utils import get_project_with
-from gcloud.apigw.views.utils import logger
 from gcloud.contrib.operate_record.models import TaskOperateRecord
 from gcloud.core.models import EnvironmentVariables, Project
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
