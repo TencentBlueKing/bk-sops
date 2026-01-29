@@ -18,19 +18,14 @@ from django.views.decorators.http import require_GET
 from gcloud import err_code
 from gcloud.analysis_statistics.service import effective_time_for_task
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, return_json_response
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
+from gcloud.apigw.decorators import return_json_response
 
 
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw()
 @return_json_response
-@mark_request_whether_is_trust
-@iam_intercept(TaskViewInterceptor())
-def get_task_effective_time(request, task_id, bk_biz_id):
+def get_task_effective_time_for_inner(request, task_id, bk_biz_id):
     """
     统计任务的有效执行时间（排除人工节点及其等待时间，以及失败后等待时间）
     """
