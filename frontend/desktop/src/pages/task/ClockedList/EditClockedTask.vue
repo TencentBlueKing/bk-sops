@@ -135,6 +135,12 @@
                                 :show-word-limit="true">
                             </bk-input>
                         </bk-form-item>
+                        <bk-form-item :label="$t('任务时区')" :required="true" property="taskTimezone" data-test-id="clockedEdit_form_taskTimezone">
+                            <TimezonePicker
+                                v-model="localSelectTimezone"
+                                @update:value="handleTimezoneChange"
+                            />
+                        </bk-form-item>
                         <bk-form-item :label="$t('启动时间')" :required="true" property="startTime" data-test-id="clockedEdit_form_startTime">
                             <bk-date-picker
                                 :value="formData.plan_start_time"
@@ -223,12 +229,16 @@
     import NoData from '@/components/common/base/NoData.vue'
     import { formatCanvasData } from '@/utils/checkDataType'
     import moment from 'moment-timezone'
+    import { TimezonePicker } from '@blueking/date-picker/vue2'
+    import '@blueking/date-picker/vue2/vue2.css'
+
     export default {
         components: {
             TaskParamEdit,
             NotifyTypeConfig,
             NodePreview,
-            NoData
+            NoData,
+            TimezonePicker
         },
         mixins: [permission],
         props: {
@@ -359,13 +369,13 @@
                 },
                 flowName: '',
                 isTplDeleted: false, // 旧数据模板是否被删除
-                hasDeleteScheme: false // 是否存在执行方案被删除
+                hasDeleteScheme: false, // 是否存在执行方案被删除
+                localSelectTimezone: window.TIMEZONE
             }
         },
         computed: {
             ...mapState('project', {
-                'projectName': state => state.projectName,
-                'timeZone': state => state.timezone
+                'projectName': state => state.projectName
             }),
             ...mapState({
                 'infoBasicConfig': state => state.infoBasicConfig
@@ -373,7 +383,7 @@
             sameTimeStamp () {
                 const initTimeStamp = new Date(this.curRow.plan_start_time).getTime()
                 const curTimeStamp = new Date(this.formData.plan_start_time).getTime()
-                return initTimeStamp === curTimeStamp
+                return initTimeStamp === curTimeStamp && window.TIMEZONE === this.localSelectTimezone
             },
             sideSliderTitle () {
                 return this.type === 'edit' ? i18n.t('编辑计划任务')
@@ -424,9 +434,9 @@
             },
             locTimeZone () {
                 // 使用全局变量 window.TIMEZONE，如果没有则使用浏览器本地时区
-                if (window.TIMEZONE) {
+                if (this.localSelectTimezone) {
                     try {
-                        const offset = moment().tz(window.TIMEZONE).format('ZZ')
+                        const offset = moment().tz(this.localSelectTimezone).format('ZZ')
                         return offset
                     } catch (e) {
                         console.warn(e)
@@ -886,6 +896,26 @@
             onCancelSave () {
                 this.constants = {}
                 this.$emit('onCloseConfig')
+            },
+            /**
+             * 检查日期是否在项目时区的今天之前
+             * @param {Date|string} date - 要检查的日期
+             * @returns {boolean} - 如果日期在今天之前返回 true，否则返回 false
+             */
+            isDateBeforeToday (date) {
+                if (!date) {
+                    return false
+                }
+                const timezone = this.localSelectTimezone || moment.tz.guess()
+                // 将两个日期都转换到UTC进行比较，避免时区转换的日期偏移
+                const todayInSelectedTimezone = moment().tz(timezone).startOf('day')
+                const todayUTC = moment.utc(todayInSelectedTimezone.format('YYYY-MM-DD')).startOf('day')
+                const testDateUTC = moment.utc(moment(date).format('YYYY-MM-DD')).startOf('day')
+                const isBeforeToday = testDateUTC.isBefore(todayUTC)
+                return isBeforeToday
+            },
+            handleTimezoneChange (value) {
+                this.localSelectTimezone = value
             }
         }
     }
