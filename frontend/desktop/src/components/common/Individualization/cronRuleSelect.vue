@@ -126,7 +126,7 @@
                 }
             },
             timezone: {
-                handler (val, olaVal) {
+                handler (val) {
                     this.curTimezone = val
                     this.checkAndTranslate(this.nativeValue)
                 },
